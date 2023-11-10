@@ -10,7 +10,7 @@ function layout(ccp, _P)
     local bp = pcell.get_parameters("basic/mosfet")
     pcell.push_overwrites("basic/mosfet", {
         fingers = 4,
-        fwidth = 500,
+        fingerwidth = 500,
         gatelength = 100,
         drawtopgate = true,
         topgatestrwidth = _P.connwidth,

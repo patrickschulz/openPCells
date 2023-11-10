@@ -23,8 +23,8 @@ function parameters()
         { "mosfetmarker(MOSFET Marking Layer Index)",                               1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers the active region. This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first gate marker should be an empty layer" },
         { "mosfetmarkeralignatsourcedrain(Align MOSFET Marker at Source/Drain)",    false, info = "set reference points for mosfetmarker extensions. If this is false, the mosfetmarker extensions are autmatically calculated so that the mosfetmarker covers all gates. With this option enabled, the mosfetmarker extensions are referenced to the active region. This is useful for having precise control over the mosfetmarker extensions in mosfet arrays with varying gate heights"  },
         { "flippedwell(Flipped Well)",                                              false, info = "enable if the device is a flipped-well device. The wells are inferred from the channeltype: non-flipped-well: pmos -> n-well, nmos -> p-well and vice versa" },
-        { "fingers(Number of Fingers)",                                             1, argtype = "integer", posvals = interval(0, inf), info = "number of gate fingers. The total width of the device is fwidth * fingers" },
-        { "fwidth(Finger Width)",                                                   technology.get_dimension("Minimum Gate Width"), argtype = "integer", info = "gate finger width. The total width of the device is fwidth * finger" },
+        { "fingers(Number of Fingers)",                                             1, argtype = "integer", posvals = interval(0, inf), info = "number of gate fingers. The total width of the device is fingerwidth * fingers" },
+        { "fingerwidth(Finger Width)",                                                   technology.get_dimension("Minimum Gate Width"), argtype = "integer", info = "gate finger width. The total width of the device is fingerwidth * finger" },
         { "gatelength(Gate Length)",                                                technology.get_dimension("Minimum Gate Length"), argtype = "integer", info = "drawn gate length (channel length)" },
         { "gatespace(Gate Spacing)",                                                technology.get_dimension("Minimum Gate XSpace"), argtype = "integer", info = "gate space between the polysilicon lines" },
         { "actext(Active Extension)",                                               0, info = "left/right active extension. This is added to the calculated width of the active regions, dependent on the number of gates, the finger widths, gate spacing and left/right dummy devices" },
@@ -70,13 +70,13 @@ function parameters()
         { "simulatemissinggatecut",                                                 false, info = "Draw the gates with gate cuts as if the technology had no gate cuts (this splits the gates). This is only useful for technologies that support gate cuts." },
         { "drawsourcedrain(Draw Source/Drain Contacts)",                            "both", posvals = set("both", "source", "drain", "none"), info = "Control which source/drain contacts are drawn. The possible values are 'both' (source and drain), 'source', 'drain' or 'none'. More fine-grained control can be obtained by the parameter 'excludesourcedraincontacts'." },
         { "excludesourcedraincontacts(Exclude Source/Drain Contacts)",              {}, argtype = "table", "Define which source/drain contacts get drawn. Set 'drawsourcedrain' to 'both' to use this effectively. The argument to this parameter should be a table with numeric indices. The source/drain regions are enumerated with the left-most starting at 1." },
-        { "sourcesize(Source Size)",                                                technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth", info = "Size of the source contact regions. This parameter follows 'fwidth', so per default the contact regions have the width of a transistor finger. For 'sourcesize', only values between 0 and 'fwidth' are allowed. If the size is smaller than 'fwidth', the source contact alignment ('sourcealign') is relevant." },
+        { "sourcesize(Source Size)",                                                technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fingerwidth", info = "Size of the source contact regions. This parameter follows 'fingerwidth', so per default the contact regions have the width of a transistor finger. For 'sourcesize', only values between 0 and 'fingerwidth' are allowed. If the size is smaller than 'fingerwidth', the source contact alignment ('sourcealign') is relevant." },
         { "sourceviasize(Source Via Size)",                                         technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize", info = "Same as 'sourcesize', but for source vias." },
-        { "drainsize(Drain Size)",                                                  technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth", info = "Size of the drain contact regions. This parameter follows 'fwidth', so per default the contact regions have the width of a transistor finger. For 'drainsize', only values between 0 and 'fwidth' are allowed., If the size is smaller than 'fwidth', the drain contact alignment ('drainalign') is relevant." },
+        { "drainsize(Drain Size)",                                                  technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fingerwidth", info = "Size of the drain contact regions. This parameter follows 'fingerwidth', so per default the contact regions have the width of a transistor finger. For 'drainsize', only values between 0 and 'fingerwidth' are allowed., If the size is smaller than 'fingerwidth', the drain contact alignment ('drainalign') is relevant." },
         { "drainviasize(Drain Via Size)",                                           technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize", info = "Same as 'drainsize', but for drain vias." },
-        { "sourcealign(Source Alignment)",                                          "bottom", posvals = set("top", "bottom"), info = "Alignment of the source contacts. Only relevant when source contacts are smaller than 'fwidth' (see 'sourcesize'). Possible values: 'top' (source contacts grow down from the top into the active region) and 'bottom' (source contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
+        { "sourcealign(Source Alignment)",                                          "bottom", posvals = set("top", "bottom"), info = "Alignment of the source contacts. Only relevant when source contacts are smaller than 'fingerwidth' (see 'sourcesize'). Possible values: 'top' (source contacts grow down from the top into the active region) and 'bottom' (source contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
         { "sourceviaalign(Source Via Alignment)",                                   "bottom", posvals = set("top", "bottom"), follow = "sourcealign" },
-        { "drainalign(Drain Alignment)",                                            "top", posvals = set("top", "bottom"), info = "Alignment of the drain contacts. Only relevant when drain contacts are smaller than 'fwidth' (see 'drainsize'). Possible values: 'top' (drain contacts grow down from the top into the active region) and 'bottom' (drain contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
+        { "drainalign(Drain Alignment)",                                            "top", posvals = set("top", "bottom"), info = "Alignment of the drain contacts. Only relevant when drain contacts are smaller than 'fingerwidth' (see 'drainsize'). Possible values: 'top' (drain contacts grow down from the top into the active region) and 'bottom' (drain contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
         { "drainviaalign(Drain Via Alignment)",                                     "top", posvals = set("top", "bottom"), follow = "drainalign", info = "Same as 'drainalign' for drain vias." },
         { "drawsourcevia(Draw Source Via)",                                         true, info = "Draw required vias from metal 1 to the source metal. Only useful when 'sourcemetal' is not 1." },
         { "drawfirstsourcevia(Draw First Source Via)",                              true, info = "Draw a via on the first source region (counted from the left). This switch can be useful when connecting dummies to other devices." },
@@ -216,16 +216,16 @@ function check(_P)
         return false, "sdmetalwidth must not be smaller than sdviawidth"
     end
     if _P.sourcesize < 0 then
-        return false, string.format("sourcesize (%d) can not be negative or larger than 'fwidth' (%d)", _P.sourcesize, _P.fwidth)
+        return false, string.format("sourcesize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.sourcesize, _P.fingerwidth)
     end
     if _P.drainsize < 0 then
-        return false, string.format("drainsize (%d) can not be negative or larger than 'fwidth' (%d)", _P.drainsize, _P.fwidth)
+        return false, string.format("drainsize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.drainsize, _P.fingerwidth)
     end
     if _P.sourceviasize < 0 then
-        return false, string.format("sourceviasize (%d) can not be negative or larger than 'fwidth' (%d)", _P.sourceviasize, _P.fwidth)
+        return false, string.format("sourceviasize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.sourceviasize, _P.fingerwidth)
     end
     if _P.drainviasize < 0 then
-        return false, string.format("drainviasize (%d) can not be negative or larger than 'fwidth' (%d)", _P.drainviasize, _P.fwidth)
+        return false, string.format("drainviasize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.drainviasize, _P.fingerwidth)
     end
     if _P.shortdevice and ((_P.sourcesize % 2) ~= (_P.sdwidth % 2)) then
         return false, "gatespace and sdwidth must both be even or odd when shortdevice is true"
@@ -282,16 +282,16 @@ function layout(transistor, _P)
     if _P.drawactive then
         geometry.rectanglebltr(transistor, generics.other("active"),
             point.create(-leftactauxext, 0),
-            point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fwidth)
+            point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth)
         )
         transistor:add_area_anchor_bltr("active",
             point.create(-leftactauxext, 0),
-            point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fwidth)
+            point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth)
         )
         if _P.drawtopactivedummy then
             geometry.rectanglebltr(transistor, generics.other("active"),
-                point.create(-leftactauxext, _P.fwidth + _P.topactivedummysep),
-                point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fwidth + _P.topactivedummysep + _P.topactivedummywidth)
+                point.create(-leftactauxext, _P.fingerwidth + _P.topactivedummysep),
+                point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth + _P.topactivedummysep + _P.topactivedummywidth)
             )
         end
         if _P.drawbotactivedummy then
@@ -308,7 +308,7 @@ function layout(transistor, _P)
     local gateblx = leftactext + _P.leftfloatingdummies * gatepitch
     local gatebly = -gateaddbot
     local gatetrx = gateblx + _P.gatelength
-    local gatetry = _P.fwidth + gateaddtop
+    local gatetry = _P.fingerwidth + gateaddtop
 
     if hasgatecut then
         -- gate cut
@@ -317,11 +317,11 @@ function layout(transistor, _P)
                 generics.other("gatecut"),
                 point.create(
                     gateblx - _P.topgatecutleftext,
-                    _P.fwidth + _P.topgatecutspace
+                    _P.fingerwidth + _P.topgatecutspace
                 ),
                 point.create(
                     gatetrx + (_P.fingers - 1) * gatepitch + _P.topgatecutrightext,
-                    _P.fwidth + _P.topgatecutspace + _P.topgatecutwidth
+                    _P.fingerwidth + _P.topgatecutspace + _P.topgatecutwidth
                 )
             )
         end
@@ -340,7 +340,7 @@ function layout(transistor, _P)
         end
     else -- not hasgatecut
         if _P.drawtopgatecut then
-            gatetry = _P.fwidth + _P.topgatecutspace
+            gatetry = _P.fingerwidth + _P.topgatecutspace
         end
         if _P.drawbotgatecut then
             gatebly = -_P.botgatecutspace
@@ -419,13 +419,13 @@ function layout(transistor, _P)
             geometry.rectanglebltr(transistor,
                 generics.other(string.format("mosfetmarker%d", _P.mosfetmarker)),
                 point.create(0, 0),
-                point.create(_P.fingers * gatepitch, _P.fwidth)
+                point.create(_P.fingers * gatepitch, _P.fingerwidth)
             )
         else
             geometry.rectanglebltr(transistor,
                 generics.other(string.format("mosfetmarker%d", _P.mosfetmarker)),
                 point.create(leftactext, 0),
-                point.create(leftactext + _P.fingers * gatepitch - _P.gatespace,  _P.fwidth)
+                point.create(leftactext + _P.fingers * gatepitch - _P.gatespace,  _P.fingerwidth)
             )
         end
     end
@@ -478,16 +478,16 @@ function layout(transistor, _P)
         local bly = gatebly
         local try = gatetry
         if _P.drawstopgatetopgatecut then
-            try = _P.fwidth + _P.topgatecutspace
+            try = _P.fingerwidth + _P.topgatecutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
                     gateblx - (_P.leftfloatingdummies + 1) * gatepitch - _P.topgatecutleftext,
-                    _P.fwidth + _P.topgatecutspace
+                    _P.fingerwidth + _P.topgatecutspace
                 ),
                 point.create(
                     gatetrx - (_P.leftfloatingdummies + 1) * gatepitch + _P.topgatecutrightext,
-                    _P.fwidth + _P.topgatecutspace + _P.topgatecutwidth
+                    _P.fingerwidth + _P.topgatecutspace + _P.topgatecutwidth
                 )
             )
         end
@@ -520,16 +520,16 @@ function layout(transistor, _P)
         local bly = gatebly
         local try = gatetry
         if _P.drawstopgatetopgatecut then
-            try = _P.fwidth + _P.topgatecutspace
+            try = _P.fingerwidth + _P.topgatecutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
                     gateblx + (_P.fingers + _P.rightfloatingdummies) * gatepitch - _P.topgatecutleftext,
-                    _P.fwidth + _P.topgatecutspace
+                    _P.fingerwidth + _P.topgatecutspace
                 ),
                 point.create(
                     gatetrx + (_P.fingers + _P.rightfloatingdummies) * gatepitch + _P.topgatecutrightext,
-                    _P.fwidth + _P.topgatecutspace + _P.topgatecutwidth
+                    _P.fingerwidth + _P.topgatecutspace + _P.topgatecutwidth
                 )
             )
         end
@@ -600,7 +600,7 @@ function layout(transistor, _P)
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendvthtyperight or
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendvthtyperight,
             _P.vthtypealigntopwithactive and
-                _P.fwidth + _P.extendvthtypetop or
+                _P.fingerwidth + _P.extendvthtypetop or
                 gatetry + _P.extendvthtypetop
         )
     )
@@ -621,7 +621,7 @@ function layout(transistor, _P)
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright or
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright,
             _P.implantaligntopwithactive and
-                _P.fwidth + _P.extendimplanttop or
+                _P.fingerwidth + _P.extendimplanttop or
                 gatetry + _P.extendimplanttop
         )
     )
@@ -642,7 +642,7 @@ function layout(transistor, _P)
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendoxideright or
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendoxideright,
             _P.oxidetypealigntopwithactive and
-                _P.fwidth + _P.extendoxidetop or
+                _P.fingerwidth + _P.extendoxidetop or
                 gatetry + _P.extendoxidetop
         )
     )
@@ -652,7 +652,7 @@ function layout(transistor, _P)
         geometry.rectanglebltr(transistor,
             generics.other("rotationmarker"),
             point.create(-leftactauxext - _P.extendrotationmarkerleft, -_P.extendrotationmarkerbottom),
-            point.create(activewidth + leftactext + rightactext + rightactauxext + _P.extendrotationmarkerright, _P.fwidth + _P.extendrotationmarkertop)
+            point.create(activewidth + leftactext + rightactext + rightactauxext + _P.extendrotationmarkerright, _P.fingerwidth + _P.extendrotationmarkertop)
         )
     end
 
@@ -666,7 +666,7 @@ function layout(transistor, _P)
             ),
             point.create(
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
-                _P.fwidth + _P.extendlvsmarkertop
+                _P.fingerwidth + _P.extendlvsmarkertop
             )
         )
     else
@@ -690,7 +690,7 @@ function layout(transistor, _P)
     )
     local welltr = point.create(
         activewidth + leftactext + rightactext + rightactauxext + _P.extendwellright,
-        _P.fwidth + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
+        _P.fingerwidth + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
     )
     if _P.drawwell then
         geometry.rectanglebltr(transistor,
@@ -711,7 +711,7 @@ function layout(transistor, _P)
             height = _P.topwelltapwidth,
         }):translate(
             (_P.topwelltapextendright - _P.topwelltapextendleft) / 2,
-            _P.fwidth + _P.topwelltapspace
+            _P.fingerwidth + _P.topwelltapspace
         ))
     end
     if _P.drawbotwelltap then
@@ -721,7 +721,7 @@ function layout(transistor, _P)
             height = _P.botwelltapwidth,
         }):translate(
             (_P.topwelltapextendright - _P.topwelltapextendleft) / 2,
-            _P.fwidth + _P.topwelltapspace
+            _P.fingerwidth + _P.topwelltapspace
         ))
     end
 
@@ -731,7 +731,7 @@ function layout(transistor, _P)
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             ringwidth = _P.guardringwidth,
             holewidth = activewidth + leftactauxext + leftactext + rightactext + rightactauxext + 2 * _P.guardringxsep,
-            holeheight = _P.fwidth + 2 * _P.guardringysep,
+            holeheight = _P.fingerwidth + 2 * _P.guardringysep,
             fillwell = true,
             drawsegments = _P.guardringsegments,
             fillwell = _P.guardringfillwell,
@@ -756,18 +756,18 @@ function layout(transistor, _P)
             local contactfun = _P.drawtopgatestrap and geometry.contactbarebltr or geometry.contactbltr
             contactfun(transistor,
                 "gate",
-                point.create(gateblx + (i - 1) * gatepitch, _P.fwidth + _P.topgatespace),
-                point.create(gatetrx + (i - 1) * gatepitch, _P.fwidth + _P.topgatespace + _P.topgatewidth)
+                point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
+                point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth)
             )
             transistor:add_area_anchor_bltr(string.format("topgate%d", i),
-                point.create(gateblx + (i - 1) * gatepitch, _P.fwidth + _P.topgatespace),
-                point.create(gatetrx + (i - 1) * gatepitch, _P.fwidth + _P.topgatespace + _P.topgatewidth)
+                point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
+                point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth)
             )
         end
     end
     if _P.fingers > 0 and _P.drawtopgatestrap then
-        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.topgateleftextension, _P.fwidth + _P.topgatespace)
-        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.topgaterightextension, _P.fwidth + _P.topgatespace + _P.topgatewidth)
+        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.topgateleftextension, _P.fingerwidth + _P.topgatespace)
+        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.topgaterightextension, _P.fingerwidth + _P.topgatespace + _P.topgatewidth)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
         if _P.drawtopgatevia and _P.topgatemetal > 1 then
@@ -810,10 +810,10 @@ function layout(transistor, _P)
     local sdmetalshift = (_P.sdmetalwidth - _P.sdwidth) / 2
 
     -- source/drain contacts and vias
-    local sourceoffset = _P.sourcealign == "top" and _P.fwidth - _P.sourcesize or 0
-    local sourceviaoffset = _P.sourceviaalign == "top" and _P.fwidth - _P.sourceviasize or 0
-    local drainoffset = _P.drainalign == "top" and _P.fwidth - _P.drainsize or 0
-    local drainviaoffset = _P.drainviaalign == "top" and _P.fwidth - _P.drainviasize or 0
+    local sourceoffset = _P.sourcealign == "top" and _P.fingerwidth - _P.sourcesize or 0
+    local sourceviaoffset = _P.sourceviaalign == "top" and _P.fingerwidth - _P.sourceviasize or 0
+    local drainoffset = _P.drainalign == "top" and _P.fingerwidth - _P.drainsize or 0
+    local drainviaoffset = _P.drainviaalign == "top" and _P.fingerwidth - _P.drainviasize or 0
     if _P.drawsourcedrain ~= "none" then
         -- source
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "source" then
@@ -927,11 +927,11 @@ function layout(transistor, _P)
         for i = 1, _P.fingers + 1, 2 do
             local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sdmetalshift
             if sourceinvert then
-                if sourceoffset + _P.sourcesize < _P.fwidth + _P.connectsourcespace then -- don't draw connections if they are malformed
+                if sourceoffset + _P.sourcesize < _P.fingerwidth + _P.connectsourcespace then -- don't draw connections if they are malformed
                     if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
                             point.create(shift, sourceoffset + _P.sourcesize),
-                            point.create(shift + _P.sdmetalwidth, _P.fwidth + _P.connectsourcespace)
+                            point.create(shift + _P.sdmetalwidth, _P.fingerwidth + _P.connectsourcespace)
                         )
                     end
                 end
@@ -955,11 +955,11 @@ function layout(transistor, _P)
                     end
                 end
                 if _P.connectsourceboth then
-                    if sourceoffset + _P.sourcesize < _P.fwidth + _P.connectsourceotherspace then -- don't draw connections if they are malformed
+                    if sourceoffset + _P.sourcesize < _P.fingerwidth + _P.connectsourceotherspace then -- don't draw connections if they are malformed
                         if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                             geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
                                 point.create(shift, sourceoffset + _P.sourcesize),
-                                point.create(shift + _P.sdmetalwidth, _P.fwidth + _P.connectsourceotherspace)
+                                point.create(shift + _P.sdmetalwidth, _P.fingerwidth + _P.connectsourceotherspace)
                             )
                         end
                     end
@@ -976,7 +976,7 @@ function layout(transistor, _P)
             local bly
             if _P.channeltype == "nmos" then
                 if _P.connectsourceinverse then
-                    bly = _P.fwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
+                    bly = _P.fingerwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
                 else
                     bly = _P.connectsourceinlineoffset
                 end
@@ -984,7 +984,7 @@ function layout(transistor, _P)
                 if _P.connectsourceinverse then
                     bly = _P.connectsourceinlineoffset
                 else
-                    bly = _P.fwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
+                    bly = _P.fingerwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
                 end
             end
             if _P.drawsourcestrap then
@@ -1001,18 +1001,18 @@ function layout(transistor, _P)
             local bly1, bly2
             if _P.channeltype == "nmos" then
                 if _P.connectsourceinverse then
-                    bly1 = _P.fwidth + _P.connectsourcespace
+                    bly1 = _P.fingerwidth + _P.connectsourcespace
                     bly2 = -_P.connectsourceotherspace - _P.connectsourceotherwidth
                 else
                     bly1 = -_P.connectsourcespace - _P.connectsourcewidth
-                    bly2 = _P.fwidth + _P.connectsourceotherspace
+                    bly2 = _P.fingerwidth + _P.connectsourceotherspace
                 end
             else
                 if _P.connectsourceinverse then
                     bly1 = -_P.connectsourcespace - _P.connectsourcewidth
-                    bly2 = _P.fwidth + _P.connectsourceotherspace
+                    bly2 = _P.fingerwidth + _P.connectsourceotherspace
                 else
-                    bly1 = _P.fwidth + _P.connectsourcespace
+                    bly1 = _P.fingerwidth + _P.connectsourcespace
                     bly2 = -_P.connectsourceotherspace - _P.connectsourceotherwidth
                 end
             end
@@ -1070,21 +1070,21 @@ function layout(transistor, _P)
                     end
                 end
                 if _P.connectdrainboth then
-                    if conndrainoffset + conndraintop < _P.fwidth + _P.connectdrainotherspace then -- don't draw connections if they are malformed
+                    if conndrainoffset + conndraintop < _P.fingerwidth + _P.connectdrainotherspace then -- don't draw connections if they are malformed
                        if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                             geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
                                 point.create(shift, conndrainoffset + conndraintop),
-                                point.create(shift + _P.sdmetalwidth, _P.fwidth + _P.connectdrainotherspace)
+                                point.create(shift + _P.sdmetalwidth, _P.fingerwidth + _P.connectdrainotherspace)
                             )
                         end
                     end
                 end
             else
-                if conndrainoffset + conndraintop < _P.fwidth + _P.connectdrainspace then -- don't draw connections if they are malformed
+                if conndrainoffset + conndraintop < _P.fingerwidth + _P.connectdrainspace then -- don't draw connections if they are malformed
                    if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
                             point.create(shift, conndrainoffset + conndraintop),
-                            point.create(shift + _P.sdmetalwidth, _P.fwidth + _P.connectdrainspace)
+                            point.create(shift + _P.sdmetalwidth, _P.fingerwidth + _P.connectdrainspace)
                         )
                     end
                 end
@@ -1112,11 +1112,11 @@ function layout(transistor, _P)
                 if _P.connectdraininverse then
                     bly = _P.connectdraininlineoffset
                 else
-                    bly = _P.fwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
+                    bly = _P.fingerwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
                 end
             else
                 if _P.connectdraininverse then
-                    bly = _P.fwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
+                    bly = _P.fingerwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
                 else
                     bly = _P.connectdraininlineoffset
                 end
@@ -1136,18 +1136,18 @@ function layout(transistor, _P)
             if _P.channeltype == "nmos" then
                 if _P.connectdraininverse then
                     bly1 = -_P.connectdrainspace - _P.connectdrainwidth
-                    bly2 = _P.fwidth + _P.connectdrainotherspace
+                    bly2 = _P.fingerwidth + _P.connectdrainotherspace
                 else
-                    bly1 = _P.fwidth + _P.connectdrainspace
+                    bly1 = _P.fingerwidth + _P.connectdrainspace
                     bly2 = -_P.connectdrainotherspace - _P.connectdrainotherwidth
                 end
             else
                 if _P.connectdraininverse then
-                    bly1 = _P.fwidth + _P.connectdrainspace
+                    bly1 = _P.fingerwidth + _P.connectdrainspace
                     bly2 = -_P.connectdrainotherspace - _P.connectdrainotherwidth
                 else
                     bly1 = -_P.connectdrainspace - _P.connectdrainwidth
-                    bly2 = _P.fwidth + _P.connectdrainotherspace
+                    bly2 = _P.fingerwidth + _P.connectdrainotherspace
                 end
             end
             if _P.drawdrainstrap then
@@ -1197,13 +1197,13 @@ function layout(transistor, _P)
         local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 + (_P.extrabotstrapleftalign - 1) * gatepitch
         local trx = blx + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
         geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
-            point.create(blx, _P.fwidth + _P.extratopstrapspace),
-            point.create(trx, _P.fwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
+            point.create(blx, _P.fingerwidth + _P.extratopstrapspace),
+            point.create(trx, _P.fingerwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
         )
         -- anchors
         transistor:add_area_anchor_bltr("extratopstrap",
-            point.create(blx, _P.fwidth + _P.extratopstrapspace),
-            point.create(trx, _P.fwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
+            point.create(blx, _P.fingerwidth + _P.extratopstrapspace),
+            point.create(trx, _P.fingerwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
         )
     end
 
@@ -1246,7 +1246,7 @@ function layout(transistor, _P)
         local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
         transistor:add_area_anchor_bltr(string.format("sourcedrainactive%d", i),
             point.create(shift, 0),
-            point.create(shift + _P.sdwidth, _P.fwidth)
+            point.create(shift + _P.sdwidth, _P.fingerwidth)
         )
     end
 
@@ -1256,9 +1256,9 @@ function layout(transistor, _P)
     else
         transistor:set_alignment_box(
             point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2, 0),
-            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch, _P.fwidth),
+            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch, _P.fingerwidth),
             point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + _P.sdwidth, 0),
-            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch + _P.sdwidth, _P.fwidth)
+            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch + _P.sdwidth, _P.fingerwidth)
         )
     end
 

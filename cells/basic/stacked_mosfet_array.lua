@@ -88,7 +88,7 @@ function layout(cell, _P)
                     flippedwell = row.flippedwell,
                     gatelength = row.gatelength,
                     gatespace = row.gatespace,
-                    fwidth = row.width,
+                    fingerwidth = row.width,
                     fingers = device.fingers,
                     oxidetype = row.oxidetype,
                     oxidetypealignwithactive = not _P.splitgates or row.oxidetypealignwithactive,

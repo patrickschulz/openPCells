@@ -48,14 +48,14 @@ function layout(tgate, _P)
     local pmos = pcell.create_layout("basic/mosfet", "pmos", {
         channeltype = "pmos",
         fingers = _P.fingers,
-        fwidth = _P.pwidth,
+        fingerwidth = _P.pwidth,
         vthtype = _P.pmosvthtype,
         flippedwell = _P.pmosflippedwell,
     })
     local nmos = pcell.create_layout("basic/mosfet", "nmos", {
         channeltype = "nmos",
         fingers = _P.fingers,
-        fwidth = _P.nwidth,
+        fingerwidth = _P.nwidth,
         vthtype = _P.nmosvthtype,
         flippedwell = _P.nmosflippedwell,
     })

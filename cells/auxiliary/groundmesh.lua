@@ -201,8 +201,8 @@ function layout(mesh, _P)
         end
 
         local foffset = 100
-        local fwidth = 50
-        local fspace = 50
+        local fingerwidth = 50
+        local fingerspace = 50
         local flippolarity = true
         if _P.flavour == "cap" then
             if _P.drawmoscap then
@@ -220,7 +220,7 @@ function layout(mesh, _P)
                 local capfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[1] - 2 * _P.moscapxspace) / (2 * (_P.moscapgatelength + _P.moscapgatespace)))
                 local moscap = pcell.create_layout("basic/mosfet", "moscap", {
                     fingers = capfingers,
-                    fwidth = (_P.cellsize - 3 * _P.metalwidths[1]) / 2 - 2 * _P.moscapyspace,
+                    fingerwidth = (_P.cellsize - 3 * _P.metalwidths[1]) / 2 - 2 * _P.moscapyspace,
                     gatelength = _P.moscapgatelength,
                     gatespace = _P.moscapgatespace,
                     drawbotgate = true,
@@ -262,17 +262,17 @@ function layout(mesh, _P)
                 if _P.meshmetals[i] == _P.interconnectmetal then
                     break
                 end
-                local nfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i] - 2 * _P.capspace[i]) / (2 * (fwidth + fspace)))
-                local capwidth = nfingers * fwidth + (nfingers - 1) * fspace
+                local nfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i] - 2 * _P.capspace[i]) / (2 * (fingerwidth + fingerspace)))
+                local capwidth = nfingers * fingerwidth + (nfingers - 1) * fingerspace
                 if not (_P.meshmetals[i] == 1 or _P.meshmetals[i] == 2) then
                     local topcap = pcell.create_layout("passive/capacitor/mom", "topcap", {
                         firstmetal = _P.meshmetals[i], lastmetal = _P.meshmetals[i],
                         fingers = nfingers,
-                        fwidth = fwidth,
-                        fspace = fspace,
-                        foffset = foffset,
-                        rwidth = _P.metalwidths[i],
-                        fheight = _P.cellsize / 2 - _P.metalwidths[i] / 2 - _P.metalwidths[i] - 2 * foffset,
+                        fingerwidth = fingerwidth,
+                        fingerspace = fingerspace,
+                        fingeroffset = foffset,
+                        railwidth = _P.metalwidths[i],
+                        fingerheight = _P.cellsize / 2 - _P.metalwidths[i] / 2 - _P.metalwidths[i] - 2 * foffset,
                         alternatingpolarity = alternatingpolarity,
                         flippolarity = flippolarity,
                     })
@@ -295,8 +295,8 @@ function layout(mesh, _P)
                             point.create( _P.metalwidths[#_P.meshmetals + 2] / 2,  viaheight / 2)
                         )
                     elseif _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
-                        local nfingersnext = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i + 1] - 2 * _P.capspace[i]) / (2 * (fwidth + fspace)))
-                        local capwidthnext = nfingersnext * fwidth + (nfingersnext - 1) * fspace
+                        local nfingersnext = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i + 1] - 2 * _P.capspace[i]) / (2 * (fingerwidth + fingerspace)))
+                        local capwidthnext = nfingersnext * fingerwidth + (nfingersnext - 1) * fingerspace
                         local viawidth = math.min(capwidth, capwidthnext)
                         local viaheight = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
                         geometry.viabltr(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,

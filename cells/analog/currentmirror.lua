@@ -10,7 +10,7 @@ end
 
 function layout(currentmirror, _P)
     pcell.push_overwrites("basic/mosfet", {
-        fwidth = 500,
+        fingerwidth = 500,
         connectsource = true,
         connsourcewidth = 200,
         connsourcespace = 100,

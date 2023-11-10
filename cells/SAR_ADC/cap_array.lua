@@ -10,8 +10,8 @@ function layout(cap_array, _P)
     -- unit cap
     local capref = pcell.create_layout("passive/capacitor/mom", "unit_capacitor", {
         fingers = 11,
-        fwidth = 44,
-        fspace = 46,
+        fingerwidth = 44,
+        fingerspace = 46,
     })
 
     -- basic array
