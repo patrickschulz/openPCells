@@ -1725,14 +1725,14 @@ void object_alignment_box_include_point(struct object* cell, const point_t* pt)
         coordinate_t sinnerbly = cell->alignmentbox[5];
         coordinate_t sinnertrx = cell->alignmentbox[6];
         coordinate_t sinnertry = cell->alignmentbox[7];
-        coordinate_t outerblx = min(point_getx(pt), souterblx);
-        coordinate_t outerbly = min(point_gety(pt), souterbly);
-        coordinate_t outertrx = max(point_getx(pt), soutertrx);
-        coordinate_t outertry = max(point_gety(pt), soutertry);
-        coordinate_t innerblx = min(point_getx(pt), sinnerblx);
-        coordinate_t innerbly = min(point_gety(pt), sinnerbly);
-        coordinate_t innertrx = max(point_getx(pt), sinnertrx);
-        coordinate_t innertry = max(point_gety(pt), sinnertry);
+        coordinate_t outerblx = min(x, souterblx);
+        coordinate_t outerbly = min(y, souterbly);
+        coordinate_t outertrx = max(x, soutertrx);
+        coordinate_t outertry = max(y, soutertry);
+        coordinate_t innerblx = min(x, sinnerblx);
+        coordinate_t innerbly = min(y, sinnerbly);
+        coordinate_t innertrx = max(x, sinnertrx);
+        coordinate_t innertry = max(y, sinnertry);
         object_set_alignment_box(cell, outerblx, outerbly, outertrx, outertry, innerblx, innerbly, innertrx, innertry);
     }
     else
