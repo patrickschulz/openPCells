@@ -400,7 +400,8 @@ static void _draw_alignmentbox_single(struct object* cell, struct technology_sta
         point_t* outertr = object_get_alignmentbox_anchor_outertr(cell);
         point_t* innerbl = object_get_alignmentbox_anchor_innerbl(cell);
         point_t* innertr = object_get_alignmentbox_anchor_innertr(cell);
-        geometry_unequal_ring_pts(cell, generics_create_special(techstate), outerbl, outertr, innerbl, innertr);
+        geometry_rectanglebltr(cell, generics_create_special(techstate), outerbl, outertr);
+        geometry_rectanglebltr(cell, generics_create_special(techstate), innerbl, innertr);
         point_destroy(outerbl);
         point_destroy(outertr);
         point_destroy(innerbl);
