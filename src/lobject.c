@@ -1126,6 +1126,40 @@ static int lobject_extend_alignment_box_y_symmetrical(lua_State* L)
     return 0;
 }
 
+static int lobject_extend_alignment_box_xy_symmetrical(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    coordinate_t extx = 0;
+    coordinate_t exty = 0;
+    if(lua_gettop(L) == 3)
+    {
+        extx = lua_tointeger(L, 2);
+        exty = lua_tointeger(L, 3);
+    }
+    else
+    {
+        lua_pushfstring(L, "object.extend_alignment_box_xy_symmetrical: expected two arguments, got %d", lua_gettop(L));
+        lua_error(L);
+    }
+    if(!object_has_alignmentbox(lobject_get_const(cell)))
+    {
+        lua_pushstring(L, "object.extend_alignment_box_xy_symmetrical: cell has no alignmentbox");
+        lua_error(L);
+    }
+    object_extend_alignment_box(
+        lobject_get(L, cell),
+        -extx,
+        -exty,
+        extx,
+        exty,
+        -extx,
+        -exty,
+        extx,
+        exty
+    );
+    return 0;
+}
+
 static int lobject_flatten(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1389,6 +1423,7 @@ int open_lobject_lib(lua_State* L)
         { "extend_alignment_box",                   lobject_extend_alignment_box                },
         { "extend_alignment_box_x_symmetrical",     lobject_extend_alignment_box_x_symmetrical  },
         { "extend_alignment_box_y_symmetrical",     lobject_extend_alignment_box_y_symmetrical  },
+        { "extend_alignment_box_xy_symmetrical",    lobject_extend_alignment_box_xy_symmetrical },
         { "width_height_alignmentbox",              lobject_width_height_alignmentbox           },
         { "move_to",                                lobject_move_to                             },
         { "reset_translation",                      lobject_reset_translation                   },

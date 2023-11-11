@@ -2131,6 +2131,55 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* object.extend_alignment_box_x_symmetrical */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL,   "cell to add the alignment box to" },
+            { "extx",   INTEGER,    NULL,   "x-extension" }
+        };
+        vector_append(entries, _make_api_entry(
+            "extend_alignment_box_x_symmetrical",
+            MODULE_OBJECT,
+            "extend an existing object alignment box. Takes only one value for the extension of the four corner points and extends all x-coordinates of the box symmetrically in the left/right direction",
+            "cell:extend_alignment_box_x_symmetrical(200)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.extend_alignment_box_y_symmetrical */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL,   "cell to add the alignment box to" },
+            { "exty",   INTEGER,    NULL,   "y-extension" }
+        };
+        vector_append(entries, _make_api_entry(
+            "extend_alignment_box_y_symmetrical",
+            MODULE_OBJECT,
+            "extend an existing object alignment box. Takes only one value for the extension of the four corner points and extends all y-coordinates of the box symmetrically in the left/right direction",
+            "cell:extend_alignment_box_y_symmetrical(200)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.extend_alignment_box_xy_symmetrical */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL,   "cell to add the alignment box to" },
+            { "extx",   INTEGER,    NULL,   "x-extension" },
+            { "exty",   INTEGER,    NULL,   "y-extension" }
+        };
+        vector_append(entries, _make_api_entry(
+            "extend_alignment_box_xy_symmetrical",
+            MODULE_OBJECT,
+            "extend an existing object alignment box. Takes two values for the extension of the four corner points and extends all x- and y-coordinates of the box symmetrically in the left/right direction. This function is the same as calling the individual alignment box extension functions for x- and y-directions individually",
+            "cell:extend_alignment_box_xy_symmetrical(200, 300)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* object.width_height_alignmentbox */
     {
         struct parameter parameters[] = {
