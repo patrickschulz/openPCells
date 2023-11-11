@@ -326,6 +326,38 @@ static int lgeometry_rectanglelines_vertical(lua_State* L)
     return 0;
 }
 
+static int lgeometry_rectanglelines_vertical_width_space(lua_State* L)
+{
+    lcheck_check_numargs1(L, 6, "geometry.rectanglevlines_width_space");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* pt1 = lpoint_checkpoint(L, 3);
+    struct lpoint* pt2 = lpoint_checkpoint(L, 4);
+    coordinate_t widthtarget = lua_tointeger(L, 5);
+    coordinate_t spacetarget = lua_tointeger(L, 6);
+
+    const point_t* bl = lpoint_get(pt1);
+    const point_t* tr = lpoint_get(pt2);
+
+    coordinate_t totalwidth = point_xdifference(tr, bl);
+    unsigned int numlines = totalwidth / (widthtarget + spacetarget);
+    coordinate_t width = widthtarget;
+    coordinate_t space = spacetarget;
+    coordinate_t height = point_ydifference(tr, bl);
+    coordinate_t offset = (totalwidth - numlines * (width + space) + space) / 2;
+
+    geometry_rectanglearray(
+        lobject_get(L, cell),
+        layer,
+        width, height,
+        bl->x + offset, bl->y,  // xshift, yshift
+        numlines, 1,            // xrep, yrep
+        width + space, 0        // xpitch, ypitch
+    );
+
+    return 5;
+}
+
 static int lgeometry_rectanglelines_vertical_settings(lua_State* L)
 {
     lcheck_check_numargs1(L, 4, "geometry.rectanglevlines_settings");
@@ -374,7 +406,7 @@ static int lgeometry_rectanglelines_vertical_settings(lua_State* L)
     return 5;
 }
 
-static int lgeometry_rectanglelines_vertical_height_space_settings(lua_State* L)
+static int lgeometry_rectanglelines_vertical_width_space_settings(lua_State* L)
 {
     lcheck_check_numargs1(L, 4, "geometry.rectanglevlines_height_space_settings");
     struct lpoint* pt1 = lpoint_checkpoint(L, 1);
@@ -400,6 +432,7 @@ static int lgeometry_rectanglelines_vertical_height_space_settings(lua_State* L)
 
     return 5;
 }
+
 static int lgeometry_rectanglelines_horizontal(lua_State* L)
 {
     lcheck_check_numargs1(L, 6, "geometry.rectanglehlines");
@@ -453,6 +486,38 @@ static int lgeometry_rectanglelines_horizontal(lua_State* L)
     return 0;
 }
 
+static int lgeometry_rectanglelines_horizontal_height_space(lua_State* L)
+{
+    lcheck_check_numargs1(L, 6, "geometry.rectanglehlines_height_space");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* pt1 = lpoint_checkpoint(L, 3);
+    struct lpoint* pt2 = lpoint_checkpoint(L, 4);
+    coordinate_t heighttarget = lua_tointeger(L, 5);
+    coordinate_t spacetarget = lua_tointeger(L, 6);
+
+    const point_t* bl = lpoint_get(pt1);
+    const point_t* tr = lpoint_get(pt2);
+
+    coordinate_t totalheight = point_ydifference(tr, bl);
+    unsigned int numlines = totalheight / (heighttarget + spacetarget);
+    coordinate_t height = heighttarget;
+    coordinate_t space = spacetarget;
+    coordinate_t width = point_xdifference(tr, bl);
+    coordinate_t offset = (totalheight - numlines * (height + space) + space) / 2;
+
+    geometry_rectanglearray(
+        lobject_get(L, cell),
+        layer,
+        width, height,
+        bl->x, bl->y + offset,  // xshift, yshift
+        1, numlines,            // xrep, yrep
+        0, height + space       // xpitch, ypitch
+    );
+
+    return 5;
+}
+
 static int lgeometry_rectanglelines_horizontal_settings(lua_State* L)
 {
     lcheck_check_numargs1(L, 4, "geometry.rectanglehlines_settings");
@@ -501,9 +566,9 @@ static int lgeometry_rectanglelines_horizontal_settings(lua_State* L)
     return 5;
 }
 
-static int lgeometry_rectanglelines_horizontal_width_space_settings(lua_State* L)
+static int lgeometry_rectanglelines_horizontal_height_space_settings(lua_State* L)
 {
-    lcheck_check_numargs1(L, 4, "geometry.rectanglehlines_width_space_settings");
+    lcheck_check_numargs1(L, 4, "geometry.rectanglehlines_height_space_settings");
     struct lpoint* pt1 = lpoint_checkpoint(L, 1);
     struct lpoint* pt2 = lpoint_checkpoint(L, 2);
     coordinate_t heighttarget = lua_tointeger(L, 3);
@@ -1375,11 +1440,13 @@ int open_lgeometry_lib(lua_State* L)
         { "slotted_rectangle",                          lgeometry_slotted_rectangle                                 },
         { "rectanglepath",                              lgeometry_rectanglepath                                     },
         { "rectanglevlines",                            lgeometry_rectanglelines_vertical                           },
+        { "rectanglevlines_width_space",                lgeometry_rectanglelines_vertical_width_space               },
         { "rectanglevlines_settings",                   lgeometry_rectanglelines_vertical_settings                  },
-        { "rectanglevlines_height_space_settings",      lgeometry_rectanglelines_vertical_height_space_settings     },
+        { "rectanglevlines_width_space_settings",       lgeometry_rectanglelines_vertical_width_space_settings      },
         { "rectanglehlines",                            lgeometry_rectanglelines_horizontal                         },
+        { "rectanglehlines_height_space",               lgeometry_rectanglelines_horizontal_height_space            },
         { "rectanglehlines_settings",                   lgeometry_rectanglelines_horizontal_settings                },
-        { "rectanglehlines_width_space_settings",       lgeometry_rectanglelines_horizontal_width_space_settings    },
+        { "rectanglehlines_height_space_settings",      lgeometry_rectanglelines_horizontal_height_space_settings   },
         { "rectangle_fill_in_boundary",                 lgeometry_rectangle_fill_in_boundary                        },
         { "polygon",                                    lgeometry_polygon                                           },
         { "path",                                       lgeometry_path                                              },

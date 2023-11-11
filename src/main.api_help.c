@@ -681,6 +681,26 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* geometry.rectanglevlines_width_space */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "pt1",        POINT,      NULL,   "First corner point of the target area" },
+            { "pt2",        POINT,      NULL,   "Second corner point of the target area" },
+            { "width",      INTEGER,    NULL,   "Width target of lines to be generated" },
+            { "space",      INTEGER,    NULL,   "Space target between lines to be generated" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglevlines_width_space",
+            MODULE_GEOMETRY,
+            "Fill a rectangular area with vertical lines with the given width and spacing. The given numbers are only targets, in some cases they can't be matched exactly.",
+            "geometry.rectanglevlines_width_space(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 20, 20)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* geometry.rectanglehlines */
     {
         struct parameter parameters[] = {
@@ -696,6 +716,26 @@ static struct vector* _initialize_api_entries(void)
             MODULE_GEOMETRY,
             "Fill a rectangular area with horizontal lines with a given ratio between width and spacing",
             "geometry.rectanglehlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 8, 1)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.rectanglehlines_height_space */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "pt1",        POINT,      NULL,   "First corner point of the target area" },
+            { "pt2",        POINT,      NULL,   "Second corner point of the target area" },
+            { "height",     INTEGER,    NULL,   "Height target of lines to be generated" },
+            { "space",      INTEGER,    NULL,   "Space target of lines to be generated" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglehlines_height_space",
+            MODULE_GEOMETRY,
+            "Fill a rectangular area with horizontal lines with the given height and spacing. The given numbers are only targets, in some cases they can't be matched exactly.",
+            "geometry.rectanglehlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 20, 20)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
