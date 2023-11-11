@@ -3468,6 +3468,23 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* util.range(lower, upper, incr) */
+    {
+        struct parameter parameters[] = {
+            { "lower",  INTEGER, NULL,  "lower (inclusive) bound" },
+            { "upper",  INTEGER, NULL,  "upper (inclusive) bound" },
+            { "incr",   INTEGER, "1",   "increment" },
+        };
+        vector_append(entries, _make_api_entry(
+            "range",
+            MODULE_UTIL,
+            "create a table with numeric entries between lower and upper (both inclusive). The entries spacing is specified by the increment (default 1)",
+            "util.range(1, 5) -- { 1, 2, 3, 4, 5 }\nutil.range(2, 8, 3) -- { 2, 5, 8 }",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* util.fill_all_with(num, filler) */
     {
         struct parameter parameters[] = {

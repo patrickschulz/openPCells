@@ -280,6 +280,14 @@ function M.intersection_ab(P, Q)
     end
 end
 
+function M.range(lower, upper, incr)
+    local t = {}
+    for i = lower, upper, incr or 1 do
+        table.insert(t, i)
+    end
+    return t
+end
+
 function M.fill_all_with(num, filler)
     local t = {}
     for i = 1, num do
