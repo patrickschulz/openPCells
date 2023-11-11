@@ -1,6 +1,13 @@
 local M = {}
 
 function M.place_welltap(cell, bl, tr, anchorprefix, options)
+    check.set_next_function_name("layouthelpers.place_welltap")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg_func(2, "bl", "point", bl, point.is_point)
+    check.arg_func(3, "tr", "point", tr, point.is_point)
+    check.arg(4, "anchorprefix", "string", anchorprefix)
+    check.arg_optional(5, "options", "table", options)
+    check.reset_function_name()
     local welltap = pcell.create_layout(
         "auxiliary/welltap",
         "_welltap",
@@ -15,7 +22,16 @@ function M.place_welltap(cell, bl, tr, anchorprefix, options)
     cell:inherit_area_anchor_as(welltap, "boundary", string.format("%sboundary", anchorprefix))
 end
 
-function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprexif, options)
+function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
+    check.set_next_function_name("layouthelpers.place_guardring")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg_func(2, "bl", "point", bl, point.is_point)
+    check.arg_func(3, "tr", "point", tr, point.is_point)
+    check.arg(4, "xspace", "number", xspace)
+    check.arg(5, "yspace", "number", yspace)
+    check.arg(6, "anchorprefix", "string", anchorprefix)
+    check.arg_optional(7, "options", "table", options)
+    check.reset_function_name()
     local guardring = pcell.create_layout(
         "auxiliary/guardring",
         "_guardring",
@@ -33,6 +49,17 @@ function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprexif, options)
 end
 
 function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, welloffset, anchorprefix, options)
+    check.set_next_function_name("layouthelpers.place_guardring_with_hole")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg_func(2, "bl", "point", bl, point.is_point)
+    check.arg_func(3, "tr", "point", tr, point.is_point)
+    check.arg_func(4, "holebl", "point", holebl, point.is_point)
+    check.arg_func(5, "holetr", "point", holetr, point.is_point)
+    check.arg(6, "xspace", "number", xspace)
+    check.arg(7, "yspace", "number", yspace)
+    check.arg(8, "anchorprefix", "string", anchorprefix)
+    check.arg_optional(9, "options", "table", options)
+    check.reset_function_name()
     local guardring = pcell.create_layout(
         "auxiliary/guardring",
         "_guardring",
