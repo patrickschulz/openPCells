@@ -129,6 +129,40 @@ static int lobject_exchange(lua_State* L)
     return 1;
 }
 
+int lobject_is_object(lua_State* L, int idx)
+{
+    if(lua_type(L, idx) != LUA_TUSERDATA)
+    {
+        return 0;
+    }
+    lua_getmetatable(L, idx);
+    if(lua_isnil(L, -1))
+    {
+        lua_pop(L, 1);
+        return 0;
+    }
+    luaL_getmetatable(L, LOBJECTMODULE);
+    int equal = lua_compare(L, -1, -2, LUA_OPEQ);
+    lua_pop(L, 2);
+    if(equal)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+static int lobject_is_object_lua(lua_State* L)
+{
+    if(lua_gettop(L) != 1)
+    {
+        lua_pushstring(L, "object.is_object expects expects one argument");
+        lua_error(L);
+    }
+    int islobject = lobject_is_object(L, 1);
+    lua_pushboolean(L, islobject);
+    return 1;
+}
+
 static int lobject_get_name(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1317,13 +1351,18 @@ int open_lobject_lib(lua_State* L)
     // create metatable for objects
     luaL_newmetatable(L, LOBJECTMODULE);
 
+    // add __index
+    lua_pushstring(L, "__index");
+    lua_pushvalue(L, -2);
+    lua_rawset(L, -3);
+
     // set methods
-    static const luaL_Reg metafuncs[] =
-    {
+    static const luaL_Reg metafuncs[] = {
         { "create",                                 lobject_create                              },
         { "create_pseudo",                          lobject_create_pseudo                       },
         { "copy",                                   lobject_copy                                },
         { "exchange",                               lobject_exchange                            },
+        { "is_object",                              lobject_is_object_lua                       },
         { "get_name",                               lobject_get_name                            },
         { "set_name",                               lobject_set_name                            },
         { "add_anchor",                             lobject_add_anchor                          },
@@ -1418,11 +1457,6 @@ int open_lobject_lib(lua_State* L)
         { NULL,                                     NULL                                        }
     };
     luaL_setfuncs(L, metafuncs, 0);
-
-    // add __index
-    lua_pushstring(L, "__index");
-    lua_pushvalue(L, -2); 
-    lua_rawset(L, -3);
 
     lua_setglobal(L, LOBJECTMODULE);
 
