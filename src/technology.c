@@ -562,6 +562,10 @@ struct via_definition** technology_get_contact_definitions(struct technology_sta
 
 struct via_definition* technology_get_contact_fallback(struct technology_state* techstate, const char* region)
 {
+    if(!techstate->create_fallback_vias)
+    {
+        return NULL;
+    }
     size_t len = 7 + strlen(region);
     char* contactname = malloc(len + 1);
     snprintf(contactname, len + 1, "contact%s", region);
