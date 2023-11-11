@@ -113,6 +113,8 @@ void object_set_alignment_box(
 );
 void object_inherit_alignment_box(struct object* cell, const struct object* other);
 void object_alignment_box_include_point(struct object* cell, const point_t* pt);
+void object_alignment_box_include_x(struct object* cell, coordinate_t x);
+void object_alignment_box_include_y(struct object* cell, coordinate_t y);
 int object_extend_alignment_box(
     struct object* cell,
     coordinate_t extouterblx, coordinate_t extouterbly,
