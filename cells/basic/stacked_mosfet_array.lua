@@ -105,6 +105,8 @@ function layout(cell, _P)
                     gbotext = _select_switch(_P.splitgates, _select_parameter("gbotext", device, row), _P.separation / 2),
                     gtopextadd = _select_parameter("gtopextadd", device, row),
                     gbotextadd = _select_parameter("gbotextadd", device, row),
+                    gatetopabsoluteheight = _select_parameter("gatetopabsoluteheight", device, row),
+                    gatebotabsoluteheight = _select_parameter("gatebotabsoluteheight", device, row),
                     cliptop = _select_parameter("cliptop", device, row),
                     clipbot = _select_parameter("clipbot", device, row),
                     drawleftstopgate = _select_parameter("drawleftstopgate", device, row),

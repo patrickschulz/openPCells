@@ -35,6 +35,8 @@ function parameters()
         { "gbotext(Gate Bot Extension)",                                            technology.get_dimension("Minimum Gate Extension"), info = "bot gate extension. This extension depends on the automatically calculated gate extensions (which depend for instance on gate contacts). This means that if 'gbotext' is smaller than the automatic extensions, the layout is not changed at all." },
         { "gtopextadd(Gate Additional Top Extension)",                              0, info = "Unconditional gate top extension (similar to 'gtopext', but always extends)." },
         { "gbotextadd(Gate Additional Bottom Extension)",                           0, info = "Unconditional gate bot extension (similar to 'gbotext', but always extends)." },
+        { "gatetopabsoluteheight(Gate Absolute Top Height)",                        0, info = "Alternative gate top extension parameter. If this is non-zero, it overwrites any gate extension values and applies the given height to the gate height (measured from the active region)", },
+        { "gatebotabsoluteheight(Gate Absolute Bottom Height)",                     0, info = "Alternative gate bottom extension parameter. If this is non-zero, it overwrites any gate extension values and applies the given height to the gate height (measured from the active region)", },
         { "drawleftstopgate(Draw Left Stop Gate)",                                  false, info = "draw a gate where one half of it covers the active region, the other does not (left side). This gate is covered with the layer 'diffusionbreakgate'. This is required in some technologies for short-length devices" },
         { "drawrightstopgate(Draw Left Stop Gate)",                                 false, info = "draw a gate where one half of it covers the active region, the other does not (right side). This gate is covered with the layer 'diffusionbreakgate'. This is required in some technologies for short-length devices" },
         { "endleftwithgate(End Left Side With Gate)",                               false, follow = "drawleftstopgate", info = "align the left end of the active region so that only half of the left-most gate covers the active region. Follows 'drawleftstopgate'." },
@@ -269,6 +271,12 @@ function layout(transistor, _P)
     local botgateshift = enable(_P.drawbotgate, _P.botgatespace + _P.botgatewidth)
     local gateaddtop = math.max(_P.gtopext, topgateshift) + _P.gtopextadd
     local gateaddbot = math.max(_P.gbotext, botgateshift) + _P.gbotextadd
+    if _P.gatetopabsoluteheight > 0 then
+        gateaddtop = _P.gatetopabsoluteheight
+    end
+    if _P.gatebotabsoluteheight > 0 then
+        gateaddbot = _P.gatebotabsoluteheight
+    end
 
     local drainshift = enable(_P.connectdrain, _P.connectdrainwidth + _P.connectdrainspace)
     local sourceshift = enable(_P.connectsource, _P.connectsourcewidth + _P.connectsourcespace)
