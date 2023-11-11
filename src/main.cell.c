@@ -148,6 +148,7 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     lua_State* L = _create_and_initialize_lua();
 
     module_load_aux(L);
+    module_load_check(L);
     module_load_stack(L);
     module_load_pcell(L);
     module_load_load(L);
@@ -270,6 +271,7 @@ static struct object* _create_cell(
 
     // load main modules
     module_load_aux(L);
+    module_load_check(L);
     module_load_globals(L);
     module_load_graphics(L);
     module_load_load(L);
