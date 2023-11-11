@@ -52,6 +52,7 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	@echo '#include <stddef.h>' >> modulemanager.c
 	@echo '#include "main.functions.h"' >> modulemanager.c
 	./embed_compiled_lua_file --module modules/aux.lua module_load aux modulemanager.c
+	./embed_compiled_lua_file --module modules/check.lua module_load check modulemanager.c
 	./embed_compiled_lua_file --module modules/gdsparser.lua module_load gdsparser modulemanager.c
 	./embed_compiled_lua_file --module modules/generator.lua module_load generator modulemanager.c
 	./embed_compiled_lua_file --module modules/globals.lua module_load globals modulemanager.c
@@ -71,6 +72,7 @@ modulemanager.h: modules/*.lua
 	@echo '#define OPC_MODULEMANAGER_H' >> modulemanager.h
 	@echo '#include "lua/lua.h"' >> modulemanager.h
 	@echo 'int module_load_aux(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_check(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_gdsparser(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_generator(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_globals(lua_State* L);' >> modulemanager.h
