@@ -5,7 +5,6 @@
 
 #include "point.h"
 
-#define LPOINTMETA "lpoint"
 #define LPOINTMODULE "point"
 
 struct lpoint;

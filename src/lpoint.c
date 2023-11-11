@@ -8,6 +8,8 @@
 #include "math.h"
 #include "point.h"
 
+#define LPOINTMETA "lpoint"
+
 struct lpoint {
     point_t* point;
     int destroy;
