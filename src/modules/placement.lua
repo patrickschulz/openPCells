@@ -283,21 +283,21 @@ function placement.digital(parent, rows, width, flipfirst, noflip)
     return placement.rowwise(parent, rows, flipfirst, noflip)
 end
 
-function placement.rowwise(parent, cellnames, flipfirst, noflip)
+function placement.rowwise(parent, cellsdef, flipfirst, noflip)
     local cells = {}
     local references = {}
 
     local last
     local lastborder
-    for row, entries in ipairs(cellnames) do
-        cells[row] = {}
-        for column, cellname in ipairs(entries) do
+    for rownum, row in ipairs(cellsdef) do
+        cells[rownum] = {}
+        for columnnum, entry in ipairs(row) do
             -- add cell
-            local cell = parent:add_child(cellname.reference, cellname.instance)
+            local cell = parent:add_child(entry.reference, entry.instance)
 
             -- position cell
-            if column == 1 then
-                if row == 1 then -- first cell
+            if columnnum == 1 then
+                if rownum == 1 then -- first cell
                 else
                     cell:align_left(lastborder)
                     cell:abut_top(lastborder)
@@ -309,8 +309,64 @@ function placement.rowwise(parent, cellnames, flipfirst, noflip)
             end
 
             -- store cell link (numeric and by name)
-            cells[row][column] = cell
-            cells[cellname.instance] = cell
+            cells[rownum][columnnum] = cell
+            cells[entry.instance] = cell
+
+            last = cell
+        end
+    end
+
+    -- flip every second row
+    if not noflip then
+        local flip = flipfirst
+        for row = 1, #cells do
+            if flip then
+                for column = 1, #cells[row] do
+                    cells[row][column]:flipy()
+                end
+            end
+            flip = not flip
+        end
+    end
+
+    -- update parent alignment box
+    parent:inherit_alignment_box(cells[1][1])
+    parent:inherit_alignment_box(cells[#cells][#cells[#cells]])
+
+    return cells
+end
+
+function placement.rowwise_flat(parent, cellsdef, flipfirst, noflip)
+    local cells = {}
+    local references = {}
+
+    local last
+    local lastborder
+    for rownum, row in ipairs(cellsdef) do
+        cells[rownum] = {}
+        for columnnum, entry in ipairs(row) do
+            -- add cell
+            local cell = entry.reference:copy()
+
+            -- position cell
+            if columnnum == 1 then
+                if rownum == 1 then -- first cell
+                else
+                    cell:align_left(lastborder)
+                    cell:abut_top(lastborder)
+                end
+                lastborder = cell
+            else
+                cell:align_bottom(last)
+                cell:abut_right(last)
+            end
+
+            -- merge into parent
+            parent:merge_into(cell)
+
+            -- store cell link (numeric and by name)
+            cells[rownum][columnnum] = cell
+            cells[entry.instance] = cell
 
             last = cell
         end

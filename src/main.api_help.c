@@ -1705,6 +1705,24 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* placement.rowwise_flat */
+    {
+        struct parameter parameters[] = {
+            { "parent",     OBJECT,     NULL,       "parent cell to place cells in" },
+            { "cellsdef",   TABLE,      NULL,       "cells definition containing rows with entries for 'reference' (an object) and 'instance' (an instance name, must be unique)" },
+            { "flipfirst",  BOOLEAN,    "false",    "flip the first row" },
+            { "noflip",     BOOLEAN,    "false",    "don't flip cells when advancing a row (useful for standard cell blocks that occupy an even number of rows)" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rowwise_flat",
+            MODULE_PLACEMENT,
+            "like placement.rowwise, but merges cells into parents (flat)",
+            "local celldef = {\n    { -- first row (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second row\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.rowwise_flat(parent, cellsdef)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* routing.legalize */ // FIXME: legalize
     {
         struct parameter parameters[] = {
