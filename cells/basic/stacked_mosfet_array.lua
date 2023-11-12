@@ -10,10 +10,13 @@ end
 
 function check(_P)
     local rowfingers = {}
+    if #_P.rows == 0 then
+        return false, "the row definition does not define any rows"
+    end
     for rownum, row in ipairs(_P.rows) do
         local f = 0
         if not row.devices or #row.devices == 0 then
-            return false, string.format("row %d defines no devices", rownum)
+            return false, string.format("row %d does not define any devices", rownum)
         end
         for devicenum, device in ipairs(row.devices) do
             if not device.fingers then
