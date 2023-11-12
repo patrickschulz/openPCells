@@ -701,6 +701,46 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* geometry.rectanglevlines_settings */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "pt1",        POINT,      NULL,   "First corner point of the target area" },
+            { "pt2",        POINT,      NULL,   "Second corner point of the target area" },
+            { "numlines",   INTEGER,    NULL,   "Number of lines to be generated" },
+            { "ratio",      NUMBER,     NULL,   "Ratio between width and spacing of lines" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglevlines_settings",
+            MODULE_GEOMETRY,
+            "Calculate the geometries of vertical lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglevlines, but it does not actually create the lines. It return the width, heigh, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
+            "local width, height, space, offset, numlines = geometry.rectanglevlines_settings(point.create(-100, -100), point(100, 100), 20, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100 + offset, -100, numlines, 1, width + space, 0)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.rectanglevlines_width_space_settings */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "pt1",        POINT,      NULL,   "First corner point of the target area" },
+            { "pt2",        POINT,      NULL,   "Second corner point of the target area" },
+            { "width",      INTEGER,    NULL,   "Width target of lines to be generated" },
+            { "space",      INTEGER,    NULL,   "Space target between lines to be generated" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglevlines_width_space_settings",
+            MODULE_GEOMETRY,
+            "Calculate the geometries of vertical lines to fill a rectangular area with a given width and spacing. This function is like geometry.rectanglevlines_width_space, but it does not actually create the lines. It return the width, heigh, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
+            "local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(point.create(-100, -100), point(100, 100), 20, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100 + offset, -100, numlines, 1, width + space, 0)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* geometry.rectanglehlines */
     {
         struct parameter parameters[] = {
@@ -736,6 +776,46 @@ static struct vector* _initialize_api_entries(void)
             MODULE_GEOMETRY,
             "Fill a rectangular area with horizontal lines with the given height and spacing. The given numbers are only targets, in some cases they can't be matched exactly.",
             "geometry.rectanglehlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 20, 20)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.rectanglehlines_settings */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "pt1",        POINT,      NULL,   "First corner point of the target area" },
+            { "pt2",        POINT,      NULL,   "Second corner point of the target area" },
+            { "numlines",   INTEGER,    NULL,   "Number of lines to be generated" },
+            { "ratio",      NUMBER,     NULL,   "Ratio between width and spacing of lines" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglehlines_settings",
+            MODULE_GEOMETRY,
+            "Calculate the geometries of horizontal lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglehlines, but it does not actually create the lines. It return the width, heigh, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
+            "local width, height, space, offset, numlines = geometry.rectanglehlines_settings(point.create(-100, -100), point(100, 100), 20, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.rectanglehlines_width_space_settings */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "pt1",        POINT,      NULL,   "First corner point of the target area" },
+            { "pt2",        POINT,      NULL,   "Second corner point of the target area" },
+            { "width",      INTEGER,    NULL,   "Width target of lines to be generated" },
+            { "space",      INTEGER,    NULL,   "Space target between lines to be generated" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglehlines_width_space_settings",
+            MODULE_GEOMETRY,
+            "Calculate the geometries of horizontal lines to fill a rectangular area with a given width and spacing. This function is like geometry.rectanglehlines_width_space, but it does not actually create the lines. It return the width, heigh, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
+            "local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(point.create(-100, -100), point(100, 100), 20, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
