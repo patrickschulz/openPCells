@@ -2296,10 +2296,42 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* object.set_boundary */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL, "cell to add the boundary to" },
+            { "pts",    POINTLIST,  NULL, "polygon boundary" }
+        };
+        vector_append(entries, _make_api_entry(
+            "set_boundary",
+            MODULE_OBJECT,
+            "set the cell boundary (polygon)",
+            "cell:set_boundary({ point.create(-100, -100), point.create(100, -100), point.create(100, 100), point.create(-100, 100) })",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.set_boundary_rectangular */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL, "cell to add the boundary to" },
+            { "pts",    POINTLIST,  NULL, "polygon boundary" }
+        };
+        vector_append(entries, _make_api_entry(
+            "set_boundary_rectangular",
+            MODULE_OBJECT,
+            "set the cell boundary (rectangular)",
+            "cell:set_boundary_rectangular(point.create(-100, -100), point.create(100, 100))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* object.inherit_boundary */
     {
         struct parameter parameters[] = {
-            { "cell",       OBJECT, NULL, "cell to add the boundar to" },
+            { "cell",       OBJECT, NULL, "cell to add the boundary to" },
             { "othercell",  OBJECT, NULL, "cell to inherit the boundary from" }
         };
         vector_append(entries, _make_api_entry(

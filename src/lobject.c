@@ -1260,7 +1260,7 @@ static int lobject_set_boundary_rectangular(lua_State* L)
     }
     else
     {
-        lua_pushfstring(L, "object.set_boundary_rectangular: expected 2 points or 4 points, got %d", lua_gettop(L) - 1);
+        lua_pushfstring(L, "object.set_boundary_rectangular: expected 2 points as parameters, got %d", lua_gettop(L) - 1);
         lua_error(L);
     }
     return 0;
