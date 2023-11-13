@@ -340,12 +340,12 @@ function layout(mesh, _P)
                 else
                     if i ~= _P.interconnectmetal then
                         geometry.rectanglebltr(mesh, generics.metal(_P.meshmetals[i]),
-                            point.create(-_P.metalwidths[i] / 2, -_P.cellsize / 2),
-                            point.create( _P.metalwidths[i] / 2,  _P.cellsize / 2)
+                            point.create(-_P.metalwidths[i], -_P.cellsize / 2),
+                            point.create( _P.metalwidths[i],  _P.cellsize / 2)
                         )
                         geometry.rectanglebltr(mesh, generics.metal(_P.meshmetals[i]),
-                            point.create(-_P.cellsize / 2, -_P.metalwidths[i] / 2),
-                            point.create( _P.cellsize / 2,  _P.metalwidths[i] / 2)
+                            point.create(-_P.cellsize / 2, -_P.metalwidths[i]),
+                            point.create( _P.cellsize / 2,  _P.metalwidths[i])
                         )
                     end
                 end
