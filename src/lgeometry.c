@@ -280,8 +280,8 @@ static int lgeometry_rectanglelines_vertical(lua_State* L)
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
-    int numlines = lua_tointeger(L, 5);
-    double ratio = lua_tonumber(L, 6);
+    int numlines = luaL_checkinteger(L, 5);
+    double ratio = luaL_checknumber(L, 6);
 
     if(numlines <= 0)
     {
@@ -333,8 +333,8 @@ static int lgeometry_rectanglelines_vertical_width_space(lua_State* L)
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
-    coordinate_t widthtarget = lua_tointeger(L, 5);
-    coordinate_t spacetarget = lua_tointeger(L, 6);
+    coordinate_t widthtarget = luaL_checkinteger(L, 5);
+    coordinate_t spacetarget = luaL_checkinteger(L, 6);
 
     const point_t* bl = lpoint_get(pt1);
     const point_t* tr = lpoint_get(pt2);
@@ -363,8 +363,8 @@ static int lgeometry_rectanglelines_vertical_settings(lua_State* L)
     lcheck_check_numargs1(L, 4, "geometry.rectanglevlines_settings");
     struct lpoint* pt1 = lpoint_checkpoint(L, 1);
     struct lpoint* pt2 = lpoint_checkpoint(L, 2);
-    int numlines = lua_tointeger(L, 3);
-    double ratio = lua_tonumber(L, 4);
+    int numlines = luaL_checkinteger(L, 3);
+    double ratio = luaL_checknumber(L, 4);
 
     if(numlines <= 0)
     {
@@ -411,8 +411,8 @@ static int lgeometry_rectanglelines_vertical_width_space_settings(lua_State* L)
     lcheck_check_numargs1(L, 4, "geometry.rectanglevlines_height_space_settings");
     struct lpoint* pt1 = lpoint_checkpoint(L, 1);
     struct lpoint* pt2 = lpoint_checkpoint(L, 2);
-    coordinate_t widthtarget = lua_tointeger(L, 3);
-    coordinate_t spacetarget = lua_tointeger(L, 4);
+    coordinate_t widthtarget = luaL_checkinteger(L, 3);
+    coordinate_t spacetarget = luaL_checkinteger(L, 4);
 
     const point_t* bl = lpoint_get(pt1);
     const point_t* tr = lpoint_get(pt2);
@@ -440,8 +440,8 @@ static int lgeometry_rectanglelines_horizontal(lua_State* L)
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
-    int numlines = lua_tointeger(L, 5);
-    double ratio = lua_tonumber(L, 6);
+    int numlines = luaL_checkinteger(L, 5);
+    double ratio = luaL_checknumber(L, 6);
 
     if(numlines <= 0)
     {
@@ -493,8 +493,8 @@ static int lgeometry_rectanglelines_horizontal_height_space(lua_State* L)
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
-    coordinate_t heighttarget = lua_tointeger(L, 5);
-    coordinate_t spacetarget = lua_tointeger(L, 6);
+    coordinate_t heighttarget = luaL_checkinteger(L, 5);
+    coordinate_t spacetarget = luaL_checkinteger(L, 6);
 
     const point_t* bl = lpoint_get(pt1);
     const point_t* tr = lpoint_get(pt2);
@@ -523,8 +523,8 @@ static int lgeometry_rectanglelines_horizontal_settings(lua_State* L)
     lcheck_check_numargs1(L, 4, "geometry.rectanglehlines_settings");
     struct lpoint* pt1 = lpoint_checkpoint(L, 1);
     struct lpoint* pt2 = lpoint_checkpoint(L, 2);
-    int numlines = lua_tointeger(L, 3);
-    double ratio = lua_tonumber(L, 4);
+    int numlines = luaL_checkinteger(L, 3);
+    double ratio = luaL_checknumber(L, 4);
 
     if(numlines <= 0)
     {
@@ -571,8 +571,8 @@ static int lgeometry_rectanglelines_horizontal_height_space_settings(lua_State* 
     lcheck_check_numargs1(L, 4, "geometry.rectanglehlines_height_space_settings");
     struct lpoint* pt1 = lpoint_checkpoint(L, 1);
     struct lpoint* pt2 = lpoint_checkpoint(L, 2);
-    coordinate_t heighttarget = lua_tointeger(L, 3);
-    coordinate_t spacetarget = lua_tointeger(L, 4);
+    coordinate_t heighttarget = luaL_checkinteger(L, 3);
+    coordinate_t spacetarget = luaL_checkinteger(L, 4);
 
     const point_t* bl = lpoint_get(pt1);
     const point_t* tr = lpoint_get(pt2);
@@ -771,7 +771,7 @@ static int lgeometry_path_ushape(lua_State* L)
     struct lpoint* ptend = lpoint_checkpoint(L, 4);
     struct lpoint* ptoffset = lpoint_checkpoint(L, 5);
     coordinate_t offset = lpoint_get(ptoffset)->y;
-    coordinate_t width = lua_tointeger(L, 6);
+    coordinate_t width = luaL_checkinteger(L, 6);
 
     int bgnext = 0;
     int endext = 0;
