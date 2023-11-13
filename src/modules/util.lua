@@ -288,6 +288,22 @@ function M.range(lower, upper, incr)
     return t
 end
 
+function M.remove(t, comp)
+    local result = {}
+    for _, e in ipairs(t) do
+        if type(comp) == "function" then
+            if not comp(e) then
+                table.insert(result, e)
+            end
+        else
+            if e ~= comp then
+                table.insert(result, e)
+            end
+        end
+    end
+    return result
+end
+
 function M.fill_all_with(num, filler)
     local t = {}
     for i = 1, num do

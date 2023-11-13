@@ -3658,6 +3658,22 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* util.remove(t, comp) */
+    {
+        struct parameter parameters[] = {
+            { "t",      TABLE,  NULL,  "array" },
+            { "comp",   ANY,    NULL,  "comparison value of function" }
+        };
+        vector_append(entries, _make_api_entry(
+            "remove",
+            MODULE_UTIL,
+            "create a shallow copy of a table with certain elements matching the given criteria removed. The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. If the result of the function call is 'true', the entry is NOT included in the results table.",
+            "util.remove({1, 2, 3, 4, 5}, 3) -- { 1, 2, 4, 5 }\nutil.remove({1, 2, 3, 4, 5}, function(e) return e % 2 == 0 end) -- { 1, 3, 5 }",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* util.fill_all_with(num, filler) */
     {
         struct parameter parameters[] = {
