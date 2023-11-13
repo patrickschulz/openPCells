@@ -2237,7 +2237,7 @@ static struct vector* _initialize_api_entries(void)
             { "pt",     POINT,  NULL, "point to be included in the alignment box of the cell" }
         };
         vector_append(entries, _make_api_entry(
-            "alignment_box_include_x",
+            "alignment_box_include_y",
             MODULE_OBJECT,
             "like alignment_box_include_point, but only change the y-coordinates of the alignment box. The x-coordinate is ignored, the second argument is a point only for convenience.",
             "cell:alignment_box_include_y(point.create(200, 200))",
