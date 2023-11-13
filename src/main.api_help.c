@@ -2128,6 +2128,24 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* object.add_port_with_anchor */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,   NULL, "object to which a port should be added" },
+            { "name",   STRING,   NULL, "name of the port" },
+            { "layer",  GENERICS, NULL, "layer of the port" },
+            { "where",  POINT,    NULL, "location of the port" }
+        };
+        vector_append(entries, _make_api_entry(
+            "add_port_with_anchor",
+            MODULE_OBJECT,
+            "add a port to a cell. Works like add_anchor, but additionally a layer is expected. This function also adds an anchor to the cell (named like the port)",
+            "cell:add_port_with_anchor(\"vdd\", generics.metalport(2), point.create(100, 0))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* object.add_bus_port */
     {
         struct parameter parameters[] = {
