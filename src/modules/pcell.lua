@@ -611,12 +611,24 @@ function pcell.constraints(cellname)
     return str
 end
 
+-- custom table.concat, as the original does not handle boolean entries
+local function _tconcat(t, sep)
+    local result = {}
+    for i, e in ipairs(t) do
+        table.insert(result, tostring(e))
+    end
+    return table.concat(result, sep)
+end
+
 local function _collect_parameters(cell, ptype, parent, str)
     for _, entry in ipairs(cell.parameters.values) do
         local val = entry.value
         if type(val) == "table" and not val.isgenerictechparameter then
-            val = table.concat(val, ",")
-            if val == "" then val = " " end
+            if #val == 0 then
+                val = " "
+            else
+                val = "{ " .. _tconcat(val, ",") .. " }"
+            end
         else
             val = tostring(val)
         end
