@@ -100,7 +100,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # create Makefile
-echo "opc: src/config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h" > Makefile
+echo "opc: src/config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c" > Makefile
 echo "	@\$(MAKE) -C src default" >> Makefile
 echo "	@mv src/opc ." >> Makefile
 echo -en '\n' >> Makefile

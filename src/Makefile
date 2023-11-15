@@ -117,10 +117,6 @@ clean:
 cmdoptions.o: cmdoptions.c cmdoptions.h
 cpu.o: cpu.c cpu.h
 create_latex_API_doc.o: create_latex_API_doc.c main.api_help.h
-export.o: export.c export.h object.h hashmap.h polygon.h point.h shape.h \
- transformationmatrix.h technology.h lua/lua.h lua/luaconf.h vector.h \
- lua/lauxlib.h lua/lua.h export_common.h export_writer.h util.h \
- lua_util.h gdsexport.h filesystem.h
 export_common.o: export_common.c export_common.h object.h hashmap.h \
  polygon.h point.h shape.h transformationmatrix.h technology.h lua/lua.h \
  lua/luaconf.h vector.h
@@ -136,6 +132,7 @@ gdsexport.o: gdsexport.c gdsexport.h export_common.h object.h hashmap.h \
 gdsparser.o: gdsparser.c gdsparser.h lua/lua.h lua/luaconf.h vector.h \
  lua/lauxlib.h lua/lua.h math.h filesystem.h point.h hashmap.h lua_util.h \
  util.h
+gencall.o: gencall.c
 geometry.o: geometry.c geometry.h technology.h lua/lua.h lua/luaconf.h \
  vector.h hashmap.h object.h polygon.h point.h shape.h \
  transformationmatrix.h math.h
@@ -189,7 +186,12 @@ lua_util.o: lua_util.c lua_util.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
 lutil.o: lutil.c lutil.h lua/lua.h lua/luaconf.h polygon.h point.h \
  lpoint.h
 main.api_help.o: main.api_help.c main.api_help.h terminal_colors.h util.h \
- vector.h
+ vector.h main.api_help/aux.c main.api_help/curve.c \
+ main.api_help/generics.c main.api_help/geometry.c main.api_help/global.c \
+ main.api_help/graphics.c main.api_help/layouthelpers.c \
+ main.api_help/object.c main.api_help/pcell.c main.api_help/placement.c \
+ main.api_help/placer.c main.api_help/point.c main.api_help/router.c \
+ main.api_help/routing.c main.api_help/technology.c main.api_help/util.c
 main.cell.o: main.cell.c main.cell.h hashmap.h cmdoptions.h lua/lauxlib.h \
  lua/luaconf.h lua/lua.h export.h object.h polygon.h point.h shape.h \
  transformationmatrix.h technology.h lua/lua.h vector.h filesystem.h \

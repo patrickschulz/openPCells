@@ -44,8 +44,10 @@ function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
     guardring:translate(-xspace, -yspace)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
-    cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
-    cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
+    if anchorprefix then
+        cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
+    end
 end
 
 function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, welloffset, anchorprefix, options)
@@ -78,8 +80,10 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
     guardring:translate(-xspace, -yspace)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
-    cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
-    cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
+    if anchorprefix then
+        cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
+    end
 end
 
 return M
