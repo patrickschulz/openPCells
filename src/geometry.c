@@ -64,24 +64,34 @@ void geometry_rectangleblwh(struct object* cell, const struct generics* layer, c
     _rectanglebltr(cell, layer, bl->x, bl->y, bl->x + width, bl->y + height);
 }
 
+void geometry_rectanglepointsxy(
+    struct object* cell,
+    const struct generics* layer,
+    coordinate_t x1, coordinate_t y1,
+    coordinate_t x2, coordinate_t y2
+)
+{
+    if(x1 <= x2 && y1 <= y2)
+    {
+        _rectanglebltr(cell, layer, x1, y1, x2, y2);
+    }
+    else if(x1 <= x2 && y1  > y2)
+    {
+        _rectanglebltr(cell, layer, x1, y2, x2, y1);
+    }
+    else if(x1  > x2 && y1 <= y2)
+    {
+        _rectanglebltr(cell, layer, x2, y1, x1, y2);
+    }
+    else if(x1  > x2 && y1  > y2)
+    {
+        _rectanglebltr(cell, layer, x2, y2, x1, y1);
+    }
+}
+
 void geometry_rectanglepoints(struct object* cell, const struct generics* layer, const point_t* pt1, const point_t* pt2)
 {
-    if(pt1->x <= pt2->x && pt1->y <= pt2->y)
-    {
-        _rectanglebltr(cell, layer, pt1->x, pt1->y, pt2->x, pt2->y);
-    }
-    else if(pt1->x <= pt2->x && pt1->y  > pt2->y)
-    {
-        _rectanglebltr(cell, layer, pt1->x, pt2->y, pt2->x, pt1->y);
-    }
-    else if(pt1->x  > pt2->x && pt1->y <= pt2->y)
-    {
-        _rectanglebltr(cell, layer, pt2->x, pt1->y, pt1->x, pt2->y);
-    }
-    else if(pt1->x  > pt2->x && pt1->y  > pt2->y)
-    {
-        _rectanglebltr(cell, layer, pt2->x, pt2->y, pt1->x, pt1->y);
-    }
+    geometry_rectanglepointsxy(cell, layer, pt1->x, pt1->y, pt2->x, pt2->y);
 }
 
 void geometry_rectanglearray(

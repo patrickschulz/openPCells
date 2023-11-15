@@ -28,6 +28,13 @@ void geometry_rectangleblwh(
     coordinate_t width, coordinate_t height
 );
 
+void geometry_rectanglepointsxy(
+    struct object* cell,
+    const struct generics* layer,
+    coordinate_t x1, coordinate_t y1,
+    coordinate_t x2, coordinate_t y2
+);
+
 void geometry_rectanglepoints(
     struct object* cell,
     const struct generics* layer,
