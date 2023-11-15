@@ -10,7 +10,6 @@ function parameters()
         { "width(Width)",                                            6000 },
         { "separation(Line Separation)",                             6000 },
         { "extension(Line Extension)",                              40000 },
-        { "extsep(Extension Separation)",                            6000 },
         { "grid(Grid)",                                               200 },
         { "metalnum(Conductor Metal)",     -1,                  "integer" },
         { "allow45(Allow Angles with 45 Degrees)",                   true },
@@ -93,12 +92,12 @@ function layout(inductor, _P)
     -- input lines anchors
     local lastradius = _P.radius
     inductor:add_area_anchor_bltr("leftline",
-        point.create(-_P.extsep / 2 - _P.width, -(lastradius + _P.width / 2 + _P.extension)),
-        point.create(-_P.extsep / 2, -lastradius - _P.width / 2)
+        point.create(-_P.separation / 2 - _P.width, -(lastradius + _P.width / 2 + _P.extension)),
+        point.create(-_P.separation / 2, -lastradius - _P.width / 2)
     )
     inductor:add_area_anchor_bltr("rightline",
-        point.create( _P.extsep / 2, -(lastradius + _P.width / 2 + _P.extension)),
-        point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
+        point.create( _P.separation / 2, -(lastradius + _P.width / 2 + _P.extension)),
+        point.create( _P.separation / 2 + _P.width, -lastradius - _P.width / 2)
     )
 
     -- alignment box
