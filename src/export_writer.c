@@ -858,7 +858,7 @@ static int _initialize(struct export_writer* writer, const struct object* object
     {
         lua_getfield(writer->L, -1, "initialize");
         coordinate_t minx, maxx, miny, maxy;
-        object_get_minmax_xy(object, &minx, &miny, &maxx, &maxy);
+        object_get_minmax_xy(object, &minx, &miny, &maxx, &maxy, NULL); // NULL: no extra transformation matrix
         lua_pushinteger(writer->L, minx);
         lua_pushinteger(writer->L, maxx);
         lua_pushinteger(writer->L, miny);

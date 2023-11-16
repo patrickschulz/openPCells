@@ -1409,7 +1409,7 @@ struct vector* object_get_boundary(const struct object* cell)
         else
         {
             coordinate_t blx, bly, trx, try;
-            object_get_minmax_xy(cell->reference, &blx, &bly, &trx, &try);
+            object_get_minmax_xy(cell->reference, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
             transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
             transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
             vector_append(boundary, point_create(blx, bly));
@@ -1437,7 +1437,7 @@ struct vector* object_get_boundary(const struct object* cell)
         else
         {
             coordinate_t blx, bly, trx, try;
-            object_get_minmax_xy(cell, &blx, &bly, &trx, &try);
+            object_get_minmax_xy(cell, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
             vector_append(boundary, point_create(blx, bly));
             vector_append(boundary, point_create(trx, bly));
             vector_append(boundary, point_create(trx, try));
@@ -1514,7 +1514,7 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
         {
             struct polygon* boundary = polygon_create();
             coordinate_t blx, bly, trx, try;
-            object_get_minmax_xy(cell->reference, &blx, &bly, &trx, &try);
+            object_get_minmax_xy(cell->reference, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
             transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
             transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
             struct simple_polygon* single_boundary = simple_polygon_create();
@@ -1565,7 +1565,7 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
         {
             struct polygon* boundary = polygon_create();
             coordinate_t blx, bly, trx, try;
-            object_get_minmax_xy(cell, &blx, &bly, &trx, &try);
+            object_get_minmax_xy(cell, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
             struct simple_polygon* single_boundary = simple_polygon_create();
             simple_polygon_append(single_boundary, point_create(blx, bly));
             simple_polygon_append(single_boundary, point_create(trx, bly));
@@ -1909,7 +1909,7 @@ void object_scale(struct object* cell, double factor)
     transformationmatrix_scale(cell->trans, factor);
 }
 
-void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
+void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp, const struct transformationmatrix* extratrans)
 {
     coordinate_t minx = COORDINATE_MAX;
     coordinate_t maxx = COORDINATE_MIN;
@@ -1927,6 +1927,11 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
             shape_get_minmax_xy(S, &_minx, &_miny, &_maxx, &_maxy);
             transformationmatrix_apply_transformation_xy(cell->trans, &_minx, &_miny);
             transformationmatrix_apply_transformation_xy(cell->trans, &_maxx, &_maxy);
+            if(extratrans)
+            {
+                transformationmatrix_apply_transformation_xy(extratrans, &_minx, &_miny);
+                transformationmatrix_apply_transformation_xy(extratrans, &_maxx, &_maxy);
+            }
             minx = min(minx, _minx);
             maxx = max(maxx, _maxx);
             miny = min(miny, _miny);
@@ -1940,7 +1945,9 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
             const struct object* child = vector_get(cell->children, i);
             const struct object* obj = child->reference;
             coordinate_t minx_, maxx_, miny_, maxy_;
-            object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_);
+            object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_, child->trans);
+            transformationmatrix_apply_transformation_xy(cell->trans, &minx_, &miny_);
+            transformationmatrix_apply_transformation_xy(cell->trans, &maxx_, &maxy_);
             // FIXME: transformation? -> should be handled by recursive call, but check this! (construct a cell with the right transformations)
             minx = min(minx, minx_);
             maxx = max(maxx, maxx_);
@@ -2032,7 +2039,7 @@ static void _get_transformation_correction(const struct object* cell, coordinate
     }
     else
     {
-        object_get_minmax_xy(obj, &blx, &bly, &trx, &try);
+        object_get_minmax_xy(obj, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix
     }
     coordinate_t x = 0;
     coordinate_t y = 0;
