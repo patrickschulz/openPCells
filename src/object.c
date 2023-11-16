@@ -1909,6 +1909,22 @@ void object_scale(struct object* cell, double factor)
     transformationmatrix_scale(cell->trans, factor);
 }
 
+static void _fix_minmax_order(coordinate_t *minx, coordinate_t* miny, coordinate_t* maxx, coordinate_t* maxy)
+{
+    if(*minx > *maxx)
+    {
+        coordinate_t tmp = *minx;
+        *minx = *maxx;
+        *maxx = tmp;
+    }
+    if(*miny > *maxy)
+    {
+        coordinate_t tmp = *miny;
+        *miny = *maxy;
+        *maxy = tmp;
+    }
+}
+
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp, const struct transformationmatrix* extratrans)
 {
     coordinate_t minx = COORDINATE_MAX;
@@ -1920,22 +1936,23 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
         for(unsigned int i = 0; i < vector_size(cell->shapes); ++i)
         {
             struct shape* S = vector_get(cell->shapes, i);
-            coordinate_t _minx;
-            coordinate_t _maxx;
-            coordinate_t _miny;
-            coordinate_t _maxy;
-            shape_get_minmax_xy(S, &_minx, &_miny, &_maxx, &_maxy);
-            transformationmatrix_apply_transformation_xy(cell->trans, &_minx, &_miny);
-            transformationmatrix_apply_transformation_xy(cell->trans, &_maxx, &_maxy);
+            coordinate_t minx_;
+            coordinate_t maxx_;
+            coordinate_t miny_;
+            coordinate_t maxy_;
+            shape_get_minmax_xy(S, &minx_, &miny_, &maxx_, &maxy_);
+            transformationmatrix_apply_transformation_xy(cell->trans, &minx_, &miny_);
+            transformationmatrix_apply_transformation_xy(cell->trans, &maxx_, &maxy_);
             if(extratrans)
             {
-                transformationmatrix_apply_transformation_xy(extratrans, &_minx, &_miny);
-                transformationmatrix_apply_transformation_xy(extratrans, &_maxx, &_maxy);
+                transformationmatrix_apply_transformation_xy(extratrans, &minx_, &miny_);
+                transformationmatrix_apply_transformation_xy(extratrans, &maxx_, &maxy_);
             }
-            minx = min(minx, _minx);
-            maxx = max(maxx, _maxx);
-            miny = min(miny, _miny);
-            maxy = max(maxy, _maxy);
+            _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
+            minx = min(minx, minx_);
+            maxx = max(maxx, maxx_);
+            miny = min(miny, miny_);
+            maxy = max(maxy, maxy_);
         }
     }
     if(cell->children)
@@ -1948,6 +1965,7 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
             object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_, child->trans);
             transformationmatrix_apply_transformation_xy(cell->trans, &minx_, &miny_);
             transformationmatrix_apply_transformation_xy(cell->trans, &maxx_, &maxy_);
+            _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
             // FIXME: transformation? -> should be handled by recursive call, but check this! (construct a cell with the right transformations)
             minx = min(minx, minx_);
             maxx = max(maxx, maxx_);
