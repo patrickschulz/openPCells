@@ -291,6 +291,26 @@
     ));
 }
 
+/* util.rectangle_to_polygon(value, ratio) */
+{
+    struct parameter parameters[] = {
+        { "bl",         POINT,  NULL, "lower-left corner of the rectangle" },
+        { "tr",         POINT,  NULL, "upper-right corner of the rectangle" },
+        { "leftext",    POINT,  NULL, "left extension" },
+        { "rightext",   POINT,  NULL, "right extension" },
+        { "bottomext",  POINT,  NULL, "bottom extension" },
+        { "topext",     POINT,  NULL, "top extension" },
+    };
+    vector_append(entries, _make_api_entry(
+        "rectangle_to_polygon",
+        MODULE_UTIL,
+        "convert a two-point rectangle to a polygon describing this rectangle. Optionally, the polygon can be extended in the four directions (left/right/bottom/top). This function is useful for creating fill layer boundaries or fill target regions",
+        "local region = util.rectangle_to_polygon(point.create(-100, -100), point.create(100, 100), -100, 0, 0, 200)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /*
     FIXME:
 	util.check_grid
@@ -301,6 +321,5 @@
 	util.polygon_xmin
 	util.polygon_ymax
 	util.polygon_ymin
-	util.rectangle_to_polygon
 	util.sum
 */

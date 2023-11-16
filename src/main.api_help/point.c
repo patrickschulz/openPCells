@@ -1,3 +1,67 @@
+/* point.create */
+{
+    struct parameter parameters[] = {
+        { "x", INTEGER, NULL, "x-coordinate of new point" },
+        { "y", INTEGER, NULL, "y-coordinate of new point" }
+    };
+    vector_append(entries, _make_api_entry(
+        "create",
+        MODULE_POINT,
+        "create a point from an x- and y-coordinate",
+        "local pt = point.create(0, 0)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* point.combine_12(lhs, rhs) */
+{
+    struct parameter parameters[] = {
+        { "pt1", POINT, NULL,   "point for the x-coordinate of the new point" },
+        { "pt2", POINT, NULL,   "point for the y-coordinate of the new point" }
+    };
+    vector_append(entries, _make_api_entry(
+        "combine_12",
+        MODULE_POINT,
+        "create a new point by combining the coordinates of two other points. The new point is made up by x1 and y2",
+        "local new = point.combine_12(pt1, pt2) -- equivalent to point.create(pt1:getx(), pt2:gety())",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* point.combine_21(lhs, rhs) */
+{
+    struct parameter parameters[] = {
+        { "pt1", POINT, NULL,   "point for the y-coordinate of the new point" },
+        { "pt2", POINT, NULL,   "point for the x-coordinate of the new point" }
+    };
+    vector_append(entries, _make_api_entry(
+        "combine_21",
+        MODULE_POINT,
+        "create a new point by combining the coordinates of two other points. The new point is made up by x2 and y1. This function is equivalent to combine_12 with swapped arguments",
+        "local new = point.combine_21(pt1, pt2) -- equivalent to point.create(pt2:getx(), pt1:gety())",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* point.combine(lhs, rhs) */
+{
+    struct parameter parameters[] = {
+        { "pt1", POINT, NULL,   "first point for the new point" },
+        { "pt2", POINT, NULL,   "second point for the new point" }
+    };
+    vector_append(entries, _make_api_entry(
+        "combine",
+        MODULE_POINT,
+        "combine two points into a new one by taking the arithmetic average of their coordinates, that is x = 0.5 * (x1 + x2), y = 0.5 * (y1 + y2)",
+        "local newpt = point.combine(pt1, pt2)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* point.copy */
 {
     struct parameter parameters[] = {
@@ -8,21 +72,6 @@
         MODULE_POINT,
         "copy a point. Can be used as module function or as a point method",
         "local newpt = point.copy(pt)\nlocal newpt = pt:copy()",
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
-    ));
-}
-
-/* point.unwrap */
-{
-    struct parameter parameters[] = {
-        { "point", POINT, NULL,   "point which should be unwrapped" }
-    };
-    vector_append(entries, _make_api_entry(
-        "unwrap",
-        MODULE_POINT,
-        "unwrap: get the x- and y-coordinate from a point. Can be used as module function or as a point method",
-        "local x, y = point.unwrap(pt)\nlocal x, y = pt:unwrap()",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -107,97 +156,95 @@
     ));
 }
 
-/* point.create */
+/* point.xdistance */
 {
     struct parameter parameters[] = {
-        { "x", INTEGER, NULL, "x-coordinate of new point" },
-        { "y", INTEGER, NULL, "y-coordinate of new point" }
-    };
-    vector_append(entries, _make_api_entry(
-        "create",
-        MODULE_POINT,
-        "create a point from an x- and y-coordinate",
-        "local pt = point.create(0, 0)",
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
-    ));
-}
-
-/* point.combine_12(lhs, rhs) */
-{
-    struct parameter parameters[] = {
-        { "pt1", POINT, NULL,   "point for the x-coordinate of the new point" },
-        { "pt2", POINT, NULL,   "point for the y-coordinate of the new point" }
-    };
-    vector_append(entries, _make_api_entry(
-        "combine_12",
-        MODULE_POINT,
-        "create a new point by combining the coordinates of two other points. The new point is made up by x1 and y2",
-        "local new = point.combine_12(pt1, pt2) -- equivalent to point.create(pt1:getx(), pt2:gety())",
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
-    ));
-}
-
-/* point.combine_21(lhs, rhs) */
-{
-    struct parameter parameters[] = {
-        { "pt1", POINT, NULL,   "point for the y-coordinate of the new point" },
-        { "pt2", POINT, NULL,   "point for the x-coordinate of the new point" }
-    };
-    vector_append(entries, _make_api_entry(
-        "combine_21",
-        MODULE_POINT,
-        "create a new point by combining the coordinates of two other points. The new point is made up by x2 and y1. This function is equivalent to combine_12 with swapped arguments",
-        "local new = point.combine_21(pt1, pt2) -- equivalent to point.create(pt2:getx(), pt1:gety())",
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
-    ));
-}
-
-/* point.combine(lhs, rhs) */
-{
-    struct parameter parameters[] = {
-        { "pt1", POINT, NULL,   "first point for the new point" },
-        { "pt2", POINT, NULL,   "second point for the new point" }
-    };
-    vector_append(entries, _make_api_entry(
-        "combine",
-        MODULE_POINT,
-        "combine two points into a new one by taking the arithmetic average of their coordinates, that is x = 0.5 * (x1 + x2), y = 0.5 * (y1 + y2)",
-        "local newpt = point.combine(pt1, pt2)",
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
-    ));
-}
-
-/* point.xdistance(lhs, rhs) */
-{
-    struct parameter parameters[] = {
-        { "pt1", POINT, NULL,   "first point for the distance" },
-        { "pt2", POINT, NULL,   "second point for the distance" }
+        { "pt1", POINT, NULL, "point 1" },
+        { "pt2", POINT, NULL, "point 2" }
     };
     vector_append(entries, _make_api_entry(
         "xdistance",
         MODULE_POINT,
-        "calculate the distance in x between two points",
-        "local dx = point.xdistance(pt1, pt2)",
+        "calculate the y-distance between two points, (the ordering of input parameters matters, it is pt1.x - pt2.x)",
+        "local distance = point.xdistance(pt1, pt2)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
 }
 
-/* point.ydistance(lhs, rhs) */
+/* point.xdistance_abs */
 {
     struct parameter parameters[] = {
-        { "pt1", POINT, NULL,   "first point for the distance" },
-        { "pt2", POINT, NULL,   "second point for the distance" }
+        { "pt1", POINT, NULL, "point 1" },
+        { "pt2", POINT, NULL, "point 2" }
+    };
+    vector_append(entries, _make_api_entry(
+        "xdistance_abs",
+        MODULE_POINT,
+        "calculate the x-distance between two points, but return the absolute (regardless of the ordering of input parameters)",
+        "local distance = point.xdistance_abs(pt1, pt2)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* point.ydistance */
+{
+    struct parameter parameters[] = {
+        { "pt1", POINT, NULL, "point 1" },
+        { "pt2", POINT, NULL, "point 2" }
     };
     vector_append(entries, _make_api_entry(
         "ydistance",
         MODULE_POINT,
-        "calculate the distance in y between two points",
-        "local dy = point.xdistance(pt1, pt2)",
+        "calculate the y-distance between two points, (the ordering of input parameters matters, it is pt1.y - pt2.y)",
+        "local distance = point.ydistance(pt1, pt2)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* point.ydistance_abs */
+{
+    struct parameter parameters[] = {
+        { "pt1", POINT, NULL, "point 1" },
+        { "pt2", POINT, NULL, "point 2" }
+    };
+    vector_append(entries, _make_api_entry(
+        "ydistance_abs",
+        MODULE_POINT,
+        "calculate the y-distance between two points, but return the absolute (regardless of the ordering of input parameters)",
+        "local distance = point.ydistance_abs(pt1, pt2)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* point.xaverage */
+{
+    struct parameter parameters[] = {
+        { "point", POINT, NULL,   "point which should be unwrapped" }
+    };
+    vector_append(entries, _make_api_entry(
+        "xaverage",
+        MODULE_POINT,
+        "calculate the arithmetic average of the x-coordinates of two points",
+        "local xmid = point.xaverage(pt1, pt2)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* point.yaverage */
+{
+    struct parameter parameters[] = {
+        { "point", POINT, NULL,   "point which should be unwrapped" }
+    };
+    vector_append(entries, _make_api_entry(
+        "yaverage",
+        MODULE_POINT,
+        "calculate the arithmetic average of the y-coordinates of two points",
+        "local ymid = point.yaverage(pt1, pt2)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -267,11 +314,18 @@
     ));
 }
 
-/*
-    FIXME
-	point.xaverage
-	point.xdistance_abs
-	point.yaverage
-	point.ydistance
-	point.ydistance_abs
-*/
+/* point.unwrap */
+{
+    struct parameter parameters[] = {
+        { "point", POINT, NULL,   "point which should be unwrapped" }
+    };
+    vector_append(entries, _make_api_entry(
+        "unwrap",
+        MODULE_POINT,
+        "unwrap: get the x- and y-coordinate from a point. Can be used as module function or as a point method",
+        "local x, y = point.unwrap(pt)\nlocal x, y = pt:unwrap()",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
