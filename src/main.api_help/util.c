@@ -311,6 +311,40 @@
     ));
 }
 
+/* util.any_of(value, ratio) */
+{
+    struct parameter parameters[] = {
+        { "comp",    ANY,       NULL, "either a value for direct comparison or a comparison function" },
+        { "table",   TABLE,     NULL, "array-like table" },
+        { "...",     VARARGS,   NULL, "additional arguments passed to comparison function" },
+    };
+    vector_append(entries, _make_api_entry(
+        "any_of",
+        MODULE_UTIL,
+        "return true if any of the values in the array part of the table compare true (either directly to the given value or the function call is true). If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.any_of are passed to the function, following the array element",
+        "util.any_of(42, { 1, 2, 3 }) -- false\nutil.any_of(function(e) return e == 42 end, { 1, 2, 3 }) -- also false",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.all_of(value, ratio) */
+{
+    struct parameter parameters[] = {
+        { "comp",    ANY,       NULL, "either a value for direct comparison or a comparison function" },
+        { "table",   TABLE,     NULL, "array-like table" },
+        { "...",     VARARGS,   NULL, "additional arguments passed to comparison function" },
+    };
+    vector_append(entries, _make_api_entry(
+        "any_of",
+        MODULE_UTIL,
+        "return true if all of the values in the array part of the table compare true (either directly to the given value or the function call is true). If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.all_of are passed to the function, following the array element",
+        "util.all_of(42, { 42, 42, 42 }) -- true\nutil.all_of(function(e) return e == 42 end, { 42, 2, 3 }) -- false",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /*
     FIXME:
 	util.check_grid

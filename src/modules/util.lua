@@ -304,6 +304,33 @@ function M.remove(t, comp)
     return result
 end
 
+function M.remove_index(t, index)
+    local result = {}
+    for i, e in ipairs(t) do
+        if i ~= index then
+            table.insert(result, e)
+        end
+    end
+    return result
+end
+
+function M.find(t, value)
+    for i, v in ipairs(t) do
+        if v == value then
+            return i, v
+        end
+    end
+end
+
+function M.find_predicate(t, predicate)
+    for i, v in ipairs(t) do
+        if predicate(v) then
+            return i, v
+        end
+    end
+end
+
+
 function M.fill_all_with(num, filler)
     local t = {}
     for i = 1, num do
