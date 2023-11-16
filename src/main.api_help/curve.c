@@ -1,23 +1,3 @@
-/* curve.lineto, */
-{
-    struct parameter parameters[] = {
-        { "point", POINT, NULL, "destination point of the line segment" }
-    };
-    vector_append(entries, _make_api_entry(
-        "lineto",
-        MODULE_CURVE,
-        // help text
-        "create a line segment for a curve",
-        // example
-        "geometry.curve(cell, generics.metal(1), point.create(0, 0), {\n"
-        "	curve.lineto(point.create(1000, 1000)),\n"
-        "}, grid, allow45)\n"
-        ,
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
-    ));
-}
-
 /* curve.arcto, */
 {
     struct parameter parameters[] = {
@@ -56,6 +36,26 @@
         // example
         "geometry.curve(cell, generics.metal(1), point.create(0, 0), {\n"
         "	curve.cubicto(point.create(0, 500), point.create(500, 500), point.create(500, 0)),\n"
+        "}, grid, allow45)\n"
+        ,
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* curve.lineto, */
+{
+    struct parameter parameters[] = {
+        { "point", POINT, NULL, "destination point of the line segment" }
+    };
+    vector_append(entries, _make_api_entry(
+        "lineto",
+        MODULE_CURVE,
+        // help text
+        "create a line segment for a curve",
+        // example
+        "geometry.curve(cell, generics.metal(1), point.create(0, 0), {\n"
+        "	curve.lineto(point.create(1000, 1000)),\n"
         "}, grid, allow45)\n"
         ,
         parameters,

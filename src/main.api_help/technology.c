@@ -28,6 +28,36 @@
     ));
 }
 
+/* technology.has_multiple_patterning */
+{
+    struct parameter parameters[] = {
+        { "metalnumber", INTEGER, NULL, "metal index" }
+    };
+    vector_append(entries, _make_api_entry(
+        "has_multiple_patterning",
+        MODULE_TECHNOLOGY,
+        "Check if the chosen metal layer (represented by the metal index) supports multiple patterning",
+        "local metallayer\nif technology.has_multiple_patterning(1) then\n    metallayer = generics.mptmetal(1, 1)\nelse\n    metallayer = generics.metal(1)\nend",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* technology.multiple_patterning_number */
+{
+    struct parameter parameters[] = {
+        { "metalnumber", INTEGER, NULL, "metal index" }
+    };
+    vector_append(entries, _make_api_entry(
+        "multiple_patterning_number",
+        MODULE_TECHNOLOGY,
+        "Get the number of available mask for a metal layer that supports multiple patterning (otherwise the result is 0)",
+        "local nummasks = technology.multiple_patterning_number(1)\nfor i = 1, nummasks do\n    -- do something for every mask of this metal layer\nend",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* technology.resolve_metal */
 {
     struct parameter parameters[] = {
@@ -43,9 +73,3 @@
     ));
 }
 
-/*
-    FIXME:
-	technology.has_multiple_patterning
-	technology.list_techpaths
-	technology.multiple_patterning_number
-*/

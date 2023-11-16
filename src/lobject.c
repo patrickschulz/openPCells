@@ -163,22 +163,6 @@ static int lobject_is_object_lua(lua_State* L)
     return 1;
 }
 
-static int lobject_get_name(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    const char* name = object_get_name(lobject_get_const(cell));
-    lua_pushstring(L, name);
-    return 1;
-}
-
-static int lobject_set_name(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    const char* name = luaL_checkstring(L, 2);
-    object_set_name(lobject_get(L, cell), name);
-    return 1;
-}
-
 static int lobject_destroy(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1413,8 +1397,6 @@ int open_lobject_lib(lua_State* L)
         { "copy",                                   lobject_copy                                },
         { "exchange",                               lobject_exchange                            },
         { "is_object",                              lobject_is_object_lua                       },
-        { "get_name",                               lobject_get_name                            },
-        { "set_name",                               lobject_set_name                            },
         { "add_anchor",                             lobject_add_anchor                          },
         { "inherit_anchor",                         lobject_inherit_anchor                      },
         { "inherit_anchor_as",                      lobject_inherit_anchor_as                   },
