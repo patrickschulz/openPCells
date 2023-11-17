@@ -168,11 +168,59 @@
     ));
 }
 
+/* placement.place_within_boundary */
+{
+    struct parameter parameters[] = {
+        { "toplevel",       OBJECT,     NULL,       "toplevel cell to place cells in" },
+        { "cell",           OBJECT,     NULL,       "cell which will be placed in the toplevel cell" },
+        { "basename",       STRING,     NULL,       "basename for the instance names" },
+        { "targetarea",     POINTLIST,  NULL,       "target area (a polygon)" },
+        { "excludes",       TABLE,      "false",    "optional list of polygons with fill excludes" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_within_boundary",
+        MODULE_PLACEMENT,
+        "automatically place a cell multiple times in a toplevel cell. The cell instances will be placed in the given target area and given names based on the given basename. An optional table can hold list of points (polygons), which describe areas that should not be filled. The x- and y-pitch of the cell are inferred from the alignment box",
+        "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\n placement.place_with_boundary(toplevel, filler, \"fill\", targetarea, excludes)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
 
-/* list of all modules and functions in the global table that are not documented (needs to be checked):
+/* placement.place_within_boundary_merge */
+{
+    struct parameter parameters[] = {
+        { "toplevel",       OBJECT,     NULL,       "toplevel cell to place cells in" },
+        { "cell",           OBJECT,     NULL,       "cell which will be placed in the toplevel cell" },
+        { "targetarea",     POINTLIST,  NULL,       "target area (a polygon)" },
+        { "excludes",       TABLE,      "false",    "optional list of polygons with fill excludes" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_within_boundary_merge",
+        MODULE_PLACEMENT,
+        "same as placement.place_with_boundary, but merges the cells (instead of adding them as children). Since only children need instance names, the 'basename' parameter is not present for this function",
+        "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\n placement.place_with_boundary_merge(toplevel, filler, targetarea, excludes)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
 
-    FIXME: placement.place_within_boundary
-    FIXME: placement.place_within_boundary_merge
-    FIXME: placement.place_within_rectangular_boundary
+/* placement.place_within_rectangular_boundary */
+{
+    struct parameter parameters[] = {
+        { "toplevel",   OBJECT, NULL,   "toplevel cell to place cells in" },
+        { "cell",       OBJECT, NULL,   "cell which will be placed in the toplevel cell" },
+        { "basename",   STRING, NULL,   "basename for the instance names" },
+        { "targetbl",   POINT,  NULL,   "bottom-left corner point of target area" },
+        { "targettr",   POINT,  NULL,   "top-right corner point of target area" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_within_rectangular_boundary",
+        MODULE_PLACEMENT,
+        "place fill in a rectangular boundary. This function behaves like placement.place_with_boundary, but it takes the corner points (bottom-left and top-right) as inputs. Furthermore, no excludes are accepted. This means that the entire rectangular boundary is filled. This function is magnitudes faster than placement.place_with_boundary (as no point-in-polygon checks are required and a more efficient data representation for the resulting array can be used), so consider using this function if no excludes are required.",
+        "local targetbl = point.create(-10000, -10000)\nlocal targettr = point.create(10000, 10000)\nplacement.place_with_rectangular_boundary(toplevel, filler, \"fill\", targetbl, targettr)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
 
- */
