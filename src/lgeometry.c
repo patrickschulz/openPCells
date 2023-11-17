@@ -204,6 +204,7 @@ static int lgeometry_path(lua_State* L)
         points[i - 1] = lpoint_get(pt);
         lua_pop(L, 1);
     }
+    lobject_check_proxy(L, cell);
     geometry_path(lobject_get(L, cell), layer, points, len, width, bgnext, endext);
     free(points);
     return 0;

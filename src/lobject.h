@@ -16,6 +16,7 @@ struct lobject* lobject_adapt_non_owning(lua_State* L, struct object* cell);
 struct object* lobject_get_unchecked(struct lobject* lobject);
 struct object* lobject_get(lua_State* L, struct lobject* lobject);
 const struct object* lobject_get_const(struct lobject* lobject);
+void lobject_check_proxy(lua_State* L, struct lobject* lobject);
 void lobject_disown(struct lobject* lobject);
 void lobject_mark_as_unusable(struct lobject* lobject);
 

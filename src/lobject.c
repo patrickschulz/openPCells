@@ -98,6 +98,15 @@ const struct object* lobject_get_const(struct lobject* lobject)
     return lobject_get_unchecked(lobject);
 }
 
+void lobject_check_proxy(lua_State* L, struct lobject* lobject)
+{
+    if(object_is_proxy(lobject->object))
+    {
+        lua_pushstring(L, "got a proxy object where a full object is required");
+        lua_error(L);
+    }
+}
+
 void lobject_disown(struct lobject* lobject)
 {
     lobject->destroy = 0;
