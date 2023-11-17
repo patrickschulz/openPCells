@@ -345,6 +345,22 @@
     ));
 }
 
+/* util.transform_points(pts, func) */
+{
+    struct parameter parameters[] = {
+        { "pts",    POINTLIST,  NULL, "the point list" },
+        { "func",   FUNCTION,   NULL, "the transformation function" },
+    };
+    vector_append(entries, _make_api_entry(
+        "transform_points",
+        MODULE_UTIL,
+        "transform all points in a list of points. This function creates a copy of the point list (the points are copied too). Every point is transformed by the transformation function. Any return values of the function are ignored, the function should transform the given point in-place.",
+        "util.transform_points({\n    point.create(0, 0),\n    point.create(100, 100)\n    point.create(50, 200)\n}, function(pt) pt:translate(100, 100) end)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /*
     FIXME:
 	util.check_grid

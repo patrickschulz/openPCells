@@ -1,25 +1,10 @@
 local M = {}
 
-function M.place_welltap(cell, bl, tr, anchorprefix, options)
-    check.set_next_function_name("layouthelpers.place_welltap")
-    check.arg_func(1, "cell", "object", cell, object.is_object)
-    check.arg_func(2, "bl", "point", bl, point.is_point)
-    check.arg_func(3, "tr", "point", tr, point.is_point)
-    check.arg(4, "anchorprefix", "string", anchorprefix)
-    check.arg_optional(5, "options", "table", options)
-    check.reset_function_name()
-    local welltap = pcell.create_layout(
-        "auxiliary/welltap",
-        "_welltap",
-        util.add_options(options or {}, {
-            width = point.xdistance_abs(bl, tr),
-            height = point.ydistance_abs(bl, tr),
-        })
-    )
-    welltap:move_point(welltap:get_area_anchor("boundary").bl, bl)
-    cell:merge_into(welltap)
-    cell:inherit_alignment_box(welltap)
-    cell:inherit_area_anchor_as(welltap, "boundary", string.format("%sboundary", anchorprefix))
+function M.place_bus(cell, layer, pathpoints, numbits, width, space)
+    for i = 1, numbits do
+        local pts = util.transform_points(pathpoints, function(pt) pt:translate_x((i - 1 - (numbits - 1) / 2) * (width + space)) end)
+        geometry.path(cell, layer, pts, width)
+    end
 end
 
 function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
@@ -84,6 +69,28 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
         cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
     end
+end
+
+function M.place_welltap(cell, bl, tr, anchorprefix, options)
+    check.set_next_function_name("layouthelpers.place_welltap")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg_func(2, "bl", "point", bl, point.is_point)
+    check.arg_func(3, "tr", "point", tr, point.is_point)
+    check.arg(4, "anchorprefix", "string", anchorprefix)
+    check.arg_optional(5, "options", "table", options)
+    check.reset_function_name()
+    local welltap = pcell.create_layout(
+        "auxiliary/welltap",
+        "_welltap",
+        util.add_options(options or {}, {
+            width = point.xdistance_abs(bl, tr),
+            height = point.ydistance_abs(bl, tr),
+        })
+    )
+    welltap:move_point(welltap:get_area_anchor("boundary").bl, bl)
+    cell:merge_into(welltap)
+    cell:inherit_alignment_box(welltap)
+    cell:inherit_area_anchor_as(welltap, "boundary", string.format("%sboundary", anchorprefix))
 end
 
 return M

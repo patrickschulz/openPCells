@@ -100,6 +100,16 @@ function M.xymirror(pts, xcenter, ycenter)
     return mirrored
 end
 
+function M.transform_points(pts, func)
+    local result = {}
+    for _, pt in ipairs(pts) do
+        local new = pt:copy()
+        func(new)
+        table.insert(result, new)
+    end
+    return result
+end
+
 function M.filter_forward(pts, fun)
     local filtered = {}
     for i = 1, #pts, 1 do
