@@ -168,19 +168,37 @@
     ));
 }
 
+/* placement.place_at_origins */
+{
+    struct parameter parameters[] = {
+        { "toplevel",       OBJECT,     NULL,   "toplevel cell to place cells in" },
+        { "cell",           OBJECT,     NULL,   "cell which will be placed in the toplevel cell" },
+        { "basename",       STRING,     NULL,   "basename for the instance names" },
+        { "origins",        POINTLIST,  NULL,   "origins where cells are placed" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_at_origins",
+        MODULE_PLACEMENT,
+        "place cells in a toplevel cells at the specified origins. The instances are named accordingly to the basename (with _1, _2, etc. appended). This is a more low-level placement function (compared to placement.place_within_boundary), which is called by the higher-level functions. In some cases, using this function directly can be useful. The function returns all placed children in a table.",
+        "local origins = {\n    point.create(0, -10000),\n    point.create(0, 10000),\n    point.create(0, 20000),\n    point.create(0, 30000)\n}\n placement.place_at_origins(toplevel, filler, \"fill\", origins)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* placement.place_within_boundary */
 {
     struct parameter parameters[] = {
-        { "toplevel",       OBJECT,     NULL,       "toplevel cell to place cells in" },
-        { "cell",           OBJECT,     NULL,       "cell which will be placed in the toplevel cell" },
-        { "basename",       STRING,     NULL,       "basename for the instance names" },
-        { "targetarea",     POINTLIST,  NULL,       "target area (a polygon)" },
-        { "excludes",       TABLE,      "false",    "optional list of polygons with fill excludes" }
+        { "toplevel",       OBJECT,     NULL,   "toplevel cell to place cells in" },
+        { "cell",           OBJECT,     NULL,   "cell which will be placed in the toplevel cell" },
+        { "basename",       STRING,     NULL,   "basename for the instance names" },
+        { "targetarea",     POINTLIST,  NULL,   "target area (a polygon)" },
+        { "excludes",       TABLE,      "{}",   "optional list of polygons with fill excludes" }
     };
     vector_append(entries, _make_api_entry(
         "place_within_boundary",
         MODULE_PLACEMENT,
-        "automatically place a cell multiple times in a toplevel cell. The cell instances will be placed in the given target area and given names based on the given basename. An optional table can hold list of points (polygons), which describe areas that should not be filled. The x- and y-pitch of the cell are inferred from the alignment box",
+        "automatically place a cell multiple times in a toplevel cell. The cell instances will be placed in the given target area and given names based on the given basename. An optional table can hold list of points (polygons), which describe areas that should not be filled. The x- and y-pitch of the cell are inferred from the alignment box. The function returns all plced children in a table.",
         "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\n placement.place_with_boundary(toplevel, filler, \"fill\", targetarea, excludes)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])

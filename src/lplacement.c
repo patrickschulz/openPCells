@@ -38,6 +38,38 @@ static void _cleanup_target_exclude_vector(struct simple_polygon* targetarea, st
     }
 }
 
+int lplacement_place_at_origins(lua_State* L)
+{
+    lcheck_check_numargs1(L, 4, "placement.place_at_origins");
+    struct lobject* toplevel = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 2);
+    const char* basename = luaL_checkstring(L, 3);
+    lua_len(L, 4);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    struct vector* origins = vector_create(32, NULL);
+    for(size_t i = 1; i <= len; ++i)
+    {
+        lua_rawgeti(L, 4, i);
+        struct lpoint* pt = lpoint_checkpoint(L, -1);
+        vector_append(origins, (void*)lpoint_get(pt)); // vector is non-const, but points are not mutated
+        lua_pop(L, 1);
+    }
+
+    struct vector* children = placement_place_at_origins(lobject_get(L, toplevel), lobject_get_unchecked(cell), origins, basename);
+    lobject_disown(cell); // memory is now handled by cell
+    lobject_mark_as_unusable(cell);
+    lua_newtable(L);
+    for(size_t i = 0; i < vector_size(children); ++i)
+    {
+        struct object* child = vector_get(children, i);
+        lobject_adapt_non_owning(L, child);
+        lua_rawseti(L, -2, i + 1);
+    }
+    vector_destroy(children);
+    return 1;
+}
+
 int lplacement_place_within_boundary(lua_State* L)
 {
     lcheck_check_numargs2(L, 4, 5, "placement.place_within_boundary");
@@ -108,6 +140,7 @@ int open_lplacement_lib(lua_State* L)
     // set methods
     static const luaL_Reg metafuncs[] =
     {
+        { "place_at_origins",                       lplacement_place_at_origins                  },
         { "place_within_boundary",                  lplacement_place_within_boundary             },
         { "place_within_boundary_merge",            lplacement_place_within_boundary_merge       },
         { "place_within_rectangular_boundary",      lplacement_place_within_rectangular_boundary },

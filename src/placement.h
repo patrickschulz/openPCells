@@ -13,6 +13,13 @@ struct vector* placement_calculate_origins(
     const struct polygon* excludes
 );
 
+struct vector* placement_place_at_origins(
+    struct object* toplevel,
+    struct object* cell,
+    const struct vector* origins,
+    const char* basename
+);
+
 struct vector* placement_place_within_boundary(
     struct object* toplevel,
     struct object* cell,

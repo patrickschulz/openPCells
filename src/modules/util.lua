@@ -324,6 +324,42 @@ function M.remove_index(t, index)
     return result
 end
 
+function M.remove_inplace(t, comp)
+    for i, e in ipairs(t) do
+        if type(comp) == "function" then
+            if comp(e) then
+                table.remove(result, i)
+            end
+        else
+            if e == comp then
+                table.remove(result, i)
+            end
+        end
+    end
+end
+
+function M.remove_index_inplace(t, index)
+    table.remove(t, index)
+end
+
+function M.clone_shallow(t)
+    local new = {}
+    for k, v in pairs(t) do
+        new[k] = v
+    end
+    return new
+end
+
+function M.clone_shallow_predicate(t, predicate)
+    local new = {}
+    for k, v in pairs(t) do
+        if predicate(k, v) then
+            new[k] = v
+        end
+    end
+    return new
+end
+
 function M.find(t, value)
     for i, v in ipairs(t) do
         if v == value then
@@ -370,7 +406,7 @@ function M.fill_odd_with(num, filler, other)
 end
 
 function M.add_options(base, t)
-    local new = aux.clone_shallow(base)
+    local new = M.clone_shallow(base)
     for k, v in pairs(t) do
         new[k] = v
     end

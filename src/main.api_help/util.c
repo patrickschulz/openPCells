@@ -191,6 +191,54 @@
     ));
 }
 
+/* util.remove_index(t, comp) */
+{
+    struct parameter parameters[] = {
+        { "t",      TABLE,      NULL,  "array" },
+        { "index",  INTEGER,    NULL,  "index of to-be-removed element" }
+    };
+    vector_append(entries, _make_api_entry(
+        "remove_index",
+        MODULE_UTIL,
+        "create a shallow copy of a table with the element at the 'index' removed",
+        "util.remove_index({10, 20, 30, 40, 50}, 3) -- { 10, 20, 40, 50 }",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.remove_inplace(t, comp) */
+{
+    struct parameter parameters[] = {
+        { "t",      TABLE,  NULL,  "array" },
+        { "comp",   ANY,    NULL,  "comparison value of function" }
+    };
+    vector_append(entries, _make_api_entry(
+        "remove_inplace",
+        MODULE_UTIL,
+        "remove certain elements matching the given criteria. The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. If the result of the function call is 'true', the entry is NOT included in the results table.",
+        "util.remove({1, 2, 3, 4, 5}, 3) -- { 1, 2, 4, 5 }\nutil.remove({1, 2, 3, 4, 5}, function(e) return e % 2 == 0 end) -- { 1, 3, 5 }",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.remove_index_inplace(t, comp) */
+{
+    struct parameter parameters[] = {
+        { "t",      TABLE,      NULL,  "array" },
+        { "index",  INTEGER,    NULL,  "index of to-be-removed element" }
+    };
+    vector_append(entries, _make_api_entry(
+        "remove_index_inplace",
+        MODULE_UTIL,
+        "remove the element of the given table at the given index (actually just a wrapper for table.remove)",
+        "util.remove_index({10, 20, 30, 40, 50}, 3) -- { 10, 20, 40, 50 }",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* util.fill_all_with(num, filler) */
 {
     struct parameter parameters[] = {
@@ -254,6 +302,21 @@
         MODULE_UTIL,
         "create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'filler'",
         "local gatecontactpos = util.fill_odd_with(4, \"center\", \"upper\") -- { \"center\", \"upper\", \"center\", \"upper\" }",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.clone_shallow(t) */
+{
+    struct parameter parameters[] = {
+        { "table", TABLE, NULL, "table" },
+    };
+    vector_append(entries, _make_api_entry(
+        "clone_shallow",
+        MODULE_UTIL,
+        "create a shallow copy of a table. This function creates a copy of the given table, where all first-level values are copied. If those values are tables, they reference the same table as the original object.",
+        "local new = util.clone(t)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));

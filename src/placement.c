@@ -124,11 +124,8 @@ static struct object* _place_child(struct object* toplevel, struct object* cell,
     return child;
 }
 
-struct vector* placement_place_within_boundary(struct object* toplevel, struct object* cell, const char* basename, const struct simple_polygon* targetarea, const struct polygon* excludes)
+struct vector* placement_place_at_origins(struct object* toplevel, struct object* cell, const struct vector* origins, const char* basename)
 {
-    ucoordinate_t width, height;
-    object_width_height_alignmentbox(cell, &width, &height);
-    struct vector* origins = placement_calculate_origins(width, height, width, height, width / 2, height / 2, targetarea, excludes);
     struct vector* children = vector_create(vector_size(origins), NULL);
     struct vector_const_iterator* origin_it = vector_const_iterator_create(origins);
     int i = 1;
@@ -141,6 +138,15 @@ struct vector* placement_place_within_boundary(struct object* toplevel, struct o
         vector_const_iterator_next(origin_it);
     }
     vector_const_iterator_destroy(origin_it);
+    return children;
+}
+
+struct vector* placement_place_within_boundary(struct object* toplevel, struct object* cell, const char* basename, const struct simple_polygon* targetarea, const struct polygon* excludes)
+{
+    ucoordinate_t width, height;
+    object_width_height_alignmentbox(cell, &width, &height);
+    struct vector* origins = placement_calculate_origins(width, height, width, height, width / 2, height / 2, targetarea, excludes);
+    struct vector* children = placement_place_at_origins(toplevel, cell, origins, basename);
     vector_destroy(origins);
     return children;
 }
