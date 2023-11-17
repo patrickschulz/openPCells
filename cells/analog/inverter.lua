@@ -97,15 +97,19 @@ function layout(inverter, _P)
                 cmos:get_area_anchor(string.format("pSD%d", i)).br
             )
         end
-        geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
+        inverter:add_area_anchor_bltr("output",
             point.combine(
                 cmos:get_area_anchor(string.format("nSD%d", 2)).tl,
                 cmos:get_area_anchor(string.format("pSD%d", 2)).bl
-            ):translate_y(-_P.outputwidth),
+            ):translate_y(-_P.outputwidth / 2),
             point.combine(
                 cmos:get_area_anchor(string.format("nSD%d", _P.fingers)).tr,
                 cmos:get_area_anchor(string.format("pSD%d", _P.fingers)).br
-            ):translate_y(_P.outputwidth)
+            ):translate_y(_P.outputwidth / 2)
+        )
+        geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
+            inverter:get_area_anchor("output").bl,
+            inverter:get_area_anchor("output").tr
         )
     else
         geometry.path_cshape(inverter, generics.metal(_P.outputmetal),
@@ -126,6 +130,9 @@ function layout(inverter, _P)
             cmos:get_area_anchor(string.format("nSD%d", i + dummyoffset)).tr
         )
     end
+
+    inverter:inherit_area_anchor(cmos, "PRp")
+    inverter:inherit_area_anchor(cmos, "PRn")
 
     inverter:add_area_anchor_bltr("input",
         cmos:get_area_anchor(string.format("G%d", 1)).bl,

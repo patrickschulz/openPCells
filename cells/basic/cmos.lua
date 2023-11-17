@@ -157,7 +157,7 @@ function layout(cmos, _P)
             drawbotactivedummy = _P.drawactivedummy,
             botactivedummywidth = _P.activedummywidth,
             botactivedummysep = _P.activedummysep,
-            extendwellbot = _P.npowerspace,
+            extendwellbottom = _P.npowerspace,
         }
         -- main
         for i = 1, fingers do
