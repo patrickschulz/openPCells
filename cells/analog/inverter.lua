@@ -24,7 +24,11 @@ function parameters()
         { "dummycontheight",                            technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
         { "shiftoutput",                                0 },
         { "dummycontshift",                             0 },
-        { "outputisinside",                             false }
+        { "outputisinside",                             false },
+        { "drawleftstopgate",                           false },
+        { "drawrightstopgate",                          false },
+        { "leftpolylines",                              {} },
+        { "rightpolylines",                             {} }
     )
 end
 
@@ -66,6 +70,10 @@ function layout(inverter, _P)
         separation = _P.gatestrapwidth + 2 * _P.gatestrapspace,
         dummycontheight = _P.dummycontheight,
         dummycontshift = _P.dummycontshift,
+        drawleftstopgate = _P.drawleftstopgate,
+        drawrightstopgate = _P.drawrightstopgate,
+        leftpolylines = _P.leftpolylines,
+        rightpolylines = _P.rightpolylines,
     })
     inverter:merge_into(cmos)
 

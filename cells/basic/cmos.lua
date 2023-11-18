@@ -161,6 +161,14 @@ function layout(cmos, _P)
         }
         -- main
         for i = 1, fingers do
+            nopt.leftpolylines = {}
+            popt.leftpolylines = {}
+            nopt.drawleftstopgate = false
+            popt.drawleftstopgate = false
+            nopt.rightpolylines = {}
+            popt.rightpolylines = {}
+            nopt.drawrightstopgate = false
+            popt.drawrightstopgate = false
             if i == 1 then
                 nopt.leftpolylines = _P.leftpolylines
                 popt.leftpolylines = _P.leftpolylines
