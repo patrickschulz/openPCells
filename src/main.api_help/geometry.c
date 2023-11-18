@@ -405,13 +405,14 @@
         { "layer",    GENERICS, NULL,   "Layer of the generated rectangular shape" },
         { "ptstart",  POINT,    NULL,   "Start point of the path" },
         { "ptend",    POINT,    NULL,   "End point of the path" },
-        { "width",    INTEGER,  NULL,   "width of the path. Must be even" }
+        { "width",    INTEGER,  NULL,   "width of the path. Must be even" },
+        { "position", NUMBER,   NULL,   "position factor (a number between 0 and 1)" }
     };
     vector_append(entries, _make_api_entry(
         "path_3x",
         MODULE_GEOMETRY,
-        "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in y-direction. Different from path_2x this make a bend in the middle between the start and the end point",
-        "geometry.path_3x(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in y-direction. Different from path_2x this make a bend in the middle between the start and the end point. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
+        "geometry.path_3x(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -424,13 +425,14 @@
         { "layer",    GENERICS, NULL,   "Layer of the generated rectangular shape" },
         { "ptstart",  POINT,    NULL,   "Start point of the path" },
         { "ptend",    POINT,    NULL,   "End point of the path" },
-        { "width",    INTEGER,  NULL,   "width of the path. Must be even" }
+        { "width",    INTEGER,  NULL,   "width of the path. Must be even" },
+        { "position", NUMBER,   NULL,   "position factor (a number between 0 and 1)" }
     };
     vector_append(entries, _make_api_entry(
         "path_3y",
         MODULE_GEOMETRY,
-        "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction. Different from path_2y this makes a bend in the middle between the start and the end point",
-        "geometry.path_3y(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction. Different from path_2x this make a bend in the middle between the start and the end point. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
+        "geometry.path_3y(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
