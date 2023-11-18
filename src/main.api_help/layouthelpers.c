@@ -32,9 +32,7 @@
     vector_append(entries, _make_api_entry(
         "place_guardring",
         MODULE_LAYOUTHELPERS,
-        // help text
         "place a guardring in a cell with a defined boundary and spacing",
-        // example
 "layouthelpers.place_guardring(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
@@ -57,9 +55,7 @@
     vector_append(entries, _make_api_entry(
         "place_guardring_with_hole",
         MODULE_LAYOUTHELPERS,
-        // help text
         "place a guardring with a well hole in a cell with a defined boundary and spacing",
-        // example
 "layouthelpers.place_guardring_with_hole(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr,\n    pmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr),\n    200, 200,\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
@@ -78,10 +74,27 @@
     vector_append(entries, _make_api_entry(
         "place_welltap",
         MODULE_LAYOUTHELPERS,
-        // help text
         "place a welltap in a cell with a defined boundary and spacing",
-        // example
 "layouthelpers.place_welltap(cell,\n    nmos:get_area_anchor(\"sourcestrap\").bl,\n    nmos:get_area_anchor(\"sourcestrap\").tr,\n    {\n        contype = \"n\",\n    }\n)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* layouthelpers.place_maximum_width_via */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "pt1",        POINT,      NULL,   "first corner point of the to-be-created via" },
+        { "pt2",        POINT,      NULL,   "second corner point of the to-be-created via" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_maximum_width_via",
+        MODULE_LAYOUTHELPERS,
+        "place a via (or a via stack) in an object. The function behaves like geometry.viabltr, but takes into account the maximum width of the metal layers. This means that possibly not all vias are created with the full width of the given region. This means that the first point (pt1) must touch the actual shape that should connect to the via. Therefore, pt1 and pt2 don't have to be the lower-left and the top-right corner points. The maximum widths are specified by the technology constraint file (entries \"Maximum Mn Width\", where 'n' is an integer). If no values are specified, the full width of the via region is used, in which case the function behaves exactly like geometry.viabltr (except for the order of the points).",
+        "layouthelpers.place_maximum_width_via(cell, 1, 8, point.create(-100, 200), point.create(-800, 1500))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));

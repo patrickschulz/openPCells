@@ -822,6 +822,32 @@ static int ltechnology_get_dimension(lua_State* L)
     return 1;
 }
 
+static int ltechnology_get_optional_dimension(lua_State* L)
+{
+    const char* dimension = lua_tostring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushinteger(L, 0);
+        return 1;
+    }
+    else
+    {
+        if(hashmap_exists(techstate->constraints, dimension))
+        {
+            struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
+            int value = tagged_value_get_integer(v);
+            lua_pushinteger(L, value);
+            return 1;
+        }
+    }
+    // return default value if property was not found
+    lua_pushvalue(L, 2);
+    return 1;
+}
+
 static int ltechnology_has_layer(lua_State* L)
 {
     struct generics* layer = lua_touserdata(L, 1);
@@ -869,6 +895,7 @@ int open_ltechnology_lib(lua_State* L)
     {
         { "list_techpaths",                 ltechnology_list_techpaths              },
         { "get_dimension",                  ltechnology_get_dimension               },
+        { "get_optional_dimension",         ltechnology_get_optional_dimension      },
         { "has_layer",                      ltechnology_has_layer                   },
         { "resolve_metal",                  ltechnology_resolve_metal               },
         { "has_multiple_patterning",        ltechnology_has_multiple_patterning     },

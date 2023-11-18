@@ -93,4 +93,131 @@ function M.place_welltap(cell, bl, tr, anchorprefix, options)
     cell:inherit_area_anchor_as(welltap, "boundary", string.format("%sboundary", anchorprefix))
 end
 
+--[[
+function M.place_maximum_width_via(cell, startmetal, endmetal, bl, tr)
+    local regionwidth = point.xdistance_abs(bl, tr)
+    local regionheight = point.ydistance_abs(bl, tr)
+    if regionwidth > regionheight then
+        for m = startmetal, endmetal - 1 do
+            local lowerwidth = technology.get_optional_dimension(string.format("Maximum M%d Width", m), regionheight)
+            local upperwidth = technology.get_optional_dimension(string.format("Maximum M%d Width", m + 1), regionheight)
+            local numregions = 1
+            while regionheight / (2 * (numregions - 1) + 1) > lowerwidth do
+                numregions = numregions + 1
+            end
+            local width = regionheight // (2 * (numregions - 1) + 1)
+            local space = numregions > 1 and ((regionheight - numregions * width) // (numregions - 1)) or 0
+            for i = 1, numregions do
+                geometry.viabltr(cell, m, m + 1,
+                    bl:copy():translate_y((i - 1) * (width + space)),
+                    point.combine_12(tr, bl):translate_y((i - 1) * (width + space) + width)
+                )
+            end
+        end
+    else
+        for m = startmetal, endmetal - 1 do
+            local lowerwidth = technology.get_optional_dimension(string.format("Maximum M%d Width", m), regionwidth)
+            local upperwidth = technology.get_optional_dimension(string.format("Maximum M%d Width", m + 1), regionwidth)
+            local numregions = 1
+            while regionwidth / (2 * (numregions - 1) + 1) > lowerwidth do
+                numregions = numregions + 1
+            end
+            local width = regionwidth // (2 * (numregions - 1) + 1)
+            local space = numregions > 1 and ((regionwidth - numregions * width) // (numregions - 1)) or 0
+            for i = 1, numregions do
+                geometry.viabltr(cell, m, m + 1,
+                    bl:copy():translate_x((i - 1) * (width + space)),
+                    point.combine_12(bl, tr):translate_x((i - 1) * (width + space) + width)
+                )
+            end
+        end
+    end
+end
+--]]
+
+function M.place_maximum_width_via(cell, firstmetal, lastmetal, pt1, pt2)
+    geometry.rectanglepoints(cell, generics.special(), pt1, pt2)
+    local regionwidth = point.xdistance_abs(pt1, pt2)
+    local regionheight = point.ydistance_abs(pt1, pt2)
+    local xsign = point.xdistance(pt1, pt2) > 0 and -1 or 1
+    local ysign = point.ydistance(pt1, pt2) > 0 and -1 or 1
+    if regionwidth > regionheight then
+        for m = firstmetal, lastmetal - 1 do
+            local lowerwidth = technology.get_optional_dimension(string.format("Maximum M%d Width", m), regionheight)
+            local upperwidth = technology.get_optional_dimension(string.format("Maximum M%d Width", m + 1), regionheight)
+            local numregions = 1
+            while regionheight / (2 * (numregions - 1) + 1) > lowerwidth do
+                numregions = numregions + 1
+            end
+            local width = regionheight // (2 * (numregions - 1) + 1)
+            local space = numregions > 1 and ((regionheight - numregions * width) // (numregions - 1)) or 0
+            for i = 1, 1 do
+                if ysign < 0 then
+                    if xsign < 0 then
+                        geometry.viabltr(cell, m, m + 1,
+                            point.combine_12(pt2, pt1):translate_y(-(i - 1) * (width + space) - width),
+                            pt1:copy():translate_y(-(i - 1) * (width + space))
+                        )
+                    else
+                        geometry.viabltr(cell, m, m + 1,
+                            pt1:copy():translate_y(-(i - 1) * (width + space) - width),
+                            point.combine_12(pt2, pt1):translate_y(-(i - 1) * (width + space))
+                        )
+                    end
+                else
+                    if xsign < 0 then
+                        geometry.viabltr(cell, m, m + 1,
+                            point.combine_12(pt2, pt1):translate_y((i - 1) * (width + space)),
+                            pt1:copy():translate_y((i - 1) * (width + space) + width)
+                        )
+                    else
+                        geometry.viabltr(cell, m, m + 1,
+                            pt1:copy():translate_y((i - 1) * (width + space)),
+                            point.combine_12(pt2, pt1):translate_y((i - 1) * (width + space) + width)
+                        )
+                    end
+                end
+            end
+        end
+    else
+        for m = startmetal, lastmetal - 1 do
+            local lowerwidth = technology.get_optional_dimension(string.format("Maximum M%d Width", m), regionwidth)
+            local upperwidth = technology.get_optional_dimension(string.format("Maximum M%d Width", m + 1), regionwidth)
+            local numregions = 1
+            while regionwidth / (2 * (numregions - 1) + 1) > lowerwidth do
+                numregions = numregions + 1
+            end
+            local width = regionwidth // (2 * (numregions - 1) + 1)
+            local space = numregions > 1 and ((regionwidth - numregions * width) // (numregions - 1)) or 0
+            for i = 1, 1 do
+                if xsign < 0 then
+                    if ysign < 0 then
+                        geometry.viabltr(cell, m, m + 1,
+                            pt1:copy():translate_x(-1 * (i - 1) * (width + space) - width),
+                            point.combine_12(pt1, pt2):translate_x(-1 * (i - 1) * (width + space))
+                        )
+                    else
+                        geometry.viabltr(cell, m, m + 1,
+                            pt1:copy():translate_x(-1 * (i - 1) * (width + space) - width),
+                            point.combine_12(pt1, pt2):translate_x(-1 * (i - 1) * (width + space))
+                        )
+                    end
+                else
+                    if ysign < 0 then
+                        geometry.viabltr(cell, m, m + 1,
+                            pt1:copy():translate_x((i - 1) * (width + space)),
+                            point.combine_12(pt1, pt2):translate_x((i - 1) * (width + space) + width)
+                        )
+                    else
+                        geometry.viabltr(cell, m, m + 1,
+                            pt1:copy():translate_x((i - 1) * (width + space)),
+                            point.combine_12(pt1, pt2):translate_x((i - 1) * (width + space) + width)
+                        )
+                    end
+                end
+            end
+        end
+    end
+end
+
 return M
