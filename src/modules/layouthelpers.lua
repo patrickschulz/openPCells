@@ -180,7 +180,7 @@ function M.place_maximum_width_via(cell, firstmetal, lastmetal, pt1, pt2)
             end
         end
     else
-        for m = startmetal, lastmetal - 1 do
+        for m = firstmetal, lastmetal - 1 do
             local lowerwidth = technology.get_optional_dimension(string.format("Maximum M%d Width", m), regionwidth)
             local upperwidth = technology.get_optional_dimension(string.format("Maximum M%d Width", m + 1), regionwidth)
             local numregions = 1
