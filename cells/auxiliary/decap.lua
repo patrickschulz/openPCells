@@ -28,7 +28,7 @@ function parameters()
         { "restrictvss", false },
         { "connecttopmetal", false },
         { "drawtopmetal", false },
-        { "metalwidths", { 500, 500, 800, 800, 800, 800, 1000, 2500, 5000, 5000 } },
+        { "metalwidths", { 500, 500, 800, 800, 800, 800, 1000, 1250, 2500, 2500 } },
         { "capspace", { 500, 500, 500, 500, 500, 500, 500 } },
         { "wellextension", 0 },
         { "implantextension", 0 },
