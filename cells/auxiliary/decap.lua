@@ -287,7 +287,7 @@ function layout(decap, _P)
             end
             local nfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i] - 2 * _P.capspace[i]) / (2 * (fingerwidth + fingerspace)))
             local capwidth = nfingers * fingerwidth + (nfingers - 1) * fingerspace
-            if not (_P.meshmetals[i] == 1 or _P.meshmetals[i] == 2) then
+            if not ((_P.meshmetals[i] == 1 or _P.meshmetals[i] == 2) and _P.drawmoscap) then
                 local topcap = pcell.create_layout("passive/capacitor/mom", "topcap", {
                     firstmetal = _P.meshmetals[i], lastmetal = _P.meshmetals[i],
                     fingers = nfingers,
