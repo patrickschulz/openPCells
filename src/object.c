@@ -479,6 +479,39 @@ void object_merge_into_with_ports(struct object* cell, const struct object* othe
     }
 }
 
+static void _swap_coordinates(coordinate_t* c1, coordinate_t* c2)
+{
+    coordinate_t tmp = *c1;
+    *c1 = *c2;
+    *c2 = tmp;
+}
+
+static void _fix_rectangle_order(point_t* bl, point_t* tr)
+{
+    if(bl->x > tr->x)
+    {
+        _swap_coordinates(&bl->x, &tr->x);
+    }
+    if(bl->y > tr->y)
+    {
+        _swap_coordinates(&bl->y, &tr->y);
+    }
+}
+
+static void _transform_anchor_to_cell_coordinates(struct object* cell, struct anchor* anchor)
+{
+    if(_anchor_is_area(anchor))
+    {
+        transformationmatrix_apply_inverse_transformation(cell->trans, anchor->bl);
+        transformationmatrix_apply_inverse_transformation(cell->trans, anchor->tr);
+        _fix_rectangle_order(anchor->bl, anchor->tr);
+    }
+    else
+    {
+        transformationmatrix_apply_inverse_transformation(cell->trans, anchor->where);
+    }
+}
+
 static int _add_anchor(struct object* cell, const char* name, struct anchor* anchor)
 {
     if(!cell->anchors)
@@ -491,6 +524,7 @@ static int _add_anchor(struct object* cell, const char* name, struct anchor* anc
     }
     else
     {
+        _transform_anchor_to_cell_coordinates(cell, anchor);
         hashmap_insert(cell->anchors, name, anchor);
     }
     return 1;
