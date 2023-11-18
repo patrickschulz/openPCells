@@ -821,6 +821,26 @@ function layout(divider, _P)
         latch:get_area_anchor("outerclockpdummyright_sourcestrap").tr
     )
 
+    latch:clear_alignment_box()
+    latch:set_alignment_box(
+        point.combine_12(
+            latch:get_area_anchor("outerclockndummyleft_sourcedrain1").bl,
+            latch:get_area_anchor("outerclockndummyleft_sourcestrap").bl
+        ),
+        point.combine_12(
+            latch:get_area_anchor("outerclockpdummyright_sourcedrain-1").br,
+            latch:get_area_anchor("outerclockpdummyright_sourcestrap").tr
+        ),
+        point.combine_12(
+            latch:get_area_anchor("outerclockndummyleft_sourcedrain1").br,
+            latch:get_area_anchor("outerclockndummyleft_sourcestrap").tl
+        ),
+        point.combine_12(
+            latch:get_area_anchor("outerclockpdummyright_sourcedrain-1").bl,
+            latch:get_area_anchor("outerclockpdummyright_sourcestrap").br
+        )
+    )
+
     -- placement
     local numlatches = 2^_P.divisionfactor
     local latches = {}
