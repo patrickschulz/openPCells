@@ -781,6 +781,15 @@ static int lobject_get_area_anchor(lua_State* L)
         lua_setfield(L, -2, "tr");
         lpoint_create_internal(L, pts[0].x, pts[1].y);
         lua_setfield(L, -2, "tl");
+        // skalar values
+        lua_pushinteger(L, pts[0].x);
+        lua_setfield(L, -2, "l");
+        lua_pushinteger(L, pts[0].y);
+        lua_setfield(L, -2, "b");
+        lua_pushinteger(L, pts[1].x);
+        lua_setfield(L, -2, "r");
+        lua_pushinteger(L, pts[1].y);
+        lua_setfield(L, -2, "t");
         free(pts);
         luaL_setmetatable(L, "areaanchor");
     }
