@@ -741,7 +741,8 @@ static int lobject_get_alignment_anchor(lua_State* L)
 
 static int _area_anchor_index_func(lua_State* L)
 {
-    lua_getfield(L, 1, "_name");
+    lua_pushstring(L, "_name");
+    lua_rawget(L, 1);
     const char* name = lua_tostring(L, -1);
     lua_pop(L, 1);
     const char* key = lua_tostring(L, 2);
@@ -841,6 +842,8 @@ static int lobject_get_array_area_anchor(lua_State* L)
     if(pts)
     {
         lua_newtable(L);
+        lua_pushstring(L, base);
+        lua_setfield(L, -2, "_name");
         lpoint_create_internal(L, pts[0].x, pts[0].y);
         lua_setfield(L, -2, "bl");
         lpoint_create_internal(L, pts[1].x, pts[0].y);
@@ -849,6 +852,15 @@ static int lobject_get_array_area_anchor(lua_State* L)
         lua_setfield(L, -2, "tr");
         lpoint_create_internal(L, pts[0].x, pts[1].y);
         lua_setfield(L, -2, "tl");
+        // skalar values
+        lua_pushinteger(L, pts[0].x);
+        lua_setfield(L, -2, "l");
+        lua_pushinteger(L, pts[0].y);
+        lua_setfield(L, -2, "b");
+        lua_pushinteger(L, pts[1].x);
+        lua_setfield(L, -2, "r");
+        lua_pushinteger(L, pts[1].y);
+        lua_setfield(L, -2, "t");
         free(pts);
         luaL_setmetatable(L, "areaanchor");
     }
