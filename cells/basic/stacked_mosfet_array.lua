@@ -4,7 +4,8 @@ function parameters()
         { "splitgates", true },
         { "alignmosfetsatactive", false },
         { "sdwidth", technology.get_dimension("Minimum M1 Width") },
-        { "separation", 0 }
+        { "separation", 0 },
+        { "autoskip", false }
     )
 end
 
@@ -22,7 +23,7 @@ function check(_P)
             if not device.fingers then
                 return false, string.format("device %d in row %d (\"%s\") has no finger specification", devicenum, rownum, device.name)
             end
-            if device.fingers <= 0 then
+            if not _P.autoskip and (device.fingers <= 0 and not device.skip) then
                 return false, string.format("device %d in row %d (\"%s\") has zero or negative amount of fingers (%d)", devicenum, rownum, device.name, device.fingers)
             end
             if not math.tointeger(device.fingers) then
@@ -84,7 +85,7 @@ function layout(cell, _P)
     for rownum, row in ipairs(_P.rows) do
         local activebl, activetr
         for devnum, device in ipairs(row.devices) do
-            if not device.skip then
+            if not device.skip or (_P.autoskip and device.fingers <= 0) then
                 local status, mosfet = pcall(pcell.create_layout, "basic/mosfet", device.name, {
                     channeltype = row.channeltype,
                     implantalignwithactive = not _P.splitgates or row.implantalignwithactive,
@@ -287,9 +288,9 @@ function layout(cell, _P)
                         mosfet:move_point(mosfet:get_area_anchor("sourcedrainactiveleft").bl, lastpoint)
                         lastpoint = mosfet:get_area_anchor("sourcedrainactiveleft").tl
                     end
+                    mosfet:translate_x(row.shift or 0)
                 else
-                    mosfet:align_bottom(lastmosfet)
-                    mosfet:abut_right(lastmosfet)
+                    mosfet:align_area_anchor("sourcedrainactiveleft", lastmosfet, "sourcedrainactiveright")
                 end
                 lastmosfet = mosfet
                 cell:merge_into(mosfet)
