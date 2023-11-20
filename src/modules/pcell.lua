@@ -390,6 +390,8 @@ function state.create_cellenv(state, cellname, ovrenv)
             pop_overwrites                  = bindstate(_pop_overwrites),
             create_layout                   = pcell.create_layout,
             create_layout_env               = pcell.create_layout_env,
+            create_layout_in_object         = pcell.create_layout_in_object,
+            create_layout_env_in_object     = pcell.create_layout_env_in_object,
         },
         technology = {
             get_dimension = technology.get_dimension,
@@ -500,7 +502,7 @@ function pcell.evaluate_parameters(cellname, cellargs)
     return parameters
 end
 
-local function _create_layout_internal(cellname, name, cellargs, env)
+local function _create_layout_internal(obj, cellname, cellargs, env)
     local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
     if not libpart then
         error(string.format("pcell.create_layout: malformed cellname. Expected library/cell, got '%s'", cellname))
@@ -531,12 +533,10 @@ local function _create_layout_internal(cellname, name, cellargs, env)
         end
     end
 
-    local obj = object.create(name)
     cell.funcs.layout(obj, parameters, env)
     if explicitlib then
         state.libnamestacks:pop()
     end
-    return obj
 end
 
 local _globalenv
@@ -550,7 +550,9 @@ function pcell.create_layout(cellname, name, cellargs, ...)
     if select("#", ...) > 0 then
         error("pcell.create_layout was called with more three two arguments. If you wanted to pass an environment, use pcell.create_layout_env")
     end
-    return _create_layout_internal(cellname, name, cellargs)
+    local obj = object.create(name)
+    _create_layout_internal(obj, cellname, cellargs)
+    return obj
 end
 
 function pcell.create_layout_env(cellname, name, cellargs, env)
@@ -566,9 +568,40 @@ function pcell.create_layout_env(cellname, name, cellargs, env)
     end
     local oldenv = _globalenv
     _globalenv = env
-    local obj = _create_layout_internal(cellname, name, cellargs, _globalenv)
+    local obj = object.create(name)
+    _create_layout_internal(obj, cellname, cellargs, _globalenv)
     _globalenv = oldenv
     return obj
+end
+
+function pcell.create_layout_in_object(obj, cellname, name, cellargs, ...)
+    if not obj or not object.is_object(obj) then
+        error("pcell.create_layout_in_object: expected an object as first argument")
+    end
+    if not cellname or type(cellname) ~= "string" then
+        error("pcell.create_layout: expected cellname (a string) as second argument")
+    end
+    if select("#", ...) > 0 then
+        error("pcell.create_layout was called with more three two arguments. If you wanted to pass an environment, use pcell.create_layout_env")
+    end
+    _create_layout_internal(obj, cellname, cellargs)
+end
+
+function pcell.create_layout_env_in_object(obj, cellname, cellargs, env)
+    if not obj or not object.is_object(obj) then
+        error("pcell.create_layout_in_object: expected an object as first argument")
+    end
+    if not cellname or type(cellname) ~= "string" then
+        error("pcell.create_layout_env: expected cellname as second argument")
+    end
+    -- cellargs can be nil
+    if not env then
+        error("pcell.create_layout_env: expected environment as fourth argument")
+    end
+    local oldenv = _globalenv
+    _globalenv = env
+    _create_layout_internal(obj, cellname, cellargs, _globalenv)
+    _globalenv = oldenv
 end
 
 function pcell.create_layout_from_script(scriptpath, args)
