@@ -207,12 +207,12 @@ function layout(decap, _P)
             leftright = not leftright
         end
         -- connect to top metal
-        --if _P.connecttopmetal then
-        --    geometry.viabarebltr(decap, _P.gridmetals[#_P.gridmetals], _P.gridmetals[#_P.gridmetals] + 1,
-        --        point.create(-_P.metalwidths[#_P.metalwidths] / 2, -_P.metalwidths[#_P.metalwidths] / 2),
-        --        point.create( _P.metalwidths[#_P.metalwidths] / 2,  _P.metalwidths[#_P.metalwidths] / 2)
-        --    )
-        --end
+        if _P.connecttopmetal then
+            geometry.viabarebltr(decap, _P.gridmetals[#_P.gridmetals], _P.gridmetals[#_P.gridmetals] + 1,
+                point.create(-_P.metalwidths[#_P.metalwidths] / 2, -_P.metalwidths[#_P.metalwidths] / 2),
+                point.create( _P.metalwidths[#_P.metalwidths] / 2,  _P.metalwidths[#_P.metalwidths] / 2)
+            )
+        end
         if _P.drawtopmetal then
             geometry.rectanglebltr(decap, generics.metal(-1),
                 point.create(-_P.cellsize / 2, -_P.cellsize / 2),
