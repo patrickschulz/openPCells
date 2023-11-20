@@ -81,7 +81,7 @@ function layout(pads, _P)
         pads:merge_into(pad)
         pads:inherit_area_anchor_as(pad, "boundary", string.format("padboundary_%i", i))
         pads:inherit_area_anchor_as(pad, "boundary", string.format("padboundary_%s", _P.padnames[i]))
-        pads:add_port(
+        pads:add_port_with_anchor(
             string.format("%s", _P.padnames[i]),
             generics.metalport(-1),
             point.combine(
