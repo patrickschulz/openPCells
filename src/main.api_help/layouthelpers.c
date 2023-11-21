@@ -26,7 +26,7 @@
         { "tr",             POINT,      NULL, "top-right boundary corner" },
         { "xspace",         INTEGER,    NULL, "space in x-direction between boundary and guardring" },
         { "yspace",         INTEGER,    NULL, "space in y-direction between boundary and guardring" },
-        { "anchorprefix",   INTEGER,    NULL, "anchor prefix for inherited anchors (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
+        { "anchorprefix",   STRING,     NULL, "anchor prefix for inherited anchors (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
         { "options",        TABLE,      NULL, "placement options" }
     };
     vector_append(entries, _make_api_entry(
@@ -49,7 +49,7 @@
         { "tr",             POINT,      NULL, "top-right hole boundary corner" },
         { "xspace",         INTEGER,    NULL, "space in x-direction between boundary and guardring" },
         { "yspace",         INTEGER,    NULL, "space in y-direction between boundary and guardring" },
-        { "anchorprefix",   INTEGER,    NULL, "anchor prefix for inherited anchors (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
+        { "anchorprefix",   STRING,     NULL, "anchor prefix for inherited anchors (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
         { "options",        TABLE,      NULL, "placement options" }
     };
     vector_append(entries, _make_api_entry(
@@ -68,7 +68,7 @@
         { "cell",           OBJECT,     NULL, "cell to place guardring in" },
         { "bl",             POINT,      NULL, "bottom-left boundary corner" },
         { "tr",             POINT,      NULL, "top-right boundary corner" },
-        { "anchorprefix",   INTEGER,    NULL, "anchor prefix for inherited anchors (cell inherits the 'boundary' area anchor)" },
+        { "anchorprefix",   STRING,     NULL, "anchor prefix for inherited anchors (cell inherits the 'boundary' area anchor)" },
         { "options",        TABLE,      NULL, "placement options" }
     };
     vector_append(entries, _make_api_entry(
