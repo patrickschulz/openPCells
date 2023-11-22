@@ -357,12 +357,12 @@
 /* util.rectangle_to_polygon(value, ratio) */
 {
     struct parameter parameters[] = {
-        { "bl",         POINT,  NULL, "lower-left corner of the rectangle" },
-        { "tr",         POINT,  NULL, "upper-right corner of the rectangle" },
-        { "leftext",    POINT,  NULL, "left extension" },
-        { "rightext",   POINT,  NULL, "right extension" },
-        { "bottomext",  POINT,  NULL, "bottom extension" },
-        { "topext",     POINT,  NULL, "top extension" },
+        { "bl",         POINT,      NULL, "lower-left corner of the rectangle" },
+        { "tr",         POINT,      NULL, "upper-right corner of the rectangle" },
+        { "leftext",    INTEGER,    NULL, "left extension" },
+        { "rightext",   INTEGER,    NULL, "right extension" },
+        { "bottomext",  INTEGER,    NULL, "bottom extension" },
+        { "topext",     INTEGER,    NULL, "top extension" },
     };
     vector_append(entries, _make_api_entry(
         "rectangle_to_polygon",
