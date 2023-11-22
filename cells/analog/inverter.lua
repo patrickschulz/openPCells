@@ -80,7 +80,7 @@ function layout(inverter, _P)
     inverter:inherit_alignment_box(cmos)
 
     -- gate strap
-    local dummyoffset = _P.drawleftdummy and 1 or 0
+    local dummyoffset = _P.numleftdummies
     if _P.fingers > 1 then
         if _P.gatemetal > 1 then
             geometry.viabltr(
