@@ -25,7 +25,7 @@ function parameters()
         { "nsdheight(NMOS Source/Drain Contact Height)",       0 },
         { "psdpowerheight(PMOS Source/Drain Contact Height)",  0 },
         { "nsdpowerheight(NMOS Source/Drain Contact Height)",  0 },
-        { "cutwidth",                                          0, follow = "gatespace" }, -- FIXME: allow expressions for follower parameters
+        { "cutwidth",                                          0, follow = "gatelength" }, -- FIXME: allow expressions for follower parameters
         { "cutheight",                                         technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
         { "compact(Compact Layout)",                           true },
         { "connectoutput",                                     true },

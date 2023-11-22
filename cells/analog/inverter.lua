@@ -11,6 +11,7 @@ function parameters()
         { "nmosflippedwell(NMOS Flipped Well)",         false },
         { "gatelength(Gate Length)",                    technology.get_dimension("Minimum Gate Length") },
         { "gatespace(Gate Spacing)",                    technology.get_dimension("Minimum Gate XSpace") },
+        { "gatecutheight",                              0 },
         { "gatemetal",                                  1 },
         { "sdwidth(Source/Drain Metal Width)",          technology.get_dimension("Minimum M1 Width"), posvals = even() },
         { "gatestrapwidth(Gate Metal Width)",           technology.get_dimension("Minimum M1 Width") },
@@ -78,6 +79,8 @@ function layout(inverter, _P)
         drawrightstopgate = _P.drawrightstopgate,
         leftpolylines = _P.leftpolylines,
         rightpolylines = _P.rightpolylines,
+        cutwidth = _P.gatelength + _P.gatespace,
+        cutheight = _P.gatecutheight,
     })
     inverter:merge_into(cmos)
 
