@@ -2526,6 +2526,47 @@ void reference_iterator_destroy(struct reference_iterator* it)
     free(it);
 }
 
+// mutable reference iterator
+struct mutable_reference_iterator {
+    struct vector* references;
+    size_t index;
+};
+
+struct mutable_reference_iterator* object_create_mutable_reference_iterator(struct object* cell)
+{
+    struct mutable_reference_iterator* it = malloc(sizeof(*it));
+    it->references = cell->references;
+    it->index = 0;
+    return it;
+}
+
+int mutable_reference_iterator_is_valid(struct mutable_reference_iterator* it)
+{
+    if(!it->references)
+    {
+        return 0;
+    }
+    else
+    {
+        return it->index < vector_size(it->references);
+    }
+}
+
+void mutable_reference_iterator_next(struct mutable_reference_iterator* it)
+{
+    it->index += 1;
+}
+
+struct object* mutable_reference_iterator_get(struct mutable_reference_iterator* it)
+{
+    return vector_get(it->references, it->index);
+}
+
+void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it)
+{
+    free(it);
+}
+
 // port iterator
 struct port_iterator {
     const struct vector* ports;

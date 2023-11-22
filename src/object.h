@@ -204,6 +204,14 @@ void reference_iterator_next(struct reference_iterator* it);
 const struct object* reference_iterator_get(struct reference_iterator* it);
 void reference_iterator_destroy(struct reference_iterator* it);
 
+// mutable reference iterator
+struct mutable_reference_iterator;
+struct mutable_reference_iterator* object_create_mutable_reference_iterator(struct object* cell);
+int mutable_reference_iterator_is_valid(struct mutable_reference_iterator* it);
+void mutable_reference_iterator_next(struct mutable_reference_iterator* it);
+struct object* mutable_reference_iterator_get(struct mutable_reference_iterator* it);
+void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it);
+
 // port iterator
 struct port_iterator;
 struct port_iterator* object_create_port_iterator(const struct object* cell);
