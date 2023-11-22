@@ -143,7 +143,7 @@ function layout(inverter, _P)
     inverter:inherit_area_anchor(cmos, "PRn")
 
     inverter:add_area_anchor_bltr("input",
-        cmos:get_area_anchor(string.format("G%d", 1)).bl,
-        cmos:get_area_anchor(string.format("G%d", _P.fingers)).tr
+        cmos:get_area_anchor(string.format("G%d", 1 + dummyoffset)).bl,
+        cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).tr
     )
 end
