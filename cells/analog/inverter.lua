@@ -99,7 +99,7 @@ function layout(inverter, _P)
 
     -- signal transistors drain connections
     if _P.outputisinside then
-        for i = 2, _P.fingers + 1, 2 do
+        for i = 2 + _P.numleftdummies, _P.fingers + 1, 2 do
             geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
                 cmos:get_area_anchor(string.format("nSD%d", i)).tl,
                 cmos:get_area_anchor(string.format("pSD%d", i)).br
