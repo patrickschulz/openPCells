@@ -17,8 +17,8 @@ function parameters()
         { "gatestrapspace(Gate Metal Space)",           technology.get_dimension("Minimum M1 Width") },
         { "powerwidth(Power Rail Metal Width)",         technology.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",               technology.get_dimension("Minimum M1 Space") },
-        { "drawleftdummy",                              false },
-        { "drawrightdummy",                             false },
+        { "numleftdummies",                             0 },
+        { "numrightdummies",                            0 },
         { "outputmetal",                                2, posvals = interval(2, inf) },
         { "outputwidth",                                technology.get_dimension("Minimum M1 Width") },
         { "dummycontheight",                            technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
@@ -37,11 +37,11 @@ function layout(inverter, _P)
 
     local gatecontactpos = util.fill_all_with(_P.fingers, "center")
     local contactpos = util.fill_odd_with(_P.fingers + 1, "fullpower", "full")
-    if _P.drawleftdummy then
+    for i = 1, _P.numleftdummies do
         table.insert(gatecontactpos, 1, "dummy")
         table.insert(contactpos, 1, "fullpower")
     end
-    if _P.drawrightdummy then
+    for i = 1, _P.numrightdummies do
         table.insert(gatecontactpos, "dummy")
         table.insert(contactpos, "fullpower")
     end
