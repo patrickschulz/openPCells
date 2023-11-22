@@ -1216,8 +1216,8 @@ function layout(transistor, _P)
         )
     end
     if _P.drawextratopstrap then
-        local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 + (_P.extrabotstrapleftalign - 1) * gatepitch
-        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
+        local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 + (_P.extratopstrapleftalign - 1) * gatepitch
+        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + (_P.extratopstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
         geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
             point.create(blx, _P.fingerwidth + _P.extratopstrapspace),
             point.create(trx, _P.fingerwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
