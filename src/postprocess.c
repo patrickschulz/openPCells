@@ -40,3 +40,27 @@ void postprocess_merge_shapes(struct object* object, struct technology_state* te
     _merge_shapes(object, techstate);
 }
 
+void postprocess_remove_layer_shapes_flat(struct object* object, const struct generics* layer)
+{
+    for(int i = object_get_shapes_size(object) - 1; i >= 0; --i)
+    {
+        struct shape* S = object_get_shape(object, i);
+        if(shape_get_layer(S) == layer)
+        {
+            object_remove_shape(object, i);
+        }
+    }
+}
+
+void postprocess_remove_layer_shapes(struct object* object, const struct generics* layer)
+{
+    postprocess_remove_layer_shapes_flat(object, layer);
+    struct mutable_reference_iterator* ref_it = object_create_mutable_reference_iterator(object);
+    while(mutable_reference_iterator_is_valid(ref_it))
+    {
+        struct object* reference = mutable_reference_iterator_get(ref_it);
+        postprocess_remove_layer_shapes(reference, layer);
+        mutable_reference_iterator_next(ref_it);
+    }
+}
+
