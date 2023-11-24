@@ -201,8 +201,8 @@ static int lobject_move_to(lua_State* L)
     }
     else
     {
-        coordinate_t x = lua_tointeger(L, 2);
-        coordinate_t y = lua_tointeger(L, 3);
+        coordinate_t x = luaL_checkinteger(L, 2);
+        coordinate_t y = luaL_checkinteger(L, 3);
         object_move_to(lobject_get(L, cell), x, y);
         lua_rotate(L, 1, 2);
     }
@@ -246,7 +246,7 @@ static int lobject_translate(lua_State* L)
 static int lobject_translate_x(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    coordinate_t x = lua_tointeger(L, 2);
+    coordinate_t x = luaL_checkinteger(L, 2);
     object_translate_x(lobject_get(L, cell), x);
     lua_rotate(L, 1, 1);
     return 1;
@@ -255,7 +255,7 @@ static int lobject_translate_x(lua_State* L)
 static int lobject_translate_y(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    coordinate_t y = lua_tointeger(L, 2);
+    coordinate_t y = luaL_checkinteger(L, 2);
     object_translate_y(lobject_get(L, cell), y);
     lua_rotate(L, 1, 1);
     return 1;
@@ -584,7 +584,7 @@ static int lobject_merge_into_with_ports(lua_State* L)
 static int lobject_add_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    const char* name = lua_tostring(L, 2);
+    const char* name = luaL_checkstring(L, 2);
     struct lpoint* lpoint = lpoint_checkpoint(L, 3);
     int ret = object_add_anchor(lobject_get(L, cell), name, lpoint_get(lpoint)->x, lpoint_get(lpoint)->y);
     if(!ret)
@@ -702,7 +702,7 @@ static int lobject_inherit_all_anchors_with_prefix(lua_State* L)
 static int lobject_get_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    const char* name = lua_tostring(L, 2);
+    const char* name = luaL_checkstring(L, 2);
     point_t* point = object_get_anchor(lobject_get_const(cell), name);
     if(point)
     {
@@ -724,7 +724,7 @@ static int lobject_get_alignment_anchor(lua_State* L)
         lua_pushstring(L, "object.get_alignment_anchor: object has no alignment box");
         lua_error(L);
     }
-    const char* name = lua_tostring(L, 2);
+    const char* name = luaL_checkstring(L, 2);
     // FIXME: check that name is a valid identifier
     point_t* point = object_get_alignment_anchor(lobject_get_const(cell), name);
     if(point)
@@ -743,9 +743,9 @@ static int _area_anchor_index_func(lua_State* L)
 {
     lua_pushstring(L, "_name");
     lua_rawget(L, 1);
-    const char* name = lua_tostring(L, -1);
+    const char* name = luaL_checkstring(L, -1);
     lua_pop(L, 1);
-    const char* key = lua_tostring(L, 2);
+    const char* key = luaL_checkstring(L, 2);
     if(name)
     {
         lua_pushfstring(L, "area anchor '%s': trying to access undefined sub-anchor '%s'. Possible sub-anchors are bl, br, tl and tr", name, key);
@@ -767,7 +767,7 @@ static int lobject_get_area_anchor(lua_State* L)
     }
     lua_pop(L, 1); // pop meta table
     struct lobject* cell = lobject_check(L, 1);
-    const char* base = lua_tostring(L, 2);
+    const char* base = luaL_checkstring(L, 2);
     point_t* pts = object_get_area_anchor(lobject_get_const(cell), base);
     if(pts)
     {
@@ -817,7 +817,7 @@ static int lobject_get_array_anchor(lua_State* L)
     struct lobject* cell = lobject_check(L, 1);
     int xindex = luaL_checkinteger(L, 2);
     int yindex = luaL_checkinteger(L, 3);
-    const char* name = lua_tostring(L, 4);
+    const char* name = luaL_checkstring(L, 4);
     point_t* point = object_get_array_anchor(lobject_get_const(cell), xindex, yindex, name);
     if(point)
     {
@@ -922,10 +922,10 @@ static int lobject_add_bus_port(lua_State* L)
     const char* name = luaL_checkstring(L, 2);
     const struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
-    int startindex = lua_tointeger(L, 5);
-    int endindex = lua_tointeger(L, 6);
-    unsigned int xpitch = lua_tointeger(L, 7);
-    unsigned int ypitch = lua_tointeger(L, 8);
+    int startindex = luaL_checkinteger(L, 5);
+    int endindex = luaL_checkinteger(L, 6);
+    unsigned int xpitch = luaL_checkinteger(L, 7);
+    unsigned int ypitch = luaL_checkinteger(L, 8);
     double sizehint = luaL_optnumber(L, 9, 0.0);
     object_add_bus_port(lobject_get(L, cell), name, layer, lpoint_get(lpoint), startindex, endindex, xpitch, ypitch, sizehint);
     return 0;
@@ -1059,14 +1059,14 @@ static int lobject_extend_alignment_box(lua_State* L)
     coordinate_t extinnertry = 0;
     if(lua_gettop(L) == 9)
     {
-        extouterblx = lua_tointeger(L, 2);
-        extouterbly = lua_tointeger(L, 3);
-        extoutertrx = lua_tointeger(L, 4);
-        extoutertry = lua_tointeger(L, 5);
-        extinnerblx = lua_tointeger(L, 6);
-        extinnerbly = lua_tointeger(L, 7);
-        extinnertrx = lua_tointeger(L, 8);
-        extinnertry = lua_tointeger(L, 9);
+        extouterblx = luaL_checkinteger(L, 2);
+        extouterbly = luaL_checkinteger(L, 3);
+        extoutertrx = luaL_checkinteger(L, 4);
+        extoutertry = luaL_checkinteger(L, 5);
+        extinnerblx = luaL_checkinteger(L, 6);
+        extinnerbly = luaL_checkinteger(L, 7);
+        extinnertrx = luaL_checkinteger(L, 8);
+        extinnertry = luaL_checkinteger(L, 9);
     }
     else
     {
@@ -1098,7 +1098,7 @@ static int lobject_extend_alignment_box_x_symmetrical(lua_State* L)
     coordinate_t extx = 0;
     if(lua_gettop(L) == 2)
     {
-        extx = lua_tointeger(L, 2);
+        extx = luaL_checkinteger(L, 2);
     }
     else
     {
@@ -1130,7 +1130,7 @@ static int lobject_extend_alignment_box_y_symmetrical(lua_State* L)
     coordinate_t exty = 0;
     if(lua_gettop(L) == 2)
     {
-        exty = lua_tointeger(L, 2);
+        exty = luaL_checkinteger(L, 2);
     }
     else
     {
@@ -1163,8 +1163,8 @@ static int lobject_extend_alignment_box_xy_symmetrical(lua_State* L)
     coordinate_t exty = 0;
     if(lua_gettop(L) == 3)
     {
-        extx = lua_tointeger(L, 2);
-        exty = lua_tointeger(L, 3);
+        extx = luaL_checkinteger(L, 2);
+        exty = luaL_checkinteger(L, 3);
     }
     else
     {
@@ -1244,7 +1244,7 @@ static int lobject_set_boundary(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     lua_len(L, 2);
-    size_t len = lua_tointeger(L, -1);
+    size_t len = luaL_checkinteger(L, -1);
     lua_pop(L, 1);
     struct vector* boundary = vector_create(4, point_destroy);
     for(unsigned int i = 1; i <= len; ++i)
