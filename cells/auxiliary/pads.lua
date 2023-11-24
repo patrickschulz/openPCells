@@ -1,22 +1,23 @@
 function parameters()
     pcell.add_parameters(
-        { "padconfig(Pad Configuration; G, S or P)",      { "P", "P", "P" }, argtype = "strtable" },
-        { "padnames(Pad Names)",                          { "a", "b", "c" }, argtype = "strtable" },
-        { "Spadwidth(Width of S-Pad)",                   50000 },
-        { "Spadheight(Height of S-Pad)",                 54000 },
-        { "Spadopeningxoffset(x-Offset of S-Pad Opening)",    5000 },
-        { "Spadopeningyoffset(y-Offset of S-Pad Opening)",  5000 },
-        { "Gpadwidth(Width of G-Pad)",                   60000 },
-        { "Gpadheight(Height of G-Pad)",                 80000 },
-        { "Gpadopeningxoffset(x-Offset of G-Pad Opening)",    5000 },
-        { "Gpadopeningyoffset(y-Offset of G-Pad Opening)",  5000 },
-        { "Ppadwidth(Width of P-Pad)",                   60000 },
-        { "Ppadheight(Height of P-Pad)",                 80000 },
-        { "Ppadopeningxoffset(x-Offset of P-Pad Opening)",    5000 },
-        { "Ppadopeningyoffset(y-Offset of P-Pad Opening)",  5000 },
-        { "padpitch(Pitch between Pads)",               100000 },
-        { "orientation(Pad Orientation)",               "horizontal", posvals = set("horizontal", "vertical") },
-        { "alignment(Pad Alignment)",                   "center", posvals = set("center", "top/left", "bottom/right") }
+        { "padconfig(Pad Configuration; G, S or P)",            { "P", "P", "P" }, argtype = "strtable" },
+        { "padnames(Pad Names)",                                { "a", "b", "c" }, argtype = "strtable" },
+        { "Spadwidth(Width of S-Pad)",                          50000 },
+        { "Spadheight(Height of S-Pad)",                        54000 },
+        { "Spadopeningxoffset(x-Offset of S-Pad Opening)",      5000 },
+        { "Spadopeningyoffset(y-Offset of S-Pad Opening)",      5000 },
+        { "Gpadwidth(Width of G-Pad)",                          60000 },
+        { "Gpadheight(Height of G-Pad)",                        80000 },
+        { "Gpadopeningxoffset(x-Offset of G-Pad Opening)",      5000 },
+        { "Gpadopeningyoffset(y-Offset of G-Pad Opening)",      5000 },
+        { "Ppadwidth(Width of P-Pad)",                          60000 },
+        { "Ppadheight(Height of P-Pad)",                        80000 },
+        { "Ppadopeningxoffset(x-Offset of P-Pad Opening)",      5000 },
+        { "Ppadopeningyoffset(y-Offset of P-Pad Opening)",      5000 },
+        { "padpitch(Pitch between Pads)",                       100000 },
+        { "orientation(Pad Orientation)",                       "horizontal", posvals = set("horizontal", "vertical") },
+        { "alignment(Pad Alignment)",                           "center", posvals = set("center", "top/left", "bottom/right") },
+        { "labelsizehint(Label Size Hint)",                     10000 }
     )
 end
 
@@ -88,7 +89,7 @@ function layout(pads, _P)
                 pad:get_area_anchor("boundary").bl,
                 pad:get_area_anchor("boundary").tr
             ),
-            20000
+            _P.labelsizehint
         )
     end
 end

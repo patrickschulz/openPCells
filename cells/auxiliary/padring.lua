@@ -12,7 +12,8 @@ function parameters()
         { "leftoffset", 200000 },
         { "rightoffset", 200000 },
         { "topoffset", 200000 },
-        { "bottomoffset", 200000 }
+        { "bottomoffset", 200000 },
+        { "labelsizehint", 10000 }
     )
 end
 
@@ -37,7 +38,8 @@ function layout(padring, _P)
         padpitch = _P.padpitch,
         padconfig = _P.leftpads,
         padnames = _P.leftpadnames,
-        orientation = "vertical"
+        orientation = "vertical",
+        labelsizehint = _P.labelsizehint,
     })
     left:translate_x(-_P.leftoffset)
     padring:merge_into_with_ports(left)
@@ -56,7 +58,8 @@ function layout(padring, _P)
         padpitch = _P.padpitch,
         padconfig = _P.rightpads,
         padnames = _P.rightpadnames,
-        orientation = "vertical"
+        orientation = "vertical",
+        labelsizehint = _P.labelsizehint,
     })
     right:translate_x(_P.rightoffset)
     padring:merge_into_with_ports(right)
@@ -75,7 +78,8 @@ function layout(padring, _P)
         padpitch = _P.padpitch,
         padconfig = _P.toppads,
         padnames = _P.toppadnames,
-        orientation = "horizontal"
+        orientation = "horizontal",
+        labelsizehint = _P.labelsizehint,
     })
     top:translate_y(_P.topoffset)
     padring:merge_into_with_ports(top)
@@ -94,7 +98,8 @@ function layout(padring, _P)
         padpitch = _P.padpitch,
         padconfig = _P.bottompads,
         padnames = _P.bottompadnames,
-        orientation = "horizontal"
+        orientation = "horizontal",
+        labelsizehint = _P.labelsizehint,
     })
     bottom:translate_y(-_P.bottomoffset)
     padring:merge_into_with_ports(bottom)
