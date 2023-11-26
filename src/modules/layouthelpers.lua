@@ -2,7 +2,8 @@ local M = {}
 
 function M.place_bus(cell, layer, pathpoints, numbits, width, space)
     for i = 1, numbits do
-        local pts = util.transform_points(pathpoints, function(pt) pt:translate_x((i - 1 - (numbits - 1) / 2) * (width + space)) end)
+        local offset = (i - 1 - (numbits - 1) / 2) * (width + space)
+        local pts = geometry.get_side_path_points(pathpoints, offset)
         geometry.path(cell, layer, pts, width)
     end
 end

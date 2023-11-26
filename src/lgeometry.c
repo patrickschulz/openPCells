@@ -1376,6 +1376,40 @@ static int lgeometry_curve_rasterized(lua_State* L)
     return 0;
 }
 
+static int lgeometry_get_side_path_points(lua_State* L)
+{
+    lcheck_check_numargs1(L, 2, "geometry.get_side_path_points");
+    if(!lua_istable(L, 1))
+    {
+        lua_pushstring(L, "geometry.get_side_path_points: list of points (first argument) is not a table");
+        lua_error(L);
+    }
+    lua_len(L, 1);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    coordinate_t width = luaL_checkinteger(L, 2);
+
+    struct vector* points = vector_create(len, NULL); // non-owning vector
+    for(unsigned int i = 1; i <= len; ++i)
+    {
+        lua_rawgeti(L, 1, i);
+        struct lpoint* pt = lpoint_checkpoint(L, -1);
+        vector_append(points, (void*)lpoint_get(pt)); // non-const, but vector is non-owning and points are not modified
+        lua_pop(L, 1);
+    }
+    struct vector* newpts = geometry_get_side_path_points(points, width);
+    vector_destroy(points);
+    lua_newtable(L);
+    for(unsigned int i = 0; i < vector_size(newpts); ++i)
+    {
+        point_t* pt = vector_get(newpts, i);
+        lpoint_create_internal(L, point_getx(pt), point_gety(pt));
+        lua_rawseti(L, -2, i + 1);
+    }
+    vector_destroy(newpts);
+    return 1;
+}
+
 static int lcurve_lineto(lua_State* L)
 {
     if(lua_gettop(L) == 1)
@@ -1477,6 +1511,7 @@ int open_lgeometry_lib(lua_State* L)
         { "unequal_ring_pts",                           lgeometry_unequal_ring_pts                                  },
         { "curve",                                      lgeometry_curve                                             },
         { "curve_rasterized",                           lgeometry_curve_rasterized                                  },
+        { "get_side_path_points",                       lgeometry_get_side_path_points                              },
         { NULL,                                         NULL                                                        }
     };
     luaL_setfuncs(L, modfuncs, 0);

@@ -143,6 +143,8 @@ void geometry_unequal_ring_pts(
 
 struct shape* geometry_path_to_polygon(const struct generics* layer, point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin);
 
+struct vector* geometry_get_side_path_points(struct vector* points, coordinate_t width);
+
 struct vector* geometry_triangulate_polygon(const struct vector* points);
 
 #endif /* OPC_GEOMETRY_H */

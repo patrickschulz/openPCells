@@ -224,6 +224,17 @@ static void _shift_line(const point_t* pt1, const point_t* pt2, ucoordinate_t wi
     (*spt2)->y = pt2->y + yshift;
 }
 
+static void _shift_line_signed(const point_t* pt1, const point_t* pt2, coordinate_t offset, point_t** spt1, point_t** spt2, unsigned int grid)
+{
+    double angle = atan2(pt2->y - pt1->y, pt2->x - pt1->x) - M_PI / 2;
+    coordinate_t xshift = grid * trunc(trunc(offset * cos(angle)) / grid);
+    coordinate_t yshift = grid * trunc(trunc(offset * sin(angle)) / grid);
+    (*spt1)->x = pt1->x + xshift;
+    (*spt1)->y = pt1->y + yshift;
+    (*spt2)->x = pt2->x + xshift;
+    (*spt2)->y = pt2->y + yshift;
+}
+
 static struct vector* _get_edge_segments(point_t** points, size_t numpoints, ucoordinate_t width, unsigned int grid)
 {
     struct vector* edges = vector_create(4 * (numpoints - 1), point_destroy);
@@ -246,6 +257,25 @@ static struct vector* _get_edge_segments(point_t** points, size_t numpoints, uco
             vector_get_reference(edges, 2 * (2 * numpoints - 2 - i) + 1),
             grid
         );
+    }
+    return edges;
+}
+
+static struct vector* _get_side_edge_segments(struct vector* points, coordinate_t offset, unsigned int grid)
+{
+    size_t numpoints = vector_size(points);
+    struct vector* edges = vector_create(4 * (numpoints - 1), point_destroy);
+    // append dummy points, later filled by _shift_line
+    for(unsigned int i = 0; i < 2 * (numpoints - 1); ++i)
+    {
+        vector_append(edges, point_create(0, 0));
+    }
+    // start to end
+    for(unsigned int i = 0; i < numpoints - 1; ++i)
+    {
+        const point_t* pt1 = vector_get_const(points, i);
+        const point_t* pt2 = vector_get_const(points, i + 1);
+        _shift_line_signed(pt1, pt2, offset, vector_get_reference(edges, 2 * i), vector_get_reference(edges, 2 * i + 1), grid);
     }
     return edges;
 }
@@ -342,6 +372,33 @@ static struct vector* _get_path_pts(struct vector* edges, int miterjoin)
     return poly;
 }
 
+static struct vector* _get_side_path_pts(struct vector* edges)
+{
+    size_t numedges = vector_size(edges);
+    struct vector* pts = vector_create(2 * numedges, point_destroy); // wild guess on the number of points
+    // first start point
+    vector_append(pts, point_copy(vector_get(edges, 0)));
+    // middle points
+    if(numedges >= 4)
+    {
+        size_t segs = numedges / 2;
+        for(unsigned int seg = 0; seg < segs - 1; ++seg)
+        {
+            unsigned int i = 2 * seg + 1;
+            point_t* pt = NULL;
+            _intersection(vector_get(edges, i - 1), vector_get(edges, i), vector_get(edges, i + 1), vector_get(edges, i + 2), &pt);
+            if(pt)
+            {
+                vector_append(pts, point_copy(pt));
+                free(pt);
+            }
+        }
+    }
+    // end points
+    vector_append(pts, point_copy(vector_get(edges, numedges - 1)));
+    return pts;
+}
+
 void _make_unique_points(point_t** points, size_t* numpoints)
 {
     for(unsigned int i = *numpoints - 1; i > 0; --i)
@@ -398,6 +455,16 @@ struct shape* geometry_path_to_polygon(const struct generics* layer, point_t** p
     vector_const_iterator_destroy(it);
     vector_destroy(poly);
     return S;
+}
+
+struct vector* geometry_get_side_path_points(struct vector* points, coordinate_t offset)
+{
+    //_make_unique_points(points, &numpoints);
+
+    struct vector* edges = _get_side_edge_segments(points, offset, 1);
+    struct vector* poly = _get_side_path_pts(edges);
+    vector_destroy(edges);
+    return poly;
 }
 
 struct vector* _get_any_angle_path_pts(point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
