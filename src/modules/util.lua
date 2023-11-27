@@ -422,4 +422,28 @@ function M.ratio_split_even(value, ratio)
     return first, second
 end
 
+function M.fix_to_grid_higher(c, grid)
+    return grid * math.ceil(c / grid)
+end
+
+function M.fix_to_grid_lower(c, grid)
+    return grid * math.floor(c / grid)
+end
+
+function M.fix_to_grid_abs_higher(c, grid)
+    if c < 0 then
+        return -grid * math.ceil(-c / grid)
+    else
+        return grid * math.ceil(c / grid)
+    end
+end
+
+function M.fix_to_grid_abs_lower(c, grid)
+    if c < 0 then
+        return -grid * math.floor(-c / grid)
+    else
+        return grid * math.floor(c / grid)
+    end
+end
+
 return M

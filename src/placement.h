@@ -13,11 +13,12 @@ struct vector* placement_calculate_origins(
     const struct polygon* excludes
 );
 
-struct vector* placement_place_at_origins(
+void placement_place_at_origins(
     struct object* toplevel,
     struct object* cell,
     const struct vector* origins,
-    const char* basename
+    const char* basename,
+    struct vector* children
 );
 
 struct vector* placement_place_within_boundary(
@@ -42,4 +43,23 @@ struct object* placement_place_within_rectangular_boundary(
     const point_t* targetbl, const point_t* targettr
 );
 
+struct placement_celllookup {
+    struct object* cell;
+    struct const_vector* layers;
+};
+
+struct placement_layerexclude {
+    struct polygon* excludes;
+    struct const_vector* layers;
+};
+
+struct vector* placement_place_within_layer_boundaries(
+    struct object* toplevel,
+    struct vector* celllookup, // contains entries of struct placement_celllookup*
+    const char* basename,
+    const struct simple_polygon* targetarea,
+    struct vector* layerexcludes // contains entries of struct placement_layerexclude*
+);
+
 #endif /* OPC_PLACEMENT_H */
+
