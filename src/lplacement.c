@@ -257,7 +257,7 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
         lua_rawget(L, -2);
         struct lobject* cell = lobject_check(L, -1);
         lobject_disown(cell); // memory is now handled by cell
-        lobject_mark_as_unusable(cell);
+        //lobject_mark_as_unusable(cell);
         lua_pop(L, 1); // pop object
 
         lua_pop(L, 1); // pop entry table

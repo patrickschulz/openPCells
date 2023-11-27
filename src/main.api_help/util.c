@@ -56,7 +56,7 @@
     vector_append(entries, _make_api_entry(
         "filter_forward",
         MODULE_UTIL,
-        "iterate forward through the list of points and create a new list with points that match the predicate. The predicate function is called with every point.",
+        "iterate forward through the list of points and create a new list with copied points that match the predicate. The predicate function is called with every point.",
         "local pts = { ... }\nlocal predicate = function(pt) return pt:getx() > 0 end\nlocal newpts = util.filter_forward(pts, predicate)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
@@ -72,7 +72,7 @@
     vector_append(entries, _make_api_entry(
         "filter_backward",
         MODULE_UTIL,
-        "iterate backward through the list of points and create a new list with points that match the predicate. The predicate function is called with every point.",
+        "iterate backward through the list of points and create a new list with copied points that match the predicate. The predicate function is called with every point.",
         "local pts = { ... }\nlocal predicate = function(pt) return pt:getx() > 0 end\nlocal newpts = util.filter_backward(pts, predicate)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])

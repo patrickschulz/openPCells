@@ -345,6 +345,20 @@ static int lpoint_is_point_lua(lua_State* L)
     return 1;
 }
 
+int lpoint_xmirror(lua_State* L)
+{
+    struct lpoint* pt = lpoint_checkpoint(L, 1);
+    pt->point->x = -pt->point->x;
+    return 1;
+}
+
+int lpoint_ymirror(lua_State* L)
+{
+    struct lpoint* pt = lpoint_checkpoint(L, 1);
+    pt->point->y = -pt->point->y;
+    return 1;
+}
+
 int open_lpoint_lib(lua_State* L)
 {
     static const luaL_Reg metafuncs[] =
@@ -357,6 +371,8 @@ int open_lpoint_lib(lua_State* L)
         { "translate_x", lpoint_translate_x },
         { "translate_y", lpoint_translate_y },
         { "fix",         lpoint_fix         },
+        { "xmirror",     lpoint_xmirror     },
+        { "ymirror",     lpoint_ymirror     },
         { "__eq",        lpoint_equal       },
         { "__gc",        lpoint_destroy     },
         { "__tostring",  lpoint_tostring    },

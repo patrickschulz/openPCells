@@ -1410,6 +1410,54 @@ static int lgeometry_get_side_path_points(lua_State* L)
     return 1;
 }
 
+static int lgeometry_path_points_to_polygon(lua_State* L)
+{
+    lcheck_check_numargs1(L, 2, "geometry.path_points_to_polygon");
+    if(!lua_istable(L, 1))
+    {
+        lua_pushstring(L, "geometry.path: list of points (first argument) is not a table");
+        lua_error(L);
+    }
+    lua_len(L, 1);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    coordinate_t width = luaL_checkinteger(L, 2);
+    if(width == 0)
+    {
+        lua_pushstring(L, "geometry.path: width can't be zero");
+        lua_error(L);
+    }
+    if(width % 2 != 0)
+    {
+        lua_pushfstring(L, "geometry.path: width is odd (%d)", width);
+        lua_error(L);
+    }
+
+    // FIXME
+    //int bgnext = 0;
+    //int endext = 0;
+    //_get_path_extension(L, 5, &bgnext, &endext);
+
+    const point_t** points = calloc(len, sizeof(*points));
+    for(unsigned int i = 1; i <= len; ++i)
+    {
+        lua_rawgeti(L, 1, i);
+        struct lpoint* pt = lpoint_checkpoint(L, -1);
+        points[i - 1] = lpoint_get(pt);
+        lua_pop(L, 1);
+    }
+    struct vector* newpts = geometry_path_points_to_polygon(points, len, width, 1);
+    lua_newtable(L);
+    for(unsigned int i = 0; i < vector_size(newpts); ++i)
+    {
+        point_t* pt = vector_get(newpts, i);
+        lpoint_create_internal(L, point_getx(pt), point_gety(pt));
+        lua_rawseti(L, -2, i + 1);
+    }
+    vector_destroy(newpts);
+    return 1;
+}
+
 static int lcurve_lineto(lua_State* L)
 {
     if(lua_gettop(L) == 1)
@@ -1512,6 +1560,7 @@ int open_lgeometry_lib(lua_State* L)
         { "curve",                                      lgeometry_curve                                             },
         { "curve_rasterized",                           lgeometry_curve_rasterized                                  },
         { "get_side_path_points",                       lgeometry_get_side_path_points                              },
+        { "path_points_to_polygon",                     lgeometry_path_points_to_polygon                            },
         { NULL,                                         NULL                                                        }
     };
     luaL_setfuncs(L, modfuncs, 0);
