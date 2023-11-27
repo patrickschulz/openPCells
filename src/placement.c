@@ -217,8 +217,7 @@ struct vector* placement_place_within_layer_boundaries(
         struct object* cell = lookup->cell;
         struct const_vector* celllayers = lookup->layers;
         object_width_height_alignmentbox(cell, &width, &height);
-        /////////////
-        //struct vector* origins = placement_calculate_origins(width, height, width, height, width / 2, height / 2, targetarea, excludes);
+
         ucoordinate_t xpitch = width;
         ucoordinate_t ypitch = height;
         coordinate_t xstartshift = width / 2;
@@ -261,8 +260,16 @@ struct vector* placement_place_within_layer_boundaries(
             x = x + xpitch;
         }
 
-        ///////////////////
+        // sub-basename
+        size_t len = strlen(basename) + 1 + util_num_digits(cellindex);
+        char* subbasename = malloc(len + 1);
+        //if(!subname)
+        //{
+        //    return NULL;
+        //}
+        sprintf(subbasename, "%s_%zd", basename, cellindex);
         placement_place_at_origins(toplevel, cell, origins, basename, children);
+        free(subbasename);
         vector_destroy(origins);
     }
     return children;
