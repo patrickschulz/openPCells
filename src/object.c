@@ -1351,17 +1351,6 @@ void object_set_boundary(struct object* cell, struct vector* boundary)
     cell->boundary = boundary;
 }
 
-/*
-void object_set_layer_boundary(struct object* cell, const struct generics* layer, struct vector* boundary)
-{
-    if(!cell->layer_boundaries)
-    {
-        cell->layer_boundaries = hashmap_create();
-    }
-    hashmap_insert(cell->layer_boundaries, (const char*)layer, boundary);
-}
-*/
-
 void object_set_empty_layer_boundary(struct object* cell, const struct generics* layer)
 {
     if(!cell->layer_boundaries)
