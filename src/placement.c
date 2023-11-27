@@ -268,7 +268,7 @@ struct vector* placement_place_within_layer_boundaries(
         //    return NULL;
         //}
         sprintf(subbasename, "%s_%zd", basename, cellindex);
-        placement_place_at_origins(toplevel, cell, origins, basename, children);
+        placement_place_at_origins(toplevel, cell, origins, subbasename, children);
         free(subbasename);
         vector_destroy(origins);
     }
