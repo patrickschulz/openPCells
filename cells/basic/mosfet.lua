@@ -32,9 +32,9 @@ function parameters()
         { "sdviawidth(Source/Drain Metal Width for Vias)",                                              technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth", info  = "width of the source/drain via regions. Currently, all vias are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future. This parameter follows 'sdwidth'." },
         { "sdmetalwidth(Source/Drain Metal Width)",                                                     technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdviawidth", info = "width of the source/drain metals. This parameter follows 'sdwidth'." },
         { "gtopext(Gate Top Extension)",                                                                technology.get_dimension("Minimum Gate Extension"), info = "top gate extension. This extension depends on the automatically calculated gate extensions (which depend for instance on gate contacts). This means that if 'gtopext' is smaller than the automatic extensions, the layout is not changed at all." },
-        { "gbotext(Gate Bot Extension)",                                                                technology.get_dimension("Minimum Gate Extension"), info = "bot gate extension. This extension depends on the automatically calculated gate extensions (which depend for instance on gate contacts). This means that if 'gbotext' is smaller than the automatic extensions, the layout is not changed at all." },
+        { "gbotext(Gate Bottom Extension)",                                                                technology.get_dimension("Minimum Gate Extension"), info = "bottom gate extension. This extension depends on the automatically calculated gate extensions (which depend for instance on gate contacts). This means that if 'gbotext' is smaller than the automatic extensions, the layout is not changed at all." },
         { "gtopextadd(Gate Additional Top Extension)",                                                  0, info = "Unconditional gate top extension (similar to 'gtopext', but always extends)." },
-        { "gbotextadd(Gate Additional Bottom Extension)",                                               0, info = "Unconditional gate bot extension (similar to 'gbotext', but always extends)." },
+        { "gbotextadd(Gate Additional Bottom Extension)",                                               0, info = "Unconditional gate bottom extension (similar to 'gbotext', but always extends)." },
         { "gatetopabsoluteheight(Gate Absolute Top Height)",                                            0, info = "Alternative gate top extension parameter. If this is non-zero, it overwrites any gate extension values and applies the given height to the gate height (measured from the active region)", },
         { "gatebotabsoluteheight(Gate Absolute Bottom Height)",                                         0, info = "Alternative gate bottom extension parameter. If this is non-zero, it overwrites any gate extension values and applies the given height to the gate height (measured from the active region)", },
         { "drawleftstopgate(Draw Left Stop Gate)",                                                      false, info = "draw a gate where one half of it covers the active region, the other does not (left side). This gate is covered with the layer 'diffusionbreakgate'. This is required in some technologies for short-length devices" },
@@ -60,12 +60,12 @@ function parameters()
         { "drawbotgatevia(Draw Bottom Gate Via)",                                                       false, info = "Enable the drawing of vias on the bottom gate metal strap. This only makes a difference if 'botgatemetal' is higher than 1." },
         { "botgatecontinuousvia(Bottom Gate Continuous Via)",                                           false, info = "Make the drawn via of the bottom gate metal strap a continuous via." },
         { "drawtopgatecut(Draw Top Gate Cut)",                                                          false, info = "Draw a gate cut rectangle above the active region (the 'top' gates)." },
-        { "topgatecutwidth(Top Gate Cut Y Width)",                                                      technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace"), info = "Width of the top gate cut." },
+        { "topgatecutheight(Top Gate Cut Y Height)",                                                    technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace"), info = "Width of the top gate cut." },
         { "topgatecutspace(Top Gate Cut Y Space)",                                                      0, info = "Space between the active region and the top gate cut." },
         { "topgatecutleftext(Top Gate Cut Left Extension)",                                             0, info = "Left extension of the top gate cut. Without extension, the gate cut covers the underlying gate in x-direction exactly." },
         { "topgatecutrightext(Top Gate Cut Right Extension)",                                           0, info = "Right extension of the top gate cut. Without extension, the gate cut covers the underlying gate in x-direction exactly." },
         { "drawbotgatecut(Draw Top Gate Cut)",                                                          false, info = "Draw a gate cut rectangle above the active region (the 'bottom' gates)." },
-        { "botgatecutwidth(Top Gate Cut Y Width)",                                                      technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace"), info = "Width of the bottom gate cut." },
+        { "botgatecutheight(Top Gate Cut Y Height)",                                                    technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace"), info = "Width of the bottom gate cut." },
         { "botgatecutspace(Top Gate Cut Y Space)",                                                      0, info = "Space between the active region and the bottom gate cut." },
         { "botgatecutleftext(Top Gate Cut Left Extension)",                                             0, info = "Left extension of the bottom gate cut. Without extension, the gate cut covers the underlying gate in x-direction exactly." },
         { "botgatecutrightext(Top Gate Cut Right Extension)",                                           0, info = "Right extension of the bottom gate cut. Without extension, the gate cut covers the underlying gate in x-direction exactly." },
@@ -274,12 +274,12 @@ function layout(transistor, _P)
     local topgateshift = enable(_P.drawtopgate, _P.topgatespace + _P.topgatewidth)
     local botgateshift = enable(_P.drawbotgate, _P.botgatespace + _P.botgatewidth)
     local gateaddtop = math.max(_P.gtopext, topgateshift) + _P.gtopextadd
-    local gateaddbot = math.max(_P.gbotext, botgateshift) + _P.gbotextadd
+    local gateaddbottom = math.max(_P.gbotext, botgateshift) + _P.gbotextadd
     if _P.gatetopabsoluteheight > 0 then
         gateaddtop = _P.gatetopabsoluteheight
     end
     if _P.gatebotabsoluteheight > 0 then
-        gateaddbot = _P.gatebotabsoluteheight
+        gateaddbottom = _P.gatebotabsoluteheight
     end
 
     local drainshift = enable(_P.connectdrain, _P.connectdrainwidth + _P.connectdrainspace)
@@ -318,7 +318,7 @@ function layout(transistor, _P)
     -- base coordinates of a gate
     -- needed throughout the cell by various drawings
     local gateblx = leftactext + _P.leftfloatingdummies * gatepitch
-    local gatebly = -gateaddbot
+    local gatebly = -gateaddbottom
     local gatetrx = gateblx + _P.gatelength
     local gatetry = _P.fingerwidth + gateaddtop
 
@@ -333,7 +333,7 @@ function layout(transistor, _P)
                 ),
                 point.create(
                     gatetrx + (_P.fingers - 1) * gatepitch + _P.topgatecutrightext,
-                    _P.fingerwidth + _P.topgatecutspace + _P.topgatecutwidth
+                    _P.fingerwidth + _P.topgatecutspace + _P.topgatecutheight
                 )
             )
         end
@@ -342,7 +342,7 @@ function layout(transistor, _P)
                 generics.other("gatecut"),
                 point.create(
                     gateblx - _P.botgatecutleftext,
-                    -_P.botgatecutspace - _P.botgatecutwidth
+                    -_P.botgatecutspace - _P.botgatecutheight
                 ),
                 point.create(
                     gatetrx + (_P.fingers - 1) * gatepitch + _P.botgatecutrightext,
@@ -499,7 +499,7 @@ function layout(transistor, _P)
                 ),
                 point.create(
                     gatetrx - (_P.leftfloatingdummies + 1) * gatepitch + _P.topgatecutrightext,
-                    _P.fingerwidth + _P.topgatecutspace + _P.topgatecutwidth
+                    _P.fingerwidth + _P.topgatecutspace + _P.topgatecutheight
                 )
             )
         end
@@ -509,7 +509,7 @@ function layout(transistor, _P)
                 generics.other("gatecut"),
                 point.create(
                     gateblx - (_P.leftfloatingdummies + 1) * gatepitch - _P.botgatecutleftext,
-                    -_P.botgatecutspace - _P.botgatecutwidth
+                    -_P.botgatecutspace - _P.botgatecutheight
                 ),
                 point.create(
                     gatetrx - (_P.leftfloatingdummies + 1) * gatepitch + _P.botgatecutrightext,
@@ -541,7 +541,7 @@ function layout(transistor, _P)
                 ),
                 point.create(
                     gatetrx + (_P.fingers + _P.rightfloatingdummies) * gatepitch + _P.topgatecutrightext,
-                    _P.fingerwidth + _P.topgatecutspace + _P.topgatecutwidth
+                    _P.fingerwidth + _P.topgatecutspace + _P.topgatecutheight
                 )
             )
         end
@@ -551,7 +551,7 @@ function layout(transistor, _P)
                 generics.other("gatecut"),
                 point.create(
                     gateblx + (_P.fingers + _P.rightfloatingdummies) * gatepitch - _P.botgatecutleftext,
-                    -_P.botgatecutspace - _P.botgatecutwidth
+                    -_P.botgatecutspace - _P.botgatecutheight
                 ),
                 point.create(
                     gatetrx + (_P.fingers + _P.rightfloatingdummies) * gatepitch + _P.botgatecutrightext,

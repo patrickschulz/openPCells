@@ -66,7 +66,11 @@ function parameters()
         { "drawleftstopgate", false },
         { "drawrightstopgate", false },
         { "leftpolylines", {} },
-        { "rightpolylines", {} }
+        { "rightpolylines", {} },
+        { "extendimplanttop", 0 },
+        { "extendimplantbottom", 0 },
+        { "extendimplantleft", 0 },
+        { "extendimplantright", 0 }
     )
 end
 
@@ -127,8 +131,8 @@ function layout(cmos, _P)
             gatemarker = _P.gatemarker,
             drawsourcedrain = "none",
             drawactive = _P.drawactive,
-            topgatecutwidth = _P.cutheight,
-            botgatecutwidth = _P.cutheight,
+            topgatecutheight = _P.cutheight,
+            botgatecutheight = _P.cutheight,
         })
 
         -- pmos
@@ -144,6 +148,9 @@ function layout(cmos, _P)
             topactivedummywidth = _P.activedummywidth,
             topactivedummysep = _P.activedummysep,
             extendwelltop = _P.ppowerspace,
+            extendimplanttop = _P.extendimplanttop,
+            extendimplantleft = _P.extendimplantleft,
+            extendimplantright = _P.extendimplantright,
         }
         local nopt = {
             channeltype = "nmos",
@@ -158,6 +165,9 @@ function layout(cmos, _P)
             botactivedummywidth = _P.activedummywidth,
             botactivedummysep = _P.activedummysep,
             extendwellbottom = _P.npowerspace,
+            extendimplantbottom = _P.extendimplantbottom,
+            extendimplantleft = _P.extendimplantleft,
+            extendimplantright = _P.extendimplantright,
         }
         -- main
         for i = 1, fingers do
@@ -507,13 +517,13 @@ function layout(cmos, _P)
     end
 
     -- alignment box
-    local ybot = -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2
+    local ybottom = -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2
     local ytop =  _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2
     if _P.drawpmoswelltap then
         ytop = ytop + _P.powerwidth / 2 + _P.pmoswelltapspace + _P.pmoswelltapwidth / 2
     end
     if _P.drawnmoswelltap then
-        ybot = ybot - _P.powerwidth / 2 - _P.nmoswelltapspace - _P.nmoswelltapwidth / 2
+        ybottom = ybottom - _P.powerwidth / 2 - _P.nmoswelltapspace - _P.nmoswelltapwidth / 2
     end
     cmos:set_alignment_box(
         leftndrainarea.bl:copy():translate(0, -_P.npowerspace - _P.powerwidth),

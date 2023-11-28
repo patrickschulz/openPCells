@@ -31,7 +31,11 @@ function parameters()
         { "drawleftstopgate",                           false },
         { "drawrightstopgate",                          false },
         { "leftpolylines",                              {} },
-        { "rightpolylines",                             {} }
+        { "rightpolylines",                             {} },
+        { "extendimplanttop",                           0 },
+        { "extendimplantbottom",                        0 },
+        { "extendimplantleft",                          0 },
+        { "extendimplantright",                         0 }
     )
 end
 
@@ -81,6 +85,10 @@ function layout(inverter, _P)
         rightpolylines = _P.rightpolylines,
         cutwidth = _P.gatelength + _P.gatespace,
         cutheight = _P.gatecutheight,
+        extendimplanttop = _P.extendimplanttop,
+        extendimplantbottom = _P.extendimplantbottom,
+        extendimplantleft = _P.extendimplantleft,
+        extendimplantright = _P.extendimplantright,
     })
     inverter:merge_into(cmos)
 
