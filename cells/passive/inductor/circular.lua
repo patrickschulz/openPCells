@@ -27,7 +27,7 @@ local function _scale_tanpi8(num)
     return math.floor(num * 5741 / 13860) -- rational approximation of tan(pi / 8)
 end
 
-local function _get_outline(radius, width, cornerradius, extension, separation, grid, allow45)
+local function _get_outline(radius, width, cornerradius, extension, separation, grid, allow45, breaktrace)
     -- calculate center of auxiliary circle
     local xc = 0.5 * separation + cornerradius
     local yc = -grid * math.floor(math.sqrt((radius - width / 2 + cornerradius)^2 - xc^2) / grid)
@@ -48,8 +48,9 @@ local function _get_outline(radius, width, cornerradius, extension, separation, 
     util.merge_forwards(inner, util.filter_backward(auxinner, function(pt) return pt:getx() < xminner end))
     util.merge_forwards(inner, util.filter_forward(maininner, function(pt) return pt:getx() >= xminner end))
     util.merge_backwards(inner, util.ymirror(maininner))
-    util.merge_backwards(inner, util.xmirror(inner))
-    table.insert(inner, point.create(-separation / 2, -radius - width / 2 - extension))
+    if breaktrace then
+        inner[#inner]:translate_x(1)
+    end
 
     -- outer part
     local outer = {}
@@ -57,7 +58,9 @@ local function _get_outline(radius, width, cornerradius, extension, separation, 
     util.merge_forwards(outer, util.filter_backward(auxouter, function(pt) return pt:getx() < xmouter end))
     util.merge_forwards(outer, util.filter_forward(mainouter, function(pt) return pt:getx() >= xmouter end))
     util.merge_backwards(outer, util.ymirror(mainouter))
-    util.merge_backwards(outer, util.xmirror(outer))
+    if breaktrace then
+        outer[#outer]:translate_x(1)
+    end
 
     -- assemble points
     local pts = {}
@@ -84,10 +87,11 @@ function check(_P)
 end
 
 function layout(inductor, _P)
-    local pts = _get_outline(_P.radius, _P.width, _P.cornerradius, _P.extension, _P.separation, _P.grid, _P.allow45)
+    local pts = _get_outline(_P.radius, _P.width, _P.cornerradius, _P.extension, _P.separation, _P.grid, _P.allow45, _P.breaklines)
 
     -- create polygon
     geometry.polygon(inductor, generics.metal(_P.metalnum), pts)
+    geometry.polygon(inductor, generics.metal(_P.metalnum), util.xmirror(pts))
 
     -- input lines anchors
     local lastradius = _P.radius
