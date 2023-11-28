@@ -16,6 +16,8 @@ function parameters()
         { "sdwidth(Source/Drain Metal Width)",          technology.get_dimension("Minimum M1 Width"), posvals = even() },
         { "gatestrapwidth(Gate Metal Width)",           technology.get_dimension("Minimum M1 Width") },
         { "gatestrapspace(Gate Metal Space)",           technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapleftextension",                     0 },
+        { "gatestraprightextension",                     0 },
         { "powerwidth(Power Rail Metal Width)",         technology.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",               technology.get_dimension("Minimum M1 Space") },
         { "pgateext",                                   0 },
@@ -35,7 +37,15 @@ function parameters()
         { "extendimplanttop",                           0 },
         { "extendimplantbottom",                        0 },
         { "extendimplantleft",                          0 },
-        { "extendimplantright",                         0 }
+        { "extendimplantright",                         0 },
+        { "extendoxidetypetop",                         0 },
+        { "extendoxidetypebottom",                      0 },
+        { "extendoxidetypeleft",                        0 },
+        { "extendoxidetyperight",                       0 },
+        { "extendvthtypetop",                           0 },
+        { "extendvthtypebottom",                        0 },
+        { "extendvthtypeleft",                          0 },
+        { "extendvthtyperight",                         0 }
     )
 end
 
@@ -46,11 +56,11 @@ function layout(inverter, _P)
     local contactpos = util.fill_odd_with(_P.fingers + 1, "fullpower", "full")
     for i = 1, _P.numleftdummies do
         table.insert(gatecontactpos, 1, "dummy")
-        table.insert(contactpos, 1, "fullpower")
+        table.insert(contactpos, 1, "dummyouterpower")
     end
     for i = 1, _P.numrightdummies do
         table.insert(gatecontactpos, "dummy")
-        table.insert(contactpos, "fullpower")
+        table.insert(contactpos, "dummyouterpower")
     end
 
     local cmos = pcell.create_layout("basic/cmos", "cmos", {
@@ -73,8 +83,8 @@ function layout(inverter, _P)
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
         innergatestraps = 1,
-        gstwidth = _P.gatestrapwidth,
-        gstspace = _P.gatestrapspace,
+        gatestrapwidth = _P.gatestrapwidth,
+        gatestrapspace = _P.gatestrapspace,
         sdwidth = _P.sdwidth,
         separation = _P.gatestrapwidth + 2 * _P.gatestrapspace,
         dummycontheight = _P.dummycontheight,
@@ -89,6 +99,16 @@ function layout(inverter, _P)
         extendimplantbottom = _P.extendimplantbottom,
         extendimplantleft = _P.extendimplantleft,
         extendimplantright = _P.extendimplantright,
+        extendoxidetypetop = _P.extendoxidetypetop,
+        extendoxidetypebottom = _P.extendoxidetypebottom,
+        extendoxidetypeleft = _P.extendoxidetypeleft,
+        extendoxidetyperight = _P.extendoxidetyperight,
+        extendvthtypetop = _P.extendvthtypetop,
+        extendvthtypebottom = _P.extendvthtypebottom,
+        extendvthtypeleft = _P.extendvthtypeleft,
+        extendvthtyperight = _P.extendvthtyperight,
+        psddummyouterheight = 200,
+        nsddummyouterheight = 200,
     })
     inverter:merge_into(cmos)
 
@@ -100,14 +120,14 @@ function layout(inverter, _P)
         if _P.gatemetal > 1 then
             geometry.viabltr(
                 inverter, 1, _P.gatemetal,
-                cmos:get_area_anchor(string.format("G%d", 1 + dummyoffset)).bl,
-                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).tr
+                cmos:get_area_anchor(string.format("G%d", 1 + dummyoffset)).bl:translate_x(-_P.gatestrapleftextension),
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).tr:translate_x(_P.gatestraprightextension)
             )
         else
             geometry.rectanglebltr(
                 inverter, generics.metal(1),
-                cmos:get_area_anchor(string.format("G%d", 1 + dummyoffset)).bl,
-                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).tr
+                cmos:get_area_anchor(string.format("G%d", 1 + dummyoffset)).bl:translate_x(-_P.gatestrapleftextension),
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).tr:translate_x(_P.gatestraprightextension)
             )
         end
     end

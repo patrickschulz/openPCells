@@ -13,8 +13,8 @@ function parameters()
         { "gatespace(Gate Spacing)",                           technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
         { "sdwidth(Source/Drain Metal Width)",                 technology.get_dimension("Minimum M1 Width"), posvals = even() },
         { "innergatestraps(Number of Inner Gate Straps)",      3 },
-        { "gstwidth(Gate Strap Metal Width)",                  technology.get_dimension("Minimum M1 Width") },
-        { "gstspace(Gate Strap Metal Space)",                  technology.get_dimension("Minimum M1 Space") },
+        { "gatestrapwidth(Gate Strap Metal Width)",                  technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapspace(Gate Strap Metal Space)",                  technology.get_dimension("Minimum M1 Space") },
         { "gatecontactsplitshift(Gate Contact Split Shift)",   technology.get_dimension("Minimum M1 Width") + technology.get_dimension("Minimum M1 Space") },
         { "powerwidth(Power Rail Metal Width)",                technology.get_dimension("Minimum M1 Width") },
         { "npowerspace(NMOS Power Rail Space)",                technology.get_dimension("Minimum M1 Space"), posvals = positive() },
@@ -37,8 +37,8 @@ function parameters()
         { "drawactive", true },
         { "drawrails", true },
         { "drawgatecontacts", true },
-        { "outergstwidth(Outer Gate Strap Metal Width)",  technology.get_dimension("Minimum M1 Width") },
-        { "outergstspace(Outer Gate Strap Metal Space)",  technology.get_dimension("Minimum M1 Space") },
+        { "outergatestrapwidth(Outer Gate Strap Metal Width)",  technology.get_dimension("Minimum M1 Width") },
+        { "outergatestrapspace(Outer Gate Strap Metal Space)",  technology.get_dimension("Minimum M1 Space") },
         { "outergateshift(Outer Gate Strap Metal Shift)",  0 },
         { "gatecontactpos", { "center" }, argtype = "strtable" },
         { "gatenames", {}, argtype = "strtable" },
@@ -74,18 +74,26 @@ function parameters()
         { "extendimplanttop", 0 },
         { "extendimplantbottom", 0 },
         { "extendimplantleft", 0 },
-        { "extendimplantright", 0 }
+        { "extendimplantright", 0 },
+        { "extendoxidetypetop", 0 },
+        { "extendoxidetypebottom", 0 },
+        { "extendoxidetypeleft", 0 },
+        { "extendoxidetyperight", 0 },
+        { "extendvthtypetop", 0 },
+        { "extendvthtypebottom", 0 },
+        { "extendvthtypeleft", 0 },
+        { "extendvthtyperight", 0 }
     )
 end
 
 function check(_P)
     -- check separation
-    if (_P.innergatestraps * _P.gstwidth + (_P.innergatestraps + 1) * _P.gstspace) > _P.separation then
-        return false, string.format("can't fit all gate straps into the separation between nmos and pmos: %d > %d", _P.innergatestraps * _P.gstwidth + (_P.innergatestraps + 1) * _P.gstspace, _P.separation)
+    if (_P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace) > _P.separation then
+        return false, string.format("can't fit all gate straps into the separation between nmos and pmos: %d > %d", _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace, _P.separation)
     end
     -- FIXME: this check is not necessary, but the current implementation is broken if this condition is met
-    if (_P.innergatestraps * _P.gstwidth + (_P.innergatestraps + 1) * _P.gstspace) ~= _P.separation then
-        return false, string.format("the separation between nmos and pmos must have the exact size to fit three rows of gate contacts (%d vs. %d)", _P.innergatestraps * _P.gstwidth + (_P.innergatestraps + 1) * _P.gstspace, _P.separation)
+    if (_P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace) ~= _P.separation then
+        return false, string.format("the separation between nmos and pmos must have the exact size to fit three rows of gate contacts (%d vs. %d)", _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace, _P.separation)
     end
     -- check number of gate and source/drain contacts
     if #_P.pcontactpos ~= #_P.ncontactpos then
@@ -113,7 +121,7 @@ function layout(cmos, _P)
     local outergateshift = 0
     if _P.drawgatecontacts then
         if aux.any_of("outer", _P.gatecontactpos) then
-            outergateshift = _P.outergateshift + _P.gstwidth
+            outergateshift = _P.outergateshift + _P.gatestrapwidth
         end
     end
 
@@ -137,6 +145,10 @@ function layout(cmos, _P)
             drawactive = _P.drawactive,
             topgatecutheight = _P.cutheight,
             botgatecutheight = _P.cutheight,
+            topgatecutleftext = (_P.cutwidth - _P.gatelength) / 2,
+            topgatecutrightext = (_P.cutwidth - _P.gatelength) / 2,
+            botgatecutleftext = (_P.cutwidth - _P.gatelength) / 2,
+            botgatecutrightext = (_P.cutwidth - _P.gatelength) / 2,
         })
 
         -- pmos
@@ -151,10 +163,17 @@ function layout(cmos, _P)
             drawtopactivedummy = _P.drawactivedummy,
             topactivedummywidth = _P.activedummywidth,
             topactivedummysep = _P.activedummysep,
+            botgatecutspace = _P.separation / 2 - _P.cutheight / 2,
             extendwelltop = _P.ppowerspace,
             extendimplanttop = _P.extendimplanttop,
             extendimplantleft = _P.extendimplantleft,
             extendimplantright = _P.extendimplantright,
+            extendoxidetypetop = _P.extendoxidetypetop,
+            extendoxidetypeleft = _P.extendoxidetypeleft,
+            extendoxidetyperight = _P.extendoxidetyperight,
+            extendvthtypetop = _P.extendvthtypetop,
+            extendvthtypeleft = _P.extendvthtypeleft,
+            extendvthtyperight = _P.extendvthtyperight,
         }
         local nopt = {
             channeltype = "nmos",
@@ -168,10 +187,17 @@ function layout(cmos, _P)
             drawbotactivedummy = _P.drawactivedummy,
             botactivedummywidth = _P.activedummywidth,
             botactivedummysep = _P.activedummysep,
+            topgatecutspace = _P.separation / 2 - _P.cutheight / 2,
             extendwellbottom = _P.npowerspace,
             extendimplantbottom = _P.extendimplantbottom,
             extendimplantleft = _P.extendimplantleft,
             extendimplantright = _P.extendimplantright,
+            extendoxidetypebottom = _P.extendoxidetypebottom,
+            extendoxidetypeleft = _P.extendoxidetypeleft,
+            extendoxidetyperight = _P.extendoxidetyperight,
+            extendvthtypebottom = _P.extendvthtypebottom,
+            extendvthtypeleft = _P.extendvthtypeleft,
+            extendvthtyperight = _P.extendvthtyperight,
         }
         -- main
         for i = 1, fingers do
@@ -287,9 +313,9 @@ function layout(cmos, _P)
             local y = leftndrainarea.tl:gety() + _P.shiftgatecontacts
             if _P.gatecontactpos[i] == "center" then -- do nothing
                 table.insert(entries, {
-                    yheight = _P.gstwidth,
-                    --yshift = (_P.innergatestraps - 1) * _P.gstspace + (_P.innergatestraps - 2) * _P.gstwidth,
-                    yshift = _P.gstspace,
+                    yheight = _P.gatestrapwidth,
+                    --yshift = (_P.innergatestraps - 1) * _P.gatestrapspace + (_P.innergatestraps - 2) * _P.gatestrapwidth,
+                    yshift = _P.gatestrapspace,
                     index = i,
                 })
             elseif string.match(_P.gatecontactpos[i], "upper") then
@@ -298,26 +324,26 @@ function layout(cmos, _P)
                     moderror(string.format("bad gate contact position format: [%d] = '%s' (should be 'upperNUMBER')", i, _P.gatecontactpos[i]))
                 end
                 table.insert(entries, {
-                    yshift = _P.innergatestraps * _P.gstspace + (_P.innergatestraps - 1) * _P.gstwidth,
-                    yheight = _P.gstwidth,
+                    yshift = _P.innergatestraps * _P.gatestrapspace + (_P.innergatestraps - 1) * _P.gatestrapwidth,
+                    yheight = _P.gatestrapwidth,
                     index = i,
                 })
             elseif _P.gatecontactpos[i] == "lower" then
                 table.insert(entries, {
-                    yshift = 1 * _P.gstspace,
-                    yheight = _P.gstwidth,
+                    yshift = 1 * _P.gatestrapspace,
+                    yheight = _P.gatestrapwidth,
                     index = i,
                 })
             elseif _P.gatecontactpos[i] == "split" then
                 table.insert(entries, {
-                    yshift = 3 * _P.gstspace + 2 * _P.gstwidth,
-                    yheight = _P.gstwidth,
+                    yshift = 3 * _P.gatestrapspace + 2 * _P.gatestrapwidth,
+                    yheight = _P.gatestrapwidth,
                     index = i,
                     prefix = "upper",
                 })
                 table.insert(entries, {
-                    yshift = 1 * _P.gstspace,
-                    yheight = _P.gstwidth,
+                    yshift = 1 * _P.gatestrapspace,
+                    yheight = _P.gatestrapwidth,
                     index = i,
                     prefix = "lower",
                 })
@@ -346,14 +372,14 @@ function layout(cmos, _P)
                 )
             elseif _P.gatecontactpos[i] == "outer" then
                 table.insert(entries, {
-                    yshift = _P.separation + _P.pwidth + _P.outergstspace,
-                    yheight = _P.outergstwidth,
+                    yshift = _P.separation + _P.pwidth + _P.outergatestrapspace,
+                    yheight = _P.outergatestrapwidth,
                     index = i,
                     prefix = "p",
                 })
                 table.insert(entries, {
-                    yshift = -_P.nwidth - _P.outergstspace - _P.outergstwidth,
-                    yheight = _P.outergstwidth,
+                    yshift = -_P.nwidth - _P.outergatestrapspace - _P.outergatestrapwidth,
+                    yheight = _P.outergatestrapwidth,
                     index = i,
                     prefix = "n",
                 })
@@ -411,16 +437,16 @@ function layout(cmos, _P)
     -- the x coordinate does not make any sense, these anchors are just for y alignment
     local basey = leftndrainarea.tl:gety() + _P.shiftgatecontacts
     cmos:add_area_anchor_bltr("Glowerbase",
-        point.create(0, basey + 1 * _P.gstspace + 0 * _P.gstwidth),
-        point.create(0, basey + 1 * _P.gstspace + 1 * _P.gstwidth)
+        point.create(0, basey + 1 * _P.gatestrapspace + 0 * _P.gatestrapwidth),
+        point.create(0, basey + 1 * _P.gatestrapspace + 1 * _P.gatestrapwidth)
     )
     cmos:add_area_anchor_bltr("Gcenterbase",
-        point.create(0, basey + 2 * _P.gstspace + 1 * _P.gstwidth),
-        point.create(0, basey + 2 * _P.gstspace + 2 * _P.gstwidth)
+        point.create(0, basey + 2 * _P.gatestrapspace + 1 * _P.gatestrapwidth),
+        point.create(0, basey + 2 * _P.gatestrapspace + 2 * _P.gatestrapwidth)
     )
     cmos:add_area_anchor_bltr("Gupperbase",
-        point.create(0, basey + 3 * _P.gstspace + 2 * _P.gstwidth),
-        point.create(0, basey + 3 * _P.gstspace + 3 * _P.gstwidth)
+        point.create(0, basey + 3 * _P.gatestrapspace + 2 * _P.gatestrapwidth),
+        point.create(0, basey + 3 * _P.gatestrapspace + 3 * _P.gatestrapwidth)
     )
 
     -- draw source/drain contacts
@@ -441,7 +467,7 @@ function layout(cmos, _P)
         elseif _P.pcontactpos[i] == "inner" then
             y = y - _P.pwidth
             yheight = cheight
-        elseif _P.pcontactpos[i] == "dummyouter" then
+        elseif _P.pcontactpos[i] == "dummyouterpower" or _P.pcontactpos[i] == "dummyouter" then
             y = y - _P.psddummyouterheight
             yheight = _P.psddummyouterheight
         elseif _P.pcontactpos[i] == "dummyinner" then
@@ -472,7 +498,7 @@ function layout(cmos, _P)
         end
 
         -- connect source/drain region to power bar
-        if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "fullpower" then
+        if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "fullpower" or _P.pcontactpos[i] == "dummyouterpower" then
             geometry.rectanglebltr(
                 cmos, generics.metal(1), 
                 point.create(x, y + yheight),
@@ -492,7 +518,7 @@ function layout(cmos, _P)
             elseif _P.ncontactpos[i] == "inner" then
                 y = y + _P.nwidth - ncontactheight
                 yheight = ncontactheight
-            elseif _P.ncontactpos[i] == "dummyouter" then
+            elseif _P.ncontactpos[i] == "dummyouterpower" or _P.ncontactpos[i] == "dummyouter" then
                 yheight = _P.nsddummyouterheight
             elseif _P.ncontactpos[i] == "dummyinner" then
                 y = y + _P.nwidth - _P.nsddummyinnerheight
@@ -521,7 +547,7 @@ function layout(cmos, _P)
             end
 
             -- connect source/drain region to power bar
-            if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "fullpower" then
+            if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "fullpower" or _P.ncontactpos[i] == "dummyouterpower" then
                 geometry.rectanglebltr(
                     cmos, generics.metal(1), 
                     point.create(x, y - _P.npowerspace),

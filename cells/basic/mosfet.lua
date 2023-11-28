@@ -158,10 +158,10 @@ function parameters()
         { "extendallbottom",                                                                            0 },
         { "extendallleft",                                                                              0 },
         { "extendallright",                                                                             0 },
-        { "extendoxidetop",                                                                             0, follow = "extendalltop" },
-        { "extendoxidebottom",                                                                          0, follow = "extendallbottom" },
-        { "extendoxideleft",                                                                            0, follow = "extendallleft" },
-        { "extendoxideright",                                                                           0, follow = "extendallright" },
+        { "extendoxidetypetop",                                                                             0, follow = "extendalltop" },
+        { "extendoxidetypebottom",                                                                          0, follow = "extendallbottom" },
+        { "extendoxidetypeleft",                                                                            0, follow = "extendallleft" },
+        { "extendoxidetyperight",                                                                           0, follow = "extendallright" },
         { "extendvthtypetop",                                                                           0, follow = "extendalltop" },
         { "extendvthtypebottom",                                                                        0, follow = "extendallbottom" },
         { "extendvthtypeleft",                                                                          0, follow = "extendallleft" },
@@ -643,19 +643,19 @@ function layout(transistor, _P)
         generics.oxide(_P.oxidetype),
         point.create(
             _P.oxidetypealignleftwithactive and
-                -leftactauxext - _P.extendoxideleft or
-                -leftactauxext - _P.extendoxideleft,
+                -leftactauxext - _P.extendoxidetypeleft or
+                -leftactauxext - _P.extendoxidetypeleft,
             _P.oxidetypealignbottomwithactive and
-                -_P.extendoxidebottom or
-                gatebly - _P.extendoxidebottom
+                -_P.extendoxidetypebottom or
+                gatebly - _P.extendoxidetypebottom
         ),
         point.create(
             _P.oxidetypealignrightwithactive and
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendoxideright or
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendoxideright,
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight or
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight,
             _P.oxidetypealigntopwithactive and
-                _P.fingerwidth + _P.extendoxidetop or
-                gatetry + _P.extendoxidetop
+                _P.fingerwidth + _P.extendoxidetypetop or
+                gatetry + _P.extendoxidetypetop
         )
     )
 
