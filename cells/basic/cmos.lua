@@ -25,6 +25,10 @@ function parameters()
         { "nsdheight(NMOS Source/Drain Contact Height)",       0 },
         { "psdpowerheight(PMOS Source/Drain Contact Height)",  0 },
         { "nsdpowerheight(NMOS Source/Drain Contact Height)",  0 },
+        { "psddummyouterheight(PMOS Source/Drain Outer Dummy Contact Height)",  0 },
+        { "nsddummyouterheight(NMOS Source/Drain Outer Dummy Contact Height)",  0 },
+        { "psddummyinnerheight(PMOS Source/Drain Inner Dummy Contact Height)",  0 },
+        { "nsddummyinnerheight(NMOS Source/Drain Inner Dummy Contact Height)",  0 },
         { "cutwidth",                                          0, follow = "gatelength" }, -- FIXME: allow expressions for follower parameters
         { "cutheight",                                         technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
         { "compact(Compact Layout)",                           true },
@@ -437,6 +441,12 @@ function layout(cmos, _P)
         elseif _P.pcontactpos[i] == "inner" then
             y = y - _P.pwidth
             yheight = cheight
+        elseif _P.pcontactpos[i] == "dummyouter" then
+            y = y - _P.psddummyouterheight
+            yheight = _P.psddummyouterheight
+        elseif _P.pcontactpos[i] == "dummyinner" then
+            y = y - _P.pwidth
+            yheight = _P.psddummyinnerheight
         elseif _P.pcontactpos[i] == "full" or _P.pcontactpos[i] == "fullpower" then
             y = y - _P.pwidth
             yheight = _P.pwidth
@@ -482,6 +492,11 @@ function layout(cmos, _P)
             elseif _P.ncontactpos[i] == "inner" then
                 y = y + _P.nwidth - ncontactheight
                 yheight = ncontactheight
+            elseif _P.ncontactpos[i] == "dummyouter" then
+                yheight = _P.nsddummyouterheight
+            elseif _P.ncontactpos[i] == "dummyinner" then
+                y = y + _P.nwidth - _P.nsddummyinnerheight
+                yheight = _P.psddummyinnerheight
             elseif _P.ncontactpos[i] == "full" or _P.ncontactpos[i] == "fullpower" then
                 yheight = _P.nwidth
             elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "unused" then
