@@ -424,6 +424,86 @@
     ));
 }
 
+/* util.fix_to_grid_higher(coordinate, grid) */
+{
+    struct parameter parameters[] = {
+        { "coordinate", INTEGER,    NULL, "coordinate" },
+        { "grid",       INTEGER,    NULL, "grid" },
+    };
+    vector_append(entries, _make_api_entry(
+        "fix_to_grid_higher",
+        MODULE_UTIL,
+        "fix a coordinate to a multiple of the given grid. This function works like a 'ceil(ing)' function, so the resulting number is either higher or equal. This means that this function does not behave symmetrically for negative and positive input. If this is required, use util.fix_to_grid_abs_higher.",
+        "util.fix_to_grid_higher(120, 100) -- 200\nutil.fix_to_grid_higher(-120, 100) -- 100",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.fix_to_grid_lower(coordinate, grid) */
+{
+    struct parameter parameters[] = {
+        { "coordinate", INTEGER,    NULL, "coordinate" },
+        { "grid",       INTEGER,    NULL, "grid" },
+    };
+    vector_append(entries, _make_api_entry(
+        "fix_to_grid_lower",
+        MODULE_UTIL,
+        "fix a coordinate to a multiple of the given grid. This function works like a 'floor(ing)' function, so the resulting number is either lower or equal. This means that this function does not behave symmetrically for negative and positive input. If this is required, use util.fix_to_grid_abs_lower.",
+        "util.fix_to_grid_lower(120, 100) -- 100\nutil.fix_to_grid_lower(-120, 100) -- 200",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.fix_to_grid_abs_higher(coordinate, grid) */
+{
+    struct parameter parameters[] = {
+        { "coordinate", INTEGER,    NULL, "coordinate" },
+        { "grid",       INTEGER,    NULL, "grid" },
+    };
+    vector_append(entries, _make_api_entry(
+        "fix_to_grid_abs_higher",
+        MODULE_UTIL,
+        "fix a coordinate to a multiple of the given grid. This function works like a 'ceil(ing)' function, but it is computed on the absolute value, so the absolute of the resulting number is either higher or equal. This means that this function does behave symmetrically for negative and positive input. If this is unwanted, use util.fix_to_grid_higher.",
+        "util.fix_to_grid_abs_higher(120, 100) -- 200\nutil.fix_to_grid_abs_higher(-120, 100) -- 200",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.fix_to_grid_abs_lower(coordinate, grid) */
+{
+    struct parameter parameters[] = {
+        { "coordinate", INTEGER,    NULL, "coordinate" },
+        { "grid",       INTEGER,    NULL, "grid" },
+    };
+    vector_append(entries, _make_api_entry(
+        "fix_to_grid_abs_lower",
+        MODULE_UTIL,
+        "fix a coordinate to a multiple of the given grid. This function works like a 'floor(ing)' function, but it is computed on the absolute value, so the absolute of the resulting number is either lower or equal. This means that this function does behave symmetrically for negative and positive input. If this is unwanted, use util.fix_to_grid_lower.",
+        "util.fix_to_grid_abs_lower(120, 100) -- 100\nutil.fix_to_grid_abs_lower(-120, 100) -- 100",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.make_multiple(coordinate, grid) */
+{
+    struct parameter parameters[] = {
+        { "coordinate", INTEGER,    NULL, "coordinate" },
+        { "grid",       INTEGER,    NULL, "grid" },
+    };
+    vector_append(entries, _make_api_entry(
+        "fix_to_grid_abs_lower",
+        MODULE_UTIL,
+        "fix a coordinate to a multiple of the given grid. This function works like a 'floor(ing)' function, but it is computed on the absolute value, so the absolute of the resulting number is either lower or equal. This means that this function does behave symmetrically for negative and positive input. If this is unwanted, use util.fix_to_grid_lower.",
+        "util.fix_to_grid_abs_lower(120, 100) -- 100\nutil.fix_to_grid_abs_lower(-120, 100) -- 100",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /*
     FIXME:
 	util.check_grid
