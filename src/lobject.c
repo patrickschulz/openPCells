@@ -472,7 +472,11 @@ static int lobject_align_area_anchor(lua_State* L)
     }
     if(!object_area_anchors_fit(lobject_get(L, cell), anchorname, lobject_get_const(other), otheranchorname))
     {
-        lua_pushstring(L, "object.align_area_anchor: area anchors do not fit (have the same size)");
+        coordinate_t w1 = object_get_area_anchor_width(lobject_get(L, cell), anchorname);
+        coordinate_t h1 = object_get_area_anchor_height(lobject_get(L, cell), anchorname);
+        coordinate_t w2 = object_get_area_anchor_width(lobject_get(L, other), otheranchorname);
+        coordinate_t h2 = object_get_area_anchor_height(lobject_get(L, other), otheranchorname);
+        lua_pushfstring(L, "object.align_area_anchor: area anchors do not fit (have the same size): (%d x %d) vs. (%d x %d)", w1, h1, w2, h2);
         lua_error(L);
     }
     object_align_area_anchor(lobject_get(L, cell), anchorname, lobject_get_const(other), otheranchorname);
