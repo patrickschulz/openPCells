@@ -202,7 +202,7 @@ function layout(guardring, _P)
         end
         if _P.drawmetal then
             for i = 1, topmetal do
-                geometry.rectanglebltr(guardring, generics.metal(1),
+                geometry.rectanglebltr(guardring, generics.metal(i),
                     point.create(holewidth, -_P.ringwidth),
                     point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth)
                 )
