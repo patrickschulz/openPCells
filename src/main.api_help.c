@@ -657,8 +657,17 @@ void main_API_list(void)
     _destroy_api_entries(entries);
 }
 
-static void _create_latex_entry(const struct api_entry* entry)
+static void _create_latex_entry(const struct api_entry* entry, const char** lastmodule)
 {
+    const char* module = _stringify_module(entry->module);
+    if(module)
+    {
+        if(!(*lastmodule) || strcmp(module, *lastmodule) != 0)
+        {
+            printf("\\subsection{%s Module}\n", module);
+        }
+    }
+    *lastmodule = module;
     if(entry->module != MODULE_NONE)
     {
         printf("\\begin{APIfunc}{%s.%s(", _stringify_module(entry->module), entry->funcname);
@@ -678,18 +687,6 @@ static void _create_latex_entry(const struct api_entry* entry)
         }
     }
     printf("%s\n", ")}");
-
-//    Create a rectangular shape defined by the bottom-left and the top-right corner.
-//    \begin{APIparameters}
-//        \parameter{cell}{object}
-//            Object in which the rectangle is created;
-//        \parameter{layer}{generic}
-//            Layer of the generated rectangle;
-//        \parameter{bl}{point}
-//            Bottom-left (bl) point of the rectangle;
-//        \parameter{tr}{point}
-//            Top-right (tl) point of the rectangle;
-//    \end{APIparameters}
 
     // function info
     printf("    %s\n", entry->info);
@@ -782,10 +779,11 @@ void main_API_create_latex_doc(void)
 {
     struct vector* entries = _initialize_api_entries();
     struct vector_const_iterator* it = vector_const_iterator_create(entries);
+    const char* lastmodule = NULL;
     while(vector_const_iterator_is_valid(it))
     {
         const struct api_entry* entry = vector_const_iterator_get(it);
-        _create_latex_entry(entry);
+        _create_latex_entry(entry, &lastmodule);
         vector_const_iterator_next(it);
     }
     vector_const_iterator_destroy(it);
