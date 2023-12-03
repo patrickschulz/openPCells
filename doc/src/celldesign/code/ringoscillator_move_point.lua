@@ -1,7 +1,7 @@
 function layout(toplevel)
     local inverter = -- create inverter layout
     -- copy inverter and move it to the origin
-    local inverter1 = inverter:copy():move_point("input")
+    local inverter1 = inverter:copy()
     inverter1:move_point(
         inverter1:get_anchor("input"),
         point.create(0, 0)

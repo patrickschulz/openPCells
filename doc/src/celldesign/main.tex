@@ -281,7 +281,7 @@ For this, the cells should know their own width and height, so they could be pla
 There are two mechanisms in openPCells to help with these placements: anchors and alignment boxes.
 
 \subsubsection{Cell Anchors}
-In order to place cell at certain points without knowing their exact geometry, \emph{anchors} are introduced.
+In order to place cells at certain points without knowing their exact geometry, \emph{anchors} are introduced.
 An anchor is a meaningful/important point of a cell and marks a location where other cells can be attached to or where wires can start/end etc.
 Think of a jigsaw puzzle pieces with their tabs and blanks: Pieces are connected by placing a tab in a blank of another piece.
 To come back to the example of the ring oscillator, we connect the inverters by placing the inputs on the outputs of the previous cells.
@@ -289,8 +289,9 @@ The modified example looks like this:
 \luafilelisting{code/ringoscillator_anchor.lua}
 The required displacement for each inverter is calculated and then applied to \luainline{translate}.
 This is rather cumbersome.
-OpenPCells offers a specialized function for this: \luainline{move_point}.
-This takes a layout cell and moves it so that the specified anchor lies at the given location:
+OpenPCells offers a specialized function for this: \luainline{object.move_point}.
+This takes a layout cell and moves it so that the specified point lies at the given location.
+We can provide an anchor as source point and another anchor as target:
 \luafilelisting{code/ringoscillator_move_point.lua}
 The function \luainline{move_point} takes arbitrary points as arguments.
 Essentially, it moves the specified cell by the difference of the two points.
@@ -299,6 +300,8 @@ This is due to the generic nature of \luainline{move_point}.
 A more specialized and powerful approach is provided by \emph{area anchors}, as demonstrated in the next section.
 
 \subsubsection{Area Anchors}
+As we have seen, object can store specific points as \emph{anchors}.
+There is another anchor methodology: \emph{area anchors}.
 An area anchor is similar to a regular anchor, but it makes up a rectangular area (defined by the bottom-left and the top-right).
 These anchors can be queried just like regular anchors (but with \luainline{get_area_anchor} instead of \luainline{get_anchor}).
 Their two main properties and advantages over regular anchors are that they never change their orientation and cells can be abutted/aligned in various ways with them.
@@ -312,17 +315,21 @@ Therefore it does not matter which orientation the respective object has, the bo
 This enables much simpler approaches, as cell code does not need to keep track of which object is rotated and which one is not.
 
 The second advantage of area anchors are the various abutment/alignment methods for objects.
-For instance, the \shellinline{basic/mosfet} cell defines area anchors for every source/drain region.
+For instance, the cell \shellinline{basic/mosfet} defines area anchors for every source/drain region.
 Two devices can be simply abutted by calling
 \begin{lualisting}
     mosfet1:align_area_anchor("sourcedrain1", mosfet2, "sourcedrain-1")
 \end{lualisting}
 This places \luainline{mosfet1} left of \luainline{mosfet2} (as source/drain regions are counted positive beginning from the left and negative beginning from the right).
-Without area anchors, the call would look like this:
+Without area anchors (and hypothetical anchors for the corner points of the source/drain regions), the call would look like this:
 \begin{lualisting}
     mosfet1:move_point(mosfet1:get_anchor("sourcedrain1bl"), mosfet2:get_anchor("sourcedrain-1bl"))
 \end{lualisting}
 But this code would break if one of the devices was flipped (for instance to place a gate contact on the top and one on the bottom).
+
+Area anchors can be aligned or abutted with the top/bottom/left/right edge as reference.
+These functions (e.g. \luainline{abut_area_anchor_left}) only change the corresponding coordinates, that is abutting/alignment for left/right only changes x, top/bottom only changes y.
+For abutting the qualifier is for the to-be-abutted area anchor, which means that (for instance) \luainline{abut_area_anchor_left} moves the respective object so that the given area anchor lies left of the reference anchor.
 
 \subsubsection{Alignment Boxes}
 Alignment boxes are tighly connected to area anchors.
