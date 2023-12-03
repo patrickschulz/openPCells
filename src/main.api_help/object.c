@@ -371,23 +371,6 @@
     );
 }
 
-/* object.align_area_anchor*/
-{
-    struct parameter parameters[] = {
-        { "cell",               OBJECT,     NULL, "cell to be moved" },
-        { "anchorname",         STRING,     NULL, "alignment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
-        { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
-    };
-    vector_append(entries, _make_api_entry(
-        "align_area_anchor",
-        MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. This changes both the x- and the y-coordinate",
-        "cell:align_area_anchor(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
-        parameters, sizeof(parameters) / sizeof(parameters[0]))
-    );
-}
-
 /* object.align_area_anchor_top */
 {
     struct parameter parameters[] = {
@@ -401,6 +384,23 @@
         MODULE_OBJECT,
         "translate the cell so that the specified area anchor is aligned to the top of the target area anchor of the specified target cell. This only changes the y-coordinate",
         "cell:align_area_anchor_top(\"botgatestrap\", othercell, \"topgatestrap\")",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.align_area_anchor*/
+{
+    struct parameter parameters[] = {
+        { "cell",               OBJECT,     NULL, "cell to be moved" },
+        { "anchorname",         STRING,     NULL, "alignment anchor" },
+        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
+    };
+    vector_append(entries, _make_api_entry(
+        "align_area_anchor",
+        MODULE_OBJECT,
+        "translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. This changes both the x- and the y-coordinate",
+        "cell:align_area_anchor(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
@@ -869,21 +869,6 @@
     );
 }
 
-/* object.get_area_anchor_height */
-{
-    struct parameter parameters[] = {
-        { "cell",       OBJECT, NULL, "object to get an anchor from" },
-        { "anchorname", STRING, NULL, "name of the anchor" }
-    };
-    vector_append(entries, _make_api_entry(
-        "get_area_anchor_height",
-        MODULE_OBJECT,
-        "Retrieve the height (an integer) of an area anchor from a cell. A non-existing anchor is an error",
-        "local height = cell:get_area_anchor_height(\"sourcedrain1\")",
-        parameters, sizeof(parameters) / sizeof(parameters[0]))
-    );
-}
-
 /* object.get_area_anchor */
 {
     struct parameter parameters[] = {
@@ -895,6 +880,21 @@
         MODULE_OBJECT,
         "Retrieve an area anchor from a cell. This function returns a table with two points (bl (bottom-left) and tr (top-right)) that contain the position of the specified area anchor, corrected by the cell transformation. Furthermore, the individual coordinates are also available as skalar values with the keys 'b', 't', 'l' and 'r'. Retrieving a non-existing anchor raises an error",
         "cell:get_area_anchor(\"sourcedrain1\").bl\npoint.create(cell1:get_area_anchor(\"sourcedrain1\").l, cell2:get_area_anchor(\"topgatestrap\").t)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.get_area_anchor_height */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT, NULL, "object to get an anchor from" },
+        { "anchorname", STRING, NULL, "name of the anchor" }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_area_anchor_height",
+        MODULE_OBJECT,
+        "Retrieve the height (an integer) of an area anchor from a cell. A non-existing anchor is an error",
+        "local height = cell:get_area_anchor_height(\"sourcedrain1\")",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
