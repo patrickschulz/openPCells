@@ -40,7 +40,7 @@ end
 
 function layout(decap, _P)
     -- guard ring
-    if _P.drawguardring and aux.find(_P.meshmetals, 1) then
+    if _P.drawguardring and util.find(_P.meshmetals, 1) then
         local guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = "p",
             holewidth = _P.cellsize - 2 * _P.guardringwidth,
@@ -363,7 +363,7 @@ function layout(decap, _P)
         end
         -- connect cap to grid
         if _P.drawgrid then
-            if aux.any_of(_P.interconnectmetal, _P.meshmetals) then
+            if util.any_of(_P.interconnectmetal, _P.meshmetals) then
                 geometry.rectanglebltr(decap, generics.metal(_P.interconnectmetal),
                     point.create(-_P.gridmetalwidths[1].vss / 2, -_P.gridmetalwidths[1].vss / 2),
                     point.create( _P.gridmetalwidths[1].vss / 2,  _P.gridmetalwidths[1].vss / 2)
@@ -376,7 +376,7 @@ function layout(decap, _P)
         end
         -- connect ground to grid
         if _P.drawgrid then
-            if aux.any_of(_P.interconnectmetal, _P.meshmetals) then
+            if util.any_of(_P.interconnectmetal, _P.meshmetals) then
                 if not _P.restrictvss or (_P.drawleft and _P.drawbottom) then
                     geometry.viabarebltr(decap, _P.interconnectmetal, _P.interconnectmetal + 1,
                         point.create(-_P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2, -_P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2),

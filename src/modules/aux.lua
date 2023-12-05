@@ -93,42 +93,6 @@ function aux.make_even(num)
     end
 end
 
-function aux.any_of(comp, t, ...)
-    if type(comp) == "function" then
-        for _, v in ipairs(t) do
-            if comp(v, ...) then
-                return true
-            end
-        end
-        return false
-    else
-        for _, v in ipairs(t) do
-            if comp == v then
-                return true
-            end
-        end
-        return false
-    end
-end
-
-function aux.all_of(comp, t, ...)
-    if type(comp) == "function" then
-        for _, v in ipairs(t) do
-            if not comp(v, ...) then
-                return false
-            end
-        end
-        return true
-    else
-        for _, v in ipairs(t) do
-            if comp ~= v then
-                return false
-            end
-        end
-        return true
-    end
-end
-
 function aux.assert_one_of(msg, key, ...)
     assert(aux.any_of(function(v) return v == key end, { ... }),
         string.format("%s must be one of { %s }", msg, table.concat({ ... }, ", "))

@@ -153,7 +153,7 @@ local function _load_cell(state, cellname, env)
     )
     -- check if only allowed values are defined
     for funcname in pairs(env) do
-        if not aux.any_of(function(v) return v == funcname end, { "config", "parameters", "layout", "check" }) then
+        if not util.any_of(function(v) return v == funcname end, { "config", "parameters", "layout", "check" }) then
             moderror(string.format("pcell: all defined toplevel values must be one of 'parameters', 'layout', 'check' or 'config'. Illegal name: '%s'", funcname))
         end
     end

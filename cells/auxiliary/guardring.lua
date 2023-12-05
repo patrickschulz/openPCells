@@ -56,7 +56,7 @@ function layout(guardring, _P)
     end
 
     local topmetal = technology.resolve_metal(_P.topmetal)
-    if aux.any_of("top", _P.drawsegments) then
+    if util.any_of("top", _P.drawsegments) then
         if _P.fit then
             for i = 1, xrep + 2 do
                 guardring:merge_into(contactbase:move_to((i - 2) * _P.ringwidth, holeheight))
@@ -101,7 +101,7 @@ function layout(guardring, _P)
             point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth)
         )
     end
-    if aux.any_of("bottom", _P.drawsegments) then
+    if util.any_of("bottom", _P.drawsegments) then
         if _P.fit then
             for i = 1, xrep + 2 do
                 guardring:merge_into(contactbase:move_to((i - 2) * _P.ringwidth, -_P.ringwidth))
@@ -145,7 +145,7 @@ function layout(guardring, _P)
             point.create(holewidth + _P.ringwidth, 0)
         )
     end
-    if aux.any_of("left", _P.drawsegments) then
+    if util.any_of("left", _P.drawsegments) then
         if _P.fit then
             for i = 1, yrep + 2 do
                 guardring:merge_into(contactbase:move_to(-_P.ringwidth, (i - 2) * _P.ringwidth))
@@ -189,7 +189,7 @@ function layout(guardring, _P)
             point.create(0,  holeheight + _P.ringwidth)
         )
     end
-    if aux.any_of("right", _P.drawsegments) then
+    if util.any_of("right", _P.drawsegments) then
         if _P.fit then
             for i = 1, yrep + 2 do
                 guardring:merge_into(contactbase:move_to(holewidth, (i - 2) * _P.ringwidth))

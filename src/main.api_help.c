@@ -459,6 +459,7 @@ static void _destroy_api_entry(void* v)
     free(entry);
 }
 
+/*
 static void _print_with_newlines_and_offset(const char* str, unsigned int offset)
 {
     const char* ptr = str;
@@ -475,6 +476,7 @@ static void _print_with_newlines_and_offset(const char* str, unsigned int offset
         ++ptr;
     }
 }
+*/
 
 static void _print_api_entry(const struct api_entry* entry)
 {

@@ -120,7 +120,7 @@ function layout(cmos, _P)
     -- check if outer gates are drawn
     local outergateshift = 0
     if _P.drawgatecontacts then
-        if aux.any_of("outer", _P.gatecontactpos) then
+        if util.any_of("outer", _P.gatecontactpos) then
             outergateshift = _P.outergateshift + _P.gatestrapwidth
         end
     end

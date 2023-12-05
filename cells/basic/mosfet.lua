@@ -833,7 +833,7 @@ function layout(transistor, _P)
                 local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
                 local bl = point.create(shift, sourceoffset)
                 local tr = point.create(shift + _P.sdwidth, sourceoffset + _P.sourcesize)
-                if not aux.any_of(i, _P.excludesourcedraincontacts) then
+                if not util.any_of(i, _P.excludesourcedraincontacts) then
                     geometry.contactbarebltr(transistor, "sourcedrain", bl, tr)
                     if _P.drawsourcevia and _P.sourceviametal > 1 and
                        not (i == 1 and not _P.drawfirstsourcevia or
@@ -873,7 +873,7 @@ function layout(transistor, _P)
                 local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
                 local bl = point.create(shift, drainoffset)
                 local tr = point.create(shift + _P.sdwidth, drainoffset + _P.drainsize)
-                if not aux.any_of(i, _P.excludesourcedraincontacts) then
+                if not util.any_of(i, _P.excludesourcedraincontacts) then
                     geometry.contactbarebltr(transistor, "sourcedrain", bl, tr)
                     if _P.drawdrainvia and _P.drainviametal > 1 and
                        not (i == 2 and not _P.drawfirstdrainvia or

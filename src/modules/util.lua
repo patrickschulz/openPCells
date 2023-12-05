@@ -317,8 +317,14 @@ end
 function M.remove_index(t, index)
     local result = {}
     for i, e in ipairs(t) do
-        if i ~= index then
-            table.insert(result, e)
+        if type(index) == "table" then
+            if not M.any_of(i, index) then
+                table.insert(result, e)
+            end
+        else
+            if i ~= index then
+                table.insert(result, e)
+            end
         end
     end
     return result
@@ -443,6 +449,42 @@ function M.fix_to_grid_abs_lower(c, grid)
         return -grid * math.floor(-c / grid)
     else
         return grid * math.floor(c / grid)
+    end
+end
+
+function M.any_of(comp, t, ...)
+    if type(comp) == "function" then
+        for _, v in ipairs(t) do
+            if comp(v, ...) then
+                return true
+            end
+        end
+        return false
+    else
+        for _, v in ipairs(t) do
+            if comp == v then
+                return true
+            end
+        end
+        return false
+    end
+end
+
+function M.all_of(comp, t, ...)
+    if type(comp) == "function" then
+        for _, v in ipairs(t) do
+            if not comp(v, ...) then
+                return false
+            end
+        end
+        return true
+    else
+        for _, v in ipairs(t) do
+            if comp ~= v then
+                return false
+            end
+        end
+        return true
     end
 end
 

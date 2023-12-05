@@ -195,12 +195,12 @@
 {
     struct parameter parameters[] = {
         { "t",      TABLE,      NULL,  "array" },
-        { "index",  INTEGER,    NULL,  "index of to-be-removed element" }
+        { "index",  ANY,        NULL,  "index or index table of to-be-removed element(s)" }
     };
     vector_append(entries, _make_api_entry(
         "remove_index",
         MODULE_UTIL,
-        "create a shallow copy of a table with the element at the 'index' removed",
+        "create a shallow copy of a table with the element(s) at the 'index(es)' removed. Index can be either a scalar integer or a table containing multiple indices which shall be removed",
         "util.remove_index({10, 20, 30, 40, 50}, 3) -- { 10, 20, 40, 50 }",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
@@ -399,7 +399,7 @@
         { "...",     VARARGS,   NULL, "additional arguments passed to comparison function" },
     };
     vector_append(entries, _make_api_entry(
-        "any_of",
+        "all_of",
         MODULE_UTIL,
         "return true if all of the values in the array part of the table compare true (either directly to the given value or the function call is true). If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.all_of are passed to the function, following the array element",
         "util.all_of(42, { 42, 42, 42 }) -- true\nutil.all_of(function(e) return e == 42 end, { 42, 2, 3 }) -- false",
