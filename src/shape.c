@@ -730,7 +730,34 @@ void shape_apply_transformation(struct shape* shape, const struct transformation
             }
             break;
         }
-        //case CURVE: break;
+        case CURVE:
+        {
+            // FIXME: this is not correct
+            struct curve* curve = shape->content;
+            transformationmatrix_apply_transformation(trans, curve->origin);
+            for(unsigned int i = 0; i < vector_size(curve->segments); ++i)
+            {
+                struct curve_segment* segment = vector_get(curve->segments, i);
+                switch(segment->type)
+                {
+                    case LINE_SEGMENT:
+                    {
+                        transformationmatrix_apply_transformation(trans, segment->pt);
+                        break;
+                    }
+                    case CUBIC_BEZIER_SEGMENT:
+                    {
+                        transformationmatrix_apply_transformation(trans, segment->cpt1);
+                        transformationmatrix_apply_transformation(trans, segment->cpt1);
+                        transformationmatrix_apply_transformation(trans, segment->endpt);
+                        break;
+                    }
+                    default: // ARC_SEGMENTS don't need to be translated
+                        break;
+                }
+            }
+            break;
+        }
     }
     _correct_rectangle_point_order(shape);
 }
