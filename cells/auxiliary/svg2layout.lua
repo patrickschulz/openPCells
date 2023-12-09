@@ -287,5 +287,8 @@ function layout(cell, _P)
                 cellerror(string.format("unhandled command: %s", entry.command))
             end
         end
+        if #curvecontent ~= 0 then -- path did not end with 'z' or 'Z'
+            geometry.curve(cell, generics.metal(_P.metal), point.create(x0, y0), curvecontent, _P.grid, _P.allow45)
+        end
     end
 end
