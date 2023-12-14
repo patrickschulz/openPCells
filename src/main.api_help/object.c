@@ -463,7 +463,7 @@
         "align_bottom_origin",
         MODULE_OBJECT,
         "translate the cell so that its alignment box (outer boundary) is aligned-bottom to the origin. This only changes the y coordinate",
-        "cell:align_bottom(othercell)",
+        "cell:align_bottom_origin(othercell)",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
@@ -474,10 +474,10 @@
         { "cell", OBJECT, NULL, "cell to be aligned" }
     };
     vector_append(entries, _make_api_entry(
-        "align_bottom_origin",
+        "align_left_origin",
         MODULE_OBJECT,
         "translate the cell so that its alignment box (outer boundary) is aligned-left to the origin. This only changes the x coordinate",
-        "cell:align_bottom(othercell)",
+        "cell:align_left_origin(othercell)",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
@@ -548,10 +548,10 @@
         { "cell", OBJECT, NULL, "cell to be aligned" }
     };
     vector_append(entries, _make_api_entry(
-        "align_bottom_origin",
+        "align_right_origin",
         MODULE_OBJECT,
         "translate the cell so that its alignment box (outer boundary) is aligned-right to the origin. This only changes the x coordinate",
-        "cell:align_bottom(othercell)",
+        "cell:align_right_origin(othercell)",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
@@ -577,10 +577,10 @@
         { "cell", OBJECT, NULL, "cell to be aligned" }
     };
     vector_append(entries, _make_api_entry(
-        "align_bottom_origin",
+        "align_top_origin",
         MODULE_OBJECT,
         "translate the cell so that its alignment box (outer boundary) is aligned-top to the origin. This only changes the y coordinate",
-        "cell:align_bottom(othercell)",
+        "cell:align_top_origin(othercell)",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
