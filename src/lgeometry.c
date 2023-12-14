@@ -820,16 +820,16 @@ static int lgeometry_path_polygon(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 5, &bgnext, &endext);
 
-    const point_t** points = calloc(len, sizeof(*points));
+    struct vector* points = vector_create(len, point_destroy);
     for(unsigned int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 3, i);
         struct lpoint* pt = lpoint_checkpoint(L, -1);
-        points[i - 1] = lpoint_get(pt);
+        vector_append(points, point_copy(lpoint_get(pt)));
         lua_pop(L, 1);
     }
-    geometry_path_polygon(lobject_get(L, cell), layer, points, len, width, bgnext, endext);
-    free(points);
+    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    vector_destroy(points);
     return 0;
 }
 
@@ -1438,15 +1438,16 @@ static int lgeometry_path_points_to_polygon(lua_State* L)
     //int endext = 0;
     //_get_path_extension(L, 5, &bgnext, &endext);
 
-    const point_t** points = calloc(len, sizeof(*points));
+    struct vector* points = vector_create(len, point_destroy);
     for(unsigned int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 1, i);
         struct lpoint* pt = lpoint_checkpoint(L, -1);
-        points[i - 1] = lpoint_get(pt);
+        vector_append(points, point_copy(lpoint_get(pt)));
         lua_pop(L, 1);
     }
-    struct vector* newpts = geometry_path_points_to_polygon(points, len, width, 1);
+
+    struct vector* newpts = geometry_path_points_to_polygon(points, width, 1);
     lua_newtable(L);
     for(unsigned int i = 0; i < vector_size(newpts); ++i)
     {

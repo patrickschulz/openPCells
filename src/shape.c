@@ -970,7 +970,7 @@ void shape_resolve_path_inline(struct shape* shape)
     }
     int miterjoin = 1;
     struct path* path = shape->content;
-    struct shape* new = geometry_path_to_polygon(shape->layer, vector_content(path->points), vector_size(path->points), path->width, miterjoin);
+    struct shape* new = geometry_path_to_polygon(shape->layer, path->points, path->width, miterjoin);
     shape->content = new->content;
     shape->type = new->type;
     vector_destroy(path->points);
@@ -986,7 +986,7 @@ struct shape* shape_resolve_path(const struct shape* shape)
     }
     int miterjoin = 1;
     struct path* path = shape->content;
-    struct shape* new = geometry_path_to_polygon(shape->layer, vector_content(path->points), vector_size(path->points), path->width, miterjoin);
+    struct shape* new = geometry_path_to_polygon(shape->layer, path->points, path->width, miterjoin);
     return new;
 }
 

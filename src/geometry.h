@@ -76,7 +76,7 @@ void geometry_path(
 void geometry_path_polygon(
     struct object* cell,
     const struct generics* layer,
-    const point_t** points, size_t len,
+    struct vector* points,
     ucoordinate_t width,
     ucoordinate_t bgnext, ucoordinate_t endext
 );
@@ -141,9 +141,9 @@ void geometry_unequal_ring_pts(
     const point_t* innerbl, const point_t* innertr
 );
 
-struct shape* geometry_path_to_polygon(const struct generics* layer, const point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin);
+struct shape* geometry_path_to_polygon(const struct generics* layer, struct vector* points, ucoordinate_t width, int miterjoin);
 
-struct vector* geometry_path_points_to_polygon(const point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin);
+struct vector* geometry_path_points_to_polygon(struct vector* points, ucoordinate_t width, int miterjoin);
 struct vector* geometry_get_side_path_points(struct vector* points, coordinate_t width);
 
 struct vector* geometry_triangulate_polygon(const struct vector* points);

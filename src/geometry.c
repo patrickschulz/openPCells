@@ -198,16 +198,17 @@ void geometry_path(struct object* cell, const struct generics* layer, const poin
     object_add_shape(cell, S);
 }
 
-void geometry_path_polygon(struct object* cell, const struct generics* layer, const point_t** points, size_t len, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
+void geometry_path_polygon(struct object* cell, const struct generics* layer, struct vector* points, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
 {
     if(generics_is_empty(layer))
     {
         return;
     }
-    struct shape* S = shape_create_path(layer, len, width, bgnext, endext);
-    for(unsigned int i = 0; i < len; ++i)
+    struct shape* S = shape_create_path(layer, vector_size(points), width, bgnext, endext);
+    for(size_t i = 0; i < vector_size(points); ++i)
     {
-        shape_append(S, points[i]->x, points[i]->y);
+        point_t* pt = vector_get(points, i);
+        shape_append(S, pt->x, pt->y);
     }
     shape_resolve_path_inline(S);
     object_add_shape(cell, S);
@@ -235,8 +236,9 @@ static void _shift_line_signed(const point_t* pt1, const point_t* pt2, coordinat
     (*spt2)->y = pt2->y + yshift;
 }
 
-static struct vector* _get_edge_segments(const point_t** points, size_t numpoints, ucoordinate_t width, unsigned int grid)
+static struct vector* _get_edge_segments(struct vector* points, ucoordinate_t width, unsigned int grid)
 {
+    size_t numpoints = vector_size(points);
     struct vector* edges = vector_create(4 * (numpoints - 1), point_destroy);
     // append dummy points, later filled by _shift_line
     for(unsigned int i = 0; i < 4 * (numpoints - 1); ++i)
@@ -246,13 +248,20 @@ static struct vector* _get_edge_segments(const point_t** points, size_t numpoint
     // start to end
     for(unsigned int i = 0; i < numpoints - 1; ++i)
     {
-        _shift_line(points[i], points[i + 1], width / 2, vector_get_reference(edges, 2 * i), vector_get_reference(edges, 2 * i + 1), grid);
+        point_t* pt1 = vector_get(points, i);
+        point_t* pt2 = vector_get(points, i + 1);
+        _shift_line(pt1, pt2, width / 2,
+            vector_get_reference(edges, 2 * i), vector_get_reference(edges, 2 * i + 1),
+            grid
+        );
     }
     // end to start (shift in other direction)
     for(unsigned int i = numpoints - 1; i > 0; --i)
     {
+        point_t* pt1 = vector_get(points, i);
+        point_t* pt2 = vector_get(points, i - 1);
         // the indexing looks funny, but it works out, trust me
-        _shift_line(points[i], points[i - 1], width / 2,
+        _shift_line(pt1, pt2, width / 2,
             vector_get_reference(edges, 2 * (2 * numpoints - 2 - i)),
             vector_get_reference(edges, 2 * (2 * numpoints - 2 - i) + 1),
             grid
@@ -414,34 +423,41 @@ void _make_unique_points(const point_t** points, size_t* numpoints)
     }
 }
 
-struct shape* geometry_path_to_polygon(const struct generics* layer, const point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin)
+struct shape* geometry_path_to_polygon(const struct generics* layer, struct vector* points, ucoordinate_t width, int miterjoin)
 {
-    _make_unique_points(points, &numpoints);
+    size_t numpoints = vector_size(points);
+    //_make_unique_points(points, &numpoints);
 
     // FIXME: handle path extensions
 
     // rectangle
-    if((numpoints == 2) && ((points[0]->x == points[1]->x) || (points[0]->y == points[1]->y)))
+    if((numpoints == 2))
     {
-        if    ((points[0]->x  < points[1]->x) && (points[0]->y == points[1]->y))
+        point_t* pt1 = vector_get(points, 0);
+        point_t* pt2 = vector_get(points, 1);
+        if((pt1->x == pt2->x) || (pt1->y == pt2->y))
         {
-            return shape_create_rectangle(layer, points[0]->x, points[0]->y - width / 2, points[1]->x, points[0]->y + width / 2);
-        }
-        else if((points[0]->x  > points[1]->x) && (points[0]->y == points[1]->y))
-        {
-            return shape_create_rectangle(layer, points[1]->x, points[0]->y - width / 2, points[0]->x, points[0]->y + width / 2);
-        }
-        else if((points[0]->x == points[1]->x) && (points[0]->y  > points[1]->y))
-        {
-            return shape_create_rectangle(layer, points[0]->x - width / 2, points[1]->y, points[0]->x + width / 2, points[0]->y);
-        }
-        else if((points[0]->x == points[1]->x) && (points[0]->y  < points[1]->y))
-        {
-            return shape_create_rectangle(layer, points[0]->x - width / 2, points[0]->y, points[0]->x + width / 2, points[1]->y);
+            if    ((pt1->x  < pt2->x) && (pt1->y == pt2->y))
+            {
+                return shape_create_rectangle(layer, pt1->x, pt1->y - width / 2, pt2->x, pt1->y + width / 2);
+            }
+            else if((pt1->x  > pt2->x) && (pt1->y == pt2->y))
+            {
+                return shape_create_rectangle(layer, pt2->x, pt1->y - width / 2, pt1->x, pt1->y + width / 2);
+            }
+            else if((pt1->x == pt2->x) && (pt1->y  > pt2->y))
+            {
+                return shape_create_rectangle(layer, pt1->x - width / 2, pt2->y, pt1->x + width / 2, pt1->y);
+            }
+            else if((pt1->x == pt2->x) && (pt1->y  < pt2->y))
+            {
+                return shape_create_rectangle(layer, pt1->x - width / 2, pt1->y, pt1->x + width / 2, pt2->y);
+            }
         }
     }
+
     // polygon
-    struct vector* edges = _get_edge_segments(points, numpoints, width, 1);
+    struct vector* edges = _get_edge_segments(points, width, 1);
     struct vector* poly = _get_path_pts(edges, miterjoin);
     vector_destroy(edges);
     struct shape* S = shape_create_polygon(layer, vector_size(poly));
@@ -457,13 +473,13 @@ struct shape* geometry_path_to_polygon(const struct generics* layer, const point
     return S;
 }
 
-struct vector* geometry_path_points_to_polygon(const point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin)
+struct vector* geometry_path_points_to_polygon(struct vector* points, ucoordinate_t width, int miterjoin)
 {
-    _make_unique_points(points, &numpoints);
+    //_make_unique_points(points, &numpoints);
 
     // FIXME: handle path extensions
 
-    struct vector* edges = _get_edge_segments(points, numpoints, width, 1);
+    struct vector* edges = _get_edge_segments(points, width, 1);
     struct vector* poly = _get_path_pts(edges, miterjoin);
     vector_destroy(edges);
     return poly;
@@ -479,10 +495,10 @@ struct vector* geometry_get_side_path_points(struct vector* points, coordinate_t
     return poly;
 }
 
-struct vector* _get_any_angle_path_pts(const point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
+struct vector* _get_any_angle_path_pts(struct vector* pts, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
 {
     (void)allow45;
-    struct vector* edges = _get_edge_segments(pts, len, width, grid);
+    struct vector* edges = _get_edge_segments(pts, width, grid);
     struct vector* poly = _get_path_pts(edges, miterjoin);
     vector_destroy(edges);
 //    table.insert(pathpts, edges[1]:copy()) -- close path
@@ -497,10 +513,10 @@ struct vector* _get_any_angle_path_pts(const point_t** pts, size_t len, ucoordin
     return poly;
 }
 
-void geometry_any_angle_path(struct object* cell, const struct generics* layer, const point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
+void geometry_any_angle_path(struct object* cell, const struct generics* layer, struct vector* pts, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
 {
-    _make_unique_points(pts, &len);
-    struct vector* points = _get_any_angle_path_pts(pts, len, width, grid, miterjoin, allow45);
+    //_make_unique_points(pts, &len);
+    struct vector* points = _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45);
     geometry_polygon(cell, layer, vector_content(points), vector_size(points));
     vector_destroy(points);
 }
