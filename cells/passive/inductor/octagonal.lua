@@ -1,14 +1,15 @@
 function parameters()
     pcell.add_parameters(
+        { "topmetal(Top Conductor Metal)",                                   -1 },
         { "turns(Number of Turns)",                                           3 },
         { "radius(Radius)",                                               40000 },
         { "cornerradius(Corner Radius)",                                  14000 },
         { "width(Width)",                                                  6000 },
         { "separation(Line Separation)",                                   6000 },
+        { "viashift(Via Shift)",                                              0 },
+        { "viaoverlapextension(Via Overlap Extension)",                       0 },
         { "extension(Line Extension)",                                    40000 },
         { "extsep(Extension Separation)",                                  6000 },
-        { "grid(Grid)",                                                     200 },
-        { "metalnum(Conductor Metal)",     -1,                        "integer" },
         { "allow45(Allow Angles with 45 Degrees)",                         true },
         { "drawlvsresistor(Draw LVS Resistor)",                           false },
         { "lvsreswidth(LVS Resistor Width)",                               1000 },
@@ -17,7 +18,7 @@ function parameters()
         { "fillboundary(Fill Boundary)",                                   true },
         { "rectangularboundary(Rectangular Boundary)",                    false },
         { "breaklines(Break Conductor Lines)",                            false },
-        { "includeextensioninboundary(Include Extension in Boundary)",      true }
+        { "includeextensioninboundary(Include Extension in Boundary)",     true }
     )
 end
 
@@ -28,58 +29,92 @@ end
 function layout(inductor, _P)
     local pitch = _P.separation + _P.width
 
-    local mainmetal = generics.metal(_P.metalnum)
-    local auxmetal = generics.metal(_P.metalnum - 1)
+    local mainmetal = generics.metal(_P.topmetal)
+    local auxmetal = generics.metal(_P.topmetal - 1)
 
     -- draw left and right segments
     local sign = (_P.turns % 2 == 0) and 1 or -1
     for i = 1, _P.turns do
         local radius = _P.radius + (i - 1) * pitch
-        local r = _scale_tanpi8(radius)
+        local radiustanpi8 = _scale_tanpi8(radius)
         sign = -sign
 
         local pathpts = {}
         local prepend = util.make_insert_xy(pathpts, 1)
         local append = util.make_insert_xy(pathpts)
 
-        append(-r + _scale_tanpi8(_P.width / 2),  sign * radius)
-        append(-r,  sign * radius)
-        append(-radius,  sign * r)
-        append(-radius, -sign * r)
-        append(-r, -sign * radius)
-        append(-r + _scale_tanpi8(_P.width / 2), -sign * radius)
+        --append(-radiustanpi8 + _scale_tanpi8(_P.width / 2),  sign * radius)
+        append(-radiustanpi8,  sign * radius)
+        append(-radius,  sign * radiustanpi8)
+        append(-radius, -sign * radiustanpi8)
+        append(-radiustanpi8, -sign * radius)
+        --append(-radiustanpi8 + _scale_tanpi8(_P.width / 2), -sign * radius)
+
+        -- connect main lines to underpass
+        if i < _P.turns then
+            if radiustanpi8 > pitch / 2 + _scale_tanpi8(_P.width / 2) then
+                prepend(-pitch / 2 - _scale_tanpi8(_P.width / 2),  sign * radius)
+                append(-pitch / 2 - _scale_tanpi8(_P.width / 2), -sign * radius)
+            else
+                --prepend(-_scale_tanpi8(_P.radius / 2) - pitch / 4,  sign * radius)
+                --append(-_scale_tanpi8(_P.radius / 2) - pitch / 4, -sign * radius)
+            end
+        end
 
         -- draw underpass
         if i < _P.turns then
-            -- create connection to underpass
-            if _scale_tanpi8(_P.radius / 2) - _scale_tanpi8(_P.width / 2) > pitch / 4 then
-                prepend(-_scale_tanpi8(_P.radius / 2) - pitch / 4,  sign * radius)
-                append(-_scale_tanpi8(_P.radius / 2) - pitch / 4, -sign * radius)
-            end
             -- create underpass
-            local uppts = {}
-            local append = util.make_insert_xy(uppts)
-            if _scale_tanpi8(_P.radius / 2) - _scale_tanpi8(_P.width / 2) > pitch / 4 then
-                append(-(_scale_tanpi8(_P.radius / 2) + pitch / 4), -sign * radius)
+            local up1pts = {}
+            local up2pts = {}
+            local append1 = util.make_insert_xy(up1pts)
+            local append2 = util.make_insert_xy(up2pts)
+            local via1bl, via1tr
+            local via2bl, via2tr
+            if radiustanpi8 > pitch / 2 + _scale_tanpi8(_P.width / 2) then
+                append1(-pitch / 2 - _scale_tanpi8(_P.width / 2), -sign * radius)
+                append1(-pitch / 2, -sign * radius)
+                append1( pitch / 2, -sign * (radius + pitch))
+                append1( pitch / 2 + _scale_tanpi8(_P.width / 2), -sign * (radius + pitch))
+                append2(-pitch / 2 - _scale_tanpi8(_P.width / 2) - _P.viashift - _P.viaoverlapextension, -sign * radius)
+                append2(-pitch / 2, -sign * radius)
+                append2( pitch / 2, -sign * (radius + pitch))
+                append2( pitch / 2 + _scale_tanpi8(_P.width / 2) + _P.viashift + _P.viaoverlapextension, -sign * (radius + pitch))
+                -- via points
+                via1bl = point.create(-pitch / 2 - _scale_tanpi8(_P.width / 2) - _P.viashift - _P.width / 2, -sign * (radius + pitch) - _P.width / 2)
+                via1tr = point.create(-pitch / 2 - _scale_tanpi8(_P.width / 2) - _P.viashift + _P.width / 2, -sign * (radius + pitch) + _P.width / 2)
+                via2bl = point.create( pitch / 2 + _scale_tanpi8(_P.width / 2) + _P.viashift - _P.width / 2, -sign * radius - _P.width / 2)
+                via2tr = point.create( pitch / 2 + _scale_tanpi8(_P.width / 2) + _P.viashift + _P.width / 2, -sign * radius + _P.width / 2)
+            else
+                append1(-radiustanpi8, -sign * radius)
+                append1(-radiustanpi8 + pitch, -sign * (radius + pitch))
+                append1(-radiustanpi8 + pitch + _scale_tanpi8(_P.width / 2), -sign * (radius + pitch))
+                append2(-radiustanpi8 - _P.viashift - _P.viaoverlapextension, -sign * radius + _P.viashift + _P.viaoverlapextension)
+                append2(-radiustanpi8 + pitch, -sign * (radius + pitch))
+                append2( pitch / 2 + _scale_tanpi8(_P.width / 2) + _P.viashift, -sign * (radius + pitch))
+                append2( pitch / 2 + _scale_tanpi8(_P.width / 2) + _P.viashift + _P.viaoverlapextension, -sign * (radius + pitch))
+                -- via points
+                via1bl = point.create(
+                    -pitch / 2 - _scale_tanpi8(_P.width / 2) - _P.viashift - _P.width / 2,
+                    -sign * (radius + pitch) - _P.width / 2
+                )
+                via1tr = point.create(
+                    -pitch / 2 - _scale_tanpi8(_P.width / 2) - _P.viashift + _P.width / 2,
+                    -sign * (radius + pitch) + _P.width / 2
+                )
+                via2bl = point.create(
+                    radiustanpi8 + _P.viashift - _P.width / 2,
+                    -sign * radius - _P.width / 2 + _P.viashift
+                )
+                via2tr = point.create(
+                    radiustanpi8 + _P.viashift + _P.width / 2,
+                    -sign * radius + _P.width / 2 + _P.viashift
+                )
             end
-            append(-pitch / 2 - _scale_tanpi8(_P.width / 2), -sign * radius)
-            append(-pitch / 2, -sign * radius)
-            append( pitch / 2, -sign * (radius + pitch))
-            append( pitch / 2 + _scale_tanpi8(_P.width / 2), -sign * (radius + pitch))
-            if _scale_tanpi8(_P.radius / 2) - _scale_tanpi8(_P.width / 2) > pitch / 4 then
-                append( (_scale_tanpi8(_P.radius / 2) + pitch / 4), -sign * (radius + pitch))
-            end
-            geometry.path(inductor, mainmetal, uppts, _P.width, true)
-            geometry.path_polygon(inductor, auxmetal, util.xmirror(uppts), _P.width, true)
+            geometry.path_polygon(inductor, mainmetal, up1pts, _P.width, true)
+            geometry.path_polygon(inductor, auxmetal, util.xmirror(up2pts), _P.width, true)
             -- place vias
-            geometry.viabltr(inductor, _P.metalnum, _P.metalnum - 1,
-                point.create(-_P.width / 2 - (_scale_tanpi8(_P.radius / 2) + pitch / 4), -_P.width / 2 - sign * (radius + pitch)),
-                point.create( _P.width / 2 - (_scale_tanpi8(_P.radius / 2) + pitch / 4),  _P.width / 2 - sign * (radius + pitch))
-            )
-            geometry.viabltr(inductor, _P.metalnum, _P.metalnum - 1,
-                point.create(-_P.width / 2 + (_scale_tanpi8(_P.radius / 2) + pitch / 4), -_P.width / 2 - sign * radius),
-                point.create( _P.width / 2 + (_scale_tanpi8(_P.radius / 2) + pitch / 4),  _P.width / 2 - sign * radius)
-            )
+            geometry.viabarebltr(inductor, _P.topmetal, _P.topmetal - 1, via1bl, via1tr)
+            geometry.viabarebltr(inductor, _P.topmetal, _P.topmetal - 1, via2bl, via2tr)
         end
 
         -- draw inner connection between left and right
@@ -89,14 +124,15 @@ function layout(inductor, _P)
 
         -- draw connection to underpass of last turn
         if i == _P.turns then
-            prepend(-(_scale_tanpi8(_P.radius / 2) + pitch / 4), sign * radius)
+            --prepend(-(_scale_tanpi8(_P.radius / 2) + pitch / 4), sign * radius)
+            prepend(-pitch / 2 - _scale_tanpi8(_P.width / 2),  sign * radius)
         end
 
         -- draw connector
         if i == _P.turns then
-            if _P.extsep / 2 + _P.width > r + _scale_tanpi8(_P.width / 2) then
-                append(-(_P.extsep + _P.width) / 2, -r - radius + (_P.extsep + _P.width) / 2)
-                append(-(_P.extsep + _P.width) / 2, -r - radius + (_P.extsep + _P.width) / 2 - _P.extension)
+            if _P.extsep / 2 + _P.width > radiustanpi8 + _scale_tanpi8(_P.width / 2) then
+                append(-(_P.extsep + _P.width) / 2, -radiustanpi8 - radius + (_P.extsep + _P.width) / 2)
+                append(-(_P.extsep + _P.width) / 2, -radiustanpi8 - radius + (_P.extsep + _P.width) / 2 - _P.extension)
             else
                 append(-(_P.extsep + _P.width) / 2, -radius)
                 append(-(_P.extsep + _P.width) / 2, -(radius + _P.width / 2))
@@ -113,11 +149,11 @@ function layout(inductor, _P)
 
     -- LVS resistor
     if _P.drawlvsresistor then
-        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.metalnum))),
+        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.topmetal))),
             point.create(-_P.extsep / 2 - _P.width, -lastradius - _P.width / 2 - _P.lvsreswidth),
             point.create(-_P.extsep / 2, -lastradius - _P.width / 2)
         )
-        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.metalnum))),
+        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.topmetal))),
             point.create( _P.extsep / 2, -lastradius - _P.width / 2 - _P.lvsreswidth),
             point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
         )
@@ -218,6 +254,6 @@ function layout(inductor, _P)
             util.merge_forwards(layerboundary, innerlayerboundary)
         end
         util.merge_backwards(layerboundary, outerlayerboundary)
-        inductor:add_layer_boundary(generics.metal(_P.metalnum), layerboundary)
+        inductor:add_layer_boundary(generics.metal(_P.topmetal), layerboundary)
     end
 end
