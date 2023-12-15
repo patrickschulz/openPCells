@@ -124,8 +124,7 @@ function layout(inductor, _P)
 
         -- draw connection to underpass of last turn
         if i == _P.turns then
-            --prepend(-(_scale_tanpi8(_P.radius / 2) + pitch / 4), sign * radius)
-            prepend(-pitch / 2 - _scale_tanpi8(_P.width / 2),  sign * radius)
+            prepend(_scale_tanpi8(_P.radius + (_P.turns - 2) * pitch) - pitch - _scale_tanpi8(_P.width / 2), sign * radius)
         end
 
         -- draw connector
