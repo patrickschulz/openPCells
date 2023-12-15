@@ -88,7 +88,7 @@ function layout(inductor, _P)
                 append1(-radiustanpi8, -sign * radius)
                 append1(-radiustanpi8 + pitch, -sign * (radius + pitch))
                 append1(-radiustanpi8 + pitch + _scale_tanpi8(_P.width / 2), -sign * (radius + pitch))
-                append2(-radiustanpi8 - _P.viashift - _P.viaoverlapextension, -sign * radius + _P.viashift + _P.viaoverlapextension)
+                append2(-radiustanpi8 - _P.viashift - _P.viaoverlapextension, -sign * radius + sign * (_P.viashift + _P.viaoverlapextension))
                 append2(-radiustanpi8 + pitch, -sign * (radius + pitch))
                 append2( pitch / 2 + _scale_tanpi8(_P.width / 2) + _P.viashift, -sign * (radius + pitch))
                 append2( pitch / 2 + _scale_tanpi8(_P.width / 2) + _P.viashift + _P.viaoverlapextension, -sign * (radius + pitch))
@@ -103,11 +103,11 @@ function layout(inductor, _P)
                 )
                 via2bl = point.create(
                     radiustanpi8 + _P.viashift - _P.width / 2,
-                    -sign * radius - _P.width / 2 + _P.viashift
+                    -sign * radius + sign * _P.viashift - _P.width / 2
                 )
                 via2tr = point.create(
                     radiustanpi8 + _P.viashift + _P.width / 2,
-                    -sign * radius + _P.width / 2 + _P.viashift
+                    -sign * radius + sign * _P.viashift + _P.width / 2
                 )
             end
             geometry.path_polygon(inductor, mainmetal, up1pts, _P.width, true)
