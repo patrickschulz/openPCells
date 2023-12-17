@@ -8,7 +8,7 @@ struct vector* vector_create(size_t capacity, void (*destructor)(void*));
 struct vector* vector_adapt_from_pointer_array(void**);
 void vector_destroy(void* vector);
 struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*));
-void vector_reserve(struct vector* vector, size_t additional_capacity);
+void vector_reserve(struct vector* vector, size_t capacity);
 size_t vector_size(const struct vector* vector);
 size_t vector_capacity(const struct vector* vector);
 int vector_empty(const struct vector* vector);

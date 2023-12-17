@@ -69,11 +69,11 @@ struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*))
     return new;
 }
 
-void vector_reserve(struct vector* vector, size_t additional_capacity)
+void vector_reserve(struct vector* vector, size_t capacity)
 {
-    if((vector->capacity - vector->size) < additional_capacity)
+    if(vector->capacity < capacity)
     {
-        _resize_data(vector, vector->capacity + (additional_capacity - (vector->capacity - vector->size)));
+        _resize_data(vector, capacity);
     }
 }
 
