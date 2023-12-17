@@ -488,22 +488,6 @@
     ));
 }
 
-/* util.make_multiple(coordinate, grid) */
-{
-    struct parameter parameters[] = {
-        { "coordinate", INTEGER,    NULL, "coordinate" },
-        { "grid",       INTEGER,    NULL, "grid" },
-    };
-    vector_append(entries, _make_api_entry(
-        "fix_to_grid_abs_lower",
-        MODULE_UTIL,
-        "fix a coordinate to a multiple of the given grid. This function works like a 'floor(ing)' function, but it is computed on the absolute value, so the absolute of the resulting number is either lower or equal. This means that this function does behave symmetrically for negative and positive input. If this is unwanted, use util.fix_to_grid_lower.",
-        "util.fix_to_grid_abs_lower(120, 100) -- 100\nutil.fix_to_grid_abs_lower(-120, 100) -- 100",
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
-    ));
-}
-
 /*
     FIXME:
 	util.check_grid
@@ -515,4 +499,5 @@
 	util.polygon_ymax
 	util.polygon_ymin
 	util.sum
+    util.make_multiple
 */

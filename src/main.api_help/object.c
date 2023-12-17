@@ -71,7 +71,7 @@
         { "cell",           OBJECT,     NULL, "cell to be abutted" }
     };
     vector_append(entries, _make_api_entry(
-        "abut_bottom",
+        "abut_bottom_origin",
         MODULE_OBJECT,
         "translate the cell so that its alignment box (outer boundary) is abutted-bottom to the origin. This only changes the y coordinate",
         "cell:abut_bottom_origin()",
@@ -100,7 +100,7 @@
         { "cell",           OBJECT,     NULL, "cell to be abutted" }
     };
     vector_append(entries, _make_api_entry(
-        "abut_left",
+        "abut_left_origin",
         MODULE_OBJECT,
         "translate the cell so that its alignment box (outer boundary) is abutted-left to the origin. This only changes the x coordinate",
         "cell:abut_left_origin()",
@@ -128,7 +128,7 @@
         { "cell",           OBJECT,     NULL, "cell to be abutted" }
     };
     vector_append(entries, _make_api_entry(
-        "abut_right",
+        "abut_right_origin",
         MODULE_OBJECT,
         "translate the cell so that its alignment box (outer boundary) is abutted-right to the origin. This only changes the x coordinate",
         "cell:abut_right_origin()",
@@ -157,7 +157,7 @@
         { "cell",           OBJECT,     NULL, "cell to be abutted" }
     };
     vector_append(entries, _make_api_entry(
-        "abut_top",
+        "abut_top_origin",
         MODULE_OBJECT,
         "translate the cell so that its alignment box (outer boundary) is abutted-top to the origin. This only changes the x coordinate",
         "cell:abut_top_origin()",
@@ -773,7 +773,7 @@
         { "cell",      OBJECT, NULL, "Object which should be flattened" },
     };
     vector_append(entries, _make_api_entry(
-        "flatten_inline",
+        "flatten",
         MODULE_OBJECT,
         "resolve the cell by placing all shapes from all children in the parent cell. This operates in-place and modifies the object. Copy the cell if this is unwanted",
         "cell:flatten()\ncell:copy():flatten()",
@@ -1043,7 +1043,7 @@
         { "prefix",     STRING, NULL, "prefix of all inherited anchors" }
     };
     vector_append(entries, _make_api_entry(
-        "inherit_anchor_as",
+        "inherit_all_anchors_with_prefix",
         MODULE_OBJECT,
         "inherit all anchors from another cell with an attached prefix.",
         "cell:inherit_all_anchors_with_prefix(someothercell, \"othercell_\")",
