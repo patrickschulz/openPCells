@@ -143,12 +143,18 @@ function parameters()
         { "shortlocation",                                                                              "inline", posvals = set("inline", "top", "bottom") },
         { "shortspace",                                                                                 technology.get_dimension("Minimum M1 Space") },
         { "shortwidth",                                                                                 technology.get_dimension("Minimum M1 Width") },
+        { "drawleftactivedummy",                                                                        false },
+        { "leftactivedummywidth",                                                                       80 },
+        { "leftactivedummyspace",                                                                       80 },
+        { "drawrightactivedummy",                                                                       false },
+        { "rightactivedummywidth",                                                                      80 },
+        { "rightactivedummyspace",                                                                      80 },
         { "drawtopactivedummy",                                                                         false },
         { "topactivedummywidth",                                                                        80 },
-        { "topactivedummysep",                                                                          80 },
-        { "drawbotactivedummy",                                                                         false },
-        { "botactivedummywidth",                                                                        80 },
-        { "botactivedummysep",                                                                          80 },
+        { "topactivedummyspace",                                                                        80 },
+        { "drawbottomactivedummy",                                                                      false },
+        { "bottomactivedummywidth",                                                                     80 },
+        { "bottomactivedummyspace",                                                                     80 },
         { "leftfloatingdummies",                                                                        0 },
         { "rightfloatingdummies",                                                                       0 },
         { "drawactive",                                                                                 true },
@@ -190,6 +196,7 @@ function parameters()
         { "topwelltapextendright",                                                                      0 },
         { "drawbotwelltap",                                                                             false },
         { "drawguardring",                                                                              false },
+        { "guardringrespectactivedummy",                                                                false },
         { "guardringwidth",                                                                             technology.get_dimension("Minimum M1 Width") },
         { "guardringleftsep",                                                                           0 },
         { "guardringrightsep",                                                                          0 },
@@ -302,16 +309,28 @@ function layout(transistor, _P)
             point.create(-leftactauxext, 0),
             point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth)
         )
-        if _P.drawtopactivedummy then
+        if _P.drawleftactivedummy then
             geometry.rectanglebltr(transistor, generics.other("active"),
-                point.create(-leftactauxext, _P.fingerwidth + _P.topactivedummysep),
-                point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth + _P.topactivedummysep + _P.topactivedummywidth)
+                point.create(-leftactauxext - _P.leftactivedummyspace - _P.leftactivedummywidth, 0),
+                point.create(-leftactauxext - _P.leftactivedummyspace, _P.fingerwidth)
             )
         end
-        if _P.drawbotactivedummy then
+        if _P.drawrightactivedummy then
             geometry.rectanglebltr(transistor, generics.other("active"),
-                point.create(-leftactauxext, -_P.botactivedummysep - _P.botactivedummywidth),
-                point.create(activewidth + leftactext + rightactext + rightactauxext, -_P.botactivedummysep)
+                point.create(activewidth + leftactext + rightactext + rightactauxext + _P.rightactivedummyspace, 0),
+                point.create(activewidth + leftactext + rightactext + rightactauxext + _P.rightactivedummyspace + _P.rightactivedummywidth, _P.fingerwidth)
+            )
+        end
+        if _P.drawtopactivedummy then
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                point.create(-leftactauxext, _P.fingerwidth + _P.topactivedummyspace),
+                point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth + _P.topactivedummyspace + _P.topactivedummywidth)
+            )
+        end
+        if _P.drawbottomactivedummy then
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                point.create(-leftactauxext, -_P.bottomactivedummyspace - _P.bottomactivedummywidth),
+                point.create(activewidth + leftactext + rightactext + rightactauxext, -_P.bottomactivedummyspace)
             )
         end
     end
@@ -741,18 +760,33 @@ function layout(transistor, _P)
 
     local guardring -- variable needs to be visible for alignment box setting
     if _P.drawguardring then
-        guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
-            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
-            ringwidth = _P.guardringwidth,
-            holewidth = activewidth + leftactauxext + leftactext + rightactext + rightactauxext + _P.guardringleftsep + _P.guardringrightsep,
-            holeheight = _P.fingerwidth + _P.guardringtopsep + _P.guardringbottomsep,
-            fillwell = true,
-            drawsegments = _P.guardringsegments,
-            fillwell = _P.guardringfillwell,
-            fillimplant = _P.guardringfillimplant,
-        })
-        guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext, 0))
-        guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
+        if _P.guardringrespectactivedummy then
+            guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
+                contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+                ringwidth = _P.guardringwidth,
+                holewidth = activewidth + leftactauxext + leftactext + rightactext + rightactauxext + _P.guardringleftsep + _P.guardringrightsep + _P.leftactivedummywidth + _P.leftactivedummyspace + _P.rightactivedummywidth + _P.rightactivedummyspace,
+                holeheight = _P.fingerwidth + _P.guardringtopsep + _P.guardringbottomsep + _P.topactivedummywidth + _P.topactivedummyspace + _P.bottomactivedummywidth + _P.bottomactivedummyspace,
+                fillwell = true,
+                drawsegments = _P.guardringsegments,
+                fillwell = _P.guardringfillwell,
+                fillimplant = _P.guardringfillimplant,
+            })
+            guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext - _P.leftactivedummywidth - _P.leftactivedummyspace, - _P.bottomactivedummywidth - _P.bottomactivedummyspace))
+            guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
+        else
+            guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
+                contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+                ringwidth = _P.guardringwidth,
+                holewidth = activewidth + leftactauxext + leftactext + rightactext + rightactauxext + _P.guardringleftsep + _P.guardringrightsep,
+                holeheight = _P.fingerwidth + _P.guardringtopsep + _P.guardringbottomsep,
+                fillwell = true,
+                drawsegments = _P.guardringsegments,
+                fillwell = _P.guardringfillwell,
+                fillimplant = _P.guardringfillimplant,
+            })
+            guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext, 0))
+            guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
+        end
         transistor:merge_into(guardring)
         transistor:add_area_anchor_bltr("outerguardring",
             guardring:get_area_anchor("outerboundary").bl,
