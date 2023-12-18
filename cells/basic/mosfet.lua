@@ -205,6 +205,9 @@ function parameters()
         { "guardringsegments",                                                                          { "left", "right", "top", "bottom" } },
         { "guardringfillimplant",                                                                       false },
         { "guardringfillwell",                                                                          false },
+        { "guardringwellextension",                                                                     0 },
+        { "guardringimplantextension",                                                                  0 },
+        { "guardringsoiopenextension",                                                                  0 },
         { "botwelltapwidth",                                                                            technology.get_dimension("Minimum M1 Width") },
         { "botwelltapspace",                                                                            technology.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                                                       0 },
@@ -770,6 +773,9 @@ function layout(transistor, _P)
                 drawsegments = _P.guardringsegments,
                 fillwell = _P.guardringfillwell,
                 fillimplant = _P.guardringfillimplant,
+                wellextension = _P.guardringwellextension,
+                implantextension = _P.guardringimplantextension,
+                soiopenextension = _P.guardringsoiopenextension,
             })
             guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext - _P.leftactivedummywidth - _P.leftactivedummyspace, - _P.bottomactivedummywidth - _P.bottomactivedummyspace))
             guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
@@ -783,6 +789,9 @@ function layout(transistor, _P)
                 drawsegments = _P.guardringsegments,
                 fillwell = _P.guardringfillwell,
                 fillimplant = _P.guardringfillimplant,
+                wellextension = _P.guardringwellextension,
+                implantextension = _P.guardringimplantextension,
+                soiopenextension = _P.guardringsoiopenextension,
             })
             guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext, 0))
             guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
