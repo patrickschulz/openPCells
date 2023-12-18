@@ -550,7 +550,7 @@ function M.filter_excluded_nets(netlist, excluded_nets)
             local po = {}
             for i = #instance.connections, 1, -1 do
                 local c = instance.connections[i]
-                if aux.any_of(function(v) return v == c.net end, excluded_nets) then
+                if util.any_of(function(v) return v == c.net end, excluded_nets) then
                     table.remove(instance.connections, i)
                 end
             end

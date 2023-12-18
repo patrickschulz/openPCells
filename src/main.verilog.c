@@ -29,6 +29,11 @@ void main_verilog_import(const char* scriptname, const struct vector* args)
     {
         lua_setglobal(L, "aux");
     }
+    module_load_util(L);
+    if(!lua_isnil(L, -1))
+    {
+        lua_setglobal(L, "util");
+    }
     module_load_verilog(L);
     if(!lua_isnil(L, -1))
     {

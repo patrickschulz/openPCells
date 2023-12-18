@@ -5,7 +5,7 @@ local paramformat = args.parametersformat or "%n %v %i"
 for _, P in ipairs(params) do
     local doprint = true
     if args.parameternames then
-        doprint = aux.any_of(function(name) return string.match(P.name, name) ~= nil end, args.parameternames)
+        doprint = util.any_of(function(name) return string.match(P.name, name) ~= nil end, args.parameternames)
     end
     local paramstr = string.gsub(paramformat, "%%%a", { 
         ["%p"] = P.parent, 

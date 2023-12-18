@@ -14,7 +14,7 @@ function M.collect_nets_cells(netlist, cellinfo, ignorednets)
             -- create nets
             local ct = {}
             for _, c in ipairs(instance.connections) do
-                if not aux.any_of(
+                if not util.any_of(
                     function(v) return c.net == v end,
                     ignorednets or {}
                 ) then
