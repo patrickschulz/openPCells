@@ -191,8 +191,10 @@ function parameters()
         { "drawbotwelltap",                                                                             false },
         { "drawguardring",                                                                              false },
         { "guardringwidth",                                                                             technology.get_dimension("Minimum M1 Width") },
-        { "guardringxsep",                                                                              0 },
-        { "guardringysep",                                                                              0 },
+        { "guardringleftsep",                                                                           0 },
+        { "guardringrightsep",                                                                          0 },
+        { "guardringtopsep",                                                                            0 },
+        { "guardringbottomsep",                                                                         0 },
         { "guardringsegments",                                                                          { "left", "right", "top", "bottom" } },
         { "guardringfillimplant",                                                                       false },
         { "guardringfillwell",                                                                          false },
@@ -742,15 +744,15 @@ function layout(transistor, _P)
         guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             ringwidth = _P.guardringwidth,
-            holewidth = activewidth + leftactauxext + leftactext + rightactext + rightactauxext + 2 * _P.guardringxsep,
-            holeheight = _P.fingerwidth + 2 * _P.guardringysep,
+            holewidth = activewidth + leftactauxext + leftactext + rightactext + rightactauxext + _P.guardringleftsep + _P.guardringrightsep,
+            holeheight = _P.fingerwidth + _P.guardringtopsep + _P.guardringbottomsep,
             fillwell = true,
             drawsegments = _P.guardringsegments,
             fillwell = _P.guardringfillwell,
             fillimplant = _P.guardringfillimplant,
         })
         guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext, 0))
-        guardring:translate(-_P.guardringxsep, -_P.guardringysep)
+        guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
         transistor:merge_into(guardring)
         transistor:add_area_anchor_bltr("outerguardring",
             guardring:get_area_anchor("outerboundary").bl,
