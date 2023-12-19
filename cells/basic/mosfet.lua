@@ -481,6 +481,13 @@ function layout(transistor, _P)
             point.create(leftpolyoffset - polyline.space - polyline.length, gatebly),
             point.create(leftpolyoffset - polyline.space, gatetry)
         )
+        if polyline.isstopgate then
+            geometry.rectanglebltr(transistor,
+                generics.other("diffusionbreakgate"),
+                point.create(leftpolyoffset - polyline.space - polyline.length, gatebly),
+                point.create(leftpolyoffset - polyline.space, gatetry)
+            )
+        end
         transistor:add_area_anchor_bltr(
             string.format("leftpolyline%d", i),
             point.create(leftpolyoffset - polyline.space - polyline.length, gatebly),
@@ -501,6 +508,13 @@ function layout(transistor, _P)
             point.create(rightpolyoffset + polyline.space, gatebly),
             point.create(rightpolyoffset + polyline.space + polyline.length, gatetry)
         )
+        if polyline.isstopgate then
+            geometry.rectanglebltr(transistor,
+                generics.other("diffusionbreakgate"),
+                point.create(rightpolyoffset + polyline.space, gatebly),
+                point.create(rightpolyoffset + polyline.space + polyline.length, gatetry)
+            )
+        end
         transistor:add_area_anchor_bltr(
             string.format("rightpolyline%d", i),
             point.create(rightpolyoffset + polyline.space, gatebly),
