@@ -18,7 +18,14 @@ function parameters()
         { "fillboundary(Fill Boundary)",                                   true },
         { "rectangularboundary(Rectangular Boundary)",                    false },
         { "breaklines(Break Conductor Lines)",                            false },
-        { "includeextensioninboundary(Include Extension in Boundary)",     true }
+        { "includeextensioninboundary(Include Extension in Boundary)",     true },
+        { "drawoutline",                                                  false },
+        { "outlineextension",                                                 0 },
+        { "drawlvsmarker",                                                false },
+        { "drawinductormarker",                                           false },
+        { "inductormarkerextension",                                          0 },
+        { "drawlowsubstratedopingmarker",                                 false },
+        { "dopingmarkerextension",                                            0 }
     )
 end
 
@@ -155,6 +162,55 @@ function layout(inductor, _P)
         geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.topmetal))),
             point.create( _P.extsep / 2, -lastradius - _P.width / 2 - _P.lvsreswidth),
             point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
+        )
+    end
+
+    -- inductor marker
+    if _P.drawinductormarker then
+        geometry.rectanglebltr(inductor, generics.other("inductormarker"),
+            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.inductormarkerextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.extension - _P.inductormarkerextension),
+            point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.inductormarkerextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.inductormarkerextension)
+        )
+    end
+
+    -- LVS marker
+    if _P.drawlvsmarker then
+        local pathpts = {}
+        local append = util.make_insert_xy(pathpts)
+        local radius = _P.radius + (_P.turns - 1) * pitch + _P.width / 2
+        local radiustanpi8 = _scale_tanpi8(radius)
+        append(-radiustanpi8 + _scale_tanpi8(_P.width / 2),  sign * radius)
+        append(-radiustanpi8,  sign * radius)
+        append(-radius,  sign * radiustanpi8)
+        append(-radius, -sign * radiustanpi8)
+        append(-radiustanpi8, -sign * radius)
+        append(-radiustanpi8 + _scale_tanpi8(_P.width / 2), -sign * radius)
+        append( radiustanpi8 + _scale_tanpi8(_P.width / 2), -sign * radius)
+        append( radiustanpi8, -sign * radius)
+        append( radius, -sign * radiustanpi8)
+        append( radius,  sign * radiustanpi8)
+        append( radiustanpi8,  sign * radius)
+        append( radiustanpi8 + _scale_tanpi8(_P.width / 2),  sign * radius)
+        geometry.polygon(
+            inductor, 
+            generics.other("inductorlvsmarker"),
+            pathpts
+        )
+    end
+
+    -- outline
+    if _P.drawoutline then
+        geometry.rectanglebltr(inductor, generics.outline(),
+            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.outlineextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.extension - _P.outlineextension),
+            point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.outlineextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.outlineextension)
+        )
+    end
+
+    -- low substrat doping marker
+    if _P.drawlowsubstratedopingmarker then
+        geometry.rectanglebltr(inductor, generics.other("subblock"),
+            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.dopingmarkerextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.extension - _P.dopingmarkerextension),
+            point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.dopingmarkerextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.dopingmarkerextension)
         )
     end
 
