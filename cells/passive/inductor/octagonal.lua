@@ -190,7 +190,7 @@ function layout(inductor, _P)
         append( radius, -sign * radiustanpi8)
         append( radius,  sign * radiustanpi8)
         append( radiustanpi8,  sign * radius)
-        append( radiustanpi8 + _scale_tanpi8(_P.width / 2),  sign * radius)
+        --append( radiustanpi8 + _scale_tanpi8(_P.width / 2),  sign * radius)
         geometry.polygon(
             inductor, 
             generics.other("inductorlvsmarker"),
