@@ -25,7 +25,9 @@ function parameters()
         { "drawinductormarker",                                           false },
         { "inductormarkerextension",                                          0 },
         { "drawlowsubstratedopingmarker",                                 false },
-        { "dopingmarkerextension",                                            0 }
+        { "dopingmarkerextension",                                            0 },
+        { "alignmentboxincludefeedlines",                                 false },
+        { "alignmentboxextension",                                            0 }
     )
 end
 
@@ -241,10 +243,17 @@ function layout(inductor, _P)
     end
 
     -- alignment box
-    inductor:set_alignment_box(
-        point.create(-_P.radius + (_P.turns - 1) * pitch - _P.width / 2, -_P.radius + (_P.turns - 1) * pitch - _P.width / 2 - _P.extension),
-        point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2)
-    )
+    if _P.alignmentboxincludefeedlines then
+        inductor:set_alignment_box(
+            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension - _P.extension),
+            point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension)
+        )
+    else
+        inductor:set_alignment_box(
+            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension),
+            point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension)
+        )
+    end
 
     -- boundary
     if _P.rectangularboundary then
