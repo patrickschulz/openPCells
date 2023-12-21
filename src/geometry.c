@@ -408,25 +408,25 @@ static struct vector* _get_side_path_pts(struct vector* edges)
     return pts;
 }
 
-void _make_unique_points(const point_t** points, size_t* numpoints)
+void _make_unique_points(struct vector* points)
 {
-    for(unsigned int i = *numpoints - 1; i > 0; --i)
+    size_t i = vector_size(points) - 1;
+    while(i > 1)
     {
-        if((points[i]->x == points[i - 1]->x) && (points[i]->y == points[i - 1]->y))
+        point_t* pt1 = vector_get(points, i);
+        point_t* pt2 = vector_get(points, i - 1);
+        if((pt1->x == pt2->x) && (pt1->y == pt2->y))
         {
-            for(unsigned int j = 0; j < *numpoints - i - 1; ++j)
-            {
-                points[i + j] = points[i + j + 1];
-            }
-            --(*numpoints);
+            vector_remove(points, i);
         }
+        --i;
     }
 }
 
 struct shape* geometry_path_to_polygon(const struct generics* layer, struct vector* points, ucoordinate_t width, int miterjoin)
 {
     size_t numpoints = vector_size(points);
-    //_make_unique_points(points, &numpoints);
+    _make_unique_points(points);
 
     // FIXME: handle path extensions
 
@@ -475,7 +475,7 @@ struct shape* geometry_path_to_polygon(const struct generics* layer, struct vect
 
 struct vector* geometry_path_points_to_polygon(struct vector* points, ucoordinate_t width, int miterjoin)
 {
-    //_make_unique_points(points, &numpoints);
+    _make_unique_points(points);
 
     // FIXME: handle path extensions
 
@@ -487,7 +487,7 @@ struct vector* geometry_path_points_to_polygon(struct vector* points, ucoordinat
 
 struct vector* geometry_get_side_path_points(struct vector* points, coordinate_t offset)
 {
-    //_make_unique_points(points, &numpoints);
+    _make_unique_points(points);
 
     struct vector* edges = _get_side_edge_segments(points, offset, 1);
     struct vector* poly = _get_side_path_pts(edges);
@@ -515,7 +515,7 @@ struct vector* _get_any_angle_path_pts(struct vector* pts, ucoordinate_t width, 
 
 void geometry_any_angle_path(struct object* cell, const struct generics* layer, struct vector* pts, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
 {
-    //_make_unique_points(pts, &len);
+    _make_unique_points(pts);
     struct vector* points = _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45);
     geometry_polygon(cell, layer, vector_content(points), vector_size(points));
     vector_destroy(points);
