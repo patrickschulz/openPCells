@@ -27,6 +27,7 @@ function parameters()
         { "drawbottom", true },
         { "restrictvss", false },
         { "drawtopmetal", false },
+        { "topmetaldensity", 50 },
         { "connecttopmetal", false, follow = "drawtopmetal" },
         { "meshmetalwidths", { 500, 500, 800, 800, 800, 800, 1000, 1250, } },
         { "gridmetalwidths", { { vss = 2400, vdd = 3600 }, { vss = 2400, vdd = 3600 } } },
@@ -230,26 +231,52 @@ function layout(decap, _P)
             )
         end
         if _P.drawtopmetal then
-            local left = -_P.cellsize / 2
-            local right = _P.cellsize / 2
-            local bottom = -_P.cellsize / 2
-            local top = _P.cellsize / 2
-            if not _P.drawleft then
-                left = -_P.gridmetalwidths[#_P.gridmetalwidths].vdd / 2
+            if _P.topmetaldensity == 100 then
+                local left = -_P.cellsize / 2
+                local right = _P.cellsize / 2
+                local bottom = -_P.cellsize / 2
+                local top = _P.cellsize / 2
+                if not _P.drawleft then
+                    left = -_P.gridmetalwidths[#_P.gridmetalwidths].vdd / 2
+                end
+                if not _P.drawright then
+                    right = _P.gridmetalwidths[#_P.gridmetalwidths].vdd / 2
+                end
+                if not _P.drawbottom then
+                    bottom = -_P.gridmetalwidths[#_P.gridmetalwidths].vdd / 2
+                end
+                if not _P.drawtop then
+                    top = _P.gridmetalwidths[#_P.gridmetalwidths].vdd / 2
+                end
+                geometry.rectanglebltr(decap, generics.metal(-1),
+                    point.create(left, bottom),
+                    point.create(right, top)
+                )
+            else
+                local width = math.floor(math.sqrt(_P.topmetaldensity / 100) * _P.cellsize / 2 / 2) * 2
+                local pts = {}
+                if _P.drawleft then
+                    table.insert(pts, point.create(-_P.cellsize / 2, width / 2))
+                    table.insert(pts, point.create(-_P.cellsize / 2, -width / 2))
+                end
+                table.insert(pts, point.create(-width / 2, -width / 2))
+                if _P.drawbottom then
+                    table.insert(pts, point.create(-width / 2, -_P.cellsize / 2))
+                    table.insert(pts, point.create( width / 2, -_P.cellsize / 2))
+                end
+                table.insert(pts, point.create( width / 2, -width / 2))
+                if _P.drawright then
+                    table.insert(pts, point.create( _P.cellsize / 2, -width / 2))
+                    table.insert(pts, point.create( _P.cellsize / 2,  width / 2))
+                end
+                table.insert(pts, point.create( width / 2, width / 2))
+                if _P.drawtop then
+                    table.insert(pts, point.create( width / 2, _P.cellsize / 2))
+                    table.insert(pts, point.create(-width / 2, _P.cellsize / 2))
+                end
+                table.insert(pts, point.create(-width / 2, width / 2))
+                geometry.polygon(decap, generics.metal(-1), pts)
             end
-            if not _P.drawright then
-                right = _P.gridmetalwidths[#_P.gridmetalwidths].vdd / 2
-            end
-            if not _P.drawbottom then
-                bottom = -_P.gridmetalwidths[#_P.gridmetalwidths].vdd / 2
-            end
-            if not _P.drawtop then
-                top = _P.gridmetalwidths[#_P.gridmetalwidths].vdd / 2
-            end
-            geometry.rectanglebltr(decap, generics.metal(-1),
-                point.create(left, bottom),
-                point.create(right, top)
-            )
         end
     end
 
