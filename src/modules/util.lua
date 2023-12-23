@@ -428,6 +428,10 @@ function M.ratio_split_even(value, ratio)
     return first, second
 end
 
+function M.round_to_grid(c, grid)
+    return grid * math.floor(c / grid + 0.5)
+end
+
 function M.fix_to_grid_higher(c, grid)
     return grid * math.ceil(c / grid)
 end

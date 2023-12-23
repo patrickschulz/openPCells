@@ -424,6 +424,22 @@
     ));
 }
 
+/* util.round_to_grid(coordinate, grid) */
+{
+    struct parameter parameters[] = {
+        { "coordinate", INTEGER,    NULL, "coordinate" },
+        { "grid",       INTEGER,    NULL, "grid" },
+    };
+    vector_append(entries, _make_api_entry(
+        "round_to_grid",
+        MODULE_UTIL,
+        "round a coordinate to a multiple of the given grid",
+        "util.round_to_grid(120, 100) -- 100\nutil.round_to_grid(160, 100) -- 200",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* util.fix_to_grid_higher(coordinate, grid) */
 {
     struct parameter parameters[] = {
