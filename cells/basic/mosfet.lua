@@ -125,6 +125,7 @@ function parameters()
         { "connectdraininline(Connect Drain Inline of Transistor)",                                     false },
         { "connectdraininlineoffset(Offset for Inline Drain Connection)",                               0 },
         { "diodeconnected(Diode Connected Transistor)",                                                 false },
+        { "diodeconnectedreversed(Reverse Diode Connections)",                                          false },
         { "drawextrabotstrap(Draw Extra Bottom Strap)",                                                 false },
         { "extrabotstrapwidth(Width of Extra Bottom Strap)",                                            technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "extrabotstrapspace(Space of Extra Bottom Strap)",                                            technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
@@ -974,7 +975,8 @@ function layout(transistor, _P)
 
     -- diode connected
     if _P.diodeconnected then
-        for i = 2, _P.fingers + 1, 2 do
+        local startindex = _P.diodeconnectedreversed and 1 or 2
+        for i = startindex, _P.fingers + 1, 2 do
             if _P.drawtopgatestrap then
                 geometry.rectanglebltr(transistor, generics.metal(1),
                     transistor:get_area_anchor(string.format("sourcedrain%d", i)).tl:translate_x(-sdmetalshift),
