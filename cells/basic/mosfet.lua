@@ -129,12 +129,16 @@ function parameters()
         { "extrabotstrapwidth(Width of Extra Bottom Strap)",                                            technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "extrabotstrapspace(Space of Extra Bottom Strap)",                                            technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
         { "extrabotstrapmetal(Metal Layer for Extra Bottom Strap)",                                     1 },
+        { "extrabotstrapleftextension(Left Extension for Extra Bottom Strap)",                          0 },
+        { "extrabotstraprightextension(Left Extension for Extra Bottom Strap)",                         0 },
         { "extrabotstrapleftalign(Left Alignment for Extra Bottom Strap)",                              1 },
         { "extrabotstraprightalign(Right Alignment for Extra Bottom Strap)",                            1, follow = "fingers" },
         { "drawextratopstrap(Draw Extra Top Strap)",                                                    false },
         { "extratopstrapwidth(Width of Extra Top Strap)",                                               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "extratopstrapspace(Space of Extra Top Strap)",                                               technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
         { "extratopstrapmetal(Metal Layer for Extra Top Strap)",                                        1 },
+        { "extratopstrapleftextension(Left Extension for Extra Top Strap)",                             0 },
+        { "extratopstraprightextension(Left Extension for Extra Top Strap)",                            0 },
         { "extratopstrapleftalign(Left Alignment for Extra Top Strap)",                                 1 },
         { "extratopstraprightalign(Right Alignment for Extra Top Strap)",                               1, follow = "fingers" },
         { "shortdevice(Short Transistor)",                                                              false },
@@ -1262,8 +1266,8 @@ function layout(transistor, _P)
 
     -- extra source/drain straps (unconnected, useful for arrays)
     if _P.drawextrabotstrap then
-        local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 + (_P.extrabotstrapleftalign - 1) * gatepitch
-        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
+        local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 - _P.extrabotstrapleftextension + (_P.extrabotstrapleftalign - 1) * gatepitch
+        local trx = blx + _P.extrabotstrapleftextension + _P.extrabotstraprightextension + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
         geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
             point.create(blx, -_P.extrabotstrapspace - _P.extrabotstrapwidth),
             point.create(trx, -_P.extrabotstrapspace)
@@ -1275,8 +1279,8 @@ function layout(transistor, _P)
         )
     end
     if _P.drawextratopstrap then
-        local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 + (_P.extratopstrapleftalign - 1) * gatepitch
-        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + (_P.extratopstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
+        local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 - _P.extratopstrapleftextension + (_P.extratopstrapleftalign - 1) * gatepitch
+        local trx = blx + _P.extratopstrapleftextension + _P.extratopstraprightextension + 2 * (_P.fingers // 2) * gatepitch + (_P.extratopstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
         geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
             point.create(blx, _P.fingerwidth + _P.extratopstrapspace),
             point.create(trx, _P.fingerwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
