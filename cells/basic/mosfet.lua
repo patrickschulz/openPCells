@@ -353,7 +353,7 @@ function layout(transistor, _P)
 
     if hasgatecut then
         -- gate cut
-        if _P.drawtopgatecut then
+        if _P.fingers > 0 and _P.drawtopgatecut then
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
@@ -366,7 +366,7 @@ function layout(transistor, _P)
                 )
             )
         end
-        if _P.drawbotgatecut then
+        if _P.fingers > 0 and _P.drawbotgatecut then
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
@@ -1269,7 +1269,7 @@ function layout(transistor, _P)
     -- extra source/drain straps (unconnected, useful for arrays)
     if _P.drawextrabotstrap then
         local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 - _P.extrabotstrapleftextension + (_P.extrabotstrapleftalign - 1) * gatepitch
-        local trx = blx + _P.extrabotstrapleftextension + _P.extrabotstraprightextension + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
+        local trx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 + _P.extrabotstraprightextension + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
         geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
             point.create(blx, -_P.extrabotstrapspace - _P.extrabotstrapwidth),
             point.create(trx, -_P.extrabotstrapspace)
@@ -1282,7 +1282,7 @@ function layout(transistor, _P)
     end
     if _P.drawextratopstrap then
         local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 - _P.extratopstrapleftextension + (_P.extratopstrapleftalign - 1) * gatepitch
-        local trx = blx + _P.extratopstrapleftextension + _P.extratopstraprightextension + 2 * (_P.fingers // 2) * gatepitch + (_P.extratopstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
+        local trx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 + _P.extratopstraprightextension + 2 * (_P.fingers // 2) * gatepitch + (_P.extratopstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
         geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
             point.create(blx, _P.fingerwidth + _P.extratopstrapspace),
             point.create(trx, _P.fingerwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
