@@ -20,6 +20,7 @@ function parameters()
         { "extendmoscapmarkerx", 0 },
         { "extendmoscapmarkery", 0 },
         { "drawmesh", true },
+        { "fillmesh", false },
         { "drawgrid", true },
         { "drawleft", true },
         { "drawright", true },
@@ -61,7 +62,7 @@ function layout(decap, _P)
     end
 
     -- decap metals
-    if _P.drawmesh then
+    if _P.drawmesh and not _P.fillmesh then
         for i = 1, #_P.meshmetals do
             if _P.meshmetals[i] == _P.interconnectmetal then
                 geometry.ring(decap, generics.metal(_P.meshmetals[i]), point.create(0, 0), _P.cellsize + 2 * _P.meshmetalwidths[i], _P.cellsize + 2 * _P.meshmetalwidths[i], 2 * _P.meshmetalwidths[i])
@@ -98,6 +99,21 @@ function layout(decap, _P)
                 geometry.rectanglebltr(decap, generics.metalexclude(_P.meshmetals[i]),
                     point.create(-_P.cellsize / 2, -_P.cellsize / 2),
                     point.create( _P.cellsize / 2,  _P.cellsize / 2)
+                )
+            end
+        end
+    end
+
+    if _P.fillmesh then
+        for i, m in ipairs(_P.meshmetals) do
+            if m == _P.interconnectmetal then
+            else
+                geometry.slotted_rectangle(decap, generics.metal(m),
+                    point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+                    point.create( _P.cellsize / 2,  _P.cellsize / 2),
+                    _P.meshmetalwidths[i], _P.meshmetalwidths[i],
+                    _P.meshmetalwidths[i], _P.meshmetalwidths[i],
+                    _P.meshmetalwidths[i] / 2, _P.meshmetalwidths[i] / 2
                 )
             end
         end
@@ -339,7 +355,7 @@ function layout(decap, _P)
     end
 
     -- metal capacitor
-    if _P.drawmesh then
+    if _P.drawmesh and not _P.fillmesh then
         for i = 1, #_P.meshmetals do
             if _P.meshmetals[i] == _P.interconnectmetal then
                 break
