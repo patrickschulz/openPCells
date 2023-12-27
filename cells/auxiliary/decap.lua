@@ -69,7 +69,7 @@ function layout(decap, _P)
             else
                 geometry.ring(decap, generics.metal(_P.meshmetals[i]), point.create(0, 0), _P.cellsize, _P.cellsize, _P.meshmetalwidths[i])
             end
-            if i < #_P.meshmetals then
+            if i < #_P.meshmetals then -- vias between layers of mesh
                 if _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
                     local mwidth = math.min(_P.meshmetalwidths[i], _P.meshmetalwidths[i + 1])
                     geometry.viabarebltr(decap, _P.meshmetals[i], _P.meshmetals[i] + 1,
@@ -107,6 +107,20 @@ function layout(decap, _P)
     if _P.fillmesh then
         for i, m in ipairs(_P.meshmetals) do
             if m == _P.interconnectmetal then
+                geometry.ring(decap,
+                    generics.metal(_P.meshmetals[i]),
+                    point.create(0, 0),
+                    _P.cellsize + 2 * _P.meshmetalwidths[i], _P.cellsize + 2 * _P.meshmetalwidths[i],
+                    2 * _P.meshmetalwidths[i]
+                )
+                geometry.rectanglebltr(decap, generics.metal(_P.meshmetals[i]),
+                    point.create(-_P.cellsize / 2 + _P.meshmetalwidths[i], -_P.meshmetalwidths[i] / 2),
+                    point.create( _P.cellsize / 2 - _P.meshmetalwidths[i],  _P.meshmetalwidths[i] / 2)
+                )
+                geometry.rectanglebltr(decap, generics.metal(_P.meshmetals[i]),
+                    point.create(-_P.meshmetalwidths[i] / 2, -_P.cellsize / 2 + _P.meshmetalwidths[i]),
+                    point.create( _P.meshmetalwidths[i] / 2,  _P.cellsize / 2 - _P.meshmetalwidths[i])
+                )
             else
                 geometry.slotted_rectangle(decap, generics.metal(m),
                     point.create(-_P.cellsize / 2, -_P.cellsize / 2),
@@ -417,33 +431,34 @@ function layout(decap, _P)
                 )
             end
         end
-        -- connect ground to grid
-        if _P.drawgrid then
-            if util.any_of(_P.interconnectmetal, _P.meshmetals) then
-                if not _P.restrictvss or (_P.drawleft and _P.drawbottom) then
-                    geometry.viabarebltr(decap, _P.interconnectmetal, _P.interconnectmetal + 1,
-                        point.create(-_P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2, -_P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2),
-                        point.create(-_P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2, -_P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2)
-                    )
-                end
-                if not _P.restrictvss or (_P.drawleft and _P.drawtop) then
-                    geometry.viabarebltr(decap, _P.interconnectmetal, _P.interconnectmetal + 1,
-                        point.create(-_P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2,  _P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2),
-                        point.create(-_P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2,  _P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2)
-                    )
-                end
-                if not _P.restrictvss or (_P.drawright and _P.drawbottom) then
-                    geometry.viabarebltr(decap, _P.interconnectmetal, _P.interconnectmetal + 1,
-                        point.create( _P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2, -_P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2),
-                        point.create( _P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2, -_P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2)
-                    )
-                end
-                if _P.restrictvss or (_P.drawright and _P.drawtop) then
-                    geometry.viabarebltr(decap, _P.interconnectmetal, _P.interconnectmetal + 1,
-                        point.create( _P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2,  _P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2),
-                        point.create( _P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2,  _P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2)
-                    )
-                end
+    end
+
+    -- connect ground to grid
+    if _P.drawmesh and _P.drawgrid then
+        if util.any_of(_P.interconnectmetal, _P.meshmetals) then
+            if not _P.restrictvss or (_P.drawleft and _P.drawbottom) then
+                geometry.viabarebltr(decap, _P.interconnectmetal, _P.interconnectmetal + 1,
+                    point.create(-_P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2, -_P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2),
+                    point.create(-_P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2, -_P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2)
+                )
+            end
+            if not _P.restrictvss or (_P.drawleft and _P.drawtop) then
+                geometry.viabarebltr(decap, _P.interconnectmetal, _P.interconnectmetal + 1,
+                    point.create(-_P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2,  _P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2),
+                    point.create(-_P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2,  _P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2)
+                )
+            end
+            if not _P.restrictvss or (_P.drawright and _P.drawbottom) then
+                geometry.viabarebltr(decap, _P.interconnectmetal, _P.interconnectmetal + 1,
+                    point.create( _P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2, -_P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2),
+                    point.create( _P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2, -_P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2)
+                )
+            end
+            if _P.restrictvss or (_P.drawright and _P.drawtop) then
+                geometry.viabarebltr(decap, _P.interconnectmetal, _P.interconnectmetal + 1,
+                    point.create( _P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2,  _P.cellsize / 2 - _P.gridmetalwidths[1].vss / 2),
+                    point.create( _P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2,  _P.cellsize / 2 + _P.gridmetalwidths[1].vss / 2)
+                )
             end
         end
     end
