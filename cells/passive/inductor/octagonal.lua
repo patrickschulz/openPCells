@@ -155,15 +155,15 @@ function layout(inductor, _P)
     local lastradius = _P.radius + (_P.turns - 1) * pitch
     local lastr = _scale_tanpi8(lastradius)
 
-    -- LVS resistor
+    -- lvs resistor
     if _P.drawlvsresistor then
-        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.topmetal))),
-            point.create(-_P.extsep / 2 - _P.width, -lastradius - _P.width / 2 - _P.lvsreswidth),
-            point.create(-_P.extsep / 2, -lastradius - _P.width / 2)
+        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.metalnum))),
+            inductor:get_area_anchor("leftline").bl,
+            inductor:get_area_anchor("leftline").br:translate_y(_P.lvsreswidth)
         )
-        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.topmetal))),
-            point.create( _P.extsep / 2, -lastradius - _P.width / 2 - _P.lvsreswidth),
-            point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
+        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.metalnum))),
+            inductor:get_area_anchor("rightline").bl,
+            inductor:get_area_anchor("rightline").br:translate_y(_P.lvsreswidth)
         )
     end
 

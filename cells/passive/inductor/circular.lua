@@ -5,13 +5,13 @@ The inductor is defined by two radii, one for the main loop and the second one f
 --]]
 function parameters()
     pcell.add_parameters(
+        { "topmetal(Conductor Metal)",     -1,                  "integer" },
         { "radius(Radius)",                                         40000 },
         { "cornerradius(Corner Radius)",                            14000 },
         { "width(Width)",                                            6000 },
         { "separation(Line Separation)",                             6000 },
         { "extension(Line Extension)",                              40000 },
         { "grid(Grid)",                                               200 },
-        { "metalnum(Conductor Metal)",     -1,                  "integer" },
         { "allow45(Allow Angles with 45 Degrees)",                   true },
         { "drawlvsresistor(Draw LVS Resistor)",                     false },
         { "lvsreswidth(LVS Resistor Width)",                         1000 },
@@ -90,8 +90,8 @@ function layout(inductor, _P)
     local pts = _get_outline(_P.radius, _P.width, _P.cornerradius, _P.extension, _P.separation, _P.grid, _P.allow45, _P.breaklines)
 
     -- create polygon
-    geometry.polygon(inductor, generics.metal(_P.metalnum), pts)
-    geometry.polygon(inductor, generics.metal(_P.metalnum), util.xmirror(pts))
+    geometry.polygon(inductor, generics.metal(_P.topmetal), pts)
+    geometry.polygon(inductor, generics.metal(_P.topmetal), util.xmirror(pts))
 
     -- input lines anchors
     local lastradius = _P.radius
@@ -109,6 +109,18 @@ function layout(inductor, _P)
         point.create(-_P.radius - _P.width / 2, -_P.radius - _P.width / 2 - _P.extension),
         point.create( _P.radius + _P.width / 2,  _P.radius + _P.width / 2)
     )
+
+    -- lvs resistor
+    if _P.drawlvsresistor then
+        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.topmetal))),
+            inductor:get_area_anchor("leftline").bl,
+            inductor:get_area_anchor("leftline").br:translate_y(_P.lvsreswidth)
+        )
+        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.topmetal))),
+            inductor:get_area_anchor("rightline").bl,
+            inductor:get_area_anchor("rightline").br:translate_y(_P.lvsreswidth)
+        )
+    end
 
     -- boundary
     if _P.rectangularboundary then
@@ -156,11 +168,12 @@ function layout(inductor, _P)
         outerappend( outerr + _scale_tanpi8(_P.width / 2),  outerradius)
         inductor:set_boundary(outerpathpts)
     end
-    -- add layer boundaries
+
+    -- layer boundaries
     local innerlayerboundary = graphics.coarse_circle(_P.radius - _P.width / 2 - _P.boundaryinnerextension, 32, -math.pi / 2)
     local outerlayerboundary = graphics.coarse_circle(_P.radius + _P.width / 2 + _P.boundaryouterextension, 32, -math.pi / 2)
     local layerboundary = {}
     util.merge_forwards(layerboundary, innerlayerboundary)
     util.merge_backwards(layerboundary, outerlayerboundary)
-    inductor:add_layer_boundary(generics.metal(_P.metalnum), layerboundary)
+    inductor:add_layer_boundary(generics.metal(_P.topmetal), layerboundary)
 end
