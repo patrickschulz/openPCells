@@ -480,7 +480,8 @@ int gdsparser_show_records(const char* filename, int raw)
     int status = _read_raw_stream_noerror(filename, &stream, &errorbyte);
     if(!status)
     {
-        printf("show GDSII records: stream abort before ENDLIB (at byte %ld)\nstream is malformed (showing all valid records up to now):", errorbyte);
+        printf("show GDSII records: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
+        return 0;
     }
 
     unsigned int indent = 0;
