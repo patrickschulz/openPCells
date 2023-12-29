@@ -193,8 +193,8 @@
         { "cell",       OBJECT,     NULL,   "cell which will be placed in the toplevel cell" },
         { "basename",   STRING,     NULL,   "basename for the instance names" },
         { "basept",     POINT,      NULL,   "base point for the grid placement" },
-        { "xpitch",     INTEGER,    NULL,   "x-pitch of the cell" },
-        { "ypitch",     INTEGER,    NULL,   "y-pitch of the cell" },
+        { "xpitch",     INTEGER,    NULL,   "x-pitch of the cell (can be negative)" },
+        { "ypitch",     INTEGER,    NULL,   "y-pitch of the cell (can be negative)" },
         { "grid",       TABLE,      NULL,   "two-dimensional table defining the grid (with '0' or '1' entries)" }
     };
     vector_append(entries, _make_api_entry(
