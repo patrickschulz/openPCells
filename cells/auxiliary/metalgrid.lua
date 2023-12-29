@@ -68,7 +68,7 @@ function layout(grid, _P)
     end
 
     -- vias
-    if _P.drawvias then
+    if _P.drawmetalh and _P.drawmetalv and _P.drawvias then
         local viaref = object.create("_via")
         if _P.continuousvias then
             geometry.viabltr_continuous(viaref, _P.metalh, _P.metalv,
