@@ -33,7 +33,29 @@
         "place_guardring",
         MODULE_LAYOUTHELPERS,
         "place a guardring in a cell with a defined boundary and spacing",
-"layouthelpers.place_guardring(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
+"layouthelpers.place_guardring(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* layouthelpers.place_guardring_quantized */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place guardring in" },
+        { "bl",             POINT,      NULL, "bottom-left boundary corner" },
+        { "tr",             POINT,      NULL, "top-right boundary corner" },
+        { "xspace",         INTEGER,    NULL, "space in x-direction between boundary and guardring" },
+        { "yspace",         INTEGER,    NULL, "space in y-direction between boundary and guardring" },
+        { "basesize",       INTEGER,    NULL, "basesize for calculating the quantized hole width and height" },
+        { "anchorprefix",   STRING,     NULL, "anchor prefix for inherited anchors (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
+        { "options",        TABLE,      NULL, "placement options" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_guardring_quantized",
+        MODULE_LAYOUTHELPERS,
+        "place a guardring in a cell with a defined boundary and spacing. The guardring hole width and height are quantized so that they fit a multiple of the specified basesize. This does NOT account for the width of the guardring. While this might be a short-coming of this function, this issue can easily be circumvented by using a ring width that is also a multiple of the basesize.",
+"layouthelpers.place_guardring_quantized(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    500,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -56,7 +78,7 @@
         "place_guardring_with_hole",
         MODULE_LAYOUTHELPERS,
         "place a guardring with a well hole in a cell with a defined boundary and spacing",
-"layouthelpers.place_guardring_with_hole(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr,\n    pmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr),\n    200, 200,\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
+"layouthelpers.place_guardring_with_hole(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr,\n    pmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr),\n    200, 200,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
