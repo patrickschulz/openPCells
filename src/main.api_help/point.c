@@ -314,6 +314,38 @@
     ));
 }
 
+/* point.xmirror */
+{
+    struct parameter parameters[] = {
+        { "point",      POINT,      NULL,   "point which should be mirrored" },
+        { "refernce",   INTEGER,    "0",    "mirror reference coordinate" }
+    };
+    vector_append(entries, _make_api_entry(
+        "xmirror",
+        MODULE_POINT,
+        "return a copy of the given point with the x-coordinate mirrored. A reference coordinate can be given, to which the x-coordinate is mirrored. If this is not present, 0 is used.",
+        "local newpt = pt:xmirror()\nlocal newpt2 = pt:xmirror(200)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* point.ymirror */
+{
+    struct parameter parameters[] = {
+        { "point",      POINT,      NULL,   "point which should be mirrored" },
+        { "refernce",   INTEGER,    "0",    "mirror reference coordinate" }
+    };
+    vector_append(entries, _make_api_entry(
+        "ymirror",
+        MODULE_POINT,
+        "return a copy of the given point with the y-coordinate mirrored. A reference coordinate can be given, to which the y-coordinate is mirrored. If this is not present, 0 is used.",
+        "local newpt = pt:ymirror()\nlocal newpt2 = pt:ymirror(200)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* point.unwrap */
 {
     struct parameter parameters[] = {
