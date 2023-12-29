@@ -15,6 +15,7 @@ function parameters()
         { "mhextl", 0 },
         { "mhextr", 0 },
         { "drawvias", true },
+        { "continuousvias", false },
         { "centergrid", true },
         { "flatvias", true },
         { "flipvias", false }
@@ -69,10 +70,17 @@ function layout(grid, _P)
     -- vias
     if _P.drawvias then
         local viaref = object.create("_via")
-        geometry.viabltr(viaref, _P.metalh, _P.metalv,
-            point.create(0,          0),
-            point.create(_P.mvwidth, _P.mhwidth)
-        )
+        if _P.continuousvias then
+            geometry.viabltr_continuous(viaref, _P.metalh, _P.metalv,
+                point.create(0,          0),
+                point.create(_P.mvwidth, _P.mhwidth)
+            )
+        else
+            geometry.viabltr(viaref, _P.metalh, _P.metalv,
+                point.create(0,          0),
+                point.create(_P.mvwidth, _P.mhwidth)
+            )
+        end
         if not _P.flatvias then
             for i = 1, _P.mhlines do
                 for j = 1, _P.mvlines do
