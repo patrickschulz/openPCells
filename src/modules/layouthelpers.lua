@@ -105,6 +105,47 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
     end
 end
 
+function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xspace, yspace, basesize, welloffset, anchorprefix, options)
+    check.set_next_function_name("layouthelpers.place_guardring_with_hole")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg_func(2, "bl", "point", bl, point.is_point)
+    check.arg_func(3, "tr", "point", tr, point.is_point)
+    check.arg_func(4, "holebl", "point", holebl, point.is_point)
+    check.arg_func(5, "holetr", "point", holetr, point.is_point)
+    check.arg(6, "xspace", "number", xspace)
+    check.arg(7, "yspace", "number", yspace)
+    check.arg(8, "basesize", "number", basesize)
+    check.arg(9, "anchorprefix", "string", anchorprefix)
+    check.arg_optional(10, "options", "table", options)
+    check.reset_function_name()
+    local targetwidth = point.xdistance_abs(bl, tr)
+    local targetheight = point.ydistance_abs(bl, tr)
+    local holewidth = util.fix_to_grid_abs_higher(targetwidth + 2 * xspace, basesize)
+    local holeheight = util.fix_to_grid_abs_higher(targetheight + 2 * yspace, basesize)
+    local guardring = pcell.create_layout(
+        "auxiliary/guardring",
+        "_guardring",
+        util.add_options(options or {}, {
+            holewidth = holewidth,
+            holeheight = holeheight,
+            fillwell = true,
+            fillwelldrawhole = true,
+            fillwellholeoffsettop = yspace - point.ydistance(holetr, tr) - welloffset,
+            fillwellholeoffsetbottom = yspace - point.ydistance(bl, holebl) - welloffset,
+            fillwellholeoffsetleft = xspace - point.xdistance(bl, holebl) - welloffset,
+            fillwellholeoffsetright = xspace - point.xdistance(holetr, tr) - welloffset,
+        })
+    )
+    guardring:move_point(guardring:get_area_anchor("innerboundary").bl, bl)
+    guardring:translate(-xspace, -yspace)
+    cell:merge_into(guardring)
+    cell:inherit_alignment_box(guardring)
+    if anchorprefix then
+        cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
+    end
+end
+
 function M.place_welltap(cell, bl, tr, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_welltap")
     check.arg_func(1, "cell", "object", cell, object.is_object)
