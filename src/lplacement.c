@@ -40,6 +40,52 @@ static void _cleanup_target_exclude_vector(struct simple_polygon* targetarea, st
     }
 }
 
+int lplacement_place_on_grid(lua_State* L)
+{
+    lcheck_check_numargs1(L, 7, "placement.place_on_grid");
+    struct lobject* toplevel = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 2);
+    const char* basename = luaL_checkstring(L, 3);
+    struct lpoint* basept = lpoint_checkpoint(L, 4);
+    coordinate_t xpitch = luaL_checkinteger(L, 5);
+    coordinate_t ypitch = luaL_checkinteger(L, 6);
+    lua_len(L, 7);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    struct vector* grid = vector_create(32, vector_destroy);
+    for(size_t i = len; i >= 1; --i)
+    {
+        lua_rawgeti(L, 7, i);
+        lua_len(L, -1);
+        size_t xlen = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        struct vector* xvec = vector_create(32, free);
+        for(size_t j = 1; j <= xlen; ++j)
+        {
+            lua_rawgeti(L, -1, j);
+            int* toinsert = malloc(sizeof(*toinsert));
+            *toinsert = luaL_checkinteger(L, -1);
+            vector_append(xvec, toinsert);
+            lua_pop(L, 1);
+        }
+        vector_append(grid, xvec);
+        lua_pop(L, 1);
+    }
+
+    struct vector* children = placement_place_on_grid(lobject_get(L, toplevel), lobject_get_unchecked(cell), basename, lpoint_get(basept), xpitch, ypitch, grid);
+    lobject_disown(cell); // memory is now handled by cell
+    lobject_mark_as_unusable(cell);
+    lua_newtable(L);
+    for(size_t i = 0; i < vector_size(children); ++i)
+    {
+        struct object* child = vector_get(children, i);
+        lobject_adapt_non_owning(L, child);
+        lua_rawseti(L, -2, i + 1);
+    }
+    vector_destroy(children);
+    return 1;
+}
+
 int lplacement_place_at_origins(lua_State* L)
 {
     lcheck_check_numargs1(L, 4, "placement.place_at_origins");
@@ -283,6 +329,7 @@ int open_lplacement_lib(lua_State* L)
     static const luaL_Reg metafuncs[] =
     {
         { "place_at_origins",                       lplacement_place_at_origins                  },
+        { "place_on_grid",                          lplacement_place_on_grid                     },
         { "place_within_boundary",                  lplacement_place_within_boundary             },
         { "place_within_boundary_merge",            lplacement_place_within_boundary_merge       },
         { "place_within_rectangular_boundary",      lplacement_place_within_rectangular_boundary },

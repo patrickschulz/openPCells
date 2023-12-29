@@ -139,6 +139,39 @@ void placement_place_at_origins(struct object* toplevel, struct object* cell, co
     vector_const_iterator_destroy(origin_it);
 }
 
+struct vector* placement_place_on_grid(struct object* toplevel, struct object* cell, const char* basename, const point_t* basept, coordinate_t xpitch, coordinate_t ypitch, const struct vector* grid)
+{
+    struct vector* children = vector_create(32, NULL);
+    struct vector_const_iterator* yit = vector_const_iterator_create(grid);
+    unsigned int counter = 0;
+    unsigned int yi = 0;
+    while(vector_const_iterator_is_valid(yit))
+    {
+        const struct vector* yvec = vector_const_iterator_get(yit);
+        struct vector_const_iterator* xit = vector_const_iterator_create(yvec);
+        unsigned int xi = 0;
+        while(vector_const_iterator_is_valid(xit))
+        {
+            const int* place = vector_const_iterator_get(xit);
+            if(*place)
+            {
+                point_t* origin = point_copy(basept);
+                point_translate(origin, xi * xpitch, yi * ypitch);
+                struct object* child = _place_child(toplevel, cell, origin, basename, counter);
+                vector_append(children, child);
+                ++counter;
+            }
+            ++xi;
+            vector_const_iterator_next(xit);
+        }
+        vector_const_iterator_destroy(xit);
+        ++yi;
+        vector_const_iterator_next(yit);
+    }
+    vector_const_iterator_destroy(yit);
+    return children;
+}
+
 struct vector* placement_place_within_boundary(struct object* toplevel, struct object* cell, const char* basename, const struct simple_polygon* targetarea, const struct polygon* excludes)
 {
     ucoordinate_t width, height;
