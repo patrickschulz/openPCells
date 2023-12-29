@@ -20,6 +20,21 @@ struct simple_polygon* simple_polygon_create(void)
     return simple_polygon;
 }
 
+struct simple_polygon* simple_polygon_copy(const struct simple_polygon* old)
+{
+    struct simple_polygon* new = malloc(sizeof(*new));
+    new->points = vector_create(vector_size(old->points), point_destroy);
+    struct vector_const_iterator* it = vector_const_iterator_create(old->points);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const point_t* pt = vector_const_iterator_get(it);
+        vector_append(new->points, point_copy(pt));
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    return new;
+}
+
 struct polygon* polygon_create(void)
 {
     struct polygon* polygon = malloc(sizeof(*polygon));

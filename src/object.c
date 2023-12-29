@@ -1347,7 +1347,18 @@ void object_add_layer_boundary(struct object* cell, const struct generics* layer
         hashmap_insert(cell->layer_boundaries, (const char*)layer, polygon);
     }
     struct polygon* boundary = hashmap_get(cell->layer_boundaries, (const char*)layer);
-    polygon_add(boundary, new);
+    // transform points to local coordinates
+    struct simple_polygon* copy = simple_polygon_copy(new);
+    struct simple_polygon_iterator* it = simple_polygon_iterator_create(copy);
+    while(simple_polygon_iterator_is_valid(it))
+    {
+        point_t* pt = simple_polygon_iterator_get(it);
+        transformationmatrix_apply_inverse_transformation(cell->trans, pt);
+        simple_polygon_iterator_next(it);
+    }
+    simple_polygon_iterator_destroy(it);
+    // add transformed polygon
+    polygon_add(boundary, copy);
 }
 
 void object_inherit_boundary(struct object* cell, const struct object* othercell)
