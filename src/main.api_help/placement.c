@@ -180,7 +180,28 @@
         "place_at_origins",
         MODULE_PLACEMENT,
         "place cells in a toplevel cells at the specified origins. The instances are named accordingly to the basename (with _1, _2, etc. appended). This is a more low-level placement function (compared to placement.place_within_boundary), which is called by the higher-level functions. In some cases, using this function directly can be useful. The function returns all placed children in a table.",
-        "local origins = {\n    point.create(0, -10000),\n    point.create(0, 10000),\n    point.create(0, 20000),\n    point.create(0, 30000)\n}\n placement.place_at_origins(toplevel, filler, \"fill\", origins)",
+        "local origins = {\n    point.create(0, -10000),\n    point.create(0, 10000),\n    point.create(0, 20000),\n    point.create(0, 30000)\n}\nplacement.place_at_origins(toplevel, filler, \"fill\", origins)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* placement.place_on_grid */
+{
+    struct parameter parameters[] = {
+        { "toplevel",   OBJECT,     NULL,   "toplevel cell to place cells in" },
+        { "cell",       OBJECT,     NULL,   "cell which will be placed in the toplevel cell" },
+        { "basename",   STRING,     NULL,   "basename for the instance names" },
+        { "basept",     POINT,      NULL,   "base point for the grid placement" },
+        { "xpitch",     INTEGER,    NULL,   "x-pitch of the cell" },
+        { "ypitch",     INTEGER,    NULL,   "y-pitch of the cell" },
+        { "grid",       TABLE,      NULL,   "two-dimensional table defining the grid (with '0' or '1' entries)" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_on_grid",
+        MODULE_PLACEMENT,
+        "place cells in a toplevel cells corresponding to the given grid. The instances are named accordingly to the basename (with _1, _2, etc. appended). This function is a convenient low-level wrapper for placement.place_at_origins, where the individual points don't have to be typed out. The function returns all placed children in a table.",
+        "local grid = {\n    { 0, 1, 1 }\n    { 1, 1, 1 },\n    { 0, 0, 1 },\n}\nplacement.place_on_grid(toplevel, cell, \"cell\", point.create(0, 0), 100, 100, grid)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -199,7 +220,7 @@
         "place_within_boundary",
         MODULE_PLACEMENT,
         "automatically place a cell multiple times in a toplevel cell. The cell instances will be placed in the given target area and given names based on the given basename. An optional table can hold list of points (polygons), which describe areas that should not be filled. The x- and y-pitch of the cell are inferred from the alignment box. The function returns all plced children in a table.",
-        "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\n placement.place_with_boundary(toplevel, filler, \"fill\", targetarea, excludes)",
+        "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\nplacement.place_with_boundary(toplevel, filler, \"fill\", targetarea, excludes)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -217,7 +238,7 @@
         "place_within_boundary_merge",
         MODULE_PLACEMENT,
         "same as placement.place_with_boundary, but merges the cells (instead of adding them as children). Since only children need instance names, the 'basename' parameter is not present for this function",
-        "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\n placement.place_with_boundary_merge(toplevel, filler, targetarea, excludes)",
+        "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\nplacement.place_with_boundary_merge(toplevel, filler, targetarea, excludes)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
