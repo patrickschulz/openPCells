@@ -307,6 +307,12 @@ function layout(decap, _P)
                 table.insert(pts, point.create(-width / 2, width / 2))
                 geometry.polygon(decap, generics.metal(-1), pts)
             end
+            if _P.drawfillexcludes then
+                geometry.rectanglebltr(decap, generics.metalexclude(-1),
+                    point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+                    point.create( _P.cellsize / 2,  _P.cellsize / 2)
+                )
+            end
         end
     end
 
