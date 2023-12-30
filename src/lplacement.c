@@ -11,6 +11,21 @@
 
 #include "placement.h"
 
+static void _destroy_placement_layerexclude(void* v)
+{
+    struct placement_layerexclude* layerexclude = v;
+    polygon_destroy(layerexclude->excludes);
+    const_vector_destroy(layerexclude->layers);
+    free(layerexclude);
+}
+
+static void _destroy_placement_celllookup(void* v)
+{
+    struct placement_layerexclude* celllookup = v;
+    const_vector_destroy(celllookup->layers);
+    free(celllookup);
+}
+
 void lplacement_create_target_exclude_vectors(lua_State* L, struct simple_polygon** targetarea, struct polygon** excludes, int idx)
 {
     *targetarea = lutil_create_simple_polygon(L, idx);
@@ -73,6 +88,7 @@ int lplacement_place_on_grid(lua_State* L)
     }
 
     struct vector* children = placement_place_on_grid(lobject_get(L, toplevel), lobject_get_unchecked(cell), basename, lpoint_get(basept), xpitch, ypitch, grid);
+    vector_destroy(grid);
     lobject_disown(cell); // memory is now handled by cell
     lobject_mark_as_unusable(cell);
     lua_newtable(L);
@@ -190,7 +206,7 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
     lua_len(L, 2);
     size_t num_cells = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    struct vector* celllut = vector_create(num_cells, free);
+    struct vector* celllut = vector_create(num_cells, _destroy_placement_celllookup);
     for(size_t i = 0; i < num_cells; ++i)
     {
         struct placement_celllookup* lookup = malloc(sizeof(*lookup));
@@ -236,12 +252,11 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
     // get target area and layer excludes
     struct simple_polygon* targetarea = lutil_create_simple_polygon(L, 4);
 
-
     // get layer excludes
     lua_len(L, 5);
     size_t num_excludes = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    struct vector* layerexcludes = vector_create(num_excludes, free);
+    struct vector* layerexcludes = vector_create(num_excludes, _destroy_placement_layerexclude);
     for(size_t i = 0; i < num_excludes; ++i)
     {
         struct placement_layerexclude* layerexclude = malloc(sizeof(*layerexclude));
@@ -292,7 +307,9 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
     }
 
     struct vector* children = placement_place_within_layer_boundaries(lobject_get(L, toplevel), celllut, basename, targetarea, layerexcludes);
-    //_cleanup_target_exclude_vector(targetarea, excludes);
+    simple_polygon_destroy(targetarea);
+    vector_destroy(celllut);
+    vector_destroy(layerexcludes);
 
     // disown objects
     for(size_t i = 0; i < num_cells; ++i)

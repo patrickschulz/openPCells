@@ -251,41 +251,51 @@ struct object* object_copy(const struct object* cell)
         }
 
         // ports
-        new->ports = vector_create(vector_size(cell->ports), _port_destroy);
-        for(unsigned int i = 0; i < vector_size(cell->ports); ++i)
+        if(cell->ports)
         {
-            struct port* port = vector_get(cell->ports, i);
-            struct port* newport = malloc(sizeof(*newport));
-            newport->where = point_copy(port->where);
-            newport->layer = port->layer;
-            newport->isbusport = port->isbusport;
-            newport->busindex = port->busindex;
-            newport->name = util_strdup(port->name);
-            newport->sizehint = port->sizehint;
-            vector_append(new->ports, newport);
+            new->ports = vector_create(vector_size(cell->ports), _port_destroy);
+            for(unsigned int i = 0; i < vector_size(cell->ports); ++i)
+            {
+                struct port* port = vector_get(cell->ports, i);
+                struct port* newport = malloc(sizeof(*newport));
+                newport->where = point_copy(port->where);
+                newport->layer = port->layer;
+                newport->isbusport = port->isbusport;
+                newport->busindex = port->busindex;
+                newport->name = util_strdup(port->name);
+                newport->sizehint = port->sizehint;
+                vector_append(new->ports, newport);
+            }
         }
 
         // boundary
-        struct vector_const_iterator* bit = vector_const_iterator_create(cell->boundary);
-        while(vector_const_iterator_is_valid(bit))
+        if(cell->boundary)
         {
-            const point_t* pt = vector_const_iterator_get(bit);
-            vector_append(new->boundary, point_copy(pt));
-            vector_const_iterator_next(bit);
+            new->boundary = vector_create(4, point_destroy);
+            struct vector_const_iterator* bit = vector_const_iterator_create(cell->boundary);
+            while(vector_const_iterator_is_valid(bit))
+            {
+                const point_t* pt = vector_const_iterator_get(bit);
+                vector_append(new->boundary, point_copy(pt));
+                vector_const_iterator_next(bit);
+            }
+            vector_const_iterator_destroy(bit);
         }
-        vector_const_iterator_destroy(bit);
 
         // layer boundaries
-        new->layer_boundaries = hashmap_create();
-        struct hashmap_iterator* lbit = hashmap_iterator_create(cell->layer_boundaries);
-        while(hashmap_iterator_is_valid(lbit))
+        if(cell->layer_boundaries)
         {
-            const char* key = hashmap_iterator_key(lbit);
-            struct polygon* polygon = hashmap_iterator_value(lbit);
-            hashmap_insert(new->layer_boundaries, key, polygon_copy(polygon));
-            hashmap_iterator_next(lbit);
+            new->layer_boundaries = hashmap_create();
+            struct hashmap_iterator* lbit = hashmap_iterator_create(cell->layer_boundaries);
+            while(hashmap_iterator_is_valid(lbit))
+            {
+                const char* key = hashmap_iterator_key(lbit);
+                struct polygon* polygon = hashmap_iterator_value(lbit);
+                hashmap_insert(new->layer_boundaries, key, polygon_copy(polygon));
+                hashmap_iterator_next(lbit);
+            }
+            hashmap_iterator_destroy(lbit);
         }
-        hashmap_iterator_destroy(lbit);
     }
     return new;
 }
@@ -1391,8 +1401,7 @@ void object_add_layer_boundary(struct object* cell, const struct generics* layer
     }
     struct polygon* boundary = hashmap_get(cell->layer_boundaries, (const char*)layer);
     // transform points to local coordinates
-    struct simple_polygon* copy = simple_polygon_copy(new);
-    struct simple_polygon_iterator* it = simple_polygon_iterator_create(copy);
+    struct simple_polygon_iterator* it = simple_polygon_iterator_create(new);
     while(simple_polygon_iterator_is_valid(it))
     {
         point_t* pt = simple_polygon_iterator_get(it);
@@ -1401,7 +1410,7 @@ void object_add_layer_boundary(struct object* cell, const struct generics* layer
     }
     simple_polygon_iterator_destroy(it);
     // add transformed polygon
-    polygon_add(boundary, copy);
+    polygon_add(boundary, new);
 }
 
 void object_inherit_boundary(struct object* cell, const struct object* othercell)

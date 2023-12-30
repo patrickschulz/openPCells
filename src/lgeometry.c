@@ -1448,6 +1448,7 @@ static int lgeometry_path_points_to_polygon(lua_State* L)
     }
 
     struct vector* newpts = geometry_path_points_to_polygon(points, width, 1);
+    vector_destroy(points);
     lua_newtable(L);
     for(unsigned int i = 0; i < vector_size(newpts); ++i)
     {

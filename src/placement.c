@@ -158,6 +158,7 @@ struct vector* placement_place_on_grid(struct object* toplevel, struct object* c
                 point_t* origin = point_copy(basept);
                 point_translate(origin, xi * xpitch, yi * ypitch);
                 struct object* child = _place_child(toplevel, cell, origin, basename, counter);
+                point_destroy(origin);
                 vector_append(children, child);
                 ++counter;
             }

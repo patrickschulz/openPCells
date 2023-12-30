@@ -736,12 +736,14 @@ static int _write_ports(struct export_writer* writer, const struct object* cell,
         if(portisbusport)
         {
             size_t len = strlen(portname) + 2 + util_num_digits(portbusindex);
+            // FIXME: this leaks (according to the gcc analyzer)
+            // I can't figure out why, though...
             char* busportname = malloc(len + 1);
             snprintf(busportname, len + 1, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
             name = busportname;
         }
         ret = _write_port(writer, name, layerdata, &where, sizehint);
-        if(busportname)
+        if(portisbusport)
         {
             free(busportname);
         }
