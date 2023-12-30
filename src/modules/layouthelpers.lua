@@ -295,4 +295,12 @@ function M.place_maximum_width_via(cell, firstmetal, lastmetal, pt1, pt2)
     end
 end
 
+function M.place_coplanar_waveguide(cell, layer, pts, swidth, gwidth, sep)
+    local gnd1pts = geometry.get_side_path_points(pts, swidth / 2 + sep + gwidth / 2)
+    local gnd2pts = geometry.get_side_path_points(pts, -swidth / 2 - sep - gwidth / 2)
+    geometry.path_polygon(cell, layer, pts, swidth)
+    geometry.path_polygon(cell, layer, gnd1pts, gwidth)
+    geometry.path_polygon(cell, layer, gnd2pts, gwidth)
+end
+
 return M

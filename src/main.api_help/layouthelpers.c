@@ -146,3 +146,23 @@
     ));
 }
 
+/* layouthelpers.place_coplanar_waveguide */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
+        { "layer",      GENERICS,   NULL,   "Layer for the waveguide shapes" },
+        { "pts",        POINTLIST,  NULL,   "point list defining the center of the signal path" },
+        { "swidth",     INTEGER,    NULL,   "width of the signal path" },
+        { "gwidth",     INTEGER,    NULL,   "width of the ground paths" },
+        { "separation", INTEGER,    NULL,   "separation between the signal and the ground paths" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_coplanar_waveguide",
+        MODULE_LAYOUTHELPERS,
+        "place a coplanar waveguide defined by the center path points. This function is almost the same as geometry.path but draws three paths in total (ground-signal-ground).",
+        "local pts = {\n    point.create(0, 0),\n    point.create(100000, 0),\n    point.create(100000, 100000)\n}\nlayouthelpers.place_coplanar_waveguide(cell, generics.metal(-1), pts, 5000, 10000, 10000)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
