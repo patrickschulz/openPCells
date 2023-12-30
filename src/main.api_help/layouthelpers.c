@@ -67,8 +67,8 @@
         { "cell",           OBJECT,     NULL, "cell to place guardring in" },
         { "bl",             POINT,      NULL, "bottom-left boundary corner" },
         { "tr",             POINT,      NULL, "top-right boundary corner" },
-        { "bl",             POINT,      NULL, "bottom-left hole boundary corner" },
-        { "tr",             POINT,      NULL, "top-right hole boundary corner" },
+        { "hbl",            POINT,      NULL, "bottom-left hole boundary corner" },
+        { "htr",            POINT,      NULL, "top-right hole boundary corner" },
         { "xspace",         INTEGER,    NULL, "space in x-direction between boundary and guardring" },
         { "yspace",         INTEGER,    NULL, "space in y-direction between boundary and guardring" },
         { "anchorprefix",   STRING,     NULL, "anchor prefix for inherited anchors (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
@@ -77,8 +77,32 @@
     vector_append(entries, _make_api_entry(
         "place_guardring_with_hole",
         MODULE_LAYOUTHELPERS,
-        "place a guardring with a well hole in a cell with a defined boundary and spacing",
+        "place a guardring with a well hole in a cell with a defined boundary and spacing. This function is like placement.place_guardring, but expects two more points that define the hole boundary. The placed guardring then has a hole in the well which encompasses exactly the given boundary. The connection to this inner well is not placed, this has to be done manually.",
 "layouthelpers.place_guardring_with_hole(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr,\n    pmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr),\n    200, 200,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* layouthelpers.place_guardring_with_hole_quantized */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place guardring in" },
+        { "bl",             POINT,      NULL, "bottom-left boundary corner" },
+        { "tr",             POINT,      NULL, "top-right boundary corner" },
+        { "hbl",            POINT,      NULL, "bottom-left hole boundary corner" },
+        { "htr",            POINT,      NULL, "top-right hole boundary corner" },
+        { "xspace",         INTEGER,    NULL, "space in x-direction between boundary and guardring" },
+        { "yspace",         INTEGER,    NULL, "space in y-direction between boundary and guardring" },
+        { "basesize",       INTEGER,    NULL, "basesize for calculating the quantized hole width and height" },
+        { "anchorprefix",   STRING,     NULL, "anchor prefix for inherited anchors (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
+        { "options",        TABLE,      NULL, "placement options" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_guardring_with_hole_quantized",
+        MODULE_LAYOUTHELPERS,
+        "This function is like placement.place_guardring_with_hole, but creates a guardring whose hole width and height are made a multiple of the given basesize. See also the information on placement.place_guardring_quantized.",
+"layouthelpers.place_guardring_with_hole_quantized(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    pmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    500,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
