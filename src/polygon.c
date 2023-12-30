@@ -49,6 +49,21 @@ struct polygon* polygon_create_empty(void)
     return polygon;
 }
 
+struct polygon* polygon_copy(const struct polygon* polygon)
+{
+    struct polygon* new = malloc(sizeof(*new));
+    new->simple_polygons = vector_create(vector_size(polygon->simple_polygons), simple_polygon_destroy);
+    struct vector_const_iterator* it = vector_const_iterator_create(polygon->simple_polygons);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const struct simple_polygon* simple_polygon = vector_const_iterator_get(it);
+        polygon_add(new, simple_polygon_copy(simple_polygon));
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    return new;
+}
+
 void simple_polygon_destroy(void* sp)
 {
     struct simple_polygon* simple_polygon = sp;

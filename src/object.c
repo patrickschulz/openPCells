@@ -23,6 +23,14 @@ struct port {
     unsigned int sizehint;
 };
 
+static void _port_destroy(void* p)
+{
+    struct port* port = p;
+    point_destroy(port->where);
+    free(port->name);
+    free(port);
+}
+
 struct anchor {
     union {
         /* regular anchors have one point, area anchors two */
@@ -242,7 +250,42 @@ struct object* object_copy(const struct object* cell)
             }
         }
 
-        // FIXME: boundaries
+        // ports
+        new->ports = vector_create(vector_size(cell->ports), _port_destroy);
+        for(unsigned int i = 0; i < vector_size(cell->ports); ++i)
+        {
+            struct port* port = vector_get(cell->ports, i);
+            struct port* newport = malloc(sizeof(*newport));
+            newport->where = point_copy(port->where);
+            newport->layer = port->layer;
+            newport->isbusport = port->isbusport;
+            newport->busindex = port->busindex;
+            newport->name = util_strdup(port->name);
+            newport->sizehint = port->sizehint;
+            vector_append(new->ports, newport);
+        }
+
+        // boundary
+        struct vector_const_iterator* bit = vector_const_iterator_create(cell->boundary);
+        while(vector_const_iterator_is_valid(bit))
+        {
+            const point_t* pt = vector_const_iterator_get(bit);
+            vector_append(new->boundary, point_copy(pt));
+            vector_const_iterator_next(bit);
+        }
+        vector_const_iterator_destroy(bit);
+
+        // layer boundaries
+        new->layer_boundaries = hashmap_create();
+        struct hashmap_iterator* lbit = hashmap_iterator_create(cell->layer_boundaries);
+        while(hashmap_iterator_is_valid(lbit))
+        {
+            const char* key = hashmap_iterator_key(lbit);
+            struct polygon* polygon = hashmap_iterator_value(lbit);
+            hashmap_insert(new->layer_boundaries, key, polygon_copy(polygon));
+            hashmap_iterator_next(lbit);
+        }
+        hashmap_iterator_destroy(lbit);
     }
     return new;
 }
@@ -1578,14 +1621,6 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
             return boundary;
         }
     }
-}
-
-static void _port_destroy(void* p)
-{
-    struct port* port = p;
-    point_destroy(port->where);
-    free(port->name);
-    free(port);
 }
 
 static void _add_port(struct object* cell, const char* name, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, unsigned int sizehint)
