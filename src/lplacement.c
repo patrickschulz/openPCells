@@ -166,7 +166,16 @@ int lplacement_place_within_boundary_merge(lua_State* L)
     lcheck_check_numargs2(L, 3, 4, "placement.place_within_boundary_merge");
     struct lobject* toplevel = lobject_check(L, 1);
     struct lobject* cell = lobject_check(L, 2);
-
+    if(lua_type(L, 3) != LUA_TTABLE)
+    {
+        lua_pushstring(L, "placement.place_within_boundary_merge: expected a table (a polygon) as third argument");
+        lua_error(L);
+    }
+    if(lua_gettop(L) > 3 && lua_type(L, 3) != LUA_TTABLE)
+    {
+        lua_pushstring(L, "placement.place_within_boundary_merge: expected a table (a polygon) as fourth argument");
+        lua_error(L);
+    }
     struct simple_polygon* targetarea;
     struct polygon* excludes;
     lplacement_create_target_exclude_vectors(L, &targetarea, &excludes, 3);
