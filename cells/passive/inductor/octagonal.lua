@@ -312,7 +312,7 @@ function layout(inductor, _P)
         -- the correction factor for the circle radius is 1 / cos(pi / 8). This is required since the start angle for the circle calculation distorts the radius
         -- it's basic trigonometry, if it's unclear draw a triangle at the corners of the inductor
         local innerlayerboundary = graphics.coarse_circle(1.08239 * (_P.radius - _P.width / 2 - _P.boundaryinnerextension), 8, -math.pi / 8)
-        local outerlayerboundary = graphics.coarse_circle(1.08239 * (_P.turns * _P.radius + _P.width / 2 + _P.boundaryouterextension), 8, -math.pi / 8)
+        local outerlayerboundary = graphics.coarse_circle(1.08239 * (_P.radius - _P.width / 2 + _P.turns * _P.width + (_P.turns - 1) * _P.separation + _P.boundaryouterextension), 8, -math.pi / 8)
         local layerboundary = {}
         if not _P.fillboundary then
             util.merge_forwards(layerboundary, innerlayerboundary)
