@@ -1370,7 +1370,17 @@ int object_align_area_anchor_bottom(struct object* cell, const char* anchorname,
 
 void object_set_boundary(struct object* cell, struct vector* boundary)
 {
-    cell->boundary = boundary;
+    cell->boundary = vector_create(vector_size(boundary), point_destroy);
+    struct vector_const_iterator* it = vector_const_iterator_create(boundary);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const point_t* pt = vector_const_iterator_get(it);
+        point_t* newpt = point_copy(pt);
+        transformationmatrix_apply_inverse_transformation(cell->trans, newpt);
+        vector_append(cell->boundary, newpt);
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
 }
 
 void object_set_empty_layer_boundary(struct object* cell, const struct generics* layer)
