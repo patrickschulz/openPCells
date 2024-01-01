@@ -83,14 +83,16 @@ struct vector* placement_calculate_origins(
     _get_minmax(targetarea, &minx, &miny, &maxx, &maxy);
 
     // calculate x and y shifts (relies on integer mathematics)
-    int xshift = ((maxx - minx) - ((maxx - minx) / (xpitch)) * xpitch) / 2;
-    int yshift = ((maxy - miny) - ((maxy - miny) / (ypitch)) * ypitch) / 2;
+    // basically, this calculates the maximum number of placed rectangles
+    // and the corresponding required shift to center this amount
+    int xshift = ((maxx - minx + xpitch - width) - ((maxx - minx + xpitch - width) / (xpitch)) * xpitch) / 2;
+    int yshift = ((maxy - miny + ypitch - height) - ((maxy - miny + ypitch - height) / (ypitch)) * ypitch) / 2;
 
     struct vector* origins = vector_create(32, point_destroy);
-    coordinate_t x = minx + ((xstartshift + xshift) % xpitch);
+    coordinate_t x = minx + ((xstartshift + xshift) % xpitch) + width / 2;
     while(x <= maxx)
     {
-        coordinate_t y = miny + ((ystartshift + yshift) % ypitch);
+        coordinate_t y = miny + ((ystartshift + yshift) % ypitch) + height / 2;
         while(y <= maxy)
         {
             int insert = _is_in_targetarea(x, y, width, height, targetarea);
