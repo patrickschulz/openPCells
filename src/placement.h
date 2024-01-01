@@ -13,6 +13,14 @@ struct vector* placement_calculate_origins(
     const struct polygon* excludes
 );
 
+struct vector* placement_calculate_origins_centered(
+    ucoordinate_t width, ucoordinate_t height,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    coordinate_t xstartshift, coordinate_t ystartshift,
+    const struct simple_polygon* targetarea,
+    const struct polygon* excludes
+);
+
 struct vector* placement_place_on_grid(
     struct object* toplevel,
     struct object* cell,

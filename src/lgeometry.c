@@ -614,7 +614,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     lplacement_create_target_exclude_vectors(L, &targetarea, &excludes, 9);
 
     // calculate origins
-    struct vector* origins = placement_calculate_origins(width, height, xpitch, ypitch, xstartshift, ystartshift, targetarea, excludes);
+    struct vector* origins = placement_calculate_origins_centered(width, height, xpitch, ypitch, xstartshift, ystartshift, targetarea, excludes);
 
     simple_polygon_destroy(targetarea);
     if(excludes)
