@@ -303,4 +303,17 @@ function M.place_coplanar_waveguide(cell, layer, pts, swidth, gwidth, sep)
     geometry.path_polygon(cell, layer, gnd2pts, gwidth)
 end
 
+function M.place_stripline(cell, signalmetal, pts, swidth, gwidth)
+    local m = technology.resolve_metal(signalmetal)
+    if m == 1 then
+        error(string.format("layouthelpers.place_stripline: the signal metal index must be higher than 1, got: %d"))
+    end
+    if m == technology.resolve_metal(-1) then
+        error(string.format("layouthelpers.place_stripline: the signal metal index can't be the highest metal, got: %d"))
+    end
+    geometry.path_polygon(cell, generics.metal(signalmetal - 1), pts, gwidth)
+    geometry.path_polygon(cell, generics.metal(signalmetal), pts, swidth)
+    geometry.path_polygon(cell, generics.metal(signalmetal + 1), pts, gwidth)
+end
+
 return M

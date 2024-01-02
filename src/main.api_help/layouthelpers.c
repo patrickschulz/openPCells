@@ -166,3 +166,22 @@
     ));
 }
 
+/* layouthelpers.place_stripline */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
+        { "metalindex", INTEGER,    NULL,   "Metal index denoting the signal layer of the stripline" },
+        { "pts",        POINTLIST,  NULL,   "point list defining the center of the signal path" },
+        { "swidth",     INTEGER,    NULL,   "width of the signal path" },
+        { "gwidth",     INTEGER,    NULL,   "width of the ground paths" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_stripline",
+        MODULE_LAYOUTHELPERS,
+        "place a stripline defined by the center path points. This function is almost the same as geometry.path but draws three paths in total (ground-signal-ground). The layer argument is NOT a generic layer but a metal index (as striplines are assumed to be drawn in a metal). The metals below and above the signal layer are used for ground. Therefore, 'metalindex' must be 2 and the highest metal (-1).",
+        "local pts = {\n    point.create(0, 0),\n    point.create(100000, 0),\n    point.create(100000, 100000)\n}\nlayouthelpers.place_stripline(cell, 4, pts, 5000, 10000)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
