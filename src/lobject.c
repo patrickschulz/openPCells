@@ -714,7 +714,7 @@ static int lobject_get_anchor(lua_State* L)
     }
     else
     {
-        lua_pushfstring(L, "trying to access undefined anchor '%s'", name);
+        lua_pushfstring(L, "trying to access undefined anchor '%s' (object: '%s')", name, object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     return 1;
@@ -725,7 +725,7 @@ static int lobject_get_alignment_anchor(lua_State* L)
     struct lobject* cell = lobject_check(L, 1);
     if(!object_has_alignmentbox(lobject_get_const(cell)))
     {
-        lua_pushstring(L, "object.get_alignment_anchor: object has no alignment box");
+        lua_pushfstring(L, "object.get_alignment_anchor: object '%s' has no alignment box", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     const char* name = luaL_checkstring(L, 2);
@@ -737,7 +737,7 @@ static int lobject_get_alignment_anchor(lua_State* L)
     }
     else
     {
-        lua_pushfstring(L, "trying to access undefined alignment anchor '%s'", name);
+        lua_pushfstring(L, "trying to access undefined alignment anchor '%s' (object: '%s')", name, object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     return 1;
@@ -804,7 +804,7 @@ static int lobject_get_area_anchor(lua_State* L)
         if(name)
         {
             const char* name = object_get_name(lobject_get_const(cell));
-            lua_pushfstring(L, "trying to access undefined area anchor '%s' in object '%s'", base, name);
+            lua_pushfstring(L, "trying to access undefined area anchor '%s' (object: '%s')", base, name);
             lua_error(L);
         }
         else
@@ -829,7 +829,7 @@ static int lobject_get_array_anchor(lua_State* L)
     }
     else
     {
-        lua_pushfstring(L, "trying to access undefined anchor '%s'", name);
+        lua_pushfstring(L, "trying to access undefined anchor '%s' (object: '%s')", name, object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     return 1;
@@ -870,7 +870,7 @@ static int lobject_get_array_area_anchor(lua_State* L)
     }
     else
     {
-        lua_pushfstring(L, "trying to access undefined array area anchor '%s (%d, %d)'", base, xindex, yindex);
+        lua_pushfstring(L, "trying to access undefined array area anchor '%s (%d, %d)' (object: '%s')", base, xindex, yindex, object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     return 1;
@@ -964,7 +964,7 @@ static int lobject_clear_alignment_box(lua_State* L)
     struct lobject* cell = lobject_check(L, 1);
     if(!object_has_alignmentbox(lobject_get_const(cell)))
     {
-        lua_pushstring(L, "object.clear_alignment_box: object has no alignment box");
+        lua_pushfstring(L, "object.clear_alignment_box: object has no alignment box (object: '%s')", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     object_clear_alignment_box(lobject_get(L, cell));
@@ -976,7 +976,7 @@ static int lobject_set_alignment_box(lua_State* L)
     struct lobject* cell = lobject_check(L, 1);
     if(object_has_alignmentbox(lobject_get_const(cell)))
     {
-        lua_pushstring(L, "object.set_alignment_box: object already has an alignment box");
+        lua_pushfstring(L, "object.set_alignment_box: object already has an alignment box (object: '%s')", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     if(lua_gettop(L) == 3)
@@ -1019,7 +1019,7 @@ static int lobject_inherit_alignment_box(lua_State* L)
     struct lobject* other = lobject_check(L, 2);
     if(!object_has_alignmentbox(lobject_get_const(other)))
     {
-        lua_pushstring(L, "object.inherit_alignment_box: othercell has no alignmentbox");
+        lua_pushfstring(L, "object.inherit_alignment_box: othercell has no alignmentbox (other object: '%s')", object_get_name(lobject_get_const(other)));
         lua_error(L);
     }
     object_inherit_alignment_box(lobject_get(L, cell), lobject_get_const(other));
@@ -1079,7 +1079,7 @@ static int lobject_extend_alignment_box(lua_State* L)
     }
     if(!object_has_alignmentbox(lobject_get_const(cell)))
     {
-        lua_pushstring(L, "object.extend_alignment_box: cell has no alignmentbox");
+        lua_pushfstring(L, "object.extend_alignment_box: cell has no alignmentbox (object: '%s')", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     object_extend_alignment_box(
@@ -1111,7 +1111,7 @@ static int lobject_extend_alignment_box_x_symmetrical(lua_State* L)
     }
     if(!object_has_alignmentbox(lobject_get_const(cell)))
     {
-        lua_pushstring(L, "object.extend_alignment_box_x_symmetrical: cell has no alignmentbox");
+        lua_pushfstring(L, "object.extend_alignment_box_x_symmetrical: cell has no alignmentbox (object: '%s')", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     object_extend_alignment_box(
@@ -1143,7 +1143,7 @@ static int lobject_extend_alignment_box_y_symmetrical(lua_State* L)
     }
     if(!object_has_alignmentbox(lobject_get_const(cell)))
     {
-        lua_pushstring(L, "object.extend_alignment_box_y_symmetrical: cell has no alignmentbox");
+        lua_pushfstring(L, "object.extend_alignment_box_y_symmetrical: cell has no alignmentbox (object: '%s')", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     object_extend_alignment_box(
@@ -1177,7 +1177,7 @@ static int lobject_extend_alignment_box_xy_symmetrical(lua_State* L)
     }
     if(!object_has_alignmentbox(lobject_get_const(cell)))
     {
-        lua_pushstring(L, "object.extend_alignment_box_xy_symmetrical: cell has no alignmentbox");
+        lua_pushfstring(L, "object.extend_alignment_box_xy_symmetrical: cell has no alignmentbox (object: '%s')", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     object_extend_alignment_box(
@@ -1222,7 +1222,7 @@ static int lobject_get_area_anchor_width(lua_State* L)
     const char* anchorname = luaL_checkstring(L, 2);
     if(!object_has_area_anchor(lobject_get_const(cell), anchorname))
     {
-        lua_pushfstring(L, "object.get_area_anchor_width: object does not have an area anchor '%s'", anchorname);
+        lua_pushfstring(L, "object.get_area_anchor_width: object does not have an area anchor '%s' (object: '%s')", anchorname, object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     coordinate_t width = object_get_area_anchor_width(lobject_get_const(cell), anchorname);
@@ -1236,7 +1236,7 @@ static int lobject_get_area_anchor_height(lua_State* L)
     const char* anchorname = luaL_checkstring(L, 2);
     if(!object_has_area_anchor(lobject_get_const(cell), anchorname))
     {
-        lua_pushfstring(L, "object.get_area_anchor_height: object does not have an area anchor '%s'", anchorname);
+        lua_pushfstring(L, "object.get_area_anchor_height: object does not have an area anchor '%s' (object: '%s')", anchorname, object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
     coordinate_t height = object_get_area_anchor_height(lobject_get_const(cell), anchorname);
