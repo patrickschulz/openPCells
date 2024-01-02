@@ -6,6 +6,14 @@
 
 #include "util.h"
 
+void destroy_placement_layerexclude(void* v)
+{
+    struct placement_layerexclude* layerexclude = v;
+    polygon_destroy(layerexclude->excludes);
+    const_vector_destroy(layerexclude->layers);
+    free(layerexclude);
+}
+
 static int _is_in_targetarea(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct simple_polygon* targetarea)
 {
     // FIXME: this needs a proper polygon intersection test
@@ -277,6 +285,39 @@ static int _is_any_of_layers(struct const_vector* layers, struct const_vector* c
     return 0;
 }
 
+static int _is_in_layerexcludes(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, struct const_vector* celllayers, const struct vector* layerexcludes)
+{
+    for(size_t excludeindex = 0; excludeindex < vector_size(layerexcludes); ++excludeindex)
+    {
+        const struct placement_layerexclude* layerexclude = vector_get_const(layerexcludes, excludeindex);
+        const struct polygon* excludes = layerexclude->excludes;
+        struct const_vector* layers = layerexclude->layers;
+        if(_is_any_of_layers(layers, celllayers))
+        {
+            if(excludes && _is_in_excludes(x, y, width, height, excludes))
+            {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+static void _insert_extra_excludes(struct vector* extra_layerexcludes, coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct const_vector* celllayers)
+{
+    struct placement_layerexclude* layerexclude = malloc(sizeof(*layerexclude));
+    layerexclude->excludes = polygon_create();
+    struct simple_polygon* exclude = simple_polygon_create_from_rectangle(x - width / 2, y - height / 2, x + width / 2, y + height / 2);
+    polygon_add(layerexclude->excludes, exclude);
+    layerexclude->layers = const_vector_create(const_vector_size(celllayers));
+    for(size_t i = 0; i < const_vector_size(celllayers); ++i)
+    {
+        const struct generics* layer = const_vector_get(celllayers, i);
+        const_vector_append(layerexclude->layers, layer);
+    }
+    vector_append(extra_layerexcludes, layerexclude);
+}
+
 struct vector* placement_place_within_layer_boundaries(
     struct object* toplevel,
     struct vector* celllookup, // contains entries of struct placement_celllookup*
@@ -287,6 +328,7 @@ struct vector* placement_place_within_layer_boundaries(
 {
     ucoordinate_t width, height;
     struct vector* children = vector_create(1, NULL);
+    struct vector* extra_layerexcludes = vector_create(1, destroy_placement_layerexclude);
     for(size_t cellindex = 0; cellindex < vector_size(celllookup); ++cellindex)
     {
         struct placement_celllookup* lookup = vector_get(celllookup, cellindex);
@@ -313,23 +355,15 @@ struct vector* placement_place_within_layer_boundaries(
             coordinate_t y = miny + ((ystartshift + yshift) % ypitch);
             while(y <= maxy)
             {
-                int insert = _is_in_targetarea(x, y, width, height, targetarea);
-                for(size_t excludeindex = 0; excludeindex < vector_size(layerexcludes); ++excludeindex)
-                {
-                    struct placement_layerexclude* layerexclude = vector_get(layerexcludes, excludeindex);
-                    struct polygon* excludes = layerexclude->excludes;
-                    struct const_vector* layers = layerexclude->layers;
-                    if(_is_any_of_layers(layers, celllayers))
-                    {
-                        if(excludes && _is_in_excludes(x, y, width, height, excludes))
-                        {
-                            insert = 0;
-                        }
-                    }
-                }
+                int insert = 
+                    _is_in_targetarea(x, y, width, height, targetarea) &&
+                    !_is_in_layerexcludes(x, y, width, height, celllayers, layerexcludes) &&
+                    !_is_in_layerexcludes(x, y, width, height, celllayers, extra_layerexcludes)
+                ;
                 if(insert)
                 {
                     vector_append(origins, point_create(x, y));
+                    _insert_extra_excludes(extra_layerexcludes, x, y, width, height, celllayers);
                 }
                 y = y + ypitch;
             }
@@ -348,6 +382,7 @@ struct vector* placement_place_within_layer_boundaries(
         free(subbasename);
         vector_destroy(origins);
     }
+    vector_destroy(extra_layerexcludes);
     return children;
 }
 

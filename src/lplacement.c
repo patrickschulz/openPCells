@@ -11,14 +11,6 @@
 
 #include "placement.h"
 
-static void _destroy_placement_layerexclude(void* v)
-{
-    struct placement_layerexclude* layerexclude = v;
-    polygon_destroy(layerexclude->excludes);
-    const_vector_destroy(layerexclude->layers);
-    free(layerexclude);
-}
-
 static void _destroy_placement_celllookup(void* v)
 {
     struct placement_layerexclude* celllookup = v;
@@ -265,7 +257,7 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
     lua_len(L, 5);
     size_t num_excludes = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    struct vector* layerexcludes = vector_create(num_excludes, _destroy_placement_layerexclude);
+    struct vector* layerexcludes = vector_create(num_excludes, destroy_placement_layerexclude);
     for(size_t i = 0; i < num_excludes; ++i)
     {
         struct placement_layerexclude* layerexclude = malloc(sizeof(*layerexclude));

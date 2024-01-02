@@ -7,6 +7,7 @@ struct simple_polygon;
 struct polygon;
 
 struct simple_polygon* simple_polygon_create(void);
+struct simple_polygon* simple_polygon_create_from_rectangle(coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 struct simple_polygon* simple_polygon_copy(const struct simple_polygon* old);
 struct polygon* polygon_create(void);
 struct polygon* polygon_create_empty(void);

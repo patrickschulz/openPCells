@@ -263,3 +263,22 @@
     ));
 }
 
+/* placement.place_within_layer_boundaries */
+{
+    struct parameter parameters[] = {
+        { "toplevel",       OBJECT, NULL,   "toplevel cell to place cells in" },
+        { "celllookup",     TABLE,  NULL,   "lookup-table containing the cells and their layers" },
+        { "basename",       STRING, NULL,   "basename for the instance names" },
+        { "targetarea",     TABLE,  NULL,   "target area (a polygon)" },
+        { "layerexcludes",  TABLE,  NULL,   "layer excludes table (see detailed documentation and example for format)" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_within_layer_boundaries",
+        MODULE_PLACEMENT,
+        "place cells in a boundary based on their layer content. This function is similar to placement.place_within_boundary, but uses non-binary excludes. A look-up table with cells is given, that defines the occupied layers of these cells and places only cells that don't have content in the excluded layers. The layerexcludes table contains the excludes in the respective layers. This function tries to maximize the number of placed cells, starting for every point with the first cell. After a cell is placed, its layers are used to block that region. That means that if cells exist with non-overlapping layer content, it is possible that multiple cells are placed per grid point. Therefore the order of the cells matters (first come, first serve).",
+        "local celllut = {\n    {\n        cell = object1,\n        layers = {\n            generics.metal(1),\n            generics.metal(2),\n            generics.metal(3),\n            generics.metal(4),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            generics.metal(1),\n            generics.metal(2),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            generics.other(\"active\"),\n        },\n    },\n}\nlocal target = {\n    point.create(-10000, -10000),\n    point.create( 10000, -10000),\n    point.create( 10000,  10000),\n    point.create(-10000,  10000),\n}\nlocal excludes = {\n    {\n        excludes = { -- multiple polygons are possible\n            {\n                point.create(-5000, -5000),\n                point.create( 5000, -5000),\n                point.create( 5000,  5000),\n                point.create(-5000,  5000),\n            },\n            layers = {\n                generics.metal(1),\n                generics.metal(2),\n            },\n        },\n    }\n    {\n        excludes = { -- multiple polygons are possible\n            {\n                point.create( 2000,  1000),\n                point.create( 4000,  1000),\n                point.create( 4000,  8000),\n                point.create( 2000,  8000),\n            },\n            layers = {\n                generics.other(\"active\"),\n            },\n        },\n    }\n}\nplacement.place_within_layer_boundaries(toplevel, celllookup, \"fill\", targetarea, excludes)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+

@@ -20,6 +20,17 @@ struct simple_polygon* simple_polygon_create(void)
     return simple_polygon;
 }
 
+struct simple_polygon* simple_polygon_create_from_rectangle(coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
+{
+    struct simple_polygon* simple_polygon = malloc(sizeof(*simple_polygon));
+    simple_polygon->points = vector_create(4, point_destroy);
+    vector_append(simple_polygon->points, point_create(blx, bly));
+    vector_append(simple_polygon->points, point_create(trx, bly));
+    vector_append(simple_polygon->points, point_create(trx, try));
+    vector_append(simple_polygon->points, point_create(blx, try));
+    return simple_polygon;
+}
+
 struct simple_polygon* simple_polygon_copy(const struct simple_polygon* old)
 {
     struct simple_polygon* new = malloc(sizeof(*new));

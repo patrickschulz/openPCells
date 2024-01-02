@@ -71,6 +71,8 @@ struct placement_layerexclude {
     struct const_vector* layers;
 };
 
+void destroy_placement_layerexclude(void* v);
+
 struct vector* placement_place_within_layer_boundaries(
     struct object* toplevel,
     struct vector* celllookup, // contains entries of struct placement_celllookup*
