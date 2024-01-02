@@ -272,7 +272,7 @@
         { "space",      INTEGER,    NULL,   "Space target between lines to be generated" }
     };
     vector_append(entries, _make_api_entry(
-        "rectanglehlines_width_space_settings",
+        "rectanglehlines_height_space_settings",
         MODULE_GEOMETRY,
         "Calculate the geometries of horizontal lines to fill a rectangular area with a given width and spacing. This function is like geometry.rectanglehlines_width_space, but it does not actually create the lines. It return the width, heigh, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
         "local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(point.create(-100, -100), point(100, 100), 20, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
@@ -325,10 +325,10 @@
 /* geometry.path */
 {
     struct parameter parameters[] = {
-        { "cell",   OBJECT, NULL,    "Object in which the path is created" },
-        { "layer",  GENERICS, NULL,   "Layer of the generated rectangular shape" },
-        { "pts",    POINTLIST, NULL, "List of points where the path passes through" },
-        { "width",  INTEGER, NULL,   "width of the path. Must be even" },
+        { "cell",       OBJECT,     NULL,   "Object in which the path is created" },
+        { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+        { "pts",        POINTLIST,  NULL,   "List of points where the path passes through" },
+        { "width",      INTEGER,    NULL,   "width of the path. Must be even" },
         { "extension",  TABLE,      NULL,   "optional table argument containing the start/end extensions" }
     };
     vector_append(entries, _make_api_entry(
@@ -336,6 +336,25 @@
         MODULE_GEOMETRY,
         "Create a path shape with the given points and width in cell",
         "geometry.path(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 0), point.create(50, 50))",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.path_polygon */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL,   "Object in which the path is created" },
+        { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+        { "pts",        POINTLIST,  NULL,   "List of points where the path passes through" },
+        { "width",      INTEGER,    NULL,   "width of the path. Must be even" },
+        { "extension",  TABLE,      NULL,   "optional table argument containing the start/end extensions" }
+    };
+    vector_append(entries, _make_api_entry(
+        "path_polygon",
+        MODULE_GEOMETRY,
+        "Like geometry.path, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
+        "geometry.path_polygon(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 0), point.create(50, 50))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -842,7 +861,35 @@
     ));
 }
 
-/*
-    FIXME:
-	geometry.path_polygon
-*/
+/* geometry.get_side_path_points */
+{
+    struct parameter parameters[] = {
+        { "pts",    POINTLIST,  NULL,   "List of points that make up the path" },
+        { "width",  INTEGER,    NULL,   "Width of the path" }
+    };
+    vector_append(entries, _make_api_entry(
+        "curve_rasterized",
+        MODULE_GEOMETRY,
+        "Get one side of the edge points of a path given by the center points and the width. The sign of the width is significant: With positive values, the right-hand-side points are created, with negative values the left-hand-side (in the direction of the path). This function does not create any shapes.",
+        "geometry.get_side_path_points({ point.create(0, 0), point.create(1000, 0) }, 50)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.path_points_to_polygon */
+{
+    struct parameter parameters[] = {
+        { "pts",    POINTLIST,  NULL,   "List of points that make up the path" },
+        { "width",  INTEGER,    NULL,   "Width of the path" }
+    };
+    vector_append(entries, _make_api_entry(
+        "path_points_to_polygon",
+        MODULE_GEOMETRY,
+        "Get the edge points of a path given by the center points and the width. This function does not create any shapes. The result of this function can be put into geometry.polygon to create the path shape.",
+        "geometry.path_points_to_polygon({ point.create(0, 0), point.create(1000, 0) }, 50)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
