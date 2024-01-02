@@ -878,7 +878,7 @@
     vector_append(entries, _make_api_entry(
         "get_area_anchor",
         MODULE_OBJECT,
-        "Retrieve an area anchor from a cell. This function returns a table with two points (bl (bottom-left) and tr (top-right)) that contain the position of the specified area anchor, corrected by the cell transformation. Furthermore, the individual coordinates are also available as skalar values with the keys 'b', 't', 'l' and 'r'. Retrieving a non-existing anchor raises an error",
+        "Retrieve an area anchor from a cell. This function returns a table with four points (bl (bottom-left), tr (top-right), br (bottom-right) and tl (top-left)) that contain the position of the specified area anchor, corrected by the cell transformation. Furthermore, the individual coordinates are also available as skalar values with the keys 'b', 't', 'l' and 'r'. Retrieving a non-existing anchor raises an error.",
         "cell:get_area_anchor(\"sourcedrain1\").bl\npoint.create(cell1:get_area_anchor(\"sourcedrain1\").l, cell2:get_area_anchor(\"topgatestrap\").t)",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
