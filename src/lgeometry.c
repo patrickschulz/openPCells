@@ -7,21 +7,12 @@
 #include "geometry.h"
 #include "graphics.h"
 #include "lcheck.h"
+#include "lgenerics.h"
 #include "lobject.h"
 #include "lplacement.h"
 #include "lpoint.h"
 #include "lutil.h"
 #include "placement.h"
-
-static void* _check_generics(lua_State* L, int idx)
-{
-    if(lua_type(L, idx) != LUA_TLIGHTUSERDATA)
-    {
-        lua_pushfstring(L, "expected a generic layer at argument #%d, got %s", idx, lua_typename(L, lua_type(L, idx)));
-        lua_error(L);
-    }
-    return lua_touserdata(L, idx);
-}
 
 static void _check_rectangle_points(lua_State* L, struct lpoint* bl, struct lpoint* tr, const char* context)
 {
@@ -43,7 +34,7 @@ static int lgeometry_rectanglebltr(lua_State* L)
 {
     lcheck_check_numargs1(L, 4, "geometry.rectanglebltr");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
     _check_rectangle_points(L, bl, tr, "geometry.rectanglebltr");
@@ -55,7 +46,7 @@ static int lgeometry_rectangleblwh(lua_State* L)
 {
     lcheck_check_numargs1(L, 5, "geometry.rectangleblwh");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     coordinate_t width = lpoint_checkcoordinate(L, 4, "width");
     coordinate_t height = lpoint_checkcoordinate(L, 5, "height");
@@ -67,7 +58,7 @@ static int lgeometry_rectanglepoints(lua_State* L)
 {
     lcheck_check_numargs1(L, 4, "geometry.rectanglepoints");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
     geometry_rectanglepoints(lobject_get(L, cell), layer, lpoint_get(pt1), lpoint_get(pt2));
@@ -78,7 +69,7 @@ static int lgeometry_rectanglearray(lua_State* L)
 {
     lcheck_check_numargs1(L, 10, "geometry.rectanglearray");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     coordinate_t width = lpoint_checkcoordinate(L, 3, "width");
     coordinate_t height = lpoint_checkcoordinate(L, 4, "height");
     coordinate_t xshift = lpoint_checkcoordinate(L, 5, "xshift");
@@ -95,7 +86,7 @@ static int lgeometry_slotted_rectangle(lua_State* L)
 {
     lcheck_check_numargs1(L, 10, "geometry.slotted_rectangle");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
     coordinate_t slotwidth = lpoint_checkcoordinate(L, 5, "slotwidth");
@@ -119,7 +110,7 @@ static int lgeometry_polygon(lua_State* L)
 {
     lcheck_check_numargs1(L, 3, "geometry.polygon");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -171,7 +162,7 @@ static int lgeometry_path(lua_State* L)
 {
     lcheck_check_numargs2(L, 4, 5, "geometry.path");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     if(!lua_istable(L, 3))
     {
         lua_pushstring(L, "geometry.path: list of points (third argument) is not a table");
@@ -214,7 +205,7 @@ static int lgeometry_rectanglepath(lua_State* L)
 {
     lcheck_check_numargs2(L, 5, 6, "geometry.rectanglepath");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
     coordinate_t width = lua_tointeger(L, 5);
@@ -234,7 +225,7 @@ static int lgeometry_rectanglepath(lua_State* L)
 static int lgeometry_path_manhatten(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -278,7 +269,7 @@ static int lgeometry_rectanglelines_vertical(lua_State* L)
 {
     lcheck_check_numargs1(L, 6, "geometry.rectanglevlines");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
     int numlines = luaL_checkinteger(L, 5);
@@ -331,7 +322,7 @@ static int lgeometry_rectanglelines_vertical_width_space(lua_State* L)
 {
     lcheck_check_numargs1(L, 6, "geometry.rectanglevlines_width_space");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
     coordinate_t widthtarget = luaL_checkinteger(L, 5);
@@ -438,7 +429,7 @@ static int lgeometry_rectanglelines_horizontal(lua_State* L)
 {
     lcheck_check_numargs1(L, 6, "geometry.rectanglehlines");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
     int numlines = luaL_checkinteger(L, 5);
@@ -491,7 +482,7 @@ static int lgeometry_rectanglelines_horizontal_height_space(lua_State* L)
 {
     lcheck_check_numargs1(L, 6, "geometry.rectanglehlines_height_space");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
     coordinate_t heighttarget = luaL_checkinteger(L, 5);
@@ -599,7 +590,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     lcheck_check_numargs2(L, 9, 10, "geometry.rectangle_fill_in_boundary");
 
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
 
     coordinate_t width = luaL_checkinteger(L, 3);
     coordinate_t height = luaL_checkinteger(L, 4);
@@ -642,7 +633,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
 static int lgeometry_path_2x(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
     struct lpoint* ptend = lpoint_checkpoint(L, 4);
     coordinate_t width = luaL_checkinteger(L, 5);
@@ -664,7 +655,7 @@ static int lgeometry_path_2x(lua_State* L)
 static int lgeometry_path_2y(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
     struct lpoint* ptend = lpoint_checkpoint(L, 4);
     coordinate_t width = luaL_checkinteger(L, 5);
@@ -687,7 +678,7 @@ static int lgeometry_path_3x(lua_State* L)
 {
     lcheck_check_numargs2(L, 6, 7, "geometry.path_3x");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
     struct lpoint* ptend = lpoint_checkpoint(L, 4);
     coordinate_t width = luaL_checkinteger(L, 5);
@@ -714,7 +705,7 @@ static int lgeometry_path_3y(lua_State* L)
 {
     lcheck_check_numargs2(L, 6, 7, "geometry.path_3x");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
     struct lpoint* ptend = lpoint_checkpoint(L, 4);
     coordinate_t width = luaL_checkinteger(L, 5);
@@ -740,7 +731,7 @@ static int lgeometry_path_3y(lua_State* L)
 static int lgeometry_path_cshape(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
     struct lpoint* ptend = lpoint_checkpoint(L, 4);
     struct lpoint* ptoffset = lpoint_checkpoint(L, 5);
@@ -767,7 +758,7 @@ static int lgeometry_path_cshape(lua_State* L)
 static int lgeometry_path_ushape(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
     struct lpoint* ptend = lpoint_checkpoint(L, 4);
     struct lpoint* ptoffset = lpoint_checkpoint(L, 5);
@@ -795,7 +786,7 @@ static int lgeometry_path_polygon(lua_State* L)
 {
     lcheck_check_numargs2(L, 4, 5, "geometry.path");
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     if(!lua_istable(L, 3))
     {
         lua_pushstring(L, "geometry.path: list of points (third argument) is not a table");
@@ -1193,7 +1184,7 @@ static int lgeometry_contactbarebltr(lua_State* L)
 static int lgeometry_cross(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     ucoordinate_t width = luaL_checkinteger(L, 3);
     ucoordinate_t height = luaL_checkinteger(L, 4);
     ucoordinate_t crosssize = luaL_checkinteger(L, 5);
@@ -1204,7 +1195,7 @@ static int lgeometry_cross(lua_State* L)
 static int lgeometry_ring(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* center = lpoint_checkpoint(L, 3);
     ucoordinate_t width = luaL_checkinteger(L, 4);
     ucoordinate_t height = luaL_checkinteger(L, 5);
@@ -1216,7 +1207,7 @@ static int lgeometry_ring(lua_State* L)
 static int lgeometry_unequal_ring(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* center = lpoint_checkpoint(L, 3);
     ucoordinate_t width = luaL_checkinteger(L, 4);
     ucoordinate_t height = luaL_checkinteger(L, 5);
@@ -1231,7 +1222,7 @@ static int lgeometry_unequal_ring(lua_State* L)
 static int lgeometry_unequal_ring_pts(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* outerbl = lpoint_checkpoint(L, 3);
     struct lpoint* outertr = lpoint_checkpoint(L, 4);
     struct lpoint* innerbl = lpoint_checkpoint(L, 5);
@@ -1243,7 +1234,7 @@ static int lgeometry_unequal_ring_pts(lua_State* L)
 static int lgeometry_curve(lua_State* L)
 {
     struct lobject* lobject = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* origin = lpoint_checkpoint(L, 3);
     unsigned int grid = luaL_checkinteger(L, 5);
     int allow45 = lua_toboolean(L, 6);
@@ -1310,7 +1301,7 @@ static int lgeometry_curve(lua_State* L)
 static int lgeometry_curve_rasterized(lua_State* L)
 {
     struct lobject* lobject = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
+    struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* origin = lpoint_checkpoint(L, 3);
     unsigned int grid = luaL_checkinteger(L, 5);
     int allow45 = lua_toboolean(L, 6);

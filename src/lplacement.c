@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "lcheck.h"
+#include "lgenerics.h"
 #include "lobject.h"
 #include "lpoint.h"
 #include "lutil.h"
@@ -200,7 +201,7 @@ int lplacement_place_within_rectangular_boundary(lua_State* L)
 
 int lplacement_place_within_layer_boundaries(lua_State* L)
 {
-    lcheck_check_numargs1(L, 5, "placement.place_within_layer_boundaries");
+    lcheck_check_numargs2(L, 5, 6, "placement.place_within_layer_boundaries");
     struct lobject* toplevel = lobject_check(L, 1);
 
     // get cell look-up
@@ -248,6 +249,7 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
         vector_append(celllut, lookup);
     }
 
+    // basename
     const char* basename = luaL_checkstring(L, 3);
 
     // get target area and layer excludes
@@ -307,7 +309,15 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
         vector_append(layerexcludes, layerexclude);
     }
 
-    struct vector* children = placement_place_within_layer_boundaries(lobject_get(L, toplevel), celllut, basename, targetarea, layerexcludes);
+    // get ignore layer
+    const struct generics* ignorelayer = NULL;
+    if(lua_gettop(L) > 5)
+    {
+        ignorelayer = generics_check_generics(L, 6);
+    }
+
+    // perform placement
+    struct vector* children = placement_place_within_layer_boundaries(lobject_get(L, toplevel), celllut, basename, targetarea, layerexcludes, ignorelayer);
     simple_polygon_destroy(targetarea);
     vector_destroy(celllut);
     vector_destroy(layerexcludes);

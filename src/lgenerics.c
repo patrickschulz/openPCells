@@ -267,6 +267,16 @@ static int lgenerics_create_premapped(lua_State* L)
     return 1;
 }
 
+void* generics_check_generics(lua_State* L, int idx)
+{
+    if(lua_type(L, idx) != LUA_TLIGHTUSERDATA)
+    {
+        lua_pushfstring(L, "expected a generic layer at argument #%d, got %s", idx, lua_typename(L, lua_type(L, idx)));
+        lua_error(L);
+    }
+    return lua_touserdata(L, idx);
+}
+
 int open_lgenerics_lib(lua_State* L)
 {
     lua_newtable(L);

@@ -303,7 +303,7 @@ static int _is_in_layerexcludes(coordinate_t x, coordinate_t y, coordinate_t wid
     return 0;
 }
 
-static void _insert_extra_excludes(struct vector* extra_layerexcludes, coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct const_vector* celllayers)
+static void _insert_extra_excludes(struct vector* extra_layerexcludes, coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct const_vector* celllayers, const struct generics* ignorelayer)
 {
     struct placement_layerexclude* layerexclude = malloc(sizeof(*layerexclude));
     layerexclude->excludes = polygon_create();
@@ -313,7 +313,10 @@ static void _insert_extra_excludes(struct vector* extra_layerexcludes, coordinat
     for(size_t i = 0; i < const_vector_size(celllayers); ++i)
     {
         const struct generics* layer = const_vector_get(celllayers, i);
-        const_vector_append(layerexclude->layers, layer);
+        if(layer != ignorelayer)
+        {
+            const_vector_append(layerexclude->layers, layer);
+        }
     }
     vector_append(extra_layerexcludes, layerexclude);
 }
@@ -323,7 +326,8 @@ struct vector* placement_place_within_layer_boundaries(
     struct vector* celllookup, // contains entries of struct placement_celllookup*
     const char* basename,
     const struct simple_polygon* targetarea,
-    struct vector* layerexcludes // contains entries of struct placement_layerexclude*
+    struct vector* layerexcludes, // contains entries of struct placement_layerexclude*
+    const struct generics* ignorelayer // ignored layer for extra excludes
 )
 {
     ucoordinate_t width, height;
@@ -363,7 +367,7 @@ struct vector* placement_place_within_layer_boundaries(
                 if(insert)
                 {
                     vector_append(origins, point_create(x, y));
-                    _insert_extra_excludes(extra_layerexcludes, x, y, width, height, celllayers);
+                    _insert_extra_excludes(extra_layerexcludes, x, y, width, height, celllayers, ignorelayer);
                 }
                 y = y + ypitch;
             }

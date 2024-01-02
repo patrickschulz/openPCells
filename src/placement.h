@@ -78,7 +78,8 @@ struct vector* placement_place_within_layer_boundaries(
     struct vector* celllookup, // contains entries of struct placement_celllookup*
     const char* basename,
     const struct simple_polygon* targetarea,
-    struct vector* layerexcludes // contains entries of struct placement_layerexclude*
+    struct vector* layerexcludes, // contains entries of struct placement_layerexclude*
+    const struct generics* ignorelayer // ignored layer for extra excludes
 );
 
 #endif /* OPC_PLACEMENT_H */
