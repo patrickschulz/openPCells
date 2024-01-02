@@ -868,7 +868,7 @@
         { "width",  INTEGER,    NULL,   "Width of the path" }
     };
     vector_append(entries, _make_api_entry(
-        "curve_rasterized",
+        "get_side_path_points",
         MODULE_GEOMETRY,
         "Get one side of the edge points of a path given by the center points and the width. The sign of the width is significant: With positive values, the right-hand-side points are created, with negative values the left-hand-side (in the direction of the path). This function does not create any shapes.",
         "geometry.get_side_path_points({ point.create(0, 0), point.create(1000, 0) }, 50)",
