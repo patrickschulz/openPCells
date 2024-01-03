@@ -14,6 +14,14 @@ function parameters()
         { "mvextt", 0 },
         { "mhextl", 0 },
         { "mhextr", 0 },
+        { "mvoddextb", 0, follow = "mvextb" },
+        { "mvoddextt", 0, follow = "mvextt" },
+        { "mhoddextl", 0, follow = "mhextl" },
+        { "mhoddextr", 0, follow = "mhextr" },
+        { "mvevenextb", 0, follow = "mvextb" },
+        { "mvevenextt", 0, follow = "mvextt" },
+        { "mhevenextl", 0, follow = "mhextl" },
+        { "mhevenextr", 0, follow = "mhextr" },
         { "drawvias", true },
         { "continuousvias", false },
         { "centergrid", true },
@@ -39,30 +47,34 @@ function layout(grid, _P)
     for i = 1, _P.mhlines do
         local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2) or 0
         local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
+        local mhextl = (i % 2 == 0) and _P.mhevenextl or _P.mhoddextl
+        local mhextr = (i % 2 == 0) and _P.mhevenextr or _P.mhoddextr
         if _P.drawmetalh then
             geometry.rectanglebltr(
                 grid, generics.metal(_P.metalh),
-                point.create(xoffset - _P.mhextl,                                          (i - 1) * ypitch + yoffset),
-                point.create(xoffset + _P.mhextr + _P.mvlines * (_P.mvwidth + _P.mvspace), (i - 1) * ypitch + yoffset + _P.mhwidth)
+                point.create(xoffset - mhextl,                                          (i - 1) * ypitch + yoffset),
+                point.create(xoffset + mhextr + _P.mvlines * (_P.mvwidth + _P.mvspace), (i - 1) * ypitch + yoffset + _P.mhwidth)
             )
             grid:add_area_anchor_bltr(string.format("h%d", i),
-                point.create(xoffset - _P.mhextl,                                          (i - 1) * ypitch + yoffset),
-                point.create(xoffset + _P.mhextr + _P.mvlines * (_P.mvwidth + _P.mvspace), (i - 1) * ypitch + yoffset + _P.mhwidth)
+                point.create(xoffset - mhextl,                                          (i - 1) * ypitch + yoffset),
+                point.create(xoffset + mhextr + _P.mvlines * (_P.mvwidth + _P.mvspace), (i - 1) * ypitch + yoffset + _P.mhwidth)
             )
         end
     end
     for i = 1, _P.mvlines do
         local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
         local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2) or 0
+        local mvextt = (i % 2 == 0) and _P.mvevenextt or _P.mvoddextt
+        local mvextb = (i % 2 == 0) and _P.mvevenextb or _P.mvoddextb
         if _P.drawmetalv then
             geometry.rectanglebltr(
                 grid, generics.metal(_P.metalv),
-                point.create((i - 1) * xpitch + xoffset,              yoffset - _P.mvextb),
-                point.create((i - 1) * xpitch + xoffset + _P.mvwidth, yoffset + _P.mvextt + _P.mhlines * (_P.mhwidth + _P.mhspace))
+                point.create((i - 1) * xpitch + xoffset,              yoffset - mvextb),
+                point.create((i - 1) * xpitch + xoffset + _P.mvwidth, yoffset + mvextt + _P.mhlines * (_P.mhwidth + _P.mhspace))
             )
             grid:add_area_anchor_bltr(string.format("v%d", i),
-                point.create((i - 1) * xpitch + xoffset,              yoffset - _P.mvextb),
-                point.create((i - 1) * xpitch + xoffset + _P.mvwidth, yoffset + _P.mvextt + _P.mhlines * (_P.mhwidth + _P.mhspace))
+                point.create((i - 1) * xpitch + xoffset,              yoffset - mvextb),
+                point.create((i - 1) * xpitch + xoffset + _P.mvwidth, yoffset + mvextt + _P.mhlines * (_P.mhwidth + _P.mhspace))
             )
         end
     end
