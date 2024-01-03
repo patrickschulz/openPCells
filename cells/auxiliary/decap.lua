@@ -22,6 +22,7 @@ function parameters()
         { "drawmesh", true },
         { "fillmesh", false },
         { "drawgrid", true },
+        { "drawmeshtogridvias", true, follow = "drawgrid" },
         { "drawleft", true },
         { "drawright", true },
         { "drawtop", true },
@@ -425,7 +426,7 @@ function layout(decap, _P)
             end
         end
         -- connect cap to grid
-        if _P.drawgrid then
+        if _P.drawmeshtogridvias then
             if util.any_of(_P.interconnectmetal, _P.meshmetals) then
                 geometry.rectanglebltr(decap, generics.metal(_P.interconnectmetal),
                     point.create(-_P.gridmetalwidths[1].vss / 2, -_P.gridmetalwidths[1].vss / 2),
@@ -440,7 +441,7 @@ function layout(decap, _P)
     end
 
     -- connect ground to grid
-    if _P.drawmesh and _P.drawgrid then
+    if _P.drawmesh and _P.drawmeshtogridvias then
         if util.any_of(_P.interconnectmetal, _P.meshmetals) then
             if not _P.restrictvss or (_P.drawleft and _P.drawbottom) then
                 geometry.viabarebltr(decap, _P.interconnectmetal, _P.interconnectmetal + 1,
