@@ -318,7 +318,7 @@
 {
     struct parameter parameters[] = {
         { "point",      POINT,      NULL,   "point which should be mirrored" },
-        { "refernce",   INTEGER,    "0",    "mirror reference coordinate" }
+        { "reference",   INTEGER,    "0",    "mirror reference coordinate" }
     };
     vector_append(entries, _make_api_entry(
         "xmirror",
@@ -334,7 +334,7 @@
 {
     struct parameter parameters[] = {
         { "point",      POINT,      NULL,   "point which should be mirrored" },
-        { "refernce",   INTEGER,    "0",    "mirror reference coordinate" }
+        { "reference",   INTEGER,    "0",    "mirror reference coordinate" }
     };
     vector_append(entries, _make_api_entry(
         "ymirror",
