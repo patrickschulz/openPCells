@@ -222,7 +222,7 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
             lua_pushstring(L, "placement.placement_place_within_layer_boundaries: every entry cell look-up table must contain an object as 'cell' entry");
             lua_error(L);
         }
-        lookup->cell = lobject_get(L, lobject_check(L, -1));
+        lookup->cell = lobject_get_unchecked(lobject_check(L, -1));
         lua_pop(L, 1); // pop object
 
         // get layer table
