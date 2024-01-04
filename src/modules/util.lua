@@ -382,7 +382,6 @@ function M.find_predicate(t, predicate)
     end
 end
 
-
 function M.fill_all_with(num, filler)
     local t = {}
     for i = 1, num do
@@ -490,6 +489,14 @@ function M.all_of(comp, t, ...)
         end
         return true
     end
+end
+
+function M.foreach(t, f, ...)
+    local new = {}
+    for _, e in ipairs(t) do
+        table.insert(new, f(e, ...))
+    end
+    return new
 end
 
 return M

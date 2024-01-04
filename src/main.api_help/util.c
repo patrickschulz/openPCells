@@ -504,6 +504,55 @@
     ));
 }
 
+/* util.foreach(coordinate, grid) */
+{
+    struct parameter parameters[] = {
+        { "table",      TABLE,      NULL, "table (array-like)" },
+        { "function",   FUNCTION,   NULL, "function to be applied to the elements" },
+        { "...",        VARARGS,    NULL, "additional arguments passed to function" }
+    };
+    vector_append(entries, _make_api_entry(
+        "foreach",
+        MODULE_UTIL,
+        "apply a function to every element of a given table. Return a new table containing the results of these calls in the order of the original elements. Additional arguments can be passed to the function.",
+        "util.foreach({ 1, 2, 3 }, generics.metal)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.find(coordinate, grid) */
+{
+    struct parameter parameters[] = {
+        { "table",  TABLE,  NULL, "table (array-like)" },
+        { "value",  ANY,    NULL, "value" }
+    };
+    vector_append(entries, _make_api_entry(
+        "find",
+        MODULE_UTIL,
+        "find a value in an array. This function returns the index of that value and the value itself",
+        "util.find({ 3, 4, 5 }, 4) -- 2, 4",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.find_predicate(coordinate, grid) */
+{
+    struct parameter parameters[] = {
+        { "table",  TABLE,      NULL, "table (array-like)" },
+        { "comp",   FUNCTION,   NULL, "comparison function" }
+    };
+    vector_append(entries, _make_api_entry(
+        "find_predicate",
+        MODULE_UTIL,
+        "Like util.find, but call a function to do the comparison.",
+        "util.find({ 3, 4, 5 }, function(e) return e == 4 end) -- 2, 4",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /*
     FIXME:
 	util.check_grid
