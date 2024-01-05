@@ -23,6 +23,7 @@ function parameters()
         { "mhevenextl", 0, follow = "mhextl" },
         { "mhevenextr", 0, follow = "mhextr" },
         { "drawvias", true },
+        { "forcevias", false},
         { "continuousvias", false },
         { "centergrid", true },
         { "flatvias", true },
@@ -80,7 +81,7 @@ function layout(grid, _P)
     end
 
     -- vias
-    if _P.drawmetalh and _P.drawmetalv and _P.drawvias then
+    if (_P.drawmetalh and _P.drawmetalv and _P.drawvias) or _P.forcevias then
         local viaref = object.create("_via")
         if _P.continuousvias then
             geometry.viabarebltr_continuous(viaref, _P.metalh, _P.metalv,
