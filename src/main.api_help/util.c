@@ -553,6 +553,40 @@
     ));
 }
 
+/* util.fit_lines_upper(total, size, space) */
+{
+    struct parameter parameters[] = {
+        { "total",  INTEGER,    NULL, "full width/height" },
+        { "size",   INTEGER,    NULL, "line width/height" },
+        { "space",  INTEGER,    NULL, "line spacing" }
+    };
+    vector_append(entries, _make_api_entry(
+        "fit_lines_upper",
+        MODULE_UTIL,
+        "Calculate the number of lines with the given size and space that fit into the given total width/height. This function rounds up.",
+        "util.fit_lines_upper(10000, 500, 500) -- 11",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.fit_lines_lower(total, size, space) */
+{
+    struct parameter parameters[] = {
+        { "total",  INTEGER,    NULL, "full width/height" },
+        { "size",   INTEGER,    NULL, "line width/height" },
+        { "space",  INTEGER,    NULL, "line spacing" }
+    };
+    vector_append(entries, _make_api_entry(
+        "fit_lines_lower",
+        MODULE_UTIL,
+        "Calculate the number of lines with the given size and space that fit into the given total width/height. This function rounds down.",
+        "util.fit_lines_lower(10000, 500, 500) -- 10",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /*
     FIXME:
 	util.check_grid

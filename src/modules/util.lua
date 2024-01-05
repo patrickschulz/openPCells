@@ -499,4 +499,12 @@ function M.foreach(t, f, ...)
     return new
 end
 
+function M.fit_lines_upper(total, size, space)
+    return math.ceil((total + space) / (size + space))
+end
+
+function M.fit_lines_lower(total, size, space)
+    return math.floor((total + space) / (size + space))
+end
+
 return M
