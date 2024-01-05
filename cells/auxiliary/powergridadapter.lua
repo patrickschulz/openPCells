@@ -15,6 +15,10 @@ function parameters()
         { "adaptright", false },
         { "adapttop", false },
         { "adaptbottom", false },
+        { "extendleft", false },
+        { "extendright", false },
+        { "extendtop", false },
+        { "extendbottom", false },
         { "restrictvss", false },
         { "drawtopmetal", false },
         { "topmetaldensity", 50 },
@@ -101,14 +105,6 @@ function layout(adapter, _P)
         end
         entry.vssleft = -_P.cellsize / 2 - vsswidth / 2
         entry.vssright = _P.cellsize / 2 + vsswidth / 2
-        if _P.restrictvss then
-            if _P.adaptleft then
-                entry.vssleft = -vsswidth / 2
-            end
-            if _P.adaptright then
-                entry.vssright = vsswidth / 2
-            end
-        end
         entry.vddbottom = -_P.cellsize / 2 - vsswidth / 2
         entry.vddtop = _P.cellsize / 2 + vsswidth / 2
         if _P.adaptbottom then
@@ -119,14 +115,6 @@ function layout(adapter, _P)
         end
         entry.vssbottom = -_P.cellsize / 2 - vsswidth / 2
         entry.vsstop = _P.cellsize / 2 + vsswidth / 2
-        if _P.restrictvss then
-            if _P.adaptbottom then
-                entry.vssbottom = -vsswidth / 2
-            end
-            if _P.adapttop then
-                entry.vsstop = vsswidth / 2
-            end
-        end
         adaptsizes[i] = entry
     end
 
@@ -156,6 +144,9 @@ function layout(adapter, _P)
         end
         entry.vddbottom = -_P.cellsize / 2 - vsswidth / 2
         entry.vddtop = _P.cellsize / 2 + vsswidth / 2
+        if _P.extendbottom then
+            entry.vddbottom = -_P.cellsize + vddwidth / 2
+        end
         if not _P.drawbottom then
             entry.vddbottom = -vddwidth / 2
         end
@@ -182,14 +173,18 @@ function layout(adapter, _P)
     for i = 1 + bottomoffset, lmnumlines - topoffset do
         if i % 2 == 1 then
             local yshift = (i - 1) * (_P.lmwidth + _P.lmspace)
-            geometry.viabltr(adapter, _P.interconnectmetal - 1, _P.interconnectmetal,
-                point.create(-_P.cellsize / 2 - _P.interconnectwidth / 2, ystart + yshift - _P.lmwidth / 2),
-                point.create(-_P.cellsize / 2 + _P.interconnectwidth / 2, ystart + yshift + _P.lmwidth / 2)
-            )
-            geometry.viabltr(adapter, _P.interconnectmetal - 1, _P.interconnectmetal,
-                point.create(_P.cellsize / 2 - _P.interconnectwidth / 2, ystart + yshift - _P.lmwidth / 2),
-                point.create(_P.cellsize / 2 + _P.interconnectwidth / 2, ystart + yshift + _P.lmwidth / 2)
-            )
+            if not _P.restrictvss or _P.drawleft then
+                geometry.viabltr(adapter, _P.interconnectmetal - 1, _P.interconnectmetal,
+                    point.create(-_P.cellsize / 2 - _P.interconnectwidth / 2, ystart + yshift - _P.lmwidth / 2),
+                    point.create(-_P.cellsize / 2 + _P.interconnectwidth / 2, ystart + yshift + _P.lmwidth / 2)
+                )
+            end
+            if not _P.restrictvss or _P.drawright then
+                geometry.viabltr(adapter, _P.interconnectmetal - 1, _P.interconnectmetal,
+                    point.create(_P.cellsize / 2 - _P.interconnectwidth / 2, ystart + yshift - _P.lmwidth / 2),
+                    point.create(_P.cellsize / 2 + _P.interconnectwidth / 2, ystart + yshift + _P.lmwidth / 2)
+                )
+            end
         else
             local yshift = (i - 1) * (_P.lmwidth + _P.lmspace)
             if ystart + yshift >= adaptsizes[1].vddbottom and
@@ -202,15 +197,19 @@ function layout(adapter, _P)
         end
     end
     -- left vss interconnectmetal line 
-    geometry.rectanglebltr(adapter, generics.metal(_P.interconnectmetal),
-        point.create(-_P.cellsize / 2 - _P.interconnectwidth / 2, adaptsizes[1].vssbottom),
-        point.create(-_P.cellsize / 2 + _P.interconnectwidth / 2, adaptsizes[1].vsstop)
-    )
+    if not _P.restrictvss or _P.drawleft then
+        geometry.rectanglebltr(adapter, generics.metal(_P.interconnectmetal),
+            point.create(-_P.cellsize / 2 - _P.interconnectwidth / 2, adaptsizes[1].vssbottom),
+            point.create(-_P.cellsize / 2 + _P.interconnectwidth / 2, adaptsizes[1].vsstop)
+        )
+    end
     -- right vss interconnectmetal line 
-    geometry.rectanglebltr(adapter, generics.metal(_P.interconnectmetal),
-        point.create(_P.cellsize / 2 - _P.interconnectwidth / 2, adaptsizes[1].vssbottom),
-        point.create(_P.cellsize / 2 + _P.interconnectwidth / 2, adaptsizes[1].vsstop)
-    )
+    if not _P.restrictvss or _P.drawright then
+        geometry.rectanglebltr(adapter, generics.metal(_P.interconnectmetal),
+            point.create(_P.cellsize / 2 - _P.interconnectwidth / 2, adaptsizes[1].vssbottom),
+            point.create(_P.cellsize / 2 + _P.interconnectwidth / 2, adaptsizes[1].vsstop)
+        )
+    end
     -- vdd interconnect line
     geometry.rectanglebltr(adapter, generics.metal(_P.interconnectmetal),
         point.create(-_P.interconnectwidth / 2, adaptsizes[1].vddbottom),
@@ -302,7 +301,7 @@ function layout(adapter, _P)
                 )
             end
         else
-            if not _P.restrictvss or not _P.drawleft then
+            if not _P.restrictvss or _P.drawleft then
                 geometry.rectanglebltr(adapter, generics.metal(metal),
                     point.create(-_P.cellsize / 2 - vsswidth / 2, size.vssbottom),
                     point.create(-_P.cellsize / 2 + vsswidth / 2, size.vsstop)
@@ -312,7 +311,7 @@ function layout(adapter, _P)
                 point.create(-vddwidth / 2, size.vddbottom),
                 point.create( vddwidth / 2, size.vddtop)
             )
-            if not _P.restrictvss or not _P.drawright then
+            if not _P.restrictvss or _P.drawright then
                 geometry.rectanglebltr(adapter, generics.metal(metal),
                     point.create(_P.cellsize / 2 - vsswidth / 2, size.vssbottom),
                     point.create(_P.cellsize / 2 + vsswidth / 2, size.vsstop)
@@ -359,6 +358,7 @@ function layout(adapter, _P)
         end
         leftright = not leftright
     end
+    --[[
     -- connect to top metal
     if _P.connecttopmetal then
         geometry.viabarebltr(adapter, _P.gridmetals[#_P.gridmetals], _P.gridmetals[#_P.gridmetals] + 1,
@@ -420,6 +420,7 @@ function layout(adapter, _P)
             )
         end
     end
+    --]]
 
     adapter:add_area_anchor_bltr("outerboundary",
         point.create(-_P.cellsize / 2, -_P.cellsize / 2),
