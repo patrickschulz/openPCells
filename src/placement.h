@@ -6,21 +6,29 @@
 #include "vector.h"
 
 struct boundary_celltable {
-    struct object* bottomleft;
-    struct object* left;
-    struct object* topleft;
-    struct object* bottom;
     struct object* center;
     struct object* top;
-    struct object* bottomright;
+    struct object* bottom;
+    struct object* left;
     struct object* right;
+    struct object* topleft;
     struct object* topright;
+    struct object* topbottom;
+    struct object* bottomleft;
+    struct object* bottomright;
+    struct object* leftright;
+    struct object* topleftright;
+    struct object* topbottomleft;
+    struct object* topbottomright;
+    struct object* bottomleftright;
+    struct object* topbottomleftright;
 };
 
 struct vector* placement_calculate_grid(
     const point_t* bl,
     const point_t* tr,
-    coordinate_t pitch,
+    coordinate_t xpitch,
+    coordinate_t ypitch,
     const struct polygon* excludes
 );
 
@@ -29,7 +37,8 @@ struct vector* placement_place_boundary_grid(
     struct boundary_celltable* boundary_celltable,
     const point_t* basept,
     struct vector* grid,
-    coordinate_t pitch,
+    coordinate_t xpitch,
+    coordinate_t ypitch,
     const char* basename
 );
 

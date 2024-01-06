@@ -283,3 +283,41 @@
     ));
 }
 
+/* placement.calculate_grid */
+{
+    struct parameter parameters[] = {
+        { "bl",         POINT,      NULL,   "botton-left target boundary" },
+        { "tr",         POINT,      NULL,   "top-right target boundary" },
+        { "pitch",      INTEGER,    NULL,   "cell pitch in x- and y-direction" },
+        { "excludes",   TABLE,      NULL,   "optional list of polygons with fill excludes" }
+    };
+    vector_append(entries, _make_api_entry(
+        "calculate_grid",
+        MODULE_PLACEMENT,
+        "calculate a grid of cell origins in a rectangular target area with the given binary excludes (in or out). This function returns a table which can be used as input for placement.place_boundary_grid",
+        "local excludes = { {\n    point.create(2000, 2000),\n    point.create(8000, 2000),\n    point.create(8000, 20000),\n    point.create(2000, 20000)\n}, }\nplacement.calculate_grid(point.create(0, 0), point.create(100000, 100000), 10000, excludes)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* placement.place_boundary_grid */
+{
+    struct parameter parameters[] = {
+        { "toplevel",       OBJECT,     NULL,   "toplevel cell to place cells in" },
+        { "boundarycells",  TABLE,      NULL,   "lookup-table containing the boundary cells" },
+        { "basept",         POINT,      NULL,   "base point for the grid placement" },
+        { "grid",           TABLE,      NULL,   "grid table" },
+        { "pitch",          INTEGER,    NULL,   "cell pitch in x- and y-direction" },
+        { "basename",       STRING,     NULL,   "basename for the instance names" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_boundary_grid",
+        MODULE_PLACEMENT,
+        "place cells on a regular grid with the given pitch. The grid contains numeric entries of either 1 or 0, meaning 'place' or 'don't place'. This grid can be obtained by using placement.calculate_grid. The cells are placed on this grid, so that the proper cells are used at each of the grid points. This means that special cells are placed at the boundary of the grid (e.g., where there is no neighbouring cell to the left). The boundarycells table should contain sixteen (2^4) key-value pairs: cells for 'center', 'top', 'bottom', 'left', 'right', 'topleft', 'topright', 'topbottom', 'bottomleft', 'bottomright', 'leftright', 'topleftright', 'topbottomleft', 'topbottomright', 'bottomleftright' and 'topbottomleftright'",
+        "local grid = { --[[ some grid definition --]] }\nlocal boundarycells = { center = centercell, top = topcell, --[[ and so on --]] } \nplacement.place_boundary_grid(toplevel, boundarycells, point.create(0, 0), grid, 10000, \"gridcell\")",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+

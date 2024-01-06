@@ -82,7 +82,8 @@ static void _get_minmax(const struct simple_polygon* targetarea, coordinate_t* m
 struct vector* placement_calculate_grid(
     const point_t* bl,
     const point_t* tr,
-    coordinate_t pitch,
+    coordinate_t xpitch,
+    coordinate_t ypitch,
     const struct polygon* excludes
 )
 {
@@ -108,10 +109,10 @@ struct vector* placement_calculate_grid(
                 *value = 1;
             }
             vector_append(row, value);
-            x = x + pitch;
+            x = x + xpitch;
         }
         vector_append(grid, row);
-        y = y + pitch;
+        y = y + ypitch;
     }
     return grid;
 }
@@ -164,11 +165,13 @@ struct vector* placement_place_boundary_grid(
     struct boundary_celltable* boundary_celltable,
     const point_t* basept,
     struct vector* grid,
-    coordinate_t pitch,
+    coordinate_t xpitch,
+    coordinate_t ypitch,
     const char* basename
 )
 {
     size_t counter = 1;
+    struct vector* children = vector_create(32, NULL);
     for(int rownum = 0; rownum < (int)vector_size(grid); ++rownum)
     {
         struct vector* row = vector_get(grid, rownum);
@@ -176,79 +179,126 @@ struct vector* placement_place_boundary_grid(
         {
             int* value = vector_get(row, colnum);
             struct object* cell = boundary_celltable->center;
-            if(_has_neighbour(grid, rownum - 1, colnum) &&
-               _has_neighbour(grid, rownum, colnum - 1) &&
-               _has_neighbour(grid, rownum + 1, colnum) &&
-               _has_neighbour(grid, rownum, colnum + 1))
+            // FIXME: obviously this code is horrible.
+            // find a better way
+            if(_has_neighbour(grid, rownum - 1, colnum))
             {
-                cell = boundary_celltable->center;
+                if(_has_neighbour(grid, rownum + 1, colnum))
+                {
+                    if(_has_neighbour(grid, rownum, colnum - 1))
+                    {
+                        if(_has_neighbour(grid, rownum, colnum + 1))
+                        {
+                            cell = boundary_celltable->center;
+                        }
+                        else
+                        {
+                            cell = boundary_celltable->right;
+                        }
+                    }
+                    else
+                    {
+                        if(_has_neighbour(grid, rownum, colnum + 1))
+                        {
+                            cell = boundary_celltable->left;
+                        }
+                        else
+                        {
+                            cell = boundary_celltable->leftright;
+                        }
+                    }
+                }
+                else
+                {
+                    if(_has_neighbour(grid, rownum, colnum - 1))
+                    {
+                        if(_has_neighbour(grid, rownum, colnum + 1))
+                        {
+                            cell = boundary_celltable->top;
+                        }
+                        else
+                        {
+                            cell = boundary_celltable->topright;
+                        }
+                    }
+                    else
+                    {
+                        if(_has_neighbour(grid, rownum, colnum + 1))
+                        {
+                            cell = boundary_celltable->topleft;
+                        }
+                        else
+                        {
+
+                            cell = boundary_celltable->topleftright;
+                        }
+                    }
+                }
             }
-            else if(!_has_neighbour(grid, rownum - 1, colnum) &&
-                    !_has_neighbour(grid, rownum, colnum - 1) &&
-                    _has_neighbour(grid, rownum + 1, colnum) &&
-                    _has_neighbour(grid, rownum, colnum + 1))
+            else
             {
-                cell = boundary_celltable->bottomleft;
-            }
-            else if(_has_neighbour(grid, rownum - 1, colnum) &&
-                    !_has_neighbour(grid, rownum, colnum - 1) &&
-                    _has_neighbour(grid, rownum + 1, colnum) &&
-                    _has_neighbour(grid, rownum, colnum + 1))
-            {
-                cell = boundary_celltable->left;
-            }
-            else if(_has_neighbour(grid, rownum - 1, colnum) &&
-                    !_has_neighbour(grid, rownum, colnum - 1) &&
-                    !_has_neighbour(grid, rownum + 1, colnum) &&
-                    _has_neighbour(grid, rownum, colnum + 1))
-            {
-                cell = boundary_celltable->topleft;
-            }
-            else if(!_has_neighbour(grid, rownum - 1, colnum) &&
-                    _has_neighbour(grid, rownum, colnum - 1) &&
-                    _has_neighbour(grid, rownum + 1, colnum) &&
-                    !_has_neighbour(grid, rownum, colnum + 1))
-            {
-                cell = boundary_celltable->bottomright;
-            }
-            else if(_has_neighbour(grid, rownum - 1, colnum) &&
-                    _has_neighbour(grid, rownum, colnum - 1) &&
-                    _has_neighbour(grid, rownum + 1, colnum) &&
-                    !_has_neighbour(grid, rownum, colnum + 1))
-            {
-                cell = boundary_celltable->right;
-            }
-            else if(_has_neighbour(grid, rownum - 1, colnum) &&
-                    _has_neighbour(grid, rownum, colnum - 1) &&
-                    !_has_neighbour(grid, rownum + 1, colnum) &&
-                    !_has_neighbour(grid, rownum, colnum + 1))
-            {
-                cell = boundary_celltable->topright;
-            }
-            else if(!_has_neighbour(grid, rownum - 1, colnum) &&
-                    _has_neighbour(grid, rownum, colnum - 1) &&
-                    _has_neighbour(grid, rownum + 1, colnum) &&
-                    _has_neighbour(grid, rownum, colnum + 1))
-            {
-                cell = boundary_celltable->bottom;
-            }
-            else if(_has_neighbour(grid, rownum - 1, colnum) &&
-                    _has_neighbour(grid, rownum, colnum - 1) &&
-                    !_has_neighbour(grid, rownum + 1, colnum) &&
-                    _has_neighbour(grid, rownum, colnum + 1))
-            {
-                cell = boundary_celltable->top;
+                if(_has_neighbour(grid, rownum + 1, colnum))
+                {
+                    if(_has_neighbour(grid, rownum, colnum - 1))
+                    {
+                        if(_has_neighbour(grid, rownum, colnum + 1))
+                        {
+                            cell = boundary_celltable->bottom;
+                        }
+                        else
+                        {
+                            cell = boundary_celltable->bottomright;
+                        }
+                    }
+                    else
+                    {
+                        if(_has_neighbour(grid, rownum, colnum + 1))
+                        {
+                            cell = boundary_celltable->bottomleft;
+                        }
+                        else
+                        {
+                            cell = boundary_celltable->bottomleftright;
+                        }
+                    }
+                }
+                else
+                {
+                    if(_has_neighbour(grid, rownum, colnum - 1))
+                    {
+                        if(_has_neighbour(grid, rownum, colnum + 1))
+                        {
+                            cell = boundary_celltable->topbottom;
+                        }
+                        else
+                        {
+                            cell = boundary_celltable->topbottomright;
+                        }
+                    }
+                    else
+                    {
+                        if(_has_neighbour(grid, rownum, colnum + 1))
+                        {
+                            cell = boundary_celltable->topbottomleft;
+                        }
+                        else
+                        {
+                            cell = boundary_celltable->topbottomleftright;
+                        }
+                    }
+                }
             }
             point_t* origin = point_copy(basept);
-            point_translate(origin,  colnum * pitch, rownum * pitch);
+            point_translate(origin, colnum * xpitch, rownum * ypitch);
             if(*value)
             {
                 struct object* child = _place_child(toplevel, cell, origin, basename, counter);
+                vector_append(children, child);
             }
             counter = counter + 1;
         }
     }
-    return NULL;
+    return children;
 }
 
 struct vector* placement_calculate_origins(

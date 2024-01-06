@@ -96,13 +96,14 @@ int lplacement_place_on_grid(lua_State* L)
 
 int lplacement_calculate_grid(lua_State* L)
 {
-    lcheck_check_numargs1(L, 4, "placement.calculate_grid");
+    lcheck_check_numargs1(L, 5, "placement.calculate_grid");
     struct lpoint* bl = lpoint_checkpoint(L, 1);
     struct lpoint* tr = lpoint_checkpoint(L, 2);
-    coordinate_t pitch = luaL_checkinteger(L, 3);
+    coordinate_t xpitch = luaL_checkinteger(L, 3);
+    coordinate_t ypitch = luaL_checkinteger(L, 4);
     struct polygon* excludes;
-    lplacement_create_exclude_vectors(L, &excludes, 4);
-    struct vector* grid = placement_calculate_grid(lpoint_get(bl), lpoint_get(tr), pitch, excludes);
+    lplacement_create_exclude_vectors(L, &excludes, 5);
+    struct vector* grid = placement_calculate_grid(lpoint_get(bl), lpoint_get(tr), xpitch, ypitch, excludes);
     lua_newtable(L);
     for(size_t i = 0; i < vector_size(grid); ++i)
     {
@@ -121,49 +122,15 @@ int lplacement_calculate_grid(lua_State* L)
 
 int lplacement_place_boundary_grid(lua_State* L)
 {
-    lcheck_check_numargs1(L, 6, "placement.place_boundary_grid");
+    lcheck_check_numargs1(L, 7, "placement.place_boundary_grid");
     struct lobject* toplevel = lobject_check(L, 1);
     struct lpoint* basept = lpoint_checkpoint(L, 3);
-    coordinate_t pitch = luaL_checkinteger(L, 5);
-    const char* basename = luaL_checkstring(L, 6);
+    coordinate_t xpitch = luaL_checkinteger(L, 5);
+    coordinate_t ypitch = luaL_checkinteger(L, 6);
+    const char* basename = luaL_checkstring(L, 7);
 
     // read boundary cell table
     struct boundary_celltable* boundarycells = malloc(sizeof(*boundarycells));
-    // bottom-left
-    lua_getfield(L, 2, "bottomleft");
-    struct lobject* bottomleft = lobject_check(L, -1);
-    boundarycells->bottomleft = lobject_get_unchecked(bottomleft);
-    lua_pop(L, 1);
-    // left
-    lua_getfield(L, 2, "left");
-    struct lobject* left = lobject_check(L, -1);
-    boundarycells->left = lobject_get_unchecked(left);
-    lua_pop(L, 1);
-    // top-left
-    lua_getfield(L, 2, "topleft");
-    struct lobject* topleft = lobject_check(L, -1);
-    boundarycells->topleft = lobject_get_unchecked(topleft);
-    lua_pop(L, 1);
-    // bottom-right
-    lua_getfield(L, 2, "bottomright");
-    struct lobject* bottomright = lobject_check(L, -1);
-    boundarycells->bottomright = lobject_get_unchecked(bottomright);
-    lua_pop(L, 1);
-    // right
-    lua_getfield(L, 2, "right");
-    struct lobject* right = lobject_check(L, -1);
-    boundarycells->right = lobject_get_unchecked(right);
-    lua_pop(L, 1);
-    // top-right
-    lua_getfield(L, 2, "topright");
-    struct lobject* topright = lobject_check(L, -1);
-    boundarycells->topright = lobject_get_unchecked(topright);
-    lua_pop(L, 1);
-    // bottom
-    lua_getfield(L, 2, "bottom");
-    struct lobject* bottom = lobject_check(L, -1);
-    boundarycells->bottom = lobject_get_unchecked(bottom);
-    lua_pop(L, 1);
     // center
     lua_getfield(L, 2, "center");
     struct lobject* center = lobject_check(L, -1);
@@ -173,6 +140,76 @@ int lplacement_place_boundary_grid(lua_State* L)
     lua_getfield(L, 2, "top");
     struct lobject* top = lobject_check(L, -1);
     boundarycells->top = lobject_get_unchecked(top);
+    lua_pop(L, 1);
+    // bottom
+    lua_getfield(L, 2, "bottom");
+    struct lobject* bottom = lobject_check(L, -1);
+    boundarycells->bottom = lobject_get_unchecked(bottom);
+    lua_pop(L, 1);
+    // left
+    lua_getfield(L, 2, "left");
+    struct lobject* left = lobject_check(L, -1);
+    boundarycells->left = lobject_get_unchecked(left);
+    lua_pop(L, 1);
+    // right
+    lua_getfield(L, 2, "right");
+    struct lobject* right = lobject_check(L, -1);
+    boundarycells->right = lobject_get_unchecked(right);
+    lua_pop(L, 1);
+    // topleft
+    lua_getfield(L, 2, "topleft");
+    struct lobject* topleft = lobject_check(L, -1);
+    boundarycells->topleft = lobject_get_unchecked(topleft);
+    lua_pop(L, 1);
+    // topright
+    lua_getfield(L, 2, "topright");
+    struct lobject* topright = lobject_check(L, -1);
+    boundarycells->topright = lobject_get_unchecked(topright);
+    lua_pop(L, 1);
+    // topbottom
+    lua_getfield(L, 2, "topbottom");
+    struct lobject* topbottom = lobject_check(L, -1);
+    boundarycells->topbottom = lobject_get_unchecked(topbottom);
+    lua_pop(L, 1);
+    // bottomleft
+    lua_getfield(L, 2, "bottomleft");
+    struct lobject* bottomleft = lobject_check(L, -1);
+    boundarycells->bottomleft = lobject_get_unchecked(bottomleft);
+    lua_pop(L, 1);
+    // bottomright
+    lua_getfield(L, 2, "bottomright");
+    struct lobject* bottomright = lobject_check(L, -1);
+    boundarycells->bottomright = lobject_get_unchecked(bottomright);
+    lua_pop(L, 1);
+    // leftright
+    lua_getfield(L, 2, "leftright");
+    struct lobject* leftright = lobject_check(L, -1);
+    boundarycells->leftright = lobject_get_unchecked(leftright);
+    lua_pop(L, 1);
+    // topleftright
+    lua_getfield(L, 2, "topleftright");
+    struct lobject* topleftright = lobject_check(L, -1);
+    boundarycells->topleftright = lobject_get_unchecked(topleftright);
+    lua_pop(L, 1);
+    // topbottomleft
+    lua_getfield(L, 2, "topbottomleft");
+    struct lobject* topbottomleft = lobject_check(L, -1);
+    boundarycells->topbottomleft = lobject_get_unchecked(topbottomleft);
+    lua_pop(L, 1);
+    // topbottomright
+    lua_getfield(L, 2, "topbottomright");
+    struct lobject* topbottomright = lobject_check(L, -1);
+    boundarycells->topbottomright = lobject_get_unchecked(topbottomright);
+    lua_pop(L, 1);
+    // bottomleftright
+    lua_getfield(L, 2, "bottomleftright");
+    struct lobject* bottomleftright = lobject_check(L, -1);
+    boundarycells->bottomleftright = lobject_get_unchecked(bottomleftright);
+    lua_pop(L, 1);
+    // topbottomleftright
+    lua_getfield(L, 2, "topbottomleftright");
+    struct lobject* topbottomleftright = lobject_check(L, -1);
+    boundarycells->topbottomleftright = lobject_get_unchecked(topbottomleftright);
     lua_pop(L, 1);
 
     // read grid
@@ -199,8 +236,23 @@ int lplacement_place_boundary_grid(lua_State* L)
         vector_append(grid, row);
     }
 
-    placement_place_boundary_grid(lobject_get(L, toplevel), boundarycells, lpoint_get(basept), grid, pitch, basename);
-    return 0;
+    struct vector* children = placement_place_boundary_grid(
+        lobject_get(L, toplevel),
+        boundarycells,
+        lpoint_get(basept),
+        grid,
+        xpitch, ypitch,
+        basename
+    );
+    lua_newtable(L);
+    for(size_t i = 0; i < vector_size(children); ++i)
+    {
+        struct object* child = vector_get(children, i);
+        lobject_adapt_non_owning(L, child);
+        lua_rawseti(L, -2, i + 1);
+    }
+    vector_destroy(children);
+    return 1;
 }
 
 int lplacement_place_at_origins(lua_State* L)
