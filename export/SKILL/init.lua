@@ -142,6 +142,7 @@ end
 
 local function _close_let()
     table.insert(__content, ") ; let")
+    __counter = 0
 end
 
 local function _ensure_legal_limit()
@@ -149,9 +150,8 @@ local function _ensure_legal_limit()
         __counter = __counter + 1
         --print(__counter, __maxletlimit)
         if __counter > __maxletlimit then
-            _close_let()
+            _close_let() -- resets the counter
             _start_let()
-            __counter = 0
         end
     end
 end
