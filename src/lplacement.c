@@ -19,19 +19,18 @@ static void _destroy_placement_celllookup(void* v)
     free(celllookup);
 }
 
-void lplacement_create_target_exclude_vectors(lua_State* L, struct simple_polygon** targetarea, struct polygon** excludes, int idx)
+void lplacement_create_exclude_vectors(lua_State* L, struct polygon** excludes, int idx)
 {
-    *targetarea = lutil_create_simple_polygon(L, idx);
     *excludes = NULL;
-    if(lua_istable(L, idx + 1))
+    if(lua_istable(L, idx))
     {
-        lua_len(L, idx + 1);
+        lua_len(L, idx);
         size_t excludes_len = lua_tointeger(L, -1);
         lua_pop(L, 1);
         *excludes = polygon_create();
         for(size_t i = 1; i <= excludes_len; ++i)
         {
-            lua_rawgeti(L, idx + 1, i);
+            lua_rawgeti(L, idx, i);
             struct simple_polygon* exclude = lutil_create_simple_polygon(L, -1);
             polygon_add(*excludes, exclude);
             lua_pop(L, 1);
@@ -95,6 +94,115 @@ int lplacement_place_on_grid(lua_State* L)
     return 1;
 }
 
+int lplacement_calculate_grid(lua_State* L)
+{
+    lcheck_check_numargs1(L, 4, "placement.calculate_grid");
+    struct lpoint* bl = lpoint_checkpoint(L, 1);
+    struct lpoint* tr = lpoint_checkpoint(L, 2);
+    coordinate_t pitch = luaL_checkinteger(L, 3);
+    struct polygon* excludes;
+    lplacement_create_exclude_vectors(L, &excludes, 4);
+    struct vector* grid = placement_calculate_grid(lpoint_get(bl), lpoint_get(tr), pitch, excludes);
+    lua_newtable(L);
+    for(size_t i = 0; i < vector_size(grid); ++i)
+    {
+        struct vector* row = vector_get(grid, i);
+        lua_newtable(L);
+        for(size_t j = 0; j < vector_size(row); ++j)
+        {
+            int* value = vector_get(row, j);
+            lua_pushinteger(L, *value);
+            lua_rawseti(L, -2, j + 1);
+        }
+        lua_rawseti(L, -2, i + 1);
+    }
+    return 1;
+}
+
+int lplacement_place_boundary_grid(lua_State* L)
+{
+    lcheck_check_numargs1(L, 6, "placement.place_boundary_grid");
+    struct lobject* toplevel = lobject_check(L, 1);
+    struct lpoint* basept = lpoint_checkpoint(L, 3);
+    coordinate_t pitch = luaL_checkinteger(L, 5);
+    const char* basename = luaL_checkstring(L, 6);
+
+    // read boundary cell table
+    struct boundary_celltable* boundarycells = malloc(sizeof(*boundarycells));
+    // bottom-left
+    lua_getfield(L, 2, "bottomleft");
+    struct lobject* bottomleft = lobject_check(L, -1);
+    boundarycells->bottomleft = lobject_get_unchecked(bottomleft);
+    lua_pop(L, 1);
+    // left
+    lua_getfield(L, 2, "left");
+    struct lobject* left = lobject_check(L, -1);
+    boundarycells->left = lobject_get_unchecked(left);
+    lua_pop(L, 1);
+    // top-left
+    lua_getfield(L, 2, "topleft");
+    struct lobject* topleft = lobject_check(L, -1);
+    boundarycells->topleft = lobject_get_unchecked(topleft);
+    lua_pop(L, 1);
+    // bottom-right
+    lua_getfield(L, 2, "bottomright");
+    struct lobject* bottomright = lobject_check(L, -1);
+    boundarycells->bottomright = lobject_get_unchecked(bottomright);
+    lua_pop(L, 1);
+    // right
+    lua_getfield(L, 2, "right");
+    struct lobject* right = lobject_check(L, -1);
+    boundarycells->right = lobject_get_unchecked(right);
+    lua_pop(L, 1);
+    // top-right
+    lua_getfield(L, 2, "topright");
+    struct lobject* topright = lobject_check(L, -1);
+    boundarycells->topright = lobject_get_unchecked(topright);
+    lua_pop(L, 1);
+    // bottom
+    lua_getfield(L, 2, "bottom");
+    struct lobject* bottom = lobject_check(L, -1);
+    boundarycells->bottom = lobject_get_unchecked(bottom);
+    lua_pop(L, 1);
+    // center
+    lua_getfield(L, 2, "center");
+    struct lobject* center = lobject_check(L, -1);
+    boundarycells->center = lobject_get_unchecked(center);
+    lua_pop(L, 1);
+    // top
+    lua_getfield(L, 2, "top");
+    struct lobject* top = lobject_check(L, -1);
+    boundarycells->top = lobject_get_unchecked(top);
+    lua_pop(L, 1);
+
+    // read grid
+    lua_len(L, 4);
+    size_t gridlen = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    struct vector* grid = vector_create(32, vector_destroy);
+    for(size_t i = 1; i <= gridlen; ++i)
+    {
+        lua_rawgeti(L, 4, i);
+        lua_len(L, -1);
+        size_t rowlen = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        struct vector* row = vector_create(rowlen, free);
+        for(size_t j = 1; j <= rowlen; ++j)
+        {
+            lua_rawgeti(L, -1, j);
+            int* value = malloc(sizeof(*value));
+            *value = luaL_checkinteger(L, -1);
+            lua_pop(L, 1);
+            vector_append(row, value);
+        }
+        lua_pop(L, 1);
+        vector_append(grid, row);
+    }
+
+    placement_place_boundary_grid(lobject_get(L, toplevel), boundarycells, lpoint_get(basept), grid, pitch, basename);
+    return 0;
+}
+
 int lplacement_place_at_origins(lua_State* L)
 {
     lcheck_check_numargs1(L, 4, "placement.place_at_origins");
@@ -137,7 +245,8 @@ int lplacement_place_within_boundary(lua_State* L)
 
     struct simple_polygon* targetarea;
     struct polygon* excludes;
-    lplacement_create_target_exclude_vectors(L, &targetarea, &excludes, 4);
+    targetarea = lutil_create_simple_polygon(L, 4);
+    lplacement_create_exclude_vectors(L, &excludes, 5);
 
     struct vector* children = placement_place_within_boundary(lobject_get(L, toplevel), lobject_get_unchecked(cell), basename, targetarea, excludes);
     _cleanup_target_exclude_vector(targetarea, excludes);
@@ -171,7 +280,8 @@ int lplacement_place_within_boundary_merge(lua_State* L)
     }
     struct simple_polygon* targetarea;
     struct polygon* excludes;
-    lplacement_create_target_exclude_vectors(L, &targetarea, &excludes, 3);
+    targetarea = lutil_create_simple_polygon(L, 3);
+    lplacement_create_exclude_vectors(L, &excludes, 4);
 
     placement_place_within_boundary_merge(lobject_get(L, toplevel), lobject_get_unchecked(cell), targetarea, excludes);
     _cleanup_target_exclude_vector(targetarea, excludes);
@@ -356,6 +466,8 @@ int open_lplacement_lib(lua_State* L)
     // set methods
     static const luaL_Reg metafuncs[] =
     {
+        { "calculate_grid",                         lplacement_calculate_grid                    },
+        { "place_boundary_grid",                    lplacement_place_boundary_grid               },
         { "place_at_origins",                       lplacement_place_at_origins                  },
         { "place_on_grid",                          lplacement_place_on_grid                     },
         { "place_within_boundary",                  lplacement_place_within_boundary             },

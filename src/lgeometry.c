@@ -600,9 +600,9 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     coordinate_t ystartshift = luaL_checkinteger(L, 8);
 
     // read target area and excludes
-    struct simple_polygon* targetarea;
+    struct simple_polygon* targetarea = lutil_create_simple_polygon(L, 9);
     struct polygon* excludes;
-    lplacement_create_target_exclude_vectors(L, &targetarea, &excludes, 9);
+    lplacement_create_exclude_vectors(L, &excludes, 10);
 
     // calculate origins
     struct vector* origins = placement_calculate_origins_centered(width, height, xpitch, ypitch, xstartshift, ystartshift, targetarea, excludes);

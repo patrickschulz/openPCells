@@ -79,6 +79,178 @@ static void _get_minmax(const struct simple_polygon* targetarea, coordinate_t* m
     simple_polygon_const_iterator_destroy(it);
 }
 
+struct vector* placement_calculate_grid(
+    const point_t* bl,
+    const point_t* tr,
+    coordinate_t pitch,
+    const struct polygon* excludes
+)
+{
+    struct vector* grid = vector_create(32, vector_destroy);
+    coordinate_t xstart = point_getx(bl);
+    coordinate_t ystart = point_gety(bl);
+    coordinate_t xend = point_getx(tr);
+    coordinate_t yend = point_gety(tr);
+    coordinate_t y = ystart;
+    while(y <= yend)
+    {
+        coordinate_t x = xstart;
+        struct vector* row = vector_create(32, free);
+        while(x <= xend)
+        {
+            int* value = malloc(sizeof(*value));
+            if(excludes)
+            {
+                *value = polygon_is_point_in_polygon(excludes, x, y) != 1;
+            }
+            else
+            {
+                *value = 1;
+            }
+            vector_append(row, value);
+            x = x + pitch;
+        }
+        vector_append(grid, row);
+        y = y + pitch;
+    }
+    return grid;
+}
+
+static struct object* _place_child(struct object* toplevel, struct object* cell, const point_t* origin, const char* basename, int i)
+{
+    size_t len = strlen(basename) + 1 + util_num_digits(i);
+    char* name = malloc(len + 1);
+    if(!name)
+    {
+        return NULL;
+    }
+    sprintf(name, "%s_%d", basename, i);
+    struct object* child = object_add_child(toplevel, cell, name);
+    object_move_point_to_origin(child, origin);
+    free(name);
+    return child;
+}
+
+static int _has_neighbour(struct vector* grid, int rownum, int colnum)
+{
+    if(rownum >= 0 && rownum < (int)vector_size(grid))
+    {
+        struct vector* row = vector_get(grid, rownum);
+        if(colnum >= 0 && colnum < (int)vector_size(row))
+        {
+            int* entry = vector_get(row, colnum);
+            if(*entry)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+struct vector* placement_place_boundary_grid(
+    struct object* toplevel,
+    struct boundary_celltable* boundary_celltable,
+    const point_t* basept,
+    struct vector* grid,
+    coordinate_t pitch,
+    const char* basename
+)
+{
+    size_t counter = 1;
+    for(int rownum = 0; rownum < (int)vector_size(grid); ++rownum)
+    {
+        struct vector* row = vector_get(grid, rownum);
+        for(int colnum = 0; colnum < (int)vector_size(row); ++colnum)
+        {
+            int* value = vector_get(row, colnum);
+            struct object* cell = boundary_celltable->center;
+            if(_has_neighbour(grid, rownum - 1, colnum) &&
+               _has_neighbour(grid, rownum, colnum - 1) &&
+               _has_neighbour(grid, rownum + 1, colnum) &&
+               _has_neighbour(grid, rownum, colnum + 1))
+            {
+                cell = boundary_celltable->center;
+            }
+            else if(!_has_neighbour(grid, rownum - 1, colnum) &&
+                    !_has_neighbour(grid, rownum, colnum - 1) &&
+                    _has_neighbour(grid, rownum + 1, colnum) &&
+                    _has_neighbour(grid, rownum, colnum + 1))
+            {
+                cell = boundary_celltable->bottomleft;
+            }
+            else if(_has_neighbour(grid, rownum - 1, colnum) &&
+                    !_has_neighbour(grid, rownum, colnum - 1) &&
+                    _has_neighbour(grid, rownum + 1, colnum) &&
+                    _has_neighbour(grid, rownum, colnum + 1))
+            {
+                cell = boundary_celltable->left;
+            }
+            else if(_has_neighbour(grid, rownum - 1, colnum) &&
+                    !_has_neighbour(grid, rownum, colnum - 1) &&
+                    !_has_neighbour(grid, rownum + 1, colnum) &&
+                    _has_neighbour(grid, rownum, colnum + 1))
+            {
+                cell = boundary_celltable->topleft;
+            }
+            else if(!_has_neighbour(grid, rownum - 1, colnum) &&
+                    _has_neighbour(grid, rownum, colnum - 1) &&
+                    _has_neighbour(grid, rownum + 1, colnum) &&
+                    !_has_neighbour(grid, rownum, colnum + 1))
+            {
+                cell = boundary_celltable->bottomright;
+            }
+            else if(_has_neighbour(grid, rownum - 1, colnum) &&
+                    _has_neighbour(grid, rownum, colnum - 1) &&
+                    _has_neighbour(grid, rownum + 1, colnum) &&
+                    !_has_neighbour(grid, rownum, colnum + 1))
+            {
+                cell = boundary_celltable->right;
+            }
+            else if(_has_neighbour(grid, rownum - 1, colnum) &&
+                    _has_neighbour(grid, rownum, colnum - 1) &&
+                    !_has_neighbour(grid, rownum + 1, colnum) &&
+                    !_has_neighbour(grid, rownum, colnum + 1))
+            {
+                cell = boundary_celltable->topright;
+            }
+            else if(!_has_neighbour(grid, rownum - 1, colnum) &&
+                    _has_neighbour(grid, rownum, colnum - 1) &&
+                    _has_neighbour(grid, rownum + 1, colnum) &&
+                    _has_neighbour(grid, rownum, colnum + 1))
+            {
+                cell = boundary_celltable->bottom;
+            }
+            else if(_has_neighbour(grid, rownum - 1, colnum) &&
+                    _has_neighbour(grid, rownum, colnum - 1) &&
+                    !_has_neighbour(grid, rownum + 1, colnum) &&
+                    _has_neighbour(grid, rownum, colnum + 1))
+            {
+                cell = boundary_celltable->top;
+            }
+            point_t* origin = point_copy(basept);
+            point_translate(origin,  colnum * pitch, rownum * pitch);
+            if(*value)
+            {
+                struct object* child = _place_child(toplevel, cell, origin, basename, counter);
+            }
+            counter = counter + 1;
+        }
+    }
+    return NULL;
+}
+
 struct vector* placement_calculate_origins(
     ucoordinate_t width, ucoordinate_t height,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
@@ -157,21 +329,6 @@ struct vector* placement_calculate_origins_centered(
         x = x + xpitch;
     }
     return origins;
-}
-
-static struct object* _place_child(struct object* toplevel, struct object* cell, const point_t* origin, const char* basename, int i)
-{
-    size_t len = strlen(basename) + 1 + util_num_digits(i);
-    char* name = malloc(len + 1);
-    if(!name)
-    {
-        return NULL;
-    }
-    sprintf(name, "%s_%d", basename, i);
-    struct object* child = object_add_child(toplevel, cell, name);
-    object_move_point_to_origin(child, origin);
-    free(name);
-    return child;
 }
 
 void placement_place_at_origins(struct object* toplevel, struct object* cell, const struct vector* origins, const char* basename, struct vector* children)

@@ -5,6 +5,34 @@
 #include "polygon.h"
 #include "vector.h"
 
+struct boundary_celltable {
+    struct object* bottomleft;
+    struct object* left;
+    struct object* topleft;
+    struct object* bottom;
+    struct object* center;
+    struct object* top;
+    struct object* bottomright;
+    struct object* right;
+    struct object* topright;
+};
+
+struct vector* placement_calculate_grid(
+    const point_t* bl,
+    const point_t* tr,
+    coordinate_t pitch,
+    const struct polygon* excludes
+);
+
+struct vector* placement_place_boundary_grid(
+    struct object* toplevel,
+    struct boundary_celltable* boundary_celltable,
+    const point_t* basept,
+    struct vector* grid,
+    coordinate_t pitch,
+    const char* basename
+);
+
 struct vector* placement_calculate_origins(
     ucoordinate_t width, ucoordinate_t height,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
