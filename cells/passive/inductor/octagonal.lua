@@ -254,6 +254,10 @@ function layout(inductor, _P)
             point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension)
         )
     end
+    inductor:add_area_anchor_bltr("boundary",
+        point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension),
+        point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension)
+    )
 
     -- boundary
     if _P.rectangularboundary then

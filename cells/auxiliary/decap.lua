@@ -66,12 +66,37 @@ function layout(decap, _P)
     if _P.drawmesh and not _P.fillmesh then
         for i = 1, #_P.meshmetals do
             if _P.meshmetals[i] == _P.interconnectmetal then
-                geometry.ring(decap, generics.metal(_P.meshmetals[i]), point.create(0, 0), _P.cellsize + 2 * _P.meshmetalwidths[i], _P.cellsize + 2 * _P.meshmetalwidths[i], 2 * _P.meshmetalwidths[i])
+                geometry.rectanglebltr(decap, generics.metal(_P.meshmetals[i]),
+                    point.create(-_P.meshmetalwidths[i], -_P.cellsize / 2 - _P.meshmetalwidths[i]),
+                    point.create( _P.meshmetalwidths[i],  _P.cellsize / 2 + _P.meshmetalwidths[i])
+                )
+                geometry.rectanglebltr(decap, generics.metal(_P.meshmetals[i]),
+                    point.create(-_P.cellsize / 2 - _P.meshmetalwidths[i], -_P.cellsize / 2 - _P.meshmetalwidths[i]),
+                    point.create(-_P.cellsize / 2 + _P.meshmetalwidths[i],  _P.cellsize / 2 + _P.meshmetalwidths[i])
+                )
+                geometry.rectanglebltr(decap, generics.metal(_P.meshmetals[i]),
+                    point.create(_P.cellsize / 2 - _P.meshmetalwidths[i], -_P.cellsize / 2 - _P.meshmetalwidths[i]),
+                    point.create(_P.cellsize / 2 + _P.meshmetalwidths[i],  _P.cellsize / 2 + _P.meshmetalwidths[i])
+                )
             else
                 geometry.ring(decap, generics.metal(_P.meshmetals[i]), point.create(0, 0), _P.cellsize, _P.cellsize, _P.meshmetalwidths[i])
             end
-            if i < #_P.meshmetals then -- vias between layers of mesh
-                if _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
+        end
+        for i = 1, #_P.meshmetals - 1 do
+            if _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
+                if _P.meshmetals[i] + 1 == _P.interconnectmetal then
+                    local mwidth = math.min(_P.meshmetalwidths[i], _P.meshmetalwidths[i + 1])
+                    geometry.viabarebltr(decap, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                        point.create(-mwidth / 2 + mwidth / 2 - _P.cellsize / 2, -_P.cellsize / 2),
+                        point.create( mwidth / 2 + mwidth / 2 - _P.cellsize / 2,  _P.cellsize / 2),
+                        { equal_pitch = true }
+                    )
+                    geometry.viabarebltr(decap, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                        point.create(-mwidth / 2 - mwidth / 2 + _P.cellsize / 2, -_P.cellsize / 2),
+                        point.create( mwidth / 2 - mwidth / 2 + _P.cellsize / 2,  _P.cellsize / 2),
+                        { equal_pitch = true }
+                    )
+                else
                     local mwidth = math.min(_P.meshmetalwidths[i], _P.meshmetalwidths[i + 1])
                     geometry.viabarebltr(decap, _P.meshmetals[i], _P.meshmetals[i] + 1,
                         point.create(-mwidth / 2 + mwidth / 2 - _P.cellsize / 2, -_P.cellsize / 2),
@@ -95,7 +120,9 @@ function layout(decap, _P)
                     )
                 end
             end
-            -- fill exclude
+        end
+        -- fill exclude
+        for i = 1, #_P.meshmetals - 1 do
             if _P.drawfillexcludes then
                 geometry.rectanglebltr(decap, generics.metalexclude(_P.meshmetals[i]),
                     point.create(-_P.cellsize / 2, -_P.cellsize / 2),

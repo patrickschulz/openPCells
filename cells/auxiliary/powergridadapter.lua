@@ -7,6 +7,8 @@ function parameters()
         { "interconnectmetal", 8 },
         { "interconnectwidth", 2500 },
         { "interconnectnumlines", 3 },
+        { "drawvddlines", true },
+        { "drawlowermetalgrid", true },
         { "drawleft", true },
         { "drawright", true },
         { "drawtop", true },
@@ -15,6 +17,10 @@ function parameters()
         { "adaptright", false },
         { "adapttop", false },
         { "adaptbottom", false },
+        { "leftoffsetvalue", 3 },
+        { "rightoffsetvalue", 3 },
+        { "topoffsetvalue", 3 },
+        { "bottomoffsetvalue", 3 },
         { "extendleft", false },
         { "extendright", false },
         { "extendtop", false },
@@ -45,46 +51,83 @@ function layout(adapter, _P)
     end
     local xpitch = _P.lmwidth + _P.lmspace
     local ypitch = _P.lmwidth + _P.lmspace
-    local leftoffset = _P.adaptleft and 2 or 0
-    local rightoffset = _P.adaptright and 2 or 0
-    local topoffset = _P.adapttop and 2 or 0
-    local bottomoffset = _P.adaptbottom and 2 or 0
+    local leftoffset = _P.adaptleft and _P.leftoffsetvalue or 0
+    local rightoffset = _P.adaptright and _P.rightoffsetvalue or 0
+    local topoffset = _P.adapttop and _P.topoffsetvalue or 0
+    local bottomoffset = _P.adaptbottom and _P.bottomoffsetvalue or 0
     -- metal lines
-    for m = 1, technology.resolve_metal(_P.interconnectmetal) - 1, 2 do
+    if _P.drawlowermetalgrid then
+        for m = 1, technology.resolve_metal(_P.interconnectmetal) - 1, 2 do
+            for i = 1 + bottomoffset, lmnumlines - topoffset do
+                local xoffset = -lmnumlines * xpitch / 2
+                local yoffset = -lmnumlines * ypitch / 2 + _P.lmspace / 2
+                local xl, xr
+                if i % 2 == 1 then
+                    xl = xoffset
+                    xr = xoffset + lmnumlines * xpitch
+                else
+                    xl = xoffset + leftoffset * xpitch
+                    xr = xoffset + (lmnumlines - rightoffset) * xpitch
+                end
+                if i % 2 == 1 then -- vss lines
+                    geometry.rectanglebltr(
+                        adapter, generics.metal(m),
+                        point.create(xl, (i - 1) * ypitch + yoffset),
+                        point.create(xr, (i - 1) * ypitch + yoffset + _P.lmwidth)
+                    )
+                else -- vdd lines
+                    if _P.drawvddlines then
+                        geometry.rectanglebltr(
+                            adapter, generics.metal(m),
+                            point.create(xl, (i - 1) * ypitch + yoffset),
+                            point.create(xr, (i - 1) * ypitch + yoffset + _P.lmwidth)
+                        )
+                    end
+                end
+            end
+        end
+        for m = 2, technology.resolve_metal(_P.interconnectmetal) - 2, 2 do
+            for i = 1 + leftoffset, lmnumlines - rightoffset do
+                local xoffset = -lmnumlines * xpitch / 2 + _P.lmspace / 2
+                local yoffset = -lmnumlines * ypitch / 2
+                local yb, yt
+                if i % 2 == 1 then
+                    yb = yoffset
+                    yt = yoffset + lmnumlines * ypitch
+                else
+                    yb = yoffset + bottomoffset * ypitch
+                    yt = yoffset + (lmnumlines - topoffset) * ypitch
+                end
+                if i % 2 == 1 then -- vss lines
+                    geometry.rectanglebltr(
+                        adapter, generics.metal(m),
+                        point.create((i - 1) * xpitch + xoffset,              yb),
+                        point.create((i - 1) * xpitch + xoffset + _P.lmwidth, yt)
+                    )
+                else -- vdd lines
+                    if _P.drawvddlines then
+                        geometry.rectanglebltr(
+                            adapter, generics.metal(m),
+                            point.create((i - 1) * xpitch + xoffset,              yb),
+                            point.create((i - 1) * xpitch + xoffset + _P.lmwidth, yt)
+                        )
+                    end
+                end
+            end
+        end
+        -- vias
         for i = 1 + bottomoffset, lmnumlines - topoffset do
-            local xoffset = -lmnumlines * xpitch / 2
-            local yoffset = -lmnumlines * ypitch / 2 + _P.lmspace / 2
-            geometry.rectanglebltr(
-                adapter, generics.metal(m),
-                point.create(xoffset,                                          (i - 1) * ypitch + yoffset),
-                point.create(xoffset + lmnumlines * (_P.lmwidth + _P.lmspace), (i - 1) * ypitch + yoffset + _P.lmwidth)
-            )
-        end
-    end
-    for m = 2, technology.resolve_metal(_P.interconnectmetal) - 2, 2 do
-        for i = 1 + leftoffset, lmnumlines - rightoffset do
-            local xoffset = -lmnumlines * xpitch / 2 + _P.lmspace / 2
-            local yoffset = -lmnumlines * ypitch / 2
-            geometry.rectanglebltr(
-                adapter, generics.metal(m),
-                point.create((i - 1) * xpitch + xoffset,              yoffset + bottomoffset * (_P.lmwidth + _P.lmspace)),
-                point.create((i - 1) * xpitch + xoffset + _P.lmwidth, yoffset + (lmnumlines - topoffset) * (_P.lmwidth + _P.lmspace))
-            )
-        end
-    end
-
-    -- vias
-    for i = 1 + bottomoffset, lmnumlines - topoffset do
-        for j = 1 + leftoffset, lmnumlines - rightoffset do
-            local xoffset = -lmnumlines * xpitch / 2 + _P.lmspace / 2
-            local yoffset = -lmnumlines * ypitch / 2 + _P.lmspace / 2
-            local x = (j - 1) * xpitch + xoffset
-            local y = (i - 1) * ypitch + yoffset
-            if (i % 2 == 0) == (j % 2 == 0) then
-                geometry.viabarebltr(adapter, 1, technology.resolve_metal(_P.interconnectmetal) - 1,
-                    point.create(x + 0,          y + 0),
-                    point.create(x + _P.lmwidth, y + _P.lmwidth)
-                )
+            for j = 1 + leftoffset, lmnumlines - rightoffset do
+                local xoffset = -lmnumlines * xpitch / 2 + _P.lmspace / 2
+                local yoffset = -lmnumlines * ypitch / 2 + _P.lmspace / 2
+                local x = (j - 1) * xpitch + xoffset
+                local y = (i - 1) * ypitch + yoffset
+                if (i % 2 == 0) == (j % 2 == 0) then
+                    geometry.viabarebltr(adapter, 1, technology.resolve_metal(_P.interconnectmetal) - 1,
+                        point.create(x + 0,          y + 0),
+                        point.create(x + _P.lmwidth, y + _P.lmwidth)
+                    )
+                end
             end
         end
     end
@@ -126,8 +169,14 @@ function layout(adapter, _P)
         local vddwidth = _P.gridmetalwidths[i].vdd
         entry.vddleft = -_P.cellsize / 2 - vsswidth / 2
         entry.vddright = _P.cellsize / 2 + vsswidth / 2
+        if _P.extendleft then
+            entry.vddleft = -_P.cellsize + vddwidth / 2
+        end
         if not _P.drawleft then
             entry.vddleft = -vddwidth / 2
+        end
+        if _P.extendright then
+            entry.vddright = _P.cellsize - vddwidth / 2
         end
         if not _P.drawright then
             entry.vddright = vddwidth / 2
@@ -149,6 +198,9 @@ function layout(adapter, _P)
         end
         if not _P.drawbottom then
             entry.vddbottom = -vddwidth / 2
+        end
+        if _P.extendtop then
+            entry.vddbottom = _P.cellsize - vddwidth / 2
         end
         if not _P.drawtop then
             entry.vddtop = vddwidth / 2
@@ -173,13 +225,13 @@ function layout(adapter, _P)
     for i = 1 + bottomoffset, lmnumlines - topoffset do
         if i % 2 == 1 then
             local yshift = (i - 1) * (_P.lmwidth + _P.lmspace)
-            if not _P.restrictvss or _P.drawleft then
+            if not _P.adaptleft and (not _P.restrictvss or _P.drawleft) then
                 geometry.viabltr(adapter, _P.interconnectmetal - 1, _P.interconnectmetal,
                     point.create(-_P.cellsize / 2 - _P.interconnectwidth / 2, ystart + yshift - _P.lmwidth / 2),
                     point.create(-_P.cellsize / 2 + _P.interconnectwidth / 2, ystart + yshift + _P.lmwidth / 2)
                 )
             end
-            if not _P.restrictvss or _P.drawright then
+            if not _P.adaptright and (not _P.restrictvss or _P.drawright) then
                 geometry.viabltr(adapter, _P.interconnectmetal - 1, _P.interconnectmetal,
                     point.create(_P.cellsize / 2 - _P.interconnectwidth / 2, ystart + yshift - _P.lmwidth / 2),
                     point.create(_P.cellsize / 2 + _P.interconnectwidth / 2, ystart + yshift + _P.lmwidth / 2)
@@ -199,21 +251,21 @@ function layout(adapter, _P)
     -- left vss interconnectmetal line 
     if not _P.restrictvss or _P.drawleft then
         geometry.rectanglebltr(adapter, generics.metal(_P.interconnectmetal),
-            point.create(-_P.cellsize / 2 - _P.interconnectwidth / 2, adaptsizes[1].vssbottom),
-            point.create(-_P.cellsize / 2 + _P.interconnectwidth / 2, adaptsizes[1].vsstop)
+            point.create(-_P.cellsize / 2 - _P.interconnectwidth / 2, drawingsizes[1].vddbottom),
+            point.create(-_P.cellsize / 2 + _P.interconnectwidth / 2, drawingsizes[1].vddtop)
         )
     end
     -- right vss interconnectmetal line 
     if not _P.restrictvss or _P.drawright then
         geometry.rectanglebltr(adapter, generics.metal(_P.interconnectmetal),
-            point.create(_P.cellsize / 2 - _P.interconnectwidth / 2, adaptsizes[1].vssbottom),
-            point.create(_P.cellsize / 2 + _P.interconnectwidth / 2, adaptsizes[1].vsstop)
+            point.create(_P.cellsize / 2 - _P.interconnectwidth / 2, drawingsizes[1].vddbottom),
+            point.create(_P.cellsize / 2 + _P.interconnectwidth / 2, drawingsizes[1].vddtop)
         )
     end
     -- vdd interconnect line
     geometry.rectanglebltr(adapter, generics.metal(_P.interconnectmetal),
-        point.create(-_P.interconnectwidth / 2, adaptsizes[1].vddbottom),
-        point.create( _P.interconnectwidth / 2, adaptsizes[1].vddtop)
+        point.create(-_P.interconnectwidth / 2, drawingsizes[1].vddbottom),
+        point.create( _P.interconnectwidth / 2, drawingsizes[1].vddtop)
     )
     -- vss vias
     if not _P.restrictvss or (_P.drawleft and _P.drawbottom) then
