@@ -250,10 +250,14 @@ function layout(cmos, _P)
                 leftndrainarea = nfet:get_area_anchor("sourcedrainactiveleft")
                 leftpdrainarea = pfet:get_area_anchor("sourcedrainactiveleft")
                 firstgatearea = nfet:get_area_anchor("gate1")
+                leftnmoswell = nfet:get_area_anchor("well")
+                leftpmoswell = pfet:get_area_anchor("well")
             end
             if i == fingers then
                 rightndrainarea = nfet:get_area_anchor("sourcedrainactiveright")
                 rightpdrainarea = pfet:get_area_anchor("sourcedrainactiveright")
+                rightnmoswell = nfet:get_area_anchor("well")
+                rightpmoswell = pfet:get_area_anchor("well")
             end
         end
         nopt.drawtopgatecut = true
@@ -285,6 +289,16 @@ function layout(cmos, _P)
             cmos:get_area_anchor("PRp").tr
         )
     end
+
+    -- well anchors
+    cmos:add_area_anchor_bltr("nmos_well",
+        leftnmoswell.bl,
+        rightnmoswell.tr
+    )
+    cmos:add_area_anchor_bltr("pmos_well",
+        leftpmoswell.bl,
+        rightpmoswell.tr
+    )
 
     -- well taps (can't use the mosfet pcell well taps, as only single fingers are instantiated)
     local welltapwidth = rightpdrainarea.tr:getx() - leftpdrainarea.tl:getx()

@@ -186,6 +186,8 @@ function layout(inverter, _P)
 
     inverter:inherit_area_anchor(cmos, "PRp")
     inverter:inherit_area_anchor(cmos, "PRn")
+    inverter:inherit_area_anchor(cmos, "nmos_well")
+    inverter:inherit_area_anchor(cmos, "pmos_well")
 
     inverter:add_area_anchor_bltr("input",
         cmos:get_area_anchor(string.format("G%d", 1 + dummyoffset)).bl,
