@@ -213,22 +213,18 @@ void transformationmatrix_apply_transformation_xy(const struct transformationmat
     *y = M(matrix, 3) * xx + M(matrix, 4) * yy + M(matrix, 5);
 }
 
-void transformationmatrix_apply_inverse_transformation(const struct transformationmatrix* matrix, point_t* pt)
-{
-    coordinate_t x = pt->x;
-    coordinate_t y = pt->y;
-    coordinate_t det = M(matrix, 4) * M(matrix, 4) - M(matrix, 1) * M(matrix, 3);
-    pt->x = ( M(matrix, 4) * x + -M(matrix, 1) * y + ( M(matrix, 1) * M(matrix, 5) - M(matrix, 2) * M(matrix, 4))) / det;
-    pt->y = (-M(matrix, 3) * x +  M(matrix, 0) * y + (-M(matrix, 0) * M(matrix, 5) - M(matrix, 2) * M(matrix, 3))) / det;
-}
-
 void transformationmatrix_apply_inverse_transformation_xy(const struct transformationmatrix* matrix, coordinate_t* ptx, coordinate_t* pty)
 {
     coordinate_t x = *ptx;
     coordinate_t y = *pty;
-    coordinate_t det = M(matrix, 4) * M(matrix, 4) - M(matrix, 1) * M(matrix, 3);
-    *ptx = ( M(matrix, 4) * x + -M(matrix, 1) * y + ( M(matrix, 1) * M(matrix, 5) - M(matrix, 2) * M(matrix, 4))) / det;
-    *pty = (-M(matrix, 3) * x +  M(matrix, 0) * y + (-M(matrix, 0) * M(matrix, 5) - M(matrix, 2) * M(matrix, 3))) / det;
+    coordinate_t det = M(matrix, 0) * M(matrix, 4) - M(matrix, 1) * M(matrix, 3);
+    *ptx = M(matrix, 4) / det * x - M(matrix, 1) / det * y + (M(matrix, 1) * M(matrix, 5) - M(matrix, 2) * M(matrix, 4)) / det;
+    *pty = -M(matrix, 3) / det * x + M(matrix, 0) / det * y - (M(matrix, 0) * M(matrix, 5) - M(matrix, 2) * M(matrix, 1)) / det;
+}
+
+void transformationmatrix_apply_inverse_transformation(const struct transformationmatrix* matrix, point_t* pt)
+{
+    transformationmatrix_apply_inverse_transformation_xy(matrix, &pt->x, &pt->y);
 }
 
 const coordinate_t* transformationmatrix_get_coefficients(const struct transformationmatrix* matrix)
