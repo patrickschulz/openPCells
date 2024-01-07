@@ -78,8 +78,9 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
     check.arg_func(5, "holetr", "point", holetr, point.is_point)
     check.arg(6, "xspace", "number", xspace)
     check.arg(7, "yspace", "number", yspace)
-    check.arg(8, "anchorprefix", "string", anchorprefix)
-    check.arg_optional(9, "options", "table", options)
+    check.arg(8, "welloffset", "number", welloffset)
+    check.arg(9, "anchorprefix", "string", anchorprefix)
+    check.arg_optional(10, "options", "table", options)
     check.reset_function_name()
     local guardring = pcell.create_layout(
         "auxiliary/guardring",
