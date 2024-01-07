@@ -69,7 +69,7 @@ function M.place_guardring_quantized(cell, bl, tr, xspace, yspace, basesize, anc
     end
 end
 
-function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, welloffset, anchorprefix, options)
+function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, wellxoffset, wellyoffset, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring_with_hole")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -78,9 +78,10 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
     check.arg_func(5, "holetr", "point", holetr, point.is_point)
     check.arg(6, "xspace", "number", xspace)
     check.arg(7, "yspace", "number", yspace)
-    check.arg(8, "welloffset", "number", welloffset)
-    check.arg(9, "anchorprefix", "string", anchorprefix)
-    check.arg_optional(10, "options", "table", options)
+    check.arg(8, "wellxoffset", "number", wellxoffset)
+    check.arg(9, "wellyoffset", "number", wellyoffset)
+    check.arg(10, "anchorprefix", "string", anchorprefix)
+    check.arg_optional(11, "options", "table", options)
     check.reset_function_name()
     local guardring = pcell.create_layout(
         "auxiliary/guardring",
@@ -90,10 +91,10 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
             holeheight = point.ydistance_abs(bl, tr) + 2 * yspace,
             fillwell = true,
             fillwelldrawhole = true,
-            fillwellholeoffsettop = yspace - point.ydistance(holetr, tr) - welloffset,
-            fillwellholeoffsetbottom = yspace - point.ydistance(bl, holebl) - welloffset,
-            fillwellholeoffsetleft = xspace - point.xdistance(bl, holebl) - welloffset,
-            fillwellholeoffsetright = xspace - point.xdistance(holetr, tr) - welloffset,
+            fillwellholeoffsettop = yspace - point.ydistance(holetr, tr) - welyloffset,
+            fillwellholeoffsetbottom = yspace - point.ydistance(bl, holebl) - wellyoffset,
+            fillwellholeoffsetleft = xspace - point.xdistance(bl, holebl) - wellxoffset,
+            fillwellholeoffsetright = xspace - point.xdistance(holetr, tr) - wellxoffset,
         })
     )
     guardring:move_point(guardring:get_area_anchor("innerboundary").bl, bl)
@@ -106,7 +107,7 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
     end
 end
 
-function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xspace, yspace, basesize, welloffset, anchorprefix, options)
+function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xspace, yspace, basesize, wellxoffset, wellyoffset, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring_with_hole")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -116,7 +117,9 @@ function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xsp
     check.arg(6, "xspace", "number", xspace)
     check.arg(7, "yspace", "number", yspace)
     check.arg(8, "basesize", "number", basesize)
-    check.arg(9, "anchorprefix", "string", anchorprefix)
+    check.arg(9, "wellxoffset", "number", wellxoffset)
+    check.arg(10, "wellyoffset", "number", wellyoffset)
+    check.arg(11, "anchorprefix", "string", anchorprefix)
     check.arg_optional(10, "options", "table", options)
     check.reset_function_name()
     local targetwidth = point.xdistance_abs(bl, tr)
@@ -131,10 +134,10 @@ function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xsp
             holeheight = holeheight,
             fillwell = true,
             fillwelldrawhole = true,
-            fillwellholeoffsettop = yspace - point.ydistance(holetr, tr) - welloffset,
-            fillwellholeoffsetbottom = yspace - point.ydistance(bl, holebl) - welloffset,
-            fillwellholeoffsetleft = xspace - point.xdistance(bl, holebl) - welloffset,
-            fillwellholeoffsetright = xspace - point.xdistance(holetr, tr) - welloffset,
+            fillwellholeoffsettop = yspace - point.ydistance(holetr, tr) - wellyoffset,
+            fillwellholeoffsetbottom = yspace - point.ydistance(bl, holebl) - wellyoffset,
+            fillwellholeoffsetleft = xspace - point.xdistance(bl, holebl) - wellxoffset,
+            fillwellholeoffsetright = xspace - point.xdistance(holetr, tr) - wellxoffset,
         })
     )
     guardring:move_point(guardring:get_area_anchor("innerboundary").bl, bl)
