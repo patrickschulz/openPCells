@@ -643,19 +643,19 @@ static int _write_shapes(struct export_writer* writer, const struct object* cell
         {
             ret = _write_cell_shape_rectangle(writer, shape, trans);
         }
-        if(shape_is_polygon(shape))
+        else if(shape_is_polygon(shape))
         {
             ret = _write_cell_shape_polygon(writer, shape, trans);
         }
-        if(shape_is_triangulated_polygon(shape))
+        else if(shape_is_triangulated_polygon(shape))
         {
             ret = _write_cell_shape_triangulated_polygon(writer, shape, trans);
         }
-        if(shape_is_path(shape))
+        else if(shape_is_path(shape))
         {
             ret = _write_cell_shape_path(writer, shape, trans);
         }
-        if(shape_is_curve(shape))
+        else if(shape_is_curve(shape))
         {
             ret = _write_cell_shape_curve(writer, shape, trans);
         }
