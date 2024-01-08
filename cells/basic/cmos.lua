@@ -427,12 +427,16 @@ function layout(cmos, _P)
             end
             if _P.gatecontactpos[i] ~= "dummy" then
                 if _P.drawgatecut and not _P.drawgatecuteverywhere then
-                geometry.rectanglebltr(
-                    cmos, generics.other("gatecut"),
-                    point.create(x, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 - _P.cutheight / 2),
-                    point.create(x + gatepitch, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 + _P.cutheight / 2),
-                    1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
-                )
+                    geometry.rectanglebltr(
+                        cmos, generics.other("gatecut"),
+                        point.create(x + (_P.gatelength - _P.cutwidth) / 2, -_P.npowerspace - _P.cutheight / 2),
+                        point.create(x + (_P.gatelength + _P.cutwidth) / 2, -_P.npowerspace + _P.cutheight / 2)
+                    )
+                    geometry.rectanglebltr(
+                        cmos, generics.other("gatecut"),
+                        point.create(x + (_P.gatelength - _P.cutwidth) / 2, _P.nwidth + _P.pwidth + _P.separation + _P.ppowerspace - _P.cutheight / 2),
+                        point.create(x + (_P.gatelength + _P.cutwidth) / 2 + gatepitch, _P.nwidth + _P.pwidth + _P.separation + _P.ppowerspace + _P.cutheight / 2)
+                    )
                 end
             end
         end
