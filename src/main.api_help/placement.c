@@ -219,7 +219,7 @@
     vector_append(entries, _make_api_entry(
         "place_within_boundary",
         MODULE_PLACEMENT,
-        "automatically place a cell multiple times in a toplevel cell. The cell instances will be placed in the given target area and given names based on the given basename. An optional table can hold list of points (polygons), which describe areas that should not be filled. The x- and y-pitch of the cell are inferred from the alignment box. The function returns all plced children in a table.",
+        "automatically place a cell multiple times in a toplevel cell. The cell instances will be placed in the given target area and given names based on the given basename. An optional table can hold list of points (polygons), which describe areas that should not be filled. The x- and y-pitch of the cell are inferred from the alignment box. The function returns all placed children in a table.",
         "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\nplacement.place_with_boundary(toplevel, filler, \"fill\", targetarea, excludes)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
