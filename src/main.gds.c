@@ -36,6 +36,7 @@ void main_gds_show_cell_hierarchy(struct cmdoptions* cmdoptions)
     {
         lua_setglobal(L, "aux");
     }
+    module_load_util(L);
     const char* filename = cmdoptions_get_argument_long(cmdoptions, "show-gds-cell-hierarchy");
     lua_pushstring(L, filename);
     lua_setglobal(L, "filename");

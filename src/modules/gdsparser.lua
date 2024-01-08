@@ -87,7 +87,7 @@ local function _resolve_hierarchy(cells)
     end
     local toplevel = {}
     for _, cell in ipairs(cells) do
-        if not aux.any_of(function(r) return cell.name == r end, referenced) then
+        if not util.any_of(function(r) return cell.name == r end, referenced) then
             table.insert(toplevel, cell)
         end
     end
