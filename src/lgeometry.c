@@ -1406,7 +1406,7 @@ static int lgeometry_path_points_to_polygon(lua_State* L)
     lcheck_check_numargs1(L, 2, "geometry.path_points_to_polygon");
     if(!lua_istable(L, 1))
     {
-        lua_pushstring(L, "geometry.path: list of points (first argument) is not a table");
+        lua_pushstring(L, "geometry.path_points_to_polygon: list of points (first argument) is not a table");
         lua_error(L);
     }
     lua_len(L, 1);
@@ -1415,12 +1415,12 @@ static int lgeometry_path_points_to_polygon(lua_State* L)
     coordinate_t width = luaL_checkinteger(L, 2);
     if(width == 0)
     {
-        lua_pushstring(L, "geometry.path: width can't be zero");
+        lua_pushstring(L, "geometry.path_points_to_polygon: width can't be zero");
         lua_error(L);
     }
     if(width % 2 != 0)
     {
-        lua_pushfstring(L, "geometry.path: width is odd (%d)", width);
+        lua_pushfstring(L, "geometry.path_points_to_polygon: width is odd (%d)", width);
         lua_error(L);
     }
 
