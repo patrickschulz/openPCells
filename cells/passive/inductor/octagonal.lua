@@ -170,7 +170,7 @@ function layout(inductor, _P)
     -- inductor marker
     if _P.drawinductormarker then
         geometry.rectanglebltr(inductor, generics.other("inductormarker"),
-            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.inductormarkerextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.extension - _P.inductormarkerextension),
+            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.inductormarkerextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.inductormarkerextension),
             point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.inductormarkerextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.inductormarkerextension)
         )
     end
@@ -203,7 +203,7 @@ function layout(inductor, _P)
     -- outline
     if _P.drawoutline then
         geometry.rectanglebltr(inductor, generics.outline(),
-            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.outlineextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.extension - _P.outlineextension),
+            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.outlineextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.outlineextension),
             point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.outlineextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.outlineextension)
         )
     end
@@ -211,7 +211,7 @@ function layout(inductor, _P)
     -- low substrat doping marker
     if _P.drawlowsubstratedopingmarker then
         geometry.rectanglebltr(inductor, generics.other("subblock"),
-            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.dopingmarkerextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.extension - _P.dopingmarkerextension),
+            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.dopingmarkerextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.dopingmarkerextension),
             point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.dopingmarkerextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.dopingmarkerextension)
         )
     end

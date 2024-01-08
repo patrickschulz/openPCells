@@ -5,21 +5,31 @@ The inductor is defined by two radii, one for the main loop and the second one f
 --]]
 function parameters()
     pcell.add_parameters(
-        { "topmetal(Conductor Metal)",     -1,                  "integer" },
-        { "radius(Radius)",                                         40000 },
-        { "cornerradius(Corner Radius)",                            14000 },
-        { "width(Width)",                                            6000 },
-        { "separation(Line Separation)",                             6000 },
-        { "extension(Line Extension)",                              40000 },
-        { "grid(Grid)",                                               200 },
-        { "allow45(Allow Angles with 45 Degrees)",                   true },
-        { "drawlvsresistor(Draw LVS Resistor)",                     false },
-        { "lvsreswidth(LVS Resistor Width)",                         1000 },
-        { "boundaryouterextension(Boundary Outer Extension)",        3000 },
-        { "boundaryinnerextension(Boundary Inner Extension)",        3000 },
-        { "fillboundary(Fill Boundary)",                             true },
-        { "rectangularboundary(Rectangular Boundary)",              false },
-        { "breaklines(Break Conductor Lines)",                      false }
+        { "topmetal(Conductor Metal)",     -1,                        "integer" },
+        { "radius(Radius)",                                               40000 },
+        { "cornerradius(Corner Radius)",                                  14000 },
+        { "width(Width)",                                                  6000 },
+        { "separation(Line Separation)",                                   6000 },
+        { "extension(Line Extension)",                                    40000 },
+        { "grid(Grid)",                                                     200 },
+        { "allow45(Allow Angles with 45 Degrees)",                         true },
+        { "drawlvsresistor(Draw LVS Resistor)",                           false },
+        { "lvsreswidth(LVS Resistor Width)",                               1000 },
+        { "boundaryouterextension(Boundary Outer Extension)",              3000 },
+        { "boundaryinnerextension(Boundary Inner Extension)",              3000 },
+        { "fillboundary(Fill Boundary)",                                   true },
+        { "rectangularboundary(Rectangular Boundary)",                    false },
+        { "breaklines(Break Conductor Lines)",                            false },
+        { "includeextensioninboundary(Include Extension in Boundary)",     true },
+        { "drawoutline",                                                  false },
+        { "outlineextension",                                                 0 },
+        { "drawlvsmarker",                                                false },
+        { "drawinductormarker",                                           false },
+        { "inductormarkerextension",                                          0 },
+        { "drawlowsubstratedopingmarker",                                 false },
+        { "dopingmarkerextension",                                            0 },
+        { "alignmentboxincludefeedlines",                                 false },
+        { "alignmentboxextension",                                            0 }
     )
 end
 
@@ -121,6 +131,31 @@ function layout(inductor, _P)
             inductor:get_area_anchor("rightline").br:translate_y(_P.lvsreswidth)
         )
     end
+
+    -- inductor marker
+    if _P.drawinductormarker then
+        geometry.rectanglebltr(inductor, generics.other("inductormarker"),
+            point.create(-_P.radius - _P.width / 2 - _P.inductormarkerextension, -_P.radius - _P.width / 2 - _P.inductormarkerextension),
+            point.create( _P.radius + _P.width / 2 + _P.inductormarkerextension,  _P.radius + _P.width / 2 + _P.inductormarkerextension)
+        )
+    end
+
+    -- outline
+    if _P.drawoutline then
+        geometry.rectanglebltr(inductor, generics.outline(),
+            point.create(-_P.radius - _P.width / 2 - _P.outlineextension, -_P.radius - _P.width / 2 - _P.outlineextension),
+            point.create( _P.radius + _P.width / 2 + _P.outlineextension,  _P.radius + _P.width / 2 + _P.outlineextension)
+        )
+    end
+
+    -- low substrat doping marker
+    if _P.drawlowsubstratedopingmarker then
+        geometry.rectanglebltr(inductor, generics.other("subblock"),
+            point.create(-_P.radius - _P.width / 2 - _P.dopingmarkerextension, -_P.radius - _P.width / 2 - _P.dopingmarkerextension),
+            point.create( _P.radius + _P.width / 2 + _P.dopingmarkerextension,  _P.radius + _P.width / 2 + _P.dopingmarkerextension)
+        )
+    end
+
 
     -- boundary
     if _P.rectangularboundary then
