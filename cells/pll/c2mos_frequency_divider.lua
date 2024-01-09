@@ -1192,8 +1192,8 @@ function layout(divider, _P)
     end
 
     -- clock ports -- FIXME: hard-coded for numlatches == 2
-    divider:add_port("inn", generics.metalport(8), latches[1]:get_area_anchor(string.format("clockndummymiddle_sourcedrain%d", 3)).bl .. latches[1]:get_area_anchor("outerclockndummyleft_sourcestrap").bl)
-    divider:add_port("inp", generics.metalport(8), latches[2]:get_area_anchor(string.format("clockndummymiddle_sourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tl .. latches[1]:get_area_anchor("outerclockndummyleft_sourcestrap").bl)
+    divider:add_port_with_anchor("inn", generics.metalport(8), latches[1]:get_area_anchor(string.format("clockndummymiddle_sourcedrain%d", 3)).bl .. latches[1]:get_area_anchor("outerclockndummyleft_sourcestrap").bl)
+    divider:add_port_with_anchor("inp", generics.metalport(8), latches[2]:get_area_anchor(string.format("clockndummymiddle_sourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tl .. latches[1]:get_area_anchor("outerclockndummyleft_sourcestrap").bl)
 
     -- power ports
     for i = 1, numlatches do
@@ -1202,6 +1202,6 @@ function layout(divider, _P)
     end
 
     -- output ports
-    divider:add_port("outp", generics.metalport(4), latches[numlatches]:get_area_anchor("nlatchleft_sourcedrain2").tl)
-    divider:add_port("outn", generics.metalport(4), latches[numlatches]:get_area_anchor("nlatchright_sourcedrain2").tl)
+    divider:add_port_with_anchor("outp", generics.metalport(4), latches[numlatches]:get_area_anchor("nlatchleft_sourcedrain2").tl)
+    divider:add_port_with_anchor("outn", generics.metalport(4), latches[numlatches]:get_area_anchor("nlatchright_sourcedrain2").tl)
 end
