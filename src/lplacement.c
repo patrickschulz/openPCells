@@ -104,6 +104,10 @@ int lplacement_calculate_grid(lua_State* L)
     struct polygon* excludes;
     lplacement_create_exclude_vectors(L, &excludes, 5);
     struct vector* grid = placement_calculate_grid(lpoint_get(bl), lpoint_get(tr), xpitch, ypitch, excludes);
+    if(excludes)
+    {
+        polygon_destroy(excludes);
+    }
     lua_newtable(L);
     for(size_t i = 0; i < vector_size(grid); ++i)
     {
@@ -117,6 +121,7 @@ int lplacement_calculate_grid(lua_State* L)
         }
         lua_rawseti(L, -2, i + 1);
     }
+    vector_destroy(grid);
     return 1;
 }
 

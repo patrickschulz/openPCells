@@ -288,11 +288,19 @@ struct vector* placement_place_boundary_grid(
                     }
                 }
             }
-            point_t* origin = point_copy(basept);
-            point_translate(origin, colnum * xpitch, rownum * ypitch);
+            if(!cell)
+            {
+                vector_destroy(children);
+                return NULL;
+            }
+            point_t origin = {
+                .x = point_getx(basept),
+                .y = point_gety(basept)
+            };
+            point_translate(&origin, colnum * xpitch, rownum * ypitch);
             if(*value)
             {
-                struct object* child = _place_child(toplevel, cell, origin, basename, counter);
+                struct object* child = _place_child(toplevel, cell, &origin, basename, counter);
                 vector_append(children, child);
             }
             counter = counter + 1;

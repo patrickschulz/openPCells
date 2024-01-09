@@ -1259,6 +1259,7 @@ static int lobject_set_boundary(lua_State* L)
         lua_pop(L, 1);
     }
     object_set_boundary(lobject_get(L, cell), boundary);
+    vector_destroy(boundary);
     return 0;
 }
 
@@ -1275,6 +1276,7 @@ static int lobject_set_boundary_rectangular(lua_State* L)
         vector_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(tr)->y));
         vector_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(tr)->y));
         object_set_boundary(lobject_get(L, cell), boundary);
+        vector_destroy(boundary);
     }
     else
     {
