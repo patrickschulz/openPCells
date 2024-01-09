@@ -536,7 +536,7 @@ static void _write_angle_270(struct export_data* data)
     export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
     export_data_append_byte(data, 0x43);
     export_data_append_byte(data, 0x10);
-    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0xe0);
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x00);
