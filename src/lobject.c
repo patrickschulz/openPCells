@@ -752,11 +752,11 @@ static int _area_anchor_index_func(lua_State* L)
     const char* key = luaL_checkstring(L, 2);
     if(name)
     {
-        lua_pushfstring(L, "area anchor '%s': trying to access undefined sub-anchor '%s'. Possible sub-anchors are bl, br, tl and tr", name, key);
+        lua_pushfstring(L, "area anchor '%s': trying to access undefined sub-anchor '%s'. Possible sub-anchors are 'bl', 'br', 'tl' and 'tr' as well as scalar values 'b', 't', 'l' and 'r'", name, key);
     }
     else
     {
-        lua_pushfstring(L, "area anchor: trying to access undefined sub-anchor '%s'. Possible sub-anchors are bl, br, tl and tr", key);
+        lua_pushfstring(L, "area anchor: trying to access undefined sub-anchor '%s'. Possible sub-anchors are 'bl', 'br', 'tl' and 'tr' as well as scalar values 'b', 't', 'l' and 'r'", key);
     }
     lua_error(L);
     return 0;
