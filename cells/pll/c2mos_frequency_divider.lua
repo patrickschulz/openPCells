@@ -1193,6 +1193,20 @@ function layout(divider, _P)
         )
     end
 
+    -- vdd/vss bar anchors
+    for i = 1, numlatches do
+        divider:add_area_anchor_bltr(
+            string.format("vssbar_%d", i),
+            latches[i]:get_area_anchor("outerclockndummyleft_sourcestrap").bl,
+            latches[i]:get_area_anchor("outerclockndummyright_sourcestrap").tr
+        )
+        divider:add_area_anchor_bltr(
+            string.format("vddbar_%d", i),
+            latches[i]:get_area_anchor("outerclockpdummyleft_sourcestrap").bl,
+            latches[i]:get_area_anchor("outerclockpdummyright_sourcestrap").tr
+        )
+    end
+
     -- clock ports -- FIXME: hard-coded for numlatches == 2
     divider:add_port_with_anchor("inn", generics.metalport(8), latches[1]:get_area_anchor(string.format("clockndummymiddle_sourcedrain%d", 3)).bl .. latches[1]:get_area_anchor("outerclockndummyleft_sourcestrap").bl)
     divider:add_port_with_anchor("inp", generics.metalport(8), latches[2]:get_area_anchor(string.format("clockndummymiddle_sourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tl .. latches[1]:get_area_anchor("outerclockndummyleft_sourcestrap").bl)
