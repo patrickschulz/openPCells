@@ -44,6 +44,7 @@ function parameters()
         { "gatespace", technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
         { "separation", 0 },
         { "sdwidth", technology.get_dimension("Minimum M1 Width") },
+        { "interconnectionwidth", technology.get_dimension("Minimum M1 Width") },
         { "gatestrapwidth", technology.get_dimension("Minimum M1 Width") },
         { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
         { "clockfingers", 40 },
@@ -91,7 +92,8 @@ function parameters()
         { "gatesbotextension", 0 },
         { "gatecutheight", 100 },
         { "leftpolylines", {} },
-        { "rightpolylines", {} }
+        { "rightpolylines", {} },
+        { "flat", true }
     )
 end
 
@@ -886,8 +888,8 @@ function layout(divider, _P)
     latch:add_area_anchor_bltr("clkpright", latch:get_area_anchor("clockpright_botgatestrap").bl, latch:get_area_anchor("clockpright_botgatestrap").tr)
 
     -- input anchors
-    latch:add_area_anchor_bltr("inp", latch:get_area_anchor("ninleft_topgatestrap").bl, latch:get_area_anchor("ninleft_topgatestrap").tr)
-    latch:add_area_anchor_bltr("inn", latch:get_area_anchor("ninright_topgatestrap").bl, latch:get_area_anchor("ninright_topgatestrap").tr)
+    latch:add_area_anchor_bltr("Dpgate", latch:get_area_anchor("ninleft_topgatestrap").bl, latch:get_area_anchor("ninleft_topgatestrap").tr)
+    latch:add_area_anchor_bltr("Dngate", latch:get_area_anchor("ninright_topgatestrap").bl, latch:get_area_anchor("ninright_topgatestrap").tr)
 
     -- power rail vias
     geometry.viabltr(latch, 1, 2,
@@ -981,11 +983,53 @@ function layout(divider, _P)
         _P.clockgatewidth
     )
 
+    -- input gate connections
+    geometry.rectanglebltr(latch, generics.metal(2),
+        latch:get_area_anchor("clocknleft_topgatestrap").bl,
+        latch:get_area_anchor("clocknright_topgatestrap").tr
+    )
+    geometry.rectanglebltr(latch, generics.metal(2),
+        latch:get_area_anchor("clockpleft_botgatestrap").bl,
+        latch:get_area_anchor("clockpright_botgatestrap").tr
+    )
+
+    -- connect left and right parts of latch
+    geometry.rectanglebltr(latch, generics.metal(3),
+        latch:get_area_anchor("clocknleft_drainstrap").br,
+        latch:get_area_anchor("clocknright_drainstrap").tl
+    )
+    geometry.rectanglebltr(latch, generics.metal(3),
+        latch:get_area_anchor("clockpleft_drainstrap").br,
+        latch:get_area_anchor("clockpright_drainstrap").tl
+    )
+
+
+    -- latch ports (for non-flat layout)
+    -- clock ports
+    latch:add_port_with_anchor("inp", generics.metalport(2), latch:get_area_anchor("clocknleft_topgatestrap").bl)
+    latch:add_port_with_anchor("inn", generics.metalport(2), latch:get_area_anchor("clockpleft_botgatestrap").bl)
+
+    -- data ports
+    latch:add_port_with_anchor("Dp", generics.metalport(1), latch:get_area_anchor("Dpgate").bl)
+    latch:add_port_with_anchor("Dn", generics.metalport(1), latch:get_area_anchor("Dngate").bl)
+
+    -- power ports
+    latch:add_port("vss", generics.metalport(1), latch:get_area_anchor("outerclockndummyleft_sourcestrap").bl)
+    latch:add_port("vdd", generics.metalport(1), latch:get_area_anchor("outerclockpdummyleft_sourcestrap").bl)
+
+    -- output ports
+    latch:add_port_with_anchor("outp", generics.metalport(4), latch:get_area_anchor("nlatchright_sourcedrain2").tl)
+    latch:add_port_with_anchor("outn", generics.metalport(4), latch:get_area_anchor("nlatchleft_sourcedrain2").tl)
+
     -- placement
     local numlatches = 2^_P.divisionfactor
     local latches = {}
     for i = 1, numlatches do
-        latches[i] = latch:copy()
+        if _P.flat then
+            latches[i] = latch:copy()
+        else
+            latches[i] = divider:add_child(latch, string.format("latch_%d", i))
+        end
         if i % 2 == 0 then
             latches[i]:mirror_at_xaxis()
         end
@@ -993,20 +1037,10 @@ function layout(divider, _P)
             latches[i]:abut_top(latches[i - 1])
             latches[i]:align_left(latches[i - 1])
         end
-        divider:merge_into(latches[i])
         divider:inherit_alignment_box(latches[i])
-    end
-
-    -- connect left and right parts of latch
-    for i = 1, numlatches do
-        geometry.rectanglebltr(divider, generics.metal(3),
-            latches[i]:get_area_anchor("clocknleft_drainstrap").br,
-            latches[i]:get_area_anchor("clocknright_drainstrap").tl
-        )
-        geometry.rectanglebltr(divider, generics.metal(3),
-            latches[i]:get_area_anchor("clockpleft_drainstrap").br,
-            latches[i]:get_area_anchor("clockpright_drainstrap").tl
-        )
+        if _P.flat then
+            divider:merge_into(latches[i])
+        end
     end
 
     -- internal connections between latches
@@ -1028,7 +1062,7 @@ function layout(divider, _P)
             latches[1]:get_area_anchor("Dp").tl,
             latches[1]:get_area_anchor("Dp").tr
         ),
-        _P.sdwidth,
+        _P.interconnectionwidth,
         0.95
     )
     geometry.viabltr(divider, 4, 5,
@@ -1048,7 +1082,7 @@ function layout(divider, _P)
             latches[1]:get_area_anchor("Dn").tl,
             latches[1]:get_area_anchor("Dn").tr
         ),
-        _P.sdwidth,
+        _P.interconnectionwidth,
         0.95
     )
     geometry.viabltr(divider, 3, 4,
@@ -1064,7 +1098,7 @@ function layout(divider, _P)
             latches[2]:get_area_anchor("Dn").bl,
             latches[2]:get_area_anchor("Dn").br
         ),
-        _P.sdwidth,
+        _P.interconnectionwidth,
         0.95
     )
     geometry.viabltr(divider, 4, 6,
@@ -1084,7 +1118,7 @@ function layout(divider, _P)
             latches[2]:get_area_anchor("Dp").bl,
             latches[2]:get_area_anchor("Dp").br
         ),
-        _P.sdwidth,
+        _P.interconnectionwidth,
         0.95
     )
 
@@ -1136,10 +1170,6 @@ function layout(divider, _P)
                 latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clockpidentifier, ptarget)).tr
             )
         )
-        geometry.rectanglebltr(divider, generics.metal(2),
-            latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clockpidentifier, ptarget)).br,
-            latches[i]:get_area_anchor(string.format("clock%sright_%sgatestrap", clockpidentifier, ptarget)).tl
-        )
         -- clockn
         geometry.viabltr(divider, 7, 8,
             point.combine_12(
@@ -1160,10 +1190,6 @@ function layout(divider, _P)
                 latches[i]:get_area_anchor(string.format("clock%sdummymiddle_sourcedrain%d", clocknidentifier, middledummyfingers - 3 + 2)).tr,
                 latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clocknidentifier, ntarget)).tr
             )
-        )
-        geometry.rectanglebltr(divider, generics.metal(2),
-            latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clocknidentifier, ntarget)).bl,
-            latches[i]:get_area_anchor(string.format("clock%sright_%sgatestrap", clocknidentifier, ntarget)).tr
         )
     end
 
