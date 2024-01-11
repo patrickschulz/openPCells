@@ -1123,13 +1123,21 @@ function layout(divider, _P)
     )
 
     -- input lines
-    geometry.rectanglebltr(divider, generics.metal(8),
+    divider:add_area_anchor_bltr("inp_line",
         latches[1]:get_area_anchor(string.format("clockndummymiddle_sourcedrain%d", 3)).bl .. latches[1]:get_area_anchor("outerclockndummyleft_sourcestrap").bl,
         latches[numlatches]:get_area_anchor(string.format("clockndummymiddle_sourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latches[numlatches]:get_area_anchor("outerclockndummyleft_sourcestrap").tr
     )
-    geometry.rectanglebltr(divider, generics.metal(8),
+    divider:add_area_anchor_bltr("inn_line",
         latches[numlatches]:get_area_anchor(string.format("clockndummymiddle_sourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tl .. latches[1]:get_area_anchor("outerclockndummyleft_sourcestrap").bl,
         latches[1]:get_area_anchor(string.format("clockndummymiddle_sourcedrain%d", middledummyfingers - 3 + 2)).br .. latches[numlatches]:get_area_anchor("outerclockndummyleft_sourcestrap").tr
+    )
+    geometry.rectanglebltr(divider, generics.metal(8),
+        divider:get_area_anchor("inp_line").bl,
+        divider:get_area_anchor("inp_line").tr
+    )
+    geometry.rectanglebltr(divider, generics.metal(8),
+        divider:get_area_anchor("inn_line").bl,
+        divider:get_area_anchor("inn_line").tr
     )
 
     -- input gate connections
