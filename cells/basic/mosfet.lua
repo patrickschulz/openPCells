@@ -1335,6 +1335,10 @@ function layout(transistor, _P)
             point.create(shift, 0),
             point.create(shift + _P.sdwidth, _P.fingerwidth)
         )
+        transistor:add_area_anchor_bltr(string.format("sourcedrainactive%d", i - _P.fingers - 2),
+            point.create(shift, 0),
+            point.create(shift + _P.sdwidth, _P.fingerwidth)
+        )
     end
 
     -- alignmentbox
