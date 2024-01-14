@@ -100,45 +100,49 @@ while [[ $# -gt 0 ]]; do
 done
 
 # create Makefile
-echo "opc: src/config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c" > Makefile
-echo "	@\$(MAKE) -C src default" >> Makefile
-echo "	@mv src/opc ." >> Makefile
-echo -en '\n' >> Makefile
-echo "opc.1: src/cmdoptions_def.c" >> Makefile
-echo "	@\$(MAKE) -C src opc.1" >> Makefile
-echo "	mv src/opc.1 ." >> Makefile
-echo -en '\n' >> Makefile
-echo ".PHONY: install" >> Makefile
-echo "install: opc opc.1" >> Makefile
-echo "	install -m 755 -D opc \${DESTDIR}${BIN_PATH}/${EXE_NAME}" >> Makefile
-echo "	install -m 644 -D opc.1 \${DESTDIR}${MAN_PATH}/${EXE_NAME}.1" >> Makefile
-echo "	mkdir -p \${DESTDIR}${CELL_PATH}" >> Makefile
-echo "	cp -R cells \${DESTDIR}${CELL_PATH}" >> Makefile
-echo "	mkdir -p \${DESTDIR}${TECH_PATH}" >> Makefile
-echo "	cp -R tech \${DESTDIR}${TECH_PATH}" >> Makefile
-echo "	mkdir -p \${DESTDIR}${EXPORT_PATH}" >> Makefile
-echo "	cp -R export \${DESTDIR}${EXPORT_PATH}" >> Makefile
-echo -en '\n' >> Makefile
-echo ".PHONY: doc" >> Makefile
-echo "doc:" >> Makefile
-echo "	@\$(MAKE) -C doc full" >> Makefile
-echo -en '\n' >> Makefile
-echo ".PHONY: clean" >> Makefile
-echo "clean:" >> Makefile
-echo "	@\$(MAKE) -C src clean" >> Makefile
-echo "	rm -f opc" >> Makefile
-echo "	rm -f opc.1" >> Makefile
-echo -en '\n' >> Makefile
-echo ".PHONY: cleanall" >> Makefile
-echo "cleanall: clean" >> Makefile
-echo "	rm -f src/config.h" >> Makefile
-echo "	rm -f Makefile" >> Makefile
+cat > Makefile << EOF
+opc: src/config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c
+	@\$(MAKE) -C src default
+	@mv src/opc .
+
+opc.1: src/cmdoptions_def.c
+	@\$(MAKE) -C src opc.1
+	mv src/opc.1 .
+
+.PHONY: install
+install: opc opc.1
+	install -m 755 -D opc \${DESTDIR}${BIN_PATH}/${EXE_NAME}
+	install -m 644 -D opc.1 \${DESTDIR}${MAN_PATH}/${EXE_NAME}.1
+	mkdir -p \${DESTDIR}${CELL_PATH}
+	cp -R cells \${DESTDIR}${CELL_PATH}
+	mkdir -p \${DESTDIR}${TECH_PATH}
+	cp -R tech \${DESTDIR}${TECH_PATH}
+	mkdir -p \${DESTDIR}${EXPORT_PATH}
+	cp -R export \${DESTDIR}${EXPORT_PATH}
+
+.PHONY: doc
+doc:
+	@\$(MAKE) -C doc full
+
+.PHONY: clean
+clean:
+	@\$(MAKE) -C src clean
+	rm -f opc
+	rm -f opc.1
+
+.PHONY: cleanall
+cleanall: clean
+	rm -f src/config.h
+	rm -f Makefile
+EOF
 
 # create config.h
-echo "/* This file is auto-generated. Do not edit it. */" > src/config.h
-echo "#ifndef OPC_CONFIG_H" >> src/config.h
-echo "#define OPC_CONFIG_H" >> src/config.h
-echo "#define OPC_CELL_PATH \"${CELL_PATH}\"" >> src/config.h
-echo "#define OPC_TECH_PATH \"${TECH_PATH}\"" >> src/config.h
-echo "#define OPC_EXPORT_PATH \"${EXPORT_PATH}\"" >> src/config.h
-echo "#endif /* OPC_CONFIG_H */" >> src/config.h
+cat > src/config.h << EOF
+/* This file is auto-generated. Do not edit it. */
+#ifndef OPC_CONFIG_H
+#define OPC_CONFIG_H
+#define OPC_CELL_PATH "${CELL_PATH}"
+#define OPC_TECH_PATH "${TECH_PATH}"
+#define OPC_EXPORT_PATH "${EXPORT_PATH}"
+#endif /* OPC_CONFIG_H */
+EOF
