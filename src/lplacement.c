@@ -487,7 +487,7 @@ int lplacement_place_within_rectangular_boundary(lua_State* L)
 
 int lplacement_place_within_layer_boundaries(lua_State* L)
 {
-    lcheck_check_numargs2(L, 5, 6, "placement.place_within_layer_boundaries");
+    lcheck_check_numargs2(L, 7, 8, "placement.place_within_layer_boundaries");
     struct lobject* toplevel = lobject_check(L, 1);
 
     // get cell look-up
@@ -541,15 +541,19 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
     // get target area and layer excludes
     struct simple_polygon* targetarea = lutil_create_simple_polygon(L, 4);
 
+    // xpitch and ypitch
+    coordinate_t xpitch = luaL_checkinteger(L, 5);
+    coordinate_t ypitch = luaL_checkinteger(L, 6);
+
     // get layer excludes
-    lua_len(L, 5);
+    lua_len(L, 7);
     size_t num_excludes = lua_tointeger(L, -1);
     lua_pop(L, 1);
     struct vector* layerexcludes = vector_create(num_excludes, destroy_placement_layerexclude);
     for(size_t i = 0; i < num_excludes; ++i)
     {
         struct placement_layerexclude* layerexclude = malloc(sizeof(*layerexclude));
-        lua_rawgeti(L, 5, i + 1); // get entry table
+        lua_rawgeti(L, 7, i + 1); // get entry table
 
         // get polygon
         lua_pushstring(L, "excludes");
@@ -597,13 +601,21 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
 
     // get ignore layer
     const struct generics* ignorelayer = NULL;
-    if(lua_gettop(L) > 5)
+    if(lua_gettop(L) > 7)
     {
-        ignorelayer = generics_check_generics(L, 6);
+        ignorelayer = generics_check_generics(L, 8);
     }
 
     // perform placement
-    struct vector* children = placement_place_within_layer_boundaries(lobject_get(L, toplevel), celllut, basename, targetarea, layerexcludes, ignorelayer);
+    struct vector* children = placement_place_within_layer_boundaries(
+        lobject_get(L, toplevel),
+        celllut,
+        basename,
+        targetarea,
+        xpitch, ypitch,
+        layerexcludes,
+        ignorelayer
+    );
     simple_polygon_destroy(targetarea);
     vector_destroy(celllut);
     vector_destroy(layerexcludes);

@@ -115,6 +115,7 @@ struct vector* placement_place_within_layer_boundaries(
     struct vector* celllookup, // contains entries of struct placement_celllookup*
     const char* basename,
     const struct simple_polygon* targetarea,
+    coordinate_t xpitch, coordinate_t ypitch,
     struct vector* layerexcludes, // contains entries of struct placement_layerexclude*
     const struct generics* ignorelayer // ignored layer for extra excludes
 );

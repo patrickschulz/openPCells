@@ -46,6 +46,11 @@ static int _is_in_excludes(coordinate_t x, coordinate_t y, coordinate_t width, c
     return 0;
 }
 
+static int _is_in_excludes2(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct polygon* excludes)
+{
+    return (polygon_is_point_in_polygon(excludes, x, y) == 1) || polygon_intersects_rectangle(excludes, x - width / 2, y - height / 2, x + width / 2, y + height / 2);
+}
+
 static void _get_minmax(const struct simple_polygon* targetarea, coordinate_t* minx, coordinate_t* miny, coordinate_t* maxx, coordinate_t* maxy)
 {
     *minx = COORDINATE_MAX;
@@ -117,7 +122,7 @@ struct vector* placement_calculate_grid(
     return grid;
 }
 
-static struct object* _place_child(struct object* toplevel, struct object* cell, const point_t* origin, const char* basename, int i)
+static struct object* _place_child(struct object* toplevel, struct object* cell, coordinate_t x, coordinate_t y, const char* basename, int i)
 {
     size_t len = strlen(basename) + 1 + util_num_digits(i);
     char* name = malloc(len + 1);
@@ -127,7 +132,7 @@ static struct object* _place_child(struct object* toplevel, struct object* cell,
     }
     sprintf(name, "%s_%d", basename, i);
     struct object* child = object_add_child(toplevel, cell, name);
-    object_move_point_to_origin(child, origin);
+    object_move_point_to_origin_xy(child, x, y);
     free(name);
     return child;
 }
@@ -293,14 +298,11 @@ struct vector* placement_place_boundary_grid(
                 vector_destroy(children);
                 return NULL;
             }
-            point_t origin = {
-                .x = point_getx(basept),
-                .y = point_gety(basept)
-            };
-            point_translate(&origin, colnum * xpitch, rownum * ypitch);
+            coordinate_t x = point_getx(basept) + colnum * xpitch;
+            coordinate_t y = point_gety(basept) + rownum * ypitch;
             if(*value)
             {
-                struct object* child = _place_child(toplevel, cell, &origin, basename, counter);
+                struct object* child = _place_child(toplevel, cell, x, y, basename, counter);
                 vector_append(children, child);
             }
             counter = counter + 1;
@@ -396,7 +398,7 @@ void placement_place_at_origins(struct object* toplevel, struct object* cell, co
     while(vector_const_iterator_is_valid(origin_it))
     {
         const point_t* origin = vector_const_iterator_get(origin_it);
-        struct object* child = _place_child(toplevel, cell, origin, basename, i);
+        struct object* child = _place_child(toplevel, cell, point_getx(origin), point_gety(origin), basename, i);
         vector_append(children, child);
         i = i + 1;
         vector_const_iterator_next(origin_it);
@@ -420,10 +422,9 @@ struct vector* placement_place_on_grid(struct object* toplevel, struct object* c
             const int* place = vector_const_iterator_get(xit);
             if(*place)
             {
-                point_t* origin = point_copy(basept);
-                point_translate(origin, xi * xpitch, yi * ypitch);
-                struct object* child = _place_child(toplevel, cell, origin, basename, counter);
-                point_destroy(origin);
+                coordinate_t x = point_getx(basept) + xi * xpitch;
+                coordinate_t y = point_gety(basept) + yi * ypitch;
+                struct object* child = _place_child(toplevel, cell, x, y, basename, counter);
                 vector_append(children, child);
                 ++counter;
             }
@@ -509,7 +510,7 @@ static int _is_in_layerexcludes(coordinate_t x, coordinate_t y, coordinate_t wid
         struct const_vector* layers = layerexclude->layers;
         if(_is_any_of_layers(layers, celllayers))
         {
-            if(excludes && _is_in_excludes(x, y, width, height, excludes))
+            if(excludes && _is_in_excludes2(x, y, width, height, excludes))
             {
                 return 1;
             }
@@ -541,67 +542,55 @@ struct vector* placement_place_within_layer_boundaries(
     struct vector* celllookup, // contains entries of struct placement_celllookup*
     const char* basename,
     const struct simple_polygon* targetarea,
+    coordinate_t xpitch, coordinate_t ypitch,
     struct vector* layerexcludes, // contains entries of struct placement_layerexclude*
     const struct generics* ignorelayer // ignored layer for extra excludes
 )
 {
-    ucoordinate_t width, height;
     struct vector* children = vector_create(1, NULL);
-    struct vector* extra_layerexcludes = vector_create(1, destroy_placement_layerexclude);
-    for(size_t cellindex = 0; cellindex < vector_size(celllookup); ++cellindex)
+    coordinate_t xstartshift = xpitch / 2;
+    coordinate_t ystartshift = ypitch / 2;
+
+    coordinate_t minx, maxx, miny, maxy;
+    _get_minmax(targetarea, &minx, &miny, &maxx, &maxy);
+
+    // calculate x and y shifts (relies on integer mathematics)
+    int xshift = ((maxx - minx) - ((maxx - minx) / (xpitch)) * xpitch) / 2;
+    int yshift = ((maxy - miny) - ((maxy - miny) / (ypitch)) * ypitch) / 2;
+
+    size_t cellcounter = 0;
+
+    coordinate_t x = minx + ((xstartshift + xshift) % xpitch);
+    while(x <= maxx)
     {
-        struct placement_celllookup* lookup = vector_get(celllookup, cellindex);
-        struct object* cell = lookup->cell;
-        struct const_vector* celllayers = lookup->layers;
-        object_width_height_alignmentbox(cell, &width, &height);
-
-        ucoordinate_t xpitch = width;
-        ucoordinate_t ypitch = height;
-        coordinate_t xstartshift = width / 2;
-        coordinate_t ystartshift = height / 2;
-
-        coordinate_t minx, maxx, miny, maxy;
-        _get_minmax(targetarea, &minx, &miny, &maxx, &maxy);
-
-        // calculate x and y shifts (relies on integer mathematics)
-        int xshift = ((maxx - minx) - ((maxx - minx) / (xpitch)) * xpitch) / 2;
-        int yshift = ((maxy - miny) - ((maxy - miny) / (ypitch)) * ypitch) / 2;
-
-        struct vector* origins = vector_create(32, point_destroy);
-        coordinate_t x = minx + ((xstartshift + xshift) % xpitch);
-        while(x <= maxx)
+        coordinate_t y = miny + ((ystartshift + yshift) % ypitch);
+        while(y <= maxy)
         {
-            coordinate_t y = miny + ((ystartshift + yshift) % ypitch);
-            while(y <= maxy)
+            struct vector* extra_layerexcludes = vector_create(1, destroy_placement_layerexclude);
+            for(size_t cellindex = 0; cellindex < vector_size(celllookup); ++cellindex)
             {
+                struct placement_celllookup* lookup = vector_get(celllookup, cellindex);
+                struct object* cell = lookup->cell;
+                struct const_vector* celllayers = lookup->layers;
+
                 int insert = 
-                    _is_in_targetarea(x, y, width, height, targetarea) &&
-                    !_is_in_layerexcludes(x, y, width, height, celllayers, layerexcludes) &&
-                    !_is_in_layerexcludes(x, y, width, height, celllayers, extra_layerexcludes)
+                    _is_in_targetarea(x, y, xpitch, ypitch, targetarea) &&
+                    !_is_in_layerexcludes(x, y, xpitch, ypitch, celllayers, layerexcludes) &&
+                    !_is_in_layerexcludes(x, y, xpitch, ypitch, celllayers, extra_layerexcludes)
                 ;
                 if(insert)
                 {
-                    vector_append(origins, point_create(x, y));
-                    _insert_extra_excludes(extra_layerexcludes, x, y, width, height, celllayers, ignorelayer);
+                    struct object* child = _place_child(toplevel, cell, x, y, basename, cellcounter);
+                    ++cellcounter;
+                    vector_append(children, child);
+                    _insert_extra_excludes(extra_layerexcludes, x, y, xpitch, ypitch, celllayers, ignorelayer);
                 }
-                y = y + ypitch;
             }
-            x = x + xpitch;
+            vector_destroy(extra_layerexcludes);
+            y = y + ypitch;
         }
-
-        // sub-basename
-        size_t len = strlen(basename) + 1 + util_num_digits(cellindex);
-        char* subbasename = malloc(len + 1);
-        //if(!subname)
-        //{
-        //    return NULL;
-        //}
-        sprintf(subbasename, "%s_%zd", basename, cellindex);
-        placement_place_at_origins(toplevel, cell, origins, subbasename, children);
-        free(subbasename);
-        vector_destroy(origins);
+        x = x + xpitch;
     }
-    vector_destroy(extra_layerexcludes);
     return children;
 }
 

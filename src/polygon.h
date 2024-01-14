@@ -18,6 +18,8 @@ void polygon_add(struct polygon* polygon, struct simple_polygon* simple_polygon)
 int polygon_is_empty(const struct polygon* polygon);
 int polygon_is_point_in_simple_polygon(const struct simple_polygon* polygon, coordinate_t x, coordinate_t y);
 int polygon_is_point_in_polygon(const struct polygon* polygon, coordinate_t x, coordinate_t y);
+int simple_polygon_intersects_rectangle(const struct simple_polygon* simple_polygon, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
+int polygon_intersects_rectangle(const struct polygon* polygon, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 void simple_polygon_append(struct simple_polygon* simple_polygon, point_t* pt);
 
 struct simple_polygon_iterator;

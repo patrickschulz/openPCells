@@ -1949,6 +1949,12 @@ int object_move_point_to_origin(struct object* cell, const point_t* target)
     return 1;
 }
 
+int object_move_point_to_origin_xy(struct object* cell, coordinate_t x, coordinate_t y)
+{
+    object_translate(cell, x, y);
+    return 1;
+}
+
 int object_move_point_x(struct object* cell, const point_t* source, const point_t* target)
 {
     object_translate(cell, target->x - source->x, 0);

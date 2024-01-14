@@ -177,6 +177,83 @@ int polygon_is_point_in_polygon(const struct polygon* polygon, coordinate_t x, c
     return is_in_polygon;
 }
 
+static int _intersection(const point_t* s1, const point_t* s2, const point_t* c1, const point_t* c2)
+{
+    coordinate_t snum = (c2->x - c1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (c2->y - c1->y);
+    coordinate_t cnum = (s2->x - s1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (s2->y - s1->y);
+    coordinate_t den = (s2->x - s1->x) * (c2->y - c1->y) - (c2->x - c1->x) * (s2->y - s1->y);
+    if(den == 0) // lines are parallel
+    {
+        return 0;
+    }
+
+    if(snum == 0 || cnum == 0 || snum == den || cnum == den) // end points touching, does not count as intersection
+    {
+        return 0;
+    }
+
+    // the comparison is so complex/weird to avoid division
+    if(((snum < 0 && den < 0 && snum >= den) || (snum > 0 && den > 0 && snum <= den)) &&
+       ((cnum < 0 && den < 0 && cnum >= den) || (cnum > 0 && den > 0 && cnum <= den)))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int simple_polygon_intersects_rectangle(
+    const struct simple_polygon* simple_polygon,
+    coordinate_t blx, coordinate_t bly,
+    coordinate_t trx, coordinate_t try
+)
+{
+    for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
+    {
+        point_t* cpti1 = vector_get(simple_polygon->points, i);
+        point_t* cpti2 = vector_get(simple_polygon->points, (i + 1) % vector_size(simple_polygon->points));
+        point_t bl = { .x = blx, .y = bly };
+        point_t tl = { .x = blx, .y = try };
+        point_t tr = { .x = trx, .y = try };
+        point_t br = { .x = trx, .y = bly };
+        if(
+            _intersection(cpti1, cpti2, &bl, &tl) ||
+            _intersection(cpti1, cpti2, &tl, &tr) ||
+            _intersection(cpti1, cpti2, &tr, &br) ||
+            _intersection(cpti1, cpti2, &br, &bl)
+        )
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int polygon_intersects_rectangle(
+    const struct polygon* polygon,
+    coordinate_t blx, coordinate_t bly,
+    coordinate_t trx, coordinate_t try
+)
+{
+    int ret = 0;
+    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
+    while(polygon_const_iterator_is_valid(it))
+    {
+        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        if(simple_polygon_intersects_rectangle(simple_polygon, blx, bly, trx, try))
+        {
+            ret = 1;
+            goto POLYGON_INTERSECTS_RECTANGLE_FINISHED;
+        }
+        polygon_const_iterator_next(it);
+    }
+POLYGON_INTERSECTS_RECTANGLE_FINISHED:
+    polygon_const_iterator_destroy(it);
+    return ret;
+}
+
 void simple_polygon_append(struct simple_polygon* simple_polygon, point_t* pt)
 {
     vector_append(simple_polygon->points, pt);
