@@ -30,25 +30,9 @@ static int _is_in_targetarea(coordinate_t x, coordinate_t y, coordinate_t width,
 
 static int _is_in_excludes(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct polygon* excludes)
 {
-    // FIXME: this needs a proper polygon intersection test
-    if(polygon_is_point_in_polygon(excludes, x            , y             ) == 1 ||
-       polygon_is_point_in_polygon(excludes, x + width / 2, y             ) == 1 ||
-       polygon_is_point_in_polygon(excludes, x - width / 2, y             ) == 1 ||
-       polygon_is_point_in_polygon(excludes, x            , y + height / 2) == 1 ||
-       polygon_is_point_in_polygon(excludes, x            , y - height / 2) == 1 ||
-       polygon_is_point_in_polygon(excludes, x + width / 2, y + height / 2) == 1 ||
-       polygon_is_point_in_polygon(excludes, x - width / 2, y + height / 2) == 1 ||
-       polygon_is_point_in_polygon(excludes, x + width / 2, y - height / 2) == 1 ||
-       polygon_is_point_in_polygon(excludes, x - width / 2, y - height / 2) == 1)
-    {
-        return 1;
-    }
-    return 0;
-}
-
-static int _is_in_excludes2(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct polygon* excludes)
-{
-    return (polygon_is_point_in_polygon(excludes, x, y) == 1) || polygon_intersects_rectangle(excludes, x - width / 2, y - height / 2, x + width / 2, y + height / 2);
+    return
+        (polygon_is_point_in_polygon(excludes, x, y) == 1) ||
+        polygon_intersects_rectangle(excludes, x - width / 2, y - height / 2, x + width / 2, y + height / 2);
 }
 
 static void _get_minmax(const struct simple_polygon* targetarea, coordinate_t* minx, coordinate_t* miny, coordinate_t* maxx, coordinate_t* maxy)
@@ -510,7 +494,7 @@ static int _is_in_layerexcludes(coordinate_t x, coordinate_t y, coordinate_t wid
         struct const_vector* layers = layerexclude->layers;
         if(_is_any_of_layers(layers, celllayers))
         {
-            if(excludes && _is_in_excludes2(x, y, width, height, excludes))
+            if(excludes && _is_in_excludes(x, y, width, height, excludes))
             {
                 return 1;
             }
