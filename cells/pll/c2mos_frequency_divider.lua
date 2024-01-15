@@ -796,22 +796,22 @@ function layout(divider, _P)
     -- connect voutp and voutn
     geometry.polygon(latch, generics.metal(4), {
         latch:get_area_anchor("ninleft_drainstrap").br,
-        latch:get_area_anchor("ninleft_drainstrap").br:translate_x(2 * xpitch + 30),
-        (latch:get_area_anchor("ninleft_drainstrap").br .. latch:get_area_anchor("nlatchleft_drainstrap").bl):translate_x(2 * xpitch + 30),
+        latch:get_area_anchor("ninleft_drainstrap").br:translate_x(2 * xpitch + _P.latchinterconnectwidth / 2),
+        (latch:get_area_anchor("ninleft_drainstrap").br .. latch:get_area_anchor("nlatchleft_drainstrap").bl):translate_x(2 * xpitch + _P.latchinterconnectwidth / 2),
         latch:get_area_anchor("nlatchleft_drainstrap").bl,
         latch:get_area_anchor("nlatchleft_drainstrap").tl,
-        (latch:get_area_anchor("ninleft_drainstrap").tr .. latch:get_area_anchor("nlatchleft_drainstrap").tl):translate_x(2 * xpitch - 30),
-        latch:get_area_anchor("ninleft_drainstrap").tr:translate_x(2 * xpitch - 30),
+        (latch:get_area_anchor("ninleft_drainstrap").tr .. latch:get_area_anchor("nlatchleft_drainstrap").tl):translate_x(2 * xpitch - _P.latchinterconnectwidth / 2),
+        latch:get_area_anchor("ninleft_drainstrap").tr:translate_x(2 * xpitch - _P.latchinterconnectwidth / 2),
         latch:get_area_anchor("ninleft_drainstrap").tr,
     })
     geometry.polygon(latch, generics.metal(4), {
         latch:get_area_anchor("nlatchright_drainstrap").br,
-        (latch:get_area_anchor("ninright_drainstrap").bl .. latch:get_area_anchor("nlatchright_drainstrap").br):translate_x(-2 * xpitch + 30),
-        latch:get_area_anchor("ninright_drainstrap").bl:translate_x(-2 * xpitch + 30),
+        (latch:get_area_anchor("ninright_drainstrap").bl .. latch:get_area_anchor("nlatchright_drainstrap").br):translate_x(-2 * xpitch + _P.latchinterconnectwidth / 2),
+        latch:get_area_anchor("ninright_drainstrap").bl:translate_x(-2 * xpitch + _P.latchinterconnectwidth / 2),
         latch:get_area_anchor("ninright_drainstrap").bl,
         latch:get_area_anchor("ninright_drainstrap").tl,
-        latch:get_area_anchor("ninright_drainstrap").tl:translate_x(-2 * xpitch - 30),
-        (latch:get_area_anchor("ninright_drainstrap").tl .. latch:get_area_anchor("nlatchright_drainstrap").tr):translate_x(-2 * xpitch - 30),
+        latch:get_area_anchor("ninright_drainstrap").tl:translate_x(-2 * xpitch - _P.latchinterconnectwidth / 2),
+        (latch:get_area_anchor("ninright_drainstrap").tl .. latch:get_area_anchor("nlatchright_drainstrap").tr):translate_x(-2 * xpitch - _P.latchinterconnectwidth / 2),
         latch:get_area_anchor("nlatchright_drainstrap").tr,
     })
 
