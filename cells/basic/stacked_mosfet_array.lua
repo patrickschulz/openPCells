@@ -59,6 +59,11 @@ function check(_P)
     return true
 end
 
+-- this function returns nil when the respective parameters are not specified
+-- the explicit nil checks (as opposed to 'if not devparam[name]') are important
+-- for follower-parameters, where false is handled different than nil
+-- this was a source for subtle bugs
+-- therefore, this function MUST be used to pass parameters to the underlying mosfet pcell
 local function _select_parameter(name, devparam, rowparam, cellparam)
     if devparam[name] == nil then
         if rowparam[name] == nil then
@@ -173,6 +178,8 @@ function layout(cell, _P)
                     connectsourceotherleftext = _select_parameter("connectsourceotherleftext", device, row),
                     connectsourceotherrightext = _select_parameter("connectsourceotherrightext", device, row),
                     sourcemetal = _select_parameter("sourcemetal", device, row),
+                    sourcestartmetal = _select_parameter("sourcestartmetal", device, row),
+                    sourceendmetal = _select_parameter("sourceendmetal", device, row),
                     sourceviametal = _select_parameter("sourceviametal", device, row),
                     connectsourceinline = _select_parameter("connectsourceinline", device, row),
                     connectsourceinlineoffset = _select_parameter("connectsourceinlineoffset", device, row),
@@ -194,6 +201,8 @@ function layout(cell, _P)
                     drawfirstdrainvia = _select_parameter("drawfirstdrainvia", device, row),
                     drawlastdrainvia = _select_parameter("drawlastdrainvia", device, row),
                     drainmetal = _select_parameter("drainmetal", device, row),
+                    drainstartmetal = _select_parameter("drainstartmetal", device, row),
+                    drainendmetal = _select_parameter("drainendmetal", device, row),
                     drainviametal = _select_parameter("drainviametal", device, row),
                     connectdraininline = _select_parameter("connectdraininline", device, row),
                     connectdraininlineoffset = _select_parameter("connectdraininlineoffset", device, row),

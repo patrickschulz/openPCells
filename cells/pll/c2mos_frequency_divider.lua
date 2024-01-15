@@ -82,6 +82,8 @@ function parameters()
         { "nmosflippedwell", false },
         { "pmosflippedwell", false },
         { "clockviaextension", 0 },
+        { "latchstartmetal", 4 },
+        { "latchendmetal", 5 },
         { "implantleftextension", 0 },
         { "implantrightextension", 0 },
         { "implanttopextension", 0 },
@@ -321,7 +323,8 @@ function layout(divider, _P)
                     connectdrain = true,
                     connectdrainwidth = _P.latchinterconnectwidth,
                     connectdrainspace = (_P.separation - _P.latchinterconnectwidth) / 2,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drawtopgatecut = false,
                 },
                 {
@@ -337,7 +340,8 @@ function layout(divider, _P)
                     topgatewidth = _P.latchgatestrapwidth,
                     topgatespace = _P.latchgatestrapspace,
                     connectdrain = true,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drainviasize = _P.nmosclockdrainsourcesize,
                     sourceviasize = _P.nmosclockdrainsourcesize,
                     connectdrainwidth = _P.latchgatestrapwidth,
@@ -357,7 +361,8 @@ function layout(divider, _P)
                     topgatewidth = _P.latchgatestrapwidth,
                     topgatespace = _P.separation - _P.latchgatestrapwidth - _P.latchgatestrapspace,
                     connectdrain = true,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drainviasize = _P.nmosclockdrainsourcesize,
                     sourceviasize = _P.nmosclockdrainsourcesize,
                     connectdrainwidth = _P.latchgatestrapwidth,
@@ -383,7 +388,8 @@ function layout(divider, _P)
                     connectdrain = true,
                     connectdrainwidth = _P.latchinterconnectwidth,
                     connectdrainspace = (_P.separation - _P.latchinterconnectwidth) / 2,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drawtopgatecut = false,
                 },
                 {
@@ -421,7 +427,8 @@ function layout(divider, _P)
                     connectdrain = true,
                     connectdrainwidth = _P.latchinterconnectwidth,
                     connectdrainspace = (_P.separation - _P.latchinterconnectwidth) / 2,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drawbotgatecut = false,
                 },
                 {
@@ -434,7 +441,8 @@ function layout(divider, _P)
                     name = "platchleft",
                     fingers = _P.latchfingers,
                     connectdrain = true,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drainviasize = _P.pmosclockdrainsourcesize,
                     sourceviasize = _P.pmosclockdrainsourcesize,
                     connectdrainwidth = _P.latchgatestrapwidth,
@@ -451,7 +459,8 @@ function layout(divider, _P)
                     name = "platchright",
                     fingers = _P.latchfingers,
                     connectdrain = true,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drainviasize = _P.pmosclockdrainsourcesize,
                     sourceviasize = _P.pmosclockdrainsourcesize,
                     connectdrainwidth = _P.latchgatestrapwidth,
@@ -474,7 +483,8 @@ function layout(divider, _P)
                     connectdrain = true,
                     connectdrainwidth = _P.latchinterconnectwidth,
                     connectdrainspace = (_P.separation - _P.latchinterconnectwidth) / 2,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drawbotgatecut = false,
                 },
                 {
@@ -724,11 +734,11 @@ function layout(divider, _P)
     })
 
     -- latch cross-coupling
-    geometry.viabltr(latch, 1, 4,
+    geometry.viabltr(latch, 1, _P.latchendmetal,
         latch:get_area_anchor("nlatchleft_drainstrap").bl,
         latch:get_area_anchor("nlatchleft_drainstrap").tr
     )
-    geometry.viabltr(latch, 1, 4,
+    geometry.viabltr(latch, 1, _P.latchendmetal,
         latch:get_area_anchor("nlatchright_drainstrap").bl,
         latch:get_area_anchor("nlatchright_drainstrap").tr
     )
@@ -794,26 +804,28 @@ function layout(divider, _P)
     end
 
     -- connect voutp and voutn
-    geometry.polygon(latch, generics.metal(4), {
-        latch:get_area_anchor("ninleft_drainstrap").br,
-        latch:get_area_anchor("ninleft_drainstrap").br:translate_x(2 * xpitch + _P.latchinterconnectwidth / 2),
-        (latch:get_area_anchor("ninleft_drainstrap").br .. latch:get_area_anchor("nlatchleft_drainstrap").bl):translate_x(2 * xpitch + _P.latchinterconnectwidth / 2),
-        latch:get_area_anchor("nlatchleft_drainstrap").bl,
-        latch:get_area_anchor("nlatchleft_drainstrap").tl,
-        (latch:get_area_anchor("ninleft_drainstrap").tr .. latch:get_area_anchor("nlatchleft_drainstrap").tl):translate_x(2 * xpitch - _P.latchinterconnectwidth / 2),
-        latch:get_area_anchor("ninleft_drainstrap").tr:translate_x(2 * xpitch - _P.latchinterconnectwidth / 2),
-        latch:get_area_anchor("ninleft_drainstrap").tr,
-    })
-    geometry.polygon(latch, generics.metal(4), {
-        latch:get_area_anchor("nlatchright_drainstrap").br,
-        (latch:get_area_anchor("ninright_drainstrap").bl .. latch:get_area_anchor("nlatchright_drainstrap").br):translate_x(-2 * xpitch + _P.latchinterconnectwidth / 2),
-        latch:get_area_anchor("ninright_drainstrap").bl:translate_x(-2 * xpitch + _P.latchinterconnectwidth / 2),
-        latch:get_area_anchor("ninright_drainstrap").bl,
-        latch:get_area_anchor("ninright_drainstrap").tl,
-        latch:get_area_anchor("ninright_drainstrap").tl:translate_x(-2 * xpitch - _P.latchinterconnectwidth / 2),
-        (latch:get_area_anchor("ninright_drainstrap").tl .. latch:get_area_anchor("nlatchright_drainstrap").tr):translate_x(-2 * xpitch - _P.latchinterconnectwidth / 2),
-        latch:get_area_anchor("nlatchright_drainstrap").tr,
-    })
+    for metal = _P.latchstartmetal, _P.latchendmetal do
+        geometry.polygon(latch, generics.metal(metal), {
+            latch:get_area_anchor("ninleft_drainstrap").br,
+            latch:get_area_anchor("ninleft_drainstrap").br:translate_x(2 * xpitch + _P.latchinterconnectwidth / 2),
+            (latch:get_area_anchor("ninleft_drainstrap").br .. latch:get_area_anchor("nlatchleft_drainstrap").bl):translate_x(2 * xpitch + _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("nlatchleft_drainstrap").bl,
+            latch:get_area_anchor("nlatchleft_drainstrap").tl,
+            (latch:get_area_anchor("ninleft_drainstrap").tr .. latch:get_area_anchor("nlatchleft_drainstrap").tl):translate_x(2 * xpitch - _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("ninleft_drainstrap").tr:translate_x(2 * xpitch - _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("ninleft_drainstrap").tr,
+        })
+        geometry.polygon(latch, generics.metal(metal), {
+            latch:get_area_anchor("nlatchright_drainstrap").br,
+            (latch:get_area_anchor("ninright_drainstrap").bl .. latch:get_area_anchor("nlatchright_drainstrap").br):translate_x(-2 * xpitch + _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("ninright_drainstrap").bl:translate_x(-2 * xpitch + _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("ninright_drainstrap").bl,
+            latch:get_area_anchor("ninright_drainstrap").tl,
+            latch:get_area_anchor("ninright_drainstrap").tl:translate_x(-2 * xpitch - _P.latchinterconnectwidth / 2),
+            (latch:get_area_anchor("ninright_drainstrap").tl .. latch:get_area_anchor("nlatchright_drainstrap").tr):translate_x(-2 * xpitch - _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("nlatchright_drainstrap").tr,
+        })
+    end
 
     -- clock anchors
     latch:add_area_anchor_bltr("clknleft", latch:get_area_anchor("clocknleft_topgatestrap").bl, latch:get_area_anchor("clocknleft_topgatestrap").tr)
