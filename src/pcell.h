@@ -3,14 +3,18 @@
 
 #include "lua/lua.h"
 
+#include "object.h"
+#include "technology.h"
 #include "vector.h"
-
-struct object;
 
 struct pcell_state;
 
+typedef int (*cell_layout_func)(struct object* powergrid, struct technology_state* techstate, struct pcell_state* pcell_state);
+
 struct pcell_state* pcell_initialize_state(struct vector* to_prepend, struct vector* to_append);
 void pcell_destroy_state(struct pcell_state* state);
+
+struct object* pcell_create_layout(const char* cellname, struct technology_state* techstate, struct pcell_state* pcell_state);
 
 void pcell_prepend_cellpath(struct pcell_state*, const char* path);
 void pcell_append_cellpath(struct pcell_state*, const char* path);

@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cells.h"
+
 #include "util.h"
 #include "lua_util.h"
 #include "ldir.h"
@@ -86,6 +88,28 @@ void pcell_list_cells(const struct pcell_state* pcell_state, const char* listfor
     lua_setglobal(L, "args");
     script_call_list_cells(L);
     lua_close(L);
+}
+
+static cell_layout_func _get_layout_function(struct pcell_state* pcell_state, const char* cellname)
+{
+    // FIXME
+    (void)pcell_state;
+    (void)cellname;
+    return cell_powergrid_layout;
+}
+
+struct object* pcell_create_layout(const char* cellname, struct technology_state* techstate, struct pcell_state* pcell_state)
+{
+    cell_layout_func layout_func = _get_layout_function(pcell_state, cellname);
+    struct object* cell = object_create("__EMPTY__");
+    int ret = layout_func(cell, techstate, pcell_state);
+    if(!ret)
+    {
+        // FIXME: error message, clean up
+        object_destroy(cell);
+        return NULL;
+    }
+    return cell;
 }
 
 static int lpcell_get_cell_filename(lua_State* L)

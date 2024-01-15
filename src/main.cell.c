@@ -353,6 +353,23 @@ static struct object* _create_cell(
     return toplevel;
 }
 
+static struct object* _create_cell_C(
+    const char* cellname,
+    const char* name,
+    int iscellscript,
+    struct vector* cellargs,
+    struct technology_state* techstate,
+    struct pcell_state* pcell_state,
+    int enabledprint,
+    struct const_vector* pfilenames,
+    const char* cellenvfilename
+)
+{
+    // FIXME
+    struct object* toplevel = pcell_create_layout("FIXME: UNUSED", techstate, pcell_state);
+    return toplevel;
+}
+
 static void _move_origin(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "origin"))
@@ -639,6 +656,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
     const char* name = cmdoptions_get_argument_long(cmdoptions, "cellname");
     struct object* toplevel = _create_cell(cellname, name, iscellscript, cellargs, techstate, pcell_state, enabledprint, pfilenames, cellenvfilename);
+    //struct object* toplevel = _create_cell_C(cellname, name, iscellscript, cellargs, techstate, pcell_state, enabledprint, pfilenames, cellenvfilename);
     vector_destroy(cellargs);
     const_vector_destroy(pfilenames);
     if(toplevel)

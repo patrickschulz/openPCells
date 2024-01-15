@@ -101,7 +101,7 @@ done
 
 # create Makefile
 cat > Makefile << EOF
-opc: src/config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c
+opc: src/config.h src/*.c src/*.h src/cells/*.c src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c
 	@\$(MAKE) -C src default
 	@mv src/opc .
 
