@@ -431,7 +431,7 @@ struct shape* geometry_path_to_polygon(const struct generics* layer, struct vect
     // FIXME: handle path extensions
 
     // rectangle
-    if((numpoints == 2))
+    if(numpoints == 2)
     {
         point_t* pt1 = vector_get(points, 0);
         point_t* pt2 = vector_get(points, 1);
