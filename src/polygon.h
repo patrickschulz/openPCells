@@ -15,6 +15,7 @@ struct polygon* polygon_copy(const struct polygon* polygon);
 void simple_polygon_destroy(void* p);
 void polygon_destroy(void* p);
 void polygon_add(struct polygon* polygon, struct simple_polygon* simple_polygon);
+int simple_polygon_is_rectangle(const struct simple_polygon* simple_polygon);
 int polygon_is_empty(const struct polygon* polygon);
 int polygon_is_point_in_simple_polygon(const struct simple_polygon* polygon, coordinate_t x, coordinate_t y);
 int polygon_is_point_in_polygon(const struct polygon* polygon, coordinate_t x, coordinate_t y);

@@ -97,6 +97,36 @@ void polygon_add(struct polygon* polygon, struct simple_polygon* simple_polygon)
     vector_append(polygon->simple_polygons, simple_polygon);
 }
 
+int simple_polygon_is_rectangle(const struct simple_polygon* simple_polygon)
+{
+    if(vector_size(simple_polygon->points) == 4)
+    {
+        const point_t* pt1 = vector_get_const(simple_polygon->points, 0);
+        const point_t* pt2 = vector_get_const(simple_polygon->points, 1);
+        const point_t* pt3 = vector_get_const(simple_polygon->points, 2);
+        const point_t* pt4 = vector_get_const(simple_polygon->points, 3);
+        if(
+            point_getx(pt1) == point_getx(pt2) &&
+            point_gety(pt2) == point_gety(pt3) &&
+            point_getx(pt3) == point_getx(pt4) &&
+            point_gety(pt4) == point_gety(pt1)
+        )
+        {
+            return 1;
+        }
+        if(
+            point_gety(pt1) == point_gety(pt2) &&
+            point_getx(pt2) == point_getx(pt3) &&
+            point_gety(pt3) == point_gety(pt4) &&
+            point_getx(pt4) == point_getx(pt1)
+        )
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int polygon_is_empty(const struct polygon* polygon)
 {
     return polygon->simple_polygons == NULL;
