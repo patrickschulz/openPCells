@@ -62,10 +62,15 @@ function parameters()
         { "nmoslatchdrainsourcesize", 500, follow = "nmosclockfingerwidth" },
         { "nmosclockdummydrainsourcesize", 500, follow = "nmosclockfingerwidth" },
         { "nmosinputdrainsourcesize", 500, follow = "nmosinputfingerwidth" },
+        { "nmosinputdummydrainsourcesize", 500, follow = "nmosinputfingerwidth" },
+        { "nmosinputdummygatewidth", technology.get_dimension("Minimum M1 Width") },
+        { "nmosinputdummygatespace", technology.get_dimension("Minimum M1 Space") },
         { "pmosclockdrainsourcesize", 500, follow = "pmosclockfingerwidth" },
         { "pmoslatchdrainsourcesize", 500, follow = "pmosclockfingerwidth" },
         { "pmosclockdummydrainsourcesize", 500, follow = "pmosclockfingerwidth" },
         { "pmosinputdrainsourcesize", 500, follow = "pmosinputfingerwidth" },
+        { "pmosinputdummygatewidth", technology.get_dimension("Minimum M1 Width") },
+        { "pmosinputdummygatespace", technology.get_dimension("Minimum M1 Space") },
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Space") },
         { "inputlinewidth", 500 },
@@ -82,6 +87,8 @@ function parameters()
         { "nmosflippedwell", false },
         { "pmosflippedwell", false },
         { "clockviaextension", 0 },
+        { "latchstartmetal", 4 },
+        { "latchendmetal", 5 },
         { "implantleftextension", 0 },
         { "implantrightextension", 0 },
         { "implanttopextension", 0 },
@@ -321,7 +328,8 @@ function layout(divider, _P)
                     connectdrain = true,
                     connectdrainwidth = _P.latchinterconnectwidth,
                     connectdrainspace = (_P.separation - _P.latchinterconnectwidth) / 2,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drawtopgatecut = false,
                 },
                 {
@@ -337,7 +345,8 @@ function layout(divider, _P)
                     topgatewidth = _P.latchgatestrapwidth,
                     topgatespace = _P.latchgatestrapspace,
                     connectdrain = true,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drainviasize = _P.nmosclockdrainsourcesize,
                     sourceviasize = _P.nmosclockdrainsourcesize,
                     connectdrainwidth = _P.latchgatestrapwidth,
@@ -357,7 +366,8 @@ function layout(divider, _P)
                     topgatewidth = _P.latchgatestrapwidth,
                     topgatespace = _P.separation - _P.latchgatestrapwidth - _P.latchgatestrapspace,
                     connectdrain = true,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drainviasize = _P.nmosclockdrainsourcesize,
                     sourceviasize = _P.nmosclockdrainsourcesize,
                     connectdrainwidth = _P.latchgatestrapwidth,
@@ -383,7 +393,8 @@ function layout(divider, _P)
                     connectdrain = true,
                     connectdrainwidth = _P.latchinterconnectwidth,
                     connectdrainspace = (_P.separation - _P.latchinterconnectwidth) / 2,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drawtopgatecut = false,
                 },
                 {
@@ -421,7 +432,8 @@ function layout(divider, _P)
                     connectdrain = true,
                     connectdrainwidth = _P.latchinterconnectwidth,
                     connectdrainspace = (_P.separation - _P.latchinterconnectwidth) / 2,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drawbotgatecut = false,
                 },
                 {
@@ -434,7 +446,8 @@ function layout(divider, _P)
                     name = "platchleft",
                     fingers = _P.latchfingers,
                     connectdrain = true,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drainviasize = _P.pmosclockdrainsourcesize,
                     sourceviasize = _P.pmosclockdrainsourcesize,
                     connectdrainwidth = _P.latchgatestrapwidth,
@@ -451,7 +464,8 @@ function layout(divider, _P)
                     name = "platchright",
                     fingers = _P.latchfingers,
                     connectdrain = true,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drainviasize = _P.pmosclockdrainsourcesize,
                     sourceviasize = _P.pmosclockdrainsourcesize,
                     connectdrainwidth = _P.latchgatestrapwidth,
@@ -474,7 +488,8 @@ function layout(divider, _P)
                     connectdrain = true,
                     connectdrainwidth = _P.latchinterconnectwidth,
                     connectdrainspace = (_P.separation - _P.latchinterconnectwidth) / 2,
-                    drainmetal = 4,
+                    drainstartmetal = _P.latchstartmetal,
+                    drainendmetal = _P.latchendmetal,
                     drawbotgatecut = false,
                 },
                 {
@@ -604,7 +619,7 @@ function layout(divider, _P)
         }),
     }
 
-    local equalizationdummyntemplate = {
+    local clockequalizationdummyntemplate = {
         fingers = equalizationdummies,
         sourcesize = _P.nmosclockdummydrainsourcesize,
         drainsize = _P.nmosclockdummydrainsourcesize,
@@ -626,7 +641,18 @@ function layout(divider, _P)
         botgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
         drainalign = "bottom",
     }
-    local equalizationdummyptemplate = {
+    local inputequalizationdummyntemplate = {
+        fingers = -equalizationdummies,
+        sourcesize = _P.nmosinputfingerwidth,
+        drainsize = _P.nmosinputfingerwidth,
+        drawbotgate = true,
+        botgatewidth = _P.nmosinputdummygatewidth,
+        botgatespace = _P.nmosinputdummygatespace,
+        botgateleftextension = (_P.gatespace - _P.sdwidth) / 2 + _P.gatelength + _P.gatespace,
+        botgaterightextension = (_P.gatespace - _P.sdwidth) / 2 + _P.gatelength + _P.gatespace,
+        drawtopgatecut = true,
+    }
+    local clockequalizationdummyptemplate = {
         fingers = equalizationdummies,
         sourcesize = _P.pmosclockdummydrainsourcesize,
         drainsize = _P.pmosclockdummydrainsourcesize,
@@ -647,72 +673,89 @@ function layout(divider, _P)
         topgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
         drainalign = "top",
     }
+    local inputequalizationdummyptemplate = {
+        fingers = -equalizationdummies,
+        sourcesize = _P.pmosinputfingerwidth,
+        drainsize = _P.pmosinputfingerwidth,
+        drawtopgate = true,
+        topgatewidth = _P.pmosinputdummygatewidth,
+        topgatespace = _P.pmosinputdummygatespace,
+        topgateleftextension = (_P.gatespace - _P.sdwidth) / 2 + _P.gatelength + _P.gatespace,
+        topgaterightextension = (_P.gatespace - _P.sdwidth) / 2 + _P.gatelength + _P.gatespace,
+        drawbotgatecut = true,
+    }
 
     if equalizationdummies > 0 then -- insert dummies in clock rows
-        local entry = aux.clone_shallow(equalizationdummyntemplate)
-        entry.name = "clockndummyleftleft",
+        local entry = aux.clone_shallow(clockequalizationdummyntemplate)
+        entry.name = "clockndummyleftleft"
         _insert_before(rowdefinition, "clocknleft", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyntemplate)
-        entry.name = "clockndummyleftright",
+        local entry = aux.clone_shallow(clockequalizationdummyntemplate)
+        entry.name = "clockndummyleftright"
         _insert_after(rowdefinition, "clocknleft", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyntemplate)
-        entry.name = "clockndummyrightleft",
+        local entry = aux.clone_shallow(clockequalizationdummyntemplate)
+        entry.name = "clockndummyrightleft"
         _insert_before(rowdefinition, "clocknright", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyntemplate)
-        entry.name = "clockndummyrightright",
+        local entry = aux.clone_shallow(clockequalizationdummyntemplate)
+        entry.name = "clockndummyrightright"
         _insert_after(rowdefinition, "clocknright", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyptemplate)
-        entry.name = "clockpdummyleftleft",
+        local entry = aux.clone_shallow(clockequalizationdummyptemplate)
+        entry.name = "clockpdummyleftleft"
         _insert_before(rowdefinition, "clockpleft", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyptemplate)
-        entry.name = "clockpdummyleftright",
+        local entry = aux.clone_shallow(clockequalizationdummyptemplate)
+        entry.name = "clockpdummyleftright"
         _insert_after(rowdefinition, "clockpleft", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyptemplate)
-        entry.name = "clockpdummyrightleft",
+        local entry = aux.clone_shallow(clockequalizationdummyptemplate)
+        entry.name = "clockpdummyrightleft"
         _insert_before(rowdefinition, "clockpright", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyptemplate)
-        entry.name = "clockpdummyrightright",
+        local entry = aux.clone_shallow(clockequalizationdummyptemplate)
+        entry.name = "clockpdummyrightright"
         _insert_after(rowdefinition, "clockpright", entry)
     elseif equalizationdummies < 0 then -- insert dummies in input rows
-        equalizationdummyntemplate.fingers = -equalizationdummyntemplate.fingers
-        equalizationdummyptemplate.fingers = -equalizationdummyptemplate.fingers
-        local entry = aux.clone_shallow(equalizationdummyntemplate)
-        entry.name = "clockndummyleftleft",
+        local entry = aux.clone_shallow(inputequalizationdummyntemplate)
+        entry.botgaterightextension = xpitch / 2
+        entry.name = "clockndummyleftleft"
         _insert_before(rowdefinition, "ninleft", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyntemplate)
-        entry.name = "inputndummyleftright",
+        local entry = aux.clone_shallow(inputequalizationdummyntemplate)
+        entry.botgateleftextension = xpitch / 2
+        entry.name = "inputndummyleftright"
         _insert_after(rowdefinition, "ninleft", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyntemplate)
-        entry.name = "inputndummyrightleft",
+        local entry = aux.clone_shallow(inputequalizationdummyntemplate)
+        entry.botgaterightextension = xpitch / 2
+        entry.name = "inputndummyrightleft"
         _insert_before(rowdefinition, "ninright", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyntemplate)
-        entry.name = "inputndummyrightright",
+        local entry = aux.clone_shallow(inputequalizationdummyntemplate)
+        entry.botgateleftextension = xpitch / 2
+        entry.name = "inputndummyrightright"
         _insert_after(rowdefinition, "ninright", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyptemplate)
-        entry.name = "inputpdummyleftleft",
+        local entry = aux.clone_shallow(inputequalizationdummyptemplate)
+        entry.name = "inputpdummyleftleft"
+        entry.topgaterightextension = xpitch / 2
         _insert_before(rowdefinition, "pinleft", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyptemplate)
-        entry.name = "inputpdummyleftright",
+        local entry = aux.clone_shallow(inputequalizationdummyptemplate)
+        entry.name = "inputpdummyleftright"
+        entry.topgateleftextension = xpitch / 2
         _insert_after(rowdefinition, "pinleft", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyptemplate)
-        entry.name = "inputpdummyrightleft",
+        local entry = aux.clone_shallow(inputequalizationdummyptemplate)
+        entry.name = "inputpdummyrightleft"
+        entry.topgaterightextension = xpitch / 2
         _insert_before(rowdefinition, "pinright", entry)
 
-        local entry = aux.clone_shallow(equalizationdummyptemplate)
-        entry.name = "inputpdummyrightright",
+        local entry = aux.clone_shallow(inputequalizationdummyptemplate)
+        entry.name = "inputpdummyrightright"
+        entry.topgateleftextension = xpitch / 2
         _insert_after(rowdefinition, "pinright", entry)
     end
 
@@ -724,11 +767,11 @@ function layout(divider, _P)
     })
 
     -- latch cross-coupling
-    geometry.viabltr(latch, 1, 4,
+    geometry.viabltr(latch, 1, _P.latchendmetal,
         latch:get_area_anchor("nlatchleft_drainstrap").bl,
         latch:get_area_anchor("nlatchleft_drainstrap").tr
     )
-    geometry.viabltr(latch, 1, 4,
+    geometry.viabltr(latch, 1, _P.latchendmetal,
         latch:get_area_anchor("nlatchright_drainstrap").bl,
         latch:get_area_anchor("nlatchright_drainstrap").tr
     )
@@ -793,27 +836,49 @@ function layout(divider, _P)
         )
     end
 
+    -- connect input equalization dummies gates
+    if equalizationdummies < 0 then
+        geometry.rectanglebltr(latch, generics.metal(1),
+            latch:get_area_anchor("clockndummymiddle_sourcedrainactive2").bl,
+            latch:get_area_anchor("clockndummymiddle_sourcedrainactive2").tr:translate_y(_P.separation - _P.nmosinputdummygatespace)
+        )
+        geometry.rectanglebltr(latch, generics.metal(1),
+            latch:get_area_anchor("clockndummymiddle_sourcedrainactive-2").bl,
+            latch:get_area_anchor("clockndummymiddle_sourcedrainactive-2").tr:translate_y(_P.separation - _P.nmosinputdummygatespace)
+        )
+        geometry.rectanglebltr(latch, generics.metal(1),
+            latch:get_area_anchor("clockpdummymiddle_sourcedrainactive2").bl:translate_y(-_P.separation + _P.pmosinputdummygatespace),
+            latch:get_area_anchor("clockpdummymiddle_sourcedrainactive2").tr
+        )
+        geometry.rectanglebltr(latch, generics.metal(1),
+            latch:get_area_anchor("clockpdummymiddle_sourcedrainactive-2").bl:translate_y(-_P.separation + _P.pmosinputdummygatespace),
+            latch:get_area_anchor("clockpdummymiddle_sourcedrainactive-2").tr
+        )
+    end
+
     -- connect voutp and voutn
-    geometry.polygon(latch, generics.metal(4), {
-        latch:get_area_anchor("ninleft_drainstrap").br,
-        latch:get_area_anchor("ninleft_drainstrap").br:translate_x(2 * xpitch + 30),
-        (latch:get_area_anchor("ninleft_drainstrap").br .. latch:get_area_anchor("nlatchleft_drainstrap").bl):translate_x(2 * xpitch + 30),
-        latch:get_area_anchor("nlatchleft_drainstrap").bl,
-        latch:get_area_anchor("nlatchleft_drainstrap").tl,
-        (latch:get_area_anchor("ninleft_drainstrap").tr .. latch:get_area_anchor("nlatchleft_drainstrap").tl):translate_x(2 * xpitch - 30),
-        latch:get_area_anchor("ninleft_drainstrap").tr:translate_x(2 * xpitch - 30),
-        latch:get_area_anchor("ninleft_drainstrap").tr,
-    })
-    geometry.polygon(latch, generics.metal(4), {
-        latch:get_area_anchor("nlatchright_drainstrap").br,
-        (latch:get_area_anchor("ninright_drainstrap").bl .. latch:get_area_anchor("nlatchright_drainstrap").br):translate_x(-2 * xpitch + 30),
-        latch:get_area_anchor("ninright_drainstrap").bl:translate_x(-2 * xpitch + 30),
-        latch:get_area_anchor("ninright_drainstrap").bl,
-        latch:get_area_anchor("ninright_drainstrap").tl,
-        latch:get_area_anchor("ninright_drainstrap").tl:translate_x(-2 * xpitch - 30),
-        (latch:get_area_anchor("ninright_drainstrap").tl .. latch:get_area_anchor("nlatchright_drainstrap").tr):translate_x(-2 * xpitch - 30),
-        latch:get_area_anchor("nlatchright_drainstrap").tr,
-    })
+    for metal = _P.latchstartmetal, _P.latchendmetal do
+        geometry.polygon(latch, generics.metal(metal), {
+            latch:get_area_anchor("ninleft_drainstrap").br,
+            latch:get_area_anchor("ninleft_drainstrap").br:translate_x(2 * xpitch + _P.latchinterconnectwidth / 2),
+            (latch:get_area_anchor("ninleft_drainstrap").br .. latch:get_area_anchor("nlatchleft_drainstrap").bl):translate_x(2 * xpitch + _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("nlatchleft_drainstrap").bl,
+            latch:get_area_anchor("nlatchleft_drainstrap").tl,
+            (latch:get_area_anchor("ninleft_drainstrap").tr .. latch:get_area_anchor("nlatchleft_drainstrap").tl):translate_x(2 * xpitch - _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("ninleft_drainstrap").tr:translate_x(2 * xpitch - _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("ninleft_drainstrap").tr,
+        })
+        geometry.polygon(latch, generics.metal(metal), {
+            latch:get_area_anchor("nlatchright_drainstrap").br,
+            (latch:get_area_anchor("ninright_drainstrap").bl .. latch:get_area_anchor("nlatchright_drainstrap").br):translate_x(-2 * xpitch + _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("ninright_drainstrap").bl:translate_x(-2 * xpitch + _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("ninright_drainstrap").bl,
+            latch:get_area_anchor("ninright_drainstrap").tl,
+            latch:get_area_anchor("ninright_drainstrap").tl:translate_x(-2 * xpitch - _P.latchinterconnectwidth / 2),
+            (latch:get_area_anchor("ninright_drainstrap").tl .. latch:get_area_anchor("nlatchright_drainstrap").tr):translate_x(-2 * xpitch - _P.latchinterconnectwidth / 2),
+            latch:get_area_anchor("nlatchright_drainstrap").tr,
+        })
+    end
 
     -- clock anchors
     latch:add_area_anchor_bltr("clknleft", latch:get_area_anchor("clocknleft_topgatestrap").bl, latch:get_area_anchor("clocknleft_topgatestrap").tr)

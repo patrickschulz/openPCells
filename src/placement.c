@@ -468,7 +468,7 @@ struct object* placement_place_within_rectangular_boundary(struct object* toplev
     return children;
 }
 
-static int _is_any_of_layers(struct const_vector* layers, struct const_vector* celllayers)
+static int _is_any_of_layers(const struct const_vector* layers, struct const_vector* celllayers)
 {
     for(size_t i = 0; i < const_vector_size(layers); ++i)
     {
@@ -503,35 +503,87 @@ static int _is_in_layerexcludes(coordinate_t x, coordinate_t y, coordinate_t wid
     return 0;
 }
 
-static void _insert_extra_excludes(struct vector* extra_layerexcludes, coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct const_vector* celllayers, const struct generics* ignorelayer)
+static void _insert_blocked_layer(struct const_vector* blocked_layers, const struct const_vector* celllayers, const struct generics* ignorelayer)
 {
-    struct placement_layerexclude* layerexclude = malloc(sizeof(*layerexclude));
-    layerexclude->excludes = polygon_create();
-    struct simple_polygon* exclude = simple_polygon_create_from_rectangle(x - width / 2, y - height / 2, x + width / 2, y + height / 2);
-    polygon_add(layerexclude->excludes, exclude);
-    layerexclude->layers = const_vector_create(const_vector_size(celllayers));
     for(size_t i = 0; i < const_vector_size(celllayers); ++i)
     {
         const struct generics* layer = const_vector_get(celllayers, i);
         if(layer != ignorelayer)
         {
-            const_vector_append(layerexclude->layers, layer);
+            const_vector_append(blocked_layers, layer);
         }
     }
-    vector_append(extra_layerexcludes, layerexclude);
 }
 
-struct vector* placement_place_within_layer_boundaries(
+static void _place_within_layer_boundaries_rectangular(
+    struct object* toplevel,
+    struct vector* celllookup, // contains entries of struct placement_celllookup*
+    const char* basename,
+    const point_t* targetbl,
+    const point_t* targettr,
+    coordinate_t xpitch, coordinate_t ypitch,
+    struct vector* layerexcludes, // contains entries of struct placement_layerexclude*
+    const struct generics* ignorelayer, // ignored layer for extra excludes
+    struct vector* children
+)
+{
+    coordinate_t xstartshift = xpitch / 2;
+    coordinate_t ystartshift = ypitch / 2;
+
+    coordinate_t minx = point_getx(targetbl);
+    coordinate_t maxx = point_getx(targettr);
+    coordinate_t miny = point_gety(targetbl);
+    coordinate_t maxy = point_gety(targettr);
+
+    // calculate x and y shifts (relies on integer mathematics)
+    int xshift = ((maxx - minx) - ((maxx - minx) / (xpitch)) * xpitch) / 2;
+    int yshift = ((maxy - miny) - ((maxy - miny) / (ypitch)) * ypitch) / 2;
+
+    size_t cellcounter = 0;
+
+    coordinate_t x = minx + ((xstartshift + xshift) % xpitch);
+    while(x <= maxx)
+    {
+        coordinate_t y = miny + ((ystartshift + yshift) % ypitch);
+        while(y <= maxy)
+        {
+            struct const_vector* blocked_layers = const_vector_create(1);
+            for(size_t cellindex = 0; cellindex < vector_size(celllookup); ++cellindex)
+            {
+                struct placement_celllookup* lookup = vector_get(celllookup, cellindex);
+                struct object* cell = lookup->cell;
+                struct const_vector* celllayers = lookup->layers;
+
+                int insert =
+                    !_is_in_layerexcludes(x, y, xpitch, ypitch, celllayers, layerexcludes) &&
+                    !_is_any_of_layers(celllayers, blocked_layers)
+                ;
+                if(insert)
+                {
+                    struct object* child = _place_child(toplevel, cell, x, y, basename, cellcounter);
+                    ++cellcounter;
+                    vector_append(children, child);
+                    _insert_blocked_layer(blocked_layers, celllayers, ignorelayer);
+                }
+            }
+            const_vector_destroy(blocked_layers);
+            y = y + ypitch;
+        }
+        x = x + xpitch;
+    }
+}
+
+static void _place_within_layer_boundaries(
     struct object* toplevel,
     struct vector* celllookup, // contains entries of struct placement_celllookup*
     const char* basename,
     const struct simple_polygon* targetarea,
     coordinate_t xpitch, coordinate_t ypitch,
     struct vector* layerexcludes, // contains entries of struct placement_layerexclude*
-    const struct generics* ignorelayer // ignored layer for extra excludes
+    const struct generics* ignorelayer, // ignored layer for extra excludes
+    struct vector* children
 )
 {
-    struct vector* children = vector_create(1, NULL);
     coordinate_t xstartshift = xpitch / 2;
     coordinate_t ystartshift = ypitch / 2;
 
@@ -550,30 +602,75 @@ struct vector* placement_place_within_layer_boundaries(
         coordinate_t y = miny + ((ystartshift + yshift) % ypitch);
         while(y <= maxy)
         {
-            struct vector* extra_layerexcludes = vector_create(1, destroy_placement_layerexclude);
+            struct const_vector* blocked_layers = const_vector_create(1);
             for(size_t cellindex = 0; cellindex < vector_size(celllookup); ++cellindex)
             {
                 struct placement_celllookup* lookup = vector_get(celllookup, cellindex);
                 struct object* cell = lookup->cell;
                 struct const_vector* celllayers = lookup->layers;
 
-                int insert = 
+                int insert =
                     _is_in_targetarea(x, y, xpitch, ypitch, targetarea) &&
                     !_is_in_layerexcludes(x, y, xpitch, ypitch, celllayers, layerexcludes) &&
-                    !_is_in_layerexcludes(x, y, xpitch, ypitch, celllayers, extra_layerexcludes)
+                    !_is_any_of_layers(celllayers, blocked_layers)
                 ;
                 if(insert)
                 {
                     struct object* child = _place_child(toplevel, cell, x, y, basename, cellcounter);
                     ++cellcounter;
                     vector_append(children, child);
-                    _insert_extra_excludes(extra_layerexcludes, x, y, xpitch, ypitch, celllayers, ignorelayer);
+                    _insert_blocked_layer(blocked_layers, celllayers, ignorelayer);
                 }
             }
-            vector_destroy(extra_layerexcludes);
+            const_vector_destroy(blocked_layers);
             y = y + ypitch;
         }
         x = x + xpitch;
+    }
+}
+
+struct vector* placement_place_within_layer_boundaries(
+    struct object* toplevel,
+    struct vector* celllookup, // contains entries of struct placement_celllookup*
+    const char* basename,
+    const struct simple_polygon* targetarea,
+    coordinate_t xpitch, coordinate_t ypitch,
+    struct vector* layerexcludes, // contains entries of struct placement_layerexclude*
+    const struct generics* ignorelayer // ignored layer for extra excludes
+)
+{
+    struct vector* children = vector_create(32, NULL);
+    if(simple_polygon_is_rectangle(targetarea))
+    {
+        coordinate_t minx, maxx, miny, maxy;
+        _get_minmax(targetarea, &minx, &miny, &maxx, &maxy);
+        point_t* bl = point_create(minx, miny);
+        point_t* tr = point_create(maxx, maxy);
+        _place_within_layer_boundaries_rectangular(
+            toplevel,
+            celllookup,
+            basename,
+            bl, tr,
+            xpitch, ypitch,
+            layerexcludes,
+            ignorelayer,
+            children
+        );
+        point_destroy(bl);
+        point_destroy(tr);
+    }
+    else
+    {
+        _place_within_layer_boundaries(
+            toplevel,
+            celllookup,
+            basename,
+            targetarea,
+            xpitch, ypitch,
+            layerexcludes,
+            ignorelayer,
+            children
+        );
     }
     return children;
 }
