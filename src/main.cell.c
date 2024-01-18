@@ -230,23 +230,15 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     lua_close(L);
 }
 
-static int _read_cellenv(lua_State* L, const char* filename)
+static int _read_table_from_file(lua_State* L, const char* filename)
 {
-    if(!filename)
+    // call adapted from macro for luaL_dofile (only one return value as a fail-safe)
+    if((luaL_loadfile(L, filename) || lua_pcall(L, 0, 1, 0)) != LUA_OK)
     {
-        lua_newtable(L);
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "error while loading cell environment file: %s\n", msg);
+        return 0;
     }
-    else
-    {
-        // call adapted from macro for luaL_dofile (only one return value as a fail-safe)
-        if((luaL_loadfile(L, filename) || lua_pcall(L, 0, 1, 0)) != LUA_OK)
-        {
-            const char* msg = lua_tostring(L, -1);
-            fprintf(stderr, "error while loading cell environment file: %s\n", msg);
-            return 0;
-        }
-    }
-    lua_setfield(L, -2, "cellenv");
     return 1;
 }
 
@@ -304,30 +296,65 @@ static struct object* _create_cell(
     lua_pushboolean(L, enabledprint);
     lua_setfield(L, -2, "enabledprint");
 
-    // cell args
+    // input args (need to be evaluated)
     lua_newtable(L);
     for(unsigned int i = 0; i < vector_size(cellargs); ++i)
     {
         lua_pushstring(L, vector_get(cellargs, i));
         lua_rawseti(L, -2, i + 1);
     }
-    lua_setfield(L, -2, "cellargs");
+    lua_setfield(L, -2, "inputargs");
 
     // pfile names
     lua_newtable(L);
     for(unsigned int i = 0; i < const_vector_size(pfilenames); ++i)
     {
-        lua_pushstring(L, const_vector_get(pfilenames, i));
-        lua_rawseti(L, -2, i + 1);
+        const char* pfilename = const_vector_get(pfilenames, i);
+        _read_table_from_file(L, pfilename); // don't stop on error
+        lua_pushnil(L);
+        while(lua_next(L, -2) != 0)
+        {
+            if(lua_type(L, -1) == LUA_TTABLE) // parameters for parent cells
+            {
+                const char* parentcellname = lua_tostring(L, -2);
+                lua_pushnil(L);
+                while(lua_next(L, -2) != 0)
+                {
+                    lua_pushvalue(L, -2); // copy key for lua_tostring
+                    const char* n = lua_tostring(L, -1);
+                    lua_pop(L, 1); // FIXME: don't refer to strings that are not any more in the stack
+                    lua_pushfstring(L, "%s.%s", parentcellname, n);
+                    lua_pushvalue(L, -2); // push value (needs to be on top)
+                    lua_rawset(L, -7);
+                    lua_pop(L, 1);
+                }
+            }
+            else // direct parameter for the cell, cellname == parameter name
+            {
+                lua_pushvalue(L, -2);
+                lua_pushvalue(L, -2);
+                lua_rawset(L, -6);
+            }
+            lua_pop(L, 1);
+        }
+        lua_pop(L, 1);
     }
-    lua_setfield(L, -2, "pfilenames");
+    lua_setfield(L, -2, "cellargs");
     
     // cell environment
-    if(!_read_cellenv(L, cellenvfilename))
+    if(cellenvfilename)
     {
-        lua_close(L);
-        return NULL;
+        if(!_read_table_from_file(L, cellenvfilename))
+        {
+            lua_close(L);
+            return NULL;
+        }
     }
+    else
+    {
+        lua_newtable(L);
+    }
+    lua_setfield(L, -2, "cellenv");
 
     // register args
     lua_setglobal(L, "args");
