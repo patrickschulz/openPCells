@@ -532,6 +532,7 @@ function layout(divider, _P)
                     drawstopgatetopgatecut = true,
                     drawstopgatebotgatecut = true,
                     drawtopgatecut = false,
+                    excludesourcedraincontacts = { _P.outerdummies + 1 },
                 },
                 {
                     name = "clockpleft",
@@ -614,6 +615,7 @@ function layout(divider, _P)
                     drawstopgatetopgatecut = true,
                     drawstopgatebotgatecut = true,
                     drawtopgatecut = false,
+                    excludesourcedraincontacts = { 1 },
                 },
             },
         }),
