@@ -573,6 +573,7 @@ function layout(divider, _P)
                     topgatewidth = _P.dummygatecontactwidth,
                     topgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
                     drawtopgatecut = false,
+                    excludesourcedraincontacts = { 1, middledummyfingers + 1 },
                 },
                 {
                     name = "clockpright",
