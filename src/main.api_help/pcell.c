@@ -61,37 +61,6 @@
     ));
 }
 
-/* pcell.push_overwrites */
-{
-    struct parameter parameters[] = {
-        { "cellname",   STRING, NULL, "cellname of the to-be-overwritten cell" },
-        { "parameters", TABLE,  NULL, "table with key-value pairs" }
-    };
-    vector_append(entries, _make_api_entry(
-        "push_overwrites",
-        MODULE_PCELL,
-        "overwrite parameters of other cells. This works across pcell limits and can be called before pcell layouts are created. This also affects cells that are created in sub-cells. This works like a stack (one stack per cell), so it can be applied multiple times",
-        "pcell.push_overwrite(\"foo/bar\", { key1 = 42, key2 = 100 })",
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
-    ));
-}
-
-/* pcell.pop_overwrites */
-{
-    struct parameter parameters[] = {
-        { "cellname",   STRING, NULL, "cellname of the overwrite stack" }
-    };
-    vector_append(entries, _make_api_entry(
-        "pop_overwrites",
-        MODULE_PCELL,
-        "pop one entry of overwrites from the overwrite stack",
-        "pcell.pop_overwrites(\"foo/bar\")",
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
-    ));
-}
-
 /* pcell.check_expression */
 {
     struct parameter parameters[] = {

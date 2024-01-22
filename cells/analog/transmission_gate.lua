@@ -20,7 +20,7 @@ end
 function layout(tgate, _P)
     local guardringxsep = 300
     local guardringysep = 400
-    pcell.push_overwrites("basic/mosfet", {
+    local baseopt = {
         gatelength = _P.glength,
         gatespace = _P.gspace,
         fingers = _P.fingers,
@@ -44,22 +44,21 @@ function layout(tgate, _P)
         drawbotgate = true,
         botgatestrspace = _P.sdwidth + 2 * _P.sdspace,
         botgatestrwidth = _P.gatestrapwidth,
-    })
-    local pmos = pcell.create_layout("basic/mosfet", "pmos", {
+    }
+    local pmos = pcell.create_layout("basic/mosfet", "pmos", util.add_options(baseopt, {
         channeltype = "pmos",
         fingers = _P.fingers,
         fingerwidth = _P.pwidth,
         vthtype = _P.pmosvthtype,
         flippedwell = _P.pmosflippedwell,
     })
-    local nmos = pcell.create_layout("basic/mosfet", "nmos", {
+    local nmos = pcell.create_layout("basic/mosfet", "nmos", util.add_options(baseopt, {
         channeltype = "nmos",
         fingers = _P.fingers,
         fingerwidth = _P.nwidth,
         vthtype = _P.nmosvthtype,
         flippedwell = _P.nmosflippedwell,
     })
-    pcell.pop_overwrites("basic/mosfet")
     pmos:abut_area_anchor_top("outerguardring", nmos, "outerguardring")
     pmos:translate(0, _P.sdwidth + 2 * _P.powerspace)
     tgate:merge_into(pmos)

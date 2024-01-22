@@ -135,7 +135,7 @@ function layout(cmos, _P)
     local firstgate
     if _P.drawtransistors then
         -- common transistor options
-        pcell.push_overwrites("basic/mosfet", {
+        local commonfetopt = {
             gatelength = _P.gatelength,
             gatespace = _P.gatespace,
             sdwidth = _P.sdwidth,
@@ -149,10 +149,10 @@ function layout(cmos, _P)
             topgatecutrightext = (_P.cutwidth - _P.gatelength) / 2,
             botgatecutleftext = (_P.cutwidth - _P.gatelength) / 2,
             botgatecutrightext = (_P.cutwidth - _P.gatelength) / 2,
-        })
+        }
 
         -- pmos
-        local popt = {
+        local popt = util.add_options(commonfetopt, {
             channeltype = "pmos",
             vthtype = _P.pvthtype,
             flippedwell = _P.pmosflippedwell,
@@ -174,8 +174,8 @@ function layout(cmos, _P)
             extendvthtypetop = _P.extendvthtypetop,
             extendvthtypeleft = _P.extendvthtypeleft,
             extendvthtyperight = _P.extendvthtyperight,
-        }
-        local nopt = {
+        })
+        local nopt = util.add_options(commonfetopt, {
             channeltype = "nmos",
             vthtype = _P.nvthtype,
             flippedwell = _P.nmosflippedwell,
@@ -198,7 +198,7 @@ function layout(cmos, _P)
             extendvthtypebottom = _P.extendvthtypebottom,
             extendvthtypeleft = _P.extendvthtypeleft,
             extendvthtyperight = _P.extendvthtyperight,
-        }
+        })
         -- main
         for i = 1, fingers do
             nopt.leftpolylines = {}

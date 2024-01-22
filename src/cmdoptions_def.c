@@ -19,7 +19,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "techpath", MULTI_ARGS, "add (append
 cmdoptions_add_option(cmdoptions, NO_SHORT, "prepend-parameter-file", MULTI_ARGS, "file to read parameters from (prepended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "append-parameter-file", MULTI_ARGS, "file to read parameters from (appended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files.");
 cmdoptions_add_alias(cmdoptions, "append-parameter-file", 'p', "pfile", "synonym for --append-parameter-file");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-pfile", NO_ARG, "disable reading of any parameter files"); // FIXME: unused
+cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-pfiles", NO_ARG, "disable reading of any parameter files");
 cmdoptions_add_option_default(cmdoptions, 'f', "filename", SINGLE_ARG, "openPCells", "specify output filename for export. The name should be specified without an extension (such as '.gds'), as the export types add their specific extension to the filename, this is especially useful when using more than one export type");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "origin", SINGLE_ARG, "origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parantheses)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "translate", SINGLE_ARG, "move cell by (x, y). This option expects a point input, e.g. '(10, 10)' (with parantheses)");

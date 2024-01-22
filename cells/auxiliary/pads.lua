@@ -22,37 +22,32 @@ function parameters()
 end
 
 function layout(pads, _P)
-    pcell.push_overwrites("auxiliary/pad", { 
+    local Spad = pcell.create_layout("auxiliary/pad", "Spad", {
         orientation = _P.orientation,
         alignment = _P.alignment
-    })
-    pcell.push_overwrites("auxiliary/pad", { 
         padwidth = _P.Spadwidth, 
         padheight = _P.Spadheight, 
         padopeningxoffset = _P.Spadopeningxoffset, 
         padopeningyoffset = _P.Spadopeningyoffset,
     })
-    local Spad = pcell.create_layout("auxiliary/pad", "Spad")
-    pcell.pop_overwrites("auxiliary/pad")
 
-    pcell.push_overwrites("auxiliary/pad", { 
+    local Gpad = pcell.create_layout("auxiliary/pad", "Gpad", {
+        orientation = _P.orientation,
+        alignment = _P.alignment
         padwidth = _P.Gpadwidth, 
         padheight = _P.Gpadheight, 
         padopeningxoffset = _P.Gpadopeningxoffset, 
         padopeningyoffset = _P.Gpadopeningyoffset,
     })
-    local Gpad = pcell.create_layout("auxiliary/pad", "Gpad")
-    pcell.pop_overwrites("auxiliary/pad")
 
-    pcell.push_overwrites("auxiliary/pad", { 
+    local Ppad = pcell.create_layout("auxiliary/pad", "Ppad", {
+        orientation = _P.orientation,
+        alignment = _P.alignment
         padwidth = _P.Ppadwidth, 
         padheight = _P.Ppadheight, 
         padopeningxoffset = _P.Ppadopeningxoffset, 
         padopeningyoffset = _P.Ppadopeningyoffset,
     })
-    local Ppad = pcell.create_layout("auxiliary/pad", "Ppad")
-    pcell.pop_overwrites("auxiliary/pad")
-    pcell.pop_overwrites("auxiliary/pad")
 
     local numpads = #_P.padconfig
     for i, padtype in ipairs(_P.padconfig) do

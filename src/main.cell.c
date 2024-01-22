@@ -296,51 +296,48 @@ static struct object* _create_cell(
     lua_pushboolean(L, enabledprint);
     lua_setfield(L, -2, "enabledprint");
 
-    // input args (need to be evaluated)
+    // input args
     lua_newtable(L);
     for(unsigned int i = 0; i < vector_size(cellargs); ++i)
     {
         lua_pushstring(L, vector_get(cellargs, i));
         lua_rawseti(L, -2, i + 1);
     }
-    lua_setfield(L, -2, "inputargs");
+    lua_setfield(L, -2, "additionalargs");
 
-    // pfile names
+    // pfiles
     lua_newtable(L);
-    for(unsigned int i = 0; i < const_vector_size(pfilenames); ++i)
+    if(pfilenames)
     {
-        const char* pfilename = const_vector_get(pfilenames, i);
-        _read_table_from_file(L, pfilename); // don't stop on error
-        lua_pushnil(L);
-        while(lua_next(L, -2) != 0)
+        for(unsigned int i = 0; i < const_vector_size(pfilenames); ++i)
         {
-            if(lua_type(L, -1) == LUA_TTABLE) // parameters for parent cells
+            const char* pfilename = const_vector_get(pfilenames, i);
+            _read_table_from_file(L, pfilename); // don't stop on error
+            lua_pushnil(L);
+            while(lua_next(L, -2) != 0)
             {
-                const char* parentcellname = lua_tostring(L, -2);
-                lua_pushnil(L);
-                while(lua_next(L, -2) != 0)
+                if(lua_type(L, -1) == LUA_TTABLE)
                 {
-                    lua_pushvalue(L, -2); // copy key for lua_tostring
-                    const char* n = lua_tostring(L, -1);
-                    lua_pop(L, 1); // FIXME: don't refer to strings that are not any more in the stack
-                    lua_pushfstring(L, "%s.%s", parentcellname, n);
-                    lua_pushvalue(L, -2); // push value (needs to be on top)
-                    lua_rawset(L, -7);
-                    lua_pop(L, 1);
+                    puts("no nested tables are allowed in parameter files");
+                    lua_close(L);
+                    return NULL;
                 }
-            }
-            else // direct parameter for the cell, cellname == parameter name
-            {
+                if(lua_type(L, -2) != LUA_TSTRING)
+                {
+                    puts("non-string keys in parameter files are prohibited");
+                    lua_close(L);
+                    return NULL;
+                }
                 lua_pushvalue(L, -2);
                 lua_pushvalue(L, -2);
                 lua_rawset(L, -6);
+                lua_pop(L, 1);
             }
             lua_pop(L, 1);
         }
-        lua_pop(L, 1);
     }
     lua_setfield(L, -2, "cellargs");
-    
+
     // cell environment
     if(cellenvfilename)
     {
@@ -377,23 +374,6 @@ static struct object* _create_cell(
 
     lua_close(L);
 
-    return toplevel;
-}
-
-static struct object* _create_cell_C(
-    const char* cellname,
-    const char* name,
-    int iscellscript,
-    struct vector* cellargs,
-    struct technology_state* techstate,
-    struct pcell_state* pcell_state,
-    int enabledprint,
-    struct const_vector* pfilenames,
-    const char* cellenvfilename
-)
-{
-    // FIXME
-    struct object* toplevel = pcell_create_layout("FIXME: UNUSED", techstate, pcell_state);
     return toplevel;
 }
 
@@ -661,31 +641,40 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
     }
     int enabledprint = cmdoptions_was_provided_long(cmdoptions, "enable-dprint");
-    struct const_vector* pfilenames = const_vector_create(1);
-    const char* const * prependpfilenames = cmdoptions_get_argument_long(cmdoptions, "prepend-parameter-file");
-    if(prependpfilenames)
+
+    // read pfile prepend/append lists
+    struct const_vector* pfilenames = NULL;
+    if(!cmdoptions_was_provided_long(cmdoptions, "disable-pfiles"))
     {
-        while(*prependpfilenames)
+        pfilenames = const_vector_create(1);
+        const char* const * prependpfilenames = cmdoptions_get_argument_long(cmdoptions, "prepend-parameter-file");
+        if(prependpfilenames)
         {
-            const_vector_append(pfilenames, *prependpfilenames);
-            ++prependpfilenames;
+            while(*prependpfilenames)
+            {
+                const_vector_append(pfilenames, *prependpfilenames);
+                ++prependpfilenames;
+            }
+        }
+        const char* const * appendpfilenames = cmdoptions_get_argument_long(cmdoptions, "append-parameter-file");
+        if(appendpfilenames)
+        {
+            while(*appendpfilenames)
+            {
+                const_vector_append(pfilenames, *appendpfilenames);
+                ++appendpfilenames;
+            }
         }
     }
-    const char* const * appendpfilenames = cmdoptions_get_argument_long(cmdoptions, "append-parameter-file");
-    if(appendpfilenames)
-    {
-        while(*appendpfilenames)
-        {
-            const_vector_append(pfilenames, *appendpfilenames);
-            ++appendpfilenames;
-        }
-    }
+
     const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
     const char* name = cmdoptions_get_argument_long(cmdoptions, "cellname");
     struct object* toplevel = _create_cell(cellname, name, iscellscript, cellargs, techstate, pcell_state, enabledprint, pfilenames, cellenvfilename);
-    //struct object* toplevel = _create_cell_C(cellname, name, iscellscript, cellargs, techstate, pcell_state, enabledprint, pfilenames, cellenvfilename);
     vector_destroy(cellargs);
-    const_vector_destroy(pfilenames);
+    if(pfilenames)
+    {
+        const_vector_destroy(pfilenames);
+    }
     if(toplevel)
     {
         _move_origin(toplevel, cmdoptions);
@@ -758,7 +747,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
                     goto DESTROY_OBJECT;
                 }
                 int export_result = export_write_toplevel(
-                    toplevel, 
+                    toplevel,
                     export_state
                 );
                 if(!export_result)

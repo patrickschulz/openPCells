@@ -516,22 +516,6 @@ This function does the same as geometry.path\_points\_xy, but starts in y-direct
             cellname of the cell whose parameters should be queried;
     \end{APIparameters}
 \end{APIfunc}
-\begin{APIfunc}{pcell.push\_overwrites(cellname, parameters)}
-    overwrite parameters of other cells. This works across pcell limits and can be called before pcell layouts are created. This also affects cells that are created in sub-cells. This works like a stack (one stack per cell), so it can be applied multiple times
-    \begin{APIparameters}
-        \parameter{cellname}{string}
-            cellname of the to-be-overwritten cell;
-        \parameter{parameters}{table}
-            table with key-value pairs;
-    \end{APIparameters}
-\end{APIfunc}
-\begin{APIfunc}{pcell.pop\_overwrites(cellname)}
-    pop one entry of overwrites from the overwrite stack
-    \begin{APIparameters}
-        \parameter{cellname}{string}
-            cellname of the overwrite stack;
-    \end{APIparameters}
-\end{APIfunc}
 \begin{APIfunc}{pcell.check\_expression(expression, message)}
     check valid parameter values with expressions. If parameter values depend on some other parameter or the posval function of parameter definitions do not offer enough flexibility, parameters can be checked with arbitrary lua expressions. This function must be called in parameters()
     \begin{APIparameters}

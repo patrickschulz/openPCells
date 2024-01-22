@@ -1,50 +1,5 @@
 -- submodules
 
--- start of evaluator module
-local function _eval_identity(arg) return arg end
-
-local function _eval_toboolean(arg)
-    assert(
-        string.match(arg, "true") or string.match(arg, "false"),
-        string.format("_eval_toboolean: argument must be 'true' or 'false' (is '%s')", arg)
-    )
-    return arg == "true" and true or false
-end
-
-local function _eval_tointeger(arg)
-    return math.floor(tonumber(arg))
-end
-
-local function _eval_tonumtable(arg)
-    local t = {}
-    for e in string.gmatch(arg, "[^;,]+") do
-        table.insert(t, tonumber(e))
-    end
-    return t
-end
-
-local function _eval_tostrtable(arg)
-    local t = {}
-    for e in string.gmatch(arg, "[^;,]+") do
-        table.insert(t, tostring(e))
-    end
-    return t
-end
-
-local function _evaluator(arg, argtype)
-    local evaluators = {
-        number   = tonumber,
-        integer  = _eval_tointeger,
-        string   = _eval_identity,
-        boolean  = _eval_toboolean,
-        numtable = _eval_tonumtable,
-        strtable = _eval_tostrtable,
-    }
-    local eval = evaluators[argtype]
-    return eval(arg)
-end
--- end of evaluator module
-
 -- start of parameter module
 local paramlib = {}
 
@@ -180,7 +135,6 @@ local function _add_cell(state, cellname, funcs, nocallparams)
         funcs       = funcs,
         parameters  = paramlib.create_directory(),
         properties  = {},
-        overwrites  = {},
     }
     rawset(state.loadedcells, cellname, cell)
     if funcs.parameters and not nocallparams then
@@ -221,19 +175,8 @@ local function _get_parameters(state, cellname, cellargs)
         P[entry.name] = entry.value
     end
 
-    -- (2) process overwrites
+    -- (2) process input parameters
     local explicit = {}
-    for i = #cell.overwrites, 1, -1 do -- pseudo-stack, iterate from the back
-        local overwrites = cell.overwrites[i]
-        for name, value in pairs(overwrites) do
-            assert(P[name] ~= nil,
-                string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong? This parameter was overwritten with push_overwrite", name, cellname))
-            P[name] = value
-            explicit[name] = true
-        end
-    end
-
-    -- (3) process input parameters
     if cellargs then
         for name, value in pairs(cellargs) do
             assert(P[name] ~= nil,
@@ -243,7 +186,7 @@ local function _get_parameters(state, cellname, cellargs)
         end
     end
 
-    -- (4) handle followers
+    -- (3) handle followers
     local followers = cell.parameters:get_followers()
     local ordered = {}
     repeat
@@ -260,7 +203,7 @@ local function _get_parameters(state, cellname, cellargs)
         end
     end
 
-    -- (5) run parameter checks
+    -- (4) run parameter checks
     for _, entry in ipairs(cellparams) do
         paramlib.check_constraints(entry, P[entry.name])
     end
@@ -303,34 +246,6 @@ local function _add_parameters(state, cellname, ...)
             parameter.argtype, parameter.posvals, parameter.info, parameter.follow, parameter.readonly
         )
     end
-end
-
-local function _push_overwrites(state, cellname, cellargs)
-    assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
-    assert(type(cellargs) == "table", string.format("pcell.push_overwrites: 'cellargs' must be a table (got: %s)", type(cellargs)))
-
-    local cell = _get_cell(state, cellname)
-
-    -- check if overwritten parameter exists
-    local cellparams = cell.parameters.values
-    local P = {}
-    for _, entry in ipairs(cellparams) do
-        P[entry.name] = true
-    end
-    for name in pairs(cellargs) do
-        assert(P[name] ~= nil, string.format("trying to overwrite parameter '%s', which does not exist in cell '%s'", name, cellname))
-    end
-
-    -- install overwrite
-    table.insert(cell.overwrites, cellargs)
-end
-
-local function _pop_overwrites(state, cellname)
-    local cell = _get_cell(state, cellname)
-    if #cell.overwrites == 0 then
-        error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname))
-    end
-    table.remove(cell.overwrites)
 end
 
 local function _resolve_cellname(state, cellname)
@@ -386,8 +301,6 @@ function state.create_cellenv(state, cellname, ovrenv)
             add_parameters                  = bindstatecell(_add_parameters),
             -- the following functions don't not need cell binding as they are called for other cells
             get_parameters                  = bindstate(_get_parameters),
-            push_overwrites                 = bindstate(_push_overwrites),
-            pop_overwrites                  = bindstate(_pop_overwrites),
             create_layout                   = pcell.create_layout,
             create_layout_env               = pcell.create_layout_env,
             create_layout_in_object         = pcell.create_layout_in_object,
@@ -469,37 +382,6 @@ end
 
 function pcell.enable_dprint(d)
     state.enabledprint = d
-end
-
-function pcell.push_overwrites(cellname, cellargs)
-    _push_overwrites(state, cellname, cellargs)
-end
-
-function pcell.pop_overwrites(cellname)
-    _pop_overwrites(state, cellname)
-end
-
-function pcell.evaluate_parameters(cellname, cellargs)
-    local parameters = {}
-    for name, value in pairs(cellargs) do
-        -- split name if in  'parent/parameter'
-        local parent, arg = string.match(name, "^([^.]+)%.(.+)$")
-        if parent then
-            name = arg
-        end
-
-        local cell = _get_cell(state, parent or cellname)
-        local p = cell.parameters:get(name)
-        if not p then
-            error(string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, parent or cellname))
-        end
-        local index = name
-        if parent then
-            index = string.format("%s.%s", parent, name)
-        end
-        parameters[index] = _evaluator(value, p.argtype)
-    end
-    return parameters
 end
 
 local function _create_layout_internal(obj, cellname, cellargs, env)
@@ -728,6 +610,7 @@ function pcell.parameters(cellname, cellargs, generictech)
     -- execute the 'layout' function without creating any layouts to collect all used parameters
     -- this is required in order to get the actual transparent parameters of subcells
     -- (that is, parameters that are not overwritten on higher levels)
+    -- UPDATE: overwrites don't exist any more, this is probably much simpler now
         --local t = {
         --    get_dimension = function(name) return 4 end, -- FIXME: find a suitable return value
         --}

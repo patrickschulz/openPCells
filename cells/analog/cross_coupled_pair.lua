@@ -7,8 +7,7 @@ function parameters()
 end
 
 function layout(ccp, _P)
-    local bp = pcell.get_parameters("basic/mosfet")
-    pcell.push_overwrites("basic/mosfet", {
+    local baseopt = {
         fingers = 4,
         fingerwidth = 500,
         gatelength = 100,
@@ -18,15 +17,17 @@ function layout(ccp, _P)
         drawdrainvia = true,
         connectdrainmetal = 4,
         connectsource = true
-    })
+    }
 
     -- create center dummy
-    local dummy = pcell.create_layout("basic/mosfet", "dummymosfet", { fingers = _P.centerdummies, drawtopgate = false, drawdrainvia = false })
+    local dummy = pcell.create_layout("basic/mosfet", "dummymosfet", util.add_options(baseopt, {
+        fingers = _P.centerdummies, drawtopgate = false, drawdrainvia = false
+    }))
     ccp:merge_into(dummy)
 
-    local left = pcell.create_layout("basic/mosfet", "leftmosfet")
+    local left = pcell.create_layout("basic/mosfet", "leftmosfet", baseopt)
     left:align_left(dummy)
-    local right = pcell.create_layout("basic/mosfet", "rightmosfet")
+    local right = pcell.create_layout("basic/mosfet", "rightmosfet", baseopt)
     right:align_right(dummy)
     ccp:merge_into(left)
     ccp:merge_into(right)

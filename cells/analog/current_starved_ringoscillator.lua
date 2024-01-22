@@ -102,12 +102,11 @@ function parameters()
 end
 
 function layout(oscillator, _P)
-    local cbp = pcell.get_parameters("basic/cmos")
     local xpitch = _P.glength + _P.gspace
 
     local separation = 3 * _P.gstwidth + 4 * _P.gstspace
 
-    pcell.push_overwrites("basic/cmos", {
+    local baseopt = {
         gatelength = _P.glength,
         gatespace = _P.gspace,
         gstwidth = _P.gstwidth,
@@ -131,7 +130,7 @@ function layout(oscillator, _P)
         ngateext = _P.powerwidth + _P.powerspace + _P.gstspace + _P.gstwidth,
         outergstwidth = _P.gstwidth,
         outergstspace = _P.powerspace + _P.powerwidth + _P.gstspace,
-    })
+    }
 
     -- place inverter cells
     local invgatecontacts = {}
@@ -152,7 +151,7 @@ function layout(oscillator, _P)
             invactivecontacts[i] = "outer"
         end
     end
-    local inverterref = pcell.create_layout("basic/cmos", "inverterref", {
+    local inverterref = pcell.create_layout("basic/cmos", "inverterref", util.add_options(baseopt, {
         gatecontactpos = invgatecontacts,
         pcontactpos = invactivecontacts,
         ncontactpos = invactivecontacts,
@@ -250,7 +249,7 @@ function layout(oscillator, _P)
         cmnactivecontacts[i] = "power"
     end
     -- create current mirror layout
-    local cmarray = pcell.create_layout("basic/cmos", "currentmirror", {
+    local cmarray = pcell.create_layout("basic/cmos", "currentmirror", util.add_options(baseopt, {
         gatecontactpos = cmgatecontacts,
         pcontactpos = cmpactivecontacts,
         ncontactpos = cmnactivecontacts,
@@ -420,7 +419,6 @@ function layout(oscillator, _P)
         pcontactpos = bufferactivecontacts,
         ncontactpos = bufferactivecontacts,
     })
-    pcell.pop_overwrites("basic/cmos")
     geometry.rectanglebltr(bufferarray,
         generics.metal(1),
         bufferarray:get_area_anchor(string.format("G%d", _P.bufspacers + 1)).bl,

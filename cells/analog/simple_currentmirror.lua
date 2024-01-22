@@ -34,20 +34,7 @@ function parameters()
 end
 
 function layout(cell, _P)
-    local cbp = pcell.get_parameters("basic/cmos")
     local xpitch = _P.glength + _P.gspace
-    pcell.push_overwrites("basic/mosfet", {
-        gatelength = _P.glength,
-        gatespace = _P.gspace,
-    })
-
-    pcell.push_overwrites("basic/cmos", {
-        separation = _P.separation,
-        pwidth = _P.pfingerwidth,
-        nwidth = _P.nfingerwidth,
-        powerwidth = _P.powerwidth,
-        powerspace = _P.powerspace,
-    })
 
     -- current mirror settings
     local gatecontacts = {}
@@ -78,6 +65,13 @@ function layout(cell, _P)
     end
     -- create current mirror layout
     local array = pcell.create_layout("basic/cmos", "mosfets", { 
+        gatelength = _P.glength,
+        gatespace = _P.gspace,
+        separation = _P.separation,
+        pwidth = _P.pfingerwidth,
+        nwidth = _P.nfingerwidth,
+        powerwidth = _P.powerwidth,
+        powerspace = _P.powerspace,
         gatecontactpos = gatecontacts, 
         pcontactpos = _P.inputpolarity == "n" and pactivecontacts or nactivecontacts,
         ncontactpos = _P.inputpolarity == "n" and nactivecontacts or pactivecontacts,
@@ -184,7 +178,4 @@ function layout(cell, _P)
             array:get_anchor(string.format("%sSDc%d", sdinsel, fingers)),
         }, _P.gstwidth)
     end
-
-    pcell.pop_overwrites("basic/mosfet")
-    pcell.pop_overwrites("basic/cmos")
 end
