@@ -1,3 +1,63 @@
+/* util.polygon_xmin(polygon) */
+{
+    struct parameter parameters[] = {
+        { "polygon", POINTLIST, NULL, "polygon" }
+    };
+    vector_append(entries, _make_api_entry(
+        "polygon_xmin",
+        MODULE_UTIL,
+        "retrieve the minimum x-value of all points of a polygon",
+        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal xmin = util.polygon_xmin(polygon) -- -50",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.polygon_xmax(polygon) */
+{
+    struct parameter parameters[] = {
+        { "polygon", POINTLIST, NULL, "polygon" }
+    };
+    vector_append(entries, _make_api_entry(
+        "polygon_xmax",
+        MODULE_UTIL,
+        "retrieve the maximum x-value of all points of a polygon",
+        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal xmax = util.polygon_xmax(polygon) -- 50",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.polygon_ymin(polygon) */
+{
+    struct parameter parameters[] = {
+        { "polygon", POINTLIST, NULL, "polygon" }
+    };
+    vector_append(entries, _make_api_entry(
+        "polygon_ymin",
+        MODULE_UTIL,
+        "retrieve the minimum y-value of all points of a polygon",
+        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal ymin = util.polygon_ymin(polygon) -- -50",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.polygon_ymax(polygon) */
+{
+    struct parameter parameters[] = {
+        { "polygon", POINTLIST, NULL, "polygon" }
+    };
+    vector_append(entries, _make_api_entry(
+        "polygon_ymax",
+        MODULE_UTIL,
+        "retrieve the maximum y-value of all points of a polygon",
+        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal ymax = util.polygon_ymax(polygon) -- 50",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* util.xmirror(pts, xcenter) */
 {
     struct parameter parameters[] = {
@@ -613,10 +673,6 @@
 	util.check_string
 	util.intersection
 	util.intersection_ab
-	util.polygon_xmax
-	util.polygon_xmin
-	util.polygon_ymax
-	util.polygon_ymin
 	util.sum
     util.make_multiple
 */
