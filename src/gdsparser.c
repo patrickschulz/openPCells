@@ -941,6 +941,14 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
         {
             *str = _parse_string(record->data, record->length - 4);
         }
+        else if(record->recordtype == PROPATTR)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == PROPVALUE)
+        {
+            // FIXME: handle record
+        }
         else if(record->recordtype == ENDEL)
         {
             break;
