@@ -42,8 +42,7 @@ const char* recordnames[] = {
     "STRCLASS", "RESERVED", "FORMAT", "MASK", "ENDMASKS", "LIBDIRSIZE", "SRFNAME", "LIBSECUR",
 };
 
-struct record
-{
+struct record {
     uint16_t length;
     enum recordtypes recordtype;
     uint8_t datatype;
