@@ -69,6 +69,29 @@ function M.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
     }
 end
 
+function M.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext)
+    local dx = point.xdistance_abs(bl, tr)
+    local dy = point.ydistance_abs(bl, tr)
+    local xcorr = util.fix_to_grid_abs_higher(dx, xgrid) - dx
+    local ycorr = util.fix_to_grid_abs_higher(dy, ygrid) - dy
+    if minxext then
+        while xcorr < minxext do
+            xcorr = xcorr + xgrid
+        end
+    end
+    if minyext then
+        while ycorr < minyext do
+            ycorr = ycorr + ygrid
+        end
+    end
+    return {
+        point.create(bl:getx() - xcorr / 2, bl:gety() - ycorr / 2),
+        point.create(tr:getx() + xcorr / 2, bl:gety() - ycorr / 2),
+        point.create(tr:getx() + xcorr / 2, tr:gety() + ycorr / 2),
+        point.create(bl:getx() - xcorr / 2, tr:gety() + ycorr / 2),
+    }
+end
+
 function M.xmirror(pts, xcenter)
     local mirrored = {}
     xcenter = xcenter or 0

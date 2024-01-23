@@ -374,6 +374,26 @@
     ));
 }
 
+/* util.fit_rectangular_polygon(value, ratio) */
+{
+    struct parameter parameters[] = {
+        { "bl",         POINT,      NULL, "lower-left corner of the rectangle" },
+        { "tr",         POINT,      NULL, "upper-right corner of the rectangle" },
+        { "xgrid",      INTEGER,    NULL, "xgrid" },
+        { "ygrid",      INTEGER,    NULL, "ygrid" },
+        { "minxext",    INTEGER,    NULL, "minimum extension in x-direction" },
+        { "minyext",    INTEGER,    NULL, "minimum extension in y-direction" },
+    };
+    vector_append(entries, _make_api_entry(
+        "fit_rectangular_polygon",
+        MODULE_UTIL,
+        "convert a two-point rectangle to a polygon describing this rectangle. The polygon is extended so that its width and height are a integer multiple of the specified x- and y-grid. The polygon's width and height is always at least the width and height of the rectangle. Additionally, a minimum extension can be given in x- and y-direction, which can further increase the polygon's size.",
+        "local region = util.fit_rectangular_polygon(point.create(-127, -110), point.create(118, 109), 20, 20, 50, 50)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* util.any_of(value, ratio) */
 {
     struct parameter parameters[] = {
