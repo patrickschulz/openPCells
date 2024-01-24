@@ -1244,7 +1244,7 @@ static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, cons
     }
 }
 
-static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, struct vector** points, coordinate_t* width)
+static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, struct vector** points, coordinate_t* width, coordinate_t* bgnext, coordinate_t* endext, int16_t* type)
 {
     int readlayer = 0;
     while(1)
@@ -1278,7 +1278,9 @@ static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, s
         }
         else if(record->recordtype == PATHTYPE)
         {
-            // FIXME: handle record
+            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
+            *type = *pdata;
+            free(pdata);
         }
         else if(record->recordtype == WIDTH)
         {
@@ -1288,11 +1290,15 @@ static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, s
         }
         else if(record->recordtype == BGNEXTN)
         {
-            // FIXME: handle record
+            int32_t* pdata = _parse_four_byte_integer(record->data, 4);
+            *bgnext = *pdata;
+            free(pdata);
         }
         else if(record->recordtype == ENDEXTN)
         {
-            // FIXME: handle record
+            int32_t* pdata = _parse_four_byte_integer(record->data, 4);
+            *endext = *pdata;
+            free(pdata);
         }
         else if(record->recordtype == XY)
         {
@@ -1311,7 +1317,7 @@ static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, s
     return readlayer;
 }
 
-static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, coordinate_t width, const struct vector* gdslayermap)
+static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, coordinate_t width, coordinate_t bgnext, coordinate_t endext, int16_t type, const struct vector* gdslayermap)
 {
     fputs("    geometry.path(cell, ", cellfile);
     _write_layers(cellfile, layer, purpose, gdslayermap);
@@ -1321,7 +1327,37 @@ static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const st
         const point_t* pt = vector_get_const(points, i);
         fprintf(cellfile, "point.create(%lld, %lld), ", pt->x, pt->y);
     }
-    fprintf(cellfile, "}, %lld)\n", width);
+    if(type == 0)
+    {
+        fprintf(cellfile, "}, %lld)\n", width);
+    }
+    else if(type == 1)
+    {
+        // no support for round path endings, ignore
+        fprintf(cellfile, "}, %lld)\n", width);
+    }
+    else if(type == 2)
+    {
+        fprintf(cellfile, "}, %lld, \"rect\")\n", width);
+    }
+    else if(type == 4)
+    {
+        if(bgnext > 0 || endext > 0)
+        {
+            if(bgnext == endext)
+            {
+                fprintf(cellfile, "}, %lld, %lld)\n", width, bgnext);
+            }
+            else
+            {
+                fprintf(cellfile, "}, %lld, { %lld, %lld })\n", width, bgnext, endext);
+            }
+        }
+        else
+        {
+            fprintf(cellfile, "}, %lld)\n", width);
+        }
+    }
 }
 
 static int _is_toplevel(const char* name, const struct const_vector* toplevelcells)
@@ -1460,14 +1496,17 @@ static int _read_structure(
             int16_t layer, purpose;
             struct vector* points = NULL;
             coordinate_t width;
-            if(!_read_PATH(stream, &layer, &purpose, &points, &width))
+            coordinate_t bgnext = 0;
+            coordinate_t endext = 0;
+            int16_t type = 0;
+            if(!_read_PATH(stream, &layer, &purpose, &points, &width, &bgnext, &endext, &type))
             {
                 fclose(cellfile);
                 return 0;
             }
             if(_check_lpp(layer, purpose, ignorelpp))
             {
-                _write_PATH(cellfile, layer, purpose, points, width, gdslayermap);
+                _write_PATH(cellfile, layer, purpose, points, width, bgnext, endext, type, gdslayermap);
             }
             vector_destroy(points);
         }
