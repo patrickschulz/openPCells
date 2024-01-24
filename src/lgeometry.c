@@ -128,7 +128,7 @@ static int lgeometry_polygon(lua_State* L)
     return 0;
 }
 
-void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext)
+void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext, coordinate_t width)
 {
     if(lua_gettop(L) == idx)
     {
@@ -139,6 +139,11 @@ void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext)
             {
                 *bgnext = 0;
                 *endext = 0;
+            }
+            else if(strcmp(exttype, "rect") == 0)
+            {
+                *bgnext = width / 2;
+                *endext = width / 2;
             }
         }
         else if(lua_type(L, idx) == LUA_TNUMBER)
@@ -155,7 +160,6 @@ void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext)
             lua_pop(L, 1);
         }
     }
-
 }
 
 static int lgeometry_path(lua_State* L)
@@ -185,7 +189,7 @@ static int lgeometry_path(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 5, &bgnext, &endext);
+    _get_path_extension(L, 5, &bgnext, &endext, width);
 
     const point_t** points = calloc(len, sizeof(*points));
     for(unsigned int i = 1; i <= len; ++i)
@@ -212,7 +216,7 @@ static int lgeometry_rectanglepath(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext);
+    _get_path_extension(L, 6, &bgnext, &endext, width);
 
     const point_t* points[2] = {
         lpoint_get(pt1),
@@ -233,7 +237,7 @@ static int lgeometry_path_manhatten(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 5, &bgnext, &endext);
+    _get_path_extension(L, 5, &bgnext, &endext, width);
 
     size_t numpoints = 2 * (len - 2) + 3;
     point_t** points = calloc(numpoints, sizeof(*points));
@@ -640,7 +644,7 @@ static int lgeometry_path_2x(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext);
+    _get_path_extension(L, 6, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y);
     const point_t* points[4];
@@ -662,7 +666,7 @@ static int lgeometry_path_2y(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext);
+    _get_path_extension(L, 6, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptend)->y);
     const point_t* points[4];
@@ -686,7 +690,7 @@ static int lgeometry_path_3x(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 7, &bgnext, &endext);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptstart)->y);
     point_t* pts2 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptend)->y);
@@ -713,7 +717,7 @@ static int lgeometry_path_3y(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext);
+    _get_path_extension(L, 6, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
     point_t* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
@@ -740,7 +744,7 @@ static int lgeometry_path_cshape(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 7, &bgnext, &endext);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(offset, lpoint_get(ptstart)->y);
     point_t* pts2 = point_create(offset, lpoint_get(ptend)->y);
@@ -767,7 +771,7 @@ static int lgeometry_path_ushape(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 7, &bgnext, &endext);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(lpoint_get(ptstart)->x, offset);
     point_t* pts2 = point_create(lpoint_get(ptend)->x, offset);
@@ -809,7 +813,7 @@ static int lgeometry_path_polygon(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 5, &bgnext, &endext);
+    _get_path_extension(L, 5, &bgnext, &endext, width);
 
     struct vector* points = vector_create(len, point_destroy);
     for(unsigned int i = 1; i <= len; ++i)
@@ -1427,7 +1431,7 @@ static int lgeometry_path_points_to_polygon(lua_State* L)
     // FIXME
     //int bgnext = 0;
     //int endext = 0;
-    //_get_path_extension(L, 5, &bgnext, &endext);
+    //_get_path_extension(L, 5, &bgnext, &endext, width);
 
     struct vector* points = vector_create(len, point_destroy);
     for(unsigned int i = 1; i <= len; ++i)
