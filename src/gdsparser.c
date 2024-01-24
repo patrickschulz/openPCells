@@ -154,7 +154,10 @@ static struct stream* _read_raw_stream(const char* filename)
     if(!status)
     {
         fprintf(stderr, "gdsparser: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
-        _destroy_stream(stream);
+        if(stream)
+        {
+            _destroy_stream(stream);
+        }
         return NULL;
     }
     return stream;
@@ -285,191 +288,6 @@ static char* _parse_string(uint8_t* data, size_t length)
     strncpy(string, (const char*) data, length);
     string[length] = 0;
     return string;
-}
-
-static int lgdsparser_read_raw_stream(lua_State* L)
-{
-    const char* filename = lua_tostring(L, 1);
-    struct stream* stream = _read_raw_stream(filename);
-    if(!stream)
-    {
-        lua_pushnil(L);
-        lua_pushstring(L, "could not read stream");
-        return 2;
-    }
-    lua_newtable(L);
-    for(size_t i = 0; i < stream->numrecords; ++i)
-    {
-        struct record* record = &stream->records[i];
-        lua_newtable(L);
-
-        // header
-        lua_pushstring(L, "header");
-        lua_newtable(L);
-
-        lua_pushstring(L, "length");
-        lua_pushinteger(L, record->length);
-        lua_rawset(L, -3);
-
-        lua_pushstring(L, "recordtype");
-        lua_pushinteger(L, record->recordtype);
-        lua_rawset(L, -3);
-
-        lua_pushstring(L, "datatype");
-        lua_pushinteger(L, record->datatype);
-        lua_rawset(L, -3);
-
-        lua_rawset(L, -3);
-
-        // data
-        // FIXME: use existing functions to parse gds data
-        switch(record->datatype)
-        {
-            case BIT_ARRAY:
-                lua_pushstring(L, "data");
-                lua_newtable(L);
-                for(int j = 0; j < 8; ++j)
-                {
-                    lua_pushinteger(L, (record->data[0] & (1 << j)) >> j);
-                    lua_rawseti(L, -2, j + 1);
-                }
-                for(int j = 0; j < 8; ++j)
-                {
-                    lua_pushinteger(L, (record->data[1] & (1 << j)) >> j);
-                    lua_rawseti(L, -2, j + 8 + 1);
-                }
-                lua_rawset(L, -3);
-                break;
-            case TWO_BYTE_INTEGER:
-                if((record->length - 4) / 2 > 1)
-                {
-                    lua_pushstring(L, "data");
-                    lua_newtable(L);
-                    for(int j = 0; j < (record->length - 4) / 2; ++j)
-                    {
-                        int16_t num = (record->data[j * 2]     << 8) 
-                                    + (record->data[j * 2 + 1] << 0);
-                        lua_pushinteger(L, num);
-                        lua_rawseti(L, -2, j + 1);
-                    }
-                    lua_rawset(L, -3);
-                }
-                else
-                {
-                    lua_pushstring(L, "data");
-                    int16_t num = (record->data[0] << 8) 
-                                + (record->data[1] << 0);
-                    lua_pushinteger(L, num);
-                    lua_rawset(L, -3);
-                }
-                break;
-            case FOUR_BYTE_INTEGER:
-                if((record->length - 4) / 4 > 1)
-                {
-                    lua_pushstring(L, "data");
-                    lua_newtable(L);
-                    for(int j = 0; j < (record->length - 4) / 4; ++j)
-                    {
-                        int32_t num = (record->data[j * 4]     << 24) 
-                                    + (record->data[j * 4 + 1] << 16) 
-                                    + (record->data[j * 4 + 2] <<  8) 
-                                    + (record->data[j * 4 + 3] <<  0);
-                        lua_pushinteger(L, num);
-                        lua_rawseti(L, -2, j + 1);
-                    }
-                    lua_rawset(L, -3);
-                }
-                else
-                {
-                    lua_pushstring(L, "data");
-                    int32_t num = (record->data[0] << 24) 
-                                + (record->data[1] << 16) 
-                                + (record->data[2] <<  8) 
-                                + (record->data[3] <<  0);
-                    lua_pushinteger(L, num);
-                    lua_rawset(L, -3);
-                }
-                break;
-            case FOUR_BYTE_REAL:
-                lua_pushstring(L, "data");
-                if((record->length - 4) / 4 > 1)
-                {
-                    lua_newtable(L);
-                }
-                for(int j = 0; j < (record->length - 4) / 4; ++j)
-                {
-                    int sign = record->data[j * 4] & 0x80;
-                    int8_t exp = record->data[j * 4] & 0x7f;
-                    double mantissa = record->data[j * 4 + 1] / 256.0
-                                    + record->data[j * 4 + 2] / 256.0 / 256.0
-                                    + record->data[j * 4 + 3] / 256.0 / 256.0 / 256.0;
-                    if(sign)
-                    {
-                        lua_pushnumber(L, -mantissa * pow(16.0, exp - 64));
-                    }
-                    else
-                    {
-                        lua_pushnumber(L, mantissa * pow(16.0, exp - 64));
-                    }
-                    if((record->length - 4) / 4 > 1)
-                    {
-                        lua_rawseti(L, -2, j + 1);
-                    }
-                }
-                lua_rawset(L, -3);
-                break;
-            case EIGHT_BYTE_REAL:
-                lua_pushstring(L, "data");
-                if((record->length - 4) / 8 > 1)
-                {
-                    lua_newtable(L);
-                }
-                for(int j = 0; j < (record->length - 4) / 8; ++j)
-                {
-                    int sign = record->data[j * 8] & 0x80;
-                    int8_t exp = record->data[j * 8] & 0x7f;
-                    double mantissa = record->data[j * 8 + 1] / 256.0
-                                    + record->data[j * 8 + 2] / 256.0 / 256.0
-                                    + record->data[j * 8 + 3] / 256.0 / 256.0 / 256.0
-                                    + record->data[j * 8 + 4] / 256.0 / 256.0 / 256.0 / 256.0
-                                    + record->data[j * 8 + 5] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
-                                    + record->data[j * 8 + 6] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
-                                    + record->data[j * 8 + 7] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
-                    if(sign)
-                    {
-                        lua_pushnumber(L, -mantissa * pow(16.0, exp - 64));
-                    }
-                    else
-                    {
-                        lua_pushnumber(L, mantissa * pow(16.0, exp - 64));
-                    }
-                    if((record->length - 4) / 8 > 1)
-                    {
-                        lua_rawseti(L, -2, j + 1);
-                    }
-                }
-                lua_rawset(L, -3);
-                break;
-            case ASCII_STRING:
-                if(((char*)record->data)[record->length - 4 - 1] == 0)
-                {
-                    lua_pushstring(L, "data");
-                    lua_pushlstring(L, (char*)record->data, record->length - 4 - 1);
-                    lua_rawset(L, -3);
-                }
-                else
-                {
-                    lua_pushstring(L, "data");
-                    lua_pushlstring(L, (char*)record->data, record->length - 4);
-                    lua_rawset(L, -3);
-                }
-                break;
-        }
-
-        lua_rawseti(L, -2, i + 1);
-    }
-    _destroy_stream(stream);
-    return 1;
 }
 
 int gdsparser_show_records(const char* filename, int raw)
@@ -1541,29 +1359,247 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
     return 1;
 }
 
-static int lgdsparser_show_records(lua_State* L)
+struct hierarchy_cellref {
+    char* name;
+    struct vector* references;
+};
+
+struct hierarchy_cellref* _make_hierarchy_cellref(void)
 {
-    const char* filename = lua_tostring(L, 1);
-    if(!gdsparser_show_records(filename, 0))
+    struct hierarchy_cellref* cell = malloc(sizeof(*cell));
+    cell->references = vector_create(1, free);
+    return cell;
+}
+
+void _destroy_hierarchy_cellref(void* v)
+{
+    struct hierarchy_cellref* cell = v;
+    free(cell->name);
+    vector_destroy(cell->references);
+    free(cell);
+}
+
+static struct vector* _read_cells(const char* filename)
+{
+    struct vector* cells = vector_create(1, _destroy_hierarchy_cellref);
+    struct stream* stream = _read_raw_stream(filename);
+    if(!stream)
     {
-        lua_pushnil(L);
-        lua_pushstring(L, "could not read stream");
-        return 2;
+        return cells;
     }
-    lua_pushboolean(L, 1);
+
+    struct hierarchy_cellref* cell = NULL;
+    int isobj = 0;
+    char* objname = NULL;
+    while(1)
+    {
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            puts("gdsparser: end of stream before ENDLIB");
+            _destroy_stream(stream);
+            return NULL;
+        }
+        else if(record->recordtype == BGNSTR)
+        {
+            cell = _make_hierarchy_cellref();
+        }
+        else if(record->recordtype == ENDSTR)
+        {
+            vector_append(cells, cell);
+            cell = NULL;
+        }
+        else if(record->recordtype == STRNAME)
+        {
+            cell->name = _parse_string(record->data, record->length - 4);
+        }
+        else if((record->recordtype == SREF) || (record->recordtype == AREF))
+        {
+            isobj = 1;
+        }
+        else if(record->recordtype == ENDEL)
+        {
+            if(isobj)
+            {
+                vector_append(cell->references, objname);
+                isobj = 0;
+            }
+        }
+        else if(record->recordtype == SNAME)
+        {
+            objname = _parse_string(record->data, record->length - 4);
+        }
+        if(record->recordtype == ENDLIB)
+        {
+            break;
+        }
+    }
+    _destroy_stream(stream);
+    return cells;
+}
+
+static struct const_vector* _get_cell_references(struct hierarchy_cellref* cell)
+{
+    struct const_vector* references = const_vector_create(1);
+    struct vector_iterator* it = vector_iterator_create(cell->references);
+    while(vector_iterator_is_valid(it))
+    {
+        const char* refname = vector_iterator_get(it);
+        const_vector_append(references, refname);
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+    return references;
+}
+
+static struct hierarchy_cellref* _find_cell(struct vector* cells, const char* cellname)
+{
+    struct vector_iterator* it = vector_iterator_create(cells);
+    while(vector_iterator_is_valid(it))
+    {
+        struct hierarchy_cellref* cell = vector_iterator_get(it);
+        if(strcmp(cell->name, cellname) == 0)
+        {
+            vector_iterator_destroy(it);
+            return cell;
+        }
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+    return NULL;
+}
+
+static int _is_not_referenced(const char* name, struct const_vector* referenced)
+{
+    struct const_vector_iterator* it = const_vector_iterator_create(referenced);
+    while(const_vector_iterator_is_valid(it))
+    {
+        const char* refname = const_vector_iterator_get(it);
+        if(strcmp(name, refname) == 0)
+        {
+            const_vector_iterator_destroy(it);
+            return 0;
+        }
+        const_vector_iterator_next(it);
+    }
+    const_vector_iterator_destroy(it);
     return 1;
 }
 
-int open_gdsparser_lib(lua_State* L)
+static struct const_vector* _get_toplevel_cells(struct vector* cells)
 {
-    static const luaL_Reg modfuncs[] =
+    struct vector_iterator* it;
+
+    struct const_vector* referenced = const_vector_create(1);
+    it = vector_iterator_create(cells);
+    while(vector_iterator_is_valid(it))
     {
-        { "read_raw_stream", lgdsparser_read_raw_stream },
-        { "show_records",    lgdsparser_show_records    },
-        { NULL,              NULL                       }
-    };
-    lua_newtable(L);
-    luaL_setfuncs(L, modfuncs, 0);
-    lua_setglobal(L, "gdsparser");
-    return 0;
+        struct hierarchy_cellref* cell = vector_iterator_get(it);
+        struct const_vector* references = _get_cell_references(cell);
+        struct const_vector_iterator* refit = const_vector_iterator_create(references);
+        while(const_vector_iterator_is_valid(refit))
+        {
+            const char* refname = const_vector_iterator_get(refit);
+            const_vector_append(referenced, refname);
+            const_vector_iterator_next(refit);
+        }
+        const_vector_iterator_destroy(refit);
+        const_vector_destroy(references);
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+
+    struct const_vector* toplevelcells = const_vector_create(1);
+    it = vector_iterator_create(cells);
+    while(vector_iterator_is_valid(it))
+    {
+        struct hierarchy_cellref* cell = vector_iterator_get(it);
+        if(_is_not_referenced(cell->name, referenced))
+        {
+            const_vector_append(toplevelcells, cell);
+        }
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+
+    const_vector_destroy(referenced);
+    
+    return toplevelcells;
 }
+
+struct tree_element {
+    const char* name;
+    size_t level;
+};
+
+struct tree_element* _make_tree_element(const struct hierarchy_cellref* cell, size_t level)
+{
+    struct tree_element* element = malloc(sizeof(*element));
+    element->name = cell->name;
+    element->level = level;
+    return element;
+}
+
+void _destroy_tree_element(void* v)
+{
+    free(v);
+}
+
+static void _assemble_tree_element(struct vector* cells, struct vector* tree, const struct hierarchy_cellref* cell, size_t level)
+{
+    struct vector_iterator* it = vector_iterator_create(cell->references);
+    while(vector_iterator_is_valid(it))
+    {
+        const char* refname = vector_iterator_get(it);
+        const struct hierarchy_cellref* sub = _find_cell(cells, refname);
+        vector_append(tree, _make_tree_element(sub, level + 1));
+        _assemble_tree_element(cells, tree, sub, level + 1);
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+}
+
+static struct vector* _resolve_hierarchy(struct vector* cells)
+{
+    struct const_vector* toplevelcells = _get_toplevel_cells(cells);
+    struct vector* tree = vector_create(1, _destroy_tree_element);
+    struct const_vector_iterator* it = const_vector_iterator_create(toplevelcells);
+    while(const_vector_iterator_is_valid(it))
+    {
+        const struct hierarchy_cellref* cell = const_vector_iterator_get(it);
+        vector_append(tree, _make_tree_element(cell, 0));
+        _assemble_tree_element(cells, tree, cell, 0);
+        const_vector_iterator_next(it);
+    }
+    const_vector_iterator_destroy(it);
+    const_vector_destroy(toplevelcells);
+    return tree;
+}
+
+void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
+{
+    // FIXME: error handling
+    struct vector* cells = _read_cells(filename);
+    struct vector* tree = _resolve_hierarchy(cells);
+    struct vector_iterator* it = vector_iterator_create(tree);
+    while(vector_iterator_is_valid(it))
+    {
+        struct tree_element* element = vector_iterator_get(it);
+        if(depth == 0 || element->level < depth)
+        {
+            for(size_t i = 0; i < element->level; ++i)
+            {
+                putchar(' ');
+                putchar(' ');
+                putchar(' ');
+                putchar(' ');
+            }
+            printf("%s\n", element->name);
+        }
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+    vector_destroy(cells);
+    vector_destroy(tree);
+}
+

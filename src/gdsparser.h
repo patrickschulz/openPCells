@@ -9,7 +9,6 @@ struct vector* gdsparser_create_layermap(const char* filename);
 void gdsparser_destroy_layermap(struct vector* layermap);
 int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* layermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose);
 int gdsparser_show_records(const char* filename, int raw);
-
-int open_gdsparser_lib(lua_State* L);
+void gdsparser_show_cell_hierarchy(const char* filename, size_t depth);
 
 #endif /* OPC_GDSPARSER_H */
