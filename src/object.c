@@ -100,6 +100,7 @@ struct object {
     char* name;
     int isproxy;
     int ismanaged;
+    int isused;
     struct transformationmatrix* trans;
 
     union {
@@ -143,6 +144,7 @@ static struct object* _create(const char* name)
         obj->name = NULL;
     }
     obj->ismanaged = 0;
+    obj->isused = 1;
     return obj;
 }
 
@@ -404,6 +406,7 @@ struct object* object_create_handle(struct object* cell, struct object* referenc
     /* store owning reference to original reference object */
     vector_append(cell->references, reference);
     reference->ismanaged = 1;
+    reference->isused = 0; // stored objects are not necessarily used
     return reference;
 }
 
@@ -428,6 +431,10 @@ struct object* object_add_child(struct object* cell, struct object* child, const
         {
             vector_append(cell->references, child);
         }
+    }
+    else
+    {
+        child->isused = 1;
     }
     return proxy;
 }
@@ -2226,6 +2233,11 @@ int object_has_ports(const struct object* cell)
 int object_is_empty(const struct object* cell)
 {
     return !object_has_shapes(cell) && !object_has_children(cell) && !object_has_ports(cell);
+}
+
+int object_is_used(const struct object* cell)
+{
+    return cell->isused;
 }
 
 int object_is_child_array(const struct object* cell)

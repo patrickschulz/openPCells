@@ -21,7 +21,13 @@ void main_gds_show_data(struct cmdoptions* cmdoptions)
 void main_gds_show_cell_hierarchy(struct cmdoptions* cmdoptions)
 {
     const char* filename = cmdoptions_get_argument_long(cmdoptions, "show-gds-cell-hierarchy");
-    gdsparser_show_cell_hierarchy(filename, 0);
+    size_t depth = 0;
+    if(cmdoptions_was_provided_long(cmdoptions,"show-gds-depth"))
+    {
+        const char* depthstr = cmdoptions_get_argument_long(cmdoptions, "show-gds-depth");
+        depth = strtoul(depthstr, NULL, 10);
+    }
+    gdsparser_show_cell_hierarchy(filename, depth);
 }
 
 void main_gds_read(struct cmdoptions* cmdoptions)

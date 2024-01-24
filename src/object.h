@@ -160,6 +160,7 @@ int object_has_shapes(const struct object* cell);
 int object_has_children(const struct object* cell);
 int object_has_ports(const struct object* cell);
 int object_is_empty(const struct object* cell);
+int object_is_used(const struct object* cell);
 int object_is_child_array(const struct object* cell);
 int object_has_anchor(const struct object* cell, const char* anchorname);
 int object_has_area_anchor(const struct object* cell, const char* anchorname);

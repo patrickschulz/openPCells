@@ -921,30 +921,33 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
     while(reference_iterator_is_valid(ref_it))
     {
         const struct object* reference = reference_iterator_get(ref_it);
-        const char* name = object_get_name(reference);
-        char* newnamecontext;
-        // FIXME: save already-exported reference names, as there can be duplicates
-        if(namecontext)
+        if(object_is_used(reference))
         {
-            newnamecontext = malloc(strlen(namecontext) + strlen(name) + 1 + 1); // + 1 for underscore
-            if(!newnamecontext)
+            const char* name = object_get_name(reference);
+            char* newnamecontext;
+            // FIXME: save already-exported reference names, as there can be duplicates
+            if(namecontext)
             {
-                reference_iterator_destroy(ref_it);
+                newnamecontext = malloc(strlen(namecontext) + strlen(name) + 1 + 1); // + 1 for underscore
+                if(!newnamecontext)
+                {
+                    reference_iterator_destroy(ref_it);
+                    return 0;
+                }
+                sprintf(newnamecontext, "%s_%s", namecontext, name);
+            }
+            else
+            {
+                newnamecontext = util_strdup(name);
+            }
+            _write_cell_hierarchy_with_namecontext(writer, reference, newnamecontext, expand_namecontext, write_ports, leftdelim, rightdelim);
+            int ret = _write_cell(writer, reference, namecontext, expand_namecontext, 0, write_ports, leftdelim, rightdelim); // 0: cell is not toplevel
+            if(!ret)
+            {
                 return 0;
             }
-            sprintf(newnamecontext, "%s_%s", namecontext, name);
+            free(newnamecontext);
         }
-        else
-        {
-            newnamecontext = util_strdup(name);
-        }
-        _write_cell_hierarchy_with_namecontext(writer, reference, newnamecontext, expand_namecontext, write_ports, leftdelim, rightdelim);
-        int ret = _write_cell(writer, reference, namecontext, expand_namecontext, 0, write_ports, leftdelim, rightdelim); // 0: cell is not toplevel
-        if(!ret)
-        {
-            return 0;
-        }
-        free(newnamecontext);
         reference_iterator_next(ref_it);
     }
     reference_iterator_destroy(ref_it);
