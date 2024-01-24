@@ -290,6 +290,250 @@ static char* _parse_string(uint8_t* data, size_t length)
     return string;
 }
 
+struct hierarchy_cellref {
+    char* name;
+    struct vector* references;
+};
+
+struct hierarchy_cellref* _make_hierarchy_cellref(void)
+{
+    struct hierarchy_cellref* cell = malloc(sizeof(*cell));
+    cell->references = vector_create(1, free);
+    return cell;
+}
+
+void _destroy_hierarchy_cellref(void* v)
+{
+    struct hierarchy_cellref* cell = v;
+    free(cell->name);
+    vector_destroy(cell->references);
+    free(cell);
+}
+
+static struct vector* _read_cells(const char* filename)
+{
+    struct vector* cells = vector_create(1, _destroy_hierarchy_cellref);
+    struct stream* stream = _read_raw_stream(filename);
+    if(!stream)
+    {
+        return cells;
+    }
+
+    struct hierarchy_cellref* cell = NULL;
+    int isobj = 0;
+    char* objname = NULL;
+    while(1)
+    {
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            puts("gdsparser: end of stream before ENDLIB");
+            _destroy_stream(stream);
+            return NULL;
+        }
+        else if(record->recordtype == BGNSTR)
+        {
+            cell = _make_hierarchy_cellref();
+        }
+        else if(record->recordtype == ENDSTR)
+        {
+            vector_append(cells, cell);
+            cell = NULL;
+        }
+        else if(record->recordtype == STRNAME)
+        {
+            cell->name = _parse_string(record->data, record->length - 4);
+        }
+        else if((record->recordtype == SREF) || (record->recordtype == AREF))
+        {
+            isobj = 1;
+        }
+        else if(record->recordtype == ENDEL)
+        {
+            if(isobj)
+            {
+                vector_append(cell->references, objname);
+                isobj = 0;
+            }
+        }
+        else if(record->recordtype == SNAME)
+        {
+            objname = _parse_string(record->data, record->length - 4);
+        }
+        if(record->recordtype == ENDLIB)
+        {
+            break;
+        }
+    }
+    _destroy_stream(stream);
+    return cells;
+}
+
+static struct const_vector* _get_cell_references(struct hierarchy_cellref* cell)
+{
+    struct const_vector* references = const_vector_create(1);
+    struct vector_iterator* it = vector_iterator_create(cell->references);
+    while(vector_iterator_is_valid(it))
+    {
+        const char* refname = vector_iterator_get(it);
+        const_vector_append(references, refname);
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+    return references;
+}
+
+static struct hierarchy_cellref* _find_cell(struct vector* cells, const char* cellname)
+{
+    struct vector_iterator* it = vector_iterator_create(cells);
+    while(vector_iterator_is_valid(it))
+    {
+        struct hierarchy_cellref* cell = vector_iterator_get(it);
+        if(strcmp(cell->name, cellname) == 0)
+        {
+            vector_iterator_destroy(it);
+            return cell;
+        }
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+    return NULL;
+}
+
+static int _is_not_referenced(const char* name, struct const_vector* referenced)
+{
+    struct const_vector_iterator* it = const_vector_iterator_create(referenced);
+    while(const_vector_iterator_is_valid(it))
+    {
+        const char* refname = const_vector_iterator_get(it);
+        if(strcmp(name, refname) == 0)
+        {
+            const_vector_iterator_destroy(it);
+            return 0;
+        }
+        const_vector_iterator_next(it);
+    }
+    const_vector_iterator_destroy(it);
+    return 1;
+}
+
+static struct const_vector* _get_toplevel_cells(struct vector* cells)
+{
+    struct vector_iterator* it;
+
+    struct const_vector* referenced = const_vector_create(1);
+    it = vector_iterator_create(cells);
+    while(vector_iterator_is_valid(it))
+    {
+        struct hierarchy_cellref* cell = vector_iterator_get(it);
+        struct const_vector* references = _get_cell_references(cell);
+        struct const_vector_iterator* refit = const_vector_iterator_create(references);
+        while(const_vector_iterator_is_valid(refit))
+        {
+            const char* refname = const_vector_iterator_get(refit);
+            const_vector_append(referenced, refname);
+            const_vector_iterator_next(refit);
+        }
+        const_vector_iterator_destroy(refit);
+        const_vector_destroy(references);
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+
+    struct const_vector* toplevelcells = const_vector_create(1);
+    it = vector_iterator_create(cells);
+    while(vector_iterator_is_valid(it))
+    {
+        struct hierarchy_cellref* cell = vector_iterator_get(it);
+        if(_is_not_referenced(cell->name, referenced))
+        {
+            const_vector_append(toplevelcells, cell);
+        }
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+
+    const_vector_destroy(referenced);
+
+    return toplevelcells;
+}
+
+struct tree_element {
+    const char* name;
+    size_t level;
+};
+
+struct tree_element* _make_tree_element(const struct hierarchy_cellref* cell, size_t level)
+{
+    struct tree_element* element = malloc(sizeof(*element));
+    element->name = cell->name;
+    element->level = level;
+    return element;
+}
+
+void _destroy_tree_element(void* v)
+{
+    free(v);
+}
+
+static void _assemble_tree_element(struct vector* cells, struct vector* tree, const struct hierarchy_cellref* cell, size_t level)
+{
+    struct vector_iterator* it = vector_iterator_create(cell->references);
+    while(vector_iterator_is_valid(it))
+    {
+        const char* refname = vector_iterator_get(it);
+        const struct hierarchy_cellref* sub = _find_cell(cells, refname);
+        vector_append(tree, _make_tree_element(sub, level + 1));
+        _assemble_tree_element(cells, tree, sub, level + 1);
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+}
+
+static struct vector* _resolve_hierarchy(struct vector* cells)
+{
+    struct const_vector* toplevelcells = _get_toplevel_cells(cells);
+    struct vector* tree = vector_create(1, _destroy_tree_element);
+    struct const_vector_iterator* it = const_vector_iterator_create(toplevelcells);
+    while(const_vector_iterator_is_valid(it))
+    {
+        const struct hierarchy_cellref* cell = const_vector_iterator_get(it);
+        vector_append(tree, _make_tree_element(cell, 0));
+        _assemble_tree_element(cells, tree, cell, 0);
+        const_vector_iterator_next(it);
+    }
+    const_vector_iterator_destroy(it);
+    const_vector_destroy(toplevelcells);
+    return tree;
+}
+
+void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
+{
+    // FIXME: error handling
+    struct vector* cells = _read_cells(filename);
+    struct vector* tree = _resolve_hierarchy(cells);
+    struct vector_iterator* it = vector_iterator_create(tree);
+    while(vector_iterator_is_valid(it))
+    {
+        struct tree_element* element = vector_iterator_get(it);
+        if(depth == 0 || element->level < depth)
+        {
+            for(size_t i = 0; i < element->level; ++i)
+            {
+                putchar(' ');
+                putchar(' ');
+                putchar(' ');
+                putchar(' ');
+            }
+            printf("%s\n", element->name);
+        }
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+    vector_destroy(cells);
+    vector_destroy(tree);
+}
+
 int gdsparser_show_records(const char* filename, int raw)
 {
     struct stream* stream = NULL;
@@ -603,7 +847,7 @@ struct vector* gdsparser_create_layermap(const char* filename)
         lua_pop(L, 1);
 
         lua_pop(L, 1); // pop entry
-        
+
         vector_append(map, layermapping);
     }
     lua_close(L);
@@ -860,13 +1104,9 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
 #define _read_SREF(stream) _read_SREF_AREF(stream, 0)
 #define _read_AREF(stream) _read_SREF_AREF(stream, 1)
 
-static void _write_cellref(FILE* cellfile, const char* importname, const struct cellref* cellref, struct hashmap* references)
+static void _write_cellref(FILE* cellfile, const struct cellref* cellref)
 {
-    if(!hashmap_exists(references, cellref->name))
-    {
-        fprintf(cellfile, "    ref = pcell.create_layout(\"%s/%s\", \"%s\")\n", importname, cellref->name, cellref->name); // FIXME: gds has no instance names, is this a problem?
-        hashmap_insert(references, cellref->name, NULL); // use hashmap as set (value == NULL)
-    }
+    fprintf(cellfile, "    ref = env.references[\"%s\"]\n", cellref->name);
     if(cellref->xrep > 1 || cellref->yrep > 1)
     {
         fprintf(cellfile, "    child = cell:add_child_array(ref, \"%s\", %d, %d, %d, %d)\n", cellref->name, cellref->xrep, cellref->yrep, cellref->xpitch, cellref->ypitch);
@@ -1084,10 +1324,36 @@ static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const st
     fprintf(cellfile, "}, %lld)\n", width);
 }
 
-static int _read_structure(const char* libname, const char* importname, struct stream* stream, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
+static int _is_toplevel(const char* name, const struct const_vector* toplevelcells)
+{
+    struct const_vector_iterator* it = const_vector_iterator_create(toplevelcells);
+    while(const_vector_iterator_is_valid(it))
+    {
+        const struct hierarchy_cellref* toplevelcell = const_vector_iterator_get(it);
+        const char* toplevelname = toplevelcell->name;
+        if(strcmp(name, toplevelname) == 0)
+        {
+            const_vector_iterator_destroy(it);
+            return 1;
+        }
+        const_vector_iterator_next(it);
+    }
+    const_vector_iterator_destroy(it);
+    return 0;
+}
+
+static int _read_structure(
+    const char* libname,
+    const char* importname,
+    struct stream* stream,
+    const struct const_vector* toplevelcells,
+    const struct const_vector* cellnames,
+    const struct vector* gdslayermap,
+    const struct vector* ignorelpp,
+    int16_t* ablayer, int16_t* abpurpose
+)
 {
     FILE* cellfile = NULL;
-    struct hashmap* references = hashmap_create();
     while(1)
     {
         struct record* record = _get_next_record(stream);
@@ -1117,15 +1383,30 @@ static int _read_structure(const char* libname, const char* importname, struct s
             char* path = malloc(len + 1);
             snprintf(path, len + 1, "%s/%s/%s.lua", libname, importname, cellname);
             cellfile = fopen(path, "w");
-            free(cellname);
             free(path);
             if(!cellfile)
             {
                 return 0;
             }
-            fputs("function parameters() end\n", cellfile);
-            fputs("function layout(cell)\n", cellfile);
-            fputs("    local ref, name, child\n", cellfile);
+            if(_is_toplevel(cellname, toplevelcells))
+            {
+                fputs("function layout(cell)\n", cellfile);
+                fputs("    local env = { references = {} }\n", cellfile);
+                struct const_vector_iterator* it = const_vector_iterator_create(cellnames);
+                while(const_vector_iterator_is_valid(it))
+                {
+                    const char* cellname = const_vector_iterator_get(it);
+                    fprintf(cellfile, "    env.references[\"%s\"] = cell:create_object_handle(pcell.create_layout(\"%s/%s\", \"%s\"))\n", cellname, importname, cellname, cellname); // FIXME: gds has no instance names, is this a problem?
+                    const_vector_iterator_next(it);
+                }
+                const_vector_iterator_destroy(it);
+            }
+            else
+            {
+                fputs("function layout(cell, _P, env)\n", cellfile);
+            }
+            free(cellname);
+            fputs("    local ref, child\n", cellfile);
         }
         else if(record->recordtype == STRCLASS)
         {
@@ -1232,7 +1513,7 @@ static int _read_structure(const char* libname, const char* importname, struct s
             struct cellref* cellref = _read_SREF(stream);
             if(cellref)
             {
-                _write_cellref(cellfile, importname, cellref, references);
+                _write_cellref(cellfile, cellref);
                 free(cellref);
             }
             else
@@ -1251,7 +1532,7 @@ static int _read_structure(const char* libname, const char* importname, struct s
             struct cellref* cellref = _read_AREF(stream);
             if(cellref)
             {
-                _write_cellref(cellfile, importname, cellref, references);
+                _write_cellref(cellfile, cellref);
                 free(cellref);
             }
             else
@@ -1282,7 +1563,6 @@ static int _read_structure(const char* libname, const char* importname, struct s
             return 0;
         }
     }
-    hashmap_destroy(references, NULL);
     if(!cellfile)
     {
         puts("gdsparser: malformed structure");
@@ -1304,6 +1584,39 @@ static void _create_libdir(const char* libname, const char* importname)
 
 int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
+    // read gds in two passes
+    // first: find names of top-level cell and all sub-cells
+    // second: parse file and translate all structures
+    // There is probably a more efficient way to do this,
+    // but currently this process is not too slow, so it's fine for now
+
+    // pass 1
+    // FIXME: error handling
+    struct vector* cells = _read_cells(filename);
+    struct const_vector* toplevelcells = _get_toplevel_cells(cells);
+    /*
+    if(const_vector_size(toplevelcells) > 1)
+    {
+        puts("there is more than one toplevel cell. Specify which one should be used with --read-gds-toplevel-cellname");
+        vector_destroy(cells);
+        const_vector_destroy(toplevelcells);
+        return 0;
+    }
+    */
+    struct vector_iterator* it = vector_iterator_create(cells);
+    struct const_vector* cellnames = const_vector_create(vector_size(cells));
+    while(vector_iterator_is_valid(it))
+    {
+        const struct hierarchy_cellref* cell = vector_iterator_get(it);
+        if(!_is_toplevel(cell->name, toplevelcells))
+        {
+            const_vector_append(cellnames, cell->name);
+        }
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+
+    // pass 2
     const char* libname = NULL;
     struct stream* stream = _read_raw_stream(filename);
     if(!stream)
@@ -1318,6 +1631,9 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         {
             puts("gdsparser: end of stream before ENDLIB");
             _destroy_stream(stream);
+            vector_destroy(cells);
+            const_vector_destroy(cellnames);
+            const_vector_destroy(toplevelcells);
             return 0;
         }
         if(record->recordtype == LIBNAME)
@@ -1335,12 +1651,18 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
             {
                 puts("gdsparser: GDSII stream does not start with a LIBNAME entry");
                 _destroy_stream(stream);
+                vector_destroy(cells);
+                const_vector_destroy(cellnames);
+                const_vector_destroy(toplevelcells);
                 return 0;
             }
-            if(!_read_structure(libname, importname, stream, gdslayermap, ignorelpp, ablayer, abpurpose))
+            if(!_read_structure(libname, importname, stream, toplevelcells, cellnames, gdslayermap, ignorelpp, ablayer, abpurpose))
             {
                 puts("gdsparser: error while reading structure");
                 _destroy_stream(stream);
+                vector_destroy(cells);
+                const_vector_destroy(cellnames);
+                const_vector_destroy(toplevelcells);
                 return 0;
             }
         }
@@ -1350,256 +1672,18 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
             {
                 puts("gdsparser: GDSII stream does not start with a LIBNAME entry");
                 _destroy_stream(stream);
+                vector_destroy(cells);
+                const_vector_destroy(cellnames);
+                const_vector_destroy(toplevelcells);
                 return 0;
             }
             break;
         }
     }
     _destroy_stream(stream);
-    return 1;
-}
-
-struct hierarchy_cellref {
-    char* name;
-    struct vector* references;
-};
-
-struct hierarchy_cellref* _make_hierarchy_cellref(void)
-{
-    struct hierarchy_cellref* cell = malloc(sizeof(*cell));
-    cell->references = vector_create(1, free);
-    return cell;
-}
-
-void _destroy_hierarchy_cellref(void* v)
-{
-    struct hierarchy_cellref* cell = v;
-    free(cell->name);
-    vector_destroy(cell->references);
-    free(cell);
-}
-
-static struct vector* _read_cells(const char* filename)
-{
-    struct vector* cells = vector_create(1, _destroy_hierarchy_cellref);
-    struct stream* stream = _read_raw_stream(filename);
-    if(!stream)
-    {
-        return cells;
-    }
-
-    struct hierarchy_cellref* cell = NULL;
-    int isobj = 0;
-    char* objname = NULL;
-    while(1)
-    {
-        struct record* record = _get_next_record(stream);
-        if(!record)
-        {
-            puts("gdsparser: end of stream before ENDLIB");
-            _destroy_stream(stream);
-            return NULL;
-        }
-        else if(record->recordtype == BGNSTR)
-        {
-            cell = _make_hierarchy_cellref();
-        }
-        else if(record->recordtype == ENDSTR)
-        {
-            vector_append(cells, cell);
-            cell = NULL;
-        }
-        else if(record->recordtype == STRNAME)
-        {
-            cell->name = _parse_string(record->data, record->length - 4);
-        }
-        else if((record->recordtype == SREF) || (record->recordtype == AREF))
-        {
-            isobj = 1;
-        }
-        else if(record->recordtype == ENDEL)
-        {
-            if(isobj)
-            {
-                vector_append(cell->references, objname);
-                isobj = 0;
-            }
-        }
-        else if(record->recordtype == SNAME)
-        {
-            objname = _parse_string(record->data, record->length - 4);
-        }
-        if(record->recordtype == ENDLIB)
-        {
-            break;
-        }
-    }
-    _destroy_stream(stream);
-    return cells;
-}
-
-static struct const_vector* _get_cell_references(struct hierarchy_cellref* cell)
-{
-    struct const_vector* references = const_vector_create(1);
-    struct vector_iterator* it = vector_iterator_create(cell->references);
-    while(vector_iterator_is_valid(it))
-    {
-        const char* refname = vector_iterator_get(it);
-        const_vector_append(references, refname);
-        vector_iterator_next(it);
-    }
-    vector_iterator_destroy(it);
-    return references;
-}
-
-static struct hierarchy_cellref* _find_cell(struct vector* cells, const char* cellname)
-{
-    struct vector_iterator* it = vector_iterator_create(cells);
-    while(vector_iterator_is_valid(it))
-    {
-        struct hierarchy_cellref* cell = vector_iterator_get(it);
-        if(strcmp(cell->name, cellname) == 0)
-        {
-            vector_iterator_destroy(it);
-            return cell;
-        }
-        vector_iterator_next(it);
-    }
-    vector_iterator_destroy(it);
-    return NULL;
-}
-
-static int _is_not_referenced(const char* name, struct const_vector* referenced)
-{
-    struct const_vector_iterator* it = const_vector_iterator_create(referenced);
-    while(const_vector_iterator_is_valid(it))
-    {
-        const char* refname = const_vector_iterator_get(it);
-        if(strcmp(name, refname) == 0)
-        {
-            const_vector_iterator_destroy(it);
-            return 0;
-        }
-        const_vector_iterator_next(it);
-    }
-    const_vector_iterator_destroy(it);
-    return 1;
-}
-
-static struct const_vector* _get_toplevel_cells(struct vector* cells)
-{
-    struct vector_iterator* it;
-
-    struct const_vector* referenced = const_vector_create(1);
-    it = vector_iterator_create(cells);
-    while(vector_iterator_is_valid(it))
-    {
-        struct hierarchy_cellref* cell = vector_iterator_get(it);
-        struct const_vector* references = _get_cell_references(cell);
-        struct const_vector_iterator* refit = const_vector_iterator_create(references);
-        while(const_vector_iterator_is_valid(refit))
-        {
-            const char* refname = const_vector_iterator_get(refit);
-            const_vector_append(referenced, refname);
-            const_vector_iterator_next(refit);
-        }
-        const_vector_iterator_destroy(refit);
-        const_vector_destroy(references);
-        vector_iterator_next(it);
-    }
-    vector_iterator_destroy(it);
-
-    struct const_vector* toplevelcells = const_vector_create(1);
-    it = vector_iterator_create(cells);
-    while(vector_iterator_is_valid(it))
-    {
-        struct hierarchy_cellref* cell = vector_iterator_get(it);
-        if(_is_not_referenced(cell->name, referenced))
-        {
-            const_vector_append(toplevelcells, cell);
-        }
-        vector_iterator_next(it);
-    }
-    vector_iterator_destroy(it);
-
-    const_vector_destroy(referenced);
-    
-    return toplevelcells;
-}
-
-struct tree_element {
-    const char* name;
-    size_t level;
-};
-
-struct tree_element* _make_tree_element(const struct hierarchy_cellref* cell, size_t level)
-{
-    struct tree_element* element = malloc(sizeof(*element));
-    element->name = cell->name;
-    element->level = level;
-    return element;
-}
-
-void _destroy_tree_element(void* v)
-{
-    free(v);
-}
-
-static void _assemble_tree_element(struct vector* cells, struct vector* tree, const struct hierarchy_cellref* cell, size_t level)
-{
-    struct vector_iterator* it = vector_iterator_create(cell->references);
-    while(vector_iterator_is_valid(it))
-    {
-        const char* refname = vector_iterator_get(it);
-        const struct hierarchy_cellref* sub = _find_cell(cells, refname);
-        vector_append(tree, _make_tree_element(sub, level + 1));
-        _assemble_tree_element(cells, tree, sub, level + 1);
-        vector_iterator_next(it);
-    }
-    vector_iterator_destroy(it);
-}
-
-static struct vector* _resolve_hierarchy(struct vector* cells)
-{
-    struct const_vector* toplevelcells = _get_toplevel_cells(cells);
-    struct vector* tree = vector_create(1, _destroy_tree_element);
-    struct const_vector_iterator* it = const_vector_iterator_create(toplevelcells);
-    while(const_vector_iterator_is_valid(it))
-    {
-        const struct hierarchy_cellref* cell = const_vector_iterator_get(it);
-        vector_append(tree, _make_tree_element(cell, 0));
-        _assemble_tree_element(cells, tree, cell, 0);
-        const_vector_iterator_next(it);
-    }
-    const_vector_iterator_destroy(it);
-    const_vector_destroy(toplevelcells);
-    return tree;
-}
-
-void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
-{
-    // FIXME: error handling
-    struct vector* cells = _read_cells(filename);
-    struct vector* tree = _resolve_hierarchy(cells);
-    struct vector_iterator* it = vector_iterator_create(tree);
-    while(vector_iterator_is_valid(it))
-    {
-        struct tree_element* element = vector_iterator_get(it);
-        if(depth == 0 || element->level < depth)
-        {
-            for(size_t i = 0; i < element->level; ++i)
-            {
-                putchar(' ');
-                putchar(' ');
-                putchar(' ');
-                putchar(' ');
-            }
-            printf("%s\n", element->name);
-        }
-        vector_iterator_next(it);
-    }
-    vector_iterator_destroy(it);
     vector_destroy(cells);
-    vector_destroy(tree);
+    const_vector_destroy(cellnames);
+    const_vector_destroy(toplevelcells);
+    return 1;
 }
 

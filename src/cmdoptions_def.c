@@ -63,6 +63,7 @@ cmdoptions_add_option(cmdoptions, 'w', "watch", NO_ARG, "start 'watch' mode. Thi
 /* Generator Functions (Import) */
 cmdoptions_add_section(cmdoptions, "Layout import functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "read-gds", SINGLE_ARG, "read a GDS stream file and export all cells as opc-compatible code. This can take some time, depending on the size of the stream file");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "read-gds-toplevel-cellname", SINGLE_ARG, "specify the name of the toplevel cell");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "gds-layermap", SINGLE_ARG, "provide a layermap for GDS stream reading to enable different export types for read cells");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "gds-ignore-lpp", MULTI_ARGS, "layer-purpose-pairs to be ignored during gds import. Separate layers and purposes with a colon (:)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "import-prefix", SINGLE_ARG, "specifies a directory in which imported cells will be placed. For example, if --read-gds FOO and --import-prefix BAR is given, the imported cells will reside in BAR/FOO/*.lua");
