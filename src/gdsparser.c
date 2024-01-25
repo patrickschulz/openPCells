@@ -1109,15 +1109,11 @@ static void _write_cellref(FILE* cellfile, const struct cellref* cellref)
     fprintf(cellfile, "    ref = env.references[\"%s\"]\n", cellref->name);
     if(cellref->xrep > 1 || cellref->yrep > 1)
     {
-        fprintf(cellfile, "    child = cell:add_child_array(ref, \"%s\", %d, %d, %d, %d)\n", cellref->name, cellref->xrep, cellref->yrep, cellref->xpitch, cellref->ypitch);
+        fprintf(cellfile, "    child = cell:add_child_array(ref, \"%s\", %d, %d, %lld, %lld)\n", cellref->name, cellref->xrep, cellref->yrep, cellref->xpitch, cellref->ypitch);
     }
     else
     {
         fprintf(cellfile, "    child = cell:add_child(ref, \"%s\")\n", cellref->name);
-    }
-    if(cellref->transformation && cellref->transformation[0] == 1)
-    {
-        fputs("    child:mirror_at_xaxis()\n", cellfile);
     }
     if(cellref->angle == 90)
     {
@@ -1130,9 +1126,11 @@ static void _write_cellref(FILE* cellfile, const struct cellref* cellref)
     }
     else if(cellref->angle == 270)
     {
-        fputs("    child:rotate_90_left()\n", cellfile);
-        fputs("    child:rotate_90_left()\n", cellfile);
-        fputs("    child:rotate_90_left()\n", cellfile);
+        fputs("    child:rotate_90_right()\n", cellfile);
+    }
+    if(cellref->transformation && cellref->transformation[0] == 1)
+    {
+        fputs("    child:mirror_at_xaxis()\n", cellfile);
     }
     if(!(cellref->origin->x == 0 && cellref->origin->y == 0))
     {
@@ -1432,7 +1430,7 @@ static int _read_structure(
                 while(const_vector_iterator_is_valid(it))
                 {
                     const char* cellname = const_vector_iterator_get(it);
-                    fprintf(cellfile, "    env.references[\"%s\"] = cell:create_object_handle(pcell.create_layout(\"%s/%s\", \"%s\"))\n", cellname, importname, cellname, cellname); // FIXME: gds has no instance names, is this a problem?
+                    fprintf(cellfile, "    env.references[\"%s\"] = cell:create_object_handle(pcell.create_layout_env(\"%s/%s\", \"%s\", nil, env))\n", cellname, importname, cellname, cellname); // FIXME: gds has no instance names, is this a problem?
                     const_vector_iterator_next(it);
                 }
                 const_vector_iterator_destroy(it);
