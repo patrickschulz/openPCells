@@ -110,11 +110,16 @@ function parameters()
         { "gatecutheight", 100 },
         { "leftpolylines", {} },
         { "rightpolylines", {} },
-        { "drawleftwelltap", false },
-        { "drawrightwelltap", false },
+        { "drawleftnmoswelltap", false },
+        { "drawrightnmoswelltap", false },
+        { "drawleftpmoswelltap", false },
+        { "drawrightpmoswelltap", false },
+        { "connectnmoswelltab", false },
+        { "connectpmoswelltap", false },
         { "welltapwidth", 200 },
         { "welltapshrink", 0 },
         { "welltapshift", 500 },
+        { "welltapwellextension", 0 },
         { "flat", true },
         { "addgatemetalnum", 0 },
         { "addinputconnectionmetalnum", 0 }
@@ -910,14 +915,22 @@ function layout(divider, _P)
         latch:get_area_anchor("outerclockpdummyright_well").tr
     )
 
-    -- power rail vias
-    geometry.viabltr(latch, 1, 2,
+    -- power rail anchors and vias
+    latch:add_area_anchor_bltr("vssbar",
         latch:get_area_anchor("outerclockndummyleft_sourcestrap").bl,
         latch:get_area_anchor("outerclockndummyright_sourcestrap").tr
     )
-    geometry.viabltr(latch, 1, 2,
+    latch:add_area_anchor_bltr("vddbar",
         latch:get_area_anchor("outerclockpdummyleft_sourcestrap").bl,
         latch:get_area_anchor("outerclockpdummyright_sourcestrap").tr
+    )
+    geometry.viabltr(latch, 1, 2,
+        latch:get_area_anchor("vssbar").bl,
+        latch:get_area_anchor("vssbar").tr
+    )
+    geometry.viabltr(latch, 1, 2,
+        latch:get_area_anchor("vddbar").bl,
+        latch:get_area_anchor("vddbar").tr
     )
 
     -- well taps
@@ -931,54 +944,123 @@ function layout(divider, _P)
         latch:get_area_anchor("outerclockpdummyleft_well").bl,
         latch:get_area_anchor("outerclockpdummyright_well").tr
     )
-    if _P.drawleftwelltap then
+    if _P.drawleftnmoswelltap then
         layouthelpers.place_welltap(
             latch,
             latch:get_area_anchor("nmos_well").bl:translate(-_P.welltapshift - _P.welltapwidth, _P.welltapshrink),
             latch:get_area_anchor("nmos_well").tl:translate(-_P.welltapshift, -_P.welltapshrink),
-            "left_nwell_welltap_",
+            "left_nmos_welltap_",
             {
                 contype = "n",
             }
         )
         geometry.rectanglebltr(latch, generics.other("nwell"),
             point.create(
-                latch:get_area_anchor("left_nwell_welltap_well").l,
+                latch:get_area_anchor("left_nmos_welltap_well").l,
                 latch:get_area_anchor("nmos_well").b
             ),
-            latch:get_area_anchor("nmos_well").tl
+            point.create(
+                latch:get_area_anchor("nmos_well").l,
+                latch:get_area_anchor("nmos_well").t
+            )
         )
+    end
+    if _P.drawleftpmoswelltap then
         layouthelpers.place_welltap(
             latch,
             latch:get_area_anchor("pmos_well").bl:translate(-_P.welltapshift - _P.welltapwidth, _P.welltapshrink),
             latch:get_area_anchor("pmos_well").tl:translate(-_P.welltapshift, -_P.welltapshrink),
-            "left_pwell_welltap_",
+            "left_pmos_welltap_",
             {
                 contype = "p",
+                wellleftextension = _P.welltapwellextension,
             }
         )
+        geometry.rectanglebltr(latch, generics.other("pwell"),
+            point.create(
+                latch:get_area_anchor("left_pmos_welltap_well").l,
+                latch:get_area_anchor("pmos_well").b
+            ),
+            point.create(
+                latch:get_area_anchor("pmos_well").l,
+                latch:get_area_anchor("pmos_well").t
+            )
+        )
+        if _P.connectpmoswelltap then
+            -- FIXME: currently only support for flipped-well
+            if _P.pmosflippedwell then
+                geometry.polygon(latch, generics.metal(1), {
+                    point.create(
+                        latch:get_area_anchor("left_pmos_welltap_boundary").l,
+                        latch:get_area_anchor("left_pmos_welltap_boundary").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("left_pmos_welltap_boundary").l,
+                        latch:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("vssbar").l,
+                        latch:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("vssbar").l,
+                        latch:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        latch:get_area_anchor("left_pmos_welltap_boundary").r,
+                        latch:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        latch:get_area_anchor("left_pmos_welltap_boundary").r,
+                        latch:get_area_anchor("left_pmos_welltap_boundary").b
+                    ),
+                })
+            end
+        end
     end
-    if _P.drawrightwelltap then
+    if _P.drawrightnmoswelltap then
         layouthelpers.place_welltap(
             latch,
             latch:get_area_anchor("nmos_well").br:translate(_P.welltapshift, _P.welltapshrink),
             latch:get_area_anchor("nmos_well").tr:translate(_P.welltapshift + _P.welltapwidth, -_P.welltapshrink),
-            "left_nwell_welltap_",
+            "right_nmos_welltap_",
             {
                 contype = "n",
             }
         )
+        geometry.rectanglebltr(latch, generics.other("nwell"),
+            point.create(
+                latch:get_area_anchor("nmos_well").l,
+                latch:get_area_anchor("nmos_well").b
+            ),
+            point.create(
+                latch:get_area_anchor("right_nmos_welltap_well").l,
+                latch:get_area_anchor("right_nmos_welltap_well").t
+            )
+        )
+    end
+    if _P.drawrightpmoswelltap then
         layouthelpers.place_welltap(
             latch,
             latch:get_area_anchor("pmos_well").br:translate(_P.welltapshift, _P.welltapshrink),
             latch:get_area_anchor("pmos_well").tr:translate(_P.welltapshift + _P.welltapwidth, -_P.welltapshrink),
-            "left_pwell_welltap_",
+            "right_pmos_welltap_",
             {
                 contype = "p",
+                wellrightextension = _P.welltapwellextension,
             }
         )
+        geometry.rectanglebltr(latch, generics.other("pwell"),
+            point.create(
+                latch:get_area_anchor("pmos_well").l,
+                latch:get_area_anchor("pmos_well").b
+            ),
+            point.create(
+                latch:get_area_anchor("right_pmos_welltap_well").l,
+                latch:get_area_anchor("right_pmos_welltap_well").t
+            )
+        )
     end
-
 
     latch:clear_alignment_box()
     latch:set_alignment_box(
@@ -1346,8 +1428,18 @@ function layout(divider, _P)
     for i = 1, numlatches do
         divider:inherit_area_anchor_as(latches[i], "nmos_well", string.format("nmos_well_%d", i))
         divider:inherit_area_anchor_as(latches[i], "pmos_well", string.format("pmos_well_%d", i))
-        divider:inherit_area_anchor_as(latches[i], "left_nwell_welltap_boundary", string.format("left_nwell_welltap_boundary_%d", i))
-        divider:inherit_area_anchor_as(latches[i], "left_pwell_welltap_boundary", string.format("left_pwell_welltap_boundary_%d", i))
+        if _P.drawleftnmoswelltap then
+            divider:inherit_area_anchor_as(latches[i], "left_nmos_welltap_boundary", string.format("left_nmos_welltap_boundary_%d", i))
+        end
+        if _P.drawleftpmoswelltap then
+            divider:inherit_area_anchor_as(latches[i], "left_pmos_welltap_boundary", string.format("left_pmos_welltap_boundary_%d", i))
+        end
+        if _P.drawrightnmoswelltap then
+            divider:inherit_area_anchor_as(latches[i], "right_nmos_welltap_boundary", string.format("right_nmos_welltap_boundary_%d", i))
+        end
+        if _P.drawrightpmoswelltap then
+            divider:inherit_area_anchor_as(latches[i], "right_pmos_welltap_boundary", string.format("right_pmos_welltap_boundary_%d", i))
+        end
     end
 
     -- clock ports -- FIXME: hard-coded for numlatches == 2
