@@ -91,7 +91,7 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
             holeheight = point.ydistance_abs(bl, tr) + 2 * yspace,
             fillwell = true,
             fillwelldrawhole = true,
-            fillwellholeoffsettop = yspace - point.ydistance(holetr, tr) - welyloffset,
+            fillwellholeoffsettop = yspace - point.ydistance(holetr, tr) - wellyoffset,
             fillwellholeoffsetbottom = yspace - point.ydistance(bl, holebl) - wellyoffset,
             fillwellholeoffsetleft = xspace - point.xdistance(bl, holebl) - wellxoffset,
             fillwellholeoffsetright = xspace - point.xdistance(holetr, tr) - wellxoffset,
