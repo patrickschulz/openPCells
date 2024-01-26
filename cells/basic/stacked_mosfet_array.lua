@@ -34,11 +34,11 @@ function check(_P)
         rowfingers[rownum] = f
     end
     local fingersperrow = rowfingers[1]
-    --for i = 2, #rowfingers do
-    --    if fingersperrow ~= rowfingers[i] then
-    --        return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers)", fingersperrow, i, rowfingers[i])
-    --    end
-    --end
+    for i = 2, #rowfingers do
+        if fingersperrow ~= rowfingers[i] then
+            return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers)", fingersperrow, i, rowfingers[i])
+        end
+    end
 
     local names = {}
     for rownum, row in ipairs(_P.rows) do

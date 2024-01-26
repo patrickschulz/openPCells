@@ -54,6 +54,7 @@ function parameters()
         { "latchfingers", 6 },
         { "latchinterconnectwidth", 60 },
         { "outerdummies", 2 },
+        { "invfingers", 4 },
         { "nmosclockfingerwidth", 500 },
         { "pmosclockfingerwidth", 500 },
         { "nmosinputfingerwidth", 500 },
@@ -71,6 +72,13 @@ function parameters()
         { "pmosinputdrainsourcesize", 500, follow = "pmosinputfingerwidth" },
         { "pmosinputdummygatewidth", technology.get_dimension("Minimum M1 Width") },
         { "pmosinputdummygatespace", technology.get_dimension("Minimum M1 Space") },
+        { "nmosinvfingerwidth", 500 },
+        { "pmosinvfingerwidth", 500 },
+        { "nmosinputfingerwidth", 500 },
+        { "pmosinputfingerwidth", 500 },
+        { "nmosinvdrainsourcesize", 500, follow = "nmosinvfingerwidth" },
+        { "nmoslatchdrainsourcesize", 500, follow = "nmosinvfingerwidth" },
+        { "nmosinvdummydrainsourcesize", 500, follow = "nmosinvfingerwidth" },
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Space") },
         { "inputlinewidth", 500 },
@@ -84,6 +92,10 @@ function parameters()
         { "clockgatestrapxshift", 0 },
         { "clockgatestrapyshift", 0 },
         { "dummygatecontactwidth", technology.get_dimension("Minimum M1 Width") },
+        { "invdrainsourcewidth", 80 },
+        { "invgatewidth", 60 },
+        { "invgatestrapxshift", 0 },
+        { "invgatestrapyshift", 0 },
         { "nmosvthtype", 1 },
         { "pmosvthtype", 1 },
         { "nmosflippedwell", false },
@@ -162,6 +174,7 @@ function layout(divider, _P)
     local xpitch = _P.gatelength + _P.gatespace
     local equalizationdummies = (_P.inputfingers - _P.clockfingers / 2) / 2
     local middledummyfingers = 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers
+    local allfingers = _P.outerdummies + _P.clockfingers - equalizationdummies + 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers - 1
 
     local baseoptions = {
         -- base mosfet options
@@ -1240,6 +1253,239 @@ function layout(divider, _P)
         end
     end
 
+    -- buffer mosfet array
+    local bufouterdummies, bufinnerdummies = util.ratio_split_even(allfingers - 2 * _P.invfingers, 2)
+    if bufouterdummies % 4 ~= 0 then
+        bufouterdummies = bufouterdummies + 2
+        bufinnerdummies = bufinnerdummies - 2
+    end
+    local bufrowdefinition = { -- without equalization dummies, these are added after this table definition
+        util.add_options(nmosoptions, { -- first nmos row (clock)
+            width = _P.nmosinvfingerwidth,
+            connectsource = true,
+            connectsourcewidth = _P.powerwidth,
+            connectsourcespace = _P.powerspace,
+            gbotext = _P.powerspace + _P.powerwidth / 2 + _P.gatesbotextension,
+            sourcesize = _P.nmosinvdrainsourcesize,
+            drainsize = _P.nmosinvdrainsourcesize,
+            devices = {
+                {
+                    name = "inv1ndummyleft",
+                    fingers = bufouterdummies / 2,
+                    drainmetal = 2,
+                    connectdrain = true,
+                    connectdraininverse = true,
+                    drainalign = "bottom",
+                    connectdrainspace = _P.powerspace,
+                    connectdrainwidth = _P.powerwidth,
+                    sourcesize = _P.nmosinvdummydrainsourcesize,
+                    drainsize = _P.nmosinvdummydrainsourcesize,
+                    drawbotgate = true,
+                    botgatewidth = _P.dummygatecontactwidth,
+                    botgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
+                    drawleftstopgate = _P.drawleftstopgate,
+                    leftpolylines = _P.leftpolylines,
+                    drawstopgatetopgatecut = true,
+                    drawtopgatecut = true,
+                },
+                {
+                    name = "inv1nleft",
+                    fingers = _P.invfingers,
+                    drawtopgate = true,
+                    topgatewidth = _P.invgatewidth,
+                    topgatespace = (_P.separation - _P.invgatewidth) / 2,
+                    topgatemetal = 2,
+                    drawtopgatevia = true,
+                    connectdrain = true,
+                    connectdrainwidth = _P.inputdrainsourcewidth,
+                    connectdrainspace = (_P.separation - _P.inputdrainsourcewidth) / 2,
+                    drainmetal = 3,
+                    drawbotgatecut = true,
+                },
+                {
+                    name = "inv1ndummymiddle",
+                    fingers = bufinnerdummies,
+                    drainmetal = 2,
+                    connectdrain = true,
+                    connectdraininverse = true,
+                    drainalign = "bottom",
+                    connectdrainspace = _P.powerspace,
+                    connectdrainwidth = _P.powerwidth,
+                    sourcesize = _P.nmosinvdummydrainsourcesize,
+                    drainsize = _P.nmosinvdummydrainsourcesize,
+                    drawbotgate = true,
+                    botgatewidth = _P.dummygatecontactwidth,
+                    botgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
+                    drawtopgatecut = true,
+                },
+                {
+                    name = "inv1nright",
+                    fingers = _P.invfingers,
+                    drawtopgate = true,
+                    topgatewidth = _P.invgatewidth,
+                    topgatespace = (_P.separation - _P.invgatewidth) / 2,
+                    topgatemetal = 2,
+                    drawtopgatevia = true,
+                    connectdrain = true,
+                    connectdrainwidth = _P.invdrainsourcewidth,
+                    connectdrainspace = (_P.separation - _P.invdrainsourcewidth) / 2,
+                    drainmetal = 3,
+                    drawbotgatecut = true,
+                },
+                {
+                    name = "inv1ndummyright",
+                    fingers = bufouterdummies / 2,
+                    connectdrain = true,
+                    connectdraininverse = true,
+                    drainalign = "bottom",
+                    connectdrainspace = _P.powerspace,
+                    connectdrainwidth = _P.powerwidth,
+                    sourcesize = _P.nmosinvdummydrainsourcesize,
+                    drainsize = _P.nmosinvdummydrainsourcesize,
+                    drainmetal = 2,
+                    drawbotgate = true,
+                    botgatewidth = _P.dummygatecontactwidth,
+                    botgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
+                    drawrightstopgate = _P.drawrightstopgate,
+                    rightpolylines = _P.rightpolylines,
+                    drawstopgatetopgatecut = true,
+                    drawtopgatecut = true,
+                },
+            },
+        }),
+        util.add_options(pmosoptions, { -- first nmos row (inv)
+            width = _P.nmosinvfingerwidth,
+            connectsource = true,
+            connectsourcewidth = _P.powerwidth,
+            connectsourcespace = _P.powerspace,
+            gtopext = _P.powerspace + _P.powerwidth / 2 + _P.gatesbotextension,
+            sourcesize = _P.nmosinvdrainsourcesize,
+            drainsize = _P.nmosinvdrainsourcesize,
+            devices = {
+                {
+                    name = "inv1pdummyleft",
+                    fingers = bufouterdummies / 2,
+                    drainmetal = 2,
+                    connectdrain = true,
+                    connectdraininverse = true,
+                    drainalign = "bottom",
+                    connectdrainspace = _P.powerspace,
+                    connectdrainwidth = _P.powerwidth,
+                    sourcesize = _P.nmosinvdummydrainsourcesize,
+                    drainsize = _P.nmosinvdummydrainsourcesize,
+                    drawtopgate = true,
+                    topgatewidth = _P.dummygatecontactwidth,
+                    topgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
+                    drawleftstopgate = _P.drawleftstopgate,
+                    leftpolylines = _P.leftpolylines,
+                    drawstopgatebotgatecut = true,
+                    drawbotgatecut = true,
+                },
+                {
+                    name = "inv1pleft",
+                    fingers = _P.invfingers,
+                    drawbotgate = true,
+                    botgatewidth = _P.invgatewidth,
+                    botgatespace = (_P.separation - _P.invgatewidth) / 2,
+                    botgatemetal = 2,
+                    drawbotgatevia = true,
+                    connectdrain = true,
+                    connectdrainwidth = _P.invdrainsourcewidth,
+                    connectdrainspace = (_P.separation - _P.invdrainsourcewidth) / 2,
+                    drainmetal = 3,
+                },
+                {
+                    name = "inv1pdummymiddle",
+                    fingers = bufinnerdummies,
+                    drainmetal = 2,
+                    connectdrain = true,
+                    connectdraininverse = true,
+                    drainalign = "bottom",
+                    connectdrainspace = _P.powerspace,
+                    connectdrainwidth = _P.powerwidth,
+                    sourcesize = _P.nmosinvdummydrainsourcesize,
+                    drainsize = _P.nmosinvdummydrainsourcesize,
+                    drawtopgate = true,
+                    topgatewidth = _P.dummygatecontactwidth,
+                    topgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
+                    drawbotgatecut = true,
+                },
+                {
+                    name = "inv1pright",
+                    fingers = _P.invfingers,
+                    drawbotgate = true,
+                    botgatewidth = _P.invgatewidth,
+                    botgatespace = (_P.separation - _P.invgatewidth) / 2,
+                    botgatemetal = 2,
+                    drawbotgatevia = true,
+                    connectdrain = true,
+                    connectdrainwidth = _P.invdrainsourcewidth,
+                    connectdrainspace = (_P.separation - _P.invdrainsourcewidth) / 2,
+                    drainmetal = 3,
+                },
+                {
+                    name = "inv1pdummyright",
+                    fingers = bufouterdummies / 2,
+                    connectdrain = true,
+                    connectdraininverse = true,
+                    drainalign = "bottom",
+                    connectdrainspace = _P.powerspace,
+                    connectdrainwidth = _P.powerwidth,
+                    sourcesize = _P.nmosinvdummydrainsourcesize,
+                    drainsize = _P.nmosinvdummydrainsourcesize,
+                    drainmetal = 2,
+                    drawtopgate = true,
+                    topgatewidth = _P.dummygatecontactwidth,
+                    topgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
+                    drawrightstopgate = _P.drawrightstopgate,
+                    rightpolylines = _P.rightpolylines,
+                    drawstopgatebotgatecut = true,
+                    drawbotgatecut = true,
+                },
+            },
+        }),
+    }
+    local bufferref = pcell.create_layout("basic/stacked_mosfet_array", "buffer", {
+        sdwidth = _P.sdwidth,
+        separation = _P.separation,
+        rows = bufrowdefinition,
+        splitgates = false,
+    })
+    bufferref:clear_alignment_box()
+    bufferref:set_alignment_box(
+        point.combine_12(
+            bufferref:get_area_anchor("inv1ndummyleft_sourcedrain1").bl,
+            bufferref:get_area_anchor("inv1ndummyleft_sourcestrap").bl
+        ),
+        point.combine_12(
+            bufferref:get_area_anchor("inv1pdummyright_sourcedrain-1").br,
+            bufferref:get_area_anchor("inv1pdummyright_sourcestrap").tr
+        ),
+        point.combine_12(
+            bufferref:get_area_anchor("inv1ndummyleft_sourcedrain1").br,
+            bufferref:get_area_anchor("inv1ndummyleft_sourcestrap").tl
+        ),
+        point.combine_12(
+            bufferref:get_area_anchor("inv1pdummyright_sourcedrain-1").bl,
+            bufferref:get_area_anchor("inv1pdummyright_sourcestrap").br
+        )
+    )
+
+
+    local buffer
+    if _P.flat then
+        buffer = bufferref
+    else
+        buffer = divider:add_child(bufferref, "buffer")
+    end
+    buffer:abut_top(latches[numlatches])
+    buffer:align_left(latches[numlatches])
+    buffer:translate_y(800)
+    divider:inherit_alignment_box(buffer)
+    if _P.flat then
+        divider:merge_into(buffer)
+    end
+
     -- internal connections between latches
     -- FIXME: only done for two latches
     geometry.viabltr(divider, 4, 5,
@@ -1423,6 +1669,16 @@ function layout(divider, _P)
             latches[i]:get_area_anchor("outerclockpdummyright_sourcestrap").tr
         )
     end
+    divider:add_area_anchor_bltr(
+        "vssbar_bottom",
+        divider:get_area_anchor(string.format("vssbar_%d", 1)).bl,
+        divider:get_area_anchor(string.format("vssbar_%d", 1)).tr
+    )
+    divider:add_area_anchor_bltr(
+        "vssbar_top",
+        divider:get_area_anchor(string.format("vssbar_%d", numlatches)).bl,
+        divider:get_area_anchor(string.format("vssbar_%d", numlatches)).tr
+    )
 
     -- well anchors
     for i = 1, numlatches do

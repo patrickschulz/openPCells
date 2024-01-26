@@ -186,8 +186,8 @@ function layout(inverter, _P)
         )
     end
 
-    inverter:inherit_area_anchor(cmos, "PRp")
-    inverter:inherit_area_anchor(cmos, "PRn")
+    inverter:inherit_area_anchor_as(cmos, "PRp", "vddbar")
+    inverter:inherit_area_anchor_as(cmos, "PRn", "vssbar")
     inverter:inherit_area_anchor(cmos, "nmos_well")
     inverter:inherit_area_anchor(cmos, "pmos_well")
 
