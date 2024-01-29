@@ -450,6 +450,18 @@ function M.ratio_split_even(value, ratio)
     return first, second
 end
 
+function M.ratio_split_multiple_of(value, ratio, multiple)
+    if value % multiple ~= 0 then
+        error(string.format("util.ratio_split_multiple_of: value must be divisible by the multiple, got: %d and %d", value, multiple))
+    end
+    local second = value // (ratio + 1)
+    while second % multiple ~= 0 do
+        second = second - 1
+    end
+    local first = value - second
+    return first, second
+end
+
 function M.round_to_grid(c, grid)
     return grid * math.floor(c / grid + 0.5)
 end
