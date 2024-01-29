@@ -5,7 +5,8 @@ function parameters()
         { "alignmosfetsatactive", false },
         { "sdwidth", technology.get_dimension("Minimum M1 Width") },
         { "separation", 0 },
-        { "autoskip", false }
+        { "autoskip", false },
+        { "unequalgatelengths", false }
     )
 end
 
@@ -33,10 +34,12 @@ function check(_P)
         end
         rowfingers[rownum] = f
     end
-    local fingersperrow = rowfingers[1]
-    for i = 2, #rowfingers do
-        if fingersperrow ~= rowfingers[i] then
-            return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers)", fingersperrow, i, rowfingers[i])
+    if not _P.unequalgatelengths then
+        local fingersperrow = rowfingers[1]
+        for i = 2, #rowfingers do
+            if fingersperrow ~= rowfingers[i] then
+                return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers)", fingersperrow, i, rowfingers[i])
+            end
         end
     end
 
