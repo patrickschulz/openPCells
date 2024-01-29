@@ -261,6 +261,10 @@ function layout(guardring, _P)
         point.create(-_P.ringwidth - _P.wellextension, -_P.ringwidth - _P.wellextension),
         point.create(holewidth + _P.ringwidth + _P.wellextension, holeheight + _P.ringwidth + _P.wellextension)
     )
+    guardring:add_area_anchor_bltr("innerwell",
+        point.create(_P.wellextension, _P.wellextension),
+        point.create(holewidth - _P.wellextension, holeheight - _P.wellextension)
+    )
     -- draw deep n/p-well
     if _P.drawdeepwell then
         geometry.rectanglebltr(guardring, generics.other(string.format("deep%swell", _P.contype)),

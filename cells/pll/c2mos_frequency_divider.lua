@@ -1412,25 +1412,6 @@ function layout(divider, _P)
         bufferref:get_area_anchor(string.format("invp%ddummyleft_sourcestrap", numbuf + 1)).bl,
         bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf + 1)).tr
     )
-    bufferref:clear_alignment_box()
-    bufferref:set_alignment_box(
-        point.create(
-            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcedrain1", numbuf + 1)).l,
-            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).b
-        ),
-        point.create(
-            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcedrain-1", numbuf)).r,
-            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf)).t
-        ),
-        point.create(
-            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcedrain1", numbuf + 1)).r,
-            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).t
-        ),
-        point.create(
-            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcedrain-1", numbuf)).l,
-            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf)).b
-        )
-    )
 
     -- buffer power rail anchors and vias
     bufferref:add_area_anchor_bltr("vssbar",
@@ -1527,6 +1508,154 @@ function layout(divider, _P)
             )
         )
     end
+
+    -- buffer well anchors
+    bufferref:add_area_anchor_bltr("nmos_well",
+        bufferref:get_area_anchor(string.format("invn%ddummyleft_well", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invn%ddummyright_well", numbuf + 1)).tr
+    )
+    bufferref:add_area_anchor_bltr("pmos_well",
+        bufferref:get_area_anchor(string.format("invp%ddummyleft_well", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invp%ddummyright_well", numbuf + 1)).tr
+    )
+
+    if _P.drawleftnmoswelltap then
+        layouthelpers.place_welltap(
+            bufferref,
+            bufferref:get_area_anchor("nmos_well").bl:translate(-_P.welltapshift - _P.welltapwidth, _P.welltapshrink),
+            bufferref:get_area_anchor("nmos_well").tl:translate(-_P.welltapshift, -_P.welltapshrink),
+            "left_nmos_welltap_",
+            {
+                contype = "n",
+            }
+        )
+        geometry.rectanglebltr(bufferref, generics.other("nwell"),
+            point.create(
+                bufferref:get_area_anchor("left_nmos_welltap_well").l,
+                bufferref:get_area_anchor("nmos_well").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("nmos_well").l,
+                bufferref:get_area_anchor("nmos_well").t
+            )
+        )
+    end
+    if _P.drawleftpmoswelltap then
+        layouthelpers.place_welltap(
+            bufferref,
+            bufferref:get_area_anchor("pmos_well").bl:translate(-_P.welltapshift - _P.welltapwidth, _P.welltapshrink),
+            bufferref:get_area_anchor("pmos_well").tl:translate(-_P.welltapshift, -_P.welltapshrink),
+            "left_pmos_welltap_",
+            {
+                contype = "p",
+                wellleftextension = _P.welltapwellextension,
+            }
+        )
+        geometry.rectanglebltr(bufferref, generics.other("pwell"),
+            point.create(
+                bufferref:get_area_anchor("left_pmos_welltap_well").l,
+                bufferref:get_area_anchor("pmos_well").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("pmos_well").l,
+                bufferref:get_area_anchor("pmos_well").t
+            )
+        )
+        if _P.connectpmoswelltap then
+            -- FIXME: currently only support for flipped-well
+            if _P.pmosflippedwell then
+                geometry.polygon(bufferref, generics.metal(1), {
+                    point.create(
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").l,
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").b
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").l,
+                        bufferref:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("vssbar").l,
+                        bufferref:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("vssbar").l,
+                        bufferref:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").r,
+                        bufferref:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").r,
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").b
+                    ),
+                })
+            end
+        end
+    end
+    if _P.drawrightnmoswelltap then
+        layouthelpers.place_welltap(
+            bufferref,
+            bufferref:get_area_anchor("nmos_well").br:translate(_P.welltapshift, _P.welltapshrink),
+            bufferref:get_area_anchor("nmos_well").tr:translate(_P.welltapshift + _P.welltapwidth, -_P.welltapshrink),
+            "right_nmos_welltap_",
+            {
+                contype = "n",
+            }
+        )
+        geometry.rectanglebltr(bufferref, generics.other("nwell"),
+            point.create(
+                bufferref:get_area_anchor("nmos_well").l,
+                bufferref:get_area_anchor("nmos_well").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("right_nmos_welltap_well").l,
+                bufferref:get_area_anchor("right_nmos_welltap_well").t
+            )
+        )
+    end
+    if _P.drawrightpmoswelltap then
+        layouthelpers.place_welltap(
+            bufferref,
+            bufferref:get_area_anchor("pmos_well").br:translate(_P.welltapshift, _P.welltapshrink),
+            bufferref:get_area_anchor("pmos_well").tr:translate(_P.welltapshift + _P.welltapwidth, -_P.welltapshrink),
+            "right_pmos_welltap_",
+            {
+                contype = "p",
+                wellrightextension = _P.welltapwellextension,
+            }
+        )
+        geometry.rectanglebltr(bufferref, generics.other("pwell"),
+            point.create(
+                bufferref:get_area_anchor("pmos_well").l,
+                bufferref:get_area_anchor("pmos_well").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("right_pmos_welltap_well").l,
+                bufferref:get_area_anchor("right_pmos_welltap_well").t
+            )
+        )
+    end
+
+    bufferref:clear_alignment_box()
+    bufferref:set_alignment_box(
+        point.create(
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcedrain1", numbuf + 1)).l,
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).b
+        ),
+        point.create(
+            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcedrain-1", numbuf)).r,
+            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf)).t
+        ),
+        point.create(
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcedrain1", numbuf + 1)).r,
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).t
+        ),
+        point.create(
+            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcedrain-1", numbuf)).l,
+            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf)).b
+        )
+    )
 
     local buffer
     if _P.flat then
@@ -1779,6 +1908,8 @@ function layout(divider, _P)
             divider:inherit_area_anchor_as(latches[i], "right_pmos_welltap_boundary", string.format("right_pmos_welltap_boundary_%d", i))
         end
     end
+    divider:inherit_area_anchor_as(buffer, "nmos_well", "nmos_well_buf")
+    divider:inherit_area_anchor_as(buffer, "pmos_well", "pmos_well_buf")
 
     -- clock ports -- FIXME: hard-coded for numlatches == 2
     divider:add_port_with_anchor("inn", generics.metalport(8), divider:get_area_anchor("inp_line").bl)
