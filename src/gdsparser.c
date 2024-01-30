@@ -738,8 +738,8 @@ struct cellref {
     point_t* origin;
     int16_t xrep;
     int16_t yrep;
-    int xpitch;
-    int ypitch;
+    coordinate_t xpitch;
+    coordinate_t ypitch;
     int* transformation;
     double angle;
 };

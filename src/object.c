@@ -110,8 +110,8 @@ struct object {
             int isarray;
             unsigned int xrep;
             unsigned int yrep;
-            unsigned int xpitch;
-            unsigned int ypitch;
+            coordinate_t xpitch;
+            coordinate_t ypitch;
         };
         // full objects
         struct {
@@ -439,7 +439,7 @@ struct object* object_add_child(struct object* cell, struct object* child, const
     return proxy;
 }
 
-struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     if(object_is_pseudo(child)) // can't add pseudo objects
     {
@@ -1675,7 +1675,7 @@ void object_add_port(struct object* cell, const char* name, const struct generic
     _add_port(cell, name, layer, where->x, where->y, 0, 0, sizehint);
 }
 
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, unsigned int sizehint)
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint)
 {
     int shift = 0;
     if(startindex < endindex)
@@ -2382,12 +2382,12 @@ unsigned int object_get_child_yrep(const struct object* cell)
     return cell->yrep;
 }
 
-unsigned int object_get_child_xpitch(const struct object* cell)
+coordinate_t object_get_child_xpitch(const struct object* cell)
 {
     return cell->xpitch;
 }
 
-unsigned int object_get_child_ypitch(const struct object* cell)
+coordinate_t object_get_child_ypitch(const struct object* cell)
 {
     return cell->ypitch;
 }

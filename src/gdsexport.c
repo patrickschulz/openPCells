@@ -659,7 +659,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     _write_ENDEL(data);
 }
 
-static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, coordinate_t x, coordinate_t y, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, coordinate_t x, coordinate_t y, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     (void) instbasename; // GDSII does not support instance names
     // AREF

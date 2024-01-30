@@ -33,7 +33,7 @@ void object_rasterize_curves(struct object* cell);
 // children
 struct object* object_create_handle(struct object* cell, struct object* reference);
 struct object* object_add_child(struct object* cell, struct object* child, const char* name);
-struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch);
+struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch);
 
 // anchors
 int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
@@ -99,7 +99,7 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
 
 // ports
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, unsigned int sizehint);
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, unsigned int sizehint);
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint);
 const struct vector* object_get_ports(const struct object* cell);
 
 // alignment box and bounding box
@@ -176,8 +176,8 @@ struct object* object_flatten(const struct object* cell, int flattenports);
 
 unsigned int object_get_child_xrep(const struct object* cell);
 unsigned int object_get_child_yrep(const struct object* cell);
-unsigned int object_get_child_xpitch(const struct object* cell);
-unsigned int object_get_child_ypitch(const struct object* cell);
+coordinate_t object_get_child_xpitch(const struct object* cell);
+coordinate_t object_get_child_ypitch(const struct object* cell);
 
 struct const_vector* object_collect_references(const struct object* cell);
 struct vector* object_collect_references_mutable(struct object* cell);

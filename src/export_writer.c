@@ -127,7 +127,7 @@ static void _push_trans(lua_State* L, const struct transformationmatrix* trans)
     }
 }
 
-static void _push_rep_pitch(lua_State* L, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static void _push_rep_pitch(lua_State* L, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     lua_pushinteger(L, xrep);
     lua_pushinteger(L, yrep);
@@ -249,7 +249,7 @@ static int _pcall(lua_State* L, int nargs, int nresults, const char* str)
     }
 }
 
-static int _write_child_array(struct export_writer* writer, const char* identifier, const char* instbasename, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static int _write_child_array(struct export_writer* writer, const char* identifier, const char* instbasename, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     if(writer->islua)
     {
@@ -274,7 +274,7 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
     }
 }
 
-static int _write_child_manual_array(struct export_writer* writer, const char* refname, const char* instname, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static int _write_child_manual_array(struct export_writer* writer, const char* refname, const char* instname, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     for(unsigned int ix = 1; ix <= xrep; ++ix)
     {
@@ -354,8 +354,8 @@ static int _write_child(struct export_writer* writer, const struct object* child
     char* refname = _concat_namecontext(expand_namecontext ? namecontext : NULL, object_get_child_reference_name(child));
     const char* instname = object_get_name(child);
     const struct transformationmatrix* trans = object_get_transformation_matrix(child);
-    unsigned int xpitch = object_get_child_xpitch(child);
-    unsigned int ypitch = object_get_child_ypitch(child);
+    coordinate_t xpitch = object_get_child_xpitch(child);
+    coordinate_t ypitch = object_get_child_ypitch(child);
     // FIXME: error checking
     if(object_is_child_array(child) && _has_write_cell_array(writer))
     {
