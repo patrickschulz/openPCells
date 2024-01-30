@@ -220,7 +220,7 @@ local function _make_vssdummy(name, fingers, _P, outerleft, outerright)
         rightpolylines = outerright and _P.rightpolylines or nil,
         drawleftstopgate = outerleft and _P.drawleftstopgate or nil,
         drawrightstopgate = outerright and _P.drawrightstopgate or nil,
-        drawstopgatebotgatecut = outerleft or outerright,
+        drawstopgatetopgatecut = outerleft or outerright,
     }
 end
 
