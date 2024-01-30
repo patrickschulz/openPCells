@@ -1159,6 +1159,37 @@ function layout(divider, _P)
                 latch:get_area_anchor("right_pmos_welltap_well").t
             )
         )
+        if _P.connectpmoswelltap then
+            -- FIXME: currently only support for flipped-well
+            if _P.pmosflippedwell then
+                geometry.polygon(latch, generics.metal(1), {
+                    point.create(
+                        latch:get_area_anchor("right_pmos_welltap_boundary").r,
+                        latch:get_area_anchor("right_pmos_welltap_boundary").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("right_pmos_welltap_boundary").r,
+                        latch:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("vssbar").r,
+                        latch:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("vssbar").r,
+                        latch:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        latch:get_area_anchor("right_pmos_welltap_boundary").l,
+                        latch:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        latch:get_area_anchor("right_pmos_welltap_boundary").l,
+                        latch:get_area_anchor("right_pmos_welltap_boundary").b
+                    ),
+                })
+            end
+        end
     end
 
     latch:clear_alignment_box()
@@ -1354,11 +1385,15 @@ function layout(divider, _P)
         table.insert(invndevices, _make_invnmos(string.format("invn%dleft", i), fingers, _P))
         table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft", i), 2, _P))
     end
-    table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", 1), 2, _P))
+    table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", 1), 4, _P))
     for i = 1, numbuf, 1 do
         local fingers = _P.invfingers[i]
         table.insert(invndevices, _make_invnmos(string.format("invn%dright", i), fingers, _P))
-        table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", i + 1), 2, _P, i == numbuf))
+        if i == numbuf then
+            table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", i + 1), 2, _P, true)) -- outer dummy
+        else
+            table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", i + 1), 2, _P))
+        end
     end
     table.insert(bufrowdefinition,
         util.add_options(nmosoptions, {
@@ -1379,11 +1414,15 @@ function layout(divider, _P)
         table.insert(invpdevices, _make_invpmos(string.format("invp%dleft", i), fingers, _P))
         table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyleft", i), 2, _P))
     end
-    table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", 1), 2, _P))
+    table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", 1), 4, _P))
     for i = 1, numbuf, 1 do
         local fingers = _P.invfingers[i]
         table.insert(invpdevices, _make_invpmos(string.format("invp%dright", i), fingers, _P))
-        table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", i + 1), 2, _P))
+        if i == numbuf then
+            table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", i + 1), 2, _P, true)) -- outer dummy
+        else
+            table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", i + 1), 2, _P))
+        end
     end
     table.insert(bufrowdefinition,
         util.add_options(pmosoptions, {
@@ -1635,6 +1674,34 @@ function layout(divider, _P)
                 bufferref:get_area_anchor("right_pmos_welltap_well").t
             )
         )
+            if _P.pmosflippedwell then
+                geometry.polygon(bufferref, generics.metal(1), {
+                    point.create(
+                        bufferref:get_area_anchor("right_pmos_welltap_boundary").r,
+                        bufferref:get_area_anchor("right_pmos_welltap_boundary").b
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("right_pmos_welltap_boundary").r,
+                        bufferref:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("vssbar").r,
+                        bufferref:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("vssbar").r,
+                        bufferref:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("right_pmos_welltap_boundary").l,
+                        bufferref:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("right_pmos_welltap_boundary").l,
+                        bufferref:get_area_anchor("right_pmos_welltap_boundary").b
+                    ),
+                })
+            end
     end
 
     bufferref:clear_alignment_box()
