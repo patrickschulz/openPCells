@@ -174,7 +174,7 @@ local function _insert_after(rowdefinition, name, entry)
     end
 end
 
-local function _make_vdddummy(name, fingers, _P, outer)
+local function _make_vdddummy(name, fingers, _P, outerleft, outerright)
     return {
         name = name,
         fingers = fingers,
@@ -191,15 +191,15 @@ local function _make_vdddummy(name, fingers, _P, outer)
         topgatewidth = _P.dummygatecontactwidth,
         topgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
         drawbotgatecut = true,
-        leftpolylines = outer and _P.leftpolylines or nil,
-        rightpolylines = outer and _P.rightpolylines or nil,
-        drawleftstopgate = outer and _P.drawleftstopgate or nil,
-        drawrightstopgate = outer and _P.drawrightstopgate or nil,
-        drawstopgatebotgatecut = outer,
+        leftpolylines = outerleft and _P.leftpolylines or nil,
+        rightpolylines = outerright and _P.rightpolylines or nil,
+        drawleftstopgate = outerleft and _P.drawleftstopgate or nil,
+        drawrightstopgate = outerright and _P.drawrightstopgate or nil,
+        drawstopgatebotgatecut = outerleft or outerright,
     }
 end
 
-local function _make_vssdummy(name, fingers, _P, outer)
+local function _make_vssdummy(name, fingers, _P, outerleft, outerright)
     return {
         name = name,
         fingers = fingers,
@@ -216,11 +216,11 @@ local function _make_vssdummy(name, fingers, _P, outer)
         botgatewidth = _P.dummygatecontactwidth,
         botgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
         drawtopgatecut = true,
-        leftpolylines = outer and _P.leftpolylines or nil,
-        rightpolylines = outer and _P.rightpolylines or nil,
-        drawleftstopgate = outer and _P.drawleftstopgate or nil,
-        drawrightstopgate = outer and _P.drawrightstopgate or nil,
-        drawstopgatetopgatecut = outer,
+        leftpolylines = outerleft and _P.leftpolylines or nil,
+        rightpolylines = outerright and _P.rightpolylines or nil,
+        drawleftstopgate = outerleft and _P.drawleftstopgate or nil,
+        drawrightstopgate = outerright and _P.drawrightstopgate or nil,
+        drawstopgatebotgatecut = outerleft or outerright,
     }
 end
 
@@ -1379,7 +1379,7 @@ function layout(divider, _P)
     --    bufinnerdummies = bufinnerdummies - 2
     --end
     local invndevices = {}
-    table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft", numbuf + 1), 2, _P, true)) -- outer dummy
+    table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft", numbuf + 1), 2, _P, true, false)) -- outer left dummy
     for i = numbuf, 1, -1 do
         local fingers = _P.invfingers[i]
         table.insert(invndevices, _make_invnmos(string.format("invn%dleft", i), fingers, _P))
@@ -1390,7 +1390,7 @@ function layout(divider, _P)
         local fingers = _P.invfingers[i]
         table.insert(invndevices, _make_invnmos(string.format("invn%dright", i), fingers, _P))
         if i == numbuf then
-            table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", i + 1), 2, _P, true)) -- outer dummy
+            table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", i + 1), 2, _P, false, true)) -- outer right dummy
         else
             table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", i + 1), 2, _P))
         end
@@ -1408,7 +1408,7 @@ function layout(divider, _P)
         })
     )
     local invpdevices = {}
-    table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyleft", numbuf + 1), 2, _P, true)) -- outer dummy
+    table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyleft", numbuf + 1), 2, _P, true, false)) -- outer dummy
     for i = numbuf, 1, -1 do
         local fingers = _P.invfingers[i]
         table.insert(invpdevices, _make_invpmos(string.format("invp%dleft", i), fingers, _P))
@@ -1419,7 +1419,7 @@ function layout(divider, _P)
         local fingers = _P.invfingers[i]
         table.insert(invpdevices, _make_invpmos(string.format("invp%dright", i), fingers, _P))
         if i == numbuf then
-            table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", i + 1), 2, _P, true)) -- outer dummy
+            table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", i + 1), 2, _P, false, true)) -- outer dummy
         else
             table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", i + 1), 2, _P))
         end
