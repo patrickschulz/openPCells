@@ -1504,61 +1504,61 @@ function layout(divider, _P)
     for i = 1, numbuf do
         geometry.viabltr(bufferref, 2, 3,
             point.create(
-                bufferref:get_area_anchor(string.format("invn%dleft_sourcedrain2", i)).l - 2 * xpitch,
-                bufferref:get_area_anchor(string.format("invn%dleft_drainstrap", i)).b
+                bufferref:get_area_anchor(string.format("invn%dleft_sourcedrain2", i)).r - 2 * xpitch - _P.invgatewidth,
+                bufferref:get_area_anchor(string.format("invn%dleft_drainstrap", i)).t
             ),
             point.create(
                 bufferref:get_area_anchor(string.format("invn%dleft_sourcedrain2", i)).r - 2 * xpitch,
-                bufferref:get_area_anchor(string.format("invp%dleft_drainstrap", i)).t
+                bufferref:get_area_anchor(string.format("invp%dleft_drainstrap", i)).b
             )
         )
         geometry.rectanglebltr(bufferref, generics.metal(3),
             point.create(
-                bufferref:get_area_anchor(string.format("invn%dleft_sourcedrain2", i)).l - 2 * xpitch,
+                bufferref:get_area_anchor(string.format("invn%dleft_sourcedrain2", i)).r - 2 * xpitch - _P.invgatewidth,
                 bufferref:get_area_anchor(string.format("invn%dleft_drainstrap", i)).b
             ),
             point.create(
-                bufferref:get_area_anchor(string.format("invn%dleft_sourcedrain2", i)).l,
+                bufferref:get_area_anchor(string.format("invn%dleft_sourcedrain2", i)).r,
                 bufferref:get_area_anchor(string.format("invn%dleft_drainstrap", i)).t
             )
         )
         geometry.rectanglebltr(bufferref, generics.metal(3),
             point.create(
-                bufferref:get_area_anchor(string.format("invp%dleft_sourcedrain2", i)).l - 2 * xpitch,
+                bufferref:get_area_anchor(string.format("invn%dleft_sourcedrain2", i)).r - 2 * xpitch - _P.invgatewidth,
                 bufferref:get_area_anchor(string.format("invp%dleft_drainstrap", i)).b
             ),
             point.create(
-                bufferref:get_area_anchor(string.format("invp%dleft_sourcedrain2", i)).l,
+                bufferref:get_area_anchor(string.format("invp%dleft_sourcedrain2", i)).r,
                 bufferref:get_area_anchor(string.format("invp%dleft_drainstrap", i)).t
             )
         )
         geometry.viabltr(bufferref, 2, 3,
             point.create(
                 bufferref:get_area_anchor(string.format("invn%dright_sourcedrain-2", i)).l + 2 * xpitch,
-                bufferref:get_area_anchor(string.format("invn%dright_drainstrap", i)).b
+                bufferref:get_area_anchor(string.format("invn%dright_drainstrap", i)).t
             ),
             point.create(
-                bufferref:get_area_anchor(string.format("invn%dright_sourcedrain-2", i)).r + 2 * xpitch,
-                bufferref:get_area_anchor(string.format("invp%dright_drainstrap", i)).t
+                bufferref:get_area_anchor(string.format("invn%dright_sourcedrain-2", i)).l + 2 * xpitch + _P.invgatewidth,
+                bufferref:get_area_anchor(string.format("invp%dright_drainstrap", i)).b
             )
         )
         geometry.rectanglebltr(bufferref, generics.metal(3),
             point.create(
-                bufferref:get_area_anchor(string.format("invn%dright_sourcedrain-2", i)).l,
+                bufferref:get_area_anchor(string.format("invn%dright_sourcedrain-2", i)).r,
                 bufferref:get_area_anchor(string.format("invn%dright_drainstrap", i)).b
             ),
             point.create(
-                bufferref:get_area_anchor(string.format("invn%dright_sourcedrain-2", i)).l + 2 * xpitch,
+                bufferref:get_area_anchor(string.format("invn%dright_sourcedrain-2", i)).l + 2 * xpitch + _P.invgatewidth,
                 bufferref:get_area_anchor(string.format("invn%dright_drainstrap", i)).t
             )
         )
         geometry.rectanglebltr(bufferref, generics.metal(3),
             point.create(
-                bufferref:get_area_anchor(string.format("invp%dright_sourcedrain-2", i)).l,
+                bufferref:get_area_anchor(string.format("invp%dright_sourcedrain-2", i)).r,
                 bufferref:get_area_anchor(string.format("invp%dright_drainstrap", i)).b
             ),
             point.create(
-                bufferref:get_area_anchor(string.format("invp%dright_sourcedrain-2", i)).l + 2 * xpitch,
+                bufferref:get_area_anchor(string.format("invn%dright_sourcedrain-2", i)).l + 2 * xpitch + _P.invgatewidth,
                 bufferref:get_area_anchor(string.format("invp%dright_drainstrap", i)).t
             )
         )
