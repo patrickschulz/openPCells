@@ -69,7 +69,7 @@ function M.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
     }
 end
 
-function M.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext)
+function M.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext, xmultiple, ymultiple)
     local dx = point.xdistance_abs(bl, tr)
     local dy = point.ydistance_abs(bl, tr)
     local xcorr = util.fix_to_grid_abs_higher(dx, xgrid) - dx
@@ -81,6 +81,26 @@ function M.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext)
     end
     if minyext then
         while ycorr < minyext do
+            ycorr = ycorr + ygrid
+        end
+    end
+    if xmultiple and xmultiple == "even" then
+        if ((dx + xcorr) / xgrid) % 2 ~= 0 then
+            xcorr = xcorr + xgrid
+        end
+    end
+    if xmultiple and xmultiple == "odd" then
+        if ((dx + xcorr) / xgrid) % 2 ~= 1 then
+            xcorr = xcorr + xgrid
+        end
+    end
+    if ymultiple and ymultiple == "even" then
+        if ((dy + ycorr) / ygrid) % 2 ~= 0 then
+            ycorr = ycorr + ygrid
+        end
+    end
+    if ymultiple and ymultiple == "odd" then
+        if ((dy + ycorr) / ygrid) % 2 ~= 1 then
             ycorr = ycorr + ygrid
         end
     end
