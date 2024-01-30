@@ -1330,7 +1330,6 @@ function layout(divider, _P)
         )
     end
 
-
     -- latch ports (for non-flat layout)
     -- clock ports
     latch:add_port_with_anchor("inp", generics.metalport(2), latch:get_area_anchor("clocknleft_topgatestrap").bl)
@@ -1544,6 +1543,16 @@ function layout(divider, _P)
             point.create(
                 bufferref:get_area_anchor(string.format("invn%dleft_sourcedrain2", i - 1)).r - 2 * xpitch,
                 bufferref:get_area_anchor(string.format("invn%dleft_topgatestrap", i)).t
+            )
+        )
+        geometry.rectanglebltr(bufferref, generics.metal(2),
+            point.create(
+                bufferref:get_area_anchor(string.format("invn%dright_sourcedrain-2", i - 1)).l + 2 * xpitch,
+                bufferref:get_area_anchor(string.format("invn%dright_topgatestrap", i)).b
+            ),
+            point.create(
+                bufferref:get_area_anchor(string.format("invn%dright_topgatestrap", i)).l,
+                bufferref:get_area_anchor(string.format("invn%dright_topgatestrap", i)).t
             )
         )
     end
