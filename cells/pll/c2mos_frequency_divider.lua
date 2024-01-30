@@ -284,7 +284,7 @@ function layout(divider, _P)
         -- marker extensions
         extendimplantleft = _P.implantleftextension,
         extendimplantright = _P.implantrightextension,
-        extendimplanttop = _P.implanttopextension,
+        extendimplanttop = _P.powerspace + _P.powerwidth / 2 + _P.gatestopextension + _P.implanttopextension,
         extendimplantbottom = _P.powerspace + _P.powerwidth / 2 + _P.gatesbotextension + _P.implantbotextension,
         extendvthtypeleft = _P.vthtypeleftextension,
         extendvthtyperight = _P.vthtyperightextension,
