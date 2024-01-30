@@ -1014,6 +1014,16 @@ function layout(divider, _P)
         latch:get_area_anchor("outerclockpdummyright_well").tr
     )
 
+    -- implant anchors
+    latch:add_area_anchor_bltr("nmos_implant",
+        latch:get_area_anchor("outerclockndummyleft_implant").bl,
+        latch:get_area_anchor("outerinputndummyright_implant").tr
+    )
+    latch:add_area_anchor_bltr("pmos_implant",
+        latch:get_area_anchor("outerinputpdummyleft_implant").bl,
+        latch:get_area_anchor("outerclockpdummyright_implant").tr
+    )
+
     -- power rail anchors and vias
     latch:add_area_anchor_bltr("vssbar",
         latch:get_area_anchor("outerclockndummyleft_sourcestrap").bl,
@@ -1085,6 +1095,16 @@ function layout(divider, _P)
                 latch:get_area_anchor("pmos_well").t
             )
         )
+        geometry.rectanglebltr(latch, generics.other("pimplant"),
+            point.create(
+                latch:get_area_anchor("left_pmos_welltap_implant").l,
+                latch:get_area_anchor("pmos_implant").b
+            ),
+            point.create(
+                latch:get_area_anchor("pmos_implant").l,
+                latch:get_area_anchor("pmos_implant").t
+            )
+        )
         if _P.connectpmoswelltap then
             -- FIXME: currently only support for flipped-well
             if _P.pmosflippedwell then
@@ -1151,12 +1171,22 @@ function layout(divider, _P)
         )
         geometry.rectanglebltr(latch, generics.other("pwell"),
             point.create(
-                latch:get_area_anchor("pmos_well").l,
+                latch:get_area_anchor("pmos_well").r,
                 latch:get_area_anchor("pmos_well").b
             ),
             point.create(
                 latch:get_area_anchor("right_pmos_welltap_well").l,
                 latch:get_area_anchor("right_pmos_welltap_well").t
+            )
+        )
+        geometry.rectanglebltr(latch, generics.other("pimplant"),
+            point.create(
+                latch:get_area_anchor("pmos_implant").r,
+                latch:get_area_anchor("pmos_implant").b
+            ),
+            point.create(
+                latch:get_area_anchor("right_pmos_welltap_implant").r,
+                latch:get_area_anchor("pmos_implant").t
             )
         )
         if _P.connectpmoswelltap then
@@ -1567,6 +1597,16 @@ function layout(divider, _P)
         bufferref:get_area_anchor(string.format("invp%ddummyright_well", numbuf + 1)).tr
     )
 
+    -- buffer implant anchors
+    bufferref:add_area_anchor_bltr("nmos_implant",
+        bufferref:get_area_anchor(string.format("invn%ddummyleft_implant", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invn%ddummyright_implant", numbuf + 1)).tr
+    )
+    bufferref:add_area_anchor_bltr("pmos_implant",
+        bufferref:get_area_anchor(string.format("invp%ddummyleft_implant", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invp%ddummyright_implant", numbuf + 1)).tr
+    )
+
     if _P.drawleftnmoswelltap then
         layouthelpers.place_welltap(
             bufferref,
@@ -1607,6 +1647,16 @@ function layout(divider, _P)
             point.create(
                 bufferref:get_area_anchor("pmos_well").l,
                 bufferref:get_area_anchor("pmos_well").t
+            )
+        )
+        geometry.rectanglebltr(bufferref, generics.other("pimplant"),
+            point.create(
+                bufferref:get_area_anchor("left_pmos_welltap_implant").l,
+                bufferref:get_area_anchor("pmos_implant").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("pmos_implant").l,
+                bufferref:get_area_anchor("pmos_implant").t
             )
         )
         if _P.connectpmoswelltap then
@@ -1675,42 +1725,52 @@ function layout(divider, _P)
         )
         geometry.rectanglebltr(bufferref, generics.other("pwell"),
             point.create(
-                bufferref:get_area_anchor("pmos_well").l,
+                bufferref:get_area_anchor("pmos_well").r,
                 bufferref:get_area_anchor("pmos_well").b
             ),
             point.create(
-                bufferref:get_area_anchor("right_pmos_welltap_well").l,
-                bufferref:get_area_anchor("right_pmos_welltap_well").t
+                bufferref:get_area_anchor("right_pmos_welltap_well").r,
+                bufferref:get_area_anchor("pmos_well").t
             )
         )
-            if _P.pmosflippedwell then
-                geometry.polygon(bufferref, generics.metal(1), {
-                    point.create(
-                        bufferref:get_area_anchor("right_pmos_welltap_boundary").r,
-                        bufferref:get_area_anchor("right_pmos_welltap_boundary").b
-                    ),
-                    point.create(
-                        bufferref:get_area_anchor("right_pmos_welltap_boundary").r,
-                        bufferref:get_area_anchor("vssbar").b
-                    ),
-                    point.create(
-                        bufferref:get_area_anchor("vssbar").r,
-                        bufferref:get_area_anchor("vssbar").b
-                    ),
-                    point.create(
-                        bufferref:get_area_anchor("vssbar").r,
-                        bufferref:get_area_anchor("vssbar").t
-                    ),
-                    point.create(
-                        bufferref:get_area_anchor("right_pmos_welltap_boundary").l,
-                        bufferref:get_area_anchor("vssbar").t
-                    ),
-                    point.create(
-                        bufferref:get_area_anchor("right_pmos_welltap_boundary").l,
-                        bufferref:get_area_anchor("right_pmos_welltap_boundary").b
-                    ),
-                })
-            end
+        geometry.rectanglebltr(bufferref, generics.other("pimplant"),
+            point.create(
+                bufferref:get_area_anchor("pmos_implant").r,
+                bufferref:get_area_anchor("pmos_implant").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("right_pmos_welltap_implant").r,
+                bufferref:get_area_anchor("pmos_implant").t
+            )
+        )
+        if _P.pmosflippedwell then
+            geometry.polygon(bufferref, generics.metal(1), {
+                point.create(
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").r,
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").b
+                ),
+                point.create(
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").r,
+                    bufferref:get_area_anchor("vssbar").b
+                ),
+                point.create(
+                    bufferref:get_area_anchor("vssbar").r,
+                    bufferref:get_area_anchor("vssbar").b
+                ),
+                point.create(
+                    bufferref:get_area_anchor("vssbar").r,
+                    bufferref:get_area_anchor("vssbar").t
+                ),
+                point.create(
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").l,
+                    bufferref:get_area_anchor("vssbar").t
+                ),
+                point.create(
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").l,
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").b
+                ),
+            })
+        end
     end
 
     bufferref:clear_alignment_box()

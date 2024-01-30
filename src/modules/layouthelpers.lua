@@ -179,6 +179,7 @@ function M.place_welltap(cell, bl, tr, anchorprefix, options)
     cell:inherit_alignment_box(welltap)
     cell:inherit_area_anchor_as(welltap, "boundary", string.format("%sboundary", anchorprefix))
     cell:inherit_area_anchor_as(welltap, "well", string.format("%swell", anchorprefix))
+    cell:inherit_area_anchor_as(welltap, "implant", string.format("%simplant", anchorprefix))
 end
 
 --[[

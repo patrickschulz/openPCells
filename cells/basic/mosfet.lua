@@ -665,25 +665,24 @@ function layout(transistor, _P)
     )
 
     -- implant
-    geometry.rectanglebltr(transistor,
-        generics.implant(_P.channeltype),
-        point.create(
-            _P.implantalignleftwithactive and
-                -leftactauxext - _P.extendimplantleft or
-                -leftactauxext - _P.extendimplantleft,
-            _P.implantalignbottomwithactive and
-                -_P.extendimplantbottom or
-                gatebly - _P.extendimplantbottom
-        ),
-        point.create(
-            _P.implantalignrightwithactive and
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright or
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright,
-            _P.implantaligntopwithactive and
-                _P.fingerwidth + _P.extendimplanttop or
-                gatetry + _P.extendimplanttop
-        )
+    local implantbl = point.create(
+        _P.implantalignleftwithactive and
+            -leftactauxext - _P.extendimplantleft or
+            -leftactauxext - _P.extendimplantleft,
+        _P.implantalignbottomwithactive and
+            -_P.extendimplantbottom or
+            gatebly - _P.extendimplantbottom
     )
+    local implanttr = point.create(
+        _P.implantalignrightwithactive and
+            activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright or
+            activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright,
+        _P.implantaligntopwithactive and
+            _P.fingerwidth + _P.extendimplanttop or
+            gatetry + _P.extendimplanttop
+    )
+    geometry.rectanglebltr(transistor, generics.implant(_P.channeltype), implantbl, implanttr)
+    transistor:add_area_anchor_bltr("implant", implantbl, implanttr)
 
     -- oxide thickness
     geometry.rectanglebltr(transistor,
