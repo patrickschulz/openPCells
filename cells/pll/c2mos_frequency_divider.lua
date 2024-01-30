@@ -1934,10 +1934,16 @@ function layout(divider, _P)
     )
     geometry.viabltr(divider, 2, 4,
         buffer:get_area_anchor(string.format("invn%dleft_topgatestrap", 1)).bl,
-        buffer:get_area_anchor(string.format("invn%dleft_topgatestrap", 1)).tr
+        point.create(
+            latches[numlatches]:get_area_anchor(string.format("nlatchleft_sourcedrain%d", _P.latchfingers)).r,
+            buffer:get_area_anchor(string.format("invn%dleft_topgatestrap", 1)).t
+        )
     )
     geometry.viabltr(divider, 2, 4,
-        buffer:get_area_anchor(string.format("invn%dright_topgatestrap", 1)).bl,
+        point.create(
+            latches[numlatches]:get_area_anchor(string.format("nlatchright_sourcedrain%d", 2)).l,
+            buffer:get_area_anchor(string.format("invn%dright_topgatestrap", 1)).b
+        ),
         buffer:get_area_anchor(string.format("invn%dright_topgatestrap", 1)).tr
     )
 
@@ -2000,4 +2006,13 @@ function layout(divider, _P)
     -- output ports
     --divider:add_port_with_anchor("outp", generics.metalport(4), latches[numlatches]:get_area_anchor("nlatchleft_sourcedrain2").tl)
     --divider:add_port_with_anchor("outn", generics.metalport(4), latches[numlatches]:get_area_anchor("nlatchright_sourcedrain2").tl)
+
+    -- layer boundaries
+    divider:add_layer_boundary(
+        generics.metal(8),
+        util.rectangle_to_polygon(
+            divider:get_area_anchor("inp_line").bl,
+            divider:get_area_anchor("inn_line").tr
+        )
+    )
 end
