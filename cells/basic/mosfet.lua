@@ -197,6 +197,10 @@ function parameters()
         { "extendrotationmarkerbottom",                                                                 0, follow = "extendallbottom" },
         { "extendrotationmarkerleft",                                                                   0, follow = "extendallleft" },
         { "extendrotationmarkerright",                                                                  0, follow = "extendallright" },
+        { "extendanalogmarkertop",                                                                      0, follow = "extendalltop" },
+        { "extendanalogmarkerbottom",                                                                   0, follow = "extendallbottom" },
+        { "extendanalogmarkerleft",                                                                     0, follow = "extendallleft" },
+        { "extendanalogmarkerright",                                                                    0, follow = "extendallright" },
         { "drawwell",                                                                                   true },
         { "drawtopwelltap",                                                                             false },
         { "topwelltapwidth",                                                                            technology.get_dimension("Minimum M1 Width") },
@@ -225,7 +229,8 @@ function parameters()
         { "drawstopgatebotgatecut",                                                                        false },
         { "leftpolylines",                                                                              {} },
         { "rightpolylines",                                                                             {} },
-        { "drawrotationmarker",                                                                         false }
+        { "drawrotationmarker",                                                                         false },
+        { "drawanalogmarker",                                                                           false }
     )
 end
 
@@ -712,6 +717,35 @@ function layout(transistor, _P)
             point.create(-leftactauxext - _P.extendrotationmarkerleft, -_P.extendrotationmarkerbottom),
             point.create(activewidth + leftactext + rightactext + rightactauxext + _P.extendrotationmarkerright, _P.fingerwidth + _P.extendrotationmarkertop)
         )
+    end
+
+    -- analog marker
+    if _P.drawanalogmarker then
+        if _P.drawguardring then
+            geometry.rectanglebltr(transistor,
+                generics.other("analogmarker"),
+                point.create(
+                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth,
+                    -_P.guardringbottomsep - _P.guardringwidth
+                ),
+                point.create(
+                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth,
+                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth
+                )
+            )
+        else
+            geometry.rectanglebltr(transistor,
+                generics.other("analogmarker"),
+                point.create(
+                    -leftactauxext - _P.extendanalogmarkerleft,
+                    -_P.extendanalogmarkerbottom
+                ),
+                point.create(
+                    activewidth + leftactext + rightactext + rightactauxext + _P.extendanalogmarkerright,
+                    _P.fingerwidth + _P.extendanalogmarkertop
+                )
+            )
+        end
     end
 
     -- lvs marker
