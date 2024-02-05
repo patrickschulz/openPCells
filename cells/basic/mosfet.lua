@@ -166,7 +166,8 @@ function parameters()
         { "leftfloatingdummies",                                                                        0 },
         { "rightfloatingdummies",                                                                       0 },
         { "drawactive",                                                                                 true },
-        { "lvsmarker",                                                                                  1 },
+        { "lvsmarker",                                                                                  1, info = "special marking layer to mark device features for LVS. Typically used for mosfets with 5 and 6 terminals (including well diodes). Per default this includes the guardring around the device, as this defines the geometry of the diodes. This can be changed with the parameter 'lvsmarkerincludeguardring'. This marker is always drawn, the parameter is a numeric value, starting at 1." },
+        { "lvsmarkerincludeguardring",                                                                  true, },
         { "lvsmarkeralignwithactive",                                                                   false },
         { "extendalltop",                                                                               0 },
         { "extendallbottom",                                                                            0 },
@@ -721,17 +722,31 @@ function layout(transistor, _P)
     -- analog marker
     if _P.drawanalogmarker then
         if _P.drawguardring then
-            geometry.rectanglebltr(transistor,
-                generics.other("analogmarker"),
-                point.create(
-                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth,
-                    -_P.guardringbottomsep - _P.guardringwidth
-                ),
-                point.create(
-                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth,
-                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth
+            if _P.guardringrespectactivedummy then
+                geometry.rectanglebltr(transistor,
+                    generics.other("analogmarker"),
+                    point.create(
+                        -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace,
+                        -_P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace
+                    ),
+                    point.create(
+                        activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth + _P.rightactivedummywidth + _P.rightactivedummyspace,
+                        _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth + _P.topactivedummywidth + _P.topactivedummyspace
+                    )
                 )
-            )
+            else
+                geometry.rectanglebltr(transistor,
+                    generics.other("analogmarker"),
+                    point.create(
+                        -leftactauxext - _P.guardringleftsep - _P.guardringwidth,
+                        -_P.guardringbottomsep - _P.guardringwidth
+                    ),
+                    point.create(
+                        activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth,
+                        _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth
+                    )
+                )
+            end
         else
             geometry.rectanglebltr(transistor,
                 generics.other("analogmarker"),
@@ -748,30 +763,58 @@ function layout(transistor, _P)
     end
 
     -- lvs marker
-    if _P.lvsmarkeralignwithactive then
-        geometry.rectanglebltr(transistor,
-            generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
-            point.create(
-                -leftactauxext - _P.extendlvsmarkerleft,
-                -_P.extendlvsmarkerbottom
-            ),
-            point.create(
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
-                _P.fingerwidth + _P.extendlvsmarkertop
+    if _P.lvsmarkerincludeguardring then
+        if _P.guardringrespectactivedummy then
+            geometry.rectanglebltr(transistor,
+                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                point.create(
+                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace,
+                    -_P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace
+                ),
+                point.create(
+                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth + _P.rightactivedummywidth + _P.rightactivedummyspace,
+                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth + _P.topactivedummywidth + _P.topactivedummyspace
+                )
             )
-        )
+        else
+            geometry.rectanglebltr(transistor,
+                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                point.create(
+                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth,
+                    -_P.guardringbottomsep - _P.guardringwidth
+                ),
+                point.create(
+                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth,
+                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth
+                )
+            )
+        end
     else
-        geometry.rectanglebltr(transistor,
-            generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
-            point.create(
-                -leftactauxext - _P.extendlvsmarkerleft,
-                gatebly - _P.extendlvsmarkerbottom
-            ),
-            point.create(
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
-                gatetry + _P.extendlvsmarkertop
+        if _P.lvsmarkeralignwithactive then
+            geometry.rectanglebltr(transistor,
+                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                point.create(
+                    -leftactauxext - _P.extendlvsmarkerleft,
+                    -_P.extendlvsmarkerbottom
+                ),
+                point.create(
+                    activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
+                    _P.fingerwidth + _P.extendlvsmarkertop
+                )
             )
-        )
+        else
+            geometry.rectanglebltr(transistor,
+                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                point.create(
+                    -leftactauxext - _P.extendlvsmarkerleft,
+                    gatebly - _P.extendlvsmarkerbottom
+                ),
+                point.create(
+                    activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
+                    gatetry + _P.extendlvsmarkertop
+                )
+            )
+        end
     end
 
     -- well
