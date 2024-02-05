@@ -768,24 +768,24 @@ function layout(transistor, _P)
             geometry.rectanglebltr(transistor,
                 generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
                 point.create(
-                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace,
-                    -_P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace
+                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace - _P.extendlvsmarkerleft,
+                    -_P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace - _P.extendlvsmarkerbottom
                 ),
                 point.create(
-                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth + _P.rightactivedummywidth + _P.rightactivedummyspace,
-                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth + _P.topactivedummywidth + _P.topactivedummyspace
+                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth + _P.rightactivedummywidth + _P.rightactivedummyspace + _P.extendlvsmarkerright,
+                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth + _P.topactivedummywidth + _P.topactivedummyspace + _P.extendlvsmarkertop
                 )
             )
         else
             geometry.rectanglebltr(transistor,
                 generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
                 point.create(
-                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth,
-                    -_P.guardringbottomsep - _P.guardringwidth
+                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.extendlvsmarkerleft,
+                    -_P.guardringbottomsep - _P.guardringwidth - _P.extendlvsmarkerbottom
                 ),
                 point.create(
-                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth,
-                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth
+                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth + _P.extendlvsmarkerright,
+                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth + _P.extendlvsmarkertop
                 )
             )
         end
