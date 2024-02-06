@@ -214,6 +214,16 @@ void mutable_reference_iterator_next(struct mutable_reference_iterator* it);
 struct object* mutable_reference_iterator_get(struct mutable_reference_iterator* it);
 void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it);
 
+// anchor iterator
+struct anchor_iterator;
+struct anchor_iterator* object_create_anchor_iterator(const struct object* cell);
+int anchor_iterator_is_valid(struct anchor_iterator* it);
+void anchor_iterator_next(struct anchor_iterator* it);
+int anchor_iterator_is_area(struct anchor_iterator* it);
+const point_t* anchor_iterator_anchor(struct anchor_iterator* it);
+const char* anchor_iterator_name(struct anchor_iterator* it);
+void anchor_iterator_destroy(struct anchor_iterator* it);
+
 // port iterator
 struct port_iterator;
 struct port_iterator* object_create_port_iterator(const struct object* cell);

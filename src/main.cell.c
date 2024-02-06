@@ -435,6 +435,29 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
     }
 }
 
+static void _draw_cell_anchors(struct object* cell, struct technology_state* techstate)
+{
+    struct anchor_iterator* iterator = object_create_anchor_iterator(cell);
+    while(anchor_iterator_is_valid(iterator))
+    {
+        if(anchor_iterator_is_area(iterator))
+        {
+            const point_t* anchor = anchor_iterator_anchor(iterator);
+            const char* name = anchor_iterator_name(iterator);
+            geometry_rectanglebltr(cell, generics_create_special(techstate), anchor + 0, anchor + 1);
+            object_add_port(cell, name, generics_create_special(techstate), anchor + 0, 100);
+        }
+        else
+        {
+            const point_t* anchor = anchor_iterator_anchor(iterator);
+            const char* name = anchor_iterator_name(iterator);
+            object_add_port(cell, name, generics_create_special(techstate), anchor, 100);
+        }
+        anchor_iterator_next(iterator);
+    }
+    anchor_iterator_destroy(iterator);
+}
+
 static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "draw-anchor"))
@@ -445,7 +468,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
             point_t* pt = object_get_anchor(toplevel, *anchornames);
             if(pt)
             {
-                object_add_port(toplevel, *anchornames, generics_create_special(techstate), pt, 100); // 0: don't store anchor
+                object_add_port(toplevel, *anchornames, generics_create_special(techstate), pt, 100);
                 point_destroy(pt);
             }
             else
@@ -457,16 +480,16 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
     }
     if(cmdoptions_was_provided_long(cmdoptions, "draw-all-anchors"))
     {
-        const struct hashmap* anchors = object_get_all_regular_anchors(toplevel);
-        struct hashmap_const_iterator* iterator = hashmap_const_iterator_create(anchors);
-        while(hashmap_const_iterator_is_valid(iterator))
+        struct vector* references = object_collect_references_mutable(toplevel);
+        struct vector_iterator* it = vector_iterator_create(references);
+        while(vector_iterator_is_valid(it))
         {
-            const char* key = hashmap_const_iterator_key(iterator);
-            const point_t* anchor = hashmap_const_iterator_value(iterator);
-            object_add_port(toplevel, key, generics_create_special(techstate), anchor, 100); // 0: don't store anchor
-            hashmap_const_iterator_next(iterator);
+            struct object* ref = vector_iterator_get(it);
+            _draw_cell_anchors(ref, techstate);
+            vector_iterator_next(it);
         }
-        hashmap_const_iterator_destroy(iterator);
+        vector_iterator_destroy(it);
+        vector_destroy(references);
     }
 }
 

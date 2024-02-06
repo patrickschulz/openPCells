@@ -2608,6 +2608,84 @@ void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it)
     free(it);
 }
 
+// anchor iterator
+struct anchor_iterator {
+    const struct object* object;
+    struct hashmap_const_iterator* anchoriterator;
+    point_t* container;
+};
+
+struct anchor_iterator* object_create_anchor_iterator(const struct object* cell)
+{
+    struct anchor_iterator* it = malloc(sizeof(*it));
+    it->object = cell;
+    it->anchoriterator = hashmap_const_iterator_create(cell->anchors);
+    it->container = NULL;
+    return it;
+}
+
+int anchor_iterator_is_valid(struct anchor_iterator* it)
+{
+    return hashmap_const_iterator_is_valid(it->anchoriterator);
+}
+
+void anchor_iterator_next(struct anchor_iterator* it)
+{
+    return hashmap_const_iterator_next(it->anchoriterator);
+}
+
+const point_t* anchor_iterator_anchor(struct anchor_iterator* it)
+{
+    const char* key = hashmap_const_iterator_key(it->anchoriterator);
+    const struct anchor* anchor = hashmap_const_iterator_value(it->anchoriterator);
+    // get anchor through object methods for proper transformation
+    if(_anchor_is_area(anchor))
+    {
+        point_t* anchor = object_get_area_anchor(it->object, key);
+        if(it->container)
+        {
+            free(it->container);
+        }
+        it->container = malloc(2 * sizeof(*it->container));
+        memcpy(it->container, anchor, 2 * sizeof(*it->container));
+        free(anchor);
+    }
+    else
+    {
+        point_t* anchor = object_get_anchor(it->object, key);
+        if(it->container)
+        {
+            free(it->container);
+        }
+        it->container = malloc(sizeof(*it->container));
+        memcpy(it->container, anchor, sizeof(*it->container));
+        free(anchor);
+    }
+    return it->container;
+}
+
+const char* anchor_iterator_name(struct anchor_iterator* it)
+{
+    const char* key = hashmap_const_iterator_key(it->anchoriterator);
+    return key;
+}
+
+int anchor_iterator_is_area(struct anchor_iterator* it)
+{
+    const struct anchor* anchor = hashmap_const_iterator_value(it->anchoriterator);
+    return _anchor_is_area(anchor);
+}
+
+void anchor_iterator_destroy(struct anchor_iterator* it)
+{
+    hashmap_const_iterator_destroy(it->anchoriterator);
+    if(it->container)
+    {
+        free(it->container);
+    }
+    free(it);
+}
+
 // port iterator
 struct port_iterator {
     const struct vector* ports;
