@@ -50,8 +50,10 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "seed", SINGLE_ARG, "set seed for ra
 cmdoptions_add_section(cmdoptions, "Layout debugging functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-anchor", MULTI_ARGS, "draw a cell anchor. It is drawn in the 'special' layer, so your layermap needs to have an entry for that.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-all-anchors", NO_ARG, "draw all cell anchors (regular and area anchors). They are drawn in the 'special' layer, so your layermap needs to have an entry for that.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-anchors-as-outline", NO_ARG, "mark all anchors in the 'outline' layer, not the 'special' layer");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-alignmentbox", NO_ARG, "draw the alignment box (if present). The box is drawn in the 'special' layer, so your layermap needs to have an entry for that.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-all-alignmentboxes", NO_ARG, "draw all present alignment box (also those of subcells). The box is drawn in the 'special' layer, so your layermap needs to have an entry for that.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-alignmentboxes-as-outline", NO_ARG, "mark all alignmentboxes in the 'outline' layer, not the 'special' layer");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "enable-dprint", NO_ARG, "enables debugging print statements in cell layout definitions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "debug-cell", NO_ARG, "show detailed cell debugging call stack");
 

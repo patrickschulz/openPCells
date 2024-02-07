@@ -397,16 +397,25 @@ static void _scale(struct object* toplevel, struct cmdoptions* cmdoptions)
     }
 }
 
-static void _draw_alignmentbox_single(struct object* cell, struct technology_state* techstate)
+static void _draw_alignmentbox_single(struct object* cell, struct technology_state* techstate, int asoutline)
 {
+    const struct generics* layer;
+    if(asoutline)
+    {
+       layer = generics_create_outline(techstate);
+    }
+    else
+    {
+       layer = generics_create_special(techstate);
+    }
     if(object_has_alignmentbox(cell))
     {
         point_t* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
         point_t* outertr = object_get_alignmentbox_anchor_outertr(cell);
         point_t* innerbl = object_get_alignmentbox_anchor_innerbl(cell);
         point_t* innertr = object_get_alignmentbox_anchor_innertr(cell);
-        geometry_rectanglebltr(cell, generics_create_special(techstate), outerbl, outertr);
-        geometry_rectanglebltr(cell, generics_create_special(techstate), innerbl, innertr);
+        geometry_rectanglebltr(cell, layer, outerbl, outertr);
+        geometry_rectanglebltr(cell, layer, innerbl, innertr);
         point_destroy(outerbl);
         point_destroy(outertr);
         point_destroy(innerbl);
@@ -416,9 +425,10 @@ static void _draw_alignmentbox_single(struct object* cell, struct technology_sta
 
 static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate)
 {
+    int asoutline = cmdoptions_was_provided_long(cmdoptions, "draw-alignmentboxes-as-outline");
     if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
-        _draw_alignmentbox_single(toplevel, techstate);
+        _draw_alignmentbox_single(toplevel, techstate, asoutline);
     }
     if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
@@ -427,7 +437,7 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
         while(vector_iterator_is_valid(it))
         {
             struct object* ref = vector_iterator_get(it);
-            _draw_alignmentbox_single(ref, techstate);
+            _draw_alignmentbox_single(ref, techstate, asoutline);
             vector_iterator_next(it);
         }
         vector_iterator_destroy(it);
@@ -435,23 +445,32 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
     }
 }
 
-static void _draw_cell_anchors(struct object* cell, struct technology_state* techstate)
+static void _draw_cell_anchors(struct object* cell, struct technology_state* techstate, int asoutline)
 {
     struct anchor_iterator* iterator = object_create_anchor_iterator(cell);
+    const struct generics* layer;
+    if(asoutline)
+    {
+       layer = generics_create_outline(techstate);
+    }
+    else
+    {
+       layer = generics_create_special(techstate);
+    }
     while(anchor_iterator_is_valid(iterator))
     {
         if(anchor_iterator_is_area(iterator))
         {
             const point_t* anchor = anchor_iterator_anchor(iterator);
             const char* name = anchor_iterator_name(iterator);
-            geometry_rectanglebltr(cell, generics_create_special(techstate), anchor + 0, anchor + 1);
-            object_add_port(cell, name, generics_create_special(techstate), anchor + 0, 100);
+            geometry_rectanglebltr(cell, layer, anchor + 0, anchor + 1);
+            object_add_port(cell, name, layer, anchor + 0, 100);
         }
         else
         {
             const point_t* anchor = anchor_iterator_anchor(iterator);
             const char* name = anchor_iterator_name(iterator);
-            object_add_port(cell, name, generics_create_special(techstate), anchor, 100);
+            object_add_port(cell, name, layer, anchor, 100);
         }
         anchor_iterator_next(iterator);
     }
@@ -478,6 +497,8 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
             ++anchornames;
         }
     }
+    int asoutline = cmdoptions_was_provided_long(cmdoptions, "draw-anchors-as-outline");
+    _draw_cell_anchors(toplevel, techstate, asoutline);
     if(cmdoptions_was_provided_long(cmdoptions, "draw-all-anchors"))
     {
         struct vector* references = object_collect_references_mutable(toplevel);
@@ -485,7 +506,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
         while(vector_iterator_is_valid(it))
         {
             struct object* ref = vector_iterator_get(it);
-            _draw_cell_anchors(ref, techstate);
+            _draw_cell_anchors(ref, techstate, asoutline);
             vector_iterator_next(it);
         }
         vector_iterator_destroy(it);
