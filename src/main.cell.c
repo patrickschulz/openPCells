@@ -497,20 +497,23 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
             ++anchornames;
         }
     }
-    int asoutline = cmdoptions_was_provided_long(cmdoptions, "draw-anchors-as-outline");
-    _draw_cell_anchors(toplevel, techstate, asoutline);
     if(cmdoptions_was_provided_long(cmdoptions, "draw-all-anchors"))
     {
-        struct vector* references = object_collect_references_mutable(toplevel);
-        struct vector_iterator* it = vector_iterator_create(references);
-        while(vector_iterator_is_valid(it))
+        int asoutline = cmdoptions_was_provided_long(cmdoptions, "draw-anchors-as-outline");
+        _draw_cell_anchors(toplevel, techstate, asoutline);
+        if(cmdoptions_was_provided_long(cmdoptions, "draw-all-anchors"))
         {
-            struct object* ref = vector_iterator_get(it);
-            _draw_cell_anchors(ref, techstate, asoutline);
-            vector_iterator_next(it);
+            struct vector* references = object_collect_references_mutable(toplevel);
+            struct vector_iterator* it = vector_iterator_create(references);
+            while(vector_iterator_is_valid(it))
+            {
+                struct object* ref = vector_iterator_get(it);
+                _draw_cell_anchors(ref, techstate, asoutline);
+                vector_iterator_next(it);
+            }
+            vector_iterator_destroy(it);
+            vector_destroy(references);
         }
-        vector_iterator_destroy(it);
-        vector_destroy(references);
     }
 }
 
