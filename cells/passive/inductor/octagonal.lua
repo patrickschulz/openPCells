@@ -201,6 +201,10 @@ function layout(inductor, _P)
     end
 
     -- outline
+    inductor:add_area_anchor_bltr("outline",
+        point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.outlineextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.outlineextension),
+        point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.outlineextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.outlineextension)
+    )
     if _P.drawoutline then
         inductor:add_area_anchor_bltr("outline",
             point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.outlineextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.outlineextension),
