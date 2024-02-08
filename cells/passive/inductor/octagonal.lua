@@ -202,9 +202,13 @@ function layout(inductor, _P)
 
     -- outline
     if _P.drawoutline then
-        geometry.rectanglebltr(inductor, generics.outline(),
+        inductor:add_area_anchor_bltr("outline",
             point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.outlineextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.outlineextension),
             point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.outlineextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.outlineextension)
+        )
+        geometry.rectanglebltr(inductor, generics.outline(),
+            inductor:get_area_anchor("outline").bl,
+            inductor:get_area_anchor("outline").tr
         )
     end
 
