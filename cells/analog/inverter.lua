@@ -27,7 +27,8 @@ function parameters()
         { "numrightdummies",                            0 },
         { "outputmetal",                                2, posvals = interval(2, inf) },
         { "outputwidth",                                technology.get_dimension("Minimum M1 Width") },
-        { "outputshift",                                0 },
+        { "outputxshift",                               0 },
+        { "outputyshift",                               0 },
         { "dummycontheight",                            technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
         { "dummycontshift",                             0 },
         { "outputisinside",                             false },
@@ -158,18 +159,18 @@ function layout(inverter, _P)
         )
     else
         geometry.path_cshape(inverter, generics.metal(_P.outputmetal),
-            cmos:get_area_anchor(string.format("pSD%d", 2 + dummyoffset)).br:translate(0, _P.outputwidth / 2),
-            cmos:get_area_anchor(string.format("nSD%d", 2 + dummyoffset)).tr:translate(0, -_P.outputwidth / 2),
-            cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).bl:translate(xpitch + _P.outputshift, 0),
+            cmos:get_area_anchor(string.format("pSD%d", 2 + dummyoffset)).br:translate(0,  _P.outputyshift + _P.outputwidth / 2),
+            cmos:get_area_anchor(string.format("nSD%d", 2 + dummyoffset)).tr:translate(0, -_P.outputyshift - _P.outputwidth / 2),
+            cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).bl:translate(xpitch + _P.outputxshift, 0),
             _P.outputwidth
         )
         inverter:add_area_anchor_bltr("output",
             point.create(
-                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).l + xpitch + _P.outputshift - _P.outputwidth / 2,
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).l + xpitch + _P.outputxshift - _P.outputwidth / 2,
                 cmos:get_area_anchor(string.format("nSD%d", 2 + dummyoffset)).t - _P.outputwidth / 2
             ),
             point.create(
-                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).l + xpitch + _P.outputshift + _P.outputwidth / 2,
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).l + xpitch + _P.outputxshift + _P.outputwidth / 2,
                 cmos:get_area_anchor(string.format("pSD%d", 2 + dummyoffset)).b + _P.outputwidth / 2
             )
         )
