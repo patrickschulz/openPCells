@@ -1224,8 +1224,8 @@ int object_abut_area_anchor_right(struct object* cell, const char* anchorname, c
 {
     point_t* pts1 = object_get_area_anchor(cell, anchorname);
     point_t* pts2 = object_get_area_anchor(other, otheranchorname);
-    coordinate_t blx1 = _area_anchor_get_trx(pts1);
-    coordinate_t trx2 = _area_anchor_get_blx(pts2);
+    coordinate_t blx1 = _area_anchor_get_blx(pts1);
+    coordinate_t trx2 = _area_anchor_get_trx(pts2);
     object_translate(cell, trx2 - blx1, 0);
     free(pts1);
     free(pts2);
