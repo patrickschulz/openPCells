@@ -112,6 +112,28 @@ function M.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext, xmult
     }
 end
 
+function M.rectangle_intersection(bl1, tr1, bl2, tr2)
+    local bl1x = bl1:getx()
+    local bl1y = bl1:gety()
+    local tr1x = tr1:getx()
+    local tr1y = tr1:gety()
+    local bl2x = bl2:getx()
+    local bl2y = bl2:gety()
+    local tr2x = tr2:getx()
+    local tr2y = tr2:gety()
+    local blx = math.max(bl1x, bl2x)
+    local bly = math.max(bl1y, bl2y)
+    local trx = math.min(tr1x, tr2x)
+    local try = math.min(tr1y, tr2y)
+    if trx > blx and try > bly then
+        return {
+            bl = point.create(blx, bly),
+            tr = point.create(trx, try),
+        }
+    end
+    return nil
+end
+
 function M.xmirror(pts, xcenter)
     local mirrored = {}
     xcenter = xcenter or 0

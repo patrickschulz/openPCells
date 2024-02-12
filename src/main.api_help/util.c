@@ -456,6 +456,24 @@
     ));
 }
 
+/* util.rectangle_intersection(value, ratio) */
+{
+    struct parameter parameters[] = {
+        { "bl1", POINT, NULL, "lower-left corner of the first rectangle" },
+        { "tr1", POINT, NULL, "upper-right corner of the first rectangle" },
+        { "bl2", POINT, NULL, "lower-left corner of the second rectangle" },
+        { "tr2", POINT, NULL, "upper-right corner of the second rectangle" }
+    };
+    vector_append(entries, _make_api_entry(
+        "rectangle_intersection",
+        MODULE_UTIL,
+        "Compute the intersection of two rectangles and return it as a table with 'bl' (bottom-left) and 'tr' (top-right) entries. If no itersection exists, this function returns nil.",
+        "local region = util.rectangle_intersection(point.create(0, 0), point.create(100, 100), point.create(20, 20), point.create(200, 20))",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* util.any_of(value, ratio) */
 {
     struct parameter parameters[] = {
