@@ -116,7 +116,7 @@ static int _load_config(struct hashmap* config)
 void _print_general_info(void)
 {
     printf("This is the openPCell layout generator (opc), version %u.%u.%u.\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
-    puts("Copyright 2020-2023 Patrick Kurth");
+    puts("Copyright 2020-2024 Patrick Kurth");
     puts("To generate a layout, you need to pass the technology, the export type and a cellname.");
     puts("Example:");
     puts("         opc --technology opc --export gds --cell stdcells/not_gate");
