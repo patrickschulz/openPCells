@@ -93,6 +93,8 @@ function layout(inductor, _P)
                 via1tr = point.create(-pitch / 2 - _scale_tanpi8(_P.width / 2) - _P.viashift + _P.width / 2, -sign * (radius + pitch) + _P.width / 2)
                 via2bl = point.create( pitch / 2 + _scale_tanpi8(_P.width / 2) + _P.viashift - _P.width / 2, -sign * radius - _P.width / 2)
                 via2tr = point.create( pitch / 2 + _scale_tanpi8(_P.width / 2) + _P.viashift + _P.width / 2, -sign * radius + _P.width / 2)
+                geometry.path_polygon(inductor, mainmetal, up1pts, _P.width, true)
+                geometry.path_polygon(inductor, auxmetal, util.xmirror(up2pts), _P.width, true)
             else
                 append1(-radiustanpi8, -sign * radius)
                 append1(-radiustanpi8 + pitch, -sign * (radius + pitch))
@@ -118,9 +120,9 @@ function layout(inductor, _P)
                     radiustanpi8 + _P.viashift + _P.width / 2,
                     -sign * radius + sign * _P.viashift + _P.width / 2
                 )
+                geometry.path_polygon(inductor, mainmetal, up1pts, _P.width, true)
+                geometry.path_polygon(inductor, auxmetal, util.xmirror(up2pts), _P.width, true)
             end
-            geometry.path_polygon(inductor, mainmetal, up1pts, _P.width, true)
-            geometry.path_polygon(inductor, auxmetal, util.xmirror(up2pts), _P.width, true)
             -- place vias
             geometry.viabarebltr(inductor, _P.topmetal, _P.topmetal - 1, via1bl, via1tr)
             geometry.viabarebltr(inductor, _P.topmetal, _P.topmetal - 1, via2bl, via2tr)
@@ -132,8 +134,12 @@ function layout(inductor, _P)
         end
 
         -- draw connection to underpass of last turn
-        if i == _P.turns then
-            prepend(_scale_tanpi8(_P.radius + (_P.turns - 2) * pitch) - pitch - _scale_tanpi8(_P.width / 2), sign * radius)
+        if _P.turns > 1 and i == _P.turns then
+            if _scale_tanpi8(_P.radius + (i - 2) * pitch) > pitch / 2 + _scale_tanpi8(_P.width / 2) then
+                prepend(-pitch / 2 - _scale_tanpi8(_P.width / 2), sign * radius)
+            else
+                prepend(_scale_tanpi8(_P.radius + (i - 2) * pitch) - pitch - _scale_tanpi8(_P.width / 2), sign * radius)
+            end
         end
 
         -- draw connector
@@ -154,6 +160,49 @@ function layout(inductor, _P)
 
     local lastradius = _P.radius + (_P.turns - 1) * pitch
     local lastr = _scale_tanpi8(lastradius)
+
+    -- alignment box
+    if _P.alignmentboxincludefeedlines then
+        inductor:set_alignment_box(
+            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension - _P.extension),
+            point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension)
+        )
+    else
+        inductor:set_alignment_box(
+            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension),
+            point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension)
+        )
+    end
+    inductor:add_area_anchor_bltr("boundary",
+        point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension),
+        point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension)
+    )
+
+    -- input lines anchors
+    if _P.extsep / 2 + _P.width > lastr + _scale_tanpi8(_P.width / 2) then
+        -- FIXME
+        inductor:add_area_anchor_bltr("leftline",
+            point.create(-(_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2),
+            point.create(-(_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2 - _P.extension)
+        )
+    else
+        inductor:add_area_anchor_bltr("leftline",
+            point.create(-_P.extsep / 2 - _P.width, -(lastradius + _P.width / 2 + _P.extension)),
+            point.create(-_P.extsep / 2, -lastradius - _P.width / 2)
+        )
+    end
+    if _P.extsep / 2 + _P.width > lastr + _scale_tanpi8(_P.width / 2) then
+        -- FIXME
+        inductor:add_area_anchor_bltr("rightline",
+            point.create( (_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2),
+            point.create( (_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2 - _P.extension)
+        )
+    else
+        inductor:add_area_anchor_bltr("rightline",
+            point.create( _P.extsep / 2, -(lastradius + _P.width / 2 + _P.extension)),
+            point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
+        )
+    end
 
     -- lvs resistor
     if _P.drawlvsresistor then
@@ -223,49 +272,6 @@ function layout(inductor, _P)
             point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.dopingmarkerextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.dopingmarkerextension)
         )
     end
-
-    -- input lines anchors
-    if _P.extsep / 2 + _P.width > lastr + _scale_tanpi8(_P.width / 2) then
-        -- FIXME
-        --inductor:add_area_anchor_bltr("leftline",
-        --    point.create(-(_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2),
-        --    point.create(-(_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2 - _P.extension)
-        --)
-    else
-        inductor:add_area_anchor_bltr("leftline",
-            point.create(-_P.extsep / 2 - _P.width, -(lastradius + _P.width / 2 + _P.extension)),
-            point.create(-_P.extsep / 2, -lastradius - _P.width / 2)
-        )
-    end
-    if _P.extsep / 2 + _P.width > lastr + _scale_tanpi8(_P.width / 2) then
-        -- FIXME
-        --inductor:add_area_anchor_bltr("rightline",
-        --    point.create( (_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2),
-        --    point.create( (_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2 - _P.extension)
-        --)
-    else
-        inductor:add_area_anchor_bltr("rightline",
-            point.create( _P.extsep / 2, -(lastradius + _P.width / 2 + _P.extension)),
-            point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
-        )
-    end
-
-    -- alignment box
-    if _P.alignmentboxincludefeedlines then
-        inductor:set_alignment_box(
-            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension - _P.extension),
-            point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension)
-        )
-    else
-        inductor:set_alignment_box(
-            point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension),
-            point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension)
-        )
-    end
-    inductor:add_area_anchor_bltr("boundary",
-        point.create(-_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension, -_P.radius - (_P.turns - 1) * pitch - _P.width / 2 - _P.alignmentboxextension),
-        point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.alignmentboxextension)
-    )
 
     -- boundary
     if _P.rectangularboundary then
