@@ -1,6 +1,7 @@
 function parameters()
     pcell.add_parameters(
         { "channeltype(Channel Type)",                                                                  "nmos", posvals = set("nmos", "pmos"), info = "polarity of the mosfet. Can be either 'nmos' or 'pmos'." },
+        { "drawimplant",                                                                                true, info = "switch to enable/disable implant drawing. Typically this should be enabled, as a missing implant will most likely cause both the DRC and the LVS to fail. However, in certain situations manual drawing of the implant can be beneficial" },
         { "implantalignwithactive",                                                                     false, info = "set reference points for implant extensions. If this is false, the implant extensions are autmatically calculated so that the implant covers all gates. With this option enabled, the implant extensions are referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights. This option sets left/right/top/bottom alignment, the dedicated switches can be used for more fine-grained control." },
         { "implantalignleftwithactive",                                                                 false, follow = "implantalignwithactive", info = "set reference point for implant left extensions. If this is false, the implant left extension is autmatically calculated so that the implant covers the left gates. With this option enabled, the implant left extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
         { "implantalignrightwithactive",                                                                false, follow = "implantalignwithactive", info = "set reference point for implant right extensions. If this is false, the implant right extension is autmatically calculated so that the implant covers the right gates. With this option enabled, the implant right extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
@@ -702,7 +703,9 @@ function layout(transistor, _P)
             _P.fingerwidth + _P.extendimplanttop or
             gatetry + _P.extendimplanttop
     )
-    geometry.rectanglebltr(transistor, generics.implant(_P.channeltype), implantbl, implanttr)
+    if _P.drawimplant then
+        geometry.rectanglebltr(transistor, generics.implant(_P.channeltype), implantbl, implanttr)
+    end
     transistor:add_area_anchor_bltr("implant", implantbl, implanttr)
 
     -- oxide thickness
