@@ -327,27 +327,43 @@ function layout(transistor, _P)
             point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth)
         )
         if _P.drawleftactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            transistor:add_area_anchor_bltr("leftactivedummy",
                 point.create(-leftactauxext - _P.leftactivedummyspace - _P.leftactivedummywidth, 0),
                 point.create(-leftactauxext - _P.leftactivedummyspace, _P.fingerwidth)
             )
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                transistor:get_area_anchor("leftactivedummy").bl,
+                transistor:get_area_anchor("leftactivedummy").tr
+            )
         end
         if _P.drawrightactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            transistor:add_area_anchor_bltr("rightactivedummy",
                 point.create(activewidth + leftactext + rightactext + rightactauxext + _P.rightactivedummyspace, 0),
                 point.create(activewidth + leftactext + rightactext + rightactauxext + _P.rightactivedummyspace + _P.rightactivedummywidth, _P.fingerwidth)
             )
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                transistor:get_area_anchor("rightactivedummy").bl,
+                transistor:get_area_anchor("rightactivedummy").tr
+            )
         end
         if _P.drawtopactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            transistor:add_area_anchor_bltr("topactivedummy",
                 point.create(-leftactauxext, _P.fingerwidth + _P.topactivedummyspace),
                 point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth + _P.topactivedummyspace + _P.topactivedummywidth)
             )
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                transistor:get_area_anchor("topactivedummy").bl,
+                transistor:get_area_anchor("topactivedummy").tr
+            )
         end
         if _P.drawbottomactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            transistor:add_area_anchor_bltr("bottomactivedummy",
                 point.create(-leftactauxext, -_P.bottomactivedummyspace - _P.bottomactivedummywidth),
                 point.create(activewidth + leftactext + rightactext + rightactauxext, -_P.bottomactivedummyspace)
+            )
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                transistor:get_area_anchor("bottomactivedummy").bl,
+                transistor:get_area_anchor("bottomactivedummy").tr
             )
         end
     end
