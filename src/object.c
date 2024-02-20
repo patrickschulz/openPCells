@@ -1433,7 +1433,15 @@ void object_add_layer_boundary(struct object* cell, const struct generics* layer
 void object_inherit_boundary(struct object* cell, const struct object* othercell)
 {
     cell->boundary = vector_create(4, point_destroy);
-    struct vector_const_iterator* it = vector_const_iterator_create(othercell->boundary);
+    struct vector_const_iterator* it;
+    if(othercell->isproxy)
+    {
+        it = vector_const_iterator_create(othercell->reference->boundary);
+    }
+    else
+    {
+        it = vector_const_iterator_create(othercell->boundary);
+    }
     while(vector_const_iterator_is_valid(it))
     {
         const point_t* pt = vector_const_iterator_get(it);
