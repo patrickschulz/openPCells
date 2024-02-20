@@ -424,7 +424,7 @@ int technology_load(struct technology_state* techstate, const char* techname, co
     char* layermapname = _get_tech_filename(techstate, techname, "layermap");
     if(!layermapname)
     {
-        printf("technology: no techfile for technology '%s' found", techname);
+        printf("technology: no techfile for technology '%s' found\n", techname);
         free(layermapname);
         return 0;
     }
