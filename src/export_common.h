@@ -17,7 +17,8 @@ void export_data_append_nullbyte(struct export_data* data);
 void export_data_append_byte(struct export_data* data, unsigned char byte);
 void export_data_append_two_bytes(struct export_data* data, uint16_t datum);
 void export_data_append_four_bytes(struct export_data* data, uint32_t datum);
-void export_data_append_string(struct export_data* data, const char* str, size_t length);
+void export_data_append_string_len(struct export_data* data, const char* str, size_t length);
+void export_data_append_string(struct export_data* data, const char* str);
 
 // unchecked functions
 void export_data_ensure_additional_capacity(struct export_data* data, size_t num);

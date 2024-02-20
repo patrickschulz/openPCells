@@ -1019,7 +1019,7 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         }
         size_t datalen;
         const char* strdata = lua_tolstring(writer->L, -1, &datalen);
-        export_data_append_string(writer->data, strdata, datalen);
+        export_data_append_string_len(writer->data, strdata, datalen);
         lua_pop(writer->L, 1); // pop data
     }
 

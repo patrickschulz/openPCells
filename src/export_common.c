@@ -55,8 +55,16 @@ void export_data_append_four_bytes(struct export_data* data, uint32_t datum)
     export_data_append_four_bytes_unchecked(data, datum);
 }
 
-void export_data_append_string(struct export_data* data, const char* str, size_t length)
+void export_data_append_string_len(struct export_data* data, const char* str, size_t length)
 {
+    export_data_ensure_additional_capacity(data, length);
+    memcpy(data->data + data->length, str, length);
+    data->length += length;
+}
+
+void export_data_append_string(struct export_data* data, const char* str)
+{
+    size_t length = strlen(str);
     export_data_ensure_additional_capacity(data, length);
     memcpy(data->data + data->length, str, length);
     data->length += length;

@@ -303,7 +303,7 @@ static void _at_begin_cell(struct export_data* data, const char* name)
     export_data_append_two_bytes(data, len % 2 ? len + 5 : len + 4);
     export_data_append_byte(data, RECORDTYPE_STRNAME);
     export_data_append_byte(data, DATATYPE_ASCII_STRING);
-    export_data_append_string(data, name, len);
+    export_data_append_string_len(data, name, len);
     if(len % 2)
     {
         export_data_append_nullbyte(data);
@@ -549,6 +549,10 @@ static void _rotate_vector(coordinate_t* x, coordinate_t* y, const struct transf
     coordinate_t xx = *x;
     coordinate_t yy = *y;
     enum orientation orientation = _get_matrix_orientation(trans);
+    /*
+    *x = cos(alpha) * xx -sin(alpha) * yy;
+    *y = sin(alpha) * xx cos(alpha) * yy;
+    */
     switch(orientation)
     {
         case R0:
@@ -641,7 +645,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     }
     export_data_append_byte(data, RECORDTYPE_SNAME);
     export_data_append_byte(data, DATATYPE_ASCII_STRING);
-    export_data_append_string(data, identifier, strlen(identifier));
+    export_data_append_string_len(data, identifier, strlen(identifier));
     if(len % 2 == 1)
     {
         export_data_append_byte(data, 0x00);
@@ -679,7 +683,7 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     }
     export_data_append_byte(data, RECORDTYPE_SNAME);
     export_data_append_byte(data, DATATYPE_ASCII_STRING);
-    export_data_append_string(data, identifier, strlen(identifier));
+    export_data_append_string_len(data, identifier, strlen(identifier));
     if(len % 2 == 1)
     {
         export_data_append_nullbyte(data);
@@ -759,7 +763,7 @@ static void _write_port(struct export_data* data, const char* name, const struct
     export_data_append_two_bytes(data, len % 2 ? len + 5 : len + 4);
     export_data_append_byte(data, RECORDTYPE_STRING);
     export_data_append_byte(data, DATATYPE_ASCII_STRING);
-    export_data_append_string(data, name, len);
+    export_data_append_string_len(data, name, len);
     if(len % 2)
     {
         export_data_append_nullbyte(data);
