@@ -68,7 +68,7 @@ void geometry_polygon(
 void geometry_path(
     struct object* cell,
     const struct generics* layer,
-    const point_t** points, size_t len,
+    const struct vector* points,
     ucoordinate_t width,
     ucoordinate_t bgnext, ucoordinate_t endext
 );
@@ -76,7 +76,7 @@ void geometry_path(
 void geometry_path_polygon(
     struct object* cell,
     const struct generics* layer,
-    struct vector* points,
+    const struct vector* points,
     ucoordinate_t width,
     ucoordinate_t bgnext, ucoordinate_t endext
 );

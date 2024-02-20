@@ -184,21 +184,7 @@ void geometry_polygon(struct object* cell, const struct generics* layer, const p
     object_add_shape(cell, S);
 }
 
-void geometry_path(struct object* cell, const struct generics* layer, const point_t** points, size_t len, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
-{
-    if(generics_is_empty(layer))
-    {
-        return;
-    }
-    struct shape* S = shape_create_path(layer, len, width, bgnext, endext);
-    for(unsigned int i = 0; i < len; ++i)
-    {
-        shape_append(S, points[i]->x, points[i]->y);
-    }
-    object_add_shape(cell, S);
-}
-
-void geometry_path_polygon(struct object* cell, const struct generics* layer, struct vector* points, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
+void geometry_path(struct object* cell, const struct generics* layer, const struct vector* points, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
 {
     if(generics_is_empty(layer))
     {
@@ -207,7 +193,22 @@ void geometry_path_polygon(struct object* cell, const struct generics* layer, st
     struct shape* S = shape_create_path(layer, vector_size(points), width, bgnext, endext);
     for(size_t i = 0; i < vector_size(points); ++i)
     {
-        point_t* pt = vector_get(points, i);
+        const point_t* pt = vector_get_const(points, i);
+        shape_append(S, pt->x, pt->y);
+    }
+    object_add_shape(cell, S);
+}
+
+void geometry_path_polygon(struct object* cell, const struct generics* layer, const struct vector* points, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
+{
+    if(generics_is_empty(layer))
+    {
+        return;
+    }
+    struct shape* S = shape_create_path(layer, vector_size(points), width, bgnext, endext);
+    for(size_t i = 0; i < vector_size(points); ++i)
+    {
+        const point_t* pt = vector_get_const(points, i);
         shape_append(S, pt->x, pt->y);
     }
     shape_resolve_path_inline(S);
