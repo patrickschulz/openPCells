@@ -32,6 +32,8 @@ function parameters()
         { "outputyshift",                               0 },
         { "dummycontheight",                            technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
         { "dummycontshift",                             0 },
+        { "psddummyouterheight",                        2 * technology.get_dimension("Minimum Gate Width"), follow = "pwidth" },
+        { "nsddummyouterheight",                        2 * technology.get_dimension("Minimum Gate Width"), follow = "nwidth" },
         { "outputisinside",                             false },
         { "drawleftstopgate",                           false },
         { "drawrightstopgate",                          false },
@@ -113,8 +115,8 @@ function layout(inverter, _P)
         extendvthtypebottom = _P.extendvthtypebottom,
         extendvthtypeleft = _P.extendvthtypeleft,
         extendvthtyperight = _P.extendvthtyperight,
-        psddummyouterheight = 200,
-        nsddummyouterheight = 200,
+        psddummyouterheight = _P.psddummyouterheight,
+        nsddummyouterheight = _P.nsddummyouterheight,
     })
     inverter:merge_into(cmos)
 
