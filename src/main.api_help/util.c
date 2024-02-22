@@ -414,6 +414,24 @@
     ));
 }
 
+/* util.make_rectangle(value, ratio) */
+{
+    struct parameter parameters[] = {
+        { "center",     POINT,      NULL, "center of the rectangle" },
+        { "width",      INTEGER,    NULL, "width" },
+        { "height",     INTEGER,    NULL, "height" }
+    };
+    vector_append(entries, _make_api_entry(
+        "make_rectangle",
+        MODULE_UTIL,
+        "create a rectangle from a center point and the width and height. This function returns two points (bottom-left and top-right)",
+        "local bl, tr = util.make_rectangle(point.create(0, 0), 100, 100)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+
 /* util.rectangle_to_polygon(value, ratio) */
 {
     struct parameter parameters[] = {

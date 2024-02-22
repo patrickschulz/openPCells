@@ -60,6 +60,12 @@ function M.polygon_ymax(pts)
     return max
 end
 
+function M.make_rectangle(center, width, height)
+    local bl = point.create(center:getx() - width / 2, center:gety() - height / 2)
+    local tr = point.create(center:getx() + width / 2, center:gety() + height / 2)
+    return bl, tr
+end
+
 function M.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
     return {
         point.create(bl:getx() - (leftext  or 0), bl:gety() - (bottomext or 0)),
