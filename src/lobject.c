@@ -928,8 +928,8 @@ static int lobject_add_bus_port(lua_State* L)
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
     int startindex = luaL_checkinteger(L, 5);
     int endindex = luaL_checkinteger(L, 6);
-    unsigned int xpitch = luaL_checkinteger(L, 7);
-    unsigned int ypitch = luaL_checkinteger(L, 8);
+    coordinate_t xpitch = lpoint_checkcoordinate(L, 7, "xpitch");
+    coordinate_t ypitch = lpoint_checkcoordinate(L, 8, "ypitch");
     double sizehint = luaL_optnumber(L, 9, 0.0);
     object_add_bus_port(lobject_get(L, cell), name, layer, lpoint_get(lpoint), startindex, endindex, xpitch, ypitch, sizehint);
     return 0;
