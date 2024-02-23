@@ -960,10 +960,10 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
     if(_has_initialize(writer))
     {
         ret = _initialize(writer, toplevel);
-        fputs("export_write_write_toplevel: could not initialize export\n", stderr);
     }
     if(!ret)
     {
+        fputs("export_writer_write_toplevel: could not initialize export\n", stderr);
         return 0;
     }
 
