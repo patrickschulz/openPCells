@@ -1676,6 +1676,11 @@ static int lgeometry_path_points_to_polygon(lua_State* L)
     lua_len(L, 1);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
+    if(len < 2)
+    {
+        lua_pushstring(L, "geometry.path_points_to_polygon: there must be at least two path points");
+        lua_error(L);
+    }
     coordinate_t width = luaL_checkinteger(L, 2);
     if(width == 0)
     {
