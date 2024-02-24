@@ -217,4 +217,17 @@ function M.close_curve()
     _insert_ordered_content(curveorder, table.concat(curvecontent, ' '))
 end
 
+function M.write_port(name, layer, where, sizehint)
+    _insert_ordered_content(
+        layer.order or 0,
+        string.format(
+            '<text x = "%d" y = "%d" transform="scale(%d)">%s</text>',
+            _format_x_coordinate(where.x),
+            _format_y_coordinate(where.y),
+            sizehint or __width / 10,
+            name
+        )
+    )
+end
+
 return M
