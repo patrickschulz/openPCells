@@ -103,6 +103,7 @@ function parameters()
         { "sourceviametal(Source Via Metal)",                                                           1, follow = "sourceendmetal" },
         { "connectsourceinline(Connect Source Inline of Transistor)",                                   false },
         { "connectsourceinlineoffset(Offset for Inline Source Connection)",                             0 },
+        { "splitsourcevias(Split Source Vias for Inline Source Connection)",                            false },
         { "connectsourceinverse(Invert Source Strap Locations)",                                        false },
         { "connectdrain(Connect Drain)",                                                                false },
         { "drawdrainstrap(Draw Drain Strap)",                                                           false, follow = "connectdrain" },
@@ -128,6 +129,7 @@ function parameters()
         { "drainviametal(Drain Via Metal)",                                                             1, follow = "drainendmetal" },
         { "connectdraininline(Connect Drain Inline of Transistor)",                                     false },
         { "connectdraininlineoffset(Offset for Inline Drain Connection)",                               0 },
+        { "splitdrainvias(Split Drain Vias for Inline Drain Connection)",                               false },
         { "diodeconnected(Diode Connected Transistor)",                                                 false },
         { "diodeconnectedreversed(Reverse Diode Connections)",                                          false },
         { "drawextrabotstrap(Draw Extra Bottom Strap)",                                                 false },
@@ -988,6 +990,34 @@ function layout(transistor, _P)
     local sourceviaoffset = _P.sourceviaalign == "top" and _P.fingerwidth - _P.sourceviasize or 0
     local drainoffset = _P.drainalign == "top" and _P.fingerwidth - _P.drainsize or 0
     local drainviaoffset = _P.drainviaalign == "top" and _P.fingerwidth - _P.drainviasize or 0
+    local splitsourceviaoffset
+    if _P.channeltype == "nmos" then
+        if _P.connectsourceinverse then
+            splitsourceviaoffset = _P.fingerwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
+        else
+            splitsourceviaoffset = _P.connectsourceinlineoffset
+        end
+    else
+        if _P.connectsourceinverse then
+            splitsourceviaoffset = _P.connectsourceinlineoffset
+        else
+            splitsourceviaoffset = _P.fingerwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
+        end
+    end
+    local splitdrainviaoffset
+    if _P.channeltype == "nmos" then
+        if _P.connectdraininverse then
+            splitdrainviaoffset = _P.connectdraininlineoffset
+        else
+            splitdrainviaoffset = _P.fingerwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
+        end
+    else
+        if _P.connectdraininverse then
+            splitdrainviaoffset = _P.fingerwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
+        else
+            splitdrainviaoffset = _P.connectdraininlineoffset
+        end
+    end
     if _P.drawsourcedrain ~= "none" then
         -- source
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "source" then
@@ -1000,10 +1030,25 @@ function layout(transistor, _P)
                     if _P.drawsourcevia and _P.sourceviametal > 1 and
                        not (i == 1 and not _P.drawfirstsourcevia or
                         i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                        geometry.viabarebltr(transistor, 1, _P.sourceviametal,
+                        geometry.viabarebltr(transistor, 1, _P.sourceviametal - 1,
                             point.create(shift - sdviashift, sourceviaoffset),
                             point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize)
                         )
+                        if _P.connectsourceinline and _P.splitsourcevias then
+                            geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
+                                point.create(shift - sdviashift, 0),
+                                point.create(shift + _P.sdviawidth - sdviashift, splitsourceviaoffset)
+                            )
+                            geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
+                                point.create(shift - sdviashift, splitsourceviaoffset + _P.connectsourcewidth),
+                                point.create(shift + _P.sdviawidth - sdviashift, _P.fingerwidth)
+                            )
+                        else
+                            geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
+                                point.create(shift - sdviashift, sourceviaoffset),
+                                point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize)
+                            )
+                        end
                     end
                     geometry.rectanglebltr(transistor, generics.metal(1),
                         point.create(shift - sdmetalshift, sourceoffset),
@@ -1040,10 +1085,25 @@ function layout(transistor, _P)
                     if _P.drawdrainvia and _P.drainviametal > 1 and
                        not (i == 2 and not _P.drawfirstdrainvia or
                         i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                        geometry.viabarebltr(transistor, 1, _P.drainviametal,
+                        geometry.viabarebltr(transistor, 1, _P.drainviametal - 1,
                             point.create(shift - sdviashift, drainviaoffset),
                             point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
                         )
+                        if _P.connectdraininline and _P.splitdrainvias then
+                            geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
+                                point.create(shift - sdviashift, 0),
+                                point.create(shift + _P.sdviawidth - sdviashift, splitdrainviaoffset)
+                            )
+                            geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
+                                point.create(shift - sdviashift, splitdrainviaoffset + _P.connectdrainwidth),
+                                point.create(shift + _P.sdviawidth - sdviashift, _P.fingerwidth)
+                            )
+                        else
+                            geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
+                                point.create(shift - sdviashift, drainviaoffset),
+                                point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
+                            )
+                        end
                     end
                     geometry.rectanglebltr(transistor, generics.metal(1),
                         point.create(shift - sdmetalshift, drainoffset),
