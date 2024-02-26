@@ -24,7 +24,8 @@ function parameters()
         { "extendlvsmarkery", 0 },
         { "conntype", "parallel", posvals = set("parallel", "series") },
         { "invertseriesconnections", false },
-        { "drawrotationmarker", false }
+        { "drawrotationmarker", false },
+        { "resistortype", 1 }
     )
 end
 
@@ -169,7 +170,7 @@ function layout(resistor, _P)
         )
     end
     -- LVS marker layer
-    geometry.rectanglebltr(resistor, generics.other("polyresistorlvsmarker"),
+    geometry.rectanglebltr(resistor, generics.other(string.format("polyresistorlvsmarker%d", _P.resistortype)),
         point.create((1 + _P.nonresdummies - 1) * (_P.width + _P.xspace) - _P.extendlvsmarkerx, -_P.extendlvsmarkery),
         point.create((_P.nxfingers + 2 * _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendlvsmarkerx, polyheight + _P.extendlvsmarkery)
     )
