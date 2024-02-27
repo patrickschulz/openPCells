@@ -2080,4 +2080,10 @@ function layout(divider, _P)
             divider:get_area_anchor("inn_line").tr
         )
     )
+    -- area anchor for layer boundaries
+    divider:add_area_anchor_bltr(
+        "activecore",
+        latches[1]:get_area_anchor("clocknleft_topgatestrap").bl,
+        latches[numlatches]:get_area_anchor("clocknright_topgatestrap").tr
+    )
 end
