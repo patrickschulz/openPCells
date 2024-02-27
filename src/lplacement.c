@@ -417,6 +417,11 @@ int lplacement_place_within_boundary(lua_State* L)
     lcheck_check_numargs2(L, 4, 5, "placement.place_within_boundary");
     struct lobject* toplevel = lobject_check(L, 1);
     struct lobject* cell = lobject_check(L, 2);
+    if(!object_has_alignmentbox(lobject_get_const(cell)))
+    {
+        lua_pushstring(L, "placement.place_within_boundary: to-be-placed object has no alignment box");
+        lua_error(L);
+    }
     const char* basename = luaL_checkstring(L, 3);
 
     struct simple_polygon* targetarea;

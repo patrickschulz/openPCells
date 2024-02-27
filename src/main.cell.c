@@ -15,6 +15,7 @@
 #include "pcell.h"
 #include "postprocess.h"
 #include "technology.h"
+#include "util_cmodule.h"
 #include "util.h"
 
 #include "ldir.h"
@@ -50,6 +51,7 @@ static lua_State* _create_and_initialize_lua(void)
     open_lobject_lib(L);
     open_lplacement_lib(L);
     open_lpostprocess(L);
+    open_lutil_cmodule_lib(L);
     // FIXME: these libraries are probably not needed for cell creation (they are used in place & route scripts)
     open_lplacer_lib(L);
     open_lrouter_lib(L);

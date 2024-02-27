@@ -333,4 +333,23 @@ function M.place_stripline(cell, signalmetal, pts, swidth, gwidth)
     geometry.path_polygon(cell, generics.metal(signalmetal + 1), pts, gwidth)
 end
 
+function M.collect_gridlines(t, cells, anchorname)
+    for _, cell in ipairs(cells) do
+        local bl = cell:get_area_anchor(anchorname).bl
+        local tr = cell:get_area_anchor(anchorname).tr
+        local found = false
+        for _, line in ipairs(t) do
+            local union = util.rectangle_union(bl, tr, line.bl, line.tr)
+            if union then
+                found = true
+                line.bl = union.bl
+                line.tr = union.tr
+            end
+        end
+        if not found then
+            table.insert(t, { bl = bl:copy(), tr = tr:copy() })
+        end
+    end
+end
+
 return M

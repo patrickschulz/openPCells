@@ -12,7 +12,7 @@ ifeq ($(DEBUGANALYZE), 1)
     CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Wno-analyzer-deref-before-check -Werror=discarded-qualifiers -Wstrict-prototypes -pthread $(PPFLAGS)
 endif
 
-OPCOBJ:= cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o shape.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util.o vector.o
+OPCOBJ:= cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o shape.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
 
 .PHONY: default
 default: $(PROGNAME)
@@ -234,6 +234,8 @@ transformationmatrix.o: transformationmatrix.c transformationmatrix.h \
  point.h
 union.o: union.c union.h vector.h point.h shape.h transformationmatrix.h \
  technology.h lua/lua.h lua/luaconf.h hashmap.h
+util_cmodule.o: util_cmodule.c util_cmodule.h lua/lauxlib.h lua/luaconf.h \
+ lua/lua.h lua/lualib.h
 util.o: util.c util.h
 vector.o: vector.c vector.h
 

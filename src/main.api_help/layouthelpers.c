@@ -191,3 +191,20 @@
     ));
 }
 
+/* layouthelpers.collect_gridlines */
+{
+    struct parameter parameters[] = {
+        { "t",              TABLE,      NULL,   "table where anchors are collected" },
+        { "cells",          TABLE,      NULL,   "list of cells defining the anchors" },
+        { "anchorname",     STRING,     NULL,   "name of the anchor to be collected" },
+    };
+    vector_append(entries, _make_api_entry(
+        "collect_gridlines",
+        MODULE_LAYOUTHELPERS,
+        "combine overlapping/touching rectangular anchors into larger rectangles. This function expects a list of cells that all have at least the given area anchor. Then all overlaps are computed an inserted into the table. This function is useful when placing vias from a powergrid down to power bars. If only the individual anchors are used it can happen (depending on the type of the grid cell) that only partial vias can be placed. Merging the lines beforehand solves this.",
+        "local lines = {}\nlayouthelpers.collect_gridlines(lines, gridcells, \"vddline\")",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
