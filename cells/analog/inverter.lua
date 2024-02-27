@@ -174,18 +174,18 @@ function layout(inverter, _P)
                 cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).b + _P.outputyshift
             ),
             point.create(
-                cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies))l + xpitch + _P.outputxshift,
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).l + xpitch + _P.outputxshift,
                 cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).b + _P.outputyshift + _P.outputwidth
             )
         )
         inverter:add_area_anchor_bltr("loweroutput",
             point.create(
                 cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).r,
-                cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).b - _P.outputyshift - _P.outputwidth
+                cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).t - _P.outputyshift - _P.outputwidth
             ),
             point.create(
-                cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies))l + xpitch + _P.outputxshift,
-                cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).b - _P.outputyshift
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).l + xpitch + _P.outputxshift,
+                cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).t - _P.outputyshift
             )
         )
         inverter:add_area_anchor_bltr("output",
@@ -334,6 +334,8 @@ function layout(inverter, _P)
     inverter:inherit_area_anchor_as(cmos, "PRn", "vssbar")
     inverter:inherit_area_anchor(cmos, "nmos_well")
     inverter:inherit_area_anchor(cmos, "pmos_well")
+    inverter:inherit_area_anchor(cmos, "nmos_active")
+    inverter:inherit_area_anchor(cmos, "pmos_active")
 
     inverter:add_area_anchor_bltr("input",
         cmos:get_area_anchor(string.format("G%d", 1 + _P.numleftdummies)).bl,

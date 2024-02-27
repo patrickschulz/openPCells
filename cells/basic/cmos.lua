@@ -300,6 +300,16 @@ function layout(cmos, _P)
         rightpmoswell.tr
     )
 
+    -- well anchors
+    cmos:add_area_anchor_bltr("nmos_active",
+        leftndrainarea.bl,
+        rightndrainarea.tr
+    )
+    cmos:add_area_anchor_bltr("pmos_active",
+        leftpdrainarea.bl,
+        rightpdrainarea.tr
+    )
+
     -- well taps (can't use the mosfet pcell well taps, as only single fingers are instantiated)
     local welltapwidth = rightpdrainarea.tr:getx() - leftpdrainarea.tl:getx()
     if _P.drawpmoswelltap then
