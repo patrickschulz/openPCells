@@ -1806,7 +1806,7 @@ function layout(divider, _P)
     end
     buffer:abut_top(latches[numlatches])
     buffer:align_left(latches[numlatches])
-    buffer:translate_y(1000)
+    --buffer:translate_y(1000)
     divider:inherit_alignment_box(buffer)
     if _P.flat then
         divider:merge_into(buffer)
