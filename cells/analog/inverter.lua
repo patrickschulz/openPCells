@@ -285,7 +285,7 @@ function layout(inverter, _P)
             geometry.rectanglebltr(inverter, generics.metal(1),
                 cmos:get_area_anchor(string.format("pSD%d", i + _P.fingers + _P.numleftdummies + 1)).tl,
                 point.create(
-                    cmos:get_area_anchor(string.format("pSD%d", i)).r,
+                    cmos:get_area_anchor(string.format("pSD%d", i + _P.fingers + _P.numleftdummies + 1)).r,
                     cmos:get_area_anchor("PRp").b
                 )
             )
@@ -294,7 +294,7 @@ function layout(inverter, _P)
                     cmos:get_area_anchor(string.format("nSD%d", i + _P.fingers + _P.numleftdummies + 1)).l,
                     cmos:get_area_anchor("PRn").t
                 ),
-                cmos:get_area_anchor(string.format("nSD%d", i)).br
+                cmos:get_area_anchor(string.format("nSD%d", i + _P.fingers + _P.numleftdummies + 1)).br
             )
         end
     end
