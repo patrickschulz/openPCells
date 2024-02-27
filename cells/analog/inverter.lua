@@ -168,6 +168,26 @@ function layout(inverter, _P)
             cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).bl:translate(xpitch + _P.outputxshift, 0),
             _P.outputwidth
         )
+        inverter:add_area_anchor_bltr("upperoutput",
+            point.create(
+                cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).r,
+                cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).b + _P.outputyshift
+            ),
+            point.create(
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies))l + xpitch + _P.outputxshift,
+                cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).b + _P.outputyshift + _P.outputwidth
+            )
+        )
+        inverter:add_area_anchor_bltr("loweroutput",
+            point.create(
+                cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).r,
+                cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).b - _P.outputyshift - _P.outputwidth
+            ),
+            point.create(
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies))l + xpitch + _P.outputxshift,
+                cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).b - _P.outputyshift
+            )
+        )
         inverter:add_area_anchor_bltr("output",
             point.create(
                 cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).l + xpitch + _P.outputxshift - _P.outputwidth / 2,
