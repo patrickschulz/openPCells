@@ -52,6 +52,10 @@ function parameters()
         { "extendvthtypebottom",                        0 },
         { "extendvthtypeleft",                          0 },
         { "extendvthtyperight",                         0 }
+        { "extendwelltop",                           0 },
+        { "extendwellbottom",                        0 },
+        { "extendwellleft",                          0 },
+        { "extendwellright",                         0 }
     )
 end
 
@@ -117,6 +121,10 @@ function layout(inverter, _P)
         extendvthtypebottom = _P.extendvthtypebottom,
         extendvthtypeleft = _P.extendvthtypeleft,
         extendvthtyperight = _P.extendvthtyperight,
+        extendwelltop = _P.extendwelltop,
+        extendwellbottom = _P.extendwellbottom,
+        extendwellleft = _P.extendwellleft,
+        extendwellright = _P.extendwellright,
         psddummyouterheight = _P.psddummyouterheight,
         nsddummyouterheight = _P.nsddummyouterheight,
     })
