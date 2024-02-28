@@ -2061,8 +2061,18 @@ function layout(divider, _P)
     divider:inherit_area_anchor_as(buffer, "pmos_well", "pmos_well_buf")
 
     -- clock ports -- FIXME: hard-coded for numlatches == 2
-    divider:add_port_with_anchor("inn", generics.metalport(8), divider:get_area_anchor("inp_line").bl)
-    divider:add_port_with_anchor("inp", generics.metalport(8), divider:get_area_anchor("inn_line").bl)
+    divider:add_port_with_anchor("inn", generics.metalport(8),
+        point.create(
+            (divider:get_area_anchor("inp_line").l + divider:get_area_anchor("inp_line").r) / 2,
+            divider:get_area_anchor("inp_line").b
+        )
+    )
+    divider:add_port_with_anchor("inp", generics.metalport(8),
+        point.create(
+            (divider:get_area_anchor("inn_line").l + divider:get_area_anchor("inn_line").r) / 2,
+            divider:get_area_anchor("inn_line").b
+        )
+    )
 
     -- power ports
     for i = 1, numlatches do
