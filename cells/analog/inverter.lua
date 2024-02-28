@@ -51,11 +51,11 @@ function parameters()
         { "extendvthtypetop",                           0 },
         { "extendvthtypebottom",                        0 },
         { "extendvthtypeleft",                          0 },
-        { "extendvthtyperight",                         0 }
-        { "extendwelltop",                           0 },
-        { "extendwellbottom",                        0 },
-        { "extendwellleft",                          0 },
-        { "extendwellright",                         0 }
+        { "extendvthtyperight",                         0 },
+        { "extendwelltop",                              0 },
+        { "extendwellbottom",                           0 },
+        { "extendwellleft",                             0 },
+        { "extendwellright",                            0 }
     )
 end
 

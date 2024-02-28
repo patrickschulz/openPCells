@@ -83,7 +83,11 @@ function parameters()
         { "extendvthtypetop", 0 },
         { "extendvthtypebottom", 0 },
         { "extendvthtypeleft", 0 },
-        { "extendvthtyperight", 0 }
+        { "extendvthtyperight", 0 },
+        { "extendwelltop", 0 },
+        { "extendwellbottom", 0 },
+        { "extendwellleft", 0 },
+        { "extendwellright", 0 }
     )
 end
 
@@ -175,6 +179,9 @@ function layout(cmos, _P)
             extendvthtypetop = _P.extendvthtypetop,
             extendvthtypeleft = _P.extendvthtypeleft,
             extendvthtyperight = _P.extendvthtyperight,
+            extendwelltop = _P.extendwelltop,
+            extendwellleft = _P.extendwellleft,
+            extendwellright = _P.extendwellright,
         }
         local nopt = {
             channeltype = "nmos",
@@ -199,6 +206,9 @@ function layout(cmos, _P)
             extendvthtypebottom = _P.extendvthtypebottom,
             extendvthtypeleft = _P.extendvthtypeleft,
             extendvthtyperight = _P.extendvthtyperight,
+            extendwellbottom = _P.extendwellbottom,
+            extendwellleft = _P.extendwellleft,
+            extendwellright = _P.extendwellright,
         }
         -- main
         for i = 1, fingers do
