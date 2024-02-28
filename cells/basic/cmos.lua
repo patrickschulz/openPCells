@@ -51,7 +51,8 @@ function parameters()
         { "shiftncontactsouter", 0 },
         { "drawdummygatecontacts", true },
         { "drawdummyactivecontacts", true },
-        { "drawgatecut", false },
+        { "drawinnergatecut", false },
+        { "drawoutergatecut", false },
         { "drawgatecuteverywhere", false },
         { "dummycontheight(Dummy Gate Contact Height)",        technology.get_dimension("Minimum M1 Width") },
         { "dummycontshift(Dummy Gate Shift)",                  0 },
@@ -436,7 +437,7 @@ function layout(cmos, _P)
                 geometry.contactbltr(cmos, "gate", bl, tr)
             end
             if _P.gatecontactpos[i] ~= "dummy" then
-                if _P.drawgatecut and not _P.drawgatecuteverywhere then
+                if _P.drawoutergatecut and not _P.drawgatecuteverywhere then
                     geometry.rectanglebltr(
                         cmos, generics.other("gatecut"),
                         point.create(x + (_P.gatelength - _P.cutwidth) / 2, -_P.npowerspace - _P.cutheight / 2),
@@ -451,7 +452,7 @@ function layout(cmos, _P)
             end
         end
     end
-    if _P.drawgatecut and _P.drawgatecuteverywhere then
+    if _P.drawoutergatecut and _P.drawgatecuteverywhere then
         geometry.rectanglebltr(cmos, generics.other("gatecut"),
             cmos:get_area_anchor("PRp").bl:translate(0, (_P.powerwidth - _P.cutheight) / 2),
             cmos:get_area_anchor("PRp").br:translate(0, (_P.powerwidth - _P.cutheight) / 2 + _P.cutheight)
