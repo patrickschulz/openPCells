@@ -2081,8 +2081,18 @@ function layout(divider, _P)
     end
 
     -- output ports
-    divider:add_port_with_anchor("outp", generics.metalport(4), buffer:get_area_anchor(string.format("outp_%d", numbuf)).tl)
-    divider:add_port_with_anchor("outn", generics.metalport(4), buffer:get_area_anchor(string.format("outn_%d", numbuf)).tl)
+    divider:add_port_with_anchor("outp", generics.metalport(4),
+        point.create(
+            buffer:get_area_anchor(string.format("outp_%d", numbuf)).l,
+            (buffer:get_area_anchor(string.format("outp_%d", numbuf)).b + buffer:get_area_anchor(string.format("outp_%d", numbuf)).t) / 2
+        )
+    )
+    divider:add_port_with_anchor("outn", generics.metalport(4),
+        point.create(
+            buffer:get_area_anchor(string.format("outn_%d", numbuf)).l,
+            (buffer:get_area_anchor(string.format("outn_%d", numbuf)).b + buffer:get_area_anchor(string.format("outn_%d", numbuf)).t) / 2
+        )
+    )
 
     -- layer boundaries
     divider:add_layer_boundary(
