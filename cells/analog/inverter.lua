@@ -31,6 +31,7 @@ function parameters()
         { "outputwidth",                                technology.get_dimension("Minimum M1 Width") },
         { "outputxshift",                               0 },
         { "outputyshift",                               0 },
+        { "extendoutputmetal",                          0 },
         { "dummycontheight",                            technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
         { "dummycontshift",                             0 },
         { "psddummyouterheight",                        2 * technology.get_dimension("Minimum Gate Width"), follow = "pwidth" },
@@ -337,6 +338,14 @@ function layout(inverter, _P)
         geometry.viabltr(inverter, 1, _P.outputmetal,
             cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).bl,
             cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).tr
+        )
+        geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
+            cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).bl:translate_x(-_P.extendoutputmetal),
+            cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).tr:translate_x(_P.extendoutputmetal)
+        )
+        geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
+            cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).bl:translate_x(-_P.extendoutputmetal),
+            cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).tr:translate_x(_P.extendoutputmetal)
         )
     end
 
