@@ -107,6 +107,7 @@ function parameters()
         { "clockviaextension", 0 },
         { "latchstartmetal", 4 },
         { "latchendmetal", 5 },
+        { "latchviaminwidth", 200 },
         { "bufinnerdummies", 2 },
         { "buffershift", 1000 },
         { "implantleftextension", 0 },
@@ -886,14 +887,37 @@ function layout(divider, _P)
     })
 
     -- latch cross-coupling
-    geometry.viabltr(latch, 1, _P.latchendmetal,
-        latch:get_area_anchor("nlatchleft_drainstrap").bl,
-        latch:get_area_anchor("nlatchleft_drainstrap").tr
-    )
-    geometry.viabltr(latch, 1, _P.latchendmetal,
-        latch:get_area_anchor("nlatchright_drainstrap").bl,
-        latch:get_area_anchor("nlatchright_drainstrap").tr
-    )
+    if _P.latchfingers * xpitch / 2 + _P.sdwidth < _P.latchviaminwidth then
+        geometry.viabltr(latch, 1, _P.latchendmetal,
+            point.create(
+                latch:get_area_anchor("nlatchleft_drainstrap").r - _P.latchviaminwidth,
+                latch:get_area_anchor("nlatchleft_drainstrap").b
+            ),
+            point.create(
+                latch:get_area_anchor("nlatchleft_drainstrap").r,
+                latch:get_area_anchor("nlatchleft_drainstrap").t
+            )
+        )
+        geometry.viabltr(latch, 1, _P.latchendmetal,
+            point.create(
+                latch:get_area_anchor("nlatchright_drainstrap").l,
+                latch:get_area_anchor("nlatchright_drainstrap").b
+            ),
+            point.create(
+                latch:get_area_anchor("nlatchright_drainstrap").l + _P.latchviaminwidth,
+                latch:get_area_anchor("nlatchright_drainstrap").t
+            )
+        )
+    else
+        geometry.viabltr(latch, 1, _P.latchendmetal,
+            latch:get_area_anchor("nlatchleft_drainstrap").bl,
+            latch:get_area_anchor("nlatchleft_drainstrap").tr
+        )
+        geometry.viabltr(latch, 1, _P.latchendmetal,
+            latch:get_area_anchor("nlatchright_drainstrap").bl,
+            latch:get_area_anchor("nlatchright_drainstrap").tr
+        )
+    end
     geometry.rectanglebltr(latch, generics.metal(1),
         latch:get_area_anchor("nlatchleft_topgatestrap").br,
         latch:get_area_anchor("nlatchright_drainstrap").tl
