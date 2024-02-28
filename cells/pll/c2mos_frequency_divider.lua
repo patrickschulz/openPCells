@@ -264,7 +264,7 @@ function layout(divider, _P)
     local middledummyfingers = 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers
     local allfingers = 2 * _P.outerdummies + _P.clockfingers + 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers
     if equalizationdummies > 0 then
-        allfingers = allfingers - equalizationdummies
+        allfingers = allfingers + 4 * equalizationdummies
     end
 
     local baseoptions = {
