@@ -899,6 +899,7 @@ static int lobject_add_port(lua_State* L)
 {
     lcheck_check_numargs2(L, 4, 5, "object.add_port");
     struct lobject* cell = lobject_check(L, 1);
+    lobject_check_proxy(L, cell);
     const char* name = luaL_checkstring(L, 2);
     const struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
@@ -911,6 +912,7 @@ static int lobject_add_port_with_anchor(lua_State* L)
 {
     lcheck_check_numargs2(L, 4, 5, "object.add_port_with_anchor");
     struct lobject* cell = lobject_check(L, 1);
+    lobject_check_proxy(L, cell);
     const char* name = luaL_checkstring(L, 2);
     const struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
