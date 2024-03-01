@@ -76,10 +76,10 @@ function parameters()
         { "sourceviasize(Source Via Size)",                                                             technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize", info = "Same as 'sourcesize', but for source vias." },
         { "drainsize(Drain Size)",                                                                      technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fingerwidth", info = "Size of the drain contact regions. This parameter follows 'fingerwidth', so per default the contact regions have the width of a transistor finger. For 'drainsize', only values between 0 and 'fingerwidth' are allowed., If the size is smaller than 'fingerwidth', the drain contact alignment ('drainalign') is relevant." },
         { "drainviasize(Drain Via Size)",                                                               technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize", info = "Same as 'drainsize', but for drain vias." },
-        { "sourcealign(Source Alignment)",                                                              "bottom", posvals = set("top", "bottom"), info = "Alignment of the source contacts. Only relevant when source contacts are smaller than 'fingerwidth' (see 'sourcesize'). Possible values: 'top' (source contacts grow down from the top into the active region) and 'bottom' (source contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
-        { "sourceviaalign(Source Via Alignment)",                                                       "bottom", posvals = set("top", "bottom"), follow = "sourcealign" },
-        { "drainalign(Drain Alignment)",                                                                "top", posvals = set("top", "bottom"), info = "Alignment of the drain contacts. Only relevant when drain contacts are smaller than 'fingerwidth' (see 'drainsize'). Possible values: 'top' (drain contacts grow down from the top into the active region) and 'bottom' (drain contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
-        { "drainviaalign(Drain Via Alignment)",                                                         "top", posvals = set("top", "bottom"), follow = "drainalign", info = "Same as 'drainalign' for drain vias." },
+        { "sourcealign(Source Alignment)",                                                              "bottom", posvals = set("top", "bottom", "center"), info = "Alignment of the source contacts. Only relevant when source contacts are smaller than 'fingerwidth' (see 'sourcesize'). Possible values: 'top' (source contacts grow down from the top into the active region) and 'bottom' (source contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
+        { "sourceviaalign(Source Via Alignment)",                                                       "bottom", posvals = set("top", "bottom", "center"), follow = "sourcealign" },
+        { "drainalign(Drain Alignment)",                                                                "top", posvals = set("top", "bottom", "center"), info = "Alignment of the drain contacts. Only relevant when drain contacts are smaller than 'fingerwidth' (see 'drainsize'). Possible values: 'top' (drain contacts grow down from the top into the active region) and 'bottom' (drain contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
+        { "drainviaalign(Drain Via Alignment)",                                                         "top", posvals = set("top", "bottom", "center"), follow = "drainalign", info = "Same as 'drainalign' for drain vias." },
         { "drawsourcevia(Draw Source Via)",                                                             true, info = "Draw required vias from metal 1 to the source metal. Only useful when 'sourcemetal' is not 1." },
         { "drawfirstsourcevia(Draw First Source Via)",                                                  true, info = "Draw a via on the first source region (counted from the left). This switch can be useful when connecting dummies to other devices." },
         { "drawlastsourcevia(Draw Last Source Via)",                                                    true, info = "Draw a via on the last source region (counted from the left). This switch can be useful when connecting dummies to other devices." },
@@ -986,10 +986,38 @@ function layout(transistor, _P)
     local sdmetalshift = (_P.sdmetalwidth - _P.sdwidth) / 2
 
     -- source/drain contacts and vias
-    local sourceoffset = _P.sourcealign == "top" and _P.fingerwidth - _P.sourcesize or 0
-    local sourceviaoffset = _P.sourceviaalign == "top" and _P.fingerwidth - _P.sourceviasize or 0
-    local drainoffset = _P.drainalign == "top" and _P.fingerwidth - _P.drainsize or 0
-    local drainviaoffset = _P.drainviaalign == "top" and _P.fingerwidth - _P.drainviasize or 0
+    local sourceoffset
+    local sourceviaoffset
+    if _P.sourcealign == "top" then
+        sourceoffset = _P.fingerwidth - _P.sourcesize
+    elseif _P.sourcealign == "bottom" then
+        sourceoffset = 0
+    else -- center
+        sourceoffset = (_P.fingerwidth - _P.sourceviasize) / 2
+    end
+    if _P.sourceviaalign == "top" then
+        sourceviaoffset = _P.fingerwidth - _P.sourceviasize
+    elseif _P.sourceviaalign == "bottom" then
+        sourceviaoffset = 0
+    else -- center
+        sourceviaoffset = (_P.fingerwidth - _P.sourceviasize) / 2
+    end
+    local drainoffset
+    local drainviaoffset
+    if _P.drainalign == "top" then
+        drainoffset = _P.fingerwidth - _P.drainsize
+    elseif _P.drainalign == "bottom" then
+        drainoffset = 0
+    else -- center
+        drainoffset = (_P.fingerwidth - _P.drainviasize) / 2
+    end
+    if _P.drainviaalign == "top" then
+        drainviaoffset = _P.fingerwidth - _P.drainviasize
+    elseif _P.drainviaalign == "bottom" then
+        drainviaoffset = 0
+    else -- center
+        drainviaoffset = (_P.fingerwidth - _P.drainviasize) / 2
+    end
     local splitsourceviaoffset
     if _P.channeltype == "nmos" then
         if _P.connectsourceinverse then
