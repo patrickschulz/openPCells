@@ -560,12 +560,13 @@
         { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
         { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
         { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
-        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" }
+        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "properties", TABLE,      NULL,   "optional properties table" }
     };
     vector_append(entries, _make_api_entry(
         "viabltr",
         MODULE_GEOMETRY,
-        "Create vias (single or stack) in a rectangular area with the given corner points in cell",
+        "Create vias (single or stack) in a rectangular area with the given corner points in cell. Special properties can be passed to the via generation function: 'xcontinuous' (create vias that can be abutted in x-direction, boolean), 'ycontinuous' (create vias that can be abutted in y-direction, boolean), 'equal_pitch (use equal spacing in both x- and y-direction, boolean) and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. This is useful to solve DRC issues. Numeric parameter)",
         "geometry.viabltr(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
