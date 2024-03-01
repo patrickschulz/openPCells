@@ -623,7 +623,6 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
         struct via_definition* entry = *viadef;
         if(widthclass > 0 && ((widthclass > entry->maxwidth) || (widthclass > entry->maxheight)))
         {
-            printf("skipping due to widthclass (%lld)\n", widthclass);
             ++viadef;
             continue;
         }
