@@ -1018,6 +1018,7 @@ function layout(transistor, _P)
     else -- center
         drainviaoffset = (_P.fingerwidth - _P.drainviasize) / 2
     end
+    local splitsourceviasize = (_P.sourceviasize - _P.connectsourcewidth) / 2
     local splitsourceviaoffset
     if _P.channeltype == "nmos" then
         if _P.connectsourceinverse then
@@ -1032,6 +1033,7 @@ function layout(transistor, _P)
             splitsourceviaoffset = _P.fingerwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
         end
     end
+    local splitdrainviasize = (_P.drainviasize - _P.connectdrainwidth) / 2
     local splitdrainviaoffset
     if _P.channeltype == "nmos" then
         if _P.connectdraininverse then
@@ -1064,12 +1066,12 @@ function layout(transistor, _P)
                         )
                         if _P.connectsourceinline and _P.splitsourcevias then
                             geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
-                                point.create(shift - sdviashift, 0),
+                                point.create(shift - sdviashift, splitsourceviaoffset - splitsourceviasize),
                                 point.create(shift + _P.sdviawidth - sdviashift, splitsourceviaoffset)
                             )
                             geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
                                 point.create(shift - sdviashift, splitsourceviaoffset + _P.connectsourcewidth),
-                                point.create(shift + _P.sdviawidth - sdviashift, _P.fingerwidth)
+                                point.create(shift + _P.sdviawidth - sdviashift, splitsourceviaoffset + _P.connectsourcewidth + splitsourceviasize)
                             )
                         else
                             geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
@@ -1119,12 +1121,12 @@ function layout(transistor, _P)
                         )
                         if _P.connectdraininline and _P.splitdrainvias then
                             geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
-                                point.create(shift - sdviashift, 0),
+                                point.create(shift - sdviashift, splitdrainviaoffset - splitdrainviasize),
                                 point.create(shift + _P.sdviawidth - sdviashift, splitdrainviaoffset)
                             )
                             geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
                                 point.create(shift - sdviashift, splitdrainviaoffset + _P.connectdrainwidth),
-                                point.create(shift + _P.sdviawidth - sdviashift, _P.fingerwidth)
+                                point.create(shift + _P.sdviawidth - sdviashift, splitdrainviaoffset + _P.connectdrainwidth + splitdrainviasize)
                             )
                         else
                             geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
