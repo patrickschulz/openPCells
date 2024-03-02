@@ -356,7 +356,25 @@ static struct object* _create_cell(
     // register args
     lua_setglobal(L, "args");
 
+    // create cell
     int retval = script_call_create_cell(L);
+
+    /* scripts/create_cell.lua:
+    pcell.enable_debug(args.debugcell)
+    pcell.enable_dprint(args.enabledprint)
+    local cell
+    if args.isscript then
+        cell = pcell.create_layout_from_script(args.cell, args.additionalargs)
+    else
+        if #args.additionalargs > 0 then
+            error("creating a cell from a cell definition, but additional positional arguments (non-key-value pairs) are present")
+        end
+        cell = pcell.create_layout_env(args.cell, args.toplevelname, args.cellargs, args.cellenv)
+    end
+
+    return cell
+    */
+
     if(retval != LUA_OK)
     {
         lua_close(L);
