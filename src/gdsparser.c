@@ -1077,16 +1077,61 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
             _parse_single_point_i(record->data, 0, cellref->origin);
             if(isAREF)
             {
-                coordinate_t x1, y2;
+                coordinate_t x1, y1;
+                coordinate_t x2, y2;
+                coordinate_t x3, y3;
                 // coordinate words memory locations:
                 // pt1: x [0] y [1]
                 // pt2: x [2] y [3]
                 // pt3: x [4] y [5]
                 // for pitch, only x2 and y3 are needed
-                _parse_xy_i(record->data, 2, &x1);
-                _parse_xy_i(record->data, 5, &y2);
-                cellref->xpitch = llabs(x1 - cellref->origin->x) / cellref->xrep;
-                cellref->ypitch = llabs(y2 - cellref->origin->y) / cellref->yrep;
+                _parse_xy_i(record->data, 0, &x1);
+                _parse_xy_i(record->data, 1, &y1);
+                _parse_xy_i(record->data, 2, &x2);
+                _parse_xy_i(record->data, 3, &y2);
+                _parse_xy_i(record->data, 4, &x3);
+                _parse_xy_i(record->data, 5, &y3);
+                coordinate_t dxcolumn = x2 - x1;
+                coordinate_t dycolumn = y2 - y1;
+                coordinate_t dxrow = x3 - x1;
+                coordinate_t dyrow = y3 - y1;
+                /*
+                coordinate_t columnxdir = cos(cellref->angle / 180 * M_PI);
+                coordinate_t columnydir = -sin(cellref->angle / 180 * M_PI);
+                coordinate_t rowxdir = sin(cellref->angle / 180 * M_PI);
+                coordinate_t rowydir = cos(cellref->angle / 180 * M_PI);
+                if(!(((dxcolumn == 0) && (dyrow == 0)) || ((dxrow == 0) && (dycolumn == 0))))
+                {
+                    puts("array vectors are not orthogonal");
+                }
+                if(columnxdir > 0)
+                {
+                    cellref->xpitch = dxcolumn / cellref->xrep;
+                }
+                else
+                {
+                    cellref->ypitch = dxcolumn / cellref->xrep;
+                }
+                if(rowydir > 0)
+                {
+                    cellref->ypitch = dyrow / cellref->xrep;
+                }
+                else
+                {
+                    cellref->xpitch = dyrow / cellref->xrep;
+                }
+                */
+                // this assumes that the vectors are orthogonal
+                if(dxcolumn > 0)
+                {
+                    cellref->xpitch = dxcolumn / cellref->xrep;
+                    cellref->ypitch = dyrow / cellref->xrep;
+                }
+                else
+                {
+                    cellref->ypitch = dxrow / cellref->xrep;
+                    cellref->xpitch = dycolumn / cellref->xrep;
+                }
             }
         }
         else if(record->recordtype == ENDEL)
