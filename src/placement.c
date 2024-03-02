@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "geometry.h"
 #include "util.h"
 
 void destroy_placement_layerexclude(void* v)
@@ -673,5 +674,69 @@ struct vector* placement_place_within_layer_boundaries(
         );
     }
     return children;
+}
+
+struct vector* placement_place_gridlines(
+    struct object* toplevel,
+    const struct generics* layer,
+    coordinate_t size, coordinate_t space,
+    const point_t* targetbl,
+    const point_t* targettr,
+    const struct polygon* excludes
+)
+{
+    coordinate_t x = point_getx(targetbl);
+    while(x <= point_getx(targettr))
+    {
+        coordinate_t y1 = point_gety(targetbl);
+        coordinate_t y2 = point_gety(targettr);
+        struct vector* yleftintersections = polygon_line_intersections(excludes, x, y1, x, y2);
+        struct vector* yrightintersections = polygon_line_intersections(excludes, x + size, y1, x + size, y2);
+        if((vector_size(yleftintersections) == 0) && (vector_size(yrightintersections) == 0))
+        {
+            geometry_rectanglebltr(toplevel, layer,
+                point_create(x, y1),
+                point_create(x + size, y2)
+            );
+        }
+        else
+        {
+            // FIXME: this is not finished
+            int odd = 1;
+            coordinate_t lasty = y1;
+            for(size_t i = 0; i < vector_size(yrightintersections); ++i)
+            {
+                point_t* pt = vector_get(yrightintersections, i);
+                if(odd)
+                {
+                    geometry_rectanglebltr(toplevel, layer,
+                        point_create(x, lasty),
+                        point_create(x + size, point_gety(pt))
+                    );
+                }
+                odd = !odd;
+            }
+            /*
+            coordinate_t ymin = polygon_get_miny(excludes);
+            coordinate_t ymax = polygon_get_maxy(excludes);
+            if(ymin > y1)
+            {
+                geometry_rectanglebltr(toplevel, layer,
+                    point_create(x, y1),
+                    point_create(x + size, ymin)
+                );
+            }
+            if(ymax < y2)
+            {
+                geometry_rectanglebltr(toplevel, layer,
+                    point_create(x, ymax),
+                    point_create(x + size, y2)
+                );
+            }
+            */
+        }
+        x += size + space;
+    }
+    return NULL;
 }
 

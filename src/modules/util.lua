@@ -479,6 +479,14 @@ function util.fill_odd_with(num, filler, other)
     return util.fill_predicate_with(num, filler, function(i) return i % 2 == 1 end, other)
 end
 
+function util.sum(t)
+    local total = 0
+    for _, e in ipairs(t) do
+        total = total + e
+    end
+    return total
+end
+
 function util.add_options(base, t)
     local new = util.clone_shallow(base)
     for k, v in pairs(t) do

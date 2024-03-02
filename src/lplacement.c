@@ -651,6 +651,36 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
     return 1;
 }
 
+int lplacement_place_gridlines(lua_State* L)
+{
+    lcheck_check_numargs1(L, 7, "placement.place_gridlines");
+    struct lobject* toplevel = lobject_check(L, 1);
+    const struct generics* layer = generics_check_generics(L, 2);
+    coordinate_t size = luaL_checkinteger(L, 3);
+    coordinate_t space = luaL_checkinteger(L, 4);
+
+    struct polygon* excludes;
+    struct lpoint* targetbl = lpoint_checkpoint(L, 5);
+    struct lpoint* targettr = lpoint_checkpoint(L, 6);
+    lplacement_create_exclude_vectors(L, &excludes, 7);
+
+    placement_place_gridlines(lobject_get(L, toplevel), layer, size, space, lpoint_get(targetbl), lpoint_get(targettr), excludes);
+
+    //struct vector* children = placement_place_within_boundary(lobject_get(L, toplevel), lobject_get_unchecked(cell), basename, targetarea, excludes);
+    //_cleanup_target_exclude_vector(targetarea, excludes);
+    //lobject_disown(cell); // memory is now handled by cell
+    //lobject_mark_as_unusable(cell);
+    //lua_newtable(L);
+    //for(size_t i = 0; i < vector_size(children); ++i)
+    //{
+    //    struct object* child = vector_get(children, i);
+    //    lobject_adapt_non_owning(L, child);
+    //    lua_rawseti(L, -2, i + 1);
+    //}
+    //vector_destroy(children);
+    return 0;
+}
+
 int open_lplacement_lib(lua_State* L)
 {
     // create metatable for placement module
@@ -667,6 +697,7 @@ int open_lplacement_lib(lua_State* L)
         { "place_within_boundary_merge",            lplacement_place_within_boundary_merge       },
         { "place_within_rectangular_boundary",      lplacement_place_within_rectangular_boundary },
         { "place_within_layer_boundaries",          lplacement_place_within_layer_boundaries     },
+        { "place_gridlines",                        lplacement_place_gridlines                   },
         { NULL,                                     NULL                                         }
     };
     luaL_setfuncs(L, metafuncs, 0);

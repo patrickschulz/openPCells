@@ -19,9 +19,15 @@ int simple_polygon_is_rectangle(const struct simple_polygon* simple_polygon);
 int polygon_is_empty(const struct polygon* polygon);
 int polygon_is_point_in_simple_polygon(const struct simple_polygon* polygon, coordinate_t x, coordinate_t y);
 int polygon_is_point_in_polygon(const struct polygon* polygon, coordinate_t x, coordinate_t y);
+struct vector* simple_polygon_line_intersections(const struct simple_polygon* simple_polygon, coordinate_t x1, coordinate_t y1, coordinate_t x2, coordinate_t y2);
+struct vector* polygon_line_intersections(const struct polygon* polygon, coordinate_t x1, coordinate_t y1, coordinate_t x2, coordinate_t y2);
 int simple_polygon_intersects_rectangle(const struct simple_polygon* simple_polygon, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 int polygon_intersects_rectangle(const struct polygon* polygon, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 void simple_polygon_append(struct simple_polygon* simple_polygon, point_t* pt);
+coordinate_t polygon_get_minx(const struct polygon* polygon);
+coordinate_t polygon_get_maxx(const struct polygon* polygon);
+coordinate_t polygon_get_miny(const struct polygon* polygon);
+coordinate_t polygon_get_maxy(const struct polygon* polygon);
 
 struct simple_polygon_iterator;
 struct simple_polygon_iterator* simple_polygon_iterator_create(struct simple_polygon* simple_polygon);
