@@ -155,7 +155,7 @@ function layout(oscillator, _P)
         gatecontactpos = invgatecontacts,
         pcontactpos = invactivecontacts,
         ncontactpos = invactivecontacts,
-    })
+    }))
     -- connect inverter gates
     geometry.rectanglebltr(inverterref, generics.metal(1),
         inverterref:get_area_anchor(string.format("G%d", 2 + 0)).bl,
@@ -253,7 +253,7 @@ function layout(oscillator, _P)
         gatecontactpos = cmgatecontacts,
         pcontactpos = cmpactivecontacts,
         ncontactpos = cmnactivecontacts,
-    })
+    }))
     -- pmos diode
     geometry.rectanglebltr(cmarray, generics.metal(1),
         cmarray:get_area_anchor(string.format("Gupper%d", cmfingers - _P.pmosdiodefingers + 1)).bl,

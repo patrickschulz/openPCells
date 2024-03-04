@@ -273,8 +273,6 @@ function layout(cmos, _P)
         end
         nopt.drawtopgatecut = true
         popt.drawbotgatecut = true
-        -- pop general transistor settings
-        pcell.pop_overwrites("basic/mosfet")
     end
 
     -- power rails
