@@ -303,7 +303,7 @@ static void _at_begin_cell(struct export_data* data, const char* name)
     export_data_append_two_bytes(data, len % 2 ? len + 5 : len + 4);
     export_data_append_byte(data, RECORDTYPE_STRNAME);
     export_data_append_byte(data, DATATYPE_ASCII_STRING);
-    export_data_append_string(data, name, len);
+    export_data_append_string_len(data, name, len);
     if(len % 2)
     {
         export_data_append_nullbyte(data);
@@ -544,6 +544,53 @@ static void _write_angle_270(struct export_data* data)
     export_data_append_byte(data, 0x00);
 }
 
+static void _rotate_vector(coordinate_t* x, coordinate_t* y, const struct transformationmatrix* trans)
+{
+    coordinate_t xx = *x;
+    coordinate_t yy = *y;
+    enum orientation orientation = _get_matrix_orientation(trans);
+    /*
+    *x = cos(alpha) * xx -sin(alpha) * yy;
+    *y = sin(alpha) * xx cos(alpha) * yy;
+    */
+    switch(orientation)
+    {
+        case R0:
+            break;
+        case R90:
+            *x =  0 * xx + -1 * yy;
+            *y =  1 * xx +  0 * yy;
+            break;
+        case R180:
+            *x = -1 * xx +  0 * yy;
+            *y =  0 * xx + -1 * yy;
+            break;
+        case R270:
+            *x =  0 * xx +  1 * yy;
+            *y = -1 * xx +  0 * yy;
+            break;
+        default:
+            break;
+            /* FIXME
+        case MX:
+            _write_reflection(data);
+            break;
+        case MY:
+            _write_reflection(data);
+            _write_angle_180(data);
+            break;
+        case MXR90:
+            _write_reflection(data);
+            _write_angle_90(data);
+            break;
+        case MYR90:
+            _write_reflection(data);
+            _write_angle_270(data);
+            break;
+            */
+    }
+}
+
 static void _write_strans_angle(struct export_data* data, const struct transformationmatrix* trans)
 {
     enum orientation orientation = _get_matrix_orientation(trans);
@@ -598,7 +645,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     }
     export_data_append_byte(data, RECORDTYPE_SNAME);
     export_data_append_byte(data, DATATYPE_ASCII_STRING);
-    export_data_append_string(data, identifier, strlen(identifier));
+    export_data_append_string_len(data, identifier, strlen(identifier));
     if(len % 2 == 1)
     {
         export_data_append_byte(data, 0x00);
@@ -616,7 +663,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     _write_ENDEL(data);
 }
 
-static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, coordinate_t x, coordinate_t y, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, coordinate_t x, coordinate_t y, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     (void) instbasename; // GDSII does not support instance names
     // AREF
@@ -636,7 +683,7 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     }
     export_data_append_byte(data, RECORDTYPE_SNAME);
     export_data_append_byte(data, DATATYPE_ASCII_STRING);
-    export_data_append_string(data, identifier, strlen(identifier));
+    export_data_append_string_len(data, identifier, strlen(identifier));
     if(len % 2 == 1)
     {
         export_data_append_nullbyte(data);
@@ -658,10 +705,18 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     export_data_append_four_bytes(data, x * multiplier);
     export_data_append_four_bytes(data, y * multiplier);
-    export_data_append_four_bytes(data, (x + xrep * xpitch) * multiplier);
-    export_data_append_four_bytes(data, y * multiplier);
-    export_data_append_four_bytes(data, x * multiplier);
-    export_data_append_four_bytes(data, (y + yrep * ypitch) * multiplier);
+    // column vector
+    coordinate_t xcol = xrep * xpitch;
+    coordinate_t ycol = 0;
+    _rotate_vector(&xcol, &ycol, trans);
+    export_data_append_four_bytes(data, (x + xcol) * multiplier);
+    export_data_append_four_bytes(data, (y + ycol) * multiplier);
+    // row vector
+    coordinate_t xrow = 0;
+    coordinate_t yrow = yrep * ypitch;
+    _rotate_vector(&xrow, &yrow, trans);
+    export_data_append_four_bytes(data, (x + xrow) * multiplier);
+    export_data_append_four_bytes(data, (y + yrow) * multiplier);
 
     _write_ENDEL(data);
 }
@@ -708,7 +763,7 @@ static void _write_port(struct export_data* data, const char* name, const struct
     export_data_append_two_bytes(data, len % 2 ? len + 5 : len + 4);
     export_data_append_byte(data, RECORDTYPE_STRING);
     export_data_append_byte(data, DATATYPE_ASCII_STRING);
-    export_data_append_string(data, name, len);
+    export_data_append_string_len(data, name, len);
     if(len % 2)
     {
         export_data_append_nullbyte(data);

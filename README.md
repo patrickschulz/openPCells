@@ -44,7 +44,7 @@ These two calls produce the following images:
 The mosfet cell currently supports more than 200 parameters, it can draw gate contacts, guard rings, deep n-wells and many more.
 The more complex example
 
-    ./opc --technology opc --export svg --cell basic/mosfet gatelength=300 gatespace=500 fwidth=1500 fingers=4 drawtopgate=true connectsource=true drawguardring=true guardringxsep=200 guardringysep=200
+    ./opc --technology opc --export svg --cell basic/mosfet gatelength=300 gatespace=500 fingerwidth=1500 fingers=4 drawtopgate=true connectsource=true drawguardring=true guardringleftsep=600 guardringrightsep=600 guardringtopsep=600 guardringbottomsep=600
 
 produces
 

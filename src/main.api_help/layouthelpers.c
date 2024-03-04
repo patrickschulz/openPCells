@@ -47,15 +47,16 @@
         { "tr",             POINT,      NULL, "top-right boundary corner" },
         { "xspace",         INTEGER,    NULL, "space in x-direction between boundary and guardring" },
         { "yspace",         INTEGER,    NULL, "space in y-direction between boundary and guardring" },
-        { "basesize",       INTEGER,    NULL, "basesize for calculating the quantized hole width and height" },
+        { "basexsize",      INTEGER,    NULL, "basesize for calculating the quantized hole width" },
+        { "baseysize",      INTEGER,    NULL, "basesize for calculating the quantized hole height" },
         { "anchorprefix",   STRING,     NULL, "anchor prefix for inherited anchors (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
         { "options",        TABLE,      NULL, "placement options" }
     };
     vector_append(entries, _make_api_entry(
         "place_guardring_quantized",
         MODULE_LAYOUTHELPERS,
-        "place a guardring in a cell with a defined boundary and spacing. The guardring hole width and height are quantized so that they fit a multiple of the specified basesize. This does NOT account for the width of the guardring. While this might be a short-coming of this function, this issue can easily be circumvented by using a ring width that is also a multiple of the basesize.",
-"layouthelpers.place_guardring_quantized(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    500,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
+        "place a guardring in a cell with a defined boundary and spacing. The guardring hole width and height are quantized so that they fit a multiple of the specified basesize (x and y). This does NOT account for the width of the guardring. While this might be a short-coming of this function, this issue can easily be circumvented by using a ring width that is also a multiple of the basesize.",
+"layouthelpers.place_guardring_quantized(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    500, 500,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -71,6 +72,8 @@
         { "htr",            POINT,      NULL, "top-right hole boundary corner" },
         { "xspace",         INTEGER,    NULL, "space in x-direction between boundary and guardring" },
         { "yspace",         INTEGER,    NULL, "space in y-direction between boundary and guardring" },
+        { "wellxoffset",    INTEGER,    NULL, "well offset in x-direction" },
+        { "wellyoffset",    INTEGER,    NULL, "well offset in y-direction" },
         { "anchorprefix",   STRING,     NULL, "anchor prefix for inherited anchors (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
         { "options",        TABLE,      NULL, "placement options" }
     };
@@ -78,7 +81,7 @@
         "place_guardring_with_hole",
         MODULE_LAYOUTHELPERS,
         "place a guardring with a well hole in a cell with a defined boundary and spacing. This function is like placement.place_guardring, but expects two more points that define the hole boundary. The placed guardring then has a hole in the well which encompasses exactly the given boundary. The connection to this inner well is not placed, this has to be done manually.",
-"layouthelpers.place_guardring_with_hole(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr,\n    pmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr),\n    200, 200,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
+"layouthelpers.place_guardring_with_hole(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr,\n    pmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr),\n    200, 200,\n    0, 0,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -94,15 +97,18 @@
         { "htr",            POINT,      NULL, "top-right hole boundary corner" },
         { "xspace",         INTEGER,    NULL, "space in x-direction between boundary and guardring" },
         { "yspace",         INTEGER,    NULL, "space in y-direction between boundary and guardring" },
-        { "basesize",       INTEGER,    NULL, "basesize for calculating the quantized hole width and height" },
+        { "basexsize",      INTEGER,    NULL, "basesize for calculating the quantized hole width" },
+        { "baseysize",      INTEGER,    NULL, "basesize for calculating the quantized hole height" },
+        { "wellxoffset",    INTEGER,    NULL, "well offset in x-direction" },
+        { "wellyoffset",    INTEGER,    NULL, "well offset in y-direction" },
         { "anchorprefix",   STRING,     NULL, "anchor prefix for inherited anchors (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
         { "options",        TABLE,      NULL, "placement options" }
     };
     vector_append(entries, _make_api_entry(
         "place_guardring_with_hole_quantized",
         MODULE_LAYOUTHELPERS,
-        "This function is like placement.place_guardring_with_hole, but creates a guardring whose hole width and height are made a multiple of the given basesize. See also the information on placement.place_guardring_quantized.",
-"layouthelpers.place_guardring_with_hole_quantized(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    pmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    500,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
+        "This function is like placement.place_guardring_with_hole, but creates a guardring whose hole width and height are made a multiple of the given basesize (x and y). See also the information on placement.place_guardring_quantized.",
+"layouthelpers.place_guardring_with_hole_quantized(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    pmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    0, 0,\n    500, 500,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -180,6 +186,23 @@
         MODULE_LAYOUTHELPERS,
         "place a stripline defined by the center path points. This function is almost the same as geometry.path but draws three paths in total (ground-signal-ground). The layer argument is NOT a generic layer but a metal index (as striplines are assumed to be drawn in a metal). The metals below and above the signal layer are used for ground. Therefore, 'metalindex' must be 2 and the highest metal (-1).",
         "local pts = {\n    point.create(0, 0),\n    point.create(100000, 0),\n    point.create(100000, 100000)\n}\nlayouthelpers.place_stripline(cell, 4, pts, 5000, 10000)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* layouthelpers.collect_gridlines */
+{
+    struct parameter parameters[] = {
+        { "t",              TABLE,      NULL,   "table where anchors are collected" },
+        { "cells",          TABLE,      NULL,   "list of cells defining the anchors" },
+        { "anchorname",     STRING,     NULL,   "name of the anchor to be collected" },
+    };
+    vector_append(entries, _make_api_entry(
+        "collect_gridlines",
+        MODULE_LAYOUTHELPERS,
+        "combine overlapping/touching rectangular anchors into larger rectangles. This function expects a list of cells that all have at least the given area anchor. Then all overlaps are computed an inserted into the table. This function is useful when placing vias from a powergrid down to power bars. If only the individual anchors are used it can happen (depending on the type of the grid cell) that only partial vias can be placed. Merging the lines beforehand solves this.",
+        "local lines = {}\nlayouthelpers.collect_gridlines(lines, gridcells, \"vddline\")",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));

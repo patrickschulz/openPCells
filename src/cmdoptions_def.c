@@ -49,9 +49,11 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "seed", SINGLE_ARG, "set seed for ra
 /* Layout Debugging */
 cmdoptions_add_section(cmdoptions, "Layout debugging functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-anchor", MULTI_ARGS, "draw a cell anchor. It is drawn in the 'special' layer, so your layermap needs to have an entry for that.");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-all-anchors", NO_ARG, "draw all cell anchors. They are drawn in the 'special' layer, so your layermap needs to have an entry for that.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-all-anchors", NO_ARG, "draw all cell anchors (regular and area anchors). They are drawn in the 'special' layer, so your layermap needs to have an entry for that.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-anchors-as-outline", NO_ARG, "mark all anchors in the 'outline' layer, not the 'special' layer");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-alignmentbox", NO_ARG, "draw the alignment box (if present). The box is drawn in the 'special' layer, so your layermap needs to have an entry for that.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-all-alignmentboxes", NO_ARG, "draw all present alignment box (also those of subcells). The box is drawn in the 'special' layer, so your layermap needs to have an entry for that.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-alignmentboxes-as-outline", NO_ARG, "mark all alignmentboxes in the 'outline' layer, not the 'special' layer");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "enable-dprint", NO_ARG, "enables debugging print statements in cell layout definitions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "debug-cell", NO_ARG, "show detailed cell debugging call stack");
 
@@ -63,6 +65,7 @@ cmdoptions_add_option(cmdoptions, 'w', "watch", NO_ARG, "start 'watch' mode. Thi
 /* Generator Functions (Import) */
 cmdoptions_add_section(cmdoptions, "Layout import functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "read-gds", SINGLE_ARG, "read a GDS stream file and export all cells as opc-compatible code. This can take some time, depending on the size of the stream file");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "read-gds-toplevel-cellname", SINGLE_ARG, "specify the name of the toplevel cell");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "gds-layermap", SINGLE_ARG, "provide a layermap for GDS stream reading to enable different export types for read cells");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "gds-ignore-lpp", MULTI_ARGS, "layer-purpose-pairs to be ignored during gds import. Separate layers and purposes with a colon (:)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "import-prefix", SINGLE_ARG, "specifies a directory in which imported cells will be placed. For example, if --read-gds FOO and --import-prefix BAR is given, the imported cells will reside in BAR/FOO/*.lua");
@@ -94,10 +97,10 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "api-list", NO_ARG, "list all availa
 /* Utility Functions */
 cmdoptions_add_section(cmdoptions, "Utility functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data", SINGLE_ARG, "show data in a GDS stream file");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-hierarchy", SINGLE_ARG, "show cell hierarchy in a GDS stream file");
-cmdoptions_add_option_default(cmdoptions, NO_SHORT, "show-gds-depth", SINGLE_ARG, "1000", "maximum depth for gds traversal (affects --show-gds-data and --show-gds-hierarchy)");
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "show-gds-data-flags", MULTI_ARGS, "all", "flags to control what data is shown with --show-gds-data (default: all)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data-raw", NO_ARG, "also print the raw stream data after the parsed data");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-hierarchy", SINGLE_ARG, "show cell hierarchy in a GDS stream file");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-depth", SINGLE_ARG, "maximum depth for gds traversal (affects --show-gds-hierarchy)");
 
 /* Diagnostic Functions */
 cmdoptions_add_section(cmdoptions, "Diagnostic functions");
@@ -113,7 +116,7 @@ cmdoptions_add_option(cmdoptions, 'h', "help", NO_ARG, "display help");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "stderr-to", SINGLE_ARG, "redirect standard error to the given file (will be overwritten)");
 
 /* Help Header */
-cmdoptions_prepend_help_message(cmdoptions, "openPCells layout generator (opc) - Patrick Kurth 2020 - 2022");
+cmdoptions_prepend_help_message(cmdoptions, "openPCells layout generator (opc) - Patrick Kurth 2020 - 2024");
 cmdoptions_prepend_help_message(cmdoptions, "");
 cmdoptions_prepend_help_message(cmdoptions, "Generate layouts of integrated circuit geometry");
 cmdoptions_prepend_help_message(cmdoptions, "opc supports technology-independent descriptions of parametric layout cells (pcells),");

@@ -120,5 +120,14 @@ struct vector* placement_place_within_layer_boundaries(
     const struct generics* ignorelayer // ignored layer for extra excludes
 );
 
+struct vector* placement_place_gridlines(
+    struct object* toplevel,
+    const struct generics* layer,
+    coordinate_t size, coordinate_t space,
+    const point_t* targetbl,
+    const point_t* targettr,
+    const struct polygon* excludes
+);
+
 #endif /* OPC_PLACEMENT_H */
 

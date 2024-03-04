@@ -5,11 +5,7 @@
 #include <stdio.h>
 
 #include "main.functions.h"
-#include "lua_util.h"
 #include "gdsparser.h"
-
-#include "scriptmanager.h"
-#include "modulemanager.h"
 
 void main_gds_show_data(struct cmdoptions* cmdoptions)
 {
@@ -24,27 +20,14 @@ void main_gds_show_data(struct cmdoptions* cmdoptions)
 
 void main_gds_show_cell_hierarchy(struct cmdoptions* cmdoptions)
 {
-    lua_State* L = util_create_basic_lua_state();
-    open_gdsparser_lib(L);
-    module_load_gdsparser(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "gdsparser");
-    }
-    module_load_aux(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "aux");
-    }
-    module_load_util(L);
     const char* filename = cmdoptions_get_argument_long(cmdoptions, "show-gds-cell-hierarchy");
-    lua_pushstring(L, filename);
-    lua_setglobal(L, "filename");
-    int depth = atoi(cmdoptions_get_argument_long(cmdoptions, "show-gds-depth"));
-    lua_pushinteger(L, depth);
-    lua_setglobal(L, "depth");
-    script_call_show_gds_hierarchy(L);
-    lua_close(L);
+    size_t depth = 0;
+    if(cmdoptions_was_provided_long(cmdoptions,"show-gds-depth"))
+    {
+        const char* depthstr = cmdoptions_get_argument_long(cmdoptions, "show-gds-depth");
+        depth = strtoul(depthstr, NULL, 10);
+    }
+    gdsparser_show_cell_hierarchy(filename, depth);
 }
 
 void main_gds_read(struct cmdoptions* cmdoptions)

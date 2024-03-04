@@ -6,9 +6,7 @@ This module provides a collection of geometry-related helper functions such as:
     - easier insertion of points in arrays
 --]]
 
-local M = {}
-
-function M.sum(t)
+function util.sum(t)
     local sum = 0
     for _, e in ipairs(t) do
         sum = sum + e
@@ -16,7 +14,7 @@ function M.sum(t)
     return sum
 end
 
-function M.polygon_xmin(pts)
+function util.polygon_xmin(pts)
     local min = math.huge
     for i, pt in ipairs(pts) do
         local x = pt:getx()
@@ -27,7 +25,7 @@ function M.polygon_xmin(pts)
     return min
 end
 
-function M.polygon_ymin(pts)
+function util.polygon_ymin(pts)
     local min = math.huge
     for i, pt in ipairs(pts) do
         local y = pt:gety()
@@ -38,7 +36,7 @@ function M.polygon_ymin(pts)
     return min
 end
 
-function M.polygon_xmax(pts)
+function util.polygon_xmax(pts)
     local max = -math.huge
     for i, pt in ipairs(pts) do
         local x = pt:getx()
@@ -49,7 +47,7 @@ function M.polygon_xmax(pts)
     return max
 end
 
-function M.polygon_ymax(pts)
+function util.polygon_ymax(pts)
     local max = -math.huge
     for i, pt in ipairs(pts) do
         local y = pt:gety()
@@ -60,7 +58,13 @@ function M.polygon_ymax(pts)
     return max
 end
 
-function M.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
+function util.make_rectangle(center, width, height)
+    local bl = point.create(center:getx() - width / 2, center:gety() - height / 2)
+    local tr = point.create(center:getx() + width / 2, center:gety() + height / 2)
+    return bl, tr
+end
+
+function util.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
     return {
         point.create(bl:getx() - (leftext  or 0), bl:gety() - (bottomext or 0)),
         point.create(tr:getx() + (rightext or 0), bl:gety() - (bottomext or 0)),
@@ -69,7 +73,72 @@ function M.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
     }
 end
 
-function M.xmirror(pts, xcenter)
+function util.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext, xmultiple, ymultiple)
+    local dx = point.xdistance_abs(bl, tr)
+    local dy = point.ydistance_abs(bl, tr)
+    local xcorr = util.fix_to_grid_abs_higher(dx, xgrid) - dx
+    local ycorr = util.fix_to_grid_abs_higher(dy, ygrid) - dy
+    if minxext then
+        while xcorr < minxext do
+            xcorr = xcorr + xgrid
+        end
+    end
+    if minyext then
+        while ycorr < minyext do
+            ycorr = ycorr + ygrid
+        end
+    end
+    if xmultiple and xmultiple == "even" then
+        if ((dx + xcorr) / xgrid) % 2 ~= 0 then
+            xcorr = xcorr + xgrid
+        end
+    end
+    if xmultiple and xmultiple == "odd" then
+        if ((dx + xcorr) / xgrid) % 2 ~= 1 then
+            xcorr = xcorr + xgrid
+        end
+    end
+    if ymultiple and ymultiple == "even" then
+        if ((dy + ycorr) / ygrid) % 2 ~= 0 then
+            ycorr = ycorr + ygrid
+        end
+    end
+    if ymultiple and ymultiple == "odd" then
+        if ((dy + ycorr) / ygrid) % 2 ~= 1 then
+            ycorr = ycorr + ygrid
+        end
+    end
+    return {
+        point.create(bl:getx() - xcorr / 2, bl:gety() - ycorr / 2),
+        point.create(tr:getx() + xcorr / 2, bl:gety() - ycorr / 2),
+        point.create(tr:getx() + xcorr / 2, tr:gety() + ycorr / 2),
+        point.create(bl:getx() - xcorr / 2, tr:gety() + ycorr / 2),
+    }
+end
+
+function util.rectangle_intersection(bl1, tr1, bl2, tr2)
+    local bl1x = bl1:getx()
+    local bl1y = bl1:gety()
+    local tr1x = tr1:getx()
+    local tr1y = tr1:gety()
+    local bl2x = bl2:getx()
+    local bl2y = bl2:gety()
+    local tr2x = tr2:getx()
+    local tr2y = tr2:gety()
+    local blx = math.max(bl1x, bl2x)
+    local bly = math.max(bl1y, bl2y)
+    local trx = math.min(tr1x, tr2x)
+    local try = math.min(tr1y, tr2y)
+    if trx > blx and try > bly then
+        return {
+            bl = point.create(blx, bly),
+            tr = point.create(trx, try),
+        }
+    end
+    return nil
+end
+
+function util.xmirror(pts, xcenter)
     local mirrored = {}
     xcenter = xcenter or 0
     for i, pt in ipairs(pts) do
@@ -79,7 +148,7 @@ function M.xmirror(pts, xcenter)
     return mirrored
 end
 
-function M.ymirror(pts, ycenter)
+function util.ymirror(pts, ycenter)
     local mirrored = {}
     ycenter = ycenter or 0
     for i, pt in ipairs(pts) do
@@ -89,7 +158,7 @@ function M.ymirror(pts, ycenter)
     return mirrored
 end
 
-function M.xymirror(pts, xcenter, ycenter)
+function util.xymirror(pts, xcenter, ycenter)
     local mirrored = {}
     xcenter = xcenter or 0
     ycenter = ycenter or 0
@@ -100,7 +169,7 @@ function M.xymirror(pts, xcenter, ycenter)
     return mirrored
 end
 
-function M.transform_points(pts, func)
+function util.transform_points(pts, func)
     local result = {}
     for _, pt in ipairs(pts) do
         local new = pt:copy()
@@ -110,7 +179,7 @@ function M.transform_points(pts, func)
     return result
 end
 
-function M.filter_forward(pts, fun)
+function util.filter_forward(pts, fun)
     local filtered = {}
     for i = 1, #pts, 1 do
         if fun(pts[i]) then
@@ -120,7 +189,7 @@ function M.filter_forward(pts, fun)
     return filtered
 end
 
-function M.filter_backward(pts, fun)
+function util.filter_backward(pts, fun)
     local filtered = {}
     for i = #pts, 1, -1 do
         if fun(pts[i]) then
@@ -130,19 +199,19 @@ function M.filter_backward(pts, fun)
     return filtered
 end
 
-function M.merge_forwards(pts, pts2)
+function util.merge_forwards(pts, pts2)
     for i = 1, #pts2 do
         table.insert(pts, pts2[i])
     end
 end
 
-function M.merge_backwards(pts, pts2)
+function util.merge_backwards(pts, pts2)
     for i = #pts2, 1, -1 do
         table.insert(pts, pts2[i])
     end
 end
 
-function M.reverse(pts)
+function util.reverse(pts)
     local new = {}
     for _, pt in ipairs(pts) do
         table.insert(new, 1, pt:copy())
@@ -150,7 +219,7 @@ function M.reverse(pts)
     return new
 end
 
-function M.make_insert_xy(pts, idx)
+function util.make_insert_xy(pts, idx)
     if idx then
         return function(x, y) table.insert(pts, idx, point.create(x, y)) end
     else
@@ -158,7 +227,7 @@ function M.make_insert_xy(pts, idx)
     end
 end
 
-function M.make_insert_pts(pts, idx)
+function util.make_insert_pts(pts, idx)
     if idx then
         return function(...)
             for _, pt in ipairs({ ... }) do
@@ -174,13 +243,13 @@ function M.make_insert_pts(pts, idx)
     end
 end
 
-function M.check_grid(grid, ...)
+function util.check_grid(grid, ...)
     for _, num in ipairs({ ... }) do
         assert(num % grid == 0, string.format("number is not on-grid: %d", num))
     end
 end
 
-function M.intersection(s1, s2, c1, c2)
+function util.intersection(s1, s2, c1, c2)
     local s1x, s1y = s1:unwrap()
     local s2x, s2y = s2:unwrap()
     local c1x, c1y = c1:unwrap()
@@ -204,7 +273,7 @@ function M.intersection(s1, s2, c1, c2)
     return nil, pt
 end
 
-function M.intersection_ab(P, Q)
+function util.intersection_ab(P, Q)
     local P1x, P1y = P[1]:unwrap()
     local P2x, P2y = P[2]:unwrap()
     local Q1x, Q1y = Q[1]:unwrap()
@@ -290,7 +359,7 @@ function M.intersection_ab(P, Q)
     end
 end
 
-function M.range(lower, upper, incr)
+function util.range(lower, upper, incr)
     local t = {}
     for i = lower, upper, incr or 1 do
         table.insert(t, i)
@@ -298,7 +367,7 @@ function M.range(lower, upper, incr)
     return t
 end
 
-function M.remove(t, comp)
+function util.remove(t, comp)
     local result = {}
     for _, e in ipairs(t) do
         if type(comp) == "function" then
@@ -314,11 +383,11 @@ function M.remove(t, comp)
     return result
 end
 
-function M.remove_index(t, index)
+function util.remove_index(t, index)
     local result = {}
     for i, e in ipairs(t) do
         if type(index) == "table" then
-            if not M.any_of(i, index) then
+            if not util.any_of(i, index) then
                 table.insert(result, e)
             end
         else
@@ -330,7 +399,7 @@ function M.remove_index(t, index)
     return result
 end
 
-function M.remove_inplace(t, comp)
+function util.remove_inplace(t, comp)
     for i, e in ipairs(t) do
         if type(comp) == "function" then
             if comp(e) then
@@ -344,11 +413,11 @@ function M.remove_inplace(t, comp)
     end
 end
 
-function M.remove_index_inplace(t, index)
+function util.remove_index_inplace(t, index)
     table.remove(t, index)
 end
 
-function M.clone_shallow(t)
+function util.clone_shallow(t)
     local new = {}
     for k, v in pairs(t) do
         new[k] = v
@@ -356,7 +425,7 @@ function M.clone_shallow(t)
     return new
 end
 
-function M.clone_shallow_predicate(t, predicate)
+function util.clone_shallow_predicate(t, predicate)
     local new = {}
     for k, v in pairs(t) do
         if predicate(k, v) then
@@ -366,7 +435,7 @@ function M.clone_shallow_predicate(t, predicate)
     return new
 end
 
-function M.find(t, value)
+function util.find(t, value)
     for i, v in ipairs(t) do
         if v == value then
             return i, v
@@ -374,7 +443,7 @@ function M.find(t, value)
     end
 end
 
-function M.find_predicate(t, predicate)
+function util.find_predicate(t, predicate)
     for i, v in ipairs(t) do
         if predicate(v) then
             return i, v
@@ -382,7 +451,7 @@ function M.find_predicate(t, predicate)
     end
 end
 
-function M.fill_all_with(num, filler)
+function util.fill_all_with(num, filler)
     local t = {}
     for i = 1, num do
         t[i] = filler
@@ -390,7 +459,7 @@ function M.fill_all_with(num, filler)
     return t
 end
 
-function M.fill_predicate_with(num, filler, predicate, other)
+function util.fill_predicate_with(num, filler, predicate, other)
     local t = {}
     for i = 1, num do
         if predicate(i) then
@@ -402,23 +471,31 @@ function M.fill_predicate_with(num, filler, predicate, other)
     return t
 end
 
-function M.fill_even_with(num, filler, other)
-    return M.fill_predicate_with(num, filler, function(i) return i % 2 == 0 end, other)
+function util.fill_even_with(num, filler, other)
+    return util.fill_predicate_with(num, filler, function(i) return i % 2 == 0 end, other)
 end
 
-function M.fill_odd_with(num, filler, other)
-    return M.fill_predicate_with(num, filler, function(i) return i % 2 == 1 end, other)
+function util.fill_odd_with(num, filler, other)
+    return util.fill_predicate_with(num, filler, function(i) return i % 2 == 1 end, other)
 end
 
-function M.add_options(base, t)
-    local new = M.clone_shallow(base)
+function util.sum(t)
+    local total = 0
+    for _, e in ipairs(t) do
+        total = total + e
+    end
+    return total
+end
+
+function util.add_options(base, t)
+    local new = util.clone_shallow(base)
     for k, v in pairs(t) do
         new[k] = v
     end
     return new
 end
 
-function M.ratio_split_even(value, ratio)
+function util.ratio_split_even(value, ratio)
     local second = value // (ratio + 1)
     if second % 2 == 1 then
         second = second - 1
@@ -427,19 +504,31 @@ function M.ratio_split_even(value, ratio)
     return first, second
 end
 
-function M.round_to_grid(c, grid)
+function util.ratio_split_multiple_of(value, ratio, multiple)
+    if value % multiple ~= 0 then
+        error(string.format("util.ratio_split_multiple_of: value must be divisible by the multiple, got: %d and %d", value, multiple))
+    end
+    local second = value // (ratio + 1)
+    while second % multiple ~= 0 do
+        second = second - 1
+    end
+    local first = value - second
+    return first, second
+end
+
+function util.round_to_grid(c, grid)
     return grid * math.floor(c / grid + 0.5)
 end
 
-function M.fix_to_grid_higher(c, grid)
+function util.fix_to_grid_higher(c, grid)
     return grid * math.ceil(c / grid)
 end
 
-function M.fix_to_grid_lower(c, grid)
+function util.fix_to_grid_lower(c, grid)
     return grid * math.floor(c / grid)
 end
 
-function M.fix_to_grid_abs_higher(c, grid)
+function util.fix_to_grid_abs_higher(c, grid)
     if c < 0 then
         return -grid * math.ceil(-c / grid)
     else
@@ -447,7 +536,7 @@ function M.fix_to_grid_abs_higher(c, grid)
     end
 end
 
-function M.fix_to_grid_abs_lower(c, grid)
+function util.fix_to_grid_abs_lower(c, grid)
     if c < 0 then
         return -grid * math.floor(-c / grid)
     else
@@ -455,7 +544,7 @@ function M.fix_to_grid_abs_lower(c, grid)
     end
 end
 
-function M.any_of(comp, t, ...)
+function util.any_of(comp, t, ...)
     if type(comp) == "function" then
         for _, v in ipairs(t) do
             if comp(v, ...) then
@@ -473,7 +562,7 @@ function M.any_of(comp, t, ...)
     end
 end
 
-function M.all_of(comp, t, ...)
+function util.all_of(comp, t, ...)
     if type(comp) == "function" then
         for _, v in ipairs(t) do
             if not comp(v, ...) then
@@ -491,7 +580,7 @@ function M.all_of(comp, t, ...)
     end
 end
 
-function M.foreach(t, f, ...)
+function util.foreach(t, f, ...)
     local new = {}
     for _, e in ipairs(t) do
         table.insert(new, f(e, ...))
@@ -499,12 +588,11 @@ function M.foreach(t, f, ...)
     return new
 end
 
-function M.fit_lines_upper(total, size, space)
+function util.fit_lines_upper(total, size, space)
     return math.ceil((total + space) / (size + space))
 end
 
-function M.fit_lines_lower(total, size, space)
+function util.fit_lines_lower(total, size, space)
     return math.floor((total + space) / (size + space))
 end
 
-return M

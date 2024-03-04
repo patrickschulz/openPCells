@@ -207,7 +207,7 @@ int polygon_is_point_in_polygon(const struct polygon* polygon, coordinate_t x, c
     return is_in_polygon;
 }
 
-static int _intersection(const point_t* s1, const point_t* s2, const point_t* c1, const point_t* c2)
+static int _is_intersection(const point_t* s1, const point_t* s2, const point_t* c1, const point_t* c2)
 {
     coordinate_t snum = (c2->x - c1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (c2->y - c1->y);
     coordinate_t cnum = (s2->x - s1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (s2->y - s1->y);
@@ -234,6 +234,79 @@ static int _intersection(const point_t* s1, const point_t* s2, const point_t* c1
     }
 }
 
+static int _get_intersection(const point_t* s1, const point_t* s2, const point_t* c1, const point_t* c2, point_t** intersection)
+{
+    coordinate_t snum = (c2->x - c1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (c2->y - c1->y);
+    coordinate_t cnum = (s2->x - s1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (s2->y - s1->y);
+    coordinate_t den = (s2->x - s1->x) * (c2->y - c1->y) - (c2->x - c1->x) * (s2->y - s1->y);
+    if(den == 0) // lines are parallel
+    {
+        return 0;
+    }
+
+    if(snum == 0 || cnum == 0 || snum == den || cnum == den) // end points touching, does not count as intersection
+    {
+        return 0;
+    }
+
+    // the comparison is so complex/weird to avoid division
+    if(((snum < 0 && den < 0 && snum >= den) || (snum > 0 && den > 0 && snum <= den)) &&
+       ((cnum < 0 && den < 0 && cnum >= den) || (cnum > 0 && den > 0 && cnum <= den)))
+    {
+        return 1;
+        *intersection = point_create(c1->x + cnum * (c2->x - c1->x) / den, c1->y + cnum * (c2->y - c1->y) / den);
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+struct vector* simple_polygon_line_intersections(
+    const struct simple_polygon* simple_polygon,
+    coordinate_t x1, coordinate_t y1,
+    coordinate_t x2, coordinate_t y2
+)
+{
+    struct vector* intersections = vector_create(1, point_destroy);
+    for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
+    {
+        point_t* cpti1 = vector_get(simple_polygon->points, i);
+        point_t* cpti2 = vector_get(simple_polygon->points, (i + 1) % vector_size(simple_polygon->points));
+        point_t pt1 = { .x = x1, .y = y1 };
+        point_t pt2 = { .x = x2, .y = y2 };
+        point_t* intersection;
+        if(_get_intersection(cpti1, cpti2, &pt1, &pt2, &intersection))
+        {
+            vector_append(intersections, intersection);
+        }
+    }
+    return intersections;
+}
+
+struct vector* polygon_line_intersections(
+    const struct polygon* polygon,
+    coordinate_t blx, coordinate_t bly,
+    coordinate_t trx, coordinate_t try
+)
+{
+    struct vector* intersections = vector_create(1, point_destroy);
+    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
+    while(polygon_const_iterator_is_valid(it))
+    {
+        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        struct vector* subintersections = simple_polygon_line_intersections(simple_polygon, blx, bly, trx, try);
+        while(!vector_empty(subintersections))
+        {
+            vector_append(intersections, vector_disown_element(subintersections, vector_size(subintersections) - 1));
+        }
+        polygon_const_iterator_next(it);
+    }
+    polygon_const_iterator_destroy(it);
+    return intersections;
+}
+
+
 int simple_polygon_intersects_rectangle(
     const struct simple_polygon* simple_polygon,
     coordinate_t blx, coordinate_t bly,
@@ -249,10 +322,10 @@ int simple_polygon_intersects_rectangle(
         point_t tr = { .x = trx, .y = try };
         point_t br = { .x = trx, .y = bly };
         if(
-            _intersection(cpti1, cpti2, &bl, &tl) ||
-            _intersection(cpti1, cpti2, &tl, &tr) ||
-            _intersection(cpti1, cpti2, &tr, &br) ||
-            _intersection(cpti1, cpti2, &br, &bl)
+            _is_intersection(cpti1, cpti2, &bl, &tl) ||
+            _is_intersection(cpti1, cpti2, &tl, &tr) ||
+            _is_intersection(cpti1, cpti2, &tr, &br) ||
+            _is_intersection(cpti1, cpti2, &br, &bl)
         )
         {
             return 1;
@@ -287,6 +360,132 @@ POLYGON_INTERSECTS_RECTANGLE_FINISHED:
 void simple_polygon_append(struct simple_polygon* simple_polygon, point_t* pt)
 {
     vector_append(simple_polygon->points, pt);
+}
+
+coordinate_t simple_polygon_get_minx(const struct simple_polygon* simple_polygon)
+{
+    coordinate_t minx = COORDINATE_MAX;
+    for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
+    {
+        const point_t* pt = vector_get(simple_polygon->points, i);
+        if(point_getx(pt) < minx)
+        {
+            minx = point_getx(pt);
+        }
+    }
+    return minx;
+}
+
+
+coordinate_t polygon_get_minx(const struct polygon* polygon)
+{
+    coordinate_t minx = COORDINATE_MAX;
+    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
+    while(polygon_const_iterator_is_valid(it))
+    {
+        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        coordinate_t _minx = simple_polygon_get_minx(simple_polygon);
+        if(_minx < minx)
+        {
+            minx = _minx;
+        }
+        polygon_const_iterator_next(it);
+    }
+    return minx;
+}
+
+coordinate_t simple_polygon_get_miny(const struct simple_polygon* simple_polygon)
+{
+    coordinate_t miny = COORDINATE_MAX;
+    for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
+    {
+        const point_t* pt = vector_get(simple_polygon->points, i);
+        if(point_gety(pt) < miny)
+        {
+            miny = point_gety(pt);
+        }
+    }
+    return miny;
+}
+
+coordinate_t polygon_get_miny(const struct polygon* polygon)
+{
+    coordinate_t miny = COORDINATE_MAX;
+    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
+    while(polygon_const_iterator_is_valid(it))
+    {
+        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        coordinate_t _miny = simple_polygon_get_miny(simple_polygon);
+        if(_miny < miny)
+        {
+            miny = _miny;
+        }
+        polygon_const_iterator_next(it);
+    }
+    return miny;
+}
+
+coordinate_t simple_polygon_get_maxx(const struct simple_polygon* simple_polygon)
+{
+    coordinate_t maxx = COORDINATE_MIN;
+    for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
+    {
+        const point_t* pt = vector_get(simple_polygon->points, i);
+        if(point_getx(pt) > maxx)
+        {
+            maxx = point_getx(pt);
+        }
+    }
+    return maxx;
+}
+
+
+coordinate_t polygon_get_maxx(const struct polygon* polygon)
+{
+    coordinate_t maxx = COORDINATE_MIN;
+    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
+    while(polygon_const_iterator_is_valid(it))
+    {
+        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        coordinate_t _maxx = simple_polygon_get_maxx(simple_polygon);
+        if(_maxx > maxx)
+        {
+            maxx = _maxx;
+        }
+        polygon_const_iterator_next(it);
+    }
+    return maxx;
+}
+
+coordinate_t simple_polygon_get_maxy(const struct simple_polygon* simple_polygon)
+{
+    coordinate_t maxy = COORDINATE_MIN;
+    for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
+    {
+        const point_t* pt = vector_get(simple_polygon->points, i);
+        if(point_gety(pt) > maxy)
+        {
+            maxy = point_gety(pt);
+        }
+    }
+    return maxy;
+}
+
+coordinate_t polygon_get_maxy(const struct polygon* polygon)
+{
+    coordinate_t maxy = COORDINATE_MIN;
+    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
+    while(polygon_const_iterator_is_valid(it))
+    {
+        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        coordinate_t _maxy = simple_polygon_get_maxy(simple_polygon);
+        if(_maxy > maxy)
+        {
+            maxy = _maxy;
+        }
+        polygon_const_iterator_next(it);
+    }
+    return maxy;
 }
 
 struct simple_polygon_iterator {

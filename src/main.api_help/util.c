@@ -1,3 +1,63 @@
+/* util.polygon_xmin(polygon) */
+{
+    struct parameter parameters[] = {
+        { "polygon", POINTLIST, NULL, "polygon" }
+    };
+    vector_append(entries, _make_api_entry(
+        "polygon_xmin",
+        MODULE_UTIL,
+        "retrieve the minimum x-value of all points of a polygon",
+        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal xmin = util.polygon_xmin(polygon) -- -50",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.polygon_xmax(polygon) */
+{
+    struct parameter parameters[] = {
+        { "polygon", POINTLIST, NULL, "polygon" }
+    };
+    vector_append(entries, _make_api_entry(
+        "polygon_xmax",
+        MODULE_UTIL,
+        "retrieve the maximum x-value of all points of a polygon",
+        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal xmax = util.polygon_xmax(polygon) -- 50",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.polygon_ymin(polygon) */
+{
+    struct parameter parameters[] = {
+        { "polygon", POINTLIST, NULL, "polygon" }
+    };
+    vector_append(entries, _make_api_entry(
+        "polygon_ymin",
+        MODULE_UTIL,
+        "retrieve the minimum y-value of all points of a polygon",
+        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal ymin = util.polygon_ymin(polygon) -- -50",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.polygon_ymax(polygon) */
+{
+    struct parameter parameters[] = {
+        { "polygon", POINTLIST, NULL, "polygon" }
+    };
+    vector_append(entries, _make_api_entry(
+        "polygon_ymax",
+        MODULE_UTIL,
+        "retrieve the maximum y-value of all points of a polygon",
+        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal ymax = util.polygon_ymax(polygon) -- 50",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* util.xmirror(pts, xcenter) */
 {
     struct parameter parameters[] = {
@@ -354,6 +414,24 @@
     ));
 }
 
+/* util.make_rectangle(value, ratio) */
+{
+    struct parameter parameters[] = {
+        { "center",     POINT,      NULL, "center of the rectangle" },
+        { "width",      INTEGER,    NULL, "width" },
+        { "height",     INTEGER,    NULL, "height" }
+    };
+    vector_append(entries, _make_api_entry(
+        "make_rectangle",
+        MODULE_UTIL,
+        "create a rectangle from a center point and the width and height. This function returns two points (bottom-left and top-right)",
+        "local bl, tr = util.make_rectangle(point.create(0, 0), 100, 100)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+
 /* util.rectangle_to_polygon(value, ratio) */
 {
     struct parameter parameters[] = {
@@ -369,6 +447,46 @@
         MODULE_UTIL,
         "convert a two-point rectangle to a polygon describing this rectangle. Optionally, the polygon can be extended in the four directions (left/right/bottom/top). This function is useful for creating fill layer boundaries or fill target regions",
         "local region = util.rectangle_to_polygon(point.create(-100, -100), point.create(100, 100), -100, 0, 0, 200)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.fit_rectangular_polygon(value, ratio) */
+{
+    struct parameter parameters[] = {
+        { "bl",         POINT,      NULL, "lower-left corner of the rectangle" },
+        { "tr",         POINT,      NULL, "upper-right corner of the rectangle" },
+        { "xgrid",      INTEGER,    NULL, "xgrid" },
+        { "ygrid",      INTEGER,    NULL, "ygrid" },
+        { "minxext",    INTEGER,    NULL, "minimum extension in x-direction" },
+        { "minyext",    INTEGER,    NULL, "minimum extension in y-direction" },
+        { "xmultiple",  STRING,     NULL, "multiplicity in x" },
+        { "ymultiple",  STRING,     NULL, "multiplicity in y" },
+    };
+    vector_append(entries, _make_api_entry(
+        "fit_rectangular_polygon",
+        MODULE_UTIL,
+        "convert a two-point rectangle to a polygon describing this rectangle. The polygon is extended so that its width and height are a integer multiple of the specified x- and y-grid. The polygon's width and height is always at least the width and height of the rectangle. Additionally, a minimum extension can be given in x- and y-direction, which can further increase the polygon's size. The resulting rectangle can be tuned so that it has an even or odd multiplicity in either of the directions. The keys \"even\" or \"odd\" can be used for the last two parameters 'xmultiple' and 'ymultiple'. If they are nil, the resulting rectangle is not modified from the original fitting.",
+        "local region = util.fit_rectangular_polygon(point.create(-127, -110), point.create(118, 109), 20, 20, 50, 50)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.rectangle_intersection(value, ratio) */
+{
+    struct parameter parameters[] = {
+        { "bl1", POINT, NULL, "lower-left corner of the first rectangle" },
+        { "tr1", POINT, NULL, "upper-right corner of the first rectangle" },
+        { "bl2", POINT, NULL, "lower-left corner of the second rectangle" },
+        { "tr2", POINT, NULL, "upper-right corner of the second rectangle" }
+    };
+    vector_append(entries, _make_api_entry(
+        "rectangle_intersection",
+        MODULE_UTIL,
+        "Compute the intersection of two rectangles and return it as a table with 'bl' (bottom-left) and 'tr' (top-right) entries. If no itersection exists, this function returns nil.",
+        "local region = util.rectangle_intersection(point.create(0, 0), point.create(100, 100), point.create(20, 20), point.create(200, 20))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -593,10 +711,6 @@
 	util.check_string
 	util.intersection
 	util.intersection_ab
-	util.polygon_xmax
-	util.polygon_xmin
-	util.polygon_ymax
-	util.polygon_ymin
 	util.sum
     util.make_multiple
 */

@@ -33,7 +33,7 @@ void object_rasterize_curves(struct object* cell);
 // children
 struct object* object_create_handle(struct object* cell, struct object* reference);
 struct object* object_add_child(struct object* cell, struct object* child, const char* name);
-struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch);
+struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch);
 
 // anchors
 int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
@@ -99,7 +99,7 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
 
 // ports
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, unsigned int sizehint);
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, unsigned int sizehint);
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint);
 const struct vector* object_get_ports(const struct object* cell);
 
 // alignment box and bounding box
@@ -160,6 +160,7 @@ int object_has_shapes(const struct object* cell);
 int object_has_children(const struct object* cell);
 int object_has_ports(const struct object* cell);
 int object_is_empty(const struct object* cell);
+int object_is_used(const struct object* cell);
 int object_is_child_array(const struct object* cell);
 int object_has_anchor(const struct object* cell, const char* anchorname);
 int object_has_area_anchor(const struct object* cell, const char* anchorname);
@@ -175,8 +176,8 @@ struct object* object_flatten(const struct object* cell, int flattenports);
 
 unsigned int object_get_child_xrep(const struct object* cell);
 unsigned int object_get_child_yrep(const struct object* cell);
-unsigned int object_get_child_xpitch(const struct object* cell);
-unsigned int object_get_child_ypitch(const struct object* cell);
+coordinate_t object_get_child_xpitch(const struct object* cell);
+coordinate_t object_get_child_ypitch(const struct object* cell);
 
 struct const_vector* object_collect_references(const struct object* cell);
 struct vector* object_collect_references_mutable(struct object* cell);
@@ -212,6 +213,16 @@ int mutable_reference_iterator_is_valid(struct mutable_reference_iterator* it);
 void mutable_reference_iterator_next(struct mutable_reference_iterator* it);
 struct object* mutable_reference_iterator_get(struct mutable_reference_iterator* it);
 void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it);
+
+// anchor iterator
+struct anchor_iterator;
+struct anchor_iterator* object_create_anchor_iterator(const struct object* cell);
+int anchor_iterator_is_valid(struct anchor_iterator* it);
+void anchor_iterator_next(struct anchor_iterator* it);
+int anchor_iterator_is_area(struct anchor_iterator* it);
+const point_t* anchor_iterator_anchor(struct anchor_iterator* it);
+const char* anchor_iterator_name(struct anchor_iterator* it);
+void anchor_iterator_destroy(struct anchor_iterator* it);
 
 // port iterator
 struct port_iterator;

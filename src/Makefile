@@ -12,7 +12,7 @@ ifeq ($(DEBUGANALYZE), 1)
     CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Wno-analyzer-deref-before-check -Werror=discarded-qualifiers -Wstrict-prototypes -pthread $(PPFLAGS)
 endif
 
-OPCOBJ:= cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o shape.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util.o vector.o
+OPCOBJ:= cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o shape.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
 
 .PHONY: default
 default: $(PROGNAME)
@@ -33,7 +33,6 @@ scriptmanager.c: embed_compiled_lua_file scripts/*.lua
 	./embed_compiled_lua_file --script scripts/create_cell.lua script_call create_cell scriptmanager.c
 	./embed_compiled_lua_file --script scripts/list_cells.lua script_call list_cells scriptmanager.c
 	./embed_compiled_lua_file --script scripts/assistant.lua script_call assistant scriptmanager.c
-	./embed_compiled_lua_file --script scripts/show_gds_hierarchy.lua script_call show_gds_hierarchy scriptmanager.c
 	./embed_compiled_lua_file --script scripts/list_parameters.lua script_call list_parameters scriptmanager.c
 
 scriptmanager.h:
@@ -43,7 +42,6 @@ scriptmanager.h:
 	@echo 'int script_call_create_cell(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_list_cells(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_assistant(lua_State* L);' >> scriptmanager.h
-	@echo 'int script_call_show_gds_hierarchy(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_list_parameters(lua_State* L);' >> scriptmanager.h
 	@echo '#endif // OPC_SCRIPTMANAGER_H' >> scriptmanager.h
 
@@ -53,7 +51,6 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	@echo '#include "main.functions.h"' >> modulemanager.c
 	./embed_compiled_lua_file --module modules/aux.lua module_load aux modulemanager.c
 	./embed_compiled_lua_file --module modules/check.lua module_load check modulemanager.c
-	./embed_compiled_lua_file --module modules/gdsparser.lua module_load gdsparser modulemanager.c
 	./embed_compiled_lua_file --module modules/generator.lua module_load generator modulemanager.c
 	./embed_compiled_lua_file --module modules/globals.lua module_load globals modulemanager.c
 	./embed_compiled_lua_file --module modules/graphics.lua module_load graphics modulemanager.c
@@ -73,7 +70,6 @@ modulemanager.h: modules/*.lua
 	@echo '#include "lua/lua.h"' >> modulemanager.h
 	@echo 'int module_load_aux(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_check(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_gdsparser(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_generator(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_globals(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_graphics(lua_State* L);' >> modulemanager.h
@@ -120,6 +116,10 @@ cells.o: cells.c pcell.h lua/lua.h lua/luaconf.h object.h hashmap.h \
  geometry.h cells/powergrid.c
 cmdoptions.o: cmdoptions.c cmdoptions.h
 cpu.o: cpu.c cpu.h
+export.o: export.c export.h object.h hashmap.h polygon.h point.h shape.h \
+ transformationmatrix.h technology.h lua/lua.h lua/luaconf.h vector.h \
+ lua/lauxlib.h lua/lua.h export_common.h export_writer.h util.h \
+ lua_util.h gdsexport.h filesystem.h
 export_common.o: export_common.c export_common.h object.h hashmap.h \
  polygon.h point.h shape.h transformationmatrix.h technology.h lua/lua.h \
  lua/luaconf.h vector.h
@@ -153,14 +153,14 @@ lgenerics.o: lgenerics.c lgenerics.h lua/lua.h lua/luaconf.h \
 lgeometry.o: lgeometry.c lgeometry.h lua/lua.h lua/luaconf.h \
  lua/lauxlib.h lua/lua.h geometry.h technology.h vector.h hashmap.h \
  object.h polygon.h point.h shape.h transformationmatrix.h graphics.h \
- lcheck.h lobject.h lplacement.h lpoint.h lutil.h placement.h
+ lcheck.h lgenerics.h lobject.h lplacement.h lpoint.h lutil.h placement.h
 lobject.o: lobject.c lobject.h lua/lua.h lua/luaconf.h object.h hashmap.h \
  polygon.h point.h shape.h transformationmatrix.h technology.h vector.h \
  lua/lauxlib.h lua/lua.h lpoint.h lcheck.h
 lplacement.o: lplacement.c lplacement.h lua/lua.h lua/luaconf.h polygon.h \
- point.h lua/lauxlib.h lua/lua.h lcheck.h lobject.h object.h hashmap.h \
- shape.h transformationmatrix.h technology.h vector.h lpoint.h lutil.h \
- placement.h
+ point.h lua/lauxlib.h lua/lua.h lcheck.h lgenerics.h lobject.h object.h \
+ hashmap.h shape.h transformationmatrix.h technology.h vector.h lpoint.h \
+ lutil.h placement.h
 lplacer.o: lplacer.c lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
  lplacer_nonoverlapping.h lplacer_classic.h
 lplacer_classic.o: lplacer_classic.c lplacer_classic.h lua/lua.h \
@@ -174,7 +174,8 @@ lplacer_rand.o: lplacer_rand.c lplacer_rand.h lua/lua.h lua/luaconf.h
 lpoint.o: lpoint.c lpoint.h lua/lua.h lua/luaconf.h point.h lua/lauxlib.h \
  lua/lua.h math.h
 lpostprocess.o: lpostprocess.c lpostprocess.h lua/lua.h lua/luaconf.h \
-	postprocess.h
+ lua/lauxlib.h lua/lua.h postprocess.h object.h hashmap.h polygon.h \
+ point.h shape.h transformationmatrix.h technology.h vector.h lobject.h
 lrouter.o: lrouter.c lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
  lrouter_net.h lrouter_field.h vector.h lrouter_route.h lrouter_moves.h
 lrouter_field.o: lrouter_field.c lrouter_field.h
@@ -202,13 +203,12 @@ main.cell.o: main.cell.c main.cell.h hashmap.h cmdoptions.h lua/lauxlib.h \
  transformationmatrix.h technology.h lua/lua.h vector.h filesystem.h \
  gdsparser.h geometry.h info.h pcell.h postprocess.h util.h ldir.h \
  lgenerics.h lgeometry.h lobject.h lplacement.h lplacer.h lpoint.h \
- lrouter.h lua_util.h config.h main.functions.h modulemanager.h \
- scriptmanager.h
+ lpostprocess.h lrouter.h lua_util.h config.h main.functions.h \
+ modulemanager.h scriptmanager.h
 main.functions.o: main.functions.c main.functions.h lua/lua.h \
  lua/luaconf.h lua/lauxlib.h lua/lua.h lua_util.h
 main.gds.o: main.gds.c main.gds.h cmdoptions.h main.functions.h lua/lua.h \
- lua/luaconf.h lua_util.h gdsparser.h vector.h scriptmanager.h \
- modulemanager.h
+ lua/luaconf.h gdsparser.h vector.h
 main.verilog.o: main.verilog.c main.verilog.h vector.h lua/lua.h \
  lua/luaconf.h lua/lauxlib.h lua/lua.h filesystem.h lplacement.h \
  polygon.h point.h lplacer.h lrouter.h lua_util.h modulemanager.h util.h \
@@ -237,6 +237,8 @@ transformationmatrix.o: transformationmatrix.c transformationmatrix.h \
  point.h
 union.o: union.c union.h vector.h point.h shape.h transformationmatrix.h \
  technology.h lua/lua.h lua/luaconf.h hashmap.h
+util_cmodule.o: util_cmodule.c util_cmodule.h lua/lauxlib.h lua/luaconf.h \
+ lua/lua.h lua/lualib.h
 util.o: util.c util.h
 vector.o: vector.c vector.h
 

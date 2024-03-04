@@ -33,24 +33,27 @@ function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
     if anchorprefix then
         cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
     end
 end
 
-function M.place_guardring_quantized(cell, bl, tr, xspace, yspace, basesize, anchorprefix, options)
+function M.place_guardring_quantized(cell, bl, tr, xspace, yspace, basexsize, baseysize, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
     check.arg_func(3, "tr", "point", tr, point.is_point)
     check.arg(4, "xspace", "number", xspace)
     check.arg(5, "yspace", "number", yspace)
-    check.arg(6, "basesize", "number", basesize)
-    check.arg(7, "anchorprefix", "string", anchorprefix)
-    check.arg_optional(8, "options", "table", options)
+    check.arg(6, "basexsize", "number", basexsize)
+    check.arg(7, "baseysize", "number", baseysize)
+    check.arg(8, "anchorprefix", "string", anchorprefix)
+    check.arg_optional(9, "options", "table", options)
     check.reset_function_name()
     local targetwidth = point.xdistance_abs(bl, tr)
     local targetheight = point.ydistance_abs(bl, tr)
-    local holewidth = util.fix_to_grid_abs_higher(targetwidth + 2 * xspace, basesize)
-    local holeheight = util.fix_to_grid_abs_higher(targetheight + 2 * yspace, basesize)
+    local holewidth = util.fix_to_grid_abs_higher(targetwidth + 2 * xspace, basexsize)
+    local holeheight = util.fix_to_grid_abs_higher(targetheight + 2 * yspace, baseysize)
     local guardring = pcell.create_layout(
         "auxiliary/guardring",
         "_guardring",
@@ -60,12 +63,15 @@ function M.place_guardring_quantized(cell, bl, tr, xspace, yspace, basesize, anc
         })
     )
     guardring:move_point(guardring:get_area_anchor("innerboundary").bl, bl)
-    guardring:translate(-(holewidth - targetwidth) / 2, -(holeheight - targetheight) / 2)
+    guardring:translate_x(-(holewidth - targetwidth) / 2)
+    guardring:translate_y(-(holeheight - targetheight) / 2)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
     if anchorprefix then
         cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
     end
 end
 
@@ -91,7 +97,7 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
             holeheight = point.ydistance_abs(bl, tr) + 2 * yspace,
             fillwell = true,
             fillwelldrawhole = true,
-            fillwellholeoffsettop = yspace - point.ydistance(holetr, tr) - welyloffset,
+            fillwellholeoffsettop = yspace - point.ydistance(holetr, tr) - wellyoffset,
             fillwellholeoffsetbottom = yspace - point.ydistance(bl, holebl) - wellyoffset,
             fillwellholeoffsetleft = xspace - point.xdistance(bl, holebl) - wellxoffset,
             fillwellholeoffsetright = xspace - point.xdistance(holetr, tr) - wellxoffset,
@@ -104,10 +110,12 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
     if anchorprefix then
         cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
     end
 end
 
-function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xspace, yspace, basesize, wellxoffset, wellyoffset, anchorprefix, options)
+function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xspace, yspace, basexsize, baseysize, wellxoffset, wellyoffset, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring_with_hole")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -116,16 +124,17 @@ function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xsp
     check.arg_func(5, "holetr", "point", holetr, point.is_point)
     check.arg(6, "xspace", "number", xspace)
     check.arg(7, "yspace", "number", yspace)
-    check.arg(8, "basesize", "number", basesize)
-    check.arg(9, "wellxoffset", "number", wellxoffset)
-    check.arg(10, "wellyoffset", "number", wellyoffset)
-    check.arg(11, "anchorprefix", "string", anchorprefix)
-    check.arg_optional(10, "options", "table", options)
+    check.arg(8, "basexsize", "number", basexsize)
+    check.arg(9, "baseysize", "number", baseysize)
+    check.arg(10, "wellxoffset", "number", wellxoffset)
+    check.arg(11, "wellyoffset", "number", wellyoffset)
+    check.arg(12, "anchorprefix", "string", anchorprefix)
+    check.arg_optional(13, "options", "table", options)
     check.reset_function_name()
     local targetwidth = point.xdistance_abs(bl, tr)
     local targetheight = point.ydistance_abs(bl, tr)
-    local holewidth = util.fix_to_grid_abs_higher(targetwidth + 2 * xspace, basesize)
-    local holeheight = util.fix_to_grid_abs_higher(targetheight + 2 * yspace, basesize)
+    local holewidth = util.fix_to_grid_abs_higher(targetwidth + 2 * xspace, basexsize)
+    local holeheight = util.fix_to_grid_abs_higher(targetheight + 2 * yspace, baseysize)
     local guardring = pcell.create_layout(
         "auxiliary/guardring",
         "_guardring",
@@ -147,6 +156,8 @@ function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xsp
     if anchorprefix then
         cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
     end
 end
 
@@ -170,6 +181,8 @@ function M.place_welltap(cell, bl, tr, anchorprefix, options)
     cell:merge_into(welltap)
     cell:inherit_alignment_box(welltap)
     cell:inherit_area_anchor_as(welltap, "boundary", string.format("%sboundary", anchorprefix))
+    cell:inherit_area_anchor_as(welltap, "well", string.format("%swell", anchorprefix))
+    cell:inherit_area_anchor_as(welltap, "implant", string.format("%simplant", anchorprefix))
 end
 
 --[[
@@ -318,6 +331,25 @@ function M.place_stripline(cell, signalmetal, pts, swidth, gwidth)
     geometry.path_polygon(cell, generics.metal(signalmetal - 1), pts, gwidth)
     geometry.path_polygon(cell, generics.metal(signalmetal), pts, swidth)
     geometry.path_polygon(cell, generics.metal(signalmetal + 1), pts, gwidth)
+end
+
+function M.collect_gridlines(t, cells, anchorname)
+    for _, cell in ipairs(cells) do
+        local bl = cell:get_area_anchor(anchorname).bl
+        local tr = cell:get_area_anchor(anchorname).tr
+        local found = false
+        for _, line in ipairs(t) do
+            local union = util.rectangle_union(bl, tr, line.bl, line.tr)
+            if union then
+                found = true
+                line.bl = union.bl
+                line.tr = union.tr
+            end
+        end
+        if not found then
+            table.insert(t, { bl = bl:copy(), tr = tr:copy() })
+        end
+    end
 end
 
 return M

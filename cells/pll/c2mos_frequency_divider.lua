@@ -54,6 +54,7 @@ function parameters()
         { "latchfingers", 6 },
         { "latchinterconnectwidth", 60 },
         { "outerdummies", 2 },
+        { "invfingers", { 4, 8, 16 } },
         { "nmosclockfingerwidth", 500 },
         { "pmosclockfingerwidth", 500 },
         { "nmosinputfingerwidth", 500 },
@@ -71,6 +72,15 @@ function parameters()
         { "pmosinputdrainsourcesize", 500, follow = "pmosinputfingerwidth" },
         { "pmosinputdummygatewidth", technology.get_dimension("Minimum M1 Width") },
         { "pmosinputdummygatespace", technology.get_dimension("Minimum M1 Space") },
+        { "nmosinvfingerwidth", 500 },
+        { "pmosinvfingerwidth", 500 },
+        { "nmosinputfingerwidth", 500 },
+        { "pmosinputfingerwidth", 500 },
+        { "nmosinvdrainsourcesize", 500, follow = "nmosinvfingerwidth" },
+        { "pmosinvdrainsourcesize", 500, follow = "nmosinvfingerwidth" },
+        { "nmoslatchdrainsourcesize", 500, follow = "nmosinvfingerwidth" },
+        { "nmosinvdummydrainsourcesize", 500, follow = "nmosinvfingerwidth" },
+        { "pmosinvdummydrainsourcesize", 500, follow = "nmosinvfingerwidth" },
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Space") },
         { "inputlinewidth", 500 },
@@ -81,7 +91,15 @@ function parameters()
         { "inputdrainsourcespace", 60 },
         { "inputdrainsourcewidth", 80 },
         { "clockgatewidth", 60 },
+        { "clockgatestrapxshift", 0 },
+        { "clockgatestrapyshift", 0 },
         { "dummygatecontactwidth", technology.get_dimension("Minimum M1 Width") },
+        { "invdrainsourcewidth", 80 },
+        { "invgatewidth", 60 },
+        { "invgatestrapxshift", 0 },
+        { "invgatestrapyshift", 0 },
+        { "invdrainsourcespace", 60 },
+        { "invdrainsourcewidth", 60 },
         { "nmosvthtype", 1 },
         { "pmosvthtype", 1 },
         { "nmosflippedwell", false },
@@ -89,6 +107,9 @@ function parameters()
         { "clockviaextension", 0 },
         { "latchstartmetal", 4 },
         { "latchendmetal", 5 },
+        { "latchviaminwidth", 200 },
+        { "bufinnerdummies", 2 },
+        { "buffershift", 1000 },
         { "implantleftextension", 0 },
         { "implantrightextension", 0 },
         { "implanttopextension", 0 },
@@ -108,6 +129,16 @@ function parameters()
         { "gatecutheight", 100 },
         { "leftpolylines", {} },
         { "rightpolylines", {} },
+        { "drawleftnmoswelltap", false },
+        { "drawrightnmoswelltap", false },
+        { "drawleftpmoswelltap", false },
+        { "drawrightpmoswelltap", false },
+        { "connectnmoswelltab", false },
+        { "connectpmoswelltap", false },
+        { "welltapwidth", 200 },
+        { "welltapshrink", 0 },
+        { "welltapshift", 500 },
+        { "welltapwellextension", 0 },
         { "flat", true },
         { "addgatemetalnum", 0 },
         { "addinputconnectionmetalnum", 0 }
@@ -146,10 +177,96 @@ local function _insert_after(rowdefinition, name, entry)
     end
 end
 
+local function _make_vdddummy(name, fingers, _P, outerleft, outerright)
+    return {
+        name = name,
+        fingers = fingers,
+        drainmetal = 2,
+        connectdrain = true,
+        connectdraininverse = true,
+        drainalign = "bottom",
+        connectdrainspace = _P.powerspace,
+        connectdrainwidth = _P.powerwidth,
+        sourcesize = _P.nmosinvdummydrainsourcesize,
+        drainsize = _P.nmosinvdummydrainsourcesize,
+        drainalign = "top",
+        drawtopgate = true,
+        topgatewidth = _P.dummygatecontactwidth,
+        topgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
+        drawbotgatecut = true,
+        leftpolylines = outerleft and _P.leftpolylines or nil,
+        rightpolylines = outerright and _P.rightpolylines or nil,
+        drawleftstopgate = outerleft and _P.drawleftstopgate or nil,
+        drawrightstopgate = outerright and _P.drawrightstopgate or nil,
+        drawstopgatebotgatecut = outerleft or outerright,
+    }
+end
+
+local function _make_vssdummy(name, fingers, _P, outerleft, outerright)
+    return {
+        name = name,
+        fingers = fingers,
+        drainmetal = 2,
+        connectdrain = true,
+        connectdraininverse = true,
+        drainalign = "bottom",
+        connectdrainspace = _P.powerspace,
+        connectdrainwidth = _P.powerwidth,
+        sourcesize = _P.nmosinvdummydrainsourcesize,
+        drainsize = _P.nmosinvdummydrainsourcesize,
+        drainalign = "top",
+        drawbotgate = true,
+        botgatewidth = _P.dummygatecontactwidth,
+        botgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
+        drawtopgatecut = true,
+        leftpolylines = outerleft and _P.leftpolylines or nil,
+        rightpolylines = outerright and _P.rightpolylines or nil,
+        drawleftstopgate = outerleft and _P.drawleftstopgate or nil,
+        drawrightstopgate = outerright and _P.drawrightstopgate or nil,
+        drawstopgatetopgatecut = outerleft or outerright,
+    }
+end
+
+local function _make_invpmos(name, fingers, _P)
+    return {
+        name = name,
+        fingers = fingers,
+        connectdrain = true,
+        connectdrainwidth = _P.invdrainsourcewidth,
+        connectdrainspace = _P.invdrainsourcespace,
+        drainmetal = 3,
+        drawbotgate = true,
+        botgatewidth = _P.invgatewidth,
+        botgatespace = (_P.separation - _P.invgatewidth) / 2,
+        botgatemetal = 2,
+        drawbotgatevia = true,
+    }
+end
+
+local function _make_invnmos(name, fingers, _P)
+    return {
+        name = name,
+        fingers = fingers,
+        connectdrain = true,
+        connectdrainwidth = _P.invdrainsourcewidth,
+        connectdrainspace = _P.invdrainsourcespace,
+        drainmetal = 3,
+        drawtopgate = true,
+        topgatewidth = _P.invgatewidth,
+        topgatespace = (_P.separation - _P.invgatewidth) / 2,
+        topgatemetal = 2,
+        drawtopgatevia = true,
+    }
+end
+
 function layout(divider, _P)
     local xpitch = _P.gatelength + _P.gatespace
     local equalizationdummies = (_P.inputfingers - _P.clockfingers / 2) / 2
     local middledummyfingers = 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers
+    local allfingers = 2 * _P.outerdummies + _P.clockfingers + 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers
+    if equalizationdummies > 0 then
+        allfingers = allfingers + 4 * equalizationdummies
+    end
 
     local baseoptions = {
         -- base mosfet options
@@ -173,7 +290,7 @@ function layout(divider, _P)
         -- marker extensions
         extendimplantleft = _P.implantleftextension,
         extendimplantright = _P.implantrightextension,
-        extendimplanttop = _P.implanttopextension,
+        extendimplanttop = _P.powerspace + _P.powerwidth / 2 + _P.gatestopextension + _P.implanttopextension,
         extendimplantbottom = _P.powerspace + _P.powerwidth / 2 + _P.gatesbotextension + _P.implantbotextension,
         extendvthtypeleft = _P.vthtypeleftextension,
         extendvthtyperight = _P.vthtyperightextension,
@@ -770,14 +887,37 @@ function layout(divider, _P)
     })
 
     -- latch cross-coupling
-    geometry.viabltr(latch, 1, _P.latchendmetal,
-        latch:get_area_anchor("nlatchleft_drainstrap").bl,
-        latch:get_area_anchor("nlatchleft_drainstrap").tr
-    )
-    geometry.viabltr(latch, 1, _P.latchendmetal,
-        latch:get_area_anchor("nlatchright_drainstrap").bl,
-        latch:get_area_anchor("nlatchright_drainstrap").tr
-    )
+    if _P.latchfingers * xpitch / 2 + _P.sdwidth < _P.latchviaminwidth then
+        geometry.viabltr(latch, 1, _P.latchendmetal,
+            point.create(
+                latch:get_area_anchor("nlatchleft_drainstrap").r - _P.latchviaminwidth,
+                latch:get_area_anchor("nlatchleft_drainstrap").b
+            ),
+            point.create(
+                latch:get_area_anchor("nlatchleft_drainstrap").r,
+                latch:get_area_anchor("nlatchleft_drainstrap").t
+            )
+        )
+        geometry.viabltr(latch, 1, _P.latchendmetal,
+            point.create(
+                latch:get_area_anchor("nlatchright_drainstrap").l,
+                latch:get_area_anchor("nlatchright_drainstrap").b
+            ),
+            point.create(
+                latch:get_area_anchor("nlatchright_drainstrap").l + _P.latchviaminwidth,
+                latch:get_area_anchor("nlatchright_drainstrap").t
+            )
+        )
+    else
+        geometry.viabltr(latch, 1, _P.latchendmetal,
+            latch:get_area_anchor("nlatchleft_drainstrap").bl,
+            latch:get_area_anchor("nlatchleft_drainstrap").tr
+        )
+        geometry.viabltr(latch, 1, _P.latchendmetal,
+            latch:get_area_anchor("nlatchright_drainstrap").bl,
+            latch:get_area_anchor("nlatchright_drainstrap").tr
+        )
+    end
     geometry.rectanglebltr(latch, generics.metal(1),
         latch:get_area_anchor("nlatchleft_topgatestrap").br,
         latch:get_area_anchor("nlatchright_drainstrap").tl
@@ -893,15 +1033,223 @@ function layout(divider, _P)
     latch:add_area_anchor_bltr("Dpgate", latch:get_area_anchor("ninleft_topgatestrap").bl, latch:get_area_anchor("ninleft_topgatestrap").tr)
     latch:add_area_anchor_bltr("Dngate", latch:get_area_anchor("ninright_topgatestrap").bl, latch:get_area_anchor("ninright_topgatestrap").tr)
 
-    -- power rail vias
-    geometry.viabltr(latch, 1, 2,
+    -- well anchors
+    latch:add_area_anchor_bltr("nmos_well",
+        latch:get_area_anchor("outerclockndummyleft_well").bl,
+        latch:get_area_anchor("outerinputndummyright_well").tr
+    )
+    latch:add_area_anchor_bltr("pmos_well",
+        latch:get_area_anchor("outerinputpdummyleft_well").bl,
+        latch:get_area_anchor("outerclockpdummyright_well").tr
+    )
+
+    -- implant anchors
+    latch:add_area_anchor_bltr("nmos_implant",
+        latch:get_area_anchor("outerclockndummyleft_implant").bl,
+        latch:get_area_anchor("outerinputndummyright_implant").tr
+    )
+    latch:add_area_anchor_bltr("pmos_implant",
+        latch:get_area_anchor("outerinputpdummyleft_implant").bl,
+        latch:get_area_anchor("outerclockpdummyright_implant").tr
+    )
+
+    -- power rail anchors and vias
+    latch:add_area_anchor_bltr("vssbar",
         latch:get_area_anchor("outerclockndummyleft_sourcestrap").bl,
         latch:get_area_anchor("outerclockndummyright_sourcestrap").tr
     )
-    geometry.viabltr(latch, 1, 2,
+    latch:add_area_anchor_bltr("vddbar",
         latch:get_area_anchor("outerclockpdummyleft_sourcestrap").bl,
         latch:get_area_anchor("outerclockpdummyright_sourcestrap").tr
     )
+    geometry.viabltr(latch, 1, 2,
+        latch:get_area_anchor("vssbar").bl,
+        latch:get_area_anchor("vssbar").tr
+    )
+    geometry.viabltr(latch, 1, 2,
+        latch:get_area_anchor("vddbar").bl,
+        latch:get_area_anchor("vddbar").tr
+    )
+
+    -- well taps
+    latch:add_area_anchor_bltr(
+        "nmos_well",
+        latch:get_area_anchor("outerclockndummyleft_well").bl,
+        latch:get_area_anchor("outerclockndummyright_well").tr
+    )
+    latch:add_area_anchor_bltr(
+        "pmos_well",
+        latch:get_area_anchor("outerclockpdummyleft_well").bl,
+        latch:get_area_anchor("outerclockpdummyright_well").tr
+    )
+    if _P.drawleftnmoswelltap then
+        layouthelpers.place_welltap(
+            latch,
+            latch:get_area_anchor("nmos_well").bl:translate(-_P.welltapshift - _P.welltapwidth, _P.welltapshrink),
+            latch:get_area_anchor("nmos_well").tl:translate(-_P.welltapshift, -_P.welltapshrink),
+            "left_nmos_welltap_",
+            {
+                contype = "n",
+            }
+        )
+        geometry.rectanglebltr(latch, generics.other("nwell"),
+            point.create(
+                latch:get_area_anchor("left_nmos_welltap_well").l,
+                latch:get_area_anchor("nmos_well").b
+            ),
+            point.create(
+                latch:get_area_anchor("nmos_well").l,
+                latch:get_area_anchor("nmos_well").t
+            )
+        )
+    end
+    if _P.drawleftpmoswelltap then
+        layouthelpers.place_welltap(
+            latch,
+            latch:get_area_anchor("pmos_well").bl:translate(-_P.welltapshift - _P.welltapwidth, _P.welltapshrink),
+            latch:get_area_anchor("pmos_well").tl:translate(-_P.welltapshift, -_P.welltapshrink),
+            "left_pmos_welltap_",
+            {
+                contype = "p",
+                wellleftextension = _P.welltapwellextension,
+            }
+        )
+        geometry.rectanglebltr(latch, generics.other("pwell"),
+            point.create(
+                latch:get_area_anchor("left_pmos_welltap_well").l,
+                latch:get_area_anchor("pmos_well").b
+            ),
+            point.create(
+                latch:get_area_anchor("pmos_well").l,
+                latch:get_area_anchor("pmos_well").t
+            )
+        )
+        geometry.rectanglebltr(latch, generics.other("pimplant"),
+            point.create(
+                latch:get_area_anchor("left_pmos_welltap_implant").l,
+                latch:get_area_anchor("pmos_implant").b
+            ),
+            point.create(
+                latch:get_area_anchor("pmos_implant").l,
+                latch:get_area_anchor("pmos_implant").t
+            )
+        )
+        if _P.connectpmoswelltap then
+            -- FIXME: currently only support for flipped-well
+            if _P.pmosflippedwell then
+                geometry.polygon(latch, generics.metal(1), {
+                    point.create(
+                        latch:get_area_anchor("left_pmos_welltap_boundary").l,
+                        latch:get_area_anchor("left_pmos_welltap_boundary").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("left_pmos_welltap_boundary").l,
+                        latch:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("vssbar").l,
+                        latch:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("vssbar").l,
+                        latch:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        latch:get_area_anchor("left_pmos_welltap_boundary").r,
+                        latch:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        latch:get_area_anchor("left_pmos_welltap_boundary").r,
+                        latch:get_area_anchor("left_pmos_welltap_boundary").b
+                    ),
+                })
+            end
+        end
+    end
+    if _P.drawrightnmoswelltap then
+        layouthelpers.place_welltap(
+            latch,
+            latch:get_area_anchor("nmos_well").br:translate(_P.welltapshift, _P.welltapshrink),
+            latch:get_area_anchor("nmos_well").tr:translate(_P.welltapshift + _P.welltapwidth, -_P.welltapshrink),
+            "right_nmos_welltap_",
+            {
+                contype = "n",
+            }
+        )
+        geometry.rectanglebltr(latch, generics.other("nwell"),
+            point.create(
+                latch:get_area_anchor("nmos_well").l,
+                latch:get_area_anchor("nmos_well").b
+            ),
+            point.create(
+                latch:get_area_anchor("right_nmos_welltap_well").l,
+                latch:get_area_anchor("right_nmos_welltap_well").t
+            )
+        )
+    end
+    if _P.drawrightpmoswelltap then
+        layouthelpers.place_welltap(
+            latch,
+            latch:get_area_anchor("pmos_well").br:translate(_P.welltapshift, _P.welltapshrink),
+            latch:get_area_anchor("pmos_well").tr:translate(_P.welltapshift + _P.welltapwidth, -_P.welltapshrink),
+            "right_pmos_welltap_",
+            {
+                contype = "p",
+                wellrightextension = _P.welltapwellextension,
+            }
+        )
+        geometry.rectanglebltr(latch, generics.other("pwell"),
+            point.create(
+                latch:get_area_anchor("pmos_well").r,
+                latch:get_area_anchor("pmos_well").b
+            ),
+            point.create(
+                latch:get_area_anchor("right_pmos_welltap_well").l,
+                latch:get_area_anchor("right_pmos_welltap_well").t
+            )
+        )
+        geometry.rectanglebltr(latch, generics.other("pimplant"),
+            point.create(
+                latch:get_area_anchor("pmos_implant").r,
+                latch:get_area_anchor("pmos_implant").b
+            ),
+            point.create(
+                latch:get_area_anchor("right_pmos_welltap_implant").r,
+                latch:get_area_anchor("pmos_implant").t
+            )
+        )
+        if _P.connectpmoswelltap then
+            -- FIXME: currently only support for flipped-well
+            if _P.pmosflippedwell then
+                geometry.polygon(latch, generics.metal(1), {
+                    point.create(
+                        latch:get_area_anchor("right_pmos_welltap_boundary").r,
+                        latch:get_area_anchor("right_pmos_welltap_boundary").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("right_pmos_welltap_boundary").r,
+                        latch:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("vssbar").r,
+                        latch:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        latch:get_area_anchor("vssbar").r,
+                        latch:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        latch:get_area_anchor("right_pmos_welltap_boundary").l,
+                        latch:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        latch:get_area_anchor("right_pmos_welltap_boundary").l,
+                        latch:get_area_anchor("right_pmos_welltap_boundary").b
+                    ),
+                })
+            end
+        end
+    end
 
     latch:clear_alignment_box()
     latch:set_alignment_box(
@@ -999,14 +1347,34 @@ function layout(divider, _P)
 
     -- input gate connections
     for i = 0, _P.addgatemetalnum do
-        geometry.rectanglebltr(latch, generics.metal(2 + i),
-            latch:get_area_anchor("clocknleft_topgatestrap").bl,
-            latch:get_area_anchor("clocknright_topgatestrap").tr
-        )
-        geometry.rectanglebltr(latch, generics.metal(2 + i),
-            latch:get_area_anchor("clockpleft_botgatestrap").bl,
-            latch:get_area_anchor("clockpright_botgatestrap").tr
-        )
+        geometry.polygon(latch, generics.metal(2 + i), {
+            latch:get_area_anchor("clocknleft_topgatestrap").br,
+            latch:get_area_anchor("clocknleft_topgatestrap").br:translate_x(_P.clockgatestrapxshift),
+            latch:get_area_anchor("clocknleft_topgatestrap").br:translate(_P.clockgatestrapxshift, -_P.clockgatestrapyshift),
+            latch:get_area_anchor("clocknright_topgatestrap").bl:translate(-_P.clockgatestrapxshift, -_P.clockgatestrapyshift),
+            latch:get_area_anchor("clocknright_topgatestrap").bl:translate_x(-_P.clockgatestrapxshift),
+            latch:get_area_anchor("clocknright_topgatestrap").bl,
+            latch:get_area_anchor("clocknright_topgatestrap").tl,
+            latch:get_area_anchor("clocknright_topgatestrap").tl:translate_x(-(_P.clockgatestrapxshift + _P.clockgatewidth)),
+            latch:get_area_anchor("clocknright_topgatestrap").tl:translate(-(_P.clockgatestrapxshift + _P.clockgatewidth), -_P.clockgatestrapyshift),
+            latch:get_area_anchor("clocknleft_topgatestrap").tr:translate((_P.clockgatestrapxshift + _P.clockgatewidth), -_P.clockgatestrapyshift),
+            latch:get_area_anchor("clocknleft_topgatestrap").tr:translate_x((_P.clockgatestrapxshift + _P.clockgatewidth)),
+            latch:get_area_anchor("clocknleft_topgatestrap").tr,
+        })
+        geometry.polygon(latch, generics.metal(2 + i), {
+            latch:get_area_anchor("clockpleft_botgatestrap").br,
+            latch:get_area_anchor("clockpleft_botgatestrap").br:translate_x(_P.clockgatestrapxshift + _P.clockgatewidth),
+            latch:get_area_anchor("clockpleft_botgatestrap").br:translate(_P.clockgatestrapxshift + _P.clockgatewidth, _P.clockgatestrapyshift),
+            latch:get_area_anchor("clockpright_botgatestrap").bl:translate(-(_P.clockgatestrapxshift + _P.clockgatewidth), _P.clockgatestrapyshift),
+            latch:get_area_anchor("clockpright_botgatestrap").bl:translate_x(-(_P.clockgatestrapxshift + _P.clockgatewidth)),
+            latch:get_area_anchor("clockpright_botgatestrap").bl,
+            latch:get_area_anchor("clockpright_botgatestrap").tl,
+            latch:get_area_anchor("clockpright_botgatestrap").tl:translate_x(-_P.clockgatestrapxshift),
+            latch:get_area_anchor("clockpright_botgatestrap").tl:translate(-_P.clockgatestrapxshift, _P.clockgatestrapyshift),
+            latch:get_area_anchor("clockpleft_botgatestrap").tr:translate(_P.clockgatestrapxshift, _P.clockgatestrapyshift),
+            latch:get_area_anchor("clockpleft_botgatestrap").tr:translate_x(_P.clockgatestrapxshift),
+            latch:get_area_anchor("clockpleft_botgatestrap").tr,
+        })
     end
 
     -- connect left and right parts of latch
@@ -1020,7 +1388,6 @@ function layout(divider, _P)
             latch:get_area_anchor("pinright_sourcestrap").tr
         )
     end
-
 
     -- latch ports (for non-flat layout)
     -- clock ports
@@ -1059,6 +1426,416 @@ function layout(divider, _P)
         if _P.flat then
             divider:merge_into(latches[i])
         end
+    end
+
+    -- buffer mosfet array
+    local numbuf = #_P.invfingers
+    local allinvfingers = util.sum(_P.invfingers)
+    local bufrowdefinition = {}
+    local bufouterdummies = (allfingers - 2 * allinvfingers - 2 * numbuf * _P.bufinnerdummies) / 2
+    local invndevices = {}
+    table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft", numbuf + 1), bufouterdummies, _P, true, false)) -- outer left dummy
+    for i = numbuf, 1, -1 do
+        local fingers = _P.invfingers[i]
+        table.insert(invndevices, _make_invnmos(string.format("invn%dleft", i), fingers, _P))
+        table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft", i), _P.bufinnerdummies, _P))
+    end
+    table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", 1), _P.bufinnerdummies, _P))
+    for i = 1, numbuf, 1 do
+        local fingers = _P.invfingers[i]
+        table.insert(invndevices, _make_invnmos(string.format("invn%dright", i), fingers, _P))
+        if i == numbuf then
+            table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", i + 1), bufouterdummies, _P, false, true)) -- outer right dummy
+        else
+            table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", i + 1), _P.bufinnerdummies, _P))
+        end
+    end
+    table.insert(bufrowdefinition,
+        util.add_options(nmosoptions, {
+            width = _P.nmosinvfingerwidth,
+            connectsource = true,
+            connectsourcewidth = _P.powerwidth,
+            connectsourcespace = _P.powerspace,
+            gbotext = _P.powerspace + _P.powerwidth / 2 + _P.gatesbotextension,
+            sourcesize = _P.nmosinvdrainsourcesize,
+            drainsize = _P.nmosinvdrainsourcesize,
+            devices = invndevices,
+        })
+    )
+    local invpdevices = {}
+    table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyleft", numbuf + 1), bufouterdummies, _P, true, false)) -- outer dummy
+    for i = numbuf, 1, -1 do
+        local fingers = _P.invfingers[i]
+        table.insert(invpdevices, _make_invpmos(string.format("invp%dleft", i), fingers, _P))
+        table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyleft", i), _P.bufinnerdummies, _P))
+    end
+    table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", 1), _P.bufinnerdummies, _P))
+    for i = 1, numbuf, 1 do
+        local fingers = _P.invfingers[i]
+        table.insert(invpdevices, _make_invpmos(string.format("invp%dright", i), fingers, _P))
+        if i == numbuf then
+            table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", i + 1), bufouterdummies, _P, false, true)) -- outer dummy
+        else
+            table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", i + 1), _P.bufinnerdummies, _P))
+        end
+    end
+    table.insert(bufrowdefinition,
+        util.add_options(pmosoptions, {
+            width = _P.pmosinvfingerwidth,
+            connectsource = true,
+            connectsourcewidth = _P.powerwidth,
+            connectsourcespace = _P.powerspace,
+            gtopext = _P.powerspace + _P.powerwidth / 2 + _P.gatesbotextension,
+            sourcesize = _P.pmosinvdrainsourcesize,
+            drainsize = _P.pmosinvdrainsourcesize,
+            devices = invpdevices,
+        })
+    )
+
+    local bufferref = pcell.create_layout("basic/stacked_mosfet_array", "buffer", {
+        sdwidth = _P.sdwidth,
+        separation = _P.separation,
+        rows = bufrowdefinition,
+        splitgates = false,
+    })
+    bufferref:add_area_anchor_bltr("vssbar",
+        bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invn%ddummyright_sourcestrap", numbuf + 1)).tr
+    )
+    bufferref:add_area_anchor_bltr("vddbar",
+        bufferref:get_area_anchor(string.format("invp%ddummyleft_sourcestrap", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf + 1)).tr
+    )
+
+    -- buffer power rail anchors and vias
+    bufferref:add_area_anchor_bltr("vssbar",
+        bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invn%ddummyright_sourcestrap", numbuf + 1)).tr
+    )
+    bufferref:add_area_anchor_bltr("vddbar",
+        bufferref:get_area_anchor(string.format("invp%ddummyleft_sourcestrap", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf + 1)).tr
+    )
+    geometry.viabltr(bufferref, 1, 2,
+        bufferref:get_area_anchor("vssbar").bl,
+        bufferref:get_area_anchor("vssbar").tr
+    )
+    geometry.viabltr(bufferref, 1, 2,
+        bufferref:get_area_anchor("vddbar").bl,
+        bufferref:get_area_anchor("vddbar").tr
+    )
+
+    -- buffer well anchors
+    bufferref:add_area_anchor_bltr("nmos_well",
+        bufferref:get_area_anchor(string.format("invn%ddummyleft_well", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invn%ddummyright_well", numbuf + 1)).tr
+    )
+    bufferref:add_area_anchor_bltr("pmos_well",
+        bufferref:get_area_anchor(string.format("invp%ddummyleft_well", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invp%ddummyright_well", numbuf + 1)).tr
+    )
+
+    -- buffer implant anchors
+    bufferref:add_area_anchor_bltr("nmos_implant",
+        bufferref:get_area_anchor(string.format("invn%ddummyleft_implant", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invn%ddummyright_implant", numbuf + 1)).tr
+    )
+    bufferref:add_area_anchor_bltr("pmos_implant",
+        bufferref:get_area_anchor(string.format("invp%ddummyleft_implant", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invp%ddummyright_implant", numbuf + 1)).tr
+    )
+
+    -- buffer input anchors
+    bufferref:add_area_anchor_bltr("inp",
+        bufferref:get_area_anchor(string.format("invn%dleft_topgatestrap", 1)).bl,
+        bufferref:get_area_anchor(string.format("invn%dleft_topgatestrap", 1)).tr
+    )
+    bufferref:add_area_anchor_bltr("inn",
+        bufferref:get_area_anchor(string.format("invn%dright_topgatestrap", 1)).bl,
+        bufferref:get_area_anchor(string.format("invn%dright_topgatestrap", 1)).tr
+    )
+
+    -- buffer output anchors
+    for i = 1, numbuf do
+        bufferref:add_area_anchor_bltr(string.format("outp_%d", i),
+            point.create(
+                bufferref:get_area_anchor(string.format("invn%dleft_sourcedrain2", i)).r - 2 * xpitch - _P.invgatewidth,
+                bufferref:get_area_anchor(string.format("invn%dleft_drainstrap", i)).t
+            ),
+            point.create(
+                bufferref:get_area_anchor(string.format("invn%dleft_sourcedrain2", i)).r - 2 * xpitch,
+                bufferref:get_area_anchor(string.format("invp%dleft_drainstrap", i)).b
+            )
+        )
+        bufferref:add_area_anchor_bltr(string.format("outn_%d", i),
+            point.create(
+                bufferref:get_area_anchor(string.format("invn%dright_sourcedrain-2", i)).l + 2 * xpitch,
+                bufferref:get_area_anchor(string.format("invn%dright_drainstrap", i)).t
+            ),
+            point.create(
+                bufferref:get_area_anchor(string.format("invn%dright_sourcedrain-2", i)).l + 2 * xpitch + _P.invgatewidth,
+                bufferref:get_area_anchor(string.format("invp%dright_drainstrap", i)).b
+            )
+        )
+    end
+
+    -- buffer outputs
+    for i = 1, numbuf do
+        geometry.viabltr(bufferref, 2, 3,
+            bufferref:get_area_anchor(string.format("outp_%d", i)).bl,
+            bufferref:get_area_anchor(string.format("outp_%d", i)).tr
+        )
+        geometry.rectanglebltr(bufferref, generics.metal(3),
+            point.create(
+                bufferref:get_area_anchor(string.format("outp_%d", i)).l,
+                bufferref:get_area_anchor(string.format("invn%dleft_drainstrap", i)).b
+            ),
+            bufferref:get_area_anchor(string.format("invn%dleft_drainstrap", i)).tl
+        )
+        geometry.rectanglebltr(bufferref, generics.metal(3),
+            point.create(
+                bufferref:get_area_anchor(string.format("outp_%d", i)).l,
+                bufferref:get_area_anchor(string.format("invp%dleft_drainstrap", i)).b
+            ),
+            bufferref:get_area_anchor(string.format("invp%dleft_drainstrap", i)).tl
+        )
+        geometry.viabltr(bufferref, 2, 3,
+            bufferref:get_area_anchor(string.format("outn_%d", i)).bl,
+            bufferref:get_area_anchor(string.format("outn_%d", i)).tr
+        )
+        geometry.rectanglebltr(bufferref, generics.metal(3),
+            bufferref:get_area_anchor(string.format("invn%dright_drainstrap", i)).bl,
+            point.create(
+                bufferref:get_area_anchor(string.format("outn_%d", i)).r,
+                bufferref:get_area_anchor(string.format("invn%dright_drainstrap", i)).t
+            )
+        )
+        geometry.rectanglebltr(bufferref, generics.metal(3),
+            bufferref:get_area_anchor(string.format("invp%dright_drainstrap", i)).br,
+            point.create(
+                bufferref:get_area_anchor(string.format("outn_%d", i)).r,
+                bufferref:get_area_anchor(string.format("invp%dright_drainstrap", i)).t
+            )
+        )
+    end
+
+    -- inputs
+    for i = 2, numbuf do
+        geometry.rectanglebltr(bufferref, generics.metal(2),
+            bufferref:get_area_anchor(string.format("invn%dleft_topgatestrap", i)).bl,
+            point.create(
+                bufferref:get_area_anchor(string.format("outp_%d", i - 1)).l,
+                bufferref:get_area_anchor(string.format("invn%dleft_topgatestrap", i)).t
+            )
+        )
+        geometry.rectanglebltr(bufferref, generics.metal(2),
+            point.create(
+                bufferref:get_area_anchor(string.format("outn_%d", i - 1)).r,
+                bufferref:get_area_anchor(string.format("invn%dright_topgatestrap", i)).b
+            ),
+            bufferref:get_area_anchor(string.format("invn%dright_topgatestrap", i)).tl
+        )
+    end
+
+    -- buffer well taps
+    if _P.drawleftnmoswelltap then
+        layouthelpers.place_welltap(
+            bufferref,
+            bufferref:get_area_anchor("nmos_well").bl:translate(-_P.welltapshift - _P.welltapwidth, _P.welltapshrink),
+            bufferref:get_area_anchor("nmos_well").tl:translate(-_P.welltapshift, -_P.welltapshrink),
+            "left_nmos_welltap_",
+            {
+                contype = "n",
+            }
+        )
+        geometry.rectanglebltr(bufferref, generics.other("nwell"),
+            point.create(
+                bufferref:get_area_anchor("left_nmos_welltap_well").l,
+                bufferref:get_area_anchor("nmos_well").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("nmos_well").l,
+                bufferref:get_area_anchor("nmos_well").t
+            )
+        )
+    end
+    if _P.drawleftpmoswelltap then
+        layouthelpers.place_welltap(
+            bufferref,
+            bufferref:get_area_anchor("pmos_well").bl:translate(-_P.welltapshift - _P.welltapwidth, _P.welltapshrink),
+            bufferref:get_area_anchor("pmos_well").tl:translate(-_P.welltapshift, -_P.welltapshrink),
+            "left_pmos_welltap_",
+            {
+                contype = "p",
+                wellleftextension = _P.welltapwellextension,
+            }
+        )
+        geometry.rectanglebltr(bufferref, generics.other("pwell"),
+            point.create(
+                bufferref:get_area_anchor("left_pmos_welltap_well").l,
+                bufferref:get_area_anchor("pmos_well").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("pmos_well").l,
+                bufferref:get_area_anchor("pmos_well").t
+            )
+        )
+        geometry.rectanglebltr(bufferref, generics.other("pimplant"),
+            point.create(
+                bufferref:get_area_anchor("left_pmos_welltap_implant").l,
+                bufferref:get_area_anchor("pmos_implant").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("pmos_implant").l,
+                bufferref:get_area_anchor("pmos_implant").t
+            )
+        )
+        if _P.connectpmoswelltap then
+            -- FIXME: currently only support for flipped-well
+            if _P.pmosflippedwell then
+                geometry.polygon(bufferref, generics.metal(1), {
+                    point.create(
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").l,
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").b
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").l,
+                        bufferref:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("vssbar").l,
+                        bufferref:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("vssbar").l,
+                        bufferref:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").r,
+                        bufferref:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").r,
+                        bufferref:get_area_anchor("left_pmos_welltap_boundary").b
+                    ),
+                })
+            end
+        end
+    end
+    if _P.drawrightnmoswelltap then
+        layouthelpers.place_welltap(
+            bufferref,
+            bufferref:get_area_anchor("nmos_well").br:translate(_P.welltapshift, _P.welltapshrink),
+            bufferref:get_area_anchor("nmos_well").tr:translate(_P.welltapshift + _P.welltapwidth, -_P.welltapshrink),
+            "right_nmos_welltap_",
+            {
+                contype = "n",
+            }
+        )
+        geometry.rectanglebltr(bufferref, generics.other("nwell"),
+            point.create(
+                bufferref:get_area_anchor("nmos_well").l,
+                bufferref:get_area_anchor("nmos_well").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("right_nmos_welltap_well").l,
+                bufferref:get_area_anchor("right_nmos_welltap_well").t
+            )
+        )
+    end
+    if _P.drawrightpmoswelltap then
+        layouthelpers.place_welltap(
+            bufferref,
+            bufferref:get_area_anchor("pmos_well").br:translate(_P.welltapshift, _P.welltapshrink),
+            bufferref:get_area_anchor("pmos_well").tr:translate(_P.welltapshift + _P.welltapwidth, -_P.welltapshrink),
+            "right_pmos_welltap_",
+            {
+                contype = "p",
+                wellrightextension = _P.welltapwellextension,
+            }
+        )
+        geometry.rectanglebltr(bufferref, generics.other("pwell"),
+            point.create(
+                bufferref:get_area_anchor("pmos_well").r,
+                bufferref:get_area_anchor("pmos_well").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("right_pmos_welltap_well").r,
+                bufferref:get_area_anchor("pmos_well").t
+            )
+        )
+        geometry.rectanglebltr(bufferref, generics.other("pimplant"),
+            point.create(
+                bufferref:get_area_anchor("pmos_implant").r,
+                bufferref:get_area_anchor("pmos_implant").b
+            ),
+            point.create(
+                bufferref:get_area_anchor("right_pmos_welltap_implant").r,
+                bufferref:get_area_anchor("pmos_implant").t
+            )
+        )
+        if _P.pmosflippedwell then
+            geometry.polygon(bufferref, generics.metal(1), {
+                point.create(
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").r,
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").b
+                ),
+                point.create(
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").r,
+                    bufferref:get_area_anchor("vssbar").b
+                ),
+                point.create(
+                    bufferref:get_area_anchor("vssbar").r,
+                    bufferref:get_area_anchor("vssbar").b
+                ),
+                point.create(
+                    bufferref:get_area_anchor("vssbar").r,
+                    bufferref:get_area_anchor("vssbar").t
+                ),
+                point.create(
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").l,
+                    bufferref:get_area_anchor("vssbar").t
+                ),
+                point.create(
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").l,
+                    bufferref:get_area_anchor("right_pmos_welltap_boundary").b
+                ),
+            })
+        end
+    end
+
+    bufferref:clear_alignment_box()
+    bufferref:set_alignment_box(
+        point.create(
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcedrain1", numbuf + 1)).l,
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).b
+        ),
+        point.create(
+            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcedrain-1", numbuf)).r,
+            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf)).t
+        ),
+        point.create(
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcedrain1", numbuf + 1)).r,
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).t
+        ),
+        point.create(
+            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcedrain-1", numbuf)).l,
+            bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf)).b
+        )
+    )
+
+    local buffer
+    if _P.flat then
+        buffer = bufferref
+    else
+        buffer = divider:add_child(bufferref, "buffer")
+    end
+    buffer:abut_top(latches[numlatches])
+    buffer:align_left(latches[numlatches])
+    buffer:translate_y(_P.buffershift)
+    divider:inherit_alignment_box(buffer)
+    if _P.flat then
+        divider:merge_into(buffer)
     end
 
     -- internal connections between latches
@@ -1143,21 +1920,21 @@ function layout(divider, _P)
     -- input lines
     divider:add_area_anchor_bltr("inp_line",
         point.create(
-            latches[1]:get_area_anchor("ninputseparation1_sourcedrainactive-2").l - _P.inputlinewidth,
+            latches[1]:get_area_anchor("clocknleft_topgatestrap").r + _P.clockgatestrapxshift,
             latches[1]:get_area_anchor("outerclockndummyleft_sourcestrap").b
         ),
         point.create(
-            latches[1]:get_area_anchor("ninputseparation1_sourcedrainactive-2").l,
+            latches[1]:get_area_anchor("clocknleft_topgatestrap").r + _P.clockgatestrapxshift + _P.inputlinewidth,
             latches[numlatches]:get_area_anchor("outerclockndummyleft_sourcestrap").t
         )
     )
     divider:add_area_anchor_bltr("inn_line",
         point.create(
-            latches[1]:get_area_anchor("ninputseparation3_sourcedrainactive2").r,
+            latches[1]:get_area_anchor("clocknright_topgatestrap").l - _P.clockgatestrapxshift - _P.inputlinewidth,
             latches[1]:get_area_anchor("outerclockndummyleft_sourcestrap").b
         ),
         point.create(
-            latches[1]:get_area_anchor("ninputseparation3_sourcedrainactive2").r + _P.inputlinewidth,
+            latches[1]:get_area_anchor("clocknright_topgatestrap").l - _P.clockgatestrapxshift,
             latches[numlatches]:get_area_anchor("outerclockndummyleft_sourcestrap").t
         )
     )
@@ -1201,11 +1978,11 @@ function layout(divider, _P)
         geometry.viabltr(divider, 2, 7,
             point.create(
                 divider:get_area_anchor("inp_line").l,
-                latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clockpidentifier, ptarget)).b
+                latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clockpidentifier, ptarget)).b - _P.clockgatestrapyshift
             ),
             point.create(
                 divider:get_area_anchor("inp_line").r,
-                latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clockpidentifier, ptarget)).t
+                latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clockpidentifier, ptarget)).t - _P.clockgatestrapyshift
             )
         )
         -- clockn
@@ -1222,14 +1999,44 @@ function layout(divider, _P)
         geometry.viabltr(divider, 2, 7,
             point.create(
                 divider:get_area_anchor("inn_line").l,
-                latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clocknidentifier, ntarget)).b
+                latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clocknidentifier, ntarget)).b + _P.clockgatestrapyshift
             ),
             point.create(
                 divider:get_area_anchor("inn_line").r,
-                latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clocknidentifier, ntarget)).t
+                latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clocknidentifier, ntarget)).t + _P.clockgatestrapyshift
             )
         )
     end
+
+    -- connect divider to buffers
+    geometry.rectanglebltr(divider, generics.metal(4),
+        latches[numlatches]:get_area_anchor(string.format("nlatchleft_sourcedrain%d", _P.latchfingers)).tl,
+        point.create(
+            latches[numlatches]:get_area_anchor(string.format("nlatchleft_sourcedrain%d", _P.latchfingers)).r,
+            buffer:get_area_anchor("inp").t
+        )
+    )
+    geometry.rectanglebltr(divider, generics.metal(4),
+        latches[numlatches]:get_area_anchor(string.format("nlatchright_sourcedrain%d", 2)).tl,
+        point.create(
+            latches[numlatches]:get_area_anchor(string.format("nlatchright_sourcedrain%d", 2)).r,
+            buffer:get_area_anchor("inn").t
+        )
+    )
+    geometry.viabltr(divider, 2, 4,
+        buffer:get_area_anchor("inp").bl,
+        point.create(
+            latches[numlatches]:get_area_anchor(string.format("nlatchleft_sourcedrain%d", _P.latchfingers)).r,
+            buffer:get_area_anchor("inp").t
+        )
+    )
+    geometry.viabltr(divider, 2, 4,
+        point.create(
+            latches[numlatches]:get_area_anchor(string.format("nlatchright_sourcedrain%d", 2)).l,
+            buffer:get_area_anchor("inn").b
+        ),
+        buffer:get_area_anchor("inn").tr
+    )
 
     -- vdd/vss bar anchors
     for i = 1, numlatches do
@@ -1244,10 +2051,52 @@ function layout(divider, _P)
             latches[i]:get_area_anchor("outerclockpdummyright_sourcestrap").tr
         )
     end
+    divider:add_area_anchor_bltr(
+        "vssbar_bottom",
+        divider:get_area_anchor(string.format("vssbar_%d", 1)).bl,
+        divider:get_area_anchor(string.format("vssbar_%d", 1)).tr
+    )
+    divider:add_area_anchor_bltr(
+        "vssbar_top",
+        divider:get_area_anchor(string.format("vssbar_%d", numlatches)).bl,
+        divider:get_area_anchor(string.format("vssbar_%d", numlatches)).tr
+    )
+    divider:inherit_area_anchor_as(buffer, "vssbar", "vssbar_buf")
+    divider:inherit_area_anchor_as(buffer, "vddbar", "vddbar_buf")
+
+    -- well anchors
+    for i = 1, numlatches do
+        divider:inherit_area_anchor_as(latches[i], "nmos_well", string.format("nmos_well_%d", i))
+        divider:inherit_area_anchor_as(latches[i], "pmos_well", string.format("pmos_well_%d", i))
+        if _P.drawleftnmoswelltap then
+            divider:inherit_area_anchor_as(latches[i], "left_nmos_welltap_boundary", string.format("left_nmos_welltap_boundary_%d", i))
+        end
+        if _P.drawleftpmoswelltap then
+            divider:inherit_area_anchor_as(latches[i], "left_pmos_welltap_boundary", string.format("left_pmos_welltap_boundary_%d", i))
+        end
+        if _P.drawrightnmoswelltap then
+            divider:inherit_area_anchor_as(latches[i], "right_nmos_welltap_boundary", string.format("right_nmos_welltap_boundary_%d", i))
+        end
+        if _P.drawrightpmoswelltap then
+            divider:inherit_area_anchor_as(latches[i], "right_pmos_welltap_boundary", string.format("right_pmos_welltap_boundary_%d", i))
+        end
+    end
+    divider:inherit_area_anchor_as(buffer, "nmos_well", "nmos_well_buf")
+    divider:inherit_area_anchor_as(buffer, "pmos_well", "pmos_well_buf")
 
     -- clock ports -- FIXME: hard-coded for numlatches == 2
-    divider:add_port_with_anchor("inn", generics.metalport(8), divider:get_area_anchor("inp_line").bl)
-    divider:add_port_with_anchor("inp", generics.metalport(8), divider:get_area_anchor("inn_line").bl)
+    divider:add_port_with_anchor("inn", generics.metalport(8),
+        point.create(
+            (divider:get_area_anchor("inp_line").l + divider:get_area_anchor("inp_line").r) / 2,
+            divider:get_area_anchor("inp_line").b
+        )
+    )
+    divider:add_port_with_anchor("inp", generics.metalport(8),
+        point.create(
+            (divider:get_area_anchor("inn_line").l + divider:get_area_anchor("inn_line").r) / 2,
+            divider:get_area_anchor("inn_line").b
+        )
+    )
 
     -- power ports
     for i = 1, numlatches do
@@ -1256,6 +2105,31 @@ function layout(divider, _P)
     end
 
     -- output ports
-    divider:add_port_with_anchor("outp", generics.metalport(4), latches[numlatches]:get_area_anchor("nlatchleft_sourcedrain2").tl)
-    divider:add_port_with_anchor("outn", generics.metalport(4), latches[numlatches]:get_area_anchor("nlatchright_sourcedrain2").tl)
+    divider:add_port_with_anchor("outp", generics.metalport(4),
+        point.create(
+            buffer:get_area_anchor(string.format("outp_%d", numbuf)).l,
+            (buffer:get_area_anchor(string.format("outp_%d", numbuf)).b + buffer:get_area_anchor(string.format("outp_%d", numbuf)).t) / 2
+        )
+    )
+    divider:add_port_with_anchor("outn", generics.metalport(4),
+        point.create(
+            buffer:get_area_anchor(string.format("outn_%d", numbuf)).l,
+            (buffer:get_area_anchor(string.format("outn_%d", numbuf)).b + buffer:get_area_anchor(string.format("outn_%d", numbuf)).t) / 2
+        )
+    )
+
+    -- layer boundaries
+    divider:add_layer_boundary(
+        generics.metal(8),
+        util.rectangle_to_polygon(
+            divider:get_area_anchor("inp_line").bl,
+            divider:get_area_anchor("inn_line").tr
+        )
+    )
+    -- area anchor for layer boundaries
+    divider:add_area_anchor_bltr(
+        "activecore",
+        latches[1]:get_area_anchor("clocknleft_topgatestrap").bl,
+        latches[numlatches]:get_area_anchor("clocknright_topgatestrap").tr
+    )
 end

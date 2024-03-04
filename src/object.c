@@ -100,6 +100,7 @@ struct object {
     char* name;
     int isproxy;
     int ismanaged;
+    int isused;
     struct transformationmatrix* trans;
 
     union {
@@ -109,8 +110,8 @@ struct object {
             int isarray;
             unsigned int xrep;
             unsigned int yrep;
-            unsigned int xpitch;
-            unsigned int ypitch;
+            coordinate_t xpitch;
+            coordinate_t ypitch;
         };
         // full objects
         struct {
@@ -143,6 +144,7 @@ static struct object* _create(const char* name)
         obj->name = NULL;
     }
     obj->ismanaged = 0;
+    obj->isused = 1;
     return obj;
 }
 
@@ -404,6 +406,7 @@ struct object* object_create_handle(struct object* cell, struct object* referenc
     /* store owning reference to original reference object */
     vector_append(cell->references, reference);
     reference->ismanaged = 1;
+    reference->isused = 0; // stored objects are not necessarily used
     return reference;
 }
 
@@ -429,10 +432,14 @@ struct object* object_add_child(struct object* cell, struct object* child, const
             vector_append(cell->references, child);
         }
     }
+    else
+    {
+        child->isused = 1;
+    }
     return proxy;
 }
 
-struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     if(object_is_pseudo(child)) // can't add pseudo objects
     {
@@ -1217,8 +1224,8 @@ int object_abut_area_anchor_right(struct object* cell, const char* anchorname, c
 {
     point_t* pts1 = object_get_area_anchor(cell, anchorname);
     point_t* pts2 = object_get_area_anchor(other, otheranchorname);
-    coordinate_t blx1 = _area_anchor_get_trx(pts1);
-    coordinate_t trx2 = _area_anchor_get_blx(pts2);
+    coordinate_t blx1 = _area_anchor_get_blx(pts1);
+    coordinate_t trx2 = _area_anchor_get_trx(pts2);
     object_translate(cell, trx2 - blx1, 0);
     free(pts1);
     free(pts2);
@@ -1426,7 +1433,15 @@ void object_add_layer_boundary(struct object* cell, const struct generics* layer
 void object_inherit_boundary(struct object* cell, const struct object* othercell)
 {
     cell->boundary = vector_create(4, point_destroy);
-    struct vector_const_iterator* it = vector_const_iterator_create(othercell->boundary);
+    struct vector_const_iterator* it;
+    if(othercell->isproxy)
+    {
+        it = vector_const_iterator_create(othercell->reference->boundary);
+    }
+    else
+    {
+        it = vector_const_iterator_create(othercell->boundary);
+    }
     while(vector_const_iterator_is_valid(it))
     {
         const point_t* pt = vector_const_iterator_get(it);
@@ -1668,7 +1683,7 @@ void object_add_port(struct object* cell, const char* name, const struct generic
     _add_port(cell, name, layer, where->x, where->y, 0, 0, sizehint);
 }
 
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, unsigned int sizehint)
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint)
 {
     int shift = 0;
     if(startindex < endindex)
@@ -2228,6 +2243,11 @@ int object_is_empty(const struct object* cell)
     return !object_has_shapes(cell) && !object_has_children(cell) && !object_has_ports(cell);
 }
 
+int object_is_used(const struct object* cell)
+{
+    return cell->isused;
+}
+
 int object_is_child_array(const struct object* cell)
 {
     return cell->isproxy && cell->isarray;
@@ -2370,12 +2390,12 @@ unsigned int object_get_child_yrep(const struct object* cell)
     return cell->yrep;
 }
 
-unsigned int object_get_child_xpitch(const struct object* cell)
+coordinate_t object_get_child_xpitch(const struct object* cell)
 {
     return cell->xpitch;
 }
 
-unsigned int object_get_child_ypitch(const struct object* cell)
+coordinate_t object_get_child_ypitch(const struct object* cell)
 {
     return cell->ypitch;
 }
@@ -2593,6 +2613,84 @@ struct object* mutable_reference_iterator_get(struct mutable_reference_iterator*
 
 void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it)
 {
+    free(it);
+}
+
+// anchor iterator
+struct anchor_iterator {
+    const struct object* object;
+    struct hashmap_const_iterator* anchoriterator;
+    point_t* container;
+};
+
+struct anchor_iterator* object_create_anchor_iterator(const struct object* cell)
+{
+    struct anchor_iterator* it = malloc(sizeof(*it));
+    it->object = cell;
+    it->anchoriterator = hashmap_const_iterator_create(cell->anchors);
+    it->container = NULL;
+    return it;
+}
+
+int anchor_iterator_is_valid(struct anchor_iterator* it)
+{
+    return hashmap_const_iterator_is_valid(it->anchoriterator);
+}
+
+void anchor_iterator_next(struct anchor_iterator* it)
+{
+    return hashmap_const_iterator_next(it->anchoriterator);
+}
+
+const point_t* anchor_iterator_anchor(struct anchor_iterator* it)
+{
+    const char* key = hashmap_const_iterator_key(it->anchoriterator);
+    const struct anchor* anchor = hashmap_const_iterator_value(it->anchoriterator);
+    // get anchor through object methods for proper transformation
+    if(_anchor_is_area(anchor))
+    {
+        point_t* anchor = object_get_area_anchor(it->object, key);
+        if(it->container)
+        {
+            free(it->container);
+        }
+        it->container = malloc(2 * sizeof(*it->container));
+        memcpy(it->container, anchor, 2 * sizeof(*it->container));
+        free(anchor);
+    }
+    else
+    {
+        point_t* anchor = object_get_anchor(it->object, key);
+        if(it->container)
+        {
+            free(it->container);
+        }
+        it->container = malloc(sizeof(*it->container));
+        memcpy(it->container, anchor, sizeof(*it->container));
+        free(anchor);
+    }
+    return it->container;
+}
+
+const char* anchor_iterator_name(struct anchor_iterator* it)
+{
+    const char* key = hashmap_const_iterator_key(it->anchoriterator);
+    return key;
+}
+
+int anchor_iterator_is_area(struct anchor_iterator* it)
+{
+    const struct anchor* anchor = hashmap_const_iterator_value(it->anchoriterator);
+    return _anchor_is_area(anchor);
+}
+
+void anchor_iterator_destroy(struct anchor_iterator* it)
+{
+    hashmap_const_iterator_destroy(it->anchoriterator);
+    if(it->container)
+    {
+        free(it->container);
+    }
     free(it);
 }
 

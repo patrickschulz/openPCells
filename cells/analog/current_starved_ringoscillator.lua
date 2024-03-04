@@ -109,7 +109,7 @@ function layout(oscillator, _P)
     local baseopt = {
         gatelength = _P.glength,
         gatespace = _P.gspace,
-        gstwidth = _P.gstwidth,
+        gatestrapwidth = _P.gstwidth,
         sdwidth = _P.gstwidth,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
@@ -128,8 +128,8 @@ function layout(oscillator, _P)
         gatecontactsplitshift = _P.gstwidth + _P.gstspace,
         pgateext = _P.powerwidth + _P.powerspace + _P.gstspace + _P.gstwidth,
         ngateext = _P.powerwidth + _P.powerspace + _P.gstspace + _P.gstwidth,
-        outergstwidth = _P.gstwidth,
-        outergstspace = _P.powerspace + _P.powerwidth + _P.gstspace,
+        outergatestrapwidth = _P.gstwidth,
+        outergatestrapspace = _P.powerspace + _P.powerwidth + _P.gstspace,
     }
 
     -- place inverter cells

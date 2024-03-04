@@ -127,7 +127,7 @@ static void _push_trans(lua_State* L, const struct transformationmatrix* trans)
     }
 }
 
-static void _push_rep_pitch(lua_State* L, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static void _push_rep_pitch(lua_State* L, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     lua_pushinteger(L, xrep);
     lua_pushinteger(L, yrep);
@@ -249,7 +249,7 @@ static int _pcall(lua_State* L, int nargs, int nresults, const char* str)
     }
 }
 
-static int _write_child_array(struct export_writer* writer, const char* identifier, const char* instbasename, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static int _write_child_array(struct export_writer* writer, const char* identifier, const char* instbasename, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     if(writer->islua)
     {
@@ -274,7 +274,7 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
     }
 }
 
-static int _write_child_manual_array(struct export_writer* writer, const char* refname, const char* instname, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static int _write_child_manual_array(struct export_writer* writer, const char* refname, const char* instname, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     for(unsigned int ix = 1; ix <= xrep; ++ix)
     {
@@ -354,8 +354,8 @@ static int _write_child(struct export_writer* writer, const struct object* child
     char* refname = _concat_namecontext(expand_namecontext ? namecontext : NULL, object_get_child_reference_name(child));
     const char* instname = object_get_name(child);
     const struct transformationmatrix* trans = object_get_transformation_matrix(child);
-    unsigned int xpitch = object_get_child_xpitch(child);
-    unsigned int ypitch = object_get_child_ypitch(child);
+    coordinate_t xpitch = object_get_child_xpitch(child);
+    coordinate_t ypitch = object_get_child_ypitch(child);
     // FIXME: error checking
     if(object_is_child_array(child) && _has_write_cell_array(writer))
     {
@@ -921,30 +921,33 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
     while(reference_iterator_is_valid(ref_it))
     {
         const struct object* reference = reference_iterator_get(ref_it);
-        const char* name = object_get_name(reference);
-        char* newnamecontext;
-        // FIXME: save already-exported reference names, as there can be duplicates
-        if(namecontext)
+        if(object_is_used(reference))
         {
-            newnamecontext = malloc(strlen(namecontext) + strlen(name) + 1 + 1); // + 1 for underscore
-            if(!newnamecontext)
+            const char* name = object_get_name(reference);
+            char* newnamecontext;
+            // FIXME: save already-exported reference names, as there can be duplicates
+            if(namecontext)
             {
-                reference_iterator_destroy(ref_it);
+                newnamecontext = malloc(strlen(namecontext) + strlen(name) + 1 + 1); // + 1 for underscore
+                if(!newnamecontext)
+                {
+                    reference_iterator_destroy(ref_it);
+                    return 0;
+                }
+                sprintf(newnamecontext, "%s_%s", namecontext, name);
+            }
+            else
+            {
+                newnamecontext = util_strdup(name);
+            }
+            _write_cell_hierarchy_with_namecontext(writer, reference, newnamecontext, expand_namecontext, write_ports, leftdelim, rightdelim);
+            int ret = _write_cell(writer, reference, namecontext, expand_namecontext, 0, write_ports, leftdelim, rightdelim); // 0: cell is not toplevel
+            if(!ret)
+            {
                 return 0;
             }
-            sprintf(newnamecontext, "%s_%s", namecontext, name);
+            free(newnamecontext);
         }
-        else
-        {
-            newnamecontext = util_strdup(name);
-        }
-        _write_cell_hierarchy_with_namecontext(writer, reference, newnamecontext, expand_namecontext, write_ports, leftdelim, rightdelim);
-        int ret = _write_cell(writer, reference, namecontext, expand_namecontext, 0, write_ports, leftdelim, rightdelim); // 0: cell is not toplevel
-        if(!ret)
-        {
-            return 0;
-        }
-        free(newnamecontext);
         reference_iterator_next(ref_it);
     }
     reference_iterator_destroy(ref_it);
@@ -957,10 +960,10 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
     if(_has_initialize(writer))
     {
         ret = _initialize(writer, toplevel);
-        fputs("export_write_write_toplevel: could not initialize export\n", stderr);
     }
     if(!ret)
     {
+        fputs("export_writer_write_toplevel: could not initialize export\n", stderr);
         return 0;
     }
 
@@ -1016,7 +1019,7 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         }
         size_t datalen;
         const char* strdata = lua_tolstring(writer->L, -1, &datalen);
-        export_data_append_string(writer->data, strdata, datalen);
+        export_data_append_string_len(writer->data, strdata, datalen);
         lua_pop(writer->L, 1); // pop data
     }
 

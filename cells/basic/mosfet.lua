@@ -1,12 +1,12 @@
 function parameters()
     pcell.add_parameters(
         { "channeltype(Channel Type)",                                                                  "nmos", posvals = set("nmos", "pmos"), info = "polarity of the mosfet. Can be either 'nmos' or 'pmos'." },
-        { "implant(Threshold Voltage Type)",                                                            1, argtype = "integer", posvals = interval(1, inf), info = "threshold voltage index of the device. This is a numeric index, starting from 1 (the default). The interpretation of this is up to the technology file" },
+        { "drawimplant",                                                                                true, info = "switch to enable/disable implant drawing. Typically this should be enabled, as a missing implant will most likely cause both the DRC and the LVS to fail. However, in certain situations manual drawing of the implant can be beneficial" },
         { "implantalignwithactive",                                                                     false, info = "set reference points for implant extensions. If this is false, the implant extensions are autmatically calculated so that the implant covers all gates. With this option enabled, the implant extensions are referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights. This option sets left/right/top/bottom alignment, the dedicated switches can be used for more fine-grained control." },
-        { "implantalignleftwithactive",                                                                 false, follow = "vthtypealignwithactive", info = "set reference point for implant left extensions. If this is false, the implant left extension is autmatically calculated so that the implant covers the left gates. With this option enabled, the implant left extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
-        { "implantalignrightwithactive",                                                                false, follow = "vthtypealignwithactive", info = "set reference point for implant right extensions. If this is false, the implant right extension is autmatically calculated so that the implant covers the right gates. With this option enabled, the implant right extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
-        { "implantaligntopwithactive",                                                                  false, follow = "vthtypealignwithactive", info = "set reference point for implant top extensions. If this is false, the implant top extension is autmatically calculated so that the implant covers the top part of all gates. With this option enabled, the implant top extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
-        { "implantalignbottomwithactive",                                                               false, follow = "vthtypealignwithactive", info = "set reference point for implant bottom extensions. If this is false, the implant bottom extension is autmatically calculated so that the implant covers the bottom part of all gates. With this option enabled, the implant bottom extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
+        { "implantalignleftwithactive",                                                                 false, follow = "implantalignwithactive", info = "set reference point for implant left extensions. If this is false, the implant left extension is autmatically calculated so that the implant covers the left gates. With this option enabled, the implant left extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
+        { "implantalignrightwithactive",                                                                false, follow = "implantalignwithactive", info = "set reference point for implant right extensions. If this is false, the implant right extension is autmatically calculated so that the implant covers the right gates. With this option enabled, the implant right extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
+        { "implantaligntopwithactive",                                                                  false, follow = "implantalignwithactive", info = "set reference point for implant top extensions. If this is false, the implant top extension is autmatically calculated so that the implant covers the top part of all gates. With this option enabled, the implant top extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
+        { "implantalignbottomwithactive",                                                               false, follow = "implantalignwithactive", info = "set reference point for implant bottom extensions. If this is false, the implant bottom extension is autmatically calculated so that the implant covers the bottom part of all gates. With this option enabled, the implant bottom extension is referenced to the active region. This is useful for having precise control over the implant extensions marker extensions in mosfet arrays with varying gate heights" },
         { "oxidetype(Oxide Thickness Type)",                                                            1, argtype = "integer", posvals = interval(1, inf), info = "oxide thickness index of the gate. This is a numeric index, starting from 1 (the default). The interpretation of this is up to the technology file" },
         { "oxidetypealignwithactive",                                                                   false, info = "set reference points for oxide thickness marker extensions. If this is false, the oxide thickness marker extensions are autmatically calculated so that the oxide thickness marker covers all gates. With this option enabled, the oxide thickness marker extensions are referenced to the active region. This is useful for having precise control over the oxide thickness marker extensions in mosfet arrays with varying gate heights. This option sets left/right/top/bottom alignment, the dedicated switches can be used for more fine-grained control." },
         { "oxidetypealignleftwithactive",                                                               false, follow = "oxidetypealignwithactive", info = "set reference point for oxide thickness marker left extensions. If this is false, the oxide thickness marker left extension is autmatically calculated so that the oxide thickness marker covers the left gates. With this option enabled, the oxide thickness marker left extension is referenced to the active region. This is useful for having precise control over the oxide thickness marker extensions in mosfet arrays with varying gate heights" },
@@ -76,10 +76,10 @@ function parameters()
         { "sourceviasize(Source Via Size)",                                                             technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize", info = "Same as 'sourcesize', but for source vias." },
         { "drainsize(Drain Size)",                                                                      technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fingerwidth", info = "Size of the drain contact regions. This parameter follows 'fingerwidth', so per default the contact regions have the width of a transistor finger. For 'drainsize', only values between 0 and 'fingerwidth' are allowed., If the size is smaller than 'fingerwidth', the drain contact alignment ('drainalign') is relevant." },
         { "drainviasize(Drain Via Size)",                                                               technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize", info = "Same as 'drainsize', but for drain vias." },
-        { "sourcealign(Source Alignment)",                                                              "bottom", posvals = set("top", "bottom"), info = "Alignment of the source contacts. Only relevant when source contacts are smaller than 'fingerwidth' (see 'sourcesize'). Possible values: 'top' (source contacts grow down from the top into the active region) and 'bottom' (source contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
-        { "sourceviaalign(Source Via Alignment)",                                                       "bottom", posvals = set("top", "bottom"), follow = "sourcealign" },
-        { "drainalign(Drain Alignment)",                                                                "top", posvals = set("top", "bottom"), info = "Alignment of the drain contacts. Only relevant when drain contacts are smaller than 'fingerwidth' (see 'drainsize'). Possible values: 'top' (drain contacts grow down from the top into the active region) and 'bottom' (drain contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
-        { "drainviaalign(Drain Via Alignment)",                                                         "top", posvals = set("top", "bottom"), follow = "drainalign", info = "Same as 'drainalign' for drain vias." },
+        { "sourcealign(Source Alignment)",                                                              "bottom", posvals = set("top", "bottom", "center"), info = "Alignment of the source contacts. Only relevant when source contacts are smaller than 'fingerwidth' (see 'sourcesize'). Possible values: 'top' (source contacts grow down from the top into the active region) and 'bottom' (source contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
+        { "sourceviaalign(Source Via Alignment)",                                                       "bottom", posvals = set("top", "bottom", "center"), follow = "sourcealign" },
+        { "drainalign(Drain Alignment)",                                                                "top", posvals = set("top", "bottom", "center"), info = "Alignment of the drain contacts. Only relevant when drain contacts are smaller than 'fingerwidth' (see 'drainsize'). Possible values: 'top' (drain contacts grow down from the top into the active region) and 'bottom' (drain contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
+        { "drainviaalign(Drain Via Alignment)",                                                         "top", posvals = set("top", "bottom", "center"), follow = "drainalign", info = "Same as 'drainalign' for drain vias." },
         { "drawsourcevia(Draw Source Via)",                                                             true, info = "Draw required vias from metal 1 to the source metal. Only useful when 'sourcemetal' is not 1." },
         { "drawfirstsourcevia(Draw First Source Via)",                                                  true, info = "Draw a via on the first source region (counted from the left). This switch can be useful when connecting dummies to other devices." },
         { "drawlastsourcevia(Draw Last Source Via)",                                                    true, info = "Draw a via on the last source region (counted from the left). This switch can be useful when connecting dummies to other devices." },
@@ -103,6 +103,7 @@ function parameters()
         { "sourceviametal(Source Via Metal)",                                                           1, follow = "sourceendmetal" },
         { "connectsourceinline(Connect Source Inline of Transistor)",                                   false },
         { "connectsourceinlineoffset(Offset for Inline Source Connection)",                             0 },
+        { "splitsourcevias(Split Source Vias for Inline Source Connection)",                            false },
         { "connectsourceinverse(Invert Source Strap Locations)",                                        false },
         { "connectdrain(Connect Drain)",                                                                false },
         { "drawdrainstrap(Draw Drain Strap)",                                                           false, follow = "connectdrain" },
@@ -128,6 +129,7 @@ function parameters()
         { "drainviametal(Drain Via Metal)",                                                             1, follow = "drainendmetal" },
         { "connectdraininline(Connect Drain Inline of Transistor)",                                     false },
         { "connectdraininlineoffset(Offset for Inline Drain Connection)",                               0 },
+        { "splitdrainvias(Split Drain Vias for Inline Drain Connection)",                               false },
         { "diodeconnected(Diode Connected Transistor)",                                                 false },
         { "diodeconnectedreversed(Reverse Diode Connections)",                                          false },
         { "drawextrabotstrap(Draw Extra Bottom Strap)",                                                 false },
@@ -167,7 +169,8 @@ function parameters()
         { "leftfloatingdummies",                                                                        0 },
         { "rightfloatingdummies",                                                                       0 },
         { "drawactive",                                                                                 true },
-        { "lvsmarker",                                                                                  1 },
+        { "lvsmarker",                                                                                  1, info = "special marking layer to mark device features for LVS. Typically used for mosfets with 5 and 6 terminals (including well diodes). Per default this includes the guardring around the device, as this defines the geometry of the diodes. This can be changed with the parameter 'lvsmarkerincludeguardring'. This marker is always drawn, the parameter is a numeric value, starting at 1." },
+        { "lvsmarkerincludeguardring",                                                                  true, },
         { "lvsmarkeralignwithactive",                                                                   false },
         { "extendalltop",                                                                               0 },
         { "extendallbottom",                                                                            0 },
@@ -197,6 +200,10 @@ function parameters()
         { "extendrotationmarkerbottom",                                                                 0, follow = "extendallbottom" },
         { "extendrotationmarkerleft",                                                                   0, follow = "extendallleft" },
         { "extendrotationmarkerright",                                                                  0, follow = "extendallright" },
+        { "extendanalogmarkertop",                                                                      0, follow = "extendalltop" },
+        { "extendanalogmarkerbottom",                                                                   0, follow = "extendallbottom" },
+        { "extendanalogmarkerleft",                                                                     0, follow = "extendallleft" },
+        { "extendanalogmarkerright",                                                                    0, follow = "extendallright" },
         { "drawwell",                                                                                   true },
         { "drawtopwelltap",                                                                             false },
         { "topwelltapwidth",                                                                            technology.get_dimension("Minimum M1 Width") },
@@ -225,7 +232,8 @@ function parameters()
         { "drawstopgatebotgatecut",                                                                        false },
         { "leftpolylines",                                                                              {} },
         { "rightpolylines",                                                                             {} },
-        { "drawrotationmarker",                                                                         false }
+        { "drawrotationmarker",                                                                         false },
+        { "drawanalogmarker",                                                                           false }
     )
 end
 
@@ -322,27 +330,43 @@ function layout(transistor, _P)
             point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth)
         )
         if _P.drawleftactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            transistor:add_area_anchor_bltr("leftactivedummy",
                 point.create(-leftactauxext - _P.leftactivedummyspace - _P.leftactivedummywidth, 0),
                 point.create(-leftactauxext - _P.leftactivedummyspace, _P.fingerwidth)
             )
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                transistor:get_area_anchor("leftactivedummy").bl,
+                transistor:get_area_anchor("leftactivedummy").tr
+            )
         end
         if _P.drawrightactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            transistor:add_area_anchor_bltr("rightactivedummy",
                 point.create(activewidth + leftactext + rightactext + rightactauxext + _P.rightactivedummyspace, 0),
                 point.create(activewidth + leftactext + rightactext + rightactauxext + _P.rightactivedummyspace + _P.rightactivedummywidth, _P.fingerwidth)
             )
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                transistor:get_area_anchor("rightactivedummy").bl,
+                transistor:get_area_anchor("rightactivedummy").tr
+            )
         end
         if _P.drawtopactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            transistor:add_area_anchor_bltr("topactivedummy",
                 point.create(-leftactauxext, _P.fingerwidth + _P.topactivedummyspace),
                 point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth + _P.topactivedummyspace + _P.topactivedummywidth)
             )
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                transistor:get_area_anchor("topactivedummy").bl,
+                transistor:get_area_anchor("topactivedummy").tr
+            )
         end
         if _P.drawbottomactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            transistor:add_area_anchor_bltr("bottomactivedummy",
                 point.create(-leftactauxext, -_P.bottomactivedummyspace - _P.bottomactivedummywidth),
                 point.create(activewidth + leftactext + rightactext + rightactauxext, -_P.bottomactivedummyspace)
+            )
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                transistor:get_area_anchor("bottomactivedummy").bl,
+                transistor:get_area_anchor("bottomactivedummy").tr
             )
         end
     end
@@ -665,25 +689,26 @@ function layout(transistor, _P)
     )
 
     -- implant
-    geometry.rectanglebltr(transistor,
-        generics.implant(_P.channeltype),
-        point.create(
-            _P.implantalignleftwithactive and
-                -leftactauxext - _P.extendimplantleft or
-                -leftactauxext - _P.extendimplantleft,
-            _P.implantalignbottomwithactive and
-                -_P.extendimplantbottom or
-                gatebly - _P.extendimplantbottom
-        ),
-        point.create(
-            _P.implantalignrightwithactive and
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright or
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright,
-            _P.implantaligntopwithactive and
-                _P.fingerwidth + _P.extendimplanttop or
-                gatetry + _P.extendimplanttop
-        )
+    local implantbl = point.create(
+        _P.implantalignleftwithactive and
+            -leftactauxext - _P.extendimplantleft or
+            -leftactauxext - _P.extendimplantleft,
+        _P.implantalignbottomwithactive and
+            -_P.extendimplantbottom or
+            gatebly - _P.extendimplantbottom
     )
+    local implanttr = point.create(
+        _P.implantalignrightwithactive and
+            activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright or
+            activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright,
+        _P.implantaligntopwithactive and
+            _P.fingerwidth + _P.extendimplanttop or
+            gatetry + _P.extendimplanttop
+    )
+    if _P.drawimplant then
+        geometry.rectanglebltr(transistor, generics.implant(_P.channeltype), implantbl, implanttr)
+    end
+    transistor:add_area_anchor_bltr("implant", implantbl, implanttr)
 
     -- oxide thickness
     geometry.rectanglebltr(transistor,
@@ -715,31 +740,102 @@ function layout(transistor, _P)
         )
     end
 
+    -- analog marker
+    if _P.drawanalogmarker then
+        if _P.drawguardring then
+            if _P.guardringrespectactivedummy then
+                geometry.rectanglebltr(transistor,
+                    generics.other("analogmarker"),
+                    point.create(
+                        -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace,
+                        -_P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace
+                    ),
+                    point.create(
+                        activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth + _P.rightactivedummywidth + _P.rightactivedummyspace,
+                        _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth + _P.topactivedummywidth + _P.topactivedummyspace
+                    )
+                )
+            else
+                geometry.rectanglebltr(transistor,
+                    generics.other("analogmarker"),
+                    point.create(
+                        -leftactauxext - _P.guardringleftsep - _P.guardringwidth,
+                        -_P.guardringbottomsep - _P.guardringwidth
+                    ),
+                    point.create(
+                        activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth,
+                        _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth
+                    )
+                )
+            end
+        else
+            geometry.rectanglebltr(transistor,
+                generics.other("analogmarker"),
+                point.create(
+                    -leftactauxext - _P.extendanalogmarkerleft,
+                    -_P.extendanalogmarkerbottom
+                ),
+                point.create(
+                    activewidth + leftactext + rightactext + rightactauxext + _P.extendanalogmarkerright,
+                    _P.fingerwidth + _P.extendanalogmarkertop
+                )
+            )
+        end
+    end
+
     -- lvs marker
-    if _P.lvsmarkeralignwithactive then
-        geometry.rectanglebltr(transistor,
-            generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
-            point.create(
-                -leftactauxext - _P.extendlvsmarkerleft,
-                -_P.extendlvsmarkerbottom
-            ),
-            point.create(
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
-                _P.fingerwidth + _P.extendlvsmarkertop
+    if _P.lvsmarkerincludeguardring then
+        if _P.guardringrespectactivedummy then
+            geometry.rectanglebltr(transistor,
+                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                point.create(
+                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace - _P.extendlvsmarkerleft,
+                    -_P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace - _P.extendlvsmarkerbottom
+                ),
+                point.create(
+                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth + _P.rightactivedummywidth + _P.rightactivedummyspace + _P.extendlvsmarkerright,
+                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth + _P.topactivedummywidth + _P.topactivedummyspace + _P.extendlvsmarkertop
+                )
             )
-        )
+        else
+            geometry.rectanglebltr(transistor,
+                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                point.create(
+                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.extendlvsmarkerleft,
+                    -_P.guardringbottomsep - _P.guardringwidth - _P.extendlvsmarkerbottom
+                ),
+                point.create(
+                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth + _P.extendlvsmarkerright,
+                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth + _P.extendlvsmarkertop
+                )
+            )
+        end
     else
-        geometry.rectanglebltr(transistor,
-            generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
-            point.create(
-                -leftactauxext - _P.extendlvsmarkerleft,
-                gatebly - _P.extendlvsmarkerbottom
-            ),
-            point.create(
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
-                gatetry + _P.extendlvsmarkertop
+        if _P.lvsmarkeralignwithactive then
+            geometry.rectanglebltr(transistor,
+                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                point.create(
+                    -leftactauxext - _P.extendlvsmarkerleft,
+                    -_P.extendlvsmarkerbottom
+                ),
+                point.create(
+                    activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
+                    _P.fingerwidth + _P.extendlvsmarkertop
+                )
             )
-        )
+        else
+            geometry.rectanglebltr(transistor,
+                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                point.create(
+                    -leftactauxext - _P.extendlvsmarkerleft,
+                    gatebly - _P.extendlvsmarkerbottom
+                ),
+                point.create(
+                    activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
+                    gatetry + _P.extendlvsmarkertop
+                )
+            )
+        end
     end
 
     -- well
@@ -890,10 +986,68 @@ function layout(transistor, _P)
     local sdmetalshift = (_P.sdmetalwidth - _P.sdwidth) / 2
 
     -- source/drain contacts and vias
-    local sourceoffset = _P.sourcealign == "top" and _P.fingerwidth - _P.sourcesize or 0
-    local sourceviaoffset = _P.sourceviaalign == "top" and _P.fingerwidth - _P.sourceviasize or 0
-    local drainoffset = _P.drainalign == "top" and _P.fingerwidth - _P.drainsize or 0
-    local drainviaoffset = _P.drainviaalign == "top" and _P.fingerwidth - _P.drainviasize or 0
+    local sourceoffset
+    local sourceviaoffset
+    if _P.sourcealign == "top" then
+        sourceoffset = _P.fingerwidth - _P.sourcesize
+    elseif _P.sourcealign == "bottom" then
+        sourceoffset = 0
+    else -- center
+        sourceoffset = (_P.fingerwidth - _P.sourceviasize) / 2
+    end
+    if _P.sourceviaalign == "top" then
+        sourceviaoffset = _P.fingerwidth - _P.sourceviasize
+    elseif _P.sourceviaalign == "bottom" then
+        sourceviaoffset = 0
+    else -- center
+        sourceviaoffset = (_P.fingerwidth - _P.sourceviasize) / 2
+    end
+    local drainoffset
+    local drainviaoffset
+    if _P.drainalign == "top" then
+        drainoffset = _P.fingerwidth - _P.drainsize
+    elseif _P.drainalign == "bottom" then
+        drainoffset = 0
+    else -- center
+        drainoffset = (_P.fingerwidth - _P.drainviasize) / 2
+    end
+    if _P.drainviaalign == "top" then
+        drainviaoffset = _P.fingerwidth - _P.drainviasize
+    elseif _P.drainviaalign == "bottom" then
+        drainviaoffset = 0
+    else -- center
+        drainviaoffset = (_P.fingerwidth - _P.drainviasize) / 2
+    end
+    local splitsourceviasize = (_P.sourceviasize - _P.connectsourcewidth) / 2
+    local splitsourceviaoffset
+    if _P.channeltype == "nmos" then
+        if _P.connectsourceinverse then
+            splitsourceviaoffset = _P.fingerwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
+        else
+            splitsourceviaoffset = _P.connectsourceinlineoffset
+        end
+    else
+        if _P.connectsourceinverse then
+            splitsourceviaoffset = _P.connectsourceinlineoffset
+        else
+            splitsourceviaoffset = _P.fingerwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
+        end
+    end
+    local splitdrainviasize = (_P.drainviasize - _P.connectdrainwidth) / 2
+    local splitdrainviaoffset
+    if _P.channeltype == "nmos" then
+        if _P.connectdraininverse then
+            splitdrainviaoffset = _P.connectdraininlineoffset
+        else
+            splitdrainviaoffset = _P.fingerwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
+        end
+    else
+        if _P.connectdraininverse then
+            splitdrainviaoffset = _P.fingerwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
+        else
+            splitdrainviaoffset = _P.connectdraininlineoffset
+        end
+    end
     if _P.drawsourcedrain ~= "none" then
         -- source
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "source" then
@@ -906,10 +1060,25 @@ function layout(transistor, _P)
                     if _P.drawsourcevia and _P.sourceviametal > 1 and
                        not (i == 1 and not _P.drawfirstsourcevia or
                         i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                        geometry.viabarebltr(transistor, 1, _P.sourceviametal,
+                        geometry.viabarebltr(transistor, 1, _P.sourceviametal - 1,
                             point.create(shift - sdviashift, sourceviaoffset),
                             point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize)
                         )
+                        if _P.connectsourceinline and _P.splitsourcevias then
+                            geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
+                                point.create(shift - sdviashift, splitsourceviaoffset - splitsourceviasize),
+                                point.create(shift + _P.sdviawidth - sdviashift, splitsourceviaoffset)
+                            )
+                            geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
+                                point.create(shift - sdviashift, splitsourceviaoffset + _P.connectsourcewidth),
+                                point.create(shift + _P.sdviawidth - sdviashift, splitsourceviaoffset + _P.connectsourcewidth + splitsourceviasize)
+                            )
+                        else
+                            geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
+                                point.create(shift - sdviashift, sourceviaoffset),
+                                point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize)
+                            )
+                        end
                     end
                     geometry.rectanglebltr(transistor, generics.metal(1),
                         point.create(shift - sdmetalshift, sourceoffset),
@@ -946,10 +1115,25 @@ function layout(transistor, _P)
                     if _P.drawdrainvia and _P.drainviametal > 1 and
                        not (i == 2 and not _P.drawfirstdrainvia or
                         i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                        geometry.viabarebltr(transistor, 1, _P.drainviametal,
+                        geometry.viabarebltr(transistor, 1, _P.drainviametal - 1,
                             point.create(shift - sdviashift, drainviaoffset),
                             point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
                         )
+                        if _P.connectdraininline and _P.splitdrainvias then
+                            geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
+                                point.create(shift - sdviashift, splitdrainviaoffset - splitdrainviasize),
+                                point.create(shift + _P.sdviawidth - sdviashift, splitdrainviaoffset)
+                            )
+                            geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
+                                point.create(shift - sdviashift, splitdrainviaoffset + _P.connectdrainwidth),
+                                point.create(shift + _P.sdviawidth - sdviashift, splitdrainviaoffset + _P.connectdrainwidth + splitdrainviasize)
+                            )
+                        else
+                            geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
+                                point.create(shift - sdviashift, drainviaoffset),
+                                point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
+                            )
+                        end
                     end
                     geometry.rectanglebltr(transistor, generics.metal(1),
                         point.create(shift - sdmetalshift, drainoffset),

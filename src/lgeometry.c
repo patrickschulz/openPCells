@@ -128,7 +128,7 @@ static int lgeometry_polygon(lua_State* L)
     return 0;
 }
 
-void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext)
+void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext, coordinate_t width)
 {
     if(lua_gettop(L) == idx)
     {
@@ -139,6 +139,11 @@ void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext)
             {
                 *bgnext = 0;
                 *endext = 0;
+            }
+            else if(strcmp(exttype, "rect") == 0)
+            {
+                *bgnext = width / 2;
+                *endext = width / 2;
             }
         }
         else if(lua_type(L, idx) == LUA_TNUMBER)
@@ -155,7 +160,6 @@ void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext)
             lua_pop(L, 1);
         }
     }
-
 }
 
 static int lgeometry_path(lua_State* L)
@@ -185,19 +189,19 @@ static int lgeometry_path(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 5, &bgnext, &endext);
+    _get_path_extension(L, 5, &bgnext, &endext, width);
 
-    const point_t** points = calloc(len, sizeof(*points));
+    struct vector* points = vector_create(len, NULL); // non-owning
     for(unsigned int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 3, i);
         struct lpoint* pt = lpoint_checkpoint(L, -1);
-        points[i - 1] = lpoint_get(pt);
+        vector_append(points, (point_t*)lpoint_get(pt));
         lua_pop(L, 1);
     }
     lobject_check_proxy(L, cell);
-    geometry_path(lobject_get(L, cell), layer, points, len, width, bgnext, endext);
-    free(points);
+    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    vector_destroy(points);
     return 0;
 }
 
@@ -212,13 +216,13 @@ static int lgeometry_rectanglepath(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext);
+    _get_path_extension(L, 6, &bgnext, &endext, width);
 
-    const point_t* points[2] = {
-        lpoint_get(pt1),
-        lpoint_get(pt2),
-    };
-    geometry_path(lobject_get(L, cell), layer, points, 2, width, bgnext, endext);
+    struct vector* points = vector_create(2, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(pt1));
+    vector_append(points, (point_t*)lpoint_get(pt2));
+    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    vector_destroy(points);
     return 0;
 }
 
@@ -233,14 +237,14 @@ static int lgeometry_path_manhatten(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 5, &bgnext, &endext);
+    _get_path_extension(L, 5, &bgnext, &endext, width);
 
     size_t numpoints = 2 * (len - 2) + 3;
-    point_t** points = calloc(numpoints, sizeof(*points));
+    struct vector* points = vector_create(numpoints, point_destroy);
 
     lua_rawgeti(L, 3, 1);
     struct lpoint* pt = lpoint_checkpoint(L, -1);
-    points[0] = point_create(lpoint_get(pt)->x, lpoint_get(pt)->y);
+    vector_append(points, point_create(lpoint_get(pt)->x, lpoint_get(pt)->y));
     //coordinate_t lastx = lpoint_get(pt)->x;
     coordinate_t lasty = lpoint_get(pt)->y;
     lua_pop(L, 1);
@@ -249,19 +253,15 @@ static int lgeometry_path_manhatten(lua_State* L)
     {
         lua_rawgeti(L, 3, i);
         struct lpoint* pt = lpoint_checkpoint(L, -1);
-        points[2 * (i - 2) + 1] = point_create(lpoint_get(pt)->x, lasty);
-        points[2 * (i - 2) + 2] = point_create(lpoint_get(pt)->x, lpoint_get(pt)->y);
+        vector_append(points, point_create(lpoint_get(pt)->x, lasty));
+        vector_append(points, point_create(lpoint_get(pt)->x, lpoint_get(pt)->y));
         //lastx = lpoint_get(pt)->x;
         lasty = lpoint_get(pt)->y;
         lua_pop(L, 1);
     }
 
-    geometry_path(lobject_get(L, cell), layer, (const point_t**)points, numpoints, width, bgnext, endext);
-    for(unsigned int i = 0; i < numpoints; ++i)
-    {
-        point_destroy(points[i]);
-    }
-    free(points);
+    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    vector_destroy(points);
     return 0;
 }
 
@@ -640,15 +640,39 @@ static int lgeometry_path_2x(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext);
+    _get_path_extension(L, 6, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y);
-    const point_t* points[4];
-    points[0] = lpoint_get(ptstart);
-    points[1] = pts1;
-    points[2] = lpoint_get(ptend);
-    geometry_path(lobject_get(L, cell), layer, points, 3, width, bgnext, endext);
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
+    vector_destroy(points);
+    return 0;
+}
+
+static int lgeometry_path_2x_polygon(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = generics_check_generics(L, 2);
+    struct lpoint* ptstart = lpoint_checkpoint(L, 3);
+    struct lpoint* ptend = lpoint_checkpoint(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 5);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext, width);
+
+    point_t* pts1 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y);
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    point_destroy(pts1);
+    vector_destroy(points);
     return 0;
 }
 
@@ -662,15 +686,39 @@ static int lgeometry_path_2y(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext);
+    _get_path_extension(L, 6, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptend)->y);
-    const point_t* points[4];
-    points[0] = lpoint_get(ptstart);
-    points[1] = pts1;
-    points[2] = lpoint_get(ptend);
-    geometry_path(lobject_get(L, cell), layer, points, 3, width, bgnext, endext);
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
+    vector_destroy(points);
+    return 0;
+}
+
+static int lgeometry_path_2y_polygon(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = generics_check_generics(L, 2);
+    struct lpoint* ptstart = lpoint_checkpoint(L, 3);
+    struct lpoint* ptend = lpoint_checkpoint(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 5);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext, width);
+
+    point_t* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptend)->y);
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    point_destroy(pts1);
+    vector_destroy(points);
     return 0;
 }
 
@@ -686,22 +734,23 @@ static int lgeometry_path_3x(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 7, &bgnext, &endext);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptstart)->y);
     point_t* pts2 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptend)->y);
-    const point_t* points[4];
-    points[0] = lpoint_get(ptstart);
-    points[1] = pts1;
-    points[2] = pts2;
-    points[3] = lpoint_get(ptend);
-    geometry_path(lobject_get(L, cell), layer, points, 4, width, bgnext, endext);
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, pts2);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
+    vector_destroy(points);
     return 0;
 }
 
-static int lgeometry_path_3y(lua_State* L)
+static int lgeometry_path_3x_polygon(lua_State* L)
 {
     lcheck_check_numargs2(L, 6, 7, "geometry.path_3x");
     struct lobject* cell = lobject_check(L, 1);
@@ -713,18 +762,231 @@ static int lgeometry_path_3y(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
+
+    point_t* pts1 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptstart)->y);
+    point_t* pts2 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptend)->y);
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, pts2);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    point_destroy(pts1);
+    point_destroy(pts2);
+    vector_destroy(points);
+    return 0;
+}
+
+static int lgeometry_path_3x_diagonal(lua_State* L)
+{
+    lcheck_check_numargs2(L, 6, 7, "geometry.path_3x_diagonal");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = generics_check_generics(L, 2);
+    struct lpoint* ptstart = lpoint_checkpoint(L, 3);
+    struct lpoint* ptend = lpoint_checkpoint(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 5);
+    double posfactor = luaL_checknumber(L, 6);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext, width);
+
+    coordinate_t diff = coordinate_abs(point_gety(lpoint_get(ptstart)) - point_gety(lpoint_get(ptend)));
+    if(point_getx(lpoint_get(ptstart)) < point_getx(lpoint_get(ptend)))
+    {
+        diff = -diff;
+    }
+    point_t* pts1 = point_create(
+        lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor + diff / 2,
+        lpoint_get(ptstart)->y
+    );
+    point_t* pts2 = point_create(
+        lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor - diff / 2,
+        lpoint_get(ptend)->y
+    );
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, pts2);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    point_destroy(pts1);
+    point_destroy(pts2);
+    vector_destroy(points);
+    return 0;
+}
+
+static int lgeometry_path_3x_diagonal_polygon(lua_State* L)
+{
+    lcheck_check_numargs2(L, 6, 7, "geometry.path_3x_diagonal");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = generics_check_generics(L, 2);
+    struct lpoint* ptstart = lpoint_checkpoint(L, 3);
+    struct lpoint* ptend = lpoint_checkpoint(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 5);
+    double posfactor = luaL_checknumber(L, 6);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext, width);
+
+    coordinate_t diff = coordinate_abs(point_gety(lpoint_get(ptstart)) - point_gety(lpoint_get(ptend)));
+    if(point_getx(lpoint_get(ptstart)) < point_getx(lpoint_get(ptend)))
+    {
+        diff = -diff;
+    }
+    point_t* pts1 = point_create(
+        lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor + diff / 2,
+        lpoint_get(ptstart)->y
+    );
+    point_t* pts2 = point_create(
+        lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor - diff / 2,
+        lpoint_get(ptend)->y
+    );
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, pts2);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    point_destroy(pts1);
+    point_destroy(pts2);
+    vector_destroy(points);
+    return 0;
+}
+
+static int lgeometry_path_3y(lua_State* L)
+{
+    lcheck_check_numargs2(L, 6, 7, "geometry.path_3y");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = generics_check_generics(L, 2);
+    struct lpoint* ptstart = lpoint_checkpoint(L, 3);
+    struct lpoint* ptend = lpoint_checkpoint(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 5);
+    double posfactor = luaL_checknumber(L, 6);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
     point_t* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
-    const point_t* points[4];
-    points[0] = lpoint_get(ptstart);
-    points[1] = pts1;
-    points[2] = pts2;
-    points[3] = lpoint_get(ptend);
-    geometry_path(lobject_get(L, cell), layer, points, 4, width, bgnext, endext);
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, pts2);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
+    vector_destroy(points);
+    return 0;
+}
+
+static int lgeometry_path_3y_polygon(lua_State* L)
+{
+    lcheck_check_numargs2(L, 6, 7, "geometry.path_3y");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = generics_check_generics(L, 2);
+    struct lpoint* ptstart = lpoint_checkpoint(L, 3);
+    struct lpoint* ptend = lpoint_checkpoint(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 5);
+    double posfactor = luaL_checknumber(L, 6);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext, width);
+
+    point_t* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
+    point_t* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, pts2);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    point_destroy(pts1);
+    point_destroy(pts2);
+    vector_destroy(points);
+    return 0;
+}
+
+static int lgeometry_path_3y_diagonal(lua_State* L)
+{
+    lcheck_check_numargs2(L, 6, 7, "geometry.path_3y_diagonal");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = generics_check_generics(L, 2);
+    struct lpoint* ptstart = lpoint_checkpoint(L, 3);
+    struct lpoint* ptend = lpoint_checkpoint(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 5);
+    double posfactor = luaL_checknumber(L, 6);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext, width);
+
+    coordinate_t diff = coordinate_abs(point_getx(lpoint_get(ptstart)) - point_getx(lpoint_get(ptend)));
+    if(point_gety(lpoint_get(ptstart)) < point_gety(lpoint_get(ptend)))
+    {
+        diff = -diff;
+    }
+    point_t* pts1 = point_create(
+        lpoint_get(ptstart)->x,
+        lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor + diff / 2
+    );
+    point_t* pts2 = point_create(
+        lpoint_get(ptend)->x,
+        lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor - diff / 2
+    );
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, pts2);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    point_destroy(pts1);
+    point_destroy(pts2);
+    vector_destroy(points);
+    return 0;
+}
+
+static int lgeometry_path_3y_diagonal_polygon(lua_State* L)
+{
+    lcheck_check_numargs2(L, 6, 7, "geometry.path_3y_diagonal");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = generics_check_generics(L, 2);
+    struct lpoint* ptstart = lpoint_checkpoint(L, 3);
+    struct lpoint* ptend = lpoint_checkpoint(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 5);
+    double posfactor = luaL_checknumber(L, 6);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext, width);
+
+    coordinate_t diff = coordinate_abs(point_getx(lpoint_get(ptstart)) - point_getx(lpoint_get(ptend)));
+    if(point_gety(lpoint_get(ptstart)) < point_gety(lpoint_get(ptend)))
+    {
+        diff = -diff;
+    }
+    point_t* pts1 = point_create(
+        lpoint_get(ptstart)->x,
+        lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor + diff / 2
+    );
+    point_t* pts2 = point_create(
+        lpoint_get(ptend)->x,
+        lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor - diff / 2
+    );
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, pts2);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    point_destroy(pts1);
+    point_destroy(pts2);
+    vector_destroy(points);
     return 0;
 }
 
@@ -740,18 +1002,19 @@ static int lgeometry_path_cshape(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 7, &bgnext, &endext);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(offset, lpoint_get(ptstart)->y);
     point_t* pts2 = point_create(offset, lpoint_get(ptend)->y);
-    const point_t* points[4];
-    points[0] = lpoint_get(ptstart);
-    points[1] = pts1;
-    points[2] = pts2;
-    points[3] = lpoint_get(ptend);
-    geometry_path(lobject_get(L, cell), layer, points, 4, width, bgnext, endext);
+    struct vector* points = vector_create(3, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, pts2);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
+    vector_destroy(points);
     return 0;
 }
 
@@ -767,29 +1030,30 @@ static int lgeometry_path_ushape(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 7, &bgnext, &endext);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     point_t* pts1 = point_create(lpoint_get(ptstart)->x, offset);
     point_t* pts2 = point_create(lpoint_get(ptend)->x, offset);
-    const point_t* points[4];
-    points[0] = lpoint_get(ptstart);
-    points[1] = pts1;
-    points[2] = pts2;
-    points[3] = lpoint_get(ptend);
-    geometry_path(lobject_get(L, cell), layer, points, 4, width, bgnext, endext);
+    struct vector* points = vector_create(4, NULL); // non-owning
+    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, pts1);
+    vector_append(points, pts2);
+    vector_append(points, (point_t*)lpoint_get(ptend));
+    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
+    vector_destroy(points);
     return 0;
 }
 
 static int lgeometry_path_polygon(lua_State* L)
 {
-    lcheck_check_numargs2(L, 4, 5, "geometry.path");
+    lcheck_check_numargs2(L, 4, 5, "geometry.path_polygon");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = generics_check_generics(L, 2);
     if(!lua_istable(L, 3))
     {
-        lua_pushstring(L, "geometry.path: list of points (third argument) is not a table");
+        lua_pushstring(L, "geometry.path_polygon: list of points (third argument) is not a table");
         lua_error(L);
     }
     lua_len(L, 3);
@@ -798,18 +1062,18 @@ static int lgeometry_path_polygon(lua_State* L)
     coordinate_t width = luaL_checkinteger(L, 4);
     if(width == 0)
     {
-        lua_pushstring(L, "geometry.path: width can't be zero");
+        lua_pushstring(L, "geometry.path_polygon: width can't be zero");
         lua_error(L);
     }
     if(width % 2 != 0)
     {
-        lua_pushfstring(L, "geometry.path: width is odd (%d)", width);
+        lua_pushfstring(L, "geometry.path_polygon: width is odd (%d)", width);
         lua_error(L);
     }
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 5, &bgnext, &endext);
+    _get_path_extension(L, 5, &bgnext, &endext, width);
 
     struct vector* points = vector_create(len, point_destroy);
     for(unsigned int i = 1; i <= len; ++i)
@@ -1403,7 +1667,7 @@ static int lgeometry_get_side_path_points(lua_State* L)
 
 static int lgeometry_path_points_to_polygon(lua_State* L)
 {
-    lcheck_check_numargs1(L, 2, "geometry.path_points_to_polygon");
+    lcheck_check_numargs2(L, 2, 3, "geometry.path_points_to_polygon");
     if(!lua_istable(L, 1))
     {
         lua_pushstring(L, "geometry.path_points_to_polygon: list of points (first argument) is not a table");
@@ -1412,6 +1676,11 @@ static int lgeometry_path_points_to_polygon(lua_State* L)
     lua_len(L, 1);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
+    if(len < 2)
+    {
+        lua_pushstring(L, "geometry.path_points_to_polygon: there must be at least two path points");
+        lua_error(L);
+    }
     coordinate_t width = luaL_checkinteger(L, 2);
     if(width == 0)
     {
@@ -1424,10 +1693,9 @@ static int lgeometry_path_points_to_polygon(lua_State* L)
         lua_error(L);
     }
 
-    // FIXME
-    //int bgnext = 0;
-    //int endext = 0;
-    //_get_path_extension(L, 5, &bgnext, &endext);
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 3, &bgnext, &endext, width);
 
     struct vector* points = vector_create(len, point_destroy);
     for(unsigned int i = 1; i <= len; ++i)
@@ -1528,9 +1796,17 @@ int open_lgeometry_lib(lua_State* L)
         { "path",                                       lgeometry_path                                              },
         { "path_manhatten",                             lgeometry_path_manhatten                                    },
         { "path_2x",                                    lgeometry_path_2x                                           },
+        { "path_2x_polygon",                            lgeometry_path_2x_polygon                                   },
         { "path_2y",                                    lgeometry_path_2y                                           },
+        { "path_2y_polygon",                            lgeometry_path_2y_polygon                                   },
         { "path_3x",                                    lgeometry_path_3x                                           },
+        { "path_3x_polygon",                            lgeometry_path_3x_polygon                                   },
+        { "path_3x_diagonal",                           lgeometry_path_3x_diagonal                                  },
+        { "path_3x_diagonal_polygon",                   lgeometry_path_3x_diagonal_polygon                          },
         { "path_3y",                                    lgeometry_path_3y                                           },
+        { "path_3y_polygon",                            lgeometry_path_3y_polygon                                   },
+        { "path_3y_diagonal",                           lgeometry_path_3y_diagonal                                  },
+        { "path_3y_diagonal_polygon",                   lgeometry_path_3y_diagonal_polygon                          },
         { "path_cshape",                                lgeometry_path_cshape                                       },
         { "path_ushape",                                lgeometry_path_ushape                                       },
         { "path_polygon",                               lgeometry_path_polygon                                      },

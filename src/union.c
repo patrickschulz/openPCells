@@ -6,8 +6,7 @@
 #include "point.h"
 #include "shape.h"
 
-enum order
-{
+enum order {
     NOINTERSECTION,
     REGULAR,
     INVERSE,
@@ -35,7 +34,7 @@ static enum order rect_order(coordinate_t bl1, coordinate_t tr1, coordinate_t bl
     return NOINTERSECTION;
 }
 
-struct shape* rectangle_union(struct shape* rect1, struct shape* rect2)
+struct shape* rectangle_shape_union(struct shape* rect1, struct shape* rect2)
 {
     const point_t *bl1;
     const point_t *tr1;
@@ -142,6 +141,105 @@ struct shape* rectangle_union(struct shape* rect1, struct shape* rect2)
     return new;
 }
 
+int rectangle_union(coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1, coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2, coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try)
+{
+    enum order xorder = rect_order(blx1, trx1, blx2, trx2);
+    enum order yorder = rect_order(bly1, try1, bly2, try2);
+    if(xorder == NOINTERSECTION || yorder == NOINTERSECTION)
+    {
+        return 0;
+    }
+    if(xorder != EQUAL && yorder != EQUAL) // polygon union, one order has to be EQUAL for rectangle union
+    {
+        return 0;
+    }
+    switch(xorder)
+    {
+        case HALFEQUALLEFTREGULAR:
+            *blx = blx1;
+            *trx = trx2;
+            break;
+        case HALFEQUALLEFTINVERSE:
+            *blx = blx1;
+            *trx = trx1;
+            break;
+        case HALFEQUALRIGHTREGULAR:
+            *blx = blx1;
+            *trx = trx1;
+            break;
+        case HALFEQUALRIGHTINVERSE:
+            *blx = blx2;
+            *trx = trx1;
+            break;
+        case EQUAL:
+            *blx = blx1;
+            *trx = trx1;
+            break;
+        case OUTER:
+            *blx = blx1;
+            *trx = trx1;
+            break;
+        case INNER:
+            *blx = blx2;
+            *trx = trx2;
+            break;
+        case REGULAR:
+            *blx = blx1;
+            *trx = trx2;
+            break;
+        case INVERSE:
+            *blx = blx2;
+            *trx = trx1;
+            break;
+        default: // silence warning about not handling NOINTERSECTION, which is handled earlier
+            return 0;
+            break;
+    }
+    switch(yorder)
+    {
+        case HALFEQUALLEFTREGULAR:
+            *bly = bly1;
+            *try = try2;
+            break;
+        case HALFEQUALLEFTINVERSE:
+            *bly = bly1;
+            *try = try1;
+            break;
+        case HALFEQUALRIGHTREGULAR:
+            *bly = bly1;
+            *try = try1;
+            break;
+        case HALFEQUALRIGHTINVERSE:
+            *bly = bly2;
+            *try = try1;
+            break;
+        case EQUAL:
+            *bly = bly1;
+            *try = try1;
+            break;
+        case OUTER:
+            *bly = bly1;
+            *try = try1;
+            break;
+        case INNER:
+            *bly = bly2;
+            *try = try2;
+            break;
+        case REGULAR:
+            *bly = bly1;
+            *try = try2;
+            break;
+        case INVERSE:
+            *bly = bly2;
+            *try = try1;
+            break;
+        default: // silence warning about not handling NOINTERSECTION, which is handled earlier
+            return 0;
+            break;
+    }
+    return 1;
+}
+
 size_t union_rectangle_all(struct vector* rectangles)
 {
     int i = 0;
@@ -152,7 +250,7 @@ size_t union_rectangle_all(struct vector* rectangles)
         if(i >= (int)vector_size(rectangles) - 1) break;
         struct shape* rect1 = vector_get(rectangles, i);
         struct shape* rect2 = vector_get(rectangles, j);
-        struct shape* result = rectangle_union(rect1, rect2);
+        struct shape* result = rectangle_shape_union(rect1, rect2);
         if(result)
         {
             vector_set(rectangles, i, result);

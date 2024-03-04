@@ -15,6 +15,7 @@
 #include "pcell.h"
 #include "postprocess.h"
 #include "technology.h"
+#include "util_cmodule.h"
 #include "util.h"
 
 #include "ldir.h"
@@ -50,6 +51,7 @@ static lua_State* _create_and_initialize_lua(void)
     open_lobject_lib(L);
     open_lplacement_lib(L);
     open_lpostprocess(L);
+    open_lutil_cmodule_lib(L);
     // FIXME: these libraries are probably not needed for cell creation (they are used in place & route scripts)
     open_lplacer_lib(L);
     open_lrouter_lib(L);
@@ -439,16 +441,25 @@ static void _scale(struct object* toplevel, struct cmdoptions* cmdoptions)
     }
 }
 
-static void _draw_alignmentbox_single(struct object* cell, struct technology_state* techstate)
+static void _draw_alignmentbox_single(struct object* cell, struct technology_state* techstate, int asoutline)
 {
+    const struct generics* layer;
+    if(asoutline)
+    {
+       layer = generics_create_outline(techstate);
+    }
+    else
+    {
+       layer = generics_create_special(techstate);
+    }
     if(object_has_alignmentbox(cell))
     {
         point_t* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
         point_t* outertr = object_get_alignmentbox_anchor_outertr(cell);
         point_t* innerbl = object_get_alignmentbox_anchor_innerbl(cell);
         point_t* innertr = object_get_alignmentbox_anchor_innertr(cell);
-        geometry_rectanglebltr(cell, generics_create_special(techstate), outerbl, outertr);
-        geometry_rectanglebltr(cell, generics_create_special(techstate), innerbl, innertr);
+        geometry_rectanglebltr(cell, layer, outerbl, outertr);
+        geometry_rectanglebltr(cell, layer, innerbl, innertr);
         point_destroy(outerbl);
         point_destroy(outertr);
         point_destroy(innerbl);
@@ -458,9 +469,10 @@ static void _draw_alignmentbox_single(struct object* cell, struct technology_sta
 
 static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate)
 {
+    int asoutline = cmdoptions_was_provided_long(cmdoptions, "draw-alignmentboxes-as-outline");
     if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
-        _draw_alignmentbox_single(toplevel, techstate);
+        _draw_alignmentbox_single(toplevel, techstate, asoutline);
     }
     if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
@@ -469,12 +481,44 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
         while(vector_iterator_is_valid(it))
         {
             struct object* ref = vector_iterator_get(it);
-            _draw_alignmentbox_single(ref, techstate);
+            _draw_alignmentbox_single(ref, techstate, asoutline);
             vector_iterator_next(it);
         }
         vector_iterator_destroy(it);
         vector_destroy(references);
     }
+}
+
+static void _draw_cell_anchors(struct object* cell, struct technology_state* techstate, int asoutline)
+{
+    struct anchor_iterator* iterator = object_create_anchor_iterator(cell);
+    const struct generics* layer;
+    if(asoutline)
+    {
+       layer = generics_create_outline(techstate);
+    }
+    else
+    {
+       layer = generics_create_special(techstate);
+    }
+    while(anchor_iterator_is_valid(iterator))
+    {
+        if(anchor_iterator_is_area(iterator))
+        {
+            const point_t* anchor = anchor_iterator_anchor(iterator);
+            const char* name = anchor_iterator_name(iterator);
+            geometry_rectanglebltr(cell, layer, anchor + 0, anchor + 1);
+            object_add_port(cell, name, layer, anchor + 0, 100);
+        }
+        else
+        {
+            const point_t* anchor = anchor_iterator_anchor(iterator);
+            const char* name = anchor_iterator_name(iterator);
+            object_add_port(cell, name, layer, anchor, 100);
+        }
+        anchor_iterator_next(iterator);
+    }
+    anchor_iterator_destroy(iterator);
 }
 
 static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate)
@@ -487,7 +531,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
             point_t* pt = object_get_anchor(toplevel, *anchornames);
             if(pt)
             {
-                object_add_port(toplevel, *anchornames, generics_create_special(techstate), pt, 100); // 0: don't store anchor
+                object_add_port(toplevel, *anchornames, generics_create_special(techstate), pt, 100);
                 point_destroy(pt);
             }
             else
@@ -499,16 +543,21 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
     }
     if(cmdoptions_was_provided_long(cmdoptions, "draw-all-anchors"))
     {
-        const struct hashmap* anchors = object_get_all_regular_anchors(toplevel);
-        struct hashmap_const_iterator* iterator = hashmap_const_iterator_create(anchors);
-        while(hashmap_const_iterator_is_valid(iterator))
+        int asoutline = cmdoptions_was_provided_long(cmdoptions, "draw-anchors-as-outline");
+        _draw_cell_anchors(toplevel, techstate, asoutline);
+        if(cmdoptions_was_provided_long(cmdoptions, "draw-all-anchors"))
         {
-            const char* key = hashmap_const_iterator_key(iterator);
-            const point_t* anchor = hashmap_const_iterator_value(iterator);
-            object_add_port(toplevel, key, generics_create_special(techstate), anchor, 100); // 0: don't store anchor
-            hashmap_const_iterator_next(iterator);
+            struct vector* references = object_collect_references_mutable(toplevel);
+            struct vector_iterator* it = vector_iterator_create(references);
+            while(vector_iterator_is_valid(it))
+            {
+                struct object* ref = vector_iterator_get(it);
+                _draw_cell_anchors(ref, techstate, asoutline);
+                vector_iterator_next(it);
+            }
+            vector_iterator_destroy(it);
+            vector_destroy(references);
         }
-        hashmap_const_iterator_destroy(iterator);
     }
 }
 

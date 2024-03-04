@@ -34,6 +34,9 @@ function parameters()
         { "meshmetalwidths", { 500, 500, 800, 800, 800, 800, 1000, 1250, } },
         { "gridmetalwidths", { { vss = 2400, vdd = 3600 }, { vss = 2400, vdd = 3600 } } },
         { "capspace", { 500, 500, 500, 500, 500, 500, 500 } },
+        { "capfingerwidth", 50 },
+        { "capfingerspace", 50 },
+        { "capfoffset", 100 },
         { "wellextension", 0 },
         { "implantextension", 0 },
         { "soiopenextension", 0 },
@@ -319,9 +322,6 @@ function layout(decap, _P)
         end
     end
 
-    local foffset = 100
-    local fingerwidth = 50
-    local fingerspace = 50
     local flippolarity = true
     if _P.drawmoscap then
         -- fill excludes
@@ -378,6 +378,9 @@ function layout(decap, _P)
     end
 
     -- metal capacitor
+    local foffset = _P.capfoffset
+    local fingerwidth = _P.capfingerwidth
+    local fingerspace = _P.capfingerspace
     if _P.drawmesh and not _P.fillmesh then
         for i = 1, #_P.meshmetals do
             if _P.meshmetals[i] == _P.interconnectmetal then

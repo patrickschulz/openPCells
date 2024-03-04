@@ -5,7 +5,8 @@ function parameters()
         { "alignmosfetsatactive", false },
         { "sdwidth", technology.get_dimension("Minimum M1 Width") },
         { "separation", 0 },
-        { "autoskip", false }
+        { "autoskip", false },
+        { "unequalgatelengths", false }
     )
 end
 
@@ -33,12 +34,14 @@ function check(_P)
         end
         rowfingers[rownum] = f
     end
-    local fingersperrow = rowfingers[1]
-    --for i = 2, #rowfingers do
-    --    if fingersperrow ~= rowfingers[i] then
-    --        return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers)", fingersperrow, i, rowfingers[i])
-    --    end
-    --end
+    if not _P.unequalgatelengths then
+        local fingersperrow = rowfingers[1]
+        for i = 2, #rowfingers do
+            if fingersperrow ~= rowfingers[i] then
+                return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers)", fingersperrow, i, rowfingers[i])
+            end
+        end
+    end
 
     local names = {}
     for rownum, row in ipairs(_P.rows) do
@@ -264,6 +267,10 @@ function layout(cell, _P)
                     extendrotationmarkerbottom = _select_switch(((rownum == 1) or _P.splitgates), _select_parameter("extendrotationmarkerbottom", device, row), _P.separation / 2),
                     extendrotationmarkerleft = _select_parameter("extendrotationmarkerleft", device, row),
                     extendrotationmarkerright = _select_parameter("extendrotationmarkerright", device, row),
+                    extendanalogmarkertop = _select_switch(((rownum == #_P.rows) or _P.splitgates), _select_parameter("extendanalogmarkertop", device, row), _P.separation / 2),
+                    extendanalogmarkerbottom = _select_switch(((rownum == 1) or _P.splitgates), _select_parameter("extendanalogmarkerbottom", device, row), _P.separation / 2),
+                    extendanalogmarkerleft = _select_parameter("extendanalogmarkerleft", device, row),
+                    extendanalogmarkerright = _select_parameter("extendanalogmarkerright", device, row),
                     drawwell = _select_parameter("drawwell", device, row),
                     drawtopwelltap = _select_parameter("drawtopwelltap", device, row),
                     topwelltapwidth = _select_parameter("topwelltapwidth", device, row),
@@ -287,6 +294,7 @@ function layout(cell, _P)
                     leftpolylines = _select_parameter("leftpolylines", device, row),
                     rightpolylines = _select_parameter("rightpolylines", device, row),
                     drawrotationmarker = _select_parameter("drawrotationmarker", device, row),
+                    drawanalogmarker = _select_parameter("drawanalogmarker", device, row),
                 })
                 if not status then -- call failed, but show detailed error here
                     cellerror(string.format("could not create device %d in row %d (\"%s\"): %s", devnum, rownum, device.name, mosfet))

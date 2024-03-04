@@ -201,8 +201,8 @@ static int lobject_move_to(lua_State* L)
     }
     else
     {
-        coordinate_t x = luaL_checkinteger(L, 2);
-        coordinate_t y = luaL_checkinteger(L, 3);
+        coordinate_t x = lpoint_checkcoordinate(L, 2, "x");
+        coordinate_t y = lpoint_checkcoordinate(L, 3, "y");
         object_move_to(lobject_get(L, cell), x, y);
         lua_rotate(L, 1, 2);
     }
@@ -235,8 +235,8 @@ static int lobject_translate(lua_State* L)
     }
     else
     {
-        coordinate_t x = luaL_checkinteger(L, 2);
-        coordinate_t y = luaL_checkinteger(L, 3);
+        coordinate_t x = lpoint_checkcoordinate(L, 2, "x");
+        coordinate_t y = lpoint_checkcoordinate(L, 3, "y");
         object_translate(lobject_get(L, cell), x, y);
         lua_rotate(L, 1, 2);
     }
@@ -246,7 +246,7 @@ static int lobject_translate(lua_State* L)
 static int lobject_translate_x(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    coordinate_t x = luaL_checkinteger(L, 2);
+    coordinate_t x = lpoint_checkcoordinate(L, 2, "x");
     object_translate_x(lobject_get(L, cell), x);
     lua_rotate(L, 1, 1);
     return 1;
@@ -255,7 +255,7 @@ static int lobject_translate_x(lua_State* L)
 static int lobject_translate_y(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    coordinate_t y = luaL_checkinteger(L, 2);
+    coordinate_t y = lpoint_checkcoordinate(L, 2, "y");
     object_translate_y(lobject_get(L, cell), y);
     lua_rotate(L, 1, 1);
     return 1;
@@ -899,6 +899,7 @@ static int lobject_add_port(lua_State* L)
 {
     lcheck_check_numargs2(L, 4, 5, "object.add_port");
     struct lobject* cell = lobject_check(L, 1);
+    lobject_check_proxy(L, cell);
     const char* name = luaL_checkstring(L, 2);
     const struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
@@ -911,6 +912,7 @@ static int lobject_add_port_with_anchor(lua_State* L)
 {
     lcheck_check_numargs2(L, 4, 5, "object.add_port_with_anchor");
     struct lobject* cell = lobject_check(L, 1);
+    lobject_check_proxy(L, cell);
     const char* name = luaL_checkstring(L, 2);
     const struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
@@ -928,8 +930,8 @@ static int lobject_add_bus_port(lua_State* L)
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
     int startindex = luaL_checkinteger(L, 5);
     int endindex = luaL_checkinteger(L, 6);
-    unsigned int xpitch = luaL_checkinteger(L, 7);
-    unsigned int ypitch = luaL_checkinteger(L, 8);
+    coordinate_t xpitch = lpoint_checkcoordinate(L, 7, "xpitch");
+    coordinate_t ypitch = lpoint_checkcoordinate(L, 8, "ypitch");
     double sizehint = luaL_optnumber(L, 9, 0.0);
     object_add_bus_port(lobject_get(L, cell), name, layer, lpoint_get(lpoint), startindex, endindex, xpitch, ypitch, sizehint);
     return 0;
@@ -1063,14 +1065,14 @@ static int lobject_extend_alignment_box(lua_State* L)
     coordinate_t extinnertry = 0;
     if(lua_gettop(L) == 9)
     {
-        extouterblx = luaL_checkinteger(L, 2);
-        extouterbly = luaL_checkinteger(L, 3);
-        extoutertrx = luaL_checkinteger(L, 4);
-        extoutertry = luaL_checkinteger(L, 5);
-        extinnerblx = luaL_checkinteger(L, 6);
-        extinnerbly = luaL_checkinteger(L, 7);
-        extinnertrx = luaL_checkinteger(L, 8);
-        extinnertry = luaL_checkinteger(L, 9);
+        extouterblx = lpoint_checkcoordinate(L, 2, "extouterblx");
+        extouterbly = lpoint_checkcoordinate(L, 3, "extouterbly");
+        extoutertrx = lpoint_checkcoordinate(L, 4, "extoutertrx");
+        extoutertry = lpoint_checkcoordinate(L, 5, "extoutertry");
+        extinnerblx = lpoint_checkcoordinate(L, 6, "extinnerblx");
+        extinnerbly = lpoint_checkcoordinate(L, 7, "extinnerbly");
+        extinnertrx = lpoint_checkcoordinate(L, 8, "extinnertrx");
+        extinnertry = lpoint_checkcoordinate(L, 9, "extinnertry");
     }
     else
     {
@@ -1102,7 +1104,7 @@ static int lobject_extend_alignment_box_x_symmetrical(lua_State* L)
     coordinate_t extx = 0;
     if(lua_gettop(L) == 2)
     {
-        extx = luaL_checkinteger(L, 2);
+        extx = lpoint_checkcoordinate(L, 2, "extx");
     }
     else
     {
@@ -1134,7 +1136,7 @@ static int lobject_extend_alignment_box_y_symmetrical(lua_State* L)
     coordinate_t exty = 0;
     if(lua_gettop(L) == 2)
     {
-        exty = luaL_checkinteger(L, 2);
+        exty = lpoint_checkcoordinate(L, 2, "exty");
     }
     else
     {
@@ -1167,8 +1169,8 @@ static int lobject_extend_alignment_box_xy_symmetrical(lua_State* L)
     coordinate_t exty = 0;
     if(lua_gettop(L) == 3)
     {
-        extx = luaL_checkinteger(L, 2);
-        exty = luaL_checkinteger(L, 3);
+        extx = lpoint_checkcoordinate(L, 2, "extx");
+        exty = lpoint_checkcoordinate(L, 3, "exty");
     }
     else
     {
