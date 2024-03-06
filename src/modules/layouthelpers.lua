@@ -35,6 +35,8 @@ function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
         cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
     end
 end
 
@@ -72,6 +74,8 @@ function M.place_guardring_quantized(cell, bl, tr, xspace, yspace, basexsize, ba
         cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
     end
 end
 
@@ -112,6 +116,8 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
         cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
     end
 end
 
@@ -158,6 +164,8 @@ function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xsp
         cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
     end
 end
 
