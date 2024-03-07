@@ -2253,7 +2253,7 @@ int object_is_child_array(const struct object* cell)
     return cell->isproxy && cell->isarray;
 }
 
-static int _has_anchor(const struct object* cell, const char* anchorname)
+int object_has_anchor(const struct object* cell, const char* anchorname)
 {
     if(cell->isproxy)
     {
@@ -2261,7 +2261,15 @@ static int _has_anchor(const struct object* cell, const char* anchorname)
         {
             return 0;
         }
-        return hashmap_exists(cell->reference->anchors, anchorname);
+        if(hashmap_exists(cell->reference->anchors, anchorname))
+        {
+            struct anchor* anchor = hashmap_get(cell->reference->anchors, anchorname);
+            return !_anchor_is_area(anchor);
+        }
+        else
+        {
+            return 0;
+        }
     }
     else
     {
@@ -2269,18 +2277,52 @@ static int _has_anchor(const struct object* cell, const char* anchorname)
         {
             return 0;
         }
-        return hashmap_exists(cell->anchors, anchorname);
+        if(hashmap_exists(cell->anchors, anchorname))
+        {
+            struct anchor* anchor = hashmap_get(cell->anchors, anchorname);
+            return !_anchor_is_area(anchor);
+        }
+        else
+        {
+            return 0;
+        }
     }
-}
-
-int object_has_anchor(const struct object* cell, const char* anchorname)
-{
-    return _has_anchor(cell, anchorname);
 }
 
 int object_has_area_anchor(const struct object* cell, const char* anchorname)
 {
-    return _has_anchor(cell, anchorname);
+    if(cell->isproxy)
+    {
+        if(!cell->reference->anchors)
+        {
+            return 0;
+        }
+        if(hashmap_exists(cell->reference->anchors, anchorname))
+        {
+            struct anchor* anchor = hashmap_get(cell->reference->anchors, anchorname);
+            return _anchor_is_area(anchor);
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        if(!cell->anchors)
+        {
+            return 0;
+        }
+        if(hashmap_exists(cell->anchors, anchorname))
+        {
+            struct anchor* anchor = hashmap_get(cell->anchors, anchorname);
+            return _anchor_is_area(anchor);
+        }
+        else
+        {
+            return 0;
+        }
+    }
 }
 
 int object_has_alignmentbox(const struct object* cell)
