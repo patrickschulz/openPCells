@@ -223,7 +223,6 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     }
     lua_setglobal(L, "args");
 
-
     int retval = script_call_list_parameters(L);
     if(retval != LUA_OK)
     {
