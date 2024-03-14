@@ -1,7 +1,7 @@
 -- FIXME: output cell parameters AFTER parameters have been processed in order to respect value changes in pfiles
 -- FIXME: is args.generictech currently used and supported?
 local params = pcell.parameters(args.cell, cellargs, args.generictech)
-local paramformat = args.parametersformat or "%n %v %i"
+local paramformat = args.parametersformat or "%n %v"
 for _, P in ipairs(params) do
     local doprint = true
     if args.parameternames then
