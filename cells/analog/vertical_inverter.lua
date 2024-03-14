@@ -28,6 +28,10 @@ function parameters()
         { "powermetal",                                 1 },
         { "powerwidth(Power Rail Metal Width)",         technology.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",               technology.get_dimension("Minimum M1 Space") },
+        { "vddwidth",                                   technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
+        { "vddspace",                                   technology.get_dimension("Minimum M1 Space"), follow = "powerspace" },
+        { "vsswidth",                                   technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
+        { "vssspace",                                   technology.get_dimension("Minimum M1 Space"), follow = "powerspace" },
         { "pgateext",                                   0 },
         { "ngateext",                                   0 },
         { "numleftdummies",                             0 },
@@ -77,8 +81,6 @@ function layout(inverter, _P)
         connectdrainspace = _P.outputspace,
         drainmetal = _P.outputmetal,
         connectsource = true,
-        connectsourcewidth = _P.powerwidth,
-        connectsourcespace = _P.powerspace,
         sourcemetal = _P.powermetal,
         drawtopgate = _P.drawtopgate,
         topgatemetal = _P.gatemetal,
@@ -93,13 +95,14 @@ function layout(inverter, _P)
         botgatespace = _P.gatestrapspace,
         botgateleftextension = _P.gateleftextension,
         botgaterightextension = _P.gaterightextension,
+        oxidetype = _P.oxidetype,
         extendallleft = _P.gatelength + _P.gatespace,
         extendallright = _P.gatelength + _P.gatespace,
         vthtypealignwithactive = true,
-        extendvthtypetop = 100,
-        extendvthtypebottom = 100,
-        extendvthtypeleft = 208 + 50,
-        extendvthtyperight = 208 + 50,
+        extendvthtypetop = _P.extendvthtypetop,
+        extendvthtypebottom = _P.extendvthtypebottom,
+        extendvthtypeleft = _P.extendvthtypeleft,
+        extendvthtyperight = _P.extendvthtyperight,
         sourcealign = "top",
         drainalign = "bottom",
         drawleftactivedummy = _P.drawleftrightactivedummies,
@@ -114,18 +117,6 @@ function layout(inverter, _P)
         drawbottomactivedummy = _P.drawtopbottomactivedummies,
         bottomactivedummywidth = 100,
         bottomactivedummyspace = 300,
-        -- guard ring
-        --drawguardring = _P.nmosflippedwell == _P.pmosflippedwell, -- only place local guardrings if not connected to the same well
-        --guardringrespectactivedummy = true,
-        --guardringwidth = 100,
-        --guardringleftsep = 3 * (_P.gatelength + _P.gatespace),
-        --guardringrightsep = 3 * (_P.gatelength + _P.gatespace),
-        --guardringtopsep = _P.guardring.innerysep,
-        --guardringwellextension = _P.guardring.wellextension,
-        --guardringimplantextension = _P.guardring.implantextension,
-        --guardringfillimplant = true,
-        --guardringsoiopenextension = _P.guardring.soiopenextension,
-        -- stop gates
         drawrightstopgate = true,
         drawleftstopgate = true,
         rightpolylines = _P.rightpolylines,
@@ -139,6 +130,8 @@ function layout(inverter, _P)
         channeltype = "nmos",
         gbotextadd = (_P.nwidth == not _P.pmosflippedwell) and math.max(_P.pwidth - _P.nwidth, 10) or 10,
         vthtype = _P.nvthtype,
+        connectsourcewidth = _P.vsswidth,
+        connectsourcespace = _P.vssspace,
         --guardringbottomsep = _P.guardring.innerysep + math.max(_P.pwidth - _P.nwidth, 0),
         --guardringfillwell = true,
     }))
@@ -151,31 +144,18 @@ function layout(inverter, _P)
         gbotextadd = (_P.nwidth == not _P.pmosflippedwell) and math.max(_P.nwidth - _P.pwidth, 10) or 10,
         connectdraininverse = true,
         connectsourceinverse = true,
+        connectsourcewidth = _P.vddwidth,
+        connectsourcespace = _P.vddspace,
         --guardringbottomsep = _P.guardring.innerysep + math.max(_P.nwidth - _P.pwidth, 0),
     }))
-    if _P.nmosflippedwell == _P.pmosflippedwell then
-        pmos:align_top(nmos)
-        pmos:abut_right(nmos)
-        pmos:translate_x(2 * (_P.gatelength + _P.gatespace))
-        --pmos:translate_x(_P.guardring.innerwidth + 2 * _P.guardring.wellextension)
-    else
-        pmos:align_area_anchor("leftpolyline3", nmos, "rightpolyline3")
-        pmos:align_top(nmos)
-    end
+    pmos:align_top(nmos)
+    pmos:abut_right(nmos)
+    pmos:translate_x(2 * (_P.gatelength + _P.gatespace))
     inverter:merge_into(nmos)
     inverter:merge_into(pmos)
 
-    if _P.nmosflippedwell == _P.pmosflippedwell then
-        inverter:inherit_alignment_box(nmos)
-        inverter:inherit_alignment_box(pmos)
-    else
-        inverter:set_alignment_box(
-            nmos:get_area_anchor("leftpolyline3").bl,
-            pmos:get_area_anchor("rightpolyline3").tr,
-            nmos:get_area_anchor("leftpolyline3").br,
-            pmos:get_area_anchor("rightpolyline3").tl
-        )
-    end
+    inverter:inherit_alignment_box(nmos)
+    inverter:inherit_alignment_box(pmos)
 
     -- gate connections
     if _P.drawtopgate then
