@@ -820,9 +820,15 @@ static int _contactbltr(
         return 0;
     }
     int ret = 1;
+    const struct generics* cutlayer = generics_create_contact(techstate, region);
+    if(!cutlayer)
+    {
+        printf("could not create contact layer for region '%s'\n", region);
+        return 0;
+    }
     ret = ret && _via_contact_bltr(cell,
         viadefs, fallback,
-        generics_create_contact(techstate, region),
+        cutlayer,
         blx, bly, trx, try,
         xcont, ycont,
         equal_pitch,
@@ -850,9 +856,15 @@ static int _contactbarebltr(
         return 0;
     }
     int ret = 1;
+    const struct generics* cutlayer = generics_create_contact(techstate, region);
+    if(!cutlayer)
+    {
+        printf("could not create contact layer for region '%s'\n", region);
+        return 0;
+    }
     ret = ret && _via_contact_bltr(cell,
         viadefs, fallback,
-        generics_create_contact(techstate, region),
+        cutlayer,
         blx, bly, trx, try,
         xcont, ycont,
         equal_pitch,
