@@ -1048,6 +1048,7 @@ function layout(transistor, _P)
             splitdrainviaoffset = _P.connectdraininlineoffset
         end
     end
+    local contacttype = _P.drawrotationmarker and "sourcedrainrotated" or "sourcedrain"
     if _P.drawsourcedrain ~= "none" then
         -- source
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "source" then
@@ -1056,7 +1057,7 @@ function layout(transistor, _P)
                 local bl = point.create(shift, sourceoffset)
                 local tr = point.create(shift + _P.sdwidth, sourceoffset + _P.sourcesize)
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
-                    geometry.contactbarebltr(transistor, "sourcedrain", bl, tr)
+                    geometry.contactbarebltr(transistor, contacttype, bl, tr)
                     if _P.drawsourcevia and _P.sourceviametal > 1 and
                        not (i == 1 and not _P.drawfirstsourcevia or
                         i == _P.fingers + 1 and not _P.drawlastsourcevia) then
@@ -1111,7 +1112,7 @@ function layout(transistor, _P)
                 local bl = point.create(shift, drainoffset)
                 local tr = point.create(shift + _P.sdwidth, drainoffset + _P.drainsize)
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
-                    geometry.contactbarebltr(transistor, "sourcedrain", bl, tr)
+                    geometry.contactbarebltr(transistor, contacttype, bl, tr)
                     if _P.drawdrainvia and _P.drainviametal > 1 and
                        not (i == 2 and not _P.drawfirstdrainvia or
                         i == _P.fingers + 1 and not _P.drawlastdrainvia) then
