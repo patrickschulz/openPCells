@@ -895,6 +895,7 @@ point_t* object_get_array_anchor(const struct object* cell, int xindex, int yind
     if(pt)
     {
         point_translate(pt, cell->xpitch * (xindex - 1), cell->ypitch * (yindex - 1));
+        return pt;
     }
     // no anchor found
     return NULL;
