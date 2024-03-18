@@ -137,8 +137,8 @@
     struct parameter parameters[] = {
         { "parent",     OBJECT,     NULL,       "parent cell to place cells in" },
         { "cellsdef",   TABLE,      NULL,       "cells definition containing rows with entries for 'reference' (an object) and 'instance' (an instance name, must be unique)" },
-        { "flipfirst",  BOOLEAN,    "false",    "flip the first row" },
-        { "noflip",     BOOLEAN,    "false",    "don't flip cells when advancing a row (useful for standard cell blocks that occupy an even number of rows)" }
+        { "flip",       BOOLEAN,    "false",    "flip cells when advancing a row (useful for standard cell blocks)" },
+        { "flipfirst",  BOOLEAN,    "false",    "flip the first row" }
     };
     vector_append(entries, _make_api_entry(
         "rowwise",
@@ -155,8 +155,8 @@
     struct parameter parameters[] = {
         { "parent",     OBJECT,     NULL,       "parent cell to place cells in" },
         { "cellsdef",   TABLE,      NULL,       "cells definition containing rows with entries for 'reference' (an object) and 'instance' (an instance name, must be unique)" },
-        { "flipfirst",  BOOLEAN,    "false",    "flip the first row" },
-        { "noflip",     BOOLEAN,    "false",    "don't flip cells when advancing a row (useful for standard cell blocks that occupy an even number of rows)" }
+        { "flip",       BOOLEAN,    "false",    "flip cells when advancing a row (useful for standard cell blocks)" },
+        { "flipfirst",  BOOLEAN,    "false",    "flip the first row" }
     };
     vector_append(entries, _make_api_entry(
         "rowwise_flat",

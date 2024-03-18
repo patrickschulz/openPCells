@@ -280,10 +280,10 @@ function placement.digital(parent, rows, width, flipfirst, noflip)
         end
     end
 
-    return placement.rowwise(parent, rows, flipfirst, noflip)
+    return placement.rowwise(parent, rows, not flip, flipfirst)
 end
 
-function placement.rowwise(parent, cellsdef, flipfirst, noflip)
+function placement.rowwise(parent, cellsdef, flip, flipfirst)
     local cells = {}
     local references = {}
 
@@ -317,7 +317,7 @@ function placement.rowwise(parent, cellsdef, flipfirst, noflip)
     end
 
     -- flip every second row
-    if not noflip then
+    if flip then
         local flip = flipfirst
         for row = 1, #cells do
             if flip then
@@ -336,7 +336,7 @@ function placement.rowwise(parent, cellsdef, flipfirst, noflip)
     return cells
 end
 
-function placement.rowwise_flat(parent, cellsdef, flipfirst, noflip)
+function placement.rowwise_flat(parent, cellsdef, flip, flipfirst)
     local cells = {}
     local references = {}
 
@@ -373,7 +373,7 @@ function placement.rowwise_flat(parent, cellsdef, flipfirst, noflip)
     end
 
     -- flip every second row
-    if not noflip then
+    if flip then
         local flip = flipfirst
         for row = 1, #cells do
             if flip then
