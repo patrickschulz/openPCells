@@ -316,13 +316,23 @@ function placement.rowwise(parent, cellsdef, flip, flipfirst)
         end
     end
 
+    -- check row flips
+    for rownum = 1, #cells do
+        local row = cellsdef[rownum]
+        if row.flip then
+            for columnnum = 1, #cells[rownum] do
+                cells[rownum][columnnum]:flipy()
+            end
+        end
+    end
+
     -- flip every second row
     if flip then
         local flip = flipfirst
         for row = 1, #cells do
             if flip then
                 for column = 1, #cells[row] do
-                    cells[row][column]:flipy()
+                    cells[row][column]:flipx()
                 end
             end
             flip = not flip
@@ -369,6 +379,16 @@ function placement.rowwise_flat(parent, cellsdef, flip, flipfirst)
             cells[entry.instance] = cell
 
             last = cell
+        end
+    end
+
+    -- check row flips
+    for rownum = 1, #cells do
+        local row = cellsdef[rownum]
+        if row.flip then
+            for columnnum = 1, #cells[rownum] do
+                cells[rownum][columnnum]:flipy()
+            end
         end
     end
 
@@ -425,13 +445,23 @@ function placement.columnwise(parent, cellsdef, flip, flipfirst)
         end
     end
 
+    -- check column flips
+    for columnnum = 1, #cells do
+        local column = cellsdef[columnnum]
+        if column.flip then
+            for row = 1, #cells[columnnum] do
+                cells[columnnum][row]:flipx()
+            end
+        end
+    end
+
     -- flip every second column
     if flip then
         local flip = flipfirst
         for column = 1, #cells do
             if flip then
                 for row = 1, #cells[column] do
-                    cells[column][row]:flipy()
+                    cells[column][row]:flipx()
                 end
             end
             flip = not flip
@@ -481,13 +511,23 @@ function placement.columnwise_flat(parent, cellsdef, flip, flipfirst)
         end
     end
 
+    -- check column flips
+    for columnnum = 1, #cells do
+        local column = cellsdef[columnnum]
+        if column.flip then
+            for row = 1, #cells[columnnum] do
+                cells[columnnum][row]:flipx()
+            end
+        end
+    end
+
     -- flip every second column
     if flip then
         local flip = flipfirst
         for column = 1, #cells do
             if flip then
                 for row = 1, #cells[column] do
-                    cells[column][row]:flipy()
+                    cells[column][row]:flipx()
                 end
             end
             flip = not flip
