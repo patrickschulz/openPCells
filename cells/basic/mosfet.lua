@@ -927,11 +927,12 @@ function layout(transistor, _P)
     end
 
     -- gate contacts
+    local gatecontacttype = _P.drawrotationmarker and "gaterotated" or "gate"
     if _P.drawtopgate then
         for i = 1, _P.fingers do
             local contactfun = _P.drawtopgatestrap and geometry.contactbarebltr or geometry.contactbltr
             contactfun(transistor,
-                "gate",
+                gatecontacttype,
                 point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
                 point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth)
             )
@@ -958,7 +959,7 @@ function layout(transistor, _P)
         for i = 1, _P.fingers do
             local contactfun = _P.drawbotgatestrap and geometry.contactbarebltr or geometry.contactbltr
             contactfun(transistor,
-                "gate",
+                gatecontacttype,
                 point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
                 point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace)
             )

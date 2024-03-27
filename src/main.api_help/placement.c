@@ -137,13 +137,13 @@
     struct parameter parameters[] = {
         { "parent",     OBJECT,     NULL,       "parent cell to place cells in" },
         { "cellsdef",   TABLE,      NULL,       "cells definition containing rows with entries for 'reference' (an object) and 'instance' (an instance name, must be unique)" },
-        { "flipfirst",  BOOLEAN,    "false",    "flip the first row" },
-        { "noflip",     BOOLEAN,    "false",    "don't flip cells when advancing a row (useful for standard cell blocks that occupy an even number of rows)" }
+        { "flip",       BOOLEAN,    "false",    "flip cells when advancing a row (useful for standard cell blocks)" },
+        { "flipfirst",  BOOLEAN,    "false",    "flip the first row" }
     };
     vector_append(entries, _make_api_entry(
         "rowwise",
         MODULE_PLACEMENT,
-        "place cells in a row-wise manner in a parent cell. The cells definition contains definitions for every row, which in turn contain entries with two keys: 'reference' (an object) and 'instance' (an instance name). The placed cells are aligned by their alignment boxes and grow into the upper-right direction. This means that the first entry in the first row is the bottom-left-most cell. This function is useful for digital standard cell layouts (and in fact called by placement.digital, which offers a more high-level interface), but it can also be useful for regular analog structures",
+        "place cells in a row-wise manner in a parent cell. The cells definition contains definitions for every row, which in turn contain entries with two keys: 'reference' (an object) and 'instance' (an instance name). The placed cells are aligned by their alignment boxes and grow into the upper-right direction. This means that the first entry in the first row is the bottom-left-most cell. This function is useful for digital standard cell layouts (and in fact called by placement.digital, which offers a more high-level interface), but it can also be useful for regular analog structures. Flipping fine control can be obtained by passing 'flip = true/false' to entire rows.",
         "local celldef = {\n    { -- first row (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second row\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.rowwise(parent, cellsdef)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
@@ -155,14 +155,50 @@
     struct parameter parameters[] = {
         { "parent",     OBJECT,     NULL,       "parent cell to place cells in" },
         { "cellsdef",   TABLE,      NULL,       "cells definition containing rows with entries for 'reference' (an object) and 'instance' (an instance name, must be unique)" },
-        { "flipfirst",  BOOLEAN,    "false",    "flip the first row" },
-        { "noflip",     BOOLEAN,    "false",    "don't flip cells when advancing a row (useful for standard cell blocks that occupy an even number of rows)" }
+        { "flip",       BOOLEAN,    "false",    "flip cells when advancing a row (useful for standard cell blocks)" },
+        { "flipfirst",  BOOLEAN,    "false",    "flip the first row" }
     };
     vector_append(entries, _make_api_entry(
         "rowwise_flat",
         MODULE_PLACEMENT,
         "like placement.rowwise, but merges cells into parents (flat)",
         "local celldef = {\n    { -- first row (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second row\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.rowwise_flat(parent, cellsdef)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* placement.columnwise */
+{
+    struct parameter parameters[] = {
+        { "parent",     OBJECT,     NULL,       "parent cell to place cells in" },
+        { "cellsdef",   TABLE,      NULL,       "cells definition containing columns with entries for 'reference' (an object) and 'instance' (an instance name, must be unique)" },
+        { "flip",       BOOLEAN,    "false",    "flip cells when advancing a column (useful for standard cell blocks)" },
+        { "flipfirst",  BOOLEAN,    "false",    "flip the first column" }
+    };
+    vector_append(entries, _make_api_entry(
+        "columnwise",
+        MODULE_PLACEMENT,
+        "place cells in a column-wise manner in a parent cell. The cells definition contains definitions for every column, which in turn contain entries with two keys: 'reference' (an object) and 'instance' (an instance name). The placed cells are aligned by their alignment boxes and grow into the upper-right direction. This means that the first entry in the first column is the bottom-left-most cell. This function is useful for digital standard cell layouts (and in fact called by placement.digital, which offers a more high-level interface), but it can also be useful for regular analog structures. Flipping fine control can be obtained by passing 'flip = true/false' to entire columns.",
+        "local celldef = {\n    { -- first column (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second column\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.columnwise(parent, cellsdef)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* placement.columnwise_flat */
+{
+    struct parameter parameters[] = {
+        { "parent",     OBJECT,     NULL,       "parent cell to place cells in" },
+        { "cellsdef",   TABLE,      NULL,       "cells definition containing columns with entries for 'reference' (an object) and 'instance' (an instance name, must be unique)" },
+        { "flip",       BOOLEAN,    "false",    "flip cells when advancing a column (useful for standard cell blocks)" },
+        { "flipfirst",  BOOLEAN,    "false",    "flip the first column" }
+    };
+    vector_append(entries, _make_api_entry(
+        "columnwise_flat",
+        MODULE_PLACEMENT,
+        "like placement.columnwise, but merges cells into parents (flat)",
+        "local celldef = {\n    { -- first column (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second column\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.columnwise_flat(parent, cellsdef)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
