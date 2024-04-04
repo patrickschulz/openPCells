@@ -3,25 +3,25 @@
   VDD ───────────────────────────────────────┬──────────────────────────────────┬───────────────────┐
                                              │                                  │                   │
                                          ║───┘                                  │                   │
-                                       ─o║                                      │                   │
-                                         ║───┐                                  │                   │
+                               vclkn o──o║  clockfingers                        │                   │
+                                         ║───┐                                  │   latchfingers    │
                                              │                                  │                   │
                                    ┌─────────┴─────────┐                        │                   │
                                    │                   │                        └───║           ║───┘
                                ║───┘                   └───║                        ║o──┐   ┌──o║
-                      Dp o────o║                           ║o────o Dn           ┌───║   │   │   ║───┐
+                      Dp o────o║       inputfingers        ║o────o Dn           ┌───║   │   │   ║───┐
                                ║───┐                   ┌───║                    │       │   │       │
                                    │                   │               voutp ───┼───────────┤       │
                                    ├── voutp   voutn ──┤                        │       │   │       │
                                    │                   │                        │       ├───────────┼───── voutn
                                ║───┘                   └───║                    │       │   │       │
-                      Dp o─────║                           ║o────o Dn           └───║   │   │   ║───┘
+                      Dp o─────║        inputfingers       ║o────o Dn           └───║   │   │   ║───┘
                                ║───┐                   ┌───║                        ║───┘   └───║
                                    │                   │                        ┌───║           ║───┐
                                    └─────────┬─────────┘                        │                   │
                                              │                                  │                   │
-                                         ║───┘                                  │                   │
-                               vclk o────║                                      │                   │
+                                         ║───┘                                  │   latchfingers    │
+                              vclkp o────║  clockfingers                        │                   │
                                          ║───┐                                  │                   │
                                              │                                  │                   │
   VSS ───────────────────────────────────────┴──────────────────────────────────┴───────────────────┘
@@ -146,11 +146,8 @@ function parameters()
 end
 
 function check(_P)
-    if _P.clockfingers % 2 ~= 0 then
-        return false, string.format("clockfingers must be divisible by 4 (got: %d)", _P.clockfingers)
-    end
-    if (_P.inputfingers % 2) ~= ((_P.clockfingers / 2) % 2) then
-        return false, string.format("inputfingers must be even if clockfingers / 2 is even and vice versa (odd/odd) (inputfingers = %d, clockfingers / 2 = %d)", _P.inputfingers, _P.clockfingers / 2)
+    if (_P.inputfingers % 2) ~= (_P.clockfingers % 2) then
+        return false, string.format("inputfingers must be even if clockfingers is even and vice versa (odd/odd) (inputfingers = %d, clockfingers = %d)", _P.inputfingers, _P.clockfingers)
     end
     return true
 end
@@ -261,9 +258,9 @@ end
 
 function layout(divider, _P)
     local xpitch = _P.gatelength + _P.gatespace
-    local equalizationdummies = (_P.inputfingers - _P.clockfingers / 2) / 2
+    local equalizationdummies = (_P.inputfingers - _P.clockfingers) / 2
     local middledummyfingers = 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers
-    local allfingers = 2 * _P.outerdummies + _P.clockfingers + 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers
+    local allfingers = 2 * _P.outerdummies + 2 * _P.clockfingers + 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers
     if equalizationdummies > 0 then
         allfingers = allfingers + 4 * equalizationdummies
     end
@@ -350,7 +347,7 @@ function layout(divider, _P)
                 },
                 {
                     name = "clocknleft",
-                    fingers = _P.clockfingers / 2,
+                    fingers = _P.clockfingers,
                     drawtopgate = true,
                     topgatewidth = _P.clockgatewidth,
                     topgatespace = _P.gatestrapspace,
@@ -381,7 +378,7 @@ function layout(divider, _P)
                 },
                 {
                     name = "clocknright",
-                    fingers = _P.clockfingers / 2,
+                    fingers = _P.clockfingers,
                     drawtopgate = true,
                     topgatewidth = _P.clockgatewidth,
                     topgatespace = _P.gatestrapspace,
@@ -653,7 +650,7 @@ function layout(divider, _P)
                 },
                 {
                     name = "clockpleft",
-                    fingers = _P.clockfingers / 2,
+                    fingers = _P.clockfingers,
                     drawbotgate = true,
                     botgatewidth = _P.clockgatewidth,
                     botgatespace = 70,
@@ -694,7 +691,7 @@ function layout(divider, _P)
                 },
                 {
                     name = "clockpright",
-                    fingers = _P.clockfingers / 2,
+                    fingers = _P.clockfingers,
                     drawbotgate = true,
                     botgatewidth = _P.clockgatewidth,
                     botgatespace = 70,
