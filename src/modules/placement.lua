@@ -308,6 +308,14 @@ function placement.rowwise(parent, cellsdef, flip, flipfirst)
                 cell:abut_right(last)
             end
 
+            -- flip individual cells
+            if entry.flipx then
+                cell:flipx()
+            end
+            if entry.flipy then
+                cell:flipy()
+            end
+
             -- store cell link (numeric and by name)
             cells[rownum][columnnum] = cell
             cells[entry.instance] = cell
@@ -369,6 +377,14 @@ function placement.rowwise_flat(parent, cellsdef, flip, flipfirst)
             else
                 cell:align_bottom(last)
                 cell:abut_right(last)
+            end
+
+            -- flip individual cells
+            if entry.flipx then
+                cell:flipx()
+            end
+            if entry.flipy then
+                cell:flipy()
             end
 
             -- merge into parent
@@ -437,6 +453,14 @@ function placement.columnwise(parent, cellsdef, flip, flipfirst)
                 cell:abut_top(last)
             end
 
+            -- flip individual cells
+            if entry.flipx then
+                cell:flipx()
+            end
+            if entry.flipy then
+                cell:flipy()
+            end
+
             -- store cell link (numeric and by name)
             cells[columnnum][rownum] = cell
             cells[entry.instance] = cell
@@ -498,6 +522,14 @@ function placement.columnwise_flat(parent, cellsdef, flip, flipfirst)
             else
                 cell:align_left(last)
                 cell:abut_top(last)
+            end
+
+            -- flip individual cells
+            if entry.flipx then
+                cell:flipx()
+            end
+            if entry.flipy then
+                cell:flipy()
             end
 
             -- merge into parent
