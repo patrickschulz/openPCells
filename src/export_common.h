@@ -56,6 +56,8 @@ struct export_functions
     void (*write_cell_array)(struct export_data*, const char*, const char*, coordinate_t, coordinate_t, const struct transformationmatrix*, unsigned int, unsigned int, coordinate_t, coordinate_t);
     // write ports
     void (*write_port)(struct export_data*, const char* name, const struct hashmap*, coordinate_t x, coordinate_t y, unsigned int sizehint);
+    // write labels
+    void (*write_label)(struct export_data*, const char* name, const struct hashmap*, coordinate_t x, coordinate_t y, unsigned int sizehint);
 };
 
 struct export_functions* export_create_functions(void);

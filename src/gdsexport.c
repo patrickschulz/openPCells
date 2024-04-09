@@ -790,6 +790,7 @@ struct export_functions* gdsexport_get_export_functions(void)
     funcs->write_cell_reference = _write_cell_reference;
     funcs->write_cell_array = _write_cell_array;
     funcs->write_port = _write_port;
+    funcs->write_label = _write_port;
     funcs->get_extension = _get_extension;
     return funcs;
 }

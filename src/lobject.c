@@ -953,6 +953,19 @@ static int lobject_add_bus_port(lua_State* L)
     return 0;
 }
 
+static int lobject_add_label(lua_State* L)
+{
+    lcheck_check_numargs2(L, 4, 5, "object.add_label");
+    struct lobject* cell = lobject_check(L, 1);
+    lobject_check_proxy(L, cell);
+    const char* name = luaL_checkstring(L, 2);
+    const struct generics* layer = lua_touserdata(L, 3);
+    struct lpoint* lpoint = lpoint_checkpoint(L, 4);
+    double sizehint = luaL_optnumber(L, 5, 0.0);
+    object_add_label(lobject_get(L, cell), name, layer, lpoint_get(lpoint), sizehint);
+    return 0;
+}
+
 static int lobject_get_ports(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1469,6 +1482,7 @@ int open_lobject_lib(lua_State* L)
         { "add_port",                               lobject_add_port                            },
         { "add_port_with_anchor",                   lobject_add_port_with_anchor                },
         { "add_bus_port",                           lobject_add_bus_port                        },
+        { "add_label",                              lobject_add_label                           },
         { "get_ports",                              lobject_get_ports                           },
         { "clear_alignment_box",                    lobject_clear_alignment_box                 },
         { "set_alignment_box",                      lobject_set_alignment_box                   },

@@ -13,6 +13,7 @@
 #define OBJECT_DEFAULT_CHILDREN_SIZE 16
 #define OBJECT_DEFAULT_REFERENCES_SIZE 8
 #define OBJECT_DEFAULT_PORT_SIZE 16
+#define OBJECT_DEFAULT_LABEL_SIZE 16
 
 struct port {
     char* name;
@@ -117,6 +118,7 @@ struct object {
         struct {
             struct vector* shapes; // stores struct shape*
             struct vector* ports; // stores struct port*
+            struct vector* labels; // like a port, but always drawn; stores struct port*
             struct hashmap* anchors;
             struct vector* children; // stores struct object*
             struct vector* references; // stores struct object*
@@ -488,6 +490,17 @@ void object_merge_into(struct object* cell, const struct object* other)
             struct object* newchild = object_add_child(cell, vector_get(new_cell_references, index), child->name);
             object_apply_other_transformation(newchild, child->trans);
             // FIXME: transformation
+        }
+    }
+    if(other->labels)
+    {
+        for(unsigned int i = 0; i < vector_size(other->labels); ++i)
+        {
+            struct port* label = vector_get(other->labels, i);
+            object_add_label(cell, label->name, label->layer, label->where, label->sizehint);
+            struct port* newlabel = vector_get(cell->labels, vector_size(cell->labels) - 1);
+            transformationmatrix_apply_inverse_transformation(cell->trans, newlabel->where);
+            transformationmatrix_apply_transformation(other->trans, newlabel->where);
         }
     }
 }
@@ -1705,9 +1718,40 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
     }
 }
 
+static void _add_label(struct object* cell, const char* name, const struct generics* layer, coordinate_t x, coordinate_t y, unsigned int sizehint)
+{
+    if(!generics_is_empty(layer))
+    {
+        if(!cell->labels)
+        {
+            cell->labels = vector_create(OBJECT_DEFAULT_LABEL_SIZE, _port_destroy);
+        }
+        struct port* port = malloc(sizeof(*port));
+        port->where = point_create(x, y);
+        transformationmatrix_apply_inverse_transformation(cell->trans, port->where);
+        port->layer = layer;
+        port->isbusport = 0; // not used for labels
+        port->busindex = 0;
+        port->name = malloc(strlen(name) + 1);
+        strcpy(port->name, name);
+        port->sizehint = sizehint;
+        vector_append(cell->labels, port);
+    }
+}
+
+void object_add_label(struct object* cell, const char* name, const struct generics* layer, const point_t* where, unsigned int sizehint)
+{
+    _add_label(cell, name, layer, where->x, where->y, sizehint);
+}
+
 const struct vector* object_get_ports(const struct object* cell)
 {
     return cell->ports;
+}
+
+const struct vector* object_get_labels(const struct object* cell)
+{
+    return cell->labels;
 }
 
 void object_clear_alignment_box(struct object* cell)
@@ -2780,6 +2824,51 @@ void port_iterator_get(struct port_iterator* it, const char** portname, const po
 }
 
 void port_iterator_destroy(struct port_iterator* it)
+{
+    free(it);
+}
+
+// label iterator
+struct label_iterator {
+    const struct vector* labels;
+    size_t index;
+};
+
+struct label_iterator* object_create_label_iterator(const struct object* cell)
+{
+    struct label_iterator* it = malloc(sizeof(*it));
+    it->labels = cell->labels;
+    it->index = 0;
+    return it;
+}
+
+int label_iterator_is_valid(struct label_iterator* it)
+{
+    if(!it->labels)
+    {
+        return 0;
+    }
+    else
+    {
+        return it->index < vector_size(it->labels);
+    }
+}
+
+void label_iterator_next(struct label_iterator* it)
+{
+    it->index += 1;
+}
+
+void label_iterator_get(struct label_iterator* it, const char** labelname, const point_t** labelwhere, const struct generics** labellayer, unsigned int* sizehint)
+{
+    const struct port* label = vector_get_const(it->labels, it->index);
+    if(labelname) { *labelname = label->name; }
+    if(labelwhere) { *labelwhere = label->where; }
+    if(labellayer) { *labellayer = label->layer; }
+    if(sizehint) { *sizehint = label->sizehint; }
+}
+
+void label_iterator_destroy(struct label_iterator* it)
 {
     free(it);
 }

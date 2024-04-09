@@ -102,6 +102,9 @@ void object_add_port(struct object* cell, const char* name, const struct generic
 void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint);
 const struct vector* object_get_ports(const struct object* cell);
 
+// labels
+void object_add_label(struct object* cell, const char* name, const struct generics* layer, const point_t* where, unsigned int sizehint);
+
 // alignment box and bounding box
 void object_clear_alignment_box(struct object* cell);
 void object_set_alignment_box(
@@ -231,5 +234,13 @@ int port_iterator_is_valid(struct port_iterator* it);
 void port_iterator_next(struct port_iterator* it);
 void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex, unsigned int* sizehint);
 void port_iterator_destroy(struct port_iterator* it);
+
+// label iterator
+struct label_iterator;
+struct label_iterator* object_create_label_iterator(const struct object* cell);
+int label_iterator_is_valid(struct label_iterator* it);
+void label_iterator_next(struct label_iterator* it);
+void label_iterator_get(struct label_iterator* it, const char** labelname, const point_t** labelwhere, const struct generics** labellayer, unsigned int* sizehint);
+void label_iterator_destroy(struct label_iterator* it);
 
 #endif // OPC_OBJECT_H

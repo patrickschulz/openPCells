@@ -755,6 +755,73 @@ static int _write_ports(struct export_writer* writer, const struct object* cell,
     return ret;
 }
 
+static int _write_label(struct export_writer* writer, const char* name, const struct hashmap* layerdata, point_t* where, unsigned int sizehint)
+{
+    if(writer->islua)
+    {
+        lua_getfield(writer->L, -1, "write_label");
+        if(lua_isnil(writer->L, -1))
+        {
+            lua_pop(writer->L, 1);
+            lua_getfield(writer->L, -1, "write_port");
+        }
+        lua_pushstring(writer->L, name);
+        _push_layer(writer->L, layerdata);
+        _push_point(writer->L, where);
+        if(sizehint > 0)
+        {
+            lua_pushinteger(writer->L, sizehint);
+        }
+        else
+        {
+            lua_pushnil(writer->L);
+        }
+        int ret = _pcall(writer->L, 4, 0, "write_label");
+        if(!ret)
+        {
+            return 0;
+        }
+        return 1;
+    }
+    else
+    {
+        if(writer->funcs->write_label)
+        {
+            writer->funcs->write_label(writer->data, name, layerdata, where->x, where->y, sizehint);
+        }
+        else
+        {
+            writer->funcs->write_port(writer->data, name, layerdata, where->x, where->y, sizehint);
+        }
+        return 1;
+    }
+}
+
+static int _write_labels(struct export_writer* writer, const struct object* cell)
+{
+    struct label_iterator* it = object_create_label_iterator(cell);
+    int ret = 1;
+    while(label_iterator_is_valid(it))
+    {
+        const char* labelname;
+        const point_t* labelwhere;
+        const struct generics* labellayer;
+        unsigned int sizehint;
+        label_iterator_get(it, &labelname, &labelwhere, &labellayer, &sizehint);
+        point_t where = { .x = labelwhere->x, .y = labelwhere->y };
+        object_transform_point(cell, &where);
+        const struct hashmap* layerdata = generics_get_first_layer_data(labellayer);
+        ret = _write_label(writer, labelname, layerdata, &where, sizehint);
+        if(!ret)
+        {
+            break;
+        }
+        label_iterator_next(it);
+    }
+    label_iterator_destroy(it);
+    return ret;
+}
+
 static int _write_cell_elements(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int write_ports, char leftdelim, char rightdelim)
 {
     /* shapes */
@@ -788,6 +855,13 @@ static int _write_cell_elements(struct export_writer* writer, const struct objec
         {
             return 0;
         }
+    }
+
+    /* label */
+    ret = _write_labels(writer, cell);
+    if(!ret)
+    {
+        return 0;
     }
     return 1;
 }
