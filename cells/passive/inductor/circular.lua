@@ -9,8 +9,8 @@ function parameters()
         { "radius(Radius)",                                               40000 },
         { "cornerradius(Corner Radius)",                                  14000 },
         { "width(Width)",                                                  6000 },
-        { "separation(Line Separation)",                                   6000 },
         { "extension(Line Extension)",                                    40000 },
+        { "extsep(Extension Separation)",                                  6000 },
         { "grid(Grid)",                                                     200 },
         { "allow45(Allow Angles with 45 Degrees)",                         true },
         { "drawlvsresistor(Draw LVS Resistor)",                           false },
@@ -86,18 +86,18 @@ function check(_P)
     if not (_P.radius % _P.grid == 0) then
         return false, "radius must fit on grid"
     end
-    if not ((-0.5 * _P.separation - _P.cornerradius) % _P.grid == 0) then
+    if not ((-0.5 * _P.extsep - _P.cornerradius) % _P.grid == 0) then
         return false, "can't fit points on grid with this separation and cornerradius"
     end
     -- FIXME: this check seems to be broken (caused false-positives)
-    --if (_P.grid * math.floor(math.sqrt((_P.radius - _P.width / 2 + _P.cornerradius)^2 - (0.5 * _P.separation + _P.cornerradius)^2) / _P.grid)) > _P.radius + _P.width / 2 + _P.extension then
+    --if (_P.grid * math.floor(math.sqrt((_P.radius - _P.width / 2 + _P.cornerradius)^2 - (0.5 * _P.extsep + _P.cornerradius)^2) / _P.grid)) > _P.radius + _P.width / 2 + _P.extension then
     --    return false, "extension must be large enough to ensure that the rectangular feed lines don't intersect with the circular connectors"
     --end
     return true
 end
 
 function layout(inductor, _P)
-    local pts = _get_outline(_P.radius, _P.width, _P.cornerradius, _P.extension, _P.separation, _P.grid, _P.allow45, _P.breaklines)
+    local pts = _get_outline(_P.radius, _P.width, _P.cornerradius, _P.extension, _P.extsep, _P.grid, _P.allow45, _P.breaklines)
 
     -- create polygon
     geometry.polygon(inductor, generics.metal(_P.topmetal), pts)
@@ -106,12 +106,12 @@ function layout(inductor, _P)
     -- input lines anchors
     local lastradius = _P.radius
     inductor:add_area_anchor_bltr("leftline",
-        point.create(-_P.separation / 2 - _P.width, -(lastradius + _P.width / 2 + _P.extension)),
-        point.create(-_P.separation / 2, -lastradius - _P.width / 2)
+        point.create(-_P.extsep / 2 - _P.width, -(lastradius + _P.width / 2 + _P.extension)),
+        point.create(-_P.extsep / 2, -lastradius - _P.width / 2)
     )
     inductor:add_area_anchor_bltr("rightline",
-        point.create( _P.separation / 2, -(lastradius + _P.width / 2 + _P.extension)),
-        point.create( _P.separation / 2 + _P.width, -lastradius - _P.width / 2)
+        point.create( _P.extsep / 2, -(lastradius + _P.width / 2 + _P.extension)),
+        point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
     )
 
     -- alignment box
