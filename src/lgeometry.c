@@ -38,7 +38,7 @@ static int lgeometry_rectanglebltr(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
     _check_rectangle_points(L, bl, tr, "geometry.rectanglebltr");
-    geometry_rectanglebltr(lobject_get(L, cell), layer, lpoint_get(bl), lpoint_get(tr));
+    geometry_rectanglebltr(lobject_get_full(L, cell), layer, lpoint_get(bl), lpoint_get(tr));
     return 0;
 }
 
@@ -50,7 +50,7 @@ static int lgeometry_rectangleblwh(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     coordinate_t width = lpoint_checkcoordinate(L, 4, "width");
     coordinate_t height = lpoint_checkcoordinate(L, 5, "height");
-    geometry_rectangleblwh(lobject_get(L, cell), layer, lpoint_get(bl), width, height);
+    geometry_rectangleblwh(lobject_get_full(L, cell), layer, lpoint_get(bl), width, height);
     return 0;
 }
 
@@ -61,7 +61,7 @@ static int lgeometry_rectanglepoints(lua_State* L)
     struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
-    geometry_rectanglepoints(lobject_get(L, cell), layer, lpoint_get(pt1), lpoint_get(pt2));
+    geometry_rectanglepoints(lobject_get_full(L, cell), layer, lpoint_get(pt1), lpoint_get(pt2));
     return 0;
 }
 
@@ -78,7 +78,7 @@ static int lgeometry_rectanglearray(lua_State* L)
     unsigned int yrep = luaL_checkinteger(L, 8);
     coordinate_t xpitch = lpoint_checkcoordinate(L, 9, "xpitch");
     coordinate_t ypitch = lpoint_checkcoordinate(L, 10, "ypitch");
-    geometry_rectanglearray(lobject_get(L, cell), layer, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
+    geometry_rectanglearray(lobject_get_full(L, cell), layer, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
     return 0;
 }
 
@@ -96,7 +96,7 @@ static int lgeometry_slotted_rectangle(lua_State* L)
     coordinate_t slotminedgexspace = lpoint_checkcoordinate(L, 9, "slotedgexspace");
     coordinate_t slotminedgeyspace = lpoint_checkcoordinate(L, 10, "slotedgeyspace");
     geometry_slotted_rectangle(
-        lobject_get(L, cell),
+        lobject_get_full(L, cell),
         layer,
         lpoint_get(pt1), lpoint_get(pt2),
         slotwidth, slotheight,
@@ -123,7 +123,7 @@ static int lgeometry_polygon(lua_State* L)
         points[i - 1] = lpoint_get(pt);
         lua_pop(L, 1);
     }
-    geometry_polygon(lobject_get(L, cell), layer, points, len);
+    geometry_polygon(lobject_get_full(L, cell), layer, points, len);
     free(points);
     return 0;
 }
@@ -200,7 +200,7 @@ static int lgeometry_path(lua_State* L)
         lua_pop(L, 1);
     }
     lobject_check_proxy(L, cell);
-    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     vector_destroy(points);
     return 0;
 }
@@ -221,7 +221,7 @@ static int lgeometry_rectanglepath(lua_State* L)
     struct vector* points = vector_create(2, NULL); // non-owning
     vector_append(points, (point_t*)lpoint_get(pt1));
     vector_append(points, (point_t*)lpoint_get(pt2));
-    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     vector_destroy(points);
     return 0;
 }
@@ -260,7 +260,7 @@ static int lgeometry_path_manhatten(lua_State* L)
         lua_pop(L, 1);
     }
 
-    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     vector_destroy(points);
     return 0;
 }
@@ -307,7 +307,7 @@ static int lgeometry_rectanglelines_vertical(lua_State* L)
     coordinate_t offset = (correction + space) / 2;
 
     geometry_rectanglearray(
-        lobject_get(L, cell),
+        lobject_get_full(L, cell),
         layer,
         width, height,
         bl->x + offset, bl->y,  // xshift, yshift
@@ -339,7 +339,7 @@ static int lgeometry_rectanglelines_vertical_width_space(lua_State* L)
     coordinate_t offset = (totalwidth - numlines * (width + space) + space) / 2;
 
     geometry_rectanglearray(
-        lobject_get(L, cell),
+        lobject_get_full(L, cell),
         layer,
         width, height,
         bl->x + offset, bl->y,  // xshift, yshift
@@ -388,7 +388,7 @@ static int lgeometry_rectanglelines_vertical_numlines_width(lua_State* L)
     coordinate_t offset = (correction + space) / 2;
 
     geometry_rectanglearray(
-        lobject_get(L, cell),
+        lobject_get_full(L, cell),
         layer,
         width, height,
         bl->x + offset, bl->y,  // xshift, yshift
@@ -516,7 +516,7 @@ static int lgeometry_rectanglelines_horizontal(lua_State* L)
     coordinate_t offset = (correction + space) / 2;
 
     geometry_rectanglearray(
-        lobject_get(L, cell),
+        lobject_get_full(L, cell),
         layer,
         width, height,
         bl->x, bl->y + offset,  // xshift, yshift
@@ -548,7 +548,7 @@ static int lgeometry_rectanglelines_horizontal_height_space(lua_State* L)
     coordinate_t offset = (totalheight - numlines * (height + space) + space) / 2;
 
     geometry_rectanglearray(
-        lobject_get(L, cell),
+        lobject_get_full(L, cell),
         layer,
         width, height,
         bl->x, bl->y + offset,  // xshift, yshift
@@ -667,7 +667,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     {
         const point_t* origin = vector_const_iterator_get(origin_it);
         geometry_rectanglebltrxy(
-            lobject_get(L, cell),
+            lobject_get_full(L, cell),
             layer,
             point_getx(origin) - width / 2, point_gety(origin) - height / 2,
             point_getx(origin) + width / 2, point_gety(origin) + height / 2
@@ -696,7 +696,7 @@ static int lgeometry_path_2x(lua_State* L)
     vector_append(points, (point_t*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     vector_destroy(points);
     return 0;
@@ -719,7 +719,7 @@ static int lgeometry_path_2x_polygon(lua_State* L)
     vector_append(points, (point_t*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     vector_destroy(points);
     return 0;
@@ -742,7 +742,7 @@ static int lgeometry_path_2y(lua_State* L)
     vector_append(points, (point_t*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     vector_destroy(points);
     return 0;
@@ -765,7 +765,7 @@ static int lgeometry_path_2y_polygon(lua_State* L)
     vector_append(points, (point_t*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     vector_destroy(points);
     return 0;
@@ -792,7 +792,7 @@ static int lgeometry_path_3x(lua_State* L)
     vector_append(points, pts1);
     vector_append(points, pts2);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
     vector_destroy(points);
@@ -820,7 +820,7 @@ static int lgeometry_path_3x_polygon(lua_State* L)
     vector_append(points, pts1);
     vector_append(points, pts2);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
     vector_destroy(points);
@@ -859,7 +859,7 @@ static int lgeometry_path_3x_diagonal(lua_State* L)
     vector_append(points, pts1);
     vector_append(points, pts2);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
     vector_destroy(points);
@@ -898,7 +898,7 @@ static int lgeometry_path_3x_diagonal_polygon(lua_State* L)
     vector_append(points, pts1);
     vector_append(points, pts2);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
     vector_destroy(points);
@@ -926,7 +926,7 @@ static int lgeometry_path_3y(lua_State* L)
     vector_append(points, pts1);
     vector_append(points, pts2);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
     vector_destroy(points);
@@ -954,7 +954,7 @@ static int lgeometry_path_3y_polygon(lua_State* L)
     vector_append(points, pts1);
     vector_append(points, pts2);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
     vector_destroy(points);
@@ -993,7 +993,7 @@ static int lgeometry_path_3y_diagonal(lua_State* L)
     vector_append(points, pts1);
     vector_append(points, pts2);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
     vector_destroy(points);
@@ -1032,7 +1032,7 @@ static int lgeometry_path_3y_diagonal_polygon(lua_State* L)
     vector_append(points, pts1);
     vector_append(points, pts2);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
     vector_destroy(points);
@@ -1060,7 +1060,7 @@ static int lgeometry_path_cshape(lua_State* L)
     vector_append(points, pts1);
     vector_append(points, pts2);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
     vector_destroy(points);
@@ -1088,7 +1088,7 @@ static int lgeometry_path_ushape(lua_State* L)
     vector_append(points, pts1);
     vector_append(points, pts2);
     vector_append(points, (point_t*)lpoint_get(ptend));
-    geometry_path(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
     vector_destroy(points);
@@ -1132,7 +1132,7 @@ static int lgeometry_path_polygon(lua_State* L)
         vector_append(points, point_copy(lpoint_get(pt)));
         lua_pop(L, 1);
     }
-    geometry_path_polygon(lobject_get(L, cell), layer, points, width, bgnext, endext);
+    geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     vector_destroy(points);
     return 0;
 }
@@ -1243,7 +1243,7 @@ static int lgeometry_viabltr(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabltr(lobject_get(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1269,7 +1269,7 @@ static int lgeometry_viabarebltr(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabarebltr(lobject_get(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabarebltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1294,7 +1294,7 @@ static int lgeometry_viabltr_xcontinuous(lua_State* L)
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     coordinate_t widthclass = 0; // FIXME
-    int res = geometry_viabltr(lobject_get(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_xcontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1319,7 +1319,7 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     coordinate_t widthclass = 0; // FIXME
-    int res = geometry_viabltr(lobject_get(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_ycontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1344,7 +1344,7 @@ static int lgeometry_viabltr_continuous(lua_State* L)
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     coordinate_t widthclass = 0;
-    int res = geometry_viabltr(lobject_get(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_continuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1369,7 +1369,7 @@ static int lgeometry_viabarebltr_xcontinuous(lua_State* L)
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     coordinate_t widthclass = 0;
-    int res = geometry_viabarebltr(lobject_get(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_xcontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1394,7 +1394,7 @@ static int lgeometry_viabarebltr_ycontinuous(lua_State* L)
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     coordinate_t widthclass = 0;
-    int res = geometry_viabarebltr(lobject_get(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_ycontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1419,7 +1419,7 @@ static int lgeometry_viabarebltr_continuous(lua_State* L)
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     coordinate_t widthclass = 0;
-    int res = geometry_viabarebltr(lobject_get(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_continuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1444,7 +1444,7 @@ static int lgeometry_contactbltr(lua_State* L)
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     int res = geometry_contactbltr(
-        lobject_get(L, cell),
+        lobject_get_full(L, cell),
         techstate,
         region,
         lpoint_get(bl), lpoint_get(tr),
@@ -1478,7 +1478,7 @@ static int lgeometry_contactbarebltr(lua_State* L)
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     int res = geometry_contactbarebltr(
-        lobject_get(L, cell),
+        lobject_get_full(L, cell),
         techstate,
         region,
         lpoint_get(bl), lpoint_get(tr),
@@ -1501,7 +1501,7 @@ static int lgeometry_cross(lua_State* L)
     ucoordinate_t width = luaL_checkinteger(L, 3);
     ucoordinate_t height = luaL_checkinteger(L, 4);
     ucoordinate_t crosssize = luaL_checkinteger(L, 5);
-    geometry_cross(lobject_get(L, cell), layer, width, height, crosssize);
+    geometry_cross(lobject_get_full(L, cell), layer, width, height, crosssize);
     return 0;
 }
 
@@ -1513,7 +1513,7 @@ static int lgeometry_ring(lua_State* L)
     ucoordinate_t width = luaL_checkinteger(L, 4);
     ucoordinate_t height = luaL_checkinteger(L, 5);
     ucoordinate_t ringwidth = luaL_checkinteger(L, 6);
-    geometry_ring(lobject_get(L, cell), layer, lpoint_get(center)->x, lpoint_get(center)->y, width, height, ringwidth);
+    geometry_ring(lobject_get_full(L, cell), layer, lpoint_get(center)->x, lpoint_get(center)->y, width, height, ringwidth);
     return 0;
 }
 
@@ -1528,7 +1528,7 @@ static int lgeometry_unequal_ring(lua_State* L)
     ucoordinate_t rightwidth = luaL_checkinteger(L, 7);
     ucoordinate_t topwidth = luaL_checkinteger(L, 8);
     ucoordinate_t bottomwidth = luaL_checkinteger(L, 9);
-    geometry_unequal_ring(lobject_get(L, cell), layer, lpoint_get(center)->x, lpoint_get(center)->y, width, height, leftwidth, rightwidth, topwidth, bottomwidth);
+    geometry_unequal_ring(lobject_get_full(L, cell), layer, lpoint_get(center)->x, lpoint_get(center)->y, width, height, leftwidth, rightwidth, topwidth, bottomwidth);
     return 0;
 }
 
@@ -1540,7 +1540,7 @@ static int lgeometry_unequal_ring_pts(lua_State* L)
     struct lpoint* outertr = lpoint_checkpoint(L, 4);
     struct lpoint* innerbl = lpoint_checkpoint(L, 5);
     struct lpoint* innertr = lpoint_checkpoint(L, 6);
-    geometry_unequal_ring_pts(lobject_get(L, cell), layer, lpoint_get(outerbl), lpoint_get(outertr), lpoint_get(innerbl), lpoint_get(innertr));
+    geometry_unequal_ring_pts(lobject_get_full(L, cell), layer, lpoint_get(outerbl), lpoint_get(outertr), lpoint_get(innerbl), lpoint_get(innertr));
     return 0;
 }
 
@@ -1607,7 +1607,7 @@ static int lgeometry_curve(lua_State* L)
         lua_pop(L, 1); // pop segment
     }
 
-    object_add_shape(lobject_get(L, lobject), S);
+    object_add_shape(lobject_get_full(L, lobject), S);
     return 0;
 }
 
@@ -1676,7 +1676,7 @@ static int lgeometry_curve_rasterized(lua_State* L)
 
     shape_rasterize_curve_inline(S);
 
-    object_add_shape(lobject_get(L, lobject), S);
+    object_add_shape(lobject_get_full(L, lobject), S);
     return 0;
 }
 

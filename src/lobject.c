@@ -93,6 +93,17 @@ struct object* lobject_get(lua_State* L, struct lobject* lobject)
     return lobject_get_unchecked(lobject);
 }
 
+struct object* lobject_get_full(lua_State* L, struct lobject* lobject)
+{
+    if(!lobject->usable)
+    {
+        lua_pushstring(L, "trying to access unusable object (objects become inmutable after adding them as children)");
+        lua_error(L);
+    }
+    lobject_check_proxy(L, lobject);
+    return lobject_get_unchecked(lobject);
+}
+
 const struct object* lobject_get_const(struct lobject* lobject)
 {
     return lobject_get_unchecked(lobject);
