@@ -79,7 +79,7 @@ int lplacement_place_on_grid(lua_State* L)
         lua_pop(L, 1);
     }
 
-    struct vector* children = placement_place_on_grid(lobject_get(L, toplevel), lobject_get_unchecked(cell), basename, lpoint_get(basept), xpitch, ypitch, grid);
+    struct vector* children = placement_place_on_grid(lobject_get_full(L, toplevel), lobject_get_unchecked(cell), basename, lpoint_get(basept), xpitch, ypitch, grid);
     vector_destroy(grid);
     lobject_disown(cell); // memory is now handled by cell
     lobject_mark_as_unusable(cell);
@@ -354,7 +354,7 @@ int lplacement_place_boundary_grid(lua_State* L)
     }
 
     struct vector* children = placement_place_boundary_grid(
-        lobject_get(L, toplevel),
+        lobject_get_full(L, toplevel),
         boundarycells,
         lpoint_get(basept),
         grid,
@@ -398,7 +398,7 @@ int lplacement_place_at_origins(lua_State* L)
     }
 
     struct vector* children = vector_create(1, NULL);
-    placement_place_at_origins(lobject_get(L, toplevel), lobject_get_unchecked(cell), origins, basename, children);
+    placement_place_at_origins(lobject_get_full(L, toplevel), lobject_get_unchecked(cell), origins, basename, children);
     lobject_disown(cell); // memory is now handled by cell
     lobject_mark_as_unusable(cell);
     lua_newtable(L);
@@ -429,7 +429,7 @@ int lplacement_place_within_boundary(lua_State* L)
     targetarea = lutil_create_simple_polygon(L, 4);
     lplacement_create_exclude_vectors(L, &excludes, 5);
 
-    struct vector* children = placement_place_within_boundary(lobject_get(L, toplevel), lobject_get_unchecked(cell), basename, targetarea, excludes);
+    struct vector* children = placement_place_within_boundary(lobject_get_full(L, toplevel), lobject_get_unchecked(cell), basename, targetarea, excludes);
     _cleanup_target_exclude_vector(targetarea, excludes);
     lobject_disown(cell); // memory is now handled by cell
     lobject_mark_as_unusable(cell);
@@ -464,7 +464,7 @@ int lplacement_place_within_boundary_merge(lua_State* L)
     targetarea = lutil_create_simple_polygon(L, 3);
     lplacement_create_exclude_vectors(L, &excludes, 4);
 
-    placement_place_within_boundary_merge(lobject_get(L, toplevel), lobject_get_unchecked(cell), targetarea, excludes);
+    placement_place_within_boundary_merge(lobject_get_full(L, toplevel), lobject_get_unchecked(cell), targetarea, excludes);
     _cleanup_target_exclude_vector(targetarea, excludes);
     return 0;
 }
@@ -479,7 +479,7 @@ int lplacement_place_within_rectangular_boundary(lua_State* L)
     struct lpoint* tr = lpoint_checkpoint(L, 5);
 
     struct object* children = placement_place_within_rectangular_boundary(
-        lobject_get(L, toplevel),
+        lobject_get_full(L, toplevel),
         lobject_get_unchecked(cell),
         basename,
         lpoint_get(bl), lpoint_get(tr)
@@ -613,7 +613,7 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
 
     // perform placement
     struct vector* children = placement_place_within_layer_boundaries(
-        lobject_get(L, toplevel),
+        lobject_get_full(L, toplevel),
         celllut,
         basename,
         targetarea,
@@ -664,9 +664,9 @@ int lplacement_place_gridlines(lua_State* L)
     struct lpoint* targettr = lpoint_checkpoint(L, 6);
     lplacement_create_exclude_vectors(L, &excludes, 7);
 
-    placement_place_gridlines(lobject_get(L, toplevel), layer, size, space, lpoint_get(targetbl), lpoint_get(targettr), excludes);
+    placement_place_gridlines(lobject_get_full(L, toplevel), layer, size, space, lpoint_get(targetbl), lpoint_get(targettr), excludes);
 
-    //struct vector* children = placement_place_within_boundary(lobject_get(L, toplevel), lobject_get_unchecked(cell), basename, targetarea, excludes);
+    //struct vector* children = placement_place_within_boundary(lobject_get_full(L, toplevel), lobject_get_unchecked(cell), basename, targetarea, excludes);
     //_cleanup_target_exclude_vector(targetarea, excludes);
     //lobject_disown(cell); // memory is now handled by cell
     //lobject_mark_as_unusable(cell);
