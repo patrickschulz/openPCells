@@ -1468,6 +1468,22 @@ void object_inherit_boundary(struct object* cell, const struct object* othercell
     vector_const_iterator_destroy(it);
 }
 
+void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer)
+{
+    struct polygon* boundary = object_get_layer_boundary(othercell, layer);
+
+    struct polygon_iterator* it = polygon_iterator_create(boundary);
+    while(polygon_iterator_is_valid(it))
+    {
+        const struct simple_polygon* sp = polygon_iterator_get(it);
+        struct simple_polygon* new = simple_polygon_copy(sp);
+        object_add_layer_boundary(cell, layer, new);
+        polygon_iterator_next(it);
+    }
+    polygon_iterator_destroy(it);
+    polygon_destroy(boundary);
+}
+
 int object_has_boundary(const struct object* cell)
 {
     if(cell->isproxy)

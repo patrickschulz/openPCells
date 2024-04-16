@@ -1386,6 +1386,15 @@ static int lobject_inherit_boundary(lua_State* L)
     return 0;
 }
 
+static int lobject_inherit_layer_boundary(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* other = lobject_check(L, 2);
+    const struct generics* layer = lua_touserdata(L, 3);
+    object_inherit_layer_boundary(lobject_get(L, cell), lobject_get_const(other), layer);
+    return 0;
+}
+
 static int lobject_has_boundary(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1564,6 +1573,7 @@ int open_lobject_lib(lua_State* L)
         { "add_layer_boundary",                     lobject_add_layer_boundary                  },
         { "add_layer_boundary_rectangular",         lobject_add_layer_boundary_rectangular      },
         { "inherit_boundary",                       lobject_inherit_boundary                    },
+        { "inherit_layer_boundary",                 lobject_inherit_layer_boundary              },
         { "has_boundary",                           lobject_has_boundary                        },
         { "get_boundary",                           lobject_get_boundary                        },
         { "has_layer_boundary",                     lobject_has_layer_boundary                  },

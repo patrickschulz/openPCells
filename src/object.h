@@ -96,6 +96,7 @@ int object_has_boundary(const struct object* cell);
 struct vector* object_get_boundary(const struct object* cell);
 int object_has_layer_boundary(const struct object* cell, const struct generics* layer);
 struct polygon* object_get_layer_boundary(const struct object* cell, const struct generics* layer);
+void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer);
 
 // ports
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, unsigned int sizehint);
