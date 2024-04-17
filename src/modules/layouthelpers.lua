@@ -157,7 +157,6 @@ function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xsp
     )
     guardring:move_point(guardring:get_area_anchor("innerboundary").bl, bl)
     guardring:translate(-(holewidth - targetwidth) / 2, -(holeheight - targetheight) / 2)
-    geometry.rectanglebltr(guardring, generics.metal(-1), bl, tr)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
     if anchorprefix then
