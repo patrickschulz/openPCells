@@ -3,6 +3,8 @@ function parameters()
         { "cellsize", 10000 },
         { "meshmetals", { 1, 2, 3, 4, 5, 6, 7, 8 } },
         { "gridmetals", { 9, 10 } },
+        { "gridstartwithleftright", true },
+        { "drawgridvddline", true },
         { "interconnectmetal", 8 },
         { "guardringwidth", 500 },
         { "drawguardring", true },
@@ -138,7 +140,7 @@ function layout(decap, _P)
     end
 
     -- grid metals
-    local leftright = true
+    local leftright = _P.gridstartwithleftright
     if _P.drawgrid then
         for i = 1, #_P.gridmetals do
             local metal = _P.gridmetals[i]
@@ -171,10 +173,12 @@ function layout(decap, _P)
                         point.create(vssright, -_P.cellsize / 2 + vsswidth / 2 )
                     )
                 end
-                geometry.rectanglebltr(decap, generics.metal(metal),
-                    point.create(vddleft, -vddwidth / 2),
-                    point.create(vddright, vddwidth / 2)
-                )
+                if _P.drawgridvddline then
+                    geometry.rectanglebltr(decap, generics.metal(metal),
+                        point.create(vddleft, -vddwidth / 2),
+                        point.create(vddright, vddwidth / 2)
+                    )
+                end
                 if not _P.restrictvss or _P.drawtop then
                     geometry.rectanglebltr(decap, generics.metal(metal),
                         point.create(vssleft,  _P.cellsize / 2 - vsswidth / 2),
@@ -206,10 +210,12 @@ function layout(decap, _P)
                         point.create(-_P.cellsize / 2 + vsswidth / 2, vsstop)
                     )
                 end
-                geometry.rectanglebltr(decap, generics.metal(metal),
-                    point.create(-vddwidth / 2, vddbottom),
-                    point.create( vddwidth / 2, vddtop)
-                )
+                if _P.drawgridvddline then
+                    geometry.rectanglebltr(decap, generics.metal(metal),
+                        point.create(-vddwidth / 2, vddbottom),
+                        point.create( vddwidth / 2, vddtop)
+                    )
+                end
                 if not _P.restrictvss or not _P.drawright then
                     geometry.rectanglebltr(decap, generics.metal(metal),
                         point.create(_P.cellsize / 2 - vsswidth / 2, vssbottom),
