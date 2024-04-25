@@ -141,6 +141,32 @@ function layout(chain, _P)
         end
     end
 
+    for i = 1, #inverters - 1 do
+        geometry.viabltr(chain, 1, _P.outputmetal,
+            point.create(
+                inverters[i + 1]:get_area_anchor("input").l - (_P.numinnerdummies - 1) * (_P.gatelength + _P.gatespace),
+                inverters[i + 1]:get_area_anchor("input").b
+            ),
+            point.create(
+                inverters[i + 1]:get_area_anchor("input").l,
+                inverters[i + 1]:get_area_anchor("input").t
+            )
+        )
+        if _P.outputisinside then
+            geometry.rectanglebltr(chain, generics.metal(_P.outputmetal),
+                point.create(
+                    inverters[i]:get_area_anchor("output").r,
+                    inverters[i]:get_area_anchor("output").b
+                ),
+                point.create(
+                    inverters[i + 1]:get_area_anchor("output").l - (_P.numinnerdummies - 1) * (_P.gatelength + _P.gatespace),
+                    inverters[i]:get_area_anchor("output").t
+                )
+            )
+        else
+        end
+    end
+
     chain:add_area_anchor_bltr("vddbar",
         inverters[1]:get_area_anchor("vddbar").bl,
         inverters[#inverters]:get_area_anchor("vddbar").tr
