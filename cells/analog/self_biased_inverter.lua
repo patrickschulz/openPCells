@@ -9,143 +9,244 @@ function parameters()
         { "nvthtype(NMOS Threshold Voltage Type)",      1 },
         { "pmosflippedwell(PMOS Flipped Well) ",        false },
         { "nmosflippedwell(NMOS Flipped Well)",         false },
+        { "pgateext",                                   0 },
+        { "ngateext",                                   0 },
         { "gatelength(Gate Length)",                    technology.get_dimension("Minimum Gate Length") },
         { "gatespace(Gate Spacing)",                    technology.get_dimension("Minimum Gate XSpace") },
         { "gatemetal",                                  1 },
         { "sdwidth(Source/Drain Metal Width)",          technology.get_dimension("Minimum M1 Width"), posvals = even() },
         { "gatestrapwidth(Gate Metal Width)",           technology.get_dimension("Minimum M1 Width") },
         { "gatestrapspace(Gate Metal Space)",           technology.get_dimension("Minimum M1 Width") },
+        { "drawinnergatecut",                           false },
+        { "drawoutergatecut",                           false },
+        { "gatecutheight",                              0 },
+        { "gatestrapleftextension",                     0 },
+        { "gatestraprightextension",                     0 },
         { "powerwidth(Power Rail Metal Width)",         technology.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",               technology.get_dimension("Minimum M1 Space") },
-        { "drawleftdummy",                              false },
-        { "drawrightdummy",                             false },
+        { "numleftdummies",                             2 },
+        { "numrightdummies",                            2 },
+        { "alternatedummycontacts",                 false },
         { "outputmetal",                                2, posvals = interval(2, inf) },
         { "outputwidth",                                technology.get_dimension("Minimum M1 Width") },
-        { "dummycontheight",                            technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
-        { "shiftoutput",                                0 },
+        { "outputxshift",                               0 },
+        { "outputyshift",                               0 },
         { "dummycontshift",                             0 },
-        { "outputisinside",                             false }
+        { "extendoutputmetal",                          0 },
+        { "dummycontheight",                            technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
+        { "dummycontshift",                             0 },
+        { "psddummyouterheight",                        2 * technology.get_dimension("Minimum Gate Width"), follow = "pwidth" },
+        { "nsddummyouterheight",                        2 * technology.get_dimension("Minimum Gate Width"), follow = "nwidth" },
+        { "drawleftstopgate",                           false },
+        { "drawrightstopgate",                          false },
+        { "leftpolylines",                              {} },
+        { "rightpolylines",                             {} },
+        { "extendimplanttop",                           0 },
+        { "extendimplantbottom",                        0 },
+        { "extendimplantleft",                          0 },
+        { "extendimplantright",                         0 },
+        { "extendoxidetypetop",                         0 },
+        { "extendoxidetypebottom",                      0 },
+        { "extendoxidetypeleft",                        0 },
+        { "extendoxidetyperight",                       0 },
+        { "extendvthtypetop",                           0 },
+        { "extendvthtypebottom",                        0 },
+        { "extendvthtypeleft",                          0 },
+        { "extendvthtyperight",                         0 },
+        { "extendwelltop",                              0 },
+        { "extendwellbottom",                           0 },
+        { "extendwellleft",                             0 },
+        { "extendwellright",                            0 },
+        { "resistorwidth",                              400 },
+        { "resistorlength",                             200 },
+        { "resistorextension",                          100 },
+        { "resistorcontactheight",                      100 },
+        { "resistorxshift",                             500 }
     )
 end
 
-function layout(inverter, _P)
+function layout(sbinv, _P)
     local xpitch = _P.gatespace + _P.gatelength
 
-    local gatecontactpos = util.fill_all_with(_P.fingers, "center")
-    local contactpos = util.fill_odd_with(_P.fingers + 1, "fullpower", "full")
-    if _P.drawleftdummy then
-        table.insert(gatecontactpos, 1, "dummy")
-        table.insert(contactpos, 1, "fullpower")
-    end
-    if _P.drawrightdummy then
-        table.insert(gatecontactpos, "dummy")
-        table.insert(contactpos, "fullpower")
-    end
-
-    local cmos = pcell.create_layout("basic/cmos", "_cmos", {
-        nvthtype = _P.nvthtype,
-        pvthtype = _P.pvthtype,
-        pmosflippedwell = _P.pmosflippedwell,
-        nmosflippedwell = _P.nmosflippedwell,
-        oxidetype = _P.oxidetype,
-        gatemarker = _P.gatemarker,
-        gatelength = _P.gatelength,
-        gatespace = _P.gatespace,
-        gatecontactpos = gatecontactpos,
-        pcontactpos = contactpos,
-        ncontactpos = contactpos,
-        powerwidth = _P.powerwidth,
-        npowerspace = _P.powerspace,
-        ppowerspace = _P.powerspace,
+    local inverter = pcell.create_layout("analog/inverter", "_inverter", {
+        fingers = _P.fingers,
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
-        innergatestraps = 1,
-        gstwidth = _P.gatestrapwidth,
-        gstspace = _P.gatestrapspace,
+        oxidetype = _P.oxidetype,
+        gatemarker = _P.gatemarker,
+        pvthtype = _P.pvthtype,
+        nvthtype = _P.nvthtype,
+        pmosflippedwell = _P.pmosflippedwell,
+        nmosflippedwell = _P.nmosflippedwell,
+        pgateext = _P.pgateext,
+        ngateext = _P.ngateext,
+        gatelength = _P.gatelength,
+        gatespace = _P.gatespace,
+        gatemetal = _P.gatemetal,
         sdwidth = _P.sdwidth,
-        separation = _P.gatestrapwidth + 2 * _P.gatestrapspace,
+        gatestrapwidth = _P.gatestrapwidth,
+        gatestrapspace = _P.gatestrapspace,
+        drawinnergatecut = _P.drawinnergatecut,
+        drawoutergatecut = _P.drawoutergatecut,
+        gatecutheight = _P.gatecutheight,
+        gatestrapleftextension = _P.gatestrapleftextension,
+        gatestraprightextension = _P.gatestraprightextension,
+        powerwidth = _P.powerwidth,
+        powerspace = _P.powerspace,
+        numleftdummies = _P.numleftdummies,
+        numrightdummies = _P.numrightdummies,
+        alternatedummycontacts = _P.alternatedummycontacts,
+        outputmetal = _P.outputmetal,
+        outputwidth = _P.outputwidth,
+        outputxshift = _P.outputxshift,
+        outputyshift = _P.outputyshift,
+        dummycontshift = _P.dummycontshift,
+        outputisinside = false,
+        extendoutputmetal = _P.extendoutputmetal,
         dummycontheight = _P.dummycontheight,
         dummycontshift = _P.dummycontshift,
+        psddummyouterheight = _P.psddummyouterheight,
+        nsddummyouterheight = _P.nsddummyouterheight,
+        drawleftstopgate = _P.drawleftstopgate,
+        drawrightstopgate = _P.drawrightstopgate,
+        leftpolylines = _P.leftpolylines,
+        rightpolylines = _P.rightpolylines,
+        extendimplanttop = _P.extendimplanttop,
+        extendimplantbottom = _P.extendimplantbottom,
+        extendimplantleft = _P.extendimplantleft,
+        extendimplantright = _P.extendimplantright,
+        extendoxidetypetop = _P.extendoxidetypetop,
+        extendoxidetypebottom = _P.extendoxidetypebottom,
+        extendoxidetypeleft = _P.extendoxidetypeleft,
+        extendoxidetyperight = _P.extendoxidetyperight,
+        extendvthtypetop = _P.extendvthtypetop,
+        extendvthtypebottom = _P.extendvthtypebottom,
+        extendvthtypeleft = _P.extendvthtypeleft,
+        extendvthtyperight = _P.extendvthtyperight,
+        extendwelltop = _P.extendwelltop,
+        extendwellbottom = _P.extendwellbottom,
+        extendwellleft = _P.extendwellleft,
+        extendwellright = _P.extendwellright,
     })
-    inverter:merge_into(cmos)
-
-    inverter:inherit_alignment_box(cmos)
+    sbinv:merge_into(inverter)
+    sbinv:inherit_alignment_box(inverter)
 
     -- resistor
     local resistor = pcell.create_layout("basic/polyresistor", "_resistor", {
-        width = 400,
-        length = 200,
-        extension = 100,
-        contactheight = 100,
+        width = _P.resistorwidth,
+        length = _P.resistorlength,
+        extension = _P.resistorextension,
+        contactheight = _P.resistorcontactheight,
     })
     local resistor_upper = resistor:copy()
     local resistor_lower = resistor:copy()
-    resistor_lower:mirror_at_xaxis()
-    resistor_upper:move_point(resistor_upper:get_area_anchor("plus").tl, cmos:get_area_anchor("pSD-1").tr)
-    resistor_upper:translate_x(500)
-    resistor_lower:move_point(resistor_lower:get_area_anchor("plus").bl, cmos:get_area_anchor("nSD-1").br)
-    resistor_lower:translate_x(500)
-    inverter:merge_into(resistor_upper)
-    inverter:merge_into(resistor_lower)
+    resistor_upper:mirror_at_xaxis()
+    resistor_lower:move_point(resistor_lower:get_area_anchor("plus").tl, inverter:get_area_anchor("nmos_active").tr)
+    resistor_lower:translate_x(_P.resistorxshift)
+    resistor_upper:move_point(resistor_upper:get_area_anchor("plus").bl, inverter:get_area_anchor("pmos_active").br)
+    resistor_upper:translate_x(_P.resistorxshift)
+    sbinv:merge_into(resistor_upper)
+    sbinv:merge_into(resistor_lower)
 
-    -- gate strap
-    local dummyoffset = _P.drawleftdummy and 1 or 0
-    if _P.fingers > 1 then
-        if _P.gatemetal > 1 then
-            geometry.viabltr(
-                inverter, 1, _P.gatemetal,
-                cmos:get_area_anchor(string.format("G%d", 1 + dummyoffset)).bl,
-                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).tr
-            )
-        else
-            geometry.rectanglebltr(
-                inverter, generics.metal(1),
-                cmos:get_area_anchor(string.format("G%d", 1 + dummyoffset)).bl,
-                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).tr
-            )
-        end
-    end
-
-    -- signal transistors drain connections
-    if _P.outputisinside then
-        for i = 2, _P.fingers + 1, 2 do
-            geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
-                cmos:get_area_anchor(string.format("nSD%d", i)).tl,
-                cmos:get_area_anchor(string.format("pSD%d", i)).br
-            )
-        end
-        geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
-            point.combine(
-                cmos:get_area_anchor(string.format("nSD%d", 2)).tl,
-                cmos:get_area_anchor(string.format("pSD%d", 2)).bl
-            ):translate_y(-_P.outputwidth),
-            point.combine(
-                cmos:get_area_anchor(string.format("nSD%d", _P.fingers)).tr,
-                cmos:get_area_anchor(string.format("pSD%d", _P.fingers)).br
-            ):translate_y(_P.outputwidth)
-        )
-    else
-        geometry.path_cshape(inverter, generics.metal(_P.outputmetal),
-            cmos:get_area_anchor(string.format("pSD%d", 2 + dummyoffset)).br:translate(0, _P.sdwidth / 2),
-            cmos:get_area_anchor(string.format("nSD%d", 2 + dummyoffset)).tr:translate(0, -_P.sdwidth / 2),
-            cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).bl:translate(xpitch + _P.shiftoutput, 0),
-            _P.outputwidth
-        )
-    end
-
-    for i = 2, _P.fingers + 1, 2 do
-        geometry.viabltr(inverter, 1, _P.outputmetal,
-            cmos:get_area_anchor(string.format("pSD%d", i + dummyoffset)).bl,
-            cmos:get_area_anchor(string.format("pSD%d", i + dummyoffset)).tr
-        )
-        geometry.viabltr(inverter, 1, _P.outputmetal,
-            cmos:get_area_anchor(string.format("nSD%d", i + dummyoffset)).bl,
-            cmos:get_area_anchor(string.format("nSD%d", i + dummyoffset)).tr
-        )
-    end
-
-    inverter:add_area_anchor_bltr("input",
-        cmos:get_area_anchor(string.format("G%d", 1)).bl,
-        cmos:get_area_anchor(string.format("G%d", _P.fingers)).tr
+    -- connect resistors
+    geometry.rectanglebltr(sbinv, generics.metal(_P.gatemetal),
+        resistor_lower:get_area_anchor("plus").tl,
+        resistor_upper:get_area_anchor("plus").br
     )
+    geometry.rectanglebltr(sbinv, generics.metal(_P.gatemetal),
+        point.create(
+            inverter:get_area_anchor("input").r,
+            inverter:get_area_anchor("input").b
+        ),
+        point.create(
+            resistor_lower:get_area_anchor("plus").r,
+            inverter:get_area_anchor("input").t
+        )
+    )
+    geometry.viabltr(sbinv, 1, _P.gatemetal,
+        resistor_upper:get_area_anchor("plus").bl,
+        point.create(
+            resistor_upper:get_area_anchor("plus").r,
+            resistor_upper:get_area_anchor("plus").b + _P.gatestrapwidth
+        )
+    )
+    geometry.viabltr(sbinv, 1, _P.gatemetal,
+        point.create(
+            resistor_lower:get_area_anchor("plus").l,
+            resistor_lower:get_area_anchor("plus").t - _P.gatestrapwidth
+        ),
+        resistor_lower:get_area_anchor("plus").tr
+    )
+    geometry.polygon(sbinv, generics.metal(_P.outputmetal), {
+        inverter:get_area_anchor("upperoutput").br,
+        point.create(
+            inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2,
+            inverter:get_area_anchor("upperoutput").b
+        ),
+        point.create(
+            inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2,
+            resistor_upper:get_area_anchor("minus").b
+        ),
+        point.create(
+            resistor_upper:get_area_anchor("minus").l,
+            resistor_upper:get_area_anchor("minus").b
+        ),
+        point.create(
+            resistor_upper:get_area_anchor("minus").l,
+            resistor_upper:get_area_anchor("minus").b + _P.outputwidth
+        ),
+        point.create(
+            inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2 - _P.outputwidth,
+            resistor_upper:get_area_anchor("minus").b + _P.outputwidth
+        ),
+        point.create(
+            inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2 - _P.outputwidth,
+            inverter:get_area_anchor("upperoutput").t
+        ),
+        inverter:get_area_anchor("upperoutput").tr,
+    })
+    geometry.polygon(sbinv, generics.metal(_P.outputmetal), {
+        inverter:get_area_anchor("loweroutput").br,
+        point.create(
+            inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2 - _P.outputwidth,
+            inverter:get_area_anchor("loweroutput").b
+        ),
+        point.create(
+            inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2 - _P.outputwidth,
+            resistor_lower:get_area_anchor("minus").t - _P.outputwidth
+        ),
+        point.create(
+            resistor_lower:get_area_anchor("minus").l,
+            resistor_lower:get_area_anchor("minus").t - _P.outputwidth
+        ),
+        point.create(
+            resistor_lower:get_area_anchor("minus").l,
+            resistor_lower:get_area_anchor("minus").t
+        ),
+        point.create(
+            inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2,
+            resistor_lower:get_area_anchor("minus").t
+        ),
+        point.create(
+            inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2,
+            inverter:get_area_anchor("loweroutput").t
+        ),
+        inverter:get_area_anchor("loweroutput").tr,
+    })
+    geometry.viabltr(sbinv, 1, _P.outputmetal,
+        resistor_upper:get_area_anchor("minus").bl,
+        point.create(
+            resistor_upper:get_area_anchor("minus").r,
+            resistor_upper:get_area_anchor("minus").b + _P.outputwidth
+        )
+    )
+    geometry.viabltr(sbinv, 1, _P.outputmetal,
+        point.create(
+            resistor_lower:get_area_anchor("minus").l,
+            resistor_lower:get_area_anchor("minus").t - _P.outputwidth
+        ),
+        resistor_lower:get_area_anchor("minus").tr
+    )
+
+    sbinv:inherit_area_anchor(inverter, "input")
 end
