@@ -540,6 +540,18 @@ static void _fix_rectangle_order(point_t* bl, point_t* tr)
     }
 }
 
+static void _fix_rectangle_order_xy(coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try)
+{
+    if(*blx > *trx)
+    {
+        _swap_coordinates(blx, trx);
+    }
+    if(*bly > *try)
+    {
+        _swap_coordinates(bly, try);
+    }
+}
+
 static void _transform_anchor_to_cell_coordinates(struct object* cell, struct anchor* anchor)
 {
     if(_anchor_is_area(anchor))
@@ -597,6 +609,16 @@ static int _add_area_anchor_bltr(struct object* cell, const char* base, coordina
 int object_add_area_anchor_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr)
 {
     return _add_area_anchor_bltr(cell, base, bl->x, bl->y, tr->x, tr->y);
+}
+
+int object_add_area_anchor_points(struct object* cell, const char* base, const point_t* pt1, const point_t* pt2)
+{
+    coordinate_t blx = point_getx(pt1);
+    coordinate_t bly = point_gety(pt1);
+    coordinate_t trx = point_getx(pt2);
+    coordinate_t try = point_gety(pt2);
+    _fix_rectangle_order_xy(&blx, &bly, &trx, &try);
+    return _add_area_anchor_bltr(cell, base, blx, bly, trx, try);
 }
 
 int object_inherit_area_anchor(struct object* cell, const struct object* other, const char* name)

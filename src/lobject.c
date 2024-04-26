@@ -692,6 +692,21 @@ static int lobject_add_area_anchor_bltr(lua_State* L)
     return 0;
 }
 
+static int lobject_add_area_anchor_points(lua_State* L)
+{
+    if(lua_gettop(L) != 4)
+    {
+        lua_pushfstring(L, "object.add_area_anchor_points: expected four arguments, got %d", lua_gettop(L));
+        lua_error(L);
+    }
+    struct lobject* cell = lobject_check(L, 1);
+    const char* base = luaL_checkstring(L, 2);
+    struct lpoint* pt1 = lpoint_checkpoint(L, 3);
+    struct lpoint* pt2 = lpoint_checkpoint(L, 4);
+    object_add_area_anchor_points(lobject_get(L, cell), base, lpoint_get(pt1), lpoint_get(pt2));
+    return 0;
+}
+
 static int lobject_inherit_area_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1490,6 +1505,7 @@ int open_lobject_lib(lua_State* L)
         { "inherit_anchor",                         lobject_inherit_anchor                      },
         { "inherit_anchor_as",                      lobject_inherit_anchor_as                   },
         { "add_area_anchor_bltr",                   lobject_add_area_anchor_bltr                },
+        { "add_area_anchor_points",                 lobject_add_area_anchor_points              },
         { "inherit_area_anchor",                    lobject_inherit_area_anchor                 },
         { "inherit_area_anchor_as",                 lobject_inherit_area_anchor_as              },
         { "inherit_all_anchors_with_prefix",        lobject_inherit_all_anchors_with_prefix     },
