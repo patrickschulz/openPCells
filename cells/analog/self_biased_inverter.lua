@@ -61,7 +61,8 @@ function parameters()
         { "resistorlength",                             200 },
         { "resistorextension",                          100 },
         { "resistorcontactheight",                      100 },
-        { "resistorxshift",                             500 }
+        { "resistorxshift",                             500 },
+        { "connectinverse",                             false }
     )
 end
 
@@ -149,104 +150,212 @@ function layout(sbinv, _P)
     sbinv:merge_into(resistor_lower)
 
     -- connect resistors
-    geometry.rectanglebltr(sbinv, generics.metal(_P.gatemetal),
+    if _P.connectinverse then
+        geometry.rectanglebltr(sbinv, generics.metal(_P.gatemetal),
+            resistor_lower:get_area_anchor("plus").tl,
+            resistor_upper:get_area_anchor("plus").br
+        )
+        geometry.rectanglebltr(sbinv, generics.metal(_P.gatemetal),
+            point.create(
+                inverter:get_area_anchor("input").r,
+                inverter:get_area_anchor("input").b
+            ),
+            point.create(
+                resistor_lower:get_area_anchor("plus").r,
+                inverter:get_area_anchor("input").t
+            )
+        )
+        geometry.viabltr(sbinv, 1, _P.gatemetal,
+            resistor_upper:get_area_anchor("plus").bl,
+            point.create(
+                resistor_upper:get_area_anchor("plus").r,
+                resistor_upper:get_area_anchor("plus").b + _P.gatestrapwidth
+            )
+        )
+        geometry.viabltr(sbinv, 1, _P.gatemetal,
+            point.create(
+                resistor_lower:get_area_anchor("plus").l,
+                resistor_lower:get_area_anchor("plus").t - _P.gatestrapwidth
+            ),
+            resistor_lower:get_area_anchor("plus").tr
+        )
+        geometry.polygon(sbinv, generics.metal(_P.outputmetal), {
+            inverter:get_area_anchor("upperoutput").br,
+            point.create(
+                inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2,
+                inverter:get_area_anchor("upperoutput").b
+            ),
+            point.create(
+                inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2,
+                resistor_upper:get_area_anchor("minus").b
+            ),
+            point.create(
+                resistor_upper:get_area_anchor("minus").l,
+                resistor_upper:get_area_anchor("minus").b
+            ),
+            point.create(
+                resistor_upper:get_area_anchor("minus").l,
+                resistor_upper:get_area_anchor("minus").b + _P.outputwidth
+            ),
+            point.create(
+                inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2 - _P.outputwidth,
+                resistor_upper:get_area_anchor("minus").b + _P.outputwidth
+            ),
+            point.create(
+                inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2 - _P.outputwidth,
+                inverter:get_area_anchor("upperoutput").t
+            ),
+            inverter:get_area_anchor("upperoutput").tr,
+        })
+        geometry.polygon(sbinv, generics.metal(_P.outputmetal), {
+            inverter:get_area_anchor("loweroutput").br,
+            point.create(
+                inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2 - _P.outputwidth,
+                inverter:get_area_anchor("loweroutput").b
+            ),
+            point.create(
+                inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2 - _P.outputwidth,
+                resistor_lower:get_area_anchor("minus").t - _P.outputwidth
+            ),
+            point.create(
+                resistor_lower:get_area_anchor("minus").l,
+                resistor_lower:get_area_anchor("minus").t - _P.outputwidth
+            ),
+            point.create(
+                resistor_lower:get_area_anchor("minus").l,
+                resistor_lower:get_area_anchor("minus").t
+            ),
+            point.create(
+                inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2,
+                resistor_lower:get_area_anchor("minus").t
+            ),
+            point.create(
+                inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2,
+                inverter:get_area_anchor("loweroutput").t
+            ),
+            inverter:get_area_anchor("loweroutput").tr,
+        })
+        geometry.viabltr(sbinv, 1, _P.outputmetal,
+            resistor_upper:get_area_anchor("minus").bl,
+            point.create(
+                resistor_upper:get_area_anchor("minus").r,
+                resistor_upper:get_area_anchor("minus").b + _P.outputwidth
+            )
+        )
+        geometry.viabltr(sbinv, 1, _P.outputmetal,
+            point.create(
+                resistor_lower:get_area_anchor("minus").l,
+                resistor_lower:get_area_anchor("minus").t - _P.outputwidth
+            ),
+            resistor_lower:get_area_anchor("minus").tr
+        )
+    else
+        geometry.rectanglebltr(sbinv, generics.metal(_P.outputmetal),
+            resistor_lower:get_area_anchor("plus").tl,
+            resistor_upper:get_area_anchor("plus").br
+        )
+        geometry.rectanglebltr(sbinv, generics.metal(_P.outputmetal),
+            point.create(
+                inverter:get_area_anchor("output").r,
+                (inverter:get_area_anchor("output").b + inverter:get_area_anchor("output").t) / 2 - _P.outputwidth / 2
+            ),
+            point.create(
+                resistor_lower:get_area_anchor("plus").r,
+                (inverter:get_area_anchor("output").b + inverter:get_area_anchor("output").t) / 2 + _P.outputwidth / 2
+            )
+        )
+        geometry.viabltr(sbinv, 1, _P.outputmetal,
+            resistor_upper:get_area_anchor("plus").bl,
+            point.create(
+                resistor_upper:get_area_anchor("plus").r,
+                resistor_upper:get_area_anchor("plus").b + _P.gatestrapwidth
+            )
+        )
+        geometry.viabltr(sbinv, 1, _P.outputmetal,
+            point.create(
+                resistor_lower:get_area_anchor("plus").l,
+                resistor_lower:get_area_anchor("plus").t - _P.gatestrapwidth
+            ),
+            resistor_lower:get_area_anchor("plus").tr
+        )
+        geometry.polygon(sbinv, generics.metal(_P.gatemetal), {
+            inverter:get_area_anchor("input").br,
+            point.create(
+                inverter:get_area_anchor("input").r + _P.resistorxshift / 2,
+                inverter:get_area_anchor("input").b
+            ),
+            point.create(
+                inverter:get_area_anchor("input").r + _P.resistorxshift / 2,
+                resistor_upper:get_area_anchor("minus").b
+            ),
+            point.create(
+                resistor_upper:get_area_anchor("minus").l,
+                resistor_upper:get_area_anchor("minus").b
+            ),
+            point.create(
+                resistor_upper:get_area_anchor("minus").l,
+                resistor_upper:get_area_anchor("minus").b + _P.outputwidth
+            ),
+            point.create(
+                inverter:get_area_anchor("input").r + _P.resistorxshift / 2 - _P.outputwidth,
+                resistor_upper:get_area_anchor("minus").b + _P.outputwidth
+            ),
+            point.create(
+                inverter:get_area_anchor("input").r + _P.resistorxshift / 2 - _P.outputwidth,
+                inverter:get_area_anchor("input").t
+            ),
+            inverter:get_area_anchor("input").tr,
+        })
+        geometry.polygon(sbinv, generics.metal(_P.gatemetal), {
+            inverter:get_area_anchor("input").br,
+            point.create(
+                inverter:get_area_anchor("input").r + _P.resistorxshift / 2 - _P.outputwidth,
+                inverter:get_area_anchor("input").b
+            ),
+            point.create(
+                inverter:get_area_anchor("input").r + _P.resistorxshift / 2 - _P.outputwidth,
+                resistor_lower:get_area_anchor("minus").t - _P.outputwidth
+            ),
+            point.create(
+                resistor_lower:get_area_anchor("minus").l,
+                resistor_lower:get_area_anchor("minus").t - _P.outputwidth
+            ),
+            point.create(
+                resistor_lower:get_area_anchor("minus").l,
+                resistor_lower:get_area_anchor("minus").t
+            ),
+            point.create(
+                inverter:get_area_anchor("input").r + _P.resistorxshift / 2,
+                resistor_lower:get_area_anchor("minus").t
+            ),
+            point.create(
+                inverter:get_area_anchor("input").r + _P.resistorxshift / 2,
+                inverter:get_area_anchor("input").t
+            ),
+            inverter:get_area_anchor("input").tr,
+        })
+        geometry.viabltr(sbinv, 1, _P.gatemetal,
+            resistor_upper:get_area_anchor("minus").bl,
+            point.create(
+                resistor_upper:get_area_anchor("minus").r,
+                resistor_upper:get_area_anchor("minus").b + _P.outputwidth
+            )
+        )
+        geometry.viabltr(sbinv, 1, _P.gatemetal,
+            point.create(
+                resistor_lower:get_area_anchor("minus").l,
+                resistor_lower:get_area_anchor("minus").t - _P.outputwidth
+            ),
+            resistor_lower:get_area_anchor("minus").tr
+        )
+    end
+
+    sbinv:inherit_area_anchor(inverter, "input")
+    sbinv:add_area_anchor_bltr("output",
         resistor_lower:get_area_anchor("plus").tl,
         resistor_upper:get_area_anchor("plus").br
     )
-    geometry.rectanglebltr(sbinv, generics.metal(_P.gatemetal),
-        point.create(
-            inverter:get_area_anchor("input").r,
-            inverter:get_area_anchor("input").b
-        ),
-        point.create(
-            resistor_lower:get_area_anchor("plus").r,
-            inverter:get_area_anchor("input").t
-        )
-    )
-    geometry.viabltr(sbinv, 1, _P.gatemetal,
-        resistor_upper:get_area_anchor("plus").bl,
-        point.create(
-            resistor_upper:get_area_anchor("plus").r,
-            resistor_upper:get_area_anchor("plus").b + _P.gatestrapwidth
-        )
-    )
-    geometry.viabltr(sbinv, 1, _P.gatemetal,
-        point.create(
-            resistor_lower:get_area_anchor("plus").l,
-            resistor_lower:get_area_anchor("plus").t - _P.gatestrapwidth
-        ),
-        resistor_lower:get_area_anchor("plus").tr
-    )
-    geometry.polygon(sbinv, generics.metal(_P.outputmetal), {
-        inverter:get_area_anchor("upperoutput").br,
-        point.create(
-            inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2,
-            inverter:get_area_anchor("upperoutput").b
-        ),
-        point.create(
-            inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2,
-            resistor_upper:get_area_anchor("minus").b
-        ),
-        point.create(
-            resistor_upper:get_area_anchor("minus").l,
-            resistor_upper:get_area_anchor("minus").b
-        ),
-        point.create(
-            resistor_upper:get_area_anchor("minus").l,
-            resistor_upper:get_area_anchor("minus").b + _P.outputwidth
-        ),
-        point.create(
-            inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2 - _P.outputwidth,
-            resistor_upper:get_area_anchor("minus").b + _P.outputwidth
-        ),
-        point.create(
-            inverter:get_area_anchor("upperoutput").r + _P.resistorxshift / 2 - _P.outputwidth,
-            inverter:get_area_anchor("upperoutput").t
-        ),
-        inverter:get_area_anchor("upperoutput").tr,
-    })
-    geometry.polygon(sbinv, generics.metal(_P.outputmetal), {
-        inverter:get_area_anchor("loweroutput").br,
-        point.create(
-            inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2 - _P.outputwidth,
-            inverter:get_area_anchor("loweroutput").b
-        ),
-        point.create(
-            inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2 - _P.outputwidth,
-            resistor_lower:get_area_anchor("minus").t - _P.outputwidth
-        ),
-        point.create(
-            resistor_lower:get_area_anchor("minus").l,
-            resistor_lower:get_area_anchor("minus").t - _P.outputwidth
-        ),
-        point.create(
-            resistor_lower:get_area_anchor("minus").l,
-            resistor_lower:get_area_anchor("minus").t
-        ),
-        point.create(
-            inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2,
-            resistor_lower:get_area_anchor("minus").t
-        ),
-        point.create(
-            inverter:get_area_anchor("loweroutput").r + _P.resistorxshift / 2,
-            inverter:get_area_anchor("loweroutput").t
-        ),
-        inverter:get_area_anchor("loweroutput").tr,
-    })
-    geometry.viabltr(sbinv, 1, _P.outputmetal,
-        resistor_upper:get_area_anchor("minus").bl,
-        point.create(
-            resistor_upper:get_area_anchor("minus").r,
-            resistor_upper:get_area_anchor("minus").b + _P.outputwidth
-        )
-    )
-    geometry.viabltr(sbinv, 1, _P.outputmetal,
-        point.create(
-            resistor_lower:get_area_anchor("minus").l,
-            resistor_lower:get_area_anchor("minus").t - _P.outputwidth
-        ),
-        resistor_lower:get_area_anchor("minus").tr
-    )
-
-    sbinv:inherit_area_anchor(inverter, "input")
+    sbinv:inherit_area_anchor(inverter, "output")
+    sbinv:inherit_area_anchor(inverter, "vddbar")
+    sbinv:inherit_area_anchor(inverter, "vssbar")
 end
