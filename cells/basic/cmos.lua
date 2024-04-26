@@ -138,6 +138,10 @@ function layout(cmos, _P)
 
     local leftndrainarea, rightndrainarea
     local leftpdrainarea, rightpdrainarea
+    local leftnmoswell, rightnmoswell
+    local leftpmoswell, rightpmoswell
+    local leftnmosimplant, rightnmosimplant
+    local leftpmosimplant, rightpmosimplant
     local firstgate
     if _P.drawtransistors then
         -- common transistor options
@@ -264,12 +268,16 @@ function layout(cmos, _P)
                 firstgatearea = nfet:get_area_anchor("gate1")
                 leftnmoswell = nfet:get_area_anchor("well")
                 leftpmoswell = pfet:get_area_anchor("well")
+                leftnmosimplant = nfet:get_area_anchor("implant")
+                leftpmosimplant = pfet:get_area_anchor("implant")
             end
             if i == fingers then
                 rightndrainarea = nfet:get_area_anchor("sourcedrainactiveright")
                 rightpdrainarea = pfet:get_area_anchor("sourcedrainactiveright")
                 rightnmoswell = nfet:get_area_anchor("well")
                 rightpmoswell = pfet:get_area_anchor("well")
+                rightnmosimplant = nfet:get_area_anchor("implant")
+                rightpmosimplant = pfet:get_area_anchor("implant")
             end
         end
         nopt.drawtopgatecut = true
@@ -312,7 +320,17 @@ function layout(cmos, _P)
         rightpmoswell.tr
     )
 
-    -- well anchors
+    -- implant anchors
+    cmos:add_area_anchor_bltr("nmos_implant",
+        leftndrainarea.bl,
+        rightndrainarea.tr
+    )
+    cmos:add_area_anchor_bltr("pmos_implant",
+        leftpdrainarea.bl,
+        rightpdrainarea.tr
+    )
+
+    -- active anchors
     cmos:add_area_anchor_bltr("nmos_active",
         leftndrainarea.bl,
         rightndrainarea.tr

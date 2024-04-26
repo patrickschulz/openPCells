@@ -52,6 +52,10 @@ function layout(welltap, _P)
         point.create(-_P.wellleftextension, -_P.wellbottomextension),
         point.create(_P.width + _P.wellrightextension, _P.height + _P.welltopextension)
     )
+    geometry.rectanglebltr(welltap, generics.metal(-1),
+        point.create(-_P.wellleftextension, -_P.wellbottomextension),
+        point.create(_P.width + _P.wellrightextension, _P.height + _P.welltopextension)
+    )
 
     -- anchors
     welltap:add_area_anchor_bltr(
