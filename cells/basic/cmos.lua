@@ -31,6 +31,8 @@ function parameters()
         { "nsddummyinnerheight(NMOS Source/Drain Inner Dummy Contact Height)",  0 },
         { "cutwidth",                                          0, follow = "gatelength" }, -- FIXME: allow expressions for follower parameters
         { "cutheight",                                         technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
+        { "poutercutyshift",                                   0 },
+        { "noutercutyshift",                                   0 },
         { "compact(Compact Layout)",                           true },
         { "connectoutput",                                     true },
         { "drawtransistors", true },
@@ -51,7 +53,6 @@ function parameters()
         { "shiftncontactsouter", 0 },
         { "drawdummygatecontacts", true },
         { "drawdummyactivecontacts", true },
-        { "drawinnergatecut", false },
         { "drawoutergatecut", false },
         { "drawgatecuteverywhere", false },
         { "dummycontheight(Dummy Gate Contact Height)",        technology.get_dimension("Minimum M1 Width") },
@@ -450,13 +451,13 @@ function layout(cmos, _P)
                 if _P.drawoutergatecut and not _P.drawgatecuteverywhere then
                     geometry.rectanglebltr(
                         cmos, generics.other("gatecut"),
-                        point.create(x + (_P.gatelength - _P.cutwidth) / 2, -_P.npowerspace - _P.cutheight / 2),
-                        point.create(x + (_P.gatelength + _P.cutwidth) / 2, -_P.npowerspace + _P.cutheight / 2)
+                        point.create(x + (_P.gatelength - _P.cutwidth) / 2, -_P.noutercutyshift - _P.cutheight),
+                        point.create(x + (_P.gatelength + _P.cutwidth) / 2, -_P.noutercutyshift)
                     )
                     geometry.rectanglebltr(
                         cmos, generics.other("gatecut"),
-                        point.create(x + (_P.gatelength - _P.cutwidth) / 2, _P.nwidth + _P.pwidth + _P.separation + _P.ppowerspace - _P.cutheight / 2),
-                        point.create(x + (_P.gatelength + _P.cutwidth) / 2 + gatepitch, _P.nwidth + _P.pwidth + _P.separation + _P.ppowerspace + _P.cutheight / 2)
+                        point.create(x + (_P.gatelength - _P.cutwidth) / 2, _P.nwidth + _P.pwidth + _P.separation + _P.poutercutyshift),
+                        point.create(x + (_P.gatelength + _P.cutwidth) / 2, _P.nwidth + _P.pwidth + _P.separation + _P.poutercutyshift + _P.cutheight)
                     )
                 end
             end
