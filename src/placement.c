@@ -630,6 +630,27 @@ static void _place_within_layer_boundaries(
     }
 }
 
+static int _check_layer_boundaries(const struct vector* layerexcludes)
+{
+    for(size_t excludeindex = 0; excludeindex < vector_size(layerexcludes); ++excludeindex)
+    {
+        const struct placement_layerexclude* layerexclude = vector_get_const(layerexcludes, excludeindex);
+        const struct polygon* excludes = layerexclude->excludes;
+        struct const_vector* layers = layerexclude->layers;
+        if(!excludes)
+        {
+            puts("layer boundary does not include a boundary");
+            return 0;
+        }
+        if(!layers)
+        {
+            puts("layer boundary does not include an exclude layer definition");
+            return 0;
+        }
+    }
+    return 1;
+}
+
 struct vector* placement_place_within_layer_boundaries(
     struct object* toplevel,
     struct vector* celllookup, // contains entries of struct placement_celllookup*
@@ -641,6 +662,10 @@ struct vector* placement_place_within_layer_boundaries(
 )
 {
     struct vector* children = vector_create(32, NULL);
+    if(!_check_layer_boundaries(layerexcludes))
+    {
+        return NULL;
+    }
     if(simple_polygon_is_rectangle(targetarea))
     {
         coordinate_t minx, maxx, miny, maxy;
