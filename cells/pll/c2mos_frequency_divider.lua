@@ -110,6 +110,7 @@ function parameters()
         { "latchviaminwidth", 200 },
         { "bufsepdummies", 2 },
         { "buffershift", 1000 },
+        { "clocklinemetal", 8 },
         { "implantleftextension", 0 },
         { "implantrightextension", 0 },
         { "implanttopextension", 0 },
@@ -1948,11 +1949,11 @@ function layout(divider, _P)
             latches[numlatches]:get_area_anchor("outerclockndummyleft_sourcestrap").t
         )
     )
-    geometry.rectanglebltr(divider, generics.metal(8),
+    geometry.rectanglebltr(divider, generics.metal(_P.clocklinemetal),
         divider:get_area_anchor("inp_line").bl,
         divider:get_area_anchor("inp_line").tr
     )
-    geometry.rectanglebltr(divider, generics.metal(8),
+    geometry.rectanglebltr(divider, generics.metal(_P.clocklinemetal),
         divider:get_area_anchor("inn_line").bl,
         divider:get_area_anchor("inn_line").tr
     )
@@ -1975,7 +1976,7 @@ function layout(divider, _P)
             ntarget = "bot"
         end
         -- clockp
-        geometry.viabltr(divider, 7, 8,
+        geometry.viabltr(divider, _P.clocklinemetal - 1, _P.clocklinemetal,
             point.create(
                 divider:get_area_anchor("inp_line").l,
                 latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clockpidentifier, ptarget)).b
@@ -1996,7 +1997,7 @@ function layout(divider, _P)
             )
         )
         -- clockn
-        geometry.viabltr(divider, 7, 8,
+        geometry.viabltr(divider, _P.clocklinemetal - 1, _P.clocklinemetal,
             point.create(
                 divider:get_area_anchor("inn_line").l,
                 latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clocknidentifier, ntarget)).b
@@ -2095,13 +2096,13 @@ function layout(divider, _P)
     divider:inherit_area_anchor_as(buffer, "pmos_well", "pmos_well_buf")
 
     -- clock ports -- FIXME: hard-coded for numlatches == 2
-    divider:add_port_with_anchor("inn", generics.metalport(8),
+    divider:add_port_with_anchor("inn", generics.metalport(_P.clocklinemetal),
         point.create(
             (divider:get_area_anchor("inp_line").l + divider:get_area_anchor("inp_line").r) / 2,
             divider:get_area_anchor("inp_line").b
         )
     )
-    divider:add_port_with_anchor("inp", generics.metalport(8),
+    divider:add_port_with_anchor("inp", generics.metalport(_P.clocklinemetal),
         point.create(
             (divider:get_area_anchor("inn_line").l + divider:get_area_anchor("inn_line").r) / 2,
             divider:get_area_anchor("inn_line").b
@@ -2130,7 +2131,7 @@ function layout(divider, _P)
 
     -- layer boundaries
     divider:add_layer_boundary(
-        generics.metal(8),
+        generics.metal(_P.clocklinemetal),
         util.rectangle_to_polygon(
             divider:get_area_anchor("inp_line").bl,
             divider:get_area_anchor("inn_line").tr
