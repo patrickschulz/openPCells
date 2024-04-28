@@ -253,8 +253,8 @@ static int _get_intersection(const point_t* s1, const point_t* s2, const point_t
     if(((snum < 0 && den < 0 && snum >= den) || (snum > 0 && den > 0 && snum <= den)) &&
        ((cnum < 0 && den < 0 && cnum >= den) || (cnum > 0 && den > 0 && cnum <= den)))
     {
-        return 1;
         *intersection = point_create(c1->x + cnum * (c2->x - c1->x) / den, c1->y + cnum * (c2->y - c1->y) / den);
+        return 1;
     }
     else
     {
@@ -313,6 +313,7 @@ int simple_polygon_intersects_rectangle(
     coordinate_t trx, coordinate_t try
 )
 {
+    // FIXME: this check is not sufficient, a more sophisticated polygon intersection test is required
     for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
     {
         point_t* cpti1 = vector_get(simple_polygon->points, i);
