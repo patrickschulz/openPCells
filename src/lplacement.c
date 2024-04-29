@@ -96,7 +96,7 @@ int lplacement_place_on_grid(lua_State* L)
 
 int lplacement_calculate_grid(lua_State* L)
 {
-    lcheck_check_numargs1(L, 5, "placement.calculate_grid");
+    lcheck_check_numargs2(L, 4, 5, "placement.calculate_grid");
     struct lpoint* bl = lpoint_checkpoint(L, 1);
     struct lpoint* tr = lpoint_checkpoint(L, 2);
     coordinate_t xpitch = luaL_checkinteger(L, 3);
