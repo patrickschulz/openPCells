@@ -2137,6 +2137,16 @@ function layout(divider, _P)
             divider:get_area_anchor("inn_line").tr
         )
     )
+    divider:add_layer_boundary(
+        generics.metal(_P.clocklinemetal),
+        util.rectangle_to_polygon(
+            latches[numlatches]:get_area_anchor(string.format("nlatchleft_sourcedrain%d", _P.latchfingers)).tl,
+            point.create(
+                latches[numlatches]:get_area_anchor(string.format("nlatchright_sourcedrain%d", 2)).r,
+                buffer:get_area_anchor("inp").t
+            )
+        )
+    )
     -- area anchor for layer boundaries
     divider:add_area_anchor_bltr(
         "activecore",
