@@ -1820,10 +1820,6 @@ function layout(divider, _P)
 
     -- internal connections between latches
     -- FIXME: only done for two latches
-    geometry.viabltr(divider, 4, 5,
-        latches[2]:get_area_anchor("internal_outp").bl,
-        latches[2]:get_area_anchor("internal_outp").tr
-    )
     geometry.viabltr(divider, 3, 5,
         latches[1]:get_area_anchor("Dp").bl,
         latches[1]:get_area_anchor("Dp").tr
@@ -1839,10 +1835,6 @@ function layout(divider, _P)
         ),
         _P.interconnectionwidth,
         0.95
-    )
-    geometry.viabltr(divider, 4, 5,
-        latches[2]:get_area_anchor("internal_outn").bl,
-        latches[2]:get_area_anchor("internal_outn").tr
     )
     geometry.viabltr(divider, 3, 5,
         latches[1]:get_area_anchor("Dn").bl,
@@ -1876,7 +1868,7 @@ function layout(divider, _P)
         _P.interconnectionwidth,
         0.95
     )
-    geometry.viabltr(divider, 4, 6,
+    geometry.viabltr(divider, 5, 6,
         latches[1]:get_area_anchor("internal_outn").bl,
         latches[1]:get_area_anchor("internal_outn").tr
     )
