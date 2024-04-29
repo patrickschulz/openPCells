@@ -1186,7 +1186,7 @@ function layout(transistor, _P)
                                 end
                             else
                                 if metal < _P.drainviametal - 1 then
-                                    geometry.viabarebltr(transistor, 1, _P.drainviametal - 1,
+                                    geometry.viabarebltr(transistor, metal, metal + 1,
                                         point.create(shift - sdviashift, drainviaoffset),
                                         point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
                                     )
