@@ -551,6 +551,8 @@ function layout(divider, _P)
                     drainstartmetal = _P.latchstartmetal,
                     drainendmetal = _P.latchendmetal,
                     drawbotgatecut = false,
+                    interweavevias = _P.inputinterweavevias,
+                    minviayspace = _P.inputinterweaveviasminspace,
                 },
                 {
                     name = "pinputseparation1",
@@ -607,6 +609,8 @@ function layout(divider, _P)
                     drainstartmetal = _P.latchstartmetal,
                     drainendmetal = _P.latchendmetal,
                     drawbotgatecut = false,
+                    interweavevias = _P.inputinterweavevias,
+                    minviayspace = _P.inputinterweaveviasminspace,
                 },
                 {
                     name = "outerinputpdummyright",
