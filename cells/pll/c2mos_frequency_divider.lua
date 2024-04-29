@@ -75,6 +75,8 @@ function parameters()
         { "pmosinvdrainsourcesize", 500, follow = "pmosinvfingerwidth" },
         { "nmosinvdummydrainsourcesize", 500, follow = "nmosinvfingerwidth" },
         { "pmosinvdummydrainsourcesize", 500, follow = "pmosinvfingerwidth" },
+        { "inputinterweavevias", false },
+        { "inputinterweaveviasminspace", 0 },
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Space") },
         { "inputlinewidth", 500 },
@@ -441,6 +443,8 @@ function layout(divider, _P)
                     drainstartmetal = _P.latchstartmetal,
                     drainendmetal = _P.latchendmetal,
                     drawtopgatecut = false,
+                    interweavevias = _P.inputinterweavevias,
+                    minviayspace = _P.inputinterweaveviasminspace,
                 },
                 {
                     name = "ninputseparation1",
@@ -506,6 +510,8 @@ function layout(divider, _P)
                     drainstartmetal = _P.latchstartmetal,
                     drainendmetal = _P.latchendmetal,
                     drawtopgatecut = false,
+                    interweavevias = _P.inputinterweavevias,
+                    minviayspace = _P.inputinterweaveviasminspace,
                 },
                 {
                     name = "outerinputndummyright",
