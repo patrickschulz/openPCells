@@ -1557,10 +1557,12 @@ function layout(divider, _P)
 
     -- buffer outputs
     for i = 1, numbuf do
-        geometry.viabltr(bufferref, 2, 3,
-            bufferref:get_area_anchor(string.format("outp_%d", i)).bl,
-            bufferref:get_area_anchor(string.format("outp_%d", i)).tr
-        )
+        if i < numbuf then
+            geometry.viabltr(bufferref, 2, 3,
+                bufferref:get_area_anchor(string.format("outp_%d", i)).bl,
+                bufferref:get_area_anchor(string.format("outp_%d", i)).tr
+            )
+        end
         geometry.rectanglebltr(bufferref, generics.metal(3),
             point.create(
                 bufferref:get_area_anchor(string.format("outp_%d", i)).l,
@@ -1575,10 +1577,12 @@ function layout(divider, _P)
             ),
             bufferref:get_area_anchor(string.format("invp%dleft_drainstrap", i)).tl
         )
-        geometry.viabltr(bufferref, 2, 3,
-            bufferref:get_area_anchor(string.format("outn_%d", i)).bl,
-            bufferref:get_area_anchor(string.format("outn_%d", i)).tr
-        )
+        if i < numbuf then
+            geometry.viabltr(bufferref, 2, 3,
+                bufferref:get_area_anchor(string.format("outn_%d", i)).bl,
+                bufferref:get_area_anchor(string.format("outn_%d", i)).tr
+            )
+        end
         geometry.rectanglebltr(bufferref, generics.metal(3),
             bufferref:get_area_anchor(string.format("invn%dright_drainstrap", i)).bl,
             point.create(
@@ -2083,7 +2087,7 @@ function layout(divider, _P)
     -- output ports
     divider:add_port_with_anchor("outp", generics.metalport(4),
         point.create(
-            buffer:get_area_anchor(string.format("outp_%d", numbuf)).l,
+            buffer:get_area_anchor(string.format("outp_%d", numbuf)).r,
             (buffer:get_area_anchor(string.format("outp_%d", numbuf)).b + buffer:get_area_anchor(string.format("outp_%d", numbuf)).t) / 2
         )
     )
