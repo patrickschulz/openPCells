@@ -2056,6 +2056,14 @@ function layout(divider, _P)
     divider:inherit_area_anchor_as(buffer, "nmos_well", "nmos_well_buf")
     divider:inherit_area_anchor_as(buffer, "pmos_well", "pmos_well_buf")
 
+    -- implant anchors
+    for i = 1, numlatches do
+        divider:inherit_area_anchor_as(latches[i], "nmos_implant", string.format("nmos_implant_%d", i))
+        divider:inherit_area_anchor_as(latches[i], "pmos_implant", string.format("pmos_implant_%d", i))
+    end
+    divider:inherit_area_anchor_as(buffer, "nmos_implant", "nmos_implant_buf")
+    divider:inherit_area_anchor_as(buffer, "pmos_implant", "pmos_implant_buf")
+
     -- clock ports -- FIXME: hard-coded for numlatches == 2
     divider:add_port_with_anchor("inn", generics.metalport(_P.clocklinemetal),
         point.create(
