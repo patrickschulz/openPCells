@@ -738,7 +738,7 @@ function layout(divider, _P)
     }
 
     local clockequalizationdummyntemplate = {
-        fingers = equalizationdummies,
+        fingers = 2 * equalizationdummies,
         sourcesize = _P.nmosclockdummydrainsourcesize,
         drainsize = _P.nmosclockdummydrainsourcesize,
         sourceviasize = _P.nmosclockdummydrainsourcesize,
@@ -760,7 +760,7 @@ function layout(divider, _P)
         drainalign = "bottom",
     }
     local inputequalizationdummyntemplate = {
-        fingers = -equalizationdummies,
+        fingers = -2 * equalizationdummies,
         sourcesize = _P.nmosinputfingerwidth,
         drainsize = _P.nmosinputfingerwidth,
         drawbotgate = true,
@@ -771,7 +771,7 @@ function layout(divider, _P)
         drawtopgatecut = true,
     }
     local clockequalizationdummyptemplate = {
-        fingers = equalizationdummies,
+        fingers = 2 * equalizationdummies,
         sourcesize = _P.pmosclockdummydrainsourcesize,
         drainsize = _P.pmosclockdummydrainsourcesize,
         sourceviasize = _P.pmosclockdummydrainsourcesize,
@@ -792,7 +792,7 @@ function layout(divider, _P)
         drainalign = "top",
     }
     local inputequalizationdummyptemplate = {
-        fingers = -equalizationdummies,
+        fingers = -2 * equalizationdummies,
         sourcesize = _P.pmosinputfingerwidth,
         drainsize = _P.pmosinputfingerwidth,
         drawtopgate = true,
@@ -809,28 +809,12 @@ function layout(divider, _P)
         _insert_before(rowdefinition, "clocknleft", entry)
 
         local entry = aux.clone_shallow(clockequalizationdummyntemplate)
-        entry.name = "clockndummyleftright"
-        _insert_after(rowdefinition, "clocknleft", entry)
-
-        local entry = aux.clone_shallow(clockequalizationdummyntemplate)
-        entry.name = "clockndummyrightleft"
-        _insert_before(rowdefinition, "clocknright", entry)
-
-        local entry = aux.clone_shallow(clockequalizationdummyntemplate)
         entry.name = "clockndummyrightright"
         _insert_after(rowdefinition, "clocknright", entry)
 
         local entry = aux.clone_shallow(clockequalizationdummyptemplate)
         entry.name = "clockpdummyleftleft"
         _insert_before(rowdefinition, "clockpleft", entry)
-
-        local entry = aux.clone_shallow(clockequalizationdummyptemplate)
-        entry.name = "clockpdummyleftright"
-        _insert_after(rowdefinition, "clockpleft", entry)
-
-        local entry = aux.clone_shallow(clockequalizationdummyptemplate)
-        entry.name = "clockpdummyrightleft"
-        _insert_before(rowdefinition, "clockpright", entry)
 
         local entry = aux.clone_shallow(clockequalizationdummyptemplate)
         entry.name = "clockpdummyrightright"
@@ -843,16 +827,6 @@ function layout(divider, _P)
 
         local entry = aux.clone_shallow(inputequalizationdummyntemplate)
         entry.botgateleftextension = xpitch / 2
-        entry.name = "inputndummyleftright"
-        _insert_after(rowdefinition, "ninleft", entry)
-
-        local entry = aux.clone_shallow(inputequalizationdummyntemplate)
-        entry.botgaterightextension = xpitch / 2
-        entry.name = "inputndummyrightleft"
-        _insert_before(rowdefinition, "ninright", entry)
-
-        local entry = aux.clone_shallow(inputequalizationdummyntemplate)
-        entry.botgateleftextension = xpitch / 2
         entry.name = "inputndummyrightright"
         _insert_after(rowdefinition, "ninright", entry)
 
@@ -860,16 +834,6 @@ function layout(divider, _P)
         entry.name = "inputpdummyleftleft"
         entry.topgaterightextension = xpitch / 2
         _insert_before(rowdefinition, "pinleft", entry)
-
-        local entry = aux.clone_shallow(inputequalizationdummyptemplate)
-        entry.name = "inputpdummyleftright"
-        entry.topgateleftextension = xpitch / 2
-        _insert_after(rowdefinition, "pinleft", entry)
-
-        local entry = aux.clone_shallow(inputequalizationdummyptemplate)
-        entry.name = "inputpdummyrightleft"
-        entry.topgaterightextension = xpitch / 2
-        _insert_before(rowdefinition, "pinright", entry)
 
         local entry = aux.clone_shallow(inputequalizationdummyptemplate)
         entry.name = "inputpdummyrightright"
