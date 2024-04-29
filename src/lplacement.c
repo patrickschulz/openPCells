@@ -624,6 +624,11 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
     simple_polygon_destroy(targetarea);
     vector_destroy(celllut);
     vector_destroy(layerexcludes);
+    if(!children)
+    {
+        lua_pushstring(L, "placement.placement_place_within_layer_boundaries: the input arguments contain an error (see previous messages)");
+        lua_error(L);
+    }
 
     // disown objects
     for(size_t i = 0; i < num_cells; ++i)
