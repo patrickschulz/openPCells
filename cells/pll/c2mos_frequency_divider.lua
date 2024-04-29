@@ -1939,7 +1939,7 @@ function layout(divider, _P)
             ntarget = "bot"
         end
         -- clockp
-        geometry.viabltr(divider, _P.clocklinemetal - 1, _P.clocklinemetal,
+        divider:add_area_anchor_bltr(string.format("clockpvia_%d", i),
             point.create(
                 divider:get_area_anchor("inp_line").l,
                 latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clockpidentifier, ptarget)).b
@@ -1948,6 +1948,10 @@ function layout(divider, _P)
                 divider:get_area_anchor("inp_line").r,
                 latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clockpidentifier, ptarget)).t
             ):translate_y(_P.clockviaextension)
+        )
+        geometry.viabltr(divider, _P.clocklinemetal - 1, _P.clocklinemetal,
+            divider:get_area_anchor(string.format("clockpvia_%d", i)).bl,
+            divider:get_area_anchor(string.format("clockpvia_%d", i)).tr
         )
         geometry.viabltr(divider, 2, 7,
             point.create(
@@ -1960,7 +1964,7 @@ function layout(divider, _P)
             )
         )
         -- clockn
-        geometry.viabltr(divider, _P.clocklinemetal - 1, _P.clocklinemetal,
+        divider:add_area_anchor_bltr(string.format("clocknvia_%d", i),
             point.create(
                 divider:get_area_anchor("inn_line").l,
                 latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clocknidentifier, ntarget)).b
@@ -1969,6 +1973,10 @@ function layout(divider, _P)
                 divider:get_area_anchor("inn_line").r,
                 latches[i]:get_area_anchor(string.format("clock%sleft_%sgatestrap", clocknidentifier, ntarget)).t
             ):translate_y(_P.clockviaextension)
+        )
+        geometry.viabltr(divider, _P.clocklinemetal - 1, _P.clocklinemetal,
+            divider:get_area_anchor(string.format("clocknvia_%d", i)).bl,
+            divider:get_area_anchor(string.format("clocknvia_%d", i)).tr
         )
         geometry.viabltr(divider, 2, 7,
             point.create(
@@ -2135,6 +2143,15 @@ function layout(divider, _P)
             divider:get_area_anchor("inn_line").tr
         )
     )
+    for i = 1, numlatches do
+        divider:add_layer_boundary(
+            generics.metal(_P.clocklinemetal),
+            util.rectangle_to_polygon(
+                divider:get_area_anchor(string.format("clockpvia_%d", i)).bl,
+                divider:get_area_anchor(string.format("clockpvia_%d", i)).tr
+            )
+        )
+    end
     divider:add_layer_boundary(
         generics.metal(_P.clocklinemetal),
         util.rectangle_to_polygon(
