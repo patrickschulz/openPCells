@@ -37,6 +37,8 @@ function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
         cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
     end
 end
 
@@ -76,6 +78,8 @@ function M.place_guardring_quantized(cell, bl, tr, xspace, yspace, basexsize, ba
         cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
     end
 end
 
@@ -118,6 +122,8 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
         cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
     end
 end
 
@@ -166,6 +172,8 @@ function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xsp
         cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
         cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
+        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
     end
 end
 
@@ -191,6 +199,7 @@ function M.place_welltap(cell, bl, tr, anchorprefix, options)
     cell:inherit_area_anchor_as(welltap, "boundary", string.format("%sboundary", anchorprefix))
     cell:inherit_area_anchor_as(welltap, "well", string.format("%swell", anchorprefix))
     cell:inherit_area_anchor_as(welltap, "implant", string.format("%simplant", anchorprefix))
+    cell:inherit_area_anchor_as(welltap, "soiopen", string.format("%ssoiopen", anchorprefix))
 end
 
 --[[

@@ -69,6 +69,11 @@ function layout(welltap, _P)
         point.create(-_P.implantleftextension, -_P.implantbottomextension),
         point.create(_P.width + _P.implantrightextension, _P.height + _P.implanttopextension)
     )
+    welltap:add_area_anchor_bltr(
+        "soiopen",
+        point.create(-_P.soiopenleftextension, -_P.soiopenbottomextension),
+        point.create(_P.width + _P.soiopenrightextension, _P.height + _P.soiopentopextension)
+    )
 
     -- alignment box
     welltap:set_alignment_box(

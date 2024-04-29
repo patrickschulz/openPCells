@@ -302,6 +302,14 @@ function layout(guardring, _P)
         point.create(-_P.ringwidth - _P.implantextension, -_P.ringwidth - _P.implantextension),
         point.create(holewidth + _P.ringwidth + _P.implantextension, holeheight + _P.ringwidth + _P.implantextension)
     )
+    guardring:add_area_anchor_bltr("innersoiopen",
+        point.create(_P.soiopenextension, _P.soiopenextension),
+        point.create(holewidth - _P.soiopenextension, holeheight - _P.soiopenextension)
+    )
+    guardring:add_area_anchor_bltr("outersoiopen",
+        point.create(-_P.ringwidth - _P.soiopenextension, -_P.ringwidth - _P.soiopenextension),
+        point.create(holewidth + _P.ringwidth + _P.soiopenextension, holeheight + _P.ringwidth + _P.soiopenextension)
+    )
 
     guardring:set_alignment_box(
         point.create(-_P.ringwidth, -_P.ringwidth),

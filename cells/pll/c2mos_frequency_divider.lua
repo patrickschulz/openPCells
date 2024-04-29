@@ -2032,33 +2032,60 @@ function layout(divider, _P)
     divider:inherit_area_anchor_as(buffer, "vssbar", "vssbar_buf")
     divider:inherit_area_anchor_as(buffer, "vddbar", "vddbar_buf")
 
-    -- well anchors
+    -- well, implant and soiopen anchors (latch)
     for i = 1, numlatches do
         divider:inherit_area_anchor_as(latches[i], "nmos_well", string.format("nmos_well_%d", i))
         divider:inherit_area_anchor_as(latches[i], "pmos_well", string.format("pmos_well_%d", i))
+        divider:inherit_area_anchor_as(latches[i], "nmos_implant", string.format("nmos_implant_%d", i))
+        divider:inherit_area_anchor_as(latches[i], "pmos_implant", string.format("pmos_implant_%d", i))
         if _P.drawleftnmoswelltap then
             divider:inherit_area_anchor_as(latches[i], "left_nmos_welltap_boundary", string.format("left_nmos_welltap_boundary_%d", i))
+            divider:inherit_area_anchor_as(latches[i], "left_nmos_welltap_implant", string.format("left_nmos_welltap_implant_%d", i))
+            divider:inherit_area_anchor_as(latches[i], "left_nmos_welltap_soiopen", string.format("left_nmos_welltap_soiopen_%d", i))
         end
         if _P.drawleftpmoswelltap then
             divider:inherit_area_anchor_as(latches[i], "left_pmos_welltap_boundary", string.format("left_pmos_welltap_boundary_%d", i))
+            divider:inherit_area_anchor_as(latches[i], "left_pmos_welltap_implant", string.format("left_pmos_welltap_implant_%d", i))
+            divider:inherit_area_anchor_as(latches[i], "left_pmos_welltap_soiopen", string.format("left_pmos_welltap_soiopen_%d", i))
         end
         if _P.drawrightnmoswelltap then
             divider:inherit_area_anchor_as(latches[i], "right_nmos_welltap_boundary", string.format("right_nmos_welltap_boundary_%d", i))
+            divider:inherit_area_anchor_as(latches[i], "right_nmos_welltap_implant", string.format("right_nmos_welltap_implant_%d", i))
+            divider:inherit_area_anchor_as(latches[i], "right_nmos_welltap_implant", string.format("right_nmos_wellsoiopen_%d", i))
         end
         if _P.drawrightpmoswelltap then
             divider:inherit_area_anchor_as(latches[i], "right_pmos_welltap_boundary", string.format("right_pmos_welltap_boundary_%d", i))
+            divider:inherit_area_anchor_as(latches[i], "right_pmos_welltap_implant", string.format("right_pmos_welltap_implant_%d", i))
+            divider:inherit_area_anchor_as(latches[i], "right_pmos_welltap_soiopen", string.format("right_pmos_welltap_soiopen_%d", i))
         end
     end
+
+    -- well, implant and soiopen anchors (buffer)
     divider:inherit_area_anchor_as(buffer, "nmos_well", "nmos_well_buf")
     divider:inherit_area_anchor_as(buffer, "pmos_well", "pmos_well_buf")
-
-    -- implant anchors
-    for i = 1, numlatches do
-        divider:inherit_area_anchor_as(latches[i], "nmos_implant", string.format("nmos_implant_%d", i))
-        divider:inherit_area_anchor_as(latches[i], "pmos_implant", string.format("pmos_implant_%d", i))
-    end
     divider:inherit_area_anchor_as(buffer, "nmos_implant", "nmos_implant_buf")
     divider:inherit_area_anchor_as(buffer, "pmos_implant", "pmos_implant_buf")
+    if _P.drawleftnmoswelltap then
+        divider:inherit_area_anchor_as(buffer, "left_nmos_welltap_boundary", "left_nmos_welltap_boundary_buf")
+        divider:inherit_area_anchor_as(buffer, "left_nmos_welltap_implant", "left_nmos_welltap_implant_buf")
+        divider:inherit_area_anchor_as(buffer, "left_nmos_welltap_soiopen", "left_nmos_welltap_soiopen_buf")
+    end
+    if _P.drawleftpmoswelltap then
+        divider:inherit_area_anchor_as(buffer, "left_pmos_welltap_boundary", "left_pmos_welltap_boundary_buf")
+        divider:inherit_area_anchor_as(buffer, "left_pmos_welltap_implant", "left_pmos_welltap_implant_buf")
+        divider:inherit_area_anchor_as(buffer, "left_pmos_welltap_soiopen", "left_pmos_welltap_soiopen_buf")
+    end
+    if _P.drawrightnmoswelltap then
+        divider:inherit_area_anchor_as(buffer, "right_nmos_welltap_boundary", "right_nmos_welltap_boundary_buf")
+        divider:inherit_area_anchor_as(buffer, "right_nmos_welltap_implant", "right_nmos_welltap_implant_buf")
+        divider:inherit_area_anchor_as(latches[i], "right_nmos_welltap_implant", "right_nmos_wellsoiopen_buf")
+    end
+    if _P.drawrightpmoswelltap then
+        divider:inherit_area_anchor_as(buffer, "right_pmos_welltap_boundary", "right_pmos_welltap_boundary_buf")
+        divider:inherit_area_anchor_as(buffer, "right_pmos_welltap_implant", "right_pmos_welltap_implant_buf")
+        divider:inherit_area_anchor_as(buffer, "right_pmos_welltap_soiopen", "right_pmos_welltap_soiopen_buf")
+    end
+
 
     -- clock ports -- FIXME: hard-coded for numlatches == 2
     divider:add_port_with_anchor("inn", generics.metalport(_P.clocklinemetal),
