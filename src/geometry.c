@@ -706,6 +706,58 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
     return result;
 }
 
+static int _check_via_contact_bltr(
+    struct via_definition** viadefs, struct via_definition* fallback,
+    coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass
+)
+{
+    ucoordinate_t width = trx - blx;
+    ucoordinate_t height = try - bly;
+    unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
+    struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, xcont, ycont, equal_pitch, widthclass);
+    return entry != NULL;
+}
+
+static int _check_viabltr(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass
+)
+{
+    metal1 = technology_resolve_metal(techstate, metal1);
+    metal2 = technology_resolve_metal(techstate, metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    int ret = 1;
+    for(int i = metal1; i < metal2; ++i)
+    {
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i, i + 1);
+        struct via_definition* fallback = technology_get_via_fallback(techstate, i, i + 1);
+        if(!viadefs)
+        {
+            return 0;
+        }
+        ret = ret && _check_via_contact_bltr(
+            viadefs, fallback,
+            blx, bly, trx, try,
+            xcont, ycont,
+            equal_pitch,
+            widthclass
+        );
+    }
+    return ret;
+}
+
 static int _via_contact_bltr(
     struct object* cell,
     struct via_definition** viadefs, struct via_definition* fallback,
@@ -789,6 +841,11 @@ static int _viabltr(
         }
     }
     return ret;
+}
+
+int geometry_check_viabltr(struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+{
+    return _check_viabltr(techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, widthclass);
 }
 
 int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)

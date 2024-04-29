@@ -81,6 +81,15 @@ void geometry_path_polygon(
     ucoordinate_t bgnext, ucoordinate_t endext
 );
 
+int geometry_check_viabltr(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const point_t* bl, const point_t* tr,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass
+);
+
 int geometry_viabltr(
     struct object* cell,
     struct technology_state* techstate,

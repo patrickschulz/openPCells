@@ -1226,6 +1226,27 @@ void _get_viacontact_properties(lua_State* L, int idx, int* xcont, int* ycont, i
     }
 }
 
+static int lgeometry_check_viabltr(lua_State* L)
+{
+    lcheck_check_numargs2(L, 4, 5, "geometry.viabltr");
+    int metal1 = luaL_checkinteger(L, 1);
+    int metal2 = luaL_checkinteger(L, 2);
+    struct lpoint* bl = lpoint_checkpoint(L, 3);
+    struct lpoint* tr = lpoint_checkpoint(L, 4);
+    _check_rectangle_points(L, bl, tr, "geometry.viabltr");
+    int xcont = 0;
+    int ycont = 0;
+    int equal_pitch = 0;
+    coordinate_t widthclass = 0;
+    _get_viacontact_properties(L, 5, &xcont, &ycont, &equal_pitch, &widthclass);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_check_viabltr(techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
+    lua_pushboolean(L, res);
+    return 1;
+}
+
 static int lgeometry_viabltr(lua_State* L)
 {
     lcheck_check_numargs2(L, 5, 6, "geometry.viabltr");
@@ -1862,6 +1883,7 @@ int open_lgeometry_lib(lua_State* L)
         { "path_polygon",                               lgeometry_path_polygon                                      },
         { "path_points_xy",                             lgeometry_path_points_xy                                    },
         { "path_points_yx",                             lgeometry_path_points_yx                                    },
+        { "check_viabltr",                              lgeometry_check_viabltr                                     },
         { "viabltr",                                    lgeometry_viabltr                                           },
         { "viabarebltr",                                lgeometry_viabarebltr                                       },
         { "viabltr_xcontinuous",                        lgeometry_viabltr_xcontinuous                               },
