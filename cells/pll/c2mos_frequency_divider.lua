@@ -1568,6 +1568,11 @@ function layout(divider, _P)
                 bufferref:get_area_anchor(string.format("outp_%d", i)).bl,
                 bufferref:get_area_anchor(string.format("outp_%d", i)).tr
             )
+        else
+            geometry.rectanglebltr(bufferref, generics.metal(3),
+                bufferref:get_area_anchor(string.format("outp_%d", i)).bl,
+                bufferref:get_area_anchor(string.format("outp_%d", i)).tr
+            )
         end
         geometry.rectanglebltr(bufferref, generics.metal(3),
             point.create(
@@ -1585,6 +1590,11 @@ function layout(divider, _P)
         )
         if i < numbuf then
             geometry.viabltr(bufferref, 2, 3,
+                bufferref:get_area_anchor(string.format("outn_%d", i)).bl,
+                bufferref:get_area_anchor(string.format("outn_%d", i)).tr
+            )
+        else
+            geometry.rectanglebltr(bufferref, generics.metal(3),
                 bufferref:get_area_anchor(string.format("outn_%d", i)).bl,
                 bufferref:get_area_anchor(string.format("outn_%d", i)).tr
             )
