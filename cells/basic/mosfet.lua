@@ -31,6 +31,10 @@ function parameters()
         { "sdwidth(Source/Drain Contact Width)",                                                        technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "width of the source/drain contact regions. Currently, all metals are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future." }, -- FIXME: rename
         { "sdviawidth(Source/Drain Metal Width for Vias)",                                              technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth", info  = "width of the source/drain via regions. Currently, all vias are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future. This parameter follows 'sdwidth'." },
         { "sdmetalwidth(Source/Drain Metal Width)",                                                     technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdviawidth", info = "width of the source/drain metals. This parameter follows 'sdwidth'." },
+        { "interweavevias",                                                                             false },
+        { "alternateinterweaving",                                                                      false },
+        { "minviaxspace",                                                                               0 },
+        { "minviayspace",                                                                               0 },
         { "gtopext(Gate Top Extension)",                                                                technology.get_dimension("Minimum Gate Extension"), info = "top gate extension. This extension depends on the automatically calculated gate extensions (which depend for instance on gate contacts). This means that if 'gtopext' is smaller than the automatic extensions, the layout is not changed at all." },
         { "gbotext(Gate Bottom Extension)",                                                                technology.get_dimension("Minimum Gate Extension"), info = "bottom gate extension. This extension depends on the automatically calculated gate extensions (which depend for instance on gate contacts). This means that if 'gbotext' is smaller than the automatic extensions, the layout is not changed at all." },
         { "gtopextadd(Gate Additional Top Extension)",                                                  0, info = "Unconditional gate top extension (similar to 'gtopext', but always extends)." },
@@ -1050,6 +1054,7 @@ function layout(transistor, _P)
         end
     end
     local contacttype = _P.drawrotationmarker and "sourcedrainrotated" or "sourcedrain"
+    -- values for interweaved via cuts
     if _P.drawsourcedrain ~= "none" then
         -- source
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "source" then
@@ -1060,26 +1065,55 @@ function layout(transistor, _P)
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
                     geometry.contactbarebltr(transistor, contacttype, bl, tr)
                     if _P.drawsourcevia and _P.sourceviametal > 1 and
-                       not (i == 1 and not _P.drawfirstsourcevia or
-                        i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                        geometry.viabarebltr(transistor, 1, _P.sourceviametal - 1,
-                            point.create(shift - sdviashift, sourceviaoffset),
-                            point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize)
-                        )
-                        if _P.connectsourceinline and _P.splitsourcevias then
-                            geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
-                                point.create(shift - sdviashift, splitsourceviaoffset - splitsourceviasize),
-                                point.create(shift + _P.sdviawidth - sdviashift, splitsourceviaoffset)
+                        not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
+                        if _P.interweavevias then
+                            local alternate = false
+                            local viatable = geometry.calculate_viabltr(
+                                1, _P.sourceviametal,
+                                point.create(shift - sdviashift, sourceviaoffset),
+                                point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize),
+                                _P.minviaxspace, _P.minviayspace
                             )
-                            geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
-                                point.create(shift - sdviashift, splitsourceviaoffset + _P.connectsourcewidth),
-                                point.create(shift + _P.sdviawidth - sdviashift, splitsourceviaoffset + _P.connectsourcewidth + splitsourceviasize)
-                            )
+                            for _, viaentry in ipairs(viatable) do
+                                local numcuts = viaentry.yrep
+                                local cutxoffset = viaentry.xoffset
+                                local cutyoffset = viaentry.yoffset
+                                local cutwidth = viaentry.width
+                                local cutheight = viaentry.width
+                                local cutspace = viaentry.yspace
+                                local cutlayer = viaentry.layer
+                                if _P.alternateinterweaving and alternate then
+                                    numcuts = numcuts - 1
+                                    cutyoffset = cutyoffset + math.floor((viaentry.yspace + viaentry.width) / 2)
+                                    alternate = not alternate
+                                end
+                                for i = 1, numcuts do
+                                    geometry.rectanglebltr(transistor, cutlayer,
+                                        point.create(shift - sdviashift + cutxoffset, sourceviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight)),
+                                        point.create(shift - sdviashift + cutxoffset + cutwidth, sourceviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight) + cutheight)
+                                    )
+                                end
+                            end
                         else
-                            geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
+                            geometry.viabarebltr(transistor, 1, _P.sourceviametal - 1,
                                 point.create(shift - sdviashift, sourceviaoffset),
                                 point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize)
                             )
+                            if _P.connectsourceinline and _P.splitsourcevias then
+                                geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
+                                    point.create(shift - sdviashift, splitsourceviaoffset - splitsourceviasize),
+                                    point.create(shift + _P.sdviawidth - sdviashift, splitsourceviaoffset)
+                                )
+                                geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
+                                    point.create(shift - sdviashift, splitsourceviaoffset + _P.connectsourcewidth),
+                                    point.create(shift + _P.sdviawidth - sdviashift, splitsourceviaoffset + _P.connectsourcewidth + splitsourceviasize)
+                                )
+                            else
+                                geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
+                                    point.create(shift - sdviashift, sourceviaoffset),
+                                    point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize)
+                                )
+                            end
                         end
                     end
                     geometry.rectanglebltr(transistor, generics.metal(1),
@@ -1115,26 +1149,55 @@ function layout(transistor, _P)
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
                     geometry.contactbarebltr(transistor, contacttype, bl, tr)
                     if _P.drawdrainvia and _P.drainviametal > 1 and
-                       not (i == 2 and not _P.drawfirstdrainvia or
-                        i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                        geometry.viabarebltr(transistor, 1, _P.drainviametal - 1,
-                            point.create(shift - sdviashift, drainviaoffset),
-                            point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
-                        )
-                        if _P.connectdraininline and _P.splitdrainvias then
-                            geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
-                                point.create(shift - sdviashift, splitdrainviaoffset - splitdrainviasize),
-                                point.create(shift + _P.sdviawidth - sdviashift, splitdrainviaoffset)
+                        not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
+                        if _P.interweavevias then
+                            local alternate = true
+                            local viatable = geometry.calculate_viabltr(
+                                1, _P.drainviametal,
+                                point.create(shift - sdviashift, drainviaoffset),
+                                point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize),
+                                _P.minviaxspace, _P.minviayspace
                             )
-                            geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
-                                point.create(shift - sdviashift, splitdrainviaoffset + _P.connectdrainwidth),
-                                point.create(shift + _P.sdviawidth - sdviashift, splitdrainviaoffset + _P.connectdrainwidth + splitdrainviasize)
-                            )
+                            for _, viaentry in ipairs(viatable) do
+                                local numcuts = viaentry.yrep - 1
+                                local cutxoffset = viaentry.xoffset
+                                local cutyoffset = math.floor(viaentry.yoffset + (viaentry.yspace + viaentry.width) / 2)
+                                local cutwidth = viaentry.width
+                                local cutheight = viaentry.width
+                                local cutspace = viaentry.yspace
+                                local cutlayer = viaentry.layer
+                                if _P.alternateinterweaving and alternate then
+                                    numcuts = numcuts - 1
+                                    cutyoffset = cutyoffset + math.floor((viaentry.yspace + viaentry.width) / 2)
+                                    alternate = not alternate
+                                end
+                                for i = 1, numcuts do
+                                    geometry.rectanglebltr(transistor, cutlayer,
+                                        point.create(shift - sdviashift + cutxoffset, drainviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight)),
+                                        point.create(shift - sdviashift + cutxoffset + cutwidth, drainviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight) + cutheight)
+                                    )
+                                end
+                            end
                         else
-                            geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
+                            geometry.viabarebltr(transistor, 1, _P.drainviametal - 1,
                                 point.create(shift - sdviashift, drainviaoffset),
                                 point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
                             )
+                            if _P.connectdraininline and _P.splitdrainvias then
+                                geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
+                                    point.create(shift - sdviashift, splitdrainviaoffset - splitdrainviasize),
+                                    point.create(shift + _P.sdviawidth - sdviashift, splitdrainviaoffset)
+                                )
+                                geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
+                                    point.create(shift - sdviashift, splitdrainviaoffset + _P.connectdrainwidth),
+                                    point.create(shift + _P.sdviawidth - sdviashift, splitdrainviaoffset + _P.connectdrainwidth + splitdrainviasize)
+                                )
+                            else
+                                geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
+                                    point.create(shift - sdviashift, drainviaoffset),
+                                    point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
+                                )
+                            end
                         end
                     end
                     geometry.rectanglebltr(transistor, generics.metal(1),

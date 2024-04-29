@@ -90,6 +90,28 @@ int geometry_check_viabltr(
     coordinate_t widthclass
 );
 
+struct viaarray {
+    ucoordinate_t width;
+    ucoordinate_t height;
+    unsigned int xrep;
+    unsigned int yrep;
+    coordinate_t xpitch;
+    coordinate_t ypitch;
+    coordinate_t xoffset;
+    coordinate_t yoffset;
+    const struct generics* layer;
+};
+
+struct vector* geometry_calculate_viabltr(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const point_t* bl, const point_t* tr,
+    coordinate_t minxspace, coordinate_t minyspace,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass
+);
+
 int geometry_viabltr(
     struct object* cell,
     struct technology_state* techstate,

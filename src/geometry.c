@@ -609,7 +609,17 @@ static void _equal_pitch_via(
     }
 }
 
-static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionwidth, ucoordinate_t regionheight, struct via_definition** definitions, struct via_definition* fallback, unsigned int* xrep_ptr, unsigned int* yrep_ptr, unsigned int* xpitch_ptr, unsigned int* ypitch_ptr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+static struct via_definition* _get_rectangular_arrayzation(
+    ucoordinate_t regionwidth, ucoordinate_t regionheight,
+    struct via_definition** definitions,
+    struct via_definition* fallback,
+    unsigned int* xrep_ptr, unsigned int* yrep_ptr,
+    unsigned int* xpitch_ptr, unsigned int* ypitch_ptr,
+    coordinate_t minxspace, coordinate_t minyspace,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass
+)
 {
     unsigned int lastarea = 0;
     unsigned int xrep = 0;
@@ -640,11 +650,13 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
         unsigned int _xspace = 0;
         unsigned int _yrep = 0;
         unsigned int _yspace = 0;
+        coordinate_t _minxspace = minxspace > entry->xspace ? minxspace : entry->xspace;
+        coordinate_t _minyspace = minyspace > entry->yspace ? minyspace : entry->yspace;
         if(equal_pitch)
         {
             if(entry->width == entry->height) // only square vias can be equal pitch
             {
-                int space = entry->xspace > entry->yspace ? entry->xspace : entry->yspace;
+                int space = _minxspace > _minyspace ? _minxspace : _minyspace;
                 int enclosure = entry->xenclosure > entry->yenclosure ? entry->xenclosure : entry->yenclosure;
                 _equal_pitch_via(regionwidth, regionheight, entry->width, space, enclosure, &_xrep, &_yrep, &_xspace, &_yspace);
             }
@@ -653,19 +665,19 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
         {
             if(xcont)
             {
-                _continuous_via(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
+                _continuous_via(regionwidth, entry->width, _minxspace, entry->xenclosure, &_xrep, &_xspace);
             }
             else
             {
-                _fit_via(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
+                _fit_via(regionwidth, entry->width, _minxspace, entry->xenclosure, &_xrep, &_xspace);
             }
             if(ycont)
             {
-                _continuous_via(regionheight, entry->height, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
+                _continuous_via(regionheight, entry->height, _minyspace, entry->yenclosure, &_yrep, &_yspace);
             }
             else
             {
-                _fit_via(regionheight, entry->height, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
+                _fit_via(regionheight, entry->height, _minyspace, entry->yenclosure, &_yrep, &_yspace);
             }
         }
         if(_xrep > 0 && _yrep > 0)
@@ -717,7 +729,7 @@ static int _check_via_contact_bltr(
     ucoordinate_t width = trx - blx;
     ucoordinate_t height = try - bly;
     unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-    struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, xcont, ycont, equal_pitch, widthclass);
+    struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, 0, 0, xcont, ycont, equal_pitch, widthclass);
     return entry != NULL;
 }
 
@@ -774,7 +786,7 @@ static int _via_contact_bltr(
         ucoordinate_t width = trx - blx;
         ucoordinate_t height = try - bly;
         unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, xcont, ycont, equal_pitch, widthclass);
+        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, 0, 0, xcont, ycont, equal_pitch, widthclass);
         if(!entry)
         {
             return 0;
@@ -791,6 +803,69 @@ static int _via_contact_bltr(
     else
     {
         _rectanglebltr(cell, cutlayer, blx, bly, trx, try);
+    }
+    return 1;
+}
+
+struct viaarray* _make_via_array(
+    ucoordinate_t regionwidth, ucoordinate_t regionheight,
+    ucoordinate_t width, ucoordinate_t height,
+    unsigned int xrep, unsigned yrep,
+    coordinate_t xpitch, coordinate_t ypitch,
+    const struct generics* layer
+)
+{
+    struct viaarray* array = malloc(sizeof(*array));
+    array->width = width;
+    array->height = height;
+    array->xrep = xrep;
+    array->yrep = yrep;
+    array->xpitch = xpitch;
+    array->ypitch = ypitch;
+    array->xoffset = (regionwidth - xrep * width - (xrep - 1) * (xpitch - width)) / 2;
+    array->yoffset = (regionheight - yrep * height - (yrep - 1) * (ypitch - height)) / 2;
+    array->layer = layer;
+    return array;
+}
+
+static int _calculate_viabltr(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    coordinate_t minxspace, coordinate_t minyspace,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass,
+    struct vector* result
+)
+{
+    metal1 = technology_resolve_metal(techstate, metal1);
+    metal2 = technology_resolve_metal(techstate, metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    for(int i = metal1; i < metal2; ++i)
+    {
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i, i + 1);
+        struct via_definition* fallback = technology_get_via_fallback(techstate, i, i + 1);
+        if(!viadefs)
+        {
+            return 0;
+        }
+        ucoordinate_t width = trx - blx;
+        ucoordinate_t height = try - bly;
+        unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
+        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+        if(!entry)
+        {
+            return 0;
+        }
+        const struct generics* cutlayer = generics_create_viacut(techstate, i, i + 1);
+        struct viaarray* array = _make_via_array(width, height, entry->width, entry->height, viaxrep, viayrep, viaxpitch, viaypitch, cutlayer);
+        vector_append(result, array);
     }
     return 1;
 }
@@ -846,6 +921,21 @@ static int _viabltr(
 int geometry_check_viabltr(struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     return _check_viabltr(techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, widthclass);
+}
+
+struct vector* geometry_calculate_viabltr(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const point_t* bl, const point_t* tr,
+    coordinate_t minxspace, coordinate_t minyspace,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass
+)
+{
+    struct vector* result = vector_create(1, NULL);
+    _calculate_viabltr(techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, result);
+    return result;
 }
 
 int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)

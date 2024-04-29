@@ -1247,6 +1247,54 @@ static int lgeometry_check_viabltr(lua_State* L)
     return 1;
 }
 
+static int lgeometry_calculate_viabltr(lua_State* L)
+{
+    lcheck_check_numargs2(L, 6, 7, "geometry.calculate_viabltr");
+    int metal1 = luaL_checkinteger(L, 1);
+    int metal2 = luaL_checkinteger(L, 2);
+    struct lpoint* bl = lpoint_checkpoint(L, 3);
+    struct lpoint* tr = lpoint_checkpoint(L, 4);
+    _check_rectangle_points(L, bl, tr, "geometry.calculate_viabltr");
+    coordinate_t minxspace = luaL_checkinteger(L, 5);
+    coordinate_t minyspace = luaL_checkinteger(L, 6);
+    int xcont = 0;
+    int ycont = 0;
+    int equal_pitch = 0;
+    coordinate_t widthclass = 0;
+    _get_viacontact_properties(L, 7, &xcont, &ycont, &equal_pitch, &widthclass);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    struct vector* result = geometry_calculate_viabltr(techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    lua_newtable(L);
+    for(unsigned int i = 0; i < vector_size(result); ++i)
+    {
+        lua_newtable(L);
+        struct viaarray* array = vector_get(result, i);
+        lua_pushinteger(L, array->width);
+        lua_setfield(L, -2, "width");
+        lua_pushinteger(L, array->height);
+        lua_setfield(L, -2, "height");
+        lua_pushinteger(L, array->xrep);
+        lua_setfield(L, -2, "xrep");
+        lua_pushinteger(L, array->yrep);
+        lua_setfield(L, -2, "yrep");
+        lua_pushinteger(L, array->xpitch - array->width);
+        lua_setfield(L, -2, "xspace");
+        lua_pushinteger(L, array->ypitch - array->height);
+        lua_setfield(L, -2, "yspace");
+        lua_pushinteger(L, array->xoffset);
+        lua_setfield(L, -2, "xoffset");
+        lua_pushinteger(L, array->yoffset);
+        lua_setfield(L, -2, "yoffset");
+        lua_pushlightuserdata(L, (void*)array->layer);
+        lua_setfield(L, -2, "layer");
+        lua_rawseti(L, -2, i + 1);
+    }
+    vector_destroy(result);
+    return 1;
+}
+
 static int lgeometry_viabltr(lua_State* L)
 {
     lcheck_check_numargs2(L, 5, 6, "geometry.viabltr");
@@ -1884,6 +1932,7 @@ int open_lgeometry_lib(lua_State* L)
         { "path_points_xy",                             lgeometry_path_points_xy                                    },
         { "path_points_yx",                             lgeometry_path_points_yx                                    },
         { "check_viabltr",                              lgeometry_check_viabltr                                     },
+        { "calculate_viabltr",                          lgeometry_calculate_viabltr                                 },
         { "viabltr",                                    lgeometry_viabltr                                           },
         { "viabarebltr",                                lgeometry_viabarebltr                                       },
         { "viabltr_xcontinuous",                        lgeometry_viabltr_xcontinuous                               },
