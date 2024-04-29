@@ -647,7 +647,6 @@ function layout(divider, _P)
                     drawstopgatetopgatecut = true,
                     drawstopgatebotgatecut = true,
                     drawtopgatecut = false,
-                    excludesourcedraincontacts = { _P.outerdummies + 1 },
                 },
                 {
                     name = "clockpleft",
@@ -688,7 +687,6 @@ function layout(divider, _P)
                     topgatewidth = _P.dummygatecontactwidth,
                     topgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
                     drawtopgatecut = false,
-                    excludesourcedraincontacts = { 1, middledummyfingers + 1 },
                 },
                 {
                     name = "clockpright",
@@ -731,7 +729,6 @@ function layout(divider, _P)
                     drawstopgatetopgatecut = true,
                     drawstopgatebotgatecut = true,
                     drawtopgatecut = false,
-                    excludesourcedraincontacts = { 1 },
                 },
             },
         }),
@@ -758,6 +755,7 @@ function layout(divider, _P)
         botgatewidth = _P.dummygatecontactwidth,
         botgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
         drainalign = "bottom",
+        excludesourcedraincontacts = { 1, 2 * equalizationdummies + 1 },
     }
     local inputequalizationdummyntemplate = {
         fingers = -2 * equalizationdummies,
@@ -769,6 +767,7 @@ function layout(divider, _P)
         botgateleftextension = (_P.gatespace - _P.sdwidth) / 2 + _P.gatelength + _P.gatespace,
         botgaterightextension = (_P.gatespace - _P.sdwidth) / 2 + _P.gatelength + _P.gatespace,
         drawtopgatecut = true,
+        excludesourcedraincontacts = { 1, 2 * equalizationdummies + 1 },
     }
     local clockequalizationdummyptemplate = {
         fingers = 2 * equalizationdummies,
@@ -790,6 +789,7 @@ function layout(divider, _P)
         topgatewidth = _P.dummygatecontactwidth,
         topgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
         drainalign = "top",
+        excludesourcedraincontacts = { 1, 2 * equalizationdummies + 1 },
     }
     local inputequalizationdummyptemplate = {
         fingers = -2 * equalizationdummies,
@@ -801,6 +801,7 @@ function layout(divider, _P)
         topgateleftextension = (_P.gatespace - _P.sdwidth) / 2 + _P.gatelength + _P.gatespace,
         topgaterightextension = (_P.gatespace - _P.sdwidth) / 2 + _P.gatelength + _P.gatespace,
         drawbotgatecut = true,
+        excludesourcedraincontacts = { 1, 2 * equalizationdummies + 1 },
     }
 
     if equalizationdummies > 0 then -- insert dummies in clock rows
