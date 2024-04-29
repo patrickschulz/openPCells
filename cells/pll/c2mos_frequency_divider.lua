@@ -60,27 +60,21 @@ function parameters()
         { "nmosinputfingerwidth", 500 },
         { "pmosinputfingerwidth", 500 },
         { "nmosclockdrainsourcesize", 500, follow = "nmosclockfingerwidth" },
-        { "nmoslatchdrainsourcesize", 500, follow = "nmosclockfingerwidth" },
         { "nmosclockdummydrainsourcesize", 500, follow = "nmosclockfingerwidth" },
         { "nmosinputdrainsourcesize", 500, follow = "nmosinputfingerwidth" },
-        { "nmosinputdummydrainsourcesize", 500, follow = "nmosinputfingerwidth" },
         { "nmosinputdummygatewidth", technology.get_dimension("Minimum M1 Width") },
         { "nmosinputdummygatespace", technology.get_dimension("Minimum M1 Space") },
         { "pmosclockdrainsourcesize", 500, follow = "pmosclockfingerwidth" },
-        { "pmoslatchdrainsourcesize", 500, follow = "pmosclockfingerwidth" },
         { "pmosclockdummydrainsourcesize", 500, follow = "pmosclockfingerwidth" },
         { "pmosinputdrainsourcesize", 500, follow = "pmosinputfingerwidth" },
         { "pmosinputdummygatewidth", technology.get_dimension("Minimum M1 Width") },
         { "pmosinputdummygatespace", technology.get_dimension("Minimum M1 Space") },
         { "nmosinvfingerwidth", 500 },
         { "pmosinvfingerwidth", 500 },
-        { "nmosinputfingerwidth", 500 },
-        { "pmosinputfingerwidth", 500 },
         { "nmosinvdrainsourcesize", 500, follow = "nmosinvfingerwidth" },
-        { "pmosinvdrainsourcesize", 500, follow = "nmosinvfingerwidth" },
-        { "nmoslatchdrainsourcesize", 500, follow = "nmosinvfingerwidth" },
+        { "pmosinvdrainsourcesize", 500, follow = "pmosinvfingerwidth" },
         { "nmosinvdummydrainsourcesize", 500, follow = "nmosinvfingerwidth" },
-        { "pmosinvdummydrainsourcesize", 500, follow = "nmosinvfingerwidth" },
+        { "pmosinvdummydrainsourcesize", 500, follow = "pmosinvfingerwidth" },
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Space") },
         { "inputlinewidth", 500 },
@@ -185,8 +179,8 @@ local function _make_vdddummy(name, fingers, _P, outerleft, outerright)
         drainalign = "bottom",
         connectdrainspace = _P.powerspace,
         connectdrainwidth = _P.powerwidth,
-        sourcesize = _P.nmosinvdummydrainsourcesize,
-        drainsize = _P.nmosinvdummydrainsourcesize,
+        sourcesize = _P.pmosinvdummydrainsourcesize,
+        drainsize = _P.pmosinvdummydrainsourcesize,
         drainalign = "top",
         drawtopgate = true,
         topgatewidth = _P.dummygatecontactwidth,
@@ -376,6 +370,7 @@ function layout(divider, _P)
                     botgatewidth = _P.dummygatecontactwidth,
                     botgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
                     drawbotgatecut = false,
+                    excludesourcedraincontacts = { 1, middledummyfingers + 1 },
                 },
                 {
                     name = "clocknright",
@@ -687,6 +682,7 @@ function layout(divider, _P)
                     topgatewidth = _P.dummygatecontactwidth,
                     topgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
                     drawtopgatecut = false,
+                    excludesourcedraincontacts = { 1, middledummyfingers + 1 },
                 },
                 {
                     name = "clockpright",
@@ -1998,13 +1994,13 @@ function layout(divider, _P)
     geometry.viabltr(divider, 2, 4,
         buffer:get_area_anchor("inp").bl,
         point.create(
-            latches[numlatches]:get_area_anchor(string.format("nlatchleft_sourcedrain%d", _P.latchfingers)).r,
+            latches[numlatches]:get_area_anchor(string.format("nlatchleft_sourcedrain%d", _P.latchfingers)).l,
             buffer:get_area_anchor("inp").t
         )
     )
     geometry.viabltr(divider, 2, 4,
         point.create(
-            latches[numlatches]:get_area_anchor(string.format("nlatchright_sourcedrain%d", 2)).l,
+            latches[numlatches]:get_area_anchor(string.format("nlatchright_sourcedrain%d", 2)).r,
             buffer:get_area_anchor("inn").b
         ),
         buffer:get_area_anchor("inn").tr
