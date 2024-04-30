@@ -1573,7 +1573,7 @@ static int _read_structure(
             }
             if(_check_lpp(layer, purpose, ignorelpp))
             {
-                fprintf(cellfile, "    cell:add_port(\"%s\", ", str);
+                fprintf(cellfile, "    cell:add_port_with_anchor(\"%s\", ", str);
                 _write_layers(cellfile, layer, purpose, gdslayermap);
                 fprintf(cellfile, ", point.create(%lld, %lld))\n", origin.x, origin.y);
                 free(str);
