@@ -130,35 +130,32 @@ static int lgeometry_polygon(lua_State* L)
 
 void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext, coordinate_t width)
 {
-    if(lua_gettop(L) == idx)
+    if(lua_type(L, idx) == LUA_TSTRING)
     {
-        if(lua_type(L, idx) == LUA_TSTRING)
+        const char* exttype = lua_tostring(L, idx);
+        if(strcmp(exttype, "butt") == 0)
         {
-            const char* exttype = lua_tostring(L, idx);
-            if(strcmp(exttype, "butt") == 0)
-            {
-                *bgnext = 0;
-                *endext = 0;
-            }
-            else if(strcmp(exttype, "rect") == 0)
-            {
-                *bgnext = width / 2;
-                *endext = width / 2;
-            }
+            *bgnext = 0;
+            *endext = 0;
         }
-        else if(lua_type(L, idx) == LUA_TNUMBER)
+        else if(strcmp(exttype, "rect") == 0)
         {
-            *bgnext = *endext = lua_tointeger(L, idx);
+            *bgnext = width / 2;
+            *endext = width / 2;
         }
-        else if(lua_type(L, idx) == LUA_TTABLE)
-        {
-            lua_rawgeti(L, idx, 1);
-            *bgnext = lua_tointeger(L, -1);
-            lua_pop(L, 1);
-            lua_rawgeti(L, idx, 2);
-            *endext = lua_tointeger(L, -1);
-            lua_pop(L, 1);
-        }
+    }
+    else if(lua_type(L, idx) == LUA_TNUMBER)
+    {
+        *bgnext = *endext = lua_tointeger(L, idx);
+    }
+    else if(lua_type(L, idx) == LUA_TTABLE)
+    {
+        lua_rawgeti(L, idx, 1);
+        *bgnext = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        lua_rawgeti(L, idx, 2);
+        *endext = lua_tointeger(L, -1);
+        lua_pop(L, 1);
     }
 }
 
