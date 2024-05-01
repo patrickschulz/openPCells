@@ -1158,7 +1158,8 @@ static void _write_cellref(FILE* cellfile, const struct cellref* cellref)
     }
     else
     {
-        fprintf(cellfile, "    child = cell:add_child(ref, \"%s\")\n", cellref->name);
+        //fprintf(cellfile, "    child = cell:add_child(ref, \"%s\")\n", cellref->name);
+        fputs("    child = cell:add_child(ref)\n", cellfile);
     }
     if(cellref->angle == 90)
     {

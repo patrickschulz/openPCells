@@ -125,6 +125,7 @@ struct object {
             coordinate_t* alignmentbox; // NULL or contains eight coordinates: blx, blx, trx, try for both outer (first) and inner (second)
             struct vector* boundary; // a polygon, stores point_t*
             struct hashmap* layer_boundaries; // contains polygons that store point_t*
+            size_t childcounter;
         };
     };
 };
@@ -168,7 +169,7 @@ struct object* object_create_pseudo(void)
     return obj;
 }
 
-static struct object* _create_proxy(const char* name, const struct object* reference)
+static struct object* _create_proxy(const char* name, struct object* reference)
 {
     struct object* obj = _create(name);
     obj->reference = reference;
@@ -180,6 +181,15 @@ static struct object* _create_proxy(const char* name, const struct object* refer
     obj->xpitch = 0;
     obj->ypitch = 0;
     return obj;
+}
+
+static char* _get_unique_name(struct object* reference)
+{
+    ++reference->childcounter;
+    size_t num = reference->childcounter;
+    char* str = malloc(5 + 1 + util_num_digits(num) + 1);
+    sprintf(str, "child_%zd", num);
+    return str;
 }
 
 struct object* object_copy(const struct object* cell)
@@ -418,7 +428,17 @@ struct object* object_add_child(struct object* cell, struct object* child, const
     {
         return NULL;
     }
+    char* genname = NULL;
+    if(!name) // no explicit name, generate one
+    {
+        genname = _get_unique_name(cell);
+        name = genname;
+    }
     struct object* proxy = _create_proxy(name, child);
+    if(genname)
+    {
+        free(genname);
+    }
     proxy->trans = transformationmatrix_invert(cell->trans);
     if(!cell->children)
     {
