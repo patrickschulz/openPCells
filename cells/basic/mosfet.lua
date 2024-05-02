@@ -1156,7 +1156,7 @@ function layout(transistor, _P)
                     if _P.drawdrainvia and _P.drainviametal > 1 and
                         not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         for metal = 1, _P.drainviametal - 1 do
-                            if _P.interweavevias and metal + 1 <= _P.sourceviametal then
+                            if _P.interweavevias and metal + 1 <= _P.drainviametal then
                                 local alternate = true
                                 local viatable = geometry.calculate_viabltr(
                                     metal, metal + 1,
