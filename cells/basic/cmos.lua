@@ -187,7 +187,6 @@ function layout(cmos, _P)
             topactivedummywidth = _P.activedummywidth,
             topactivedummyspace = _P.activedummyspace,
             botgatecutspace = _P.separation / 2 - _P.cutheight / 2,
-            extendwelltop = _P.ppowerspace,
             extendimplantbottom = _P.separation / 2,
             extendimplanttop = _P.extendimplanttop,
             extendimplantleft = _P.extendimplantleft,
@@ -202,6 +201,7 @@ function layout(cmos, _P)
             extendwelltop = _P.extendwelltop,
             extendwellleft = _P.extendwellleft,
             extendwellright = _P.extendwellright,
+            extendwellbottom = _P.separation / 2,
             connectsourceinlineoffset = _P.poutputinlineoffset,
         }
         local nopt = {
@@ -217,7 +217,6 @@ function layout(cmos, _P)
             bottomactivedummywidth = _P.activedummywidth,
             bottomactivedummyspace = _P.activedummyspace,
             topgatecutspace = _P.separation / 2 - _P.cutheight / 2,
-            extendwellbottom = _P.npowerspace,
             extendimplanttop = _P.separation / 2,
             extendimplantbottom = _P.extendimplantbottom,
             extendimplantleft = _P.extendimplantleft,
@@ -232,6 +231,7 @@ function layout(cmos, _P)
             extendwellbottom = _P.extendwellbottom,
             extendwellleft = _P.extendwellleft,
             extendwellright = _P.extendwellright,
+            extendwelltop = _P.separation / 2,
             connectsourceinlineoffset = _P.noutputinlineoffset,
         }
         -- main
