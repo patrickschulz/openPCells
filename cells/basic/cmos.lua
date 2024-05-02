@@ -247,7 +247,7 @@ function layout(cmos, _P)
             bottomactivedummyspace = _P.activedummyspace,
             topgatecutspace = _P.separation / 2 - _P.cutheight / 2,
             extendoxidetypetop = _P.separation / 2,
-            extendoxidetypebottom = _P,extendoxidetypebottom,
+            extendoxidetypebottom = _P.extendoxidetypebottom,
             extendoxidetypeleft = _P.extendoxidetypeleft,
             extendoxidetyperight = _P.extendoxidetyperight,
             extendvthtypetop = _P.separation / 2,
