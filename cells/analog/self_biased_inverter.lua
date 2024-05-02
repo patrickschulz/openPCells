@@ -65,6 +65,8 @@ function parameters()
         { "resistorplacement",                          "right", posvals = set("left", "right", "both") },
         { "resistorwidth",                              400 },
         { "resistorlength",                             200 },
+        { "resistorxspace",                             0 },
+        { "resistoryspace",                             0 },
         { "resistorseriesfingers",                      1 },
         { "resistorparallelfingers",                    1 },
         { "resistorextension",                          100 },
@@ -80,13 +82,15 @@ function parameters()
         { "nmoswelltapshrink",                          0 },
         { "nmoswelltapshift",                           500 },
         { "nmoswelltapwellextension",                   0 },
+        { "nmoswelltapsoiopenextension",                0 },
         { "drawleftpmoswelltap",                        false },
         { "drawrightpmoswelltap",                       false },
         { "connectpmoswelltap",                         false },
         { "pmoswelltapwidth",                           200 },
         { "pmoswelltapshrink",                          0 },
         { "pmoswelltapshift",                           500 },
-        { "pmoswelltapwellextension",                   0 }
+        { "pmoswelltapwellextension",                   0 },
+        { "pmoswelltapsoiopenextension",                0 }
     )
 end
 
@@ -174,6 +178,7 @@ function layout(sbinv, _P)
         pmoswelltapshrink = _P.pmoswelltapshrink,
         pmoswelltapshift = _P.pmoswelltapshift,
         pmoswelltapwellextension = _P.pmoswelltapwellextension,
+        pmoswelltapsoiopenextension = _P.pmoswelltapsoiopenextension,
     })
     sbinv:merge_into(inverter)
 
@@ -181,6 +186,8 @@ function layout(sbinv, _P)
     local resistor = pcell.create_layout("basic/polyresistor", "_resistor", {
         width = _P.resistorwidth,
         length = _P.resistorlength,
+        xspace = _P.resistorxspace,
+        yspace = _P.resistoryspace,
         nxfingers = _P.resistorseriesfingers,
         conntype = _P.resistorseriesfingers > 1 and "series" or "parallel",
         extension = _P.resistorextension,

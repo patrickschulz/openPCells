@@ -65,13 +65,15 @@ function parameters()
         { "nmoswelltapshrink",                          0 },
         { "nmoswelltapshift",                           500 },
         { "nmoswelltapwellextension",                   0 },
+        { "nmoswelltapsoiopenextension",                0 },
         { "drawleftpmoswelltap",                        false },
         { "drawrightpmoswelltap",                       false },
         { "connectpmoswelltap",                         false },
         { "pmoswelltapwidth",                           200 },
         { "pmoswelltapshrink",                          0 },
         { "pmoswelltapshift",                           500 },
-        { "pmoswelltapwellextension",                   0 }
+        { "pmoswelltapwellextension",                   0 },
+        { "pmoswelltapsoiopenextension",                0 }
     )
 end
 
@@ -373,6 +375,10 @@ function layout(inverter, _P)
             {
                 contype = "n",
                 wellleftextension = _P.nmoswelltapwellextension,
+                soiopenleftextension = _P.nmoswelltapsoiopenextension,
+                soiopenrightextension = _P.nmoswelltapsoiopenextension,
+                soiopentopextension = _P.nmoswelltapsoiopenextension,
+                soiopenbottomextension = _P.nmoswelltapsoiopenextension,
             }
         )
         geometry.rectanglebltr(inverter, generics.other("nwell"),
@@ -395,6 +401,10 @@ function layout(inverter, _P)
             {
                 contype = "p",
                 wellleftextension = _P.pmoswelltapwellextension,
+                soiopenleftextension = _P.pmoswelltapsoiopenextension,
+                soiopenrightextension = _P.pmoswelltapsoiopenextension,
+                soiopentopextension = _P.pmoswelltapsoiopenextension,
+                soiopenbottomextension = _P.pmoswelltapsoiopenextension,
             }
         )
         geometry.rectanglebltr(inverter, generics.other("pwell"),
@@ -458,6 +468,10 @@ function layout(inverter, _P)
             {
                 contype = "n",
                 wellrightextension = _P.nmoswelltapwellextension,
+                soiopenleftextension = _P.nmoswelltapsoiopenextension,
+                soiopenrightextension = _P.nmoswelltapsoiopenextension,
+                soiopentopextension = _P.nmoswelltapsoiopenextension,
+                soiopenbottomextension = _P.nmoswelltapsoiopenextension,
             }
         )
         geometry.rectanglebltr(inverter, generics.other("nwell"),
@@ -480,6 +494,10 @@ function layout(inverter, _P)
             {
                 contype = "p",
                 wellrightextension = _P.pmoswelltapwellextension,
+                soiopenleftextension = _P.pmoswelltapsoiopenextension,
+                soiopenrightextension = _P.pmoswelltapsoiopenextension,
+                soiopentopextension = _P.pmoswelltapsoiopenextension,
+                soiopenbottomextension = _P.pmoswelltapsoiopenextension,
             }
         )
         geometry.rectanglebltr(inverter, generics.other("pwell"),
