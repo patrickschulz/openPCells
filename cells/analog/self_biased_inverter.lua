@@ -117,6 +117,7 @@ function layout(sbinv, _P)
         numleftdummies = _P.numleftdummies,
         numrightdummies = _P.numrightdummies,
         alternatedummycontacts = _P.alternatedummycontacts,
+        splitdrainvias = _P.splitdrainvias,
         outputmetal = _P.outputmetal,
         outputwidth = _P.outputwidth,
         outputxshift = _P.outputxshift,

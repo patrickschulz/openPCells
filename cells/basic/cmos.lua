@@ -29,6 +29,13 @@ function parameters()
         { "nsddummyouterheight(NMOS Source/Drain Outer Dummy Contact Height)",  0 },
         { "psddummyinnerheight(PMOS Source/Drain Inner Dummy Contact Height)",  0 },
         { "nsddummyinnerheight(NMOS Source/Drain Inner Dummy Contact Height)",  0 },
+        { "isoutputcontact", { } },
+        { "outputmetal", 1 },
+        { "nsplitoutputvias", false },
+        { "psplitoutputvias", false },
+        { "outputwidth", technology.get_dimension("Minimum M1 Width") },
+        { "noutputinlineoffset", 0 },
+        { "poutputinlineoffset", 0 },
         { "cutwidth",                                          0, follow = "gatelength" }, -- FIXME: allow expressions for follower parameters
         { "cutheight",                                         technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
         { "poutercutyshift",                                   0 },
@@ -66,10 +73,6 @@ function parameters()
         { "welltapcontinuouscontact(Well Tap Draw Continuous Contacts)", true },
         { "welltapextendleft", 0 },
         { "welltapextendright", 0 },
-        { "nsplitsourcevias", false },
-        { "psplitsourcevias", false },
-        { "nsplitdrainvias", false },
-        { "psplitdrainvias", false },
         { "drawactivedummy", false },
         { "activedummywidth", 0 },
         { "activedummyspace", 0 },
@@ -155,7 +158,7 @@ function layout(cmos, _P)
             sdwidth = _P.sdwidth,
             oxidetype = _P.oxidetype,
             gatemarker = _P.gatemarker,
-            drawsourcedrain = "none",
+            excludesourcedraincontacts = { 2 },
             drawactive = _P.drawactive,
             topgatecutheight = _P.cutheight,
             botgatecutheight = _P.cutheight,
@@ -163,6 +166,12 @@ function layout(cmos, _P)
             topgatecutrightext = (_P.cutwidth - _P.gatelength) / 2,
             botgatecutleftext = (_P.cutwidth - _P.gatelength) / 2,
             botgatecutrightext = (_P.cutwidth - _P.gatelength) / 2,
+            implantaligntopwithactive = true,
+            implantalignbottomwithactive = true,
+            vthtypealigntopwithactive = true,
+            vthtypealignbottomwithactive = true,
+            topgatewidth = _P.gatestrapwidth,
+            botgatewidth = _P.gatestrapwidth,
         })
 
         -- pmos
@@ -179,20 +188,21 @@ function layout(cmos, _P)
             topactivedummyspace = _P.activedummyspace,
             botgatecutspace = _P.separation / 2 - _P.cutheight / 2,
             extendwelltop = _P.ppowerspace,
+            extendimplantbottom = _P.separation / 2,
             extendimplanttop = _P.extendimplanttop,
             extendimplantleft = _P.extendimplantleft,
             extendimplantright = _P.extendimplantright,
             extendoxidetypetop = _P.extendoxidetypetop,
             extendoxidetypeleft = _P.extendoxidetypeleft,
             extendoxidetyperight = _P.extendoxidetyperight,
+            extendvthtypebottom = _P.separation / 2,
             extendvthtypetop = _P.extendvthtypetop,
             extendvthtypeleft = _P.extendvthtypeleft,
             extendvthtyperight = _P.extendvthtyperight,
             extendwelltop = _P.extendwelltop,
             extendwellleft = _P.extendwellleft,
             extendwellright = _P.extendwellright,
-            splitsourcevias = _P.psplitsourcevias,
-            splitdrainvias = _P.psplitdrainvias,
+            connectsourceinlineoffset = _P.poutputinlineoffset,
         }
         local nopt = {
             channeltype = "nmos",
@@ -208,9 +218,11 @@ function layout(cmos, _P)
             bottomactivedummyspace = _P.activedummyspace,
             topgatecutspace = _P.separation / 2 - _P.cutheight / 2,
             extendwellbottom = _P.npowerspace,
+            extendimplanttop = _P.separation / 2,
             extendimplantbottom = _P.extendimplantbottom,
             extendimplantleft = _P.extendimplantleft,
             extendimplantright = _P.extendimplantright,
+            extendvthtypetop = _P.separation / 2,
             extendoxidetypebottom = _P.extendoxidetypebottom,
             extendoxidetypeleft = _P.extendoxidetypeleft,
             extendoxidetyperight = _P.extendoxidetyperight,
@@ -220,55 +232,299 @@ function layout(cmos, _P)
             extendwellbottom = _P.extendwellbottom,
             extendwellleft = _P.extendwellleft,
             extendwellright = _P.extendwellright,
-            splitsourcevias = _P.nsplitsourcevias,
-            splitdrainvias = _P.nsplitdrainvias,
+            connectsourceinlineoffset = _P.noutputinlineoffset,
         }
         -- main
         for i = 1, fingers do
-            nopt.leftpolylines = {}
-            popt.leftpolylines = {}
-            nopt.drawleftstopgate = false
-            popt.drawleftstopgate = false
-            nopt.rightpolylines = {}
-            popt.rightpolylines = {}
-            nopt.drawrightstopgate = false
-            popt.drawrightstopgate = false
+            local nopt_current = util.clone_shallow(nopt)
+            local popt_current = util.clone_shallow(popt)
             if i == 1 then
-                nopt.leftpolylines = _P.leftpolylines
-                popt.leftpolylines = _P.leftpolylines
+                nopt_current.leftpolylines = _P.leftpolylines
+                popt_current.leftpolylines = _P.leftpolylines
                 if _P.drawleftstopgate then
-                    nopt.drawleftstopgate = true
-                    nopt.drawstopgatetopgatecut = true
-                    nopt.drawstopgatebotgatecut = false
-                    popt.drawleftstopgate = true
-                    popt.drawstopgatetopgatecut = false
-                    popt.drawstopgatebotgatecut = true
+                    nopt_current.drawleftstopgate = true
+                    nopt_current.drawstopgatetopgatecut = true
+                    nopt_current.drawstopgatebotgatecut = false
+                    popt_current.drawleftstopgate = true
+                    popt_current.drawstopgatetopgatecut = false
+                    popt_current.drawstopgatebotgatecut = true
                 end
             end
             if i == fingers then
-                nopt.rightpolylines = _P.rightpolylines
-                popt.rightpolylines = _P.rightpolylines
+                nopt_current.rightpolylines = _P.rightpolylines
+                popt_current.rightpolylines = _P.rightpolylines
                 if _P.drawrightstopgate then
-                    nopt.drawrightstopgate = true
-                    nopt.drawstopgatetopgatecut = true
-                    nopt.drawstopgatebotgatecut = false
-                    popt.drawrightstopgate = true
-                    popt.drawstopgatetopgatecut = false
-                    popt.drawstopgatebotgatecut = true
+                    nopt_current.drawrightstopgate = true
+                    nopt_current.drawstopgatetopgatecut = true
+                    nopt_current.drawstopgatebotgatecut = false
+                    popt_current.drawrightstopgate = true
+                    popt_current.drawstopgatetopgatecut = false
+                    popt_current.drawstopgatebotgatecut = true
                 end
             end
+            -- gate contact positions
+            local ngatey = (_P.separation - _P.gatestrapwidth) / 2 + _P.shiftgatecontacts
+            local pgatey = (_P.separation - _P.gatestrapwidth) / 2 + _P.shiftgatecontacts
+            local gateanchors = {}
+            if _P.gatecontactpos[i] == "center" then
+                nopt_current.drawtopgate = true
+                ngatey = ngatey + 0
+                table.insert(gateanchors, {
+                    nmos = {
+                        source = "topgatestrap",
+                        target = string.format("G%d", i)
+                    }
+                })
+            elseif string.match(_P.gatecontactpos[i], "upper") then
+                local index = string.match(_P.gatecontactpos[i], "upper(%d+)")
+                if not index then
+                    moderror(string.format("bad gate contact position format: [%d] = '%s' (should be 'upperNUMBER')", i, _P.gatecontactpos[i]))
+                end
+                nopt_current.drawtopgate = true
+                ngatey = ngatey + index * (_P.gatestrapwidth + _P.gatestrapspace)
+                table.insert(gateanchors, {
+                    nmos = {
+                        source = "topgatestrap",
+                        target = string.format("G%d", i)
+                    }
+                })
+            elseif string.match(_P.gatecontactpos[i], "lower") then
+                local index = string.match(_P.gatecontactpos[i], "lower(%d+)")
+                if not index then
+                    moderror(string.format("bad gate contact position format: [%d] = '%s' (should be 'lowerNUMBER')", i, _P.gatecontactpos[i]))
+                end
+                nopt_current.drawtopgate = true
+                ngatey = ngatey - index * (_P.gatestrapwidth + _P.gatestrapspace)
+                table.insert(gateanchors, {
+                    nmos = {
+                        source = "topgatestrap",
+                        target = string.format("G%d", i)
+                    }
+                })
+            elseif _P.gatecontactpos[i] == "split" then
+                -- FIXME: could add support for splitN
+                nopt_current.drawtopgate = true
+                popt_current.drawbotgate = true
+                ngatey = ngatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace)
+                pgatey = pgatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace)
+                nopt_current.drawtopgatecut = true
+                table.insert(gateanchors, {
+                    nmos = {
+                        source = "topgatestrap",
+                        target = string.format("Gupper%d", i)
+                    },
+                    pmos = {
+                        source = "botgatestrap",
+                        target = string.format("Glower%d", i)
+                    }
+                })
+            elseif _P.gatecontactpos[i] == "dummy" then
+                nopt_current.drawbotgate = true
+                nopt_current.botgatewidth = _P.dummycontheight
+                popt_current.drawtopgate = true
+                popt_current.topgatewidth = _P.dummycontheight
+                nopt_current.drawtopgatecut = true
+                ngatey = _P.npowerspace
+                pgatey = _P.ppowerspace
+            elseif _P.gatecontactpos[i] == "outer" then
+                nopt_current.drawbotgate = true
+                popt_current.drawtopgate = true
+                nopt_current.drawtopgatecut = true
+                ngatey = _P.outergatestrapspace
+                pgatey = _P.outergatestrapspace
+            elseif _P.gatecontactpos[i] == "unused" then
+                -- do nothing
+            else
+                moderror(string.format("unknown gate contact position: [%d] = '%s'", i, _P.gatecontactpos[i]))
+            end
+            nopt_current.topgatespace = ngatey
+            nopt_current.botgatespace = ngatey
+            popt_current.topgatespace = pgatey
+            popt_current.botgatespace = pgatey
+            local pcontactheight = (_P.psdheight > 0) and _P.psdheight or aux.make_even(_P.pwidth / 2)
+            local ncontactheight = (_P.nsdheight > 0) and _P.nsdheight or aux.make_even(_P.nwidth / 2)
+            local pcontactpowerheight = (_P.psdpowerheight > 0) and _P.psdpowerheight or aux.make_even(_P.pwidth / 2)
+            local ncontactpowerheight = (_P.nsdpowerheight > 0) and _P.nsdpowerheight or aux.make_even(_P.nwidth / 2)
+            -- source/drain contact positions (nmos)
+            if _P.ncontactpos[i] == "power" then
+                nopt_current.sourcesize = ncontactpowerheight
+                nopt_current.sourcealign = "bottom"
+            elseif _P.ncontactpos[i] == "outer" then
+                nopt_current.sourcesize = ncontactheight
+                nopt_current.sourcealign = "bottom"
+            elseif _P.ncontactpos[i] == "inner" then
+                nopt_current.sourcesize = ncontactheight
+                nopt_current.sourcealign = "top"
+            elseif _P.ncontactpos[i] == "dummyouterpower" or _P.ncontactpos[i] == "dummyouter" then
+                nopt_current.sourcesize = _P.nsddummyouterheight
+                nopt_current.sourcealign = "bottom"
+            elseif _P.ncontactpos[i] == "dummyinner" then
+                nopt_current.sourcesize = _P.nsddummyinnerheight
+                nopt_current.sourcealign = "top"
+            elseif _P.ncontactpos[i] == "full" or _P.ncontactpos[i] == "fullpower" then
+                -- defaults apply
+            elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "unused" then
+                nopt_current.sourcesize = _P.nwidth
+                nopt_current.excludesourcedraincontacts = { 1, 2 }
+            else
+                moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.ncontactpos[i]))
+            end
+            -- extra handling for last source/drain contact
+            if i == fingers then
+                nopt_current.excludesourcedraincontacts = {}
+                if _P.ncontactpos[i] == "power" then
+                    nopt_current.drainsize = ncontactpowerheight
+                    nopt_current.drainalign = "bottom"
+                elseif _P.ncontactpos[i] == "outer" then
+                    nopt_current.drainsize = ncontactheight
+                    nopt_current.drainalign = "bottom"
+                elseif _P.ncontactpos[i] == "inner" then
+                    nopt_current.drainsize = ncontactheight
+                    nopt_current.drainalign = "top"
+                elseif _P.ncontactpos[i] == "dummyouterpower" or _P.ncontactpos[i] == "dummyouter" then
+                    nopt_current.drainsize = _P.nsddummyouterheight
+                    nopt_current.drainalign = "bottom"
+                elseif _P.ncontactpos[i] == "dummyinner" then
+                    nopt_current.drainsize = _P.nsddummyinnerheight
+                    nopt_current.drainalign = "top"
+                elseif _P.ncontactpos[i] == "full" or _P.ncontactpos[i] == "fullpower" then
+                    -- defaults apply
+                elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "unused" then
+                    nopt_current.drainsize = _P.nwidth
+                    if not _P.ncontactpos[i - 1] or _P.ncontactpos[i] == "unused" then
+                        nopt_current.excludesourcedraincontacts = { 1, 2 }
+                    else
+                        nopt_current.excludesourcedraincontacts = { 2 }
+                    end
+                else
+                    moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.ncontactpos[i]))
+                end
+            end
+            -- source/drain contact positions (pmos)
+            if _P.pcontactpos[i] == "power" then
+                popt_current.sourcesize = pcontactpowerheight
+                popt_current.sourcealign = "top"
+            elseif _P.pcontactpos[i] == "outer" then
+                popt_current.sourcesize = pcontactheight
+                popt_current.sourcealign = "top"
+            elseif _P.pcontactpos[i] == "inner" then
+                popt_current.sourcesize = pcontactheight
+                popt_current.sourcealign = "bottom"
+            elseif _P.pcontactpos[i] == "dummyouterpower" or _P.pcontactpos[i] == "dummyouter" then
+                popt_current.sourcesize = _P.psddummyouterheight
+                popt_current.sourcealign = "top"
+            elseif _P.pcontactpos[i] == "dummyinner" then
+                popt_current.sourcesize = _P.psddummyinnerheight
+                popt_current.sourcealign = "bottom"
+            elseif _P.pcontactpos[i] == "full" or _P.pcontactpos[i] == "fullpower" then
+                -- defaults apply
+            elseif not _P.pcontactpos[i] or _P.pcontactpos[i] == "unused" then
+                popt_current.sourcesize = _P.pwidth
+                popt_current.excludesourcedraincontacts = { 1, 2 }
+            else
+                moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.pcontactpos[i]))
+            end
+            -- extra handling for last source/drain contact
+            if i == fingers then
+                popt_current.excludesourcedraincontacts = {}
+                if _P.pcontactpos[i] == "power" then
+                    popt_current.drainsize = pcontactpowerheight
+                    popt_current.drainalign = "top"
+                elseif _P.pcontactpos[i] == "outer" then
+                    popt_current.drainsize = pcontactheight
+                    popt_current.drainalign = "top"
+                elseif _P.pcontactpos[i] == "inner" then
+                    popt_current.drainsize = pcontactheight
+                    popt_current.drainalign = "bottom"
+                elseif _P.pcontactpos[i] == "dummyouterpower" or _P.pcontactpos[i] == "dummyouter" then
+                    popt_current.drainsize = _P.psddummyouterheight
+                    popt_current.drainalign = "top"
+                elseif _P.pcontactpos[i] == "dummyinner" then
+                    popt_current.drainsize = _P.psddummyinnerheight
+                    popt_current.drainalign = "bottom"
+                elseif _P.pcontactpos[i] == "full" or _P.pcontactpos[i] == "fullpower" then
+                    -- defaults apply
+                elseif not _P.pcontactpos[i] or _P.pcontactpos[i] == "unused" then
+                    popt_current.drainsize = _P.pwidth
+                    if not _P.pcontactpos[i - 1] or _P.pcontactpos[i] == "unused" then
+                        popt_current.excludesourcedraincontacts = { 1, 2 }
+                    else
+                        popt_current.excludesourcedraincontacts = { 2 }
+                    end
+                else
+                    moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.pcontactpos[i]))
+                end
+            end
+            -- output drain/source vias
+            if util.any_of(i, _P.isoutputcontact) then
+                nopt_current.sourcemetal = _P.outputmetal
+                nopt_current.splitsourcevias = _P.nsplitoutputvias
+                popt_current.sourcemetal = _P.outputmetal
+                popt_current.splitsourcevias = _P.psplitoutputvias
+            end
             local shift = (i - 1) * gatepitch
-            local nfet = pcell.create_layout("basic/mosfet", "nfet", nopt)
+            local nfet = pcell.create_layout("basic/mosfet", "nfet", nopt_current)
             nfet:translate(shift, 0)
             cmos:merge_into(nfet)
-            local pfet = pcell.create_layout("basic/mosfet", "pfet", popt)
+            local pfet = pcell.create_layout("basic/mosfet", "pfet", popt_current)
             pfet:abut_area_anchor_top(
-                "gate1",
+                "active",
                 nfet,
-                "gate1"
+                "active"
             )
-            pfet:translate(shift, 0)
+            pfet:translate(shift, _P.separation)
             cmos:merge_into(pfet)
+            -- connect source/drain region to power bar
+            if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "fullpower" or _P.ncontactpos[i] == "dummyouterpower" then
+                geometry.rectanglebltr(
+                    cmos, generics.metal(1), 
+                    point.create(nfet:get_area_anchor("sourcedrain1").l, nfet:get_area_anchor("sourcedrain1").b - _P.npowerspace),
+                    point.create(nfet:get_area_anchor("sourcedrain1").r, nfet:get_area_anchor("sourcedrain1").b)
+                )
+            end
+            if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "fullpower" or _P.pcontactpos[i] == "dummyouterpower" then
+                geometry.rectanglebltr(
+                    cmos, generics.metal(1), 
+                    point.create(pfet:get_area_anchor("sourcedrain1").l, pfet:get_area_anchor("sourcedrain1").t),
+                    point.create(pfet:get_area_anchor("sourcedrain1").r, pfet:get_area_anchor("sourcedrain1").t + _P.ppowerspace)
+                )
+            end
+            if i == fingers then
+                if _P.ncontactpos[i + 1] == "power" or _P.ncontactpos[i + 1] == "fullpower" or _P.ncontactpos[i + 1] == "dummyouterpower" then
+                    geometry.rectanglebltr(
+                        cmos, generics.metal(1), 
+                        point.create(nfet:get_area_anchor("sourcedrain2").l, nfet:get_area_anchor("sourcedrain2").b - _P.npowerspace),
+                        point.create(nfet:get_area_anchor("sourcedrain2").r, nfet:get_area_anchor("sourcedrain2").b)
+                    )
+                end
+                if _P.pcontactpos[i + 1] == "power" or _P.pcontactpos[i + 1] == "fullpower" or _P.pcontactpos[i + 1] == "dummyouterpower" then
+                    geometry.rectanglebltr(
+                        cmos, generics.metal(1), 
+                        point.create(pfet:get_area_anchor("sourcedrain2").l, pfet:get_area_anchor("sourcedrain2").t),
+                        point.create(pfet:get_area_anchor("sourcedrain2").r, pfet:get_area_anchor("sourcedrain2").t + _P.ppowerspace)
+                    )
+                end
+            end
+            -- gate anchors
+            for _, entry in ipairs(gateanchors) do
+                if entry.nmos then
+                    cmos:inherit_area_anchor_as(nfet, entry.nmos.source, entry.nmos.target)
+                end
+                if entry.pmos then
+                    cmos:inherit_area_anchor_as(pfet, entry.pmos.source, entry.pmos.target)
+                end
+            end
+            -- source/drain anchors
+            cmos:inherit_area_anchor_as(nfet, "sourcedrain1", string.format("nSD%d", i))
+            cmos:inherit_area_anchor_as(nfet, "sourcedrain1", string.format("nSD%d", i - fingers - 2))
+            cmos:inherit_area_anchor_as(pfet, "sourcedrain1", string.format("pSD%d", i))
+            cmos:inherit_area_anchor_as(pfet, "sourcedrain1", string.format("pSD%d", i - fingers - 2))
+            if i == fingers then
+                cmos:inherit_area_anchor_as(nfet, "sourcedrain2", string.format("nSD%d", i + 1))
+                cmos:inherit_area_anchor_as(nfet, "sourcedrain2", string.format("nSD%d", i + 1 - fingers - 2))
+                cmos:inherit_area_anchor_as(pfet, "sourcedrain2", string.format("pSD%d", i + 1))
+                cmos:inherit_area_anchor_as(pfet, "sourcedrain2", string.format("pSD%d", i + 1 - fingers - 2))
+            end
             -- save anchors for later use
             if i == 1 then
                 leftndrainarea = nfet:get_area_anchor("sourcedrainactiveleft")
@@ -367,132 +623,6 @@ function layout(cmos, _P)
         }):translate(leftpdrainarea.tl:getx(), -_P.nmoswelltapwidth - _P.npowerspace - _P.powerwidth - _P.nmoswelltapspace))
     end
 
-    -- draw gate contacts
-    if _P.drawgatecontacts then
-        for i = 1, fingers do
-            local entries = {}
-            local x = firstgatearea.bl:getx() + (i - 1) * gatepitch
-            local y = leftndrainarea.tl:gety() + _P.shiftgatecontacts
-            if _P.gatecontactpos[i] == "center" then -- do nothing
-                table.insert(entries, {
-                    yheight = _P.gatestrapwidth,
-                    --yshift = (_P.innergatestraps - 1) * _P.gatestrapspace + (_P.innergatestraps - 2) * _P.gatestrapwidth,
-                    yshift = _P.gatestrapspace,
-                    index = i,
-                })
-            elseif string.match(_P.gatecontactpos[i], "upper") then
-                local index = string.match(_P.gatecontactpos[i], "upper(%d+)")
-                if not index then
-                    moderror(string.format("bad gate contact position format: [%d] = '%s' (should be 'upperNUMBER')", i, _P.gatecontactpos[i]))
-                end
-                table.insert(entries, {
-                    yshift = _P.innergatestraps * _P.gatestrapspace + (_P.innergatestraps - 1) * _P.gatestrapwidth,
-                    yheight = _P.gatestrapwidth,
-                    index = i,
-                })
-            elseif string.match(_P.gatecontactpos[i], "lower") then
-                local index = string.match(_P.gatecontactpos[i], "lower(%d+)")
-                if not index then
-                    moderror(string.format("bad gate contact position format: [%d] = '%s' (should be 'lowerNUMBER')", i, _P.gatecontactpos[i]))
-                end
-                table.insert(entries, {
-                    yshift = _P.innergatestraps * _P.gatestrapspace + (_P.innergatestraps - 1) * _P.gatestrapwidth,
-                    yheight = _P.gatestrapwidth,
-                    index = i,
-                })
-            elseif _P.gatecontactpos[i] == "split" then
-                table.insert(entries, {
-                    yshift = 3 * _P.gatestrapspace + 2 * _P.gatestrapwidth,
-                    yheight = _P.gatestrapwidth,
-                    index = i,
-                    prefix = "upper",
-                })
-                table.insert(entries, {
-                    yshift = 1 * _P.gatestrapspace,
-                    yheight = _P.gatestrapwidth,
-                    index = i,
-                    prefix = "lower",
-                })
-                local cutxshift = (_P.gatelength - _P.cutwidth) / 2
-                local cutyshift = (_P.separation - _P.cutheight) / 2
-                geometry.rectanglebltr(cmos, generics.other("gatecut"), 
-                    point.create(x + cutxshift,               y + cutyshift),
-                    point.create(x + cutxshift + _P.cutwidth, y + cutyshift + _P.cutheight)
-                )
-            elseif _P.gatecontactpos[i] == "dummy" then
-                table.insert(entries, {
-                    yshift = -_P.nwidth - _P.npowerspace - _P.dummycontheight,
-                    yheight = _P.dummycontheight,
-                    index = i,
-                })
-                table.insert(entries, {
-                    yshift = _P.separation + _P.pwidth + _P.ppowerspace,
-                    yheight = _P.dummycontheight,
-                    index = i,
-                })
-                local cutxshift = (_P.gatelength - _P.cutwidth) / 2
-                local cutyshift = (_P.separation - _P.cutheight) / 2
-                geometry.rectanglebltr(cmos, generics.other("gatecut"), 
-                    point.create(x + cutxshift,               y + cutyshift),
-                    point.create(x + cutxshift + _P.cutwidth, y + cutyshift + _P.cutheight)
-                )
-            elseif _P.gatecontactpos[i] == "outer" then
-                table.insert(entries, {
-                    yshift = _P.separation + _P.pwidth + _P.outergatestrapspace,
-                    yheight = _P.outergatestrapwidth,
-                    index = i,
-                    prefix = "p",
-                })
-                table.insert(entries, {
-                    yshift = -_P.nwidth - _P.outergatestrapspace - _P.outergatestrapwidth,
-                    yheight = _P.outergatestrapwidth,
-                    index = i,
-                    prefix = "n",
-                })
-                local cutxshift = (_P.gatelength - _P.cutwidth) / 2
-                local cutyshift = (_P.separation - _P.cutheight) / 2
-                geometry.rectanglebltr(cmos, generics.other("gatecut"), 
-                    point.create(x + cutxshift,               y + cutyshift),
-                    point.create(x + cutxshift + _P.cutwidth, y + cutyshift + _P.cutheight)
-                )
-            elseif _P.gatecontactpos[i] == "unused" then
-                -- do nothing
-            else
-                moderror(string.format("unknown gate contact position: [%d] = '%s'", i, _P.gatecontactpos[i]))
-            end
-            for _, entry in ipairs(entries) do
-                local yshift = entry.yshift or 0
-                local yheight = entry.yheight
-                local index = entry.index
-                local gnames = { string.format("G%s%d", entry.prefix or "", index) }
-                if _P.gatenames[i] then
-                    table.insert(gnames, _P.gatenames[i])
-                end
-                local bl = point.create(x,                 y + yshift)
-                local tr = point.create(x + _P.gatelength, y + yshift + yheight)
-                -- add anchors
-                for _, gatename in ipairs(gnames) do
-                    cmos:add_area_anchor_bltr(gatename, bl, tr)
-                end
-                -- create contact
-                geometry.contactbltr(cmos, "gate", bl, tr)
-            end
-            if _P.gatecontactpos[i] ~= "dummy" then
-                if _P.drawoutergatecut and not _P.drawgatecuteverywhere then
-                    geometry.rectanglebltr(
-                        cmos, generics.other("gatecut"),
-                        point.create(x + (_P.gatelength - _P.cutwidth) / 2, -_P.noutercutyshift - _P.cutheight),
-                        point.create(x + (_P.gatelength + _P.cutwidth) / 2, -_P.noutercutyshift)
-                    )
-                    geometry.rectanglebltr(
-                        cmos, generics.other("gatecut"),
-                        point.create(x + (_P.gatelength - _P.cutwidth) / 2, _P.nwidth + _P.pwidth + _P.separation + _P.poutercutyshift),
-                        point.create(x + (_P.gatelength + _P.cutwidth) / 2, _P.nwidth + _P.pwidth + _P.separation + _P.poutercutyshift + _P.cutheight)
-                    )
-                end
-            end
-        end
-    end
     if _P.drawoutergatecut and _P.drawgatecuteverywhere then
         geometry.rectanglebltr(cmos, generics.other("gatecut"),
             cmos:get_area_anchor("PRp").bl:translate(0, (_P.powerwidth - _P.cutheight) / 2),
@@ -518,114 +648,6 @@ function layout(cmos, _P)
         point.create(0, basey + 3 * _P.gatestrapspace + 2 * _P.gatestrapwidth),
         point.create(0, basey + 3 * _P.gatestrapspace + 3 * _P.gatestrapwidth)
     )
-
-    -- draw source/drain contacts
-    local pcontactheight = (_P.psdheight > 0) and _P.psdheight or aux.make_even(_P.pwidth / 2)
-    local ncontactheight = (_P.nsdheight > 0) and _P.nsdheight or aux.make_even(_P.nwidth / 2)
-    local pcontactpowerheight = (_P.psdpowerheight > 0) and _P.psdpowerheight or aux.make_even(_P.pwidth / 2)
-    local ncontactpowerheight = (_P.nsdpowerheight > 0) and _P.nsdpowerheight or aux.make_even(_P.nwidth / 2)
-    for i = 1, fingers + 1 do
-        local x = leftndrainarea.bl:getx() + (i - 1) * gatepitch
-        local y = leftpdrainarea.tl:gety()
-        local cheight = _P.pcontactpos[i] == "power" and pcontactpowerheight or pcontactheight
-        local yheight
-        local ignore = false
-        -- p contacts
-        if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "outer" then
-            y = y - cheight
-            yheight = cheight
-        elseif _P.pcontactpos[i] == "inner" then
-            y = y - _P.pwidth
-            yheight = cheight
-        elseif _P.pcontactpos[i] == "dummyouterpower" or _P.pcontactpos[i] == "dummyouter" then
-            y = y - _P.psddummyouterheight
-            yheight = _P.psddummyouterheight
-        elseif _P.pcontactpos[i] == "dummyinner" then
-            y = y - _P.pwidth
-            yheight = _P.psddummyinnerheight
-        elseif _P.pcontactpos[i] == "full" or _P.pcontactpos[i] == "fullpower" then
-            y = y - _P.pwidth
-            yheight = _P.pwidth
-        elseif _P.pcontactpos[i] == "unused" then
-            ignore = true
-        else
-            moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.pcontactpos[i]))
-        end
-        if not ignore then
-            geometry.contactbltr(
-                cmos, "sourcedrain", 
-                point.create(x, y),
-                point.create(x + _P.sdwidth, y + yheight)
-            )
-            cmos:add_area_anchor_bltr(string.format("pSD%d", i),
-                point.create(x, y),
-                point.create(x + _P.sdwidth, y + yheight)
-            )
-            cmos:add_area_anchor_bltr(string.format("pSD%d", i - fingers - 2),
-                point.create(x, y),
-                point.create(x + _P.sdwidth, y + yheight)
-            )
-        end
-
-        -- connect source/drain region to power bar
-        if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "fullpower" or _P.pcontactpos[i] == "dummyouterpower" then
-            geometry.rectanglebltr(
-                cmos, generics.metal(1), 
-                point.create(x, y + yheight),
-                point.create(x + _P.sdwidth, y + yheight + _P.ppowerspace)
-            )
-        end
-
-        -- n contacts
-        do
-            local y = leftndrainarea.bl:gety()
-            local yheight
-            local ignore = false
-            if _P.ncontactpos[i] == "power" then
-                yheight = ncontactpowerheight
-            elseif _P.ncontactpos[i] == "outer" then
-                yheight = ncontactheight
-            elseif _P.ncontactpos[i] == "inner" then
-                y = y + _P.nwidth - ncontactheight
-                yheight = ncontactheight
-            elseif _P.ncontactpos[i] == "dummyouterpower" or _P.ncontactpos[i] == "dummyouter" then
-                yheight = _P.nsddummyouterheight
-            elseif _P.ncontactpos[i] == "dummyinner" then
-                y = y + _P.nwidth - _P.nsddummyinnerheight
-                yheight = _P.psddummyinnerheight
-            elseif _P.ncontactpos[i] == "full" or _P.ncontactpos[i] == "fullpower" then
-                yheight = _P.nwidth
-            elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "unused" then
-                ignore = true
-            else
-                moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.ncontactpos[i]))
-            end
-            if not ignore then
-                geometry.contactbltr(
-                    cmos, "sourcedrain", 
-                    point.create(x, y),
-                    point.create(x + _P.sdwidth, y + yheight)
-                )
-                cmos:add_area_anchor_bltr(string.format("nSD%d", i),
-                    point.create(x, y),
-                    point.create(x + _P.sdwidth, y + yheight)
-                )
-                cmos:add_area_anchor_bltr(string.format("nSD%d", i - fingers - 2),
-                    point.create(x, y),
-                    point.create(x + _P.sdwidth, y + yheight)
-                )
-            end
-
-            -- connect source/drain region to power bar
-            if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "fullpower" or _P.ncontactpos[i] == "dummyouterpower" then
-                geometry.rectanglebltr(
-                    cmos, generics.metal(1), 
-                    point.create(x, y - _P.npowerspace),
-                    point.create(x + _P.sdwidth, y)
-                )
-            end
-        end
-    end
 
     -- alignment box
     local ybottom = -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2

@@ -103,8 +103,11 @@ function layout(inverter, _P)
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,
         ncontactpos = contactpos,
-        psplitdrainvias = _P.splitdrainvias,
-        nsplitdrainvias = _P.splitdrainvias,
+        psplitoutputvias = _P.splitdrainvias,
+        nsplitoutputvias = _P.splitdrainvias,
+        outputwidth = _P.outputwidth,
+        noutputinlineoffset = _P.nwidth - _P.outputyshift - _P.outputwidth,
+        poutputinlineoffset = _P.pwidth - _P.outputyshift - _P.outputwidth,
         powerwidth = _P.powerwidth,
         npowerspace = _P.powerspace,
         ppowerspace = _P.powerspace,
@@ -112,6 +115,8 @@ function layout(inverter, _P)
         ngateext = _P.ngateext,
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
+        outputmetal = _P.outputmetal,
+        isoutputcontact = util.range(_P.numleftdummies + 2, _P.numleftdummies + _P.fingers, 2),
         innergatestraps = 1,
         gatestrapwidth = _P.gatestrapwidth,
         gatestrapspace = _P.gatestrapspace,
@@ -346,25 +351,6 @@ function layout(inverter, _P)
                 cmos:get_area_anchor(string.format("nSD%d", i + _P.fingers + _P.numleftdummies + 1)).br
             )
         end
-    end
-
-    for i = 2, _P.fingers + 1, 2 do
-        geometry.viabltr(inverter, 1, _P.outputmetal,
-            cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).bl,
-            cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).tr
-        )
-        geometry.viabltr(inverter, 1, _P.outputmetal,
-            cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).bl,
-            cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).tr
-        )
-        geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
-            cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).bl:translate_x(-_P.extendoutputmetal),
-            cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).tr:translate_x(_P.extendoutputmetal)
-        )
-        geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
-            cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).bl:translate_x(-_P.extendoutputmetal),
-            cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).tr:translate_x(_P.extendoutputmetal)
-        )
     end
 
     -- inherit anchors
