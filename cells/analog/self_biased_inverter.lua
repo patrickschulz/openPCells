@@ -65,6 +65,8 @@ function parameters()
         { "resistorplacement",                          "right", posvals = set("left", "right", "both") },
         { "resistorwidth",                              400 },
         { "resistorlength",                             200 },
+        { "resistorseriesfingers",                      1 },
+        { "resistorparallelfingers",                    1 },
         { "resistorextension",                          100 },
         { "resistorcontactheight",                      100 },
         { "resistorxshift",                             500 },
@@ -172,6 +174,7 @@ function layout(sbinv, _P)
     local resistor = pcell.create_layout("basic/polyresistor", "_resistor", {
         width = _P.resistorwidth,
         length = _P.resistorlength,
+        nxfingers = _P.resistorseriesfingers,
         extension = _P.resistorextension,
         contactheight = _P.resistorcontactheight,
         extendlvsmarkerx = _P.resistorlvsmarkerxextension,
