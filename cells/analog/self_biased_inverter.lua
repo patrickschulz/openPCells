@@ -76,6 +76,7 @@ function parameters()
         { "resistorimplantyextension",                  0 },
         { "resistorlvsmarkerxextension",                0 },
         { "resistorlvsmarkeryextension",                0 },
+        { "resistorroutingoffset",                      0 },
         { "connectinverse",                             false },
         { "drawleftnmoswelltap",                        false },
         { "drawrightnmoswelltap",                       false },
@@ -368,11 +369,11 @@ function layout(sbinv, _P)
             geometry.polygon(sbinv, generics.metal(_P.gatemetal), {
                 inverter:get_area_anchor("input").br,
                 point.create(
-                    inverter:get_area_anchor("input").r + _P.resistorxshift / 2,
+                    resistor_upper:get_area_anchor("minus").l - _P.resistorroutingoffset,
                     inverter:get_area_anchor("input").b
                 ),
                 point.create(
-                    inverter:get_area_anchor("input").r + _P.resistorxshift / 2,
+                    resistor_upper:get_area_anchor("minus").l - _P.resistorroutingoffset,
                     resistor_upper:get_area_anchor("minus").b
                 ),
                 point.create(
@@ -384,11 +385,11 @@ function layout(sbinv, _P)
                     resistor_upper:get_area_anchor("minus").b + _P.outputwidth
                 ),
                 point.create(
-                    inverter:get_area_anchor("input").r + _P.resistorxshift / 2 - _P.outputwidth,
+                    resistor_upper:get_area_anchor("minus").l - _P.resistorroutingoffset - _P.outputwidth,
                     resistor_upper:get_area_anchor("minus").b + _P.outputwidth
                 ),
                 point.create(
-                    inverter:get_area_anchor("input").r + _P.resistorxshift / 2 - _P.outputwidth,
+                    resistor_upper:get_area_anchor("minus").l - _P.resistorroutingoffset - _P.outputwidth,
                     inverter:get_area_anchor("input").t
                 ),
                 inverter:get_area_anchor("input").tr,
@@ -396,11 +397,11 @@ function layout(sbinv, _P)
             geometry.polygon(sbinv, generics.metal(_P.gatemetal), {
                 inverter:get_area_anchor("input").br,
                 point.create(
-                    inverter:get_area_anchor("input").r + _P.resistorxshift / 2 - _P.outputwidth,
+                    resistor_lower:get_area_anchor("minus").l - _P.resistorroutingoffset - _P.outputwidth,
                     inverter:get_area_anchor("input").b
                 ),
                 point.create(
-                    inverter:get_area_anchor("input").r + _P.resistorxshift / 2 - _P.outputwidth,
+                    resistor_lower:get_area_anchor("minus").l - _P.resistorroutingoffset - _P.outputwidth,
                     resistor_lower:get_area_anchor("minus").t - _P.outputwidth
                 ),
                 point.create(
@@ -412,11 +413,11 @@ function layout(sbinv, _P)
                     resistor_lower:get_area_anchor("minus").t
                 ),
                 point.create(
-                    inverter:get_area_anchor("input").r + _P.resistorxshift / 2,
+                    resistor_lower:get_area_anchor("minus").l - _P.resistorroutingoffset,
                     resistor_lower:get_area_anchor("minus").t
                 ),
                 point.create(
-                    inverter:get_area_anchor("input").r + _P.resistorxshift / 2,
+                    resistor_lower:get_area_anchor("minus").l - _P.resistorroutingoffset,
                     inverter:get_area_anchor("input").t
                 ),
                 inverter:get_area_anchor("input").tr,
