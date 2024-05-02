@@ -72,6 +72,8 @@ function parameters()
         { "resistorextension",                          100 },
         { "resistorcontactheight",                      100 },
         { "resistorxshift",                             500 },
+        { "resistorimplantxextension",                  0 },
+        { "resistorimplantyextension",                  0 },
         { "resistorlvsmarkerxextension",                0 },
         { "resistorlvsmarkeryextension",                0 },
         { "connectinverse",                             false },
@@ -192,6 +194,8 @@ function layout(sbinv, _P)
         conntype = _P.resistorseriesfingers > 1 and "series" or "parallel",
         extension = _P.resistorextension,
         contactheight = _P.resistorcontactheight,
+        extendimplantx = _P.resistorimplantxextension,
+        extendimplanty = _P.resistorimplantyextension,
         extendlvsmarkerx = _P.resistorlvsmarkerxextension,
         extendlvsmarkery = _P.resistorlvsmarkeryextension,
     })
@@ -252,13 +256,13 @@ function layout(sbinv, _P)
                 resistor_upper:get_area_anchor("plus").bl,
                 point.create(
                     resistor_upper:get_area_anchor("plus").r,
-                    resistor_upper:get_area_anchor("plus").b + _P.gatestrapwidth
+                    resistor_upper:get_area_anchor("plus").t
                 )
             )
             geometry.viabltr(sbinv, 1, _P.gatemetal,
                 point.create(
                     resistor_lower:get_area_anchor("plus").l,
-                    resistor_lower:get_area_anchor("plus").t - _P.gatestrapwidth
+                    resistor_lower:get_area_anchor("plus").b
                 ),
                 resistor_lower:get_area_anchor("plus").tr
             )
@@ -322,21 +326,15 @@ function layout(sbinv, _P)
                 resistor_upper:get_area_anchor("minus").bl,
                 point.create(
                     resistor_upper:get_area_anchor("minus").r,
-                    resistor_upper:get_area_anchor("minus").b + _P.outputwidth
-                ),
-                {
-                    widthclass = _P.resistorcontactheight
-                }
+                    resistor_upper:get_area_anchor("minus").t
+                )
             )
             geometry.viabltr(sbinv, 1, _P.outputmetal,
                 point.create(
                     resistor_lower:get_area_anchor("minus").l,
-                    resistor_lower:get_area_anchor("minus").t - _P.outputwidth
+                    resistor_lower:get_area_anchor("minus").b
                 ),
-                resistor_lower:get_area_anchor("minus").tr,
-                {
-                    widthclass = _P.resistorcontactheight
-                }
+                resistor_lower:get_area_anchor("minus").tr
             )
         else
             geometry.rectanglebltr(sbinv, generics.metal(_P.outputmetal),
@@ -357,21 +355,15 @@ function layout(sbinv, _P)
                 resistor_upper:get_area_anchor("plus").bl,
                 point.create(
                     resistor_upper:get_area_anchor("plus").r,
-                    resistor_upper:get_area_anchor("plus").b + _P.gatestrapwidth
-                ),
-                {
-                    widthclass = _P.resistorcontactheight
-                }
+                    resistor_upper:get_area_anchor("plus").t
+                )
             )
             geometry.viabltr(sbinv, 1, _P.outputmetal,
                 point.create(
                     resistor_lower:get_area_anchor("plus").l,
-                    resistor_lower:get_area_anchor("plus").t - _P.gatestrapwidth
+                    resistor_lower:get_area_anchor("plus").b
                 ),
-                resistor_lower:get_area_anchor("plus").tr,
-                {
-                    widthclass = _P.resistorcontactheight
-                }
+                resistor_lower:get_area_anchor("plus").tr
             )
             geometry.polygon(sbinv, generics.metal(_P.gatemetal), {
                 inverter:get_area_anchor("input").br,
@@ -433,13 +425,13 @@ function layout(sbinv, _P)
                 resistor_upper:get_area_anchor("minus").bl,
                 point.create(
                     resistor_upper:get_area_anchor("minus").r,
-                    resistor_upper:get_area_anchor("minus").b + _P.outputwidth
+                    resistor_upper:get_area_anchor("minus").t
                 )
             )
             geometry.viabltr(sbinv, 1, _P.gatemetal,
                 point.create(
                     resistor_lower:get_area_anchor("minus").l,
-                    resistor_lower:get_area_anchor("minus").t - _P.outputwidth
+                    resistor_lower:get_area_anchor("minus").b
                 ),
                 resistor_lower:get_area_anchor("minus").tr
             )
