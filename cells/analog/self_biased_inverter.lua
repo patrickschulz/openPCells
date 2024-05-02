@@ -68,6 +68,8 @@ function parameters()
         { "resistorextension",                          100 },
         { "resistorcontactheight",                      100 },
         { "resistorxshift",                             500 },
+        { "resistorlvsmarkerxextension",                0 },
+        { "resistorlvsmarkeryextension",                0 },
         { "connectinverse",                             false },
         { "drawleftnmoswelltap",                        false },
         { "drawrightnmoswelltap",                       false },
@@ -172,6 +174,8 @@ function layout(sbinv, _P)
         length = _P.resistorlength,
         extension = _P.resistorextension,
         contactheight = _P.resistorcontactheight,
+        extendlvsmarkerx = _P.resistorlvsmarkerxextension,
+        extendlvsmarkery = _P.resistorlvsmarkeryextension,
     })
     local resistor_upper = resistor:copy()
     local resistor_lower = resistor:copy()
