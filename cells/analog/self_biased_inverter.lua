@@ -90,6 +90,13 @@ function parameters()
     )
 end
 
+function check(_P)
+    if _P.resistorseriesfingers > 1 and _P.resistorparallelfingers > 1 then
+        return false, string.format("only resistorseriesfingers or resistorparallelfingers can be larger than one (got: %d and %d)", _P.resistorseriesfingers, _P.resistorparallelfingers)
+    end
+    return true
+end
+
 function layout(sbinv, _P)
     local xpitch = _P.gatespace + _P.gatelength
 
@@ -175,6 +182,7 @@ function layout(sbinv, _P)
         width = _P.resistorwidth,
         length = _P.resistorlength,
         nxfingers = _P.resistorseriesfingers,
+        conntype = _P.resistorseriesfingers > 1 and "series" or "parallel",
         extension = _P.resistorextension,
         contactheight = _P.resistorcontactheight,
         extendlvsmarkerx = _P.resistorlvsmarkerxextension,
@@ -184,9 +192,21 @@ function layout(sbinv, _P)
     local resistor_lower = resistor:copy()
     if _P.resistorplacement == "right" then
         resistor_upper:mirror_at_xaxis()
-        resistor_lower:move_point(resistor_lower:get_area_anchor("plus").tl, inverter:get_area_anchor("nmos_active").tr)
+        resistor_lower:move_point(
+            point.create(
+                resistor_lower:get_area_anchor("minus").l,
+                resistor_lower:get_area_anchor("plus").t
+            ),
+            inverter:get_area_anchor("nmos_active").tr
+        )
         resistor_lower:translate_x(_P.resistorxshift)
-        resistor_upper:move_point(resistor_upper:get_area_anchor("plus").bl, inverter:get_area_anchor("pmos_active").br)
+        resistor_upper:move_point(
+            point.create(
+                resistor_upper:get_area_anchor("minus").l,
+                resistor_upper:get_area_anchor("plus").b
+            ),
+            inverter:get_area_anchor("pmos_active").br
+        )
         resistor_upper:translate_x(_P.resistorxshift)
     elseif _P.resistorplacement == "left" then
         resistor_upper:mirror_at_xaxis()
@@ -609,6 +629,10 @@ function layout(sbinv, _P)
 
     -- inherit anchors
     sbinv:inherit_area_anchor(inverter, "input")
+    sbinv:inherit_area_anchor_as(resistor_upper, "plus", "upperresistorplus")
+    sbinv:inherit_area_anchor_as(resistor_upper, "minus", "upperresistorminus")
+    sbinv:inherit_area_anchor_as(resistor_lower, "plus", "lowerresistorplus")
+    sbinv:inherit_area_anchor_as(resistor_lower, "minus", "lowerresistorminus")
     sbinv:add_area_anchor_points("output",
         resistor_lower:get_area_anchor("plus").tl,
         resistor_upper:get_area_anchor("plus").br
