@@ -390,9 +390,13 @@ function layout(cmos, _P)
                     yheight = _P.gatestrapwidth,
                     index = i,
                 })
-            elseif _P.gatecontactpos[i] == "lower" then
+            elseif string.match(_P.gatecontactpos[i], "lower") then
+                local index = string.match(_P.gatecontactpos[i], "lower(%d+)")
+                if not index then
+                    moderror(string.format("bad gate contact position format: [%d] = '%s' (should be 'lowerNUMBER')", i, _P.gatecontactpos[i]))
+                end
                 table.insert(entries, {
-                    yshift = 1 * _P.gatestrapspace,
+                    yshift = _P.innergatestraps * _P.gatestrapspace + (_P.innergatestraps - 1) * _P.gatestrapwidth,
                     yheight = _P.gatestrapwidth,
                     index = i,
                 })
