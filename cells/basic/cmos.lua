@@ -459,8 +459,10 @@ function layout(cmos, _P)
             if util.any_of(i, _P.isoutputcontact) then
                 nopt_current.sourcemetal = _P.outputmetal
                 nopt_current.splitsourcevias = _P.nsplitoutputvias
+                nopt_current.connectsourcewidth = _P.outputwidth
                 popt_current.sourcemetal = _P.outputmetal
                 popt_current.splitsourcevias = _P.psplitoutputvias
+                popt_current.connectsourcewidth = _P.outputwidth
             end
             local shift = (i - 1) * gatepitch
             local nfet = pcell.create_layout("basic/mosfet", "nfet", nopt_current)
