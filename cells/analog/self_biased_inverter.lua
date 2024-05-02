@@ -323,14 +323,20 @@ function layout(sbinv, _P)
                 point.create(
                     resistor_upper:get_area_anchor("minus").r,
                     resistor_upper:get_area_anchor("minus").b + _P.outputwidth
-                )
+                ),
+                {
+                    widthclass = _P.resistorcontactheight
+                }
             )
             geometry.viabltr(sbinv, 1, _P.outputmetal,
                 point.create(
                     resistor_lower:get_area_anchor("minus").l,
                     resistor_lower:get_area_anchor("minus").t - _P.outputwidth
                 ),
-                resistor_lower:get_area_anchor("minus").tr
+                resistor_lower:get_area_anchor("minus").tr,
+                {
+                    widthclass = _P.resistorcontactheight
+                }
             )
         else
             geometry.rectanglebltr(sbinv, generics.metal(_P.outputmetal),
@@ -352,14 +358,20 @@ function layout(sbinv, _P)
                 point.create(
                     resistor_upper:get_area_anchor("plus").r,
                     resistor_upper:get_area_anchor("plus").b + _P.gatestrapwidth
-                )
+                ),
+                {
+                    widthclass = _P.resistorcontactheight
+                }
             )
             geometry.viabltr(sbinv, 1, _P.outputmetal,
                 point.create(
                     resistor_lower:get_area_anchor("plus").l,
                     resistor_lower:get_area_anchor("plus").t - _P.gatestrapwidth
                 ),
-                resistor_lower:get_area_anchor("plus").tr
+                resistor_lower:get_area_anchor("plus").tr,
+                {
+                    widthclass = _P.resistorcontactheight
+                }
             )
             geometry.polygon(sbinv, generics.metal(_P.gatemetal), {
                 inverter:get_area_anchor("input").br,
