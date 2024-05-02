@@ -66,6 +66,10 @@ function parameters()
         { "welltapcontinuouscontact(Well Tap Draw Continuous Contacts)", true },
         { "welltapextendleft", 0 },
         { "welltapextendright", 0 },
+        { "nsplitsourcevias", false },
+        { "psplitsourcevias", false },
+        { "nsplitdrainvias", false },
+        { "psplitdrainvias", false },
         { "drawactivedummy", false },
         { "activedummywidth", 0 },
         { "activedummyspace", 0 },
@@ -187,6 +191,8 @@ function layout(cmos, _P)
             extendwelltop = _P.extendwelltop,
             extendwellleft = _P.extendwellleft,
             extendwellright = _P.extendwellright,
+            splitsourcevias = _P.psplitsourcevias,
+            splitdrainvias = _P.psplitdrainvias,
         }
         local nopt = {
             channeltype = "nmos",
@@ -214,6 +220,8 @@ function layout(cmos, _P)
             extendwellbottom = _P.extendwellbottom,
             extendwellleft = _P.extendwellleft,
             extendwellright = _P.extendwellright,
+            splitsourcevias = _P.nsplitsourcevias,
+            splitdrainvias = _P.nsplitdrainvias,
         }
         -- main
         for i = 1, fingers do
