@@ -106,6 +106,7 @@ function parameters()
         { "latchendmetal", 5 },
         { "latchviaminwidth", 200 },
         { "bufsepdummies", 2 },
+        { "bufmininnerdummies", 4 },
         { "buffershift", 1000 },
         { "clocklinemetal", 8 },
         { "implantleftextension", 0 },
@@ -1406,28 +1407,54 @@ function layout(divider, _P)
     local numbuf = #_P.invfingers
     local allinvfingers = util.sum(_P.invfingers)
     local bufrowdefinition = {}
-    local bufouterdummies = (allfingers - 2 * allinvfingers - 2 * numbuf * _P.bufsepdummies) / 2
+    local buffactor = _P.drawQbuffer and 2 or 1
     local bufinnerdummies = _P.bufsepdummies
-    if bufouterdummies % 2 == 1 then
+    local bufouterdummies = (allfingers - 2 * buffactor * allinvfingers - 2 * buffactor * (numbuf - 1) * _P.bufsepdummies - bufinnerdummies) / 2
+    while (bufouterdummies % 4 ~= 0) or (bufinnerdummies < _P.bufmininnerdummies) do
         bufouterdummies = bufouterdummies - 1
         bufinnerdummies = bufinnerdummies + 2
     end
     local invndevices = {}
-    table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft", numbuf + 1), bufouterdummies, _P, true, false)) -- outer left dummy
+    table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft_1", numbuf + 1), bufouterdummies / 2, _P, true, false)) -- outer left dummy
+    if _P.drawQbuffer then
+        for i = numbuf, 1, -1 do
+            local fingers = _P.invfingers[i]
+            table.insert(invndevices, _make_invnmos(string.format("invQn%dleft", i), fingers, _P))
+            if i > 1 then
+                table.insert(invndevices, _make_vssdummy(string.format("invQn%ddummyleft", i), _P.bufsepdummies, _P))
+            end
+        end
+    end
+    table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft_2", numbuf + 1), bufouterdummies / 2, _P, false, false)) -- outer left dummy
     for i = numbuf, 1, -1 do
         local fingers = _P.invfingers[i]
         table.insert(invndevices, _make_invnmos(string.format("invn%dleft", i), fingers, _P))
-        table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft", i), _P.bufsepdummies, _P))
+        if i > 1 then
+            table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft", i), _P.bufsepdummies, _P))
+        end
     end
     table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", 1), bufinnerdummies, _P))
     for i = 1, numbuf, 1 do
         local fingers = _P.invfingers[i]
         table.insert(invndevices, _make_invnmos(string.format("invn%dright", i), fingers, _P))
         if i == numbuf then
-            table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", i + 1), bufouterdummies, _P, false, true)) -- outer right dummy
+            table.insert(invndevices, _make_vssdummy(string.format("invxn%ddummyright_1", i + 1), bufouterdummies / 2, _P, false, _P.drawQbuffer)) -- outer right dummy
         else
             table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", i + 1), _P.bufsepdummies, _P))
         end
+    end
+    if _P.drawQbuffer then
+        for i = 1, numbuf, 1 do
+            local fingers = _P.invfingers[i]
+            table.insert(invndevices, _make_invnmos(string.format("invQn%dright", i), fingers, _P))
+            if i == numbuf then
+                table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright_1", i + 1), bufouterdummies / 2, _P, false, true)) -- outer right dummy
+            else
+                table.insert(invndevices, _make_vssdummy(string.format("invQn%ddummyright", i + 1), _P.bufsepdummies, _P))
+            end
+        end
+    else
+        table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright_1", numbuf + 1), bufouterdummies / 2, _P, false, true)) -- outer right dummy
     end
     table.insert(bufrowdefinition,
         util.add_options(nmosoptions, {
@@ -1442,21 +1469,46 @@ function layout(divider, _P)
         })
     )
     local invpdevices = {}
-    table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyleft", numbuf + 1), bufouterdummies, _P, true, false)) -- outer dummy
+    table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyleft_1", numbuf + 1), bufouterdummies / 2, _P, true, false)) -- outer left dummy
+    if _P.drawQbuffer then
+        for i = numbuf, 1, -1 do
+            local fingers = _P.invfingers[i]
+            table.insert(invpdevices, _make_invpmos(string.format("invQp%dleft", i), fingers, _P))
+            if i > 1 then
+                table.insert(invpdevices, _make_vdddummy(string.format("invQp%ddummyleft", i), _P.bufsepdummies, _P))
+            end
+        end
+    end
+    table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyleft_2", numbuf + 1), bufouterdummies / 2, _P, false, false)) -- outer left dummy
     for i = numbuf, 1, -1 do
         local fingers = _P.invfingers[i]
         table.insert(invpdevices, _make_invpmos(string.format("invp%dleft", i), fingers, _P))
-        table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyleft", i), _P.bufsepdummies, _P))
+        if i > 1 then
+            table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyleft", i), _P.bufsepdummies, _P))
+        end
     end
     table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", 1), bufinnerdummies, _P))
     for i = 1, numbuf, 1 do
         local fingers = _P.invfingers[i]
         table.insert(invpdevices, _make_invpmos(string.format("invp%dright", i), fingers, _P))
         if i == numbuf then
-            table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", i + 1), bufouterdummies, _P, false, true)) -- outer dummy
+            table.insert(invpdevices, _make_vdddummy(string.format("invxp%ddummyright_1", i + 1), bufouterdummies / 2, _P, false, _P.drawQbuffer)) -- outer right dummy
         else
             table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", i + 1), _P.bufsepdummies, _P))
         end
+    end
+    if _P.drawQbuffer then
+        for i = 1, numbuf, 1 do
+            local fingers = _P.invfingers[i]
+            table.insert(invpdevices, _make_invpmos(string.format("invQp%dright", i), fingers, _P))
+            if i == numbuf then
+                table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright_1", i + 1), bufouterdummies / 2, _P, false, true)) -- outer right dummy
+            else
+                table.insert(invpdevices, _make_vdddummy(string.format("invQp%ddummyright", i + 1), _P.bufsepdummies, _P))
+            end
+        end
+    else
+        table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright_1", numbuf + 1), bufouterdummies / 2, _P, false, true)) -- outer right dummy
     end
     table.insert(bufrowdefinition,
         util.add_options(pmosoptions, {
@@ -1481,23 +1533,15 @@ function layout(divider, _P)
             splitgates = false,
         }
     )
-    bufferref:add_area_anchor_bltr("vssbar",
-        bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).bl,
-        bufferref:get_area_anchor(string.format("invn%ddummyright_sourcestrap", numbuf + 1)).tr
-    )
-    bufferref:add_area_anchor_bltr("vddbar",
-        bufferref:get_area_anchor(string.format("invp%ddummyleft_sourcestrap", numbuf + 1)).bl,
-        bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf + 1)).tr
-    )
 
     -- buffer power rail anchors and vias
     bufferref:add_area_anchor_bltr("vssbar",
-        bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).bl,
-        bufferref:get_area_anchor(string.format("invn%ddummyright_sourcestrap", numbuf + 1)).tr
+        bufferref:get_area_anchor(string.format("invn%ddummyleft_1_sourcestrap", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invn%ddummyright_1_sourcestrap", numbuf + 1)).tr
     )
     bufferref:add_area_anchor_bltr("vddbar",
-        bufferref:get_area_anchor(string.format("invp%ddummyleft_sourcestrap", numbuf + 1)).bl,
-        bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf + 1)).tr
+        bufferref:get_area_anchor(string.format("invp%ddummyleft_1_sourcestrap", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invp%ddummyright_1_sourcestrap", numbuf + 1)).tr
     )
     geometry.viabltr(bufferref, 1, 2,
         bufferref:get_area_anchor("vssbar").bl,
@@ -1510,22 +1554,22 @@ function layout(divider, _P)
 
     -- buffer well anchors
     bufferref:add_area_anchor_bltr("nmos_well",
-        bufferref:get_area_anchor(string.format("invn%ddummyleft_well", numbuf + 1)).bl,
-        bufferref:get_area_anchor(string.format("invn%ddummyright_well", numbuf + 1)).tr
+        bufferref:get_area_anchor(string.format("invn%ddummyleft_1_well", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invn%ddummyright_1_well", numbuf + 1)).tr
     )
     bufferref:add_area_anchor_bltr("pmos_well",
-        bufferref:get_area_anchor(string.format("invp%ddummyleft_well", numbuf + 1)).bl,
-        bufferref:get_area_anchor(string.format("invp%ddummyright_well", numbuf + 1)).tr
+        bufferref:get_area_anchor(string.format("invp%ddummyleft_1_well", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invp%ddummyright_1_well", numbuf + 1)).tr
     )
 
     -- buffer implant anchors
     bufferref:add_area_anchor_bltr("nmos_implant",
-        bufferref:get_area_anchor(string.format("invn%ddummyleft_implant", numbuf + 1)).bl,
-        bufferref:get_area_anchor(string.format("invn%ddummyright_implant", numbuf + 1)).tr
+        bufferref:get_area_anchor(string.format("invn%ddummyleft_1_implant", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invn%ddummyright_1_implant", numbuf + 1)).tr
     )
     bufferref:add_area_anchor_bltr("pmos_implant",
-        bufferref:get_area_anchor(string.format("invp%ddummyleft_implant", numbuf + 1)).bl,
-        bufferref:get_area_anchor(string.format("invp%ddummyright_implant", numbuf + 1)).tr
+        bufferref:get_area_anchor(string.format("invp%ddummyleft_1_implant", numbuf + 1)).bl,
+        bufferref:get_area_anchor(string.format("invp%ddummyright_1_implant", numbuf + 1)).tr
     )
 
     -- buffer input anchors
@@ -1804,16 +1848,16 @@ function layout(divider, _P)
     bufferref:clear_alignment_box()
     bufferref:set_alignment_box(
         point.create(
-            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcedrain1", numbuf + 1)).l,
-            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).b
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_1_sourcedrain1", numbuf + 1)).l,
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_1_sourcestrap", numbuf + 1)).b
         ),
         point.create(
             bufferref:get_area_anchor(string.format("invp%ddummyright_sourcedrain-1", numbuf)).r,
             bufferref:get_area_anchor(string.format("invp%ddummyright_sourcestrap", numbuf)).t
         ),
         point.create(
-            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcedrain1", numbuf + 1)).r,
-            bufferref:get_area_anchor(string.format("invn%ddummyleft_sourcestrap", numbuf + 1)).t
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_1_sourcedrain1", numbuf + 1)).r,
+            bufferref:get_area_anchor(string.format("invn%ddummyleft_1_sourcestrap", numbuf + 1)).t
         ),
         point.create(
             bufferref:get_area_anchor(string.format("invp%ddummyright_sourcedrain-1", numbuf)).l,
