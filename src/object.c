@@ -2170,10 +2170,13 @@ void object_width_height_alignmentbox(const struct object* cell, ucoordinate_t* 
 
 void object_foreach_shapes(struct object* cell, void (*func)(struct shape*))
 {
-    for(unsigned int i = 0; i < vector_size(cell->shapes); ++i)
+    if(cell->shapes)
     {
-        struct shape* shape = vector_get(cell->shapes, i);
-        func(shape);
+        for(unsigned int i = 0; i < vector_size(cell->shapes); ++i)
+        {
+            struct shape* shape = vector_get(cell->shapes, i);
+            func(shape);
+        }
     }
 }
 
