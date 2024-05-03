@@ -2193,15 +2193,29 @@ function layout(divider, _P)
             latches[numlatches]:get_area_anchor(string.format("platchleft_sourcedrain%d", _P.latchfingers)).tl,
             point.create(
                 latches[numlatches]:get_area_anchor(string.format("nlatchleft_sourcedrain%d", _P.latchfingers)).r,
-                buffer:get_area_anchor("inp").t
+                buffer:get_area_anchor("inQp").t
             )
         )
         geometry.rectanglebltr(divider, generics.metal(6),
             latches[numlatches]:get_area_anchor(string.format("platchright_sourcedrain%d", 2)).tl,
             point.create(
                 latches[numlatches]:get_area_anchor(string.format("nlatchright_sourcedrain%d", 2)).r,
-                buffer:get_area_anchor("inn").t
+                buffer:get_area_anchor("inQn").t
             )
+        )
+        geometry.rectanglebltr(divider, generics.metal(6),
+            buffer:get_area_anchor("inQp").br,
+            point.create(
+                latches[numlatches]:get_area_anchor(string.format("nlatchleft_sourcedrain%d", _P.latchfingers)).r,
+                buffer:get_area_anchor("inQp").t
+            )
+        )
+        geometry.rectanglebltr(divider, generics.metal(6),
+            point.create(
+                latches[numlatches]:get_area_anchor(string.format("nlatchright_sourcedrain%d", 2)).l,
+                buffer:get_area_anchor("inQn").b
+            ),
+            buffer:get_area_anchor("inQn").tl
         )
         geometry.viabltr(divider, 3, 6,
             latches[2]:get_area_anchor("Dp").bl,
@@ -2224,6 +2238,14 @@ function layout(divider, _P)
                 latches[2]:get_area_anchor("Dn").r,
                 latches[2]:get_area_anchor("Dn").t + _P.sdwidth
             )
+        )
+        geometry.viabltr(divider, 2, 6,
+            buffer:get_area_anchor("inQp").bl,
+            buffer:get_area_anchor("inQp").tr
+        )
+        geometry.viabltr(divider, 2, 6,
+            buffer:get_area_anchor("inQn").bl,
+            buffer:get_area_anchor("inQn").tr
         )
     end
 
