@@ -1380,6 +1380,10 @@ function layout(divider, _P)
     -- output ports
     latch:add_port_with_anchor("outp", generics.metalport(4), latch:get_area_anchor("nlatchright_sourcedrain2").tl)
     latch:add_port_with_anchor("outn", generics.metalport(4), latch:get_area_anchor("nlatchleft_sourcedrain2").tl)
+    if _P.drawQbuffer then
+        latch:add_port_with_anchor("outQp", generics.metalport(4), latch:get_area_anchor("nlatchright_sourcedrain2").tl)
+        latch:add_port_with_anchor("outQn", generics.metalport(4), latch:get_area_anchor("nlatchleft_sourcedrain2").tl)
+    end
 
     -- placement
     local numlatches = 2^_P.divisionfactor
@@ -2405,6 +2409,16 @@ function layout(divider, _P)
             )
         )
     )
+    if _P.drawQbuffer then
+        divider:add_layer_boundary(
+            generics.metal(_P.clocklinemetal),
+            util.rectangle_to_polygon(
+                buffer:get_area_anchor("inQp").bl,
+                buffer:get_area_anchor("inQn").tr,
+                1000, 1000, 100, 100
+            )
+        )
+    end
     -- area anchor for layer boundaries
     divider:add_area_anchor_bltr(
         "activecore",
