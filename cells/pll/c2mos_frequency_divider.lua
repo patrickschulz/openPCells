@@ -1425,7 +1425,7 @@ function layout(divider, _P)
             end
         end
     end
-    table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft_2", numbuf + 1), bufouterdummies / 2, _P, false, false)) -- outer left dummy
+    table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyleft_2", numbuf + 1), bufouterdummies / 2, _P)) -- outer left dummy
     for i = numbuf, 1, -1 do
         local fingers = _P.invfingers[i]
         table.insert(invndevices, _make_invnmos(string.format("invn%dleft", i), fingers, _P))
@@ -1438,7 +1438,7 @@ function layout(divider, _P)
         local fingers = _P.invfingers[i]
         table.insert(invndevices, _make_invnmos(string.format("invn%dright", i), fingers, _P))
         if i == numbuf then
-            table.insert(invndevices, _make_vssdummy(string.format("invxn%ddummyright_1", i + 1), bufouterdummies / 2, _P, false, _P.drawQbuffer)) -- outer right dummy
+            table.insert(invndevices, _make_vssdummy(string.format("invxn%ddummyright_1", i + 1), bufouterdummies / 2, _P)) -- outer right dummy
         else
             table.insert(invndevices, _make_vssdummy(string.format("invn%ddummyright", i + 1), _P.bufsepdummies, _P))
         end
@@ -1492,7 +1492,7 @@ function layout(divider, _P)
         local fingers = _P.invfingers[i]
         table.insert(invpdevices, _make_invpmos(string.format("invp%dright", i), fingers, _P))
         if i == numbuf then
-            table.insert(invpdevices, _make_vdddummy(string.format("invxp%ddummyright_1", i + 1), bufouterdummies / 2, _P, false, _P.drawQbuffer)) -- outer right dummy
+            table.insert(invpdevices, _make_vdddummy(string.format("invxp%ddummyright_1", i + 1), bufouterdummies / 2, _P)) -- outer right dummy
         else
             table.insert(invpdevices, _make_vdddummy(string.format("invp%ddummyright", i + 1), _P.bufsepdummies, _P))
         end
