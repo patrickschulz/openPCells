@@ -1380,10 +1380,6 @@ function layout(divider, _P)
     -- output ports
     latch:add_port_with_anchor("outp", generics.metalport(4), latch:get_area_anchor("nlatchright_sourcedrain2").tl)
     latch:add_port_with_anchor("outn", generics.metalport(4), latch:get_area_anchor("nlatchleft_sourcedrain2").tl)
-    if _P.drawQbuffer then
-        latch:add_port_with_anchor("outQp", generics.metalport(4), latch:get_area_anchor("nlatchright_sourcedrain2").tl)
-        latch:add_port_with_anchor("outQn", generics.metalport(4), latch:get_area_anchor("nlatchleft_sourcedrain2").tl)
-    end
 
     -- placement
     local numlatches = 2^_P.divisionfactor
@@ -1774,18 +1770,18 @@ function layout(divider, _P)
         -- inputs
         for i = 2, numbuf do
             geometry.rectanglebltr(bufferref, generics.metal(2),
-                bufferref:get_area_anchor(string.format("invn%dleft_topgatestrap", i)).bl,
+                bufferref:get_area_anchor(string.format("invQn%dleft_topgatestrap", i)).bl,
                 point.create(
-                    bufferref:get_area_anchor(string.format("outp_%d", i - 1)).l,
-                    bufferref:get_area_anchor(string.format("invn%dleft_topgatestrap", i)).t
+                    bufferref:get_area_anchor(string.format("outQp_%d", i - 1)).l,
+                    bufferref:get_area_anchor(string.format("invQn%dleft_topgatestrap", i)).t
                 )
             )
             geometry.rectanglebltr(bufferref, generics.metal(2),
                 point.create(
-                    bufferref:get_area_anchor(string.format("outn_%d", i - 1)).r,
-                    bufferref:get_area_anchor(string.format("invn%dright_topgatestrap", i)).b
+                    bufferref:get_area_anchor(string.format("outQn_%d", i - 1)).r,
+                    bufferref:get_area_anchor(string.format("invQn%dright_topgatestrap", i)).b
                 ),
-                bufferref:get_area_anchor(string.format("invn%dright_topgatestrap", i)).tl
+                bufferref:get_area_anchor(string.format("invQn%dright_topgatestrap", i)).tl
             )
         end
     end
@@ -2376,8 +2372,8 @@ function layout(divider, _P)
         )
         divider:add_port_with_anchor("outQn", generics.metalport(4),
             point.create(
-                buffer:get_area_anchor(string.format("outn_%d", numbuf)).l,
-                (buffer:get_area_anchor(string.format("outn_%d", numbuf)).b + buffer:get_area_anchor(string.format("outn_%d", numbuf)).t) / 2
+                buffer:get_area_anchor(string.format("outQn_%d", numbuf)).l,
+                (buffer:get_area_anchor(string.format("outQn_%d", numbuf)).b + buffer:get_area_anchor(string.format("outQn_%d", numbuf)).t) / 2
             )
         )
     end
