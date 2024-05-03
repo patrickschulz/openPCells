@@ -96,6 +96,7 @@ function parameters()
         { "invgatestrapyshift", 0 },
         { "invdrainsourcespace", 60 },
         { "invdrainsourcewidth", 60 },
+        { "drawQbuffer", false },
         { "nmosvthtype", 1 },
         { "pmosvthtype", 1 },
         { "nmosflippedwell", false },
