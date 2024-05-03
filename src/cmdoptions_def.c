@@ -39,6 +39,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-premapped-layers", NO_ARG, "
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-gatecut", NO_ARG, "disable gatecut (only useful for technologies that support gate cuts)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "merge-rectangles", NO_ARG, "merge rectangles");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "resolve-paths", NO_ARG, "resolve paths to rectangles and polygons");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "resolve-path-extensions", NO_ARG, "resolve path extensions. This ensures that paths end at their endpoints");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "rasterize-curves", NO_ARG, "rasterize curves");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "triangulate-polygons", NO_ARG, "triangulate all polygons");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "enable-fallback-vias", NO_ARG, "enable the use of fallback vias. These are usually not desirable for layout as they only produce one single cut and might not be DRC clean. But fallback vias can be used to sucessfully generate a layout and finding the cause for the problems with the via generation");

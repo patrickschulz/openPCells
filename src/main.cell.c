@@ -541,6 +541,11 @@ static void _resolve_cell_paths(struct object* cell)
     object_foreach_shapes(cell, shape_resolve_path_inline);
 }
 
+static void _resolve_cell_path_extensions(struct object* cell)
+{
+    object_foreach_shapes(cell, shape_resolve_path_extensions_inline);
+}
+
 static void _resolve_paths(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "resolve-paths"))
@@ -552,6 +557,24 @@ static void _resolve_paths(struct object* toplevel, struct cmdoptions* cmdoption
         {
             struct object* ref = vector_iterator_get(it);
             _resolve_cell_paths(ref);
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+        vector_destroy(references);
+    }
+}
+
+static void _resolve_path_extensions(struct object* toplevel, struct cmdoptions* cmdoptions)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "resolve-path-extensions"))
+    {
+        _resolve_cell_path_extensions(toplevel);
+        struct vector* references = object_collect_references_mutable(toplevel);
+        struct vector_iterator* it = vector_iterator_create(references);
+        while(vector_iterator_is_valid(it))
+        {
+            struct object* ref = vector_iterator_get(it);
+            _resolve_cell_path_extensions(ref);
             vector_iterator_next(it);
         }
         vector_iterator_destroy(it);
@@ -713,6 +736,9 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 
         // resolve paths
         _resolve_paths(toplevel, cmdoptions);
+
+        // resolve path extensions
+        _resolve_path_extensions(toplevel, cmdoptions);
 
         // curve rasterization
         _raster_curves(toplevel, cmdoptions);

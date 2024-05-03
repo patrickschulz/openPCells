@@ -71,6 +71,8 @@ void shape_curve_add_cubic_bezier_segment(struct shape* shape, const point_t* cp
 
 int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y);
 
+void shape_resolve_path_extensions_inline(struct shape* shape);
+struct shape* shape_resolve_path_extensions(const struct shape* shape);
 void shape_resolve_path_inline(struct shape* shape);
 struct shape* shape_resolve_path(const struct shape* shape);
 void shape_triangulate_polygon_inline(struct shape* shape);

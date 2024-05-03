@@ -1,5 +1,7 @@
 procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil) (exporttype "SKILL"))
-    OPCArgs = lsprintf("--technology %s --export %s %s -X '-L %f'" OPCTech exporttype args OPCSettingsForm->OPCSettingsLabelSize->value)
+    ; the SKILL export currently does not properly handle path extensions
+    ; therefore, path extensions are being resolved by opc
+    OPCArgs = lsprintf("--technology %s --export %s --resolve-path-extensions %s -X '-L %f'" OPCTech exporttype args OPCSettingsForm->OPCSettingsLabelSize->value)
     when(OPCSettingsForm->OPCSettingsGroup->value == "true"
         if(!newgroup && OPCSettingsForm->OPCSettingsGroupConsecutively->value == "true"
             then

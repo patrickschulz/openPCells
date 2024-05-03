@@ -962,6 +962,41 @@ void shape_curve_add_cubic_bezier_segment(struct shape* shape, const point_t* cp
     vector_append(curve->segments, segment);
 }
 
+void shape_resolve_path_extensions_inline(struct shape* shape)
+{
+    if(shape->type != PATH)
+    {
+        return;
+    }
+    struct path* path = shape->content;
+    point_t* pt_start_1 = vector_get(path->points, 1);
+    point_t* pt_start_2 = vector_get(path->points, 0);
+    double angle_start = atan2(pt_start_2->y - pt_start_1->y, pt_start_2->x - pt_start_1->x);
+    coordinate_t xshift_start = floor(path->extension[0] * cos(angle_start) + 0.5);
+    coordinate_t yshift_start = floor(path->extension[0] * sin(angle_start) + 0.5);
+    point_translate(pt_start_2, xshift_start, yshift_start);
+    point_t* pt_end_1 = vector_get(path->points, vector_size(path->points) - 2);
+    point_t* pt_end_2 = vector_get(path->points, vector_size(path->points) - 1);
+    double angle_end = atan2(pt_end_2->y - pt_end_1->y, pt_end_2->x - pt_end_1->x);
+    coordinate_t xshift_end = floor(path->extension[1] * cos(angle_end) + 0.5);
+    coordinate_t yshift_end = floor(path->extension[1] * sin(angle_end) + 0.5);
+    point_translate(pt_end_2, xshift_end, yshift_end);
+    path->extension[0] = 0;
+    path->extension[1] = 0;
+}
+
+struct shape* shape_resolve_extensions_path(const struct shape* shape)
+{
+    if(shape->type != PATH)
+    {
+        return NULL;
+    }
+    int miterjoin = 1;
+    struct path* path = shape->content;
+    struct shape* new = geometry_path_to_polygon(shape->layer, path->points, path->width, miterjoin);
+    return new;
+}
+
 void shape_resolve_path_inline(struct shape* shape)
 {
     if(shape->type != PATH)
