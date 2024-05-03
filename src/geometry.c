@@ -754,13 +754,13 @@ static int _check_viabltr(
     for(int i = metal1; i < metal2; ++i)
     {
         struct via_definition** viadefs = technology_get_via_definitions(techstate, i, i + 1);
-        struct via_definition* fallback = technology_get_via_fallback(techstate, i, i + 1);
         if(!viadefs)
         {
             return 0;
         }
         ret = ret && _check_via_contact_bltr(
-            viadefs, fallback,
+            viadefs,
+            NULL, // don't use fallback vias
             blx, bly, trx, try,
             xcont, ycont,
             equal_pitch,
