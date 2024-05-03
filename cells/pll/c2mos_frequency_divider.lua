@@ -2374,7 +2374,7 @@ function layout(divider, _P)
                 (buffer:get_area_anchor(string.format("outQp_%d", numbuf)).b + buffer:get_area_anchor(string.format("outQp_%d", numbuf)).t) / 2
             )
         )
-        divider:add_port_with_anchor("outn", generics.metalport(4),
+        divider:add_port_with_anchor("outQn", generics.metalport(4),
             point.create(
                 buffer:get_area_anchor(string.format("outn_%d", numbuf)).l,
                 (buffer:get_area_anchor(string.format("outn_%d", numbuf)).b + buffer:get_area_anchor(string.format("outn_%d", numbuf)).t) / 2
