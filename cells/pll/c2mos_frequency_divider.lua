@@ -1678,6 +1678,114 @@ function layout(divider, _P)
         )
     end
 
+    if _P.drawQbuffer then
+        -- buffer input anchors
+        bufferref:add_area_anchor_bltr("inQp",
+            bufferref:get_area_anchor(string.format("invQn%dleft_topgatestrap", 1)).bl,
+            bufferref:get_area_anchor(string.format("invQn%dleft_topgatestrap", 1)).tr
+        )
+        bufferref:add_area_anchor_bltr("inQn",
+            bufferref:get_area_anchor(string.format("invQn%dright_topgatestrap", 1)).bl,
+            bufferref:get_area_anchor(string.format("invQn%dright_topgatestrap", 1)).tr
+        )
+
+        -- buffer output anchors
+        for i = 1, numbuf do
+            bufferref:add_area_anchor_bltr(string.format("outQp_%d", i),
+                point.create(
+                    bufferref:get_area_anchor(string.format("invQn%dleft_sourcedrain2", i)).r - 2 * xpitch - _P.invgatewidth,
+                    bufferref:get_area_anchor(string.format("invQn%dleft_drainstrap", i)).t
+                ),
+                point.create(
+                    bufferref:get_area_anchor(string.format("invQn%dleft_sourcedrain2", i)).r - 2 * xpitch,
+                    bufferref:get_area_anchor(string.format("invQp%dleft_drainstrap", i)).b
+                )
+            )
+            bufferref:add_area_anchor_bltr(string.format("outQn_%d", i),
+                point.create(
+                    bufferref:get_area_anchor(string.format("invQn%dright_sourcedrain-2", i)).l + 2 * xpitch,
+                    bufferref:get_area_anchor(string.format("invQn%dright_drainstrap", i)).t
+                ),
+                point.create(
+                    bufferref:get_area_anchor(string.format("invQn%dright_sourcedrain-2", i)).l + 2 * xpitch + _P.invgatewidth,
+                    bufferref:get_area_anchor(string.format("invQp%dright_drainstrap", i)).b
+                )
+            )
+        end
+
+        -- buffer outputs
+        for i = 1, numbuf do
+            if i < numbuf then
+                geometry.viabltr(bufferref, 2, 3,
+                    bufferref:get_area_anchor(string.format("outQp_%d", i)).bl,
+                    bufferref:get_area_anchor(string.format("outQp_%d", i)).tr
+                )
+            else
+                geometry.rectanglebltr(bufferref, generics.metal(3),
+                    bufferref:get_area_anchor(string.format("outQp_%d", i)).bl,
+                    bufferref:get_area_anchor(string.format("outQp_%d", i)).tr
+                )
+            end
+            geometry.rectanglebltr(bufferref, generics.metal(3),
+                point.create(
+                    bufferref:get_area_anchor(string.format("outQp_%d", i)).l,
+                    bufferref:get_area_anchor(string.format("invQn%dleft_drainstrap", i)).b
+                ),
+                bufferref:get_area_anchor(string.format("invQn%dleft_drainstrap", i)).tl
+            )
+            geometry.rectanglebltr(bufferref, generics.metal(3),
+                point.create(
+                    bufferref:get_area_anchor(string.format("outQp_%d", i)).l,
+                    bufferref:get_area_anchor(string.format("invQp%dleft_drainstrap", i)).b
+                ),
+                bufferref:get_area_anchor(string.format("invQp%dleft_drainstrap", i)).tl
+            )
+            if i < numbuf then
+                geometry.viabltr(bufferref, 2, 3,
+                    bufferref:get_area_anchor(string.format("outQn_%d", i)).bl,
+                    bufferref:get_area_anchor(string.format("outQn_%d", i)).tr
+                )
+            else
+                geometry.rectanglebltr(bufferref, generics.metal(3),
+                    bufferref:get_area_anchor(string.format("outQn_%d", i)).bl,
+                    bufferref:get_area_anchor(string.format("outQn_%d", i)).tr
+                )
+            end
+            geometry.rectanglebltr(bufferref, generics.metal(3),
+                bufferref:get_area_anchor(string.format("invQn%dright_drainstrap", i)).bl,
+                point.create(
+                    bufferref:get_area_anchor(string.format("outQn_%d", i)).r,
+                    bufferref:get_area_anchor(string.format("invQn%dright_drainstrap", i)).t
+                )
+            )
+            geometry.rectanglebltr(bufferref, generics.metal(3),
+                bufferref:get_area_anchor(string.format("invQp%dright_drainstrap", i)).br,
+                point.create(
+                    bufferref:get_area_anchor(string.format("outQn_%d", i)).r,
+                    bufferref:get_area_anchor(string.format("invQp%dright_drainstrap", i)).t
+                )
+            )
+        end
+
+        -- inputs
+        for i = 2, numbuf do
+            geometry.rectanglebltr(bufferref, generics.metal(2),
+                bufferref:get_area_anchor(string.format("invn%dleft_topgatestrap", i)).bl,
+                point.create(
+                    bufferref:get_area_anchor(string.format("outp_%d", i - 1)).l,
+                    bufferref:get_area_anchor(string.format("invn%dleft_topgatestrap", i)).t
+                )
+            )
+            geometry.rectanglebltr(bufferref, generics.metal(2),
+                point.create(
+                    bufferref:get_area_anchor(string.format("outn_%d", i - 1)).r,
+                    bufferref:get_area_anchor(string.format("invn%dright_topgatestrap", i)).b
+                ),
+                bufferref:get_area_anchor(string.format("invn%dright_topgatestrap", i)).tl
+            )
+        end
+    end
+
     -- buffer well taps
     if _P.drawleftnmoswelltap then
         layouthelpers.place_welltap(
@@ -2078,6 +2186,46 @@ function layout(divider, _P)
         ),
         buffer:get_area_anchor("inn").tr
     )
+
+    -- connect divider to buffers (Q)
+    if _P.drawQbuffer then
+        geometry.rectanglebltr(divider, generics.metal(6),
+            latches[numlatches]:get_area_anchor(string.format("platchleft_sourcedrain%d", _P.latchfingers)).tl,
+            point.create(
+                latches[numlatches]:get_area_anchor(string.format("nlatchleft_sourcedrain%d", _P.latchfingers)).r,
+                buffer:get_area_anchor("inp").t
+            )
+        )
+        geometry.rectanglebltr(divider, generics.metal(6),
+            latches[numlatches]:get_area_anchor(string.format("platchright_sourcedrain%d", 2)).tl,
+            point.create(
+                latches[numlatches]:get_area_anchor(string.format("nlatchright_sourcedrain%d", 2)).r,
+                buffer:get_area_anchor("inn").t
+            )
+        )
+        geometry.viabltr(divider, 3, 6,
+            latches[2]:get_area_anchor("Dp").bl,
+            latches[2]:get_area_anchor("Dp").tr
+        )
+        geometry.viabltr(divider, 3, 6,
+            latches[2]:get_area_anchor("Dn").bl,
+            latches[2]:get_area_anchor("Dn").tr
+        )
+        geometry.rectanglebltr(divider, generics.metal(6),
+            latches[2]:get_area_anchor("Dp").tl,
+            point.create(
+                latches[numlatches]:get_area_anchor(string.format("platchleft_sourcedrain%d", _P.latchfingers)).r,
+                latches[numlatches]:get_area_anchor(string.format("platchleft_sourcedrain%d", _P.latchfingers)).t + _P.sdwidth
+            )
+        )
+        geometry.rectanglebltr(divider, generics.metal(6),
+            latches[numlatches]:get_area_anchor(string.format("platchright_sourcedrain%d", _P.latchfingers)).tl,
+            point.create(
+                latches[2]:get_area_anchor("Dn").r,
+                latches[2]:get_area_anchor("Dn").t + _P.sdwidth
+            )
+        )
+    end
 
     -- vdd/vss bar anchors
     for i = 1, numlatches do
