@@ -582,7 +582,10 @@ function layout(inverter, _P)
     end
 
     inverter:add_area_anchor_bltr("input",
-        cmos:get_area_anchor(string.format("G%d", 1 + _P.numleftdummies)).bl,
+        point.create(
+            cmos:get_area_anchor(string.format("G%d", 1 + _P.numleftdummies)).l - _P.gatestrapleftextension,
+            cmos:get_area_anchor(string.format("G%d", 1 + _P.numleftdummies)).b
+        ),
         cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).tr
     )
 end
