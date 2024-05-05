@@ -39,6 +39,7 @@ function layout(padring, _P)
         padpitch = _P.padpitch,
         padconfig = _P.leftpads,
         padnames = _P.leftpadnames,
+        padconfigisreversed = true,
         orientation = "vertical",
         labelsizehint = _P.labelsizehint,
     })
@@ -83,6 +84,7 @@ function layout(padring, _P)
         padpitch = _P.padpitch,
         padconfig = _P.toppads,
         padnames = _P.toppadnames,
+        padconfigisreversed = true,
         orientation = "horizontal",
         labelsizehint = _P.labelsizehint,
     })

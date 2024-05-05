@@ -2,6 +2,7 @@ function parameters()
     pcell.add_parameters(
         { "padconfig(Pad Configuration; G, S or P)",            { "P", "P", "P" }, argtype = "strtable" },
         { "padnames(Pad Names)",                                { "a", "b", "c" }, argtype = "strtable" },
+        { "padconfigisreversed",                                false },
         { "Spadwidth(Width of S-Pad)",                          50000 },
         { "Spadheight(Height of S-Pad)",                        54000 },
         { "Spadopeningxoffset(x-Offset of S-Pad Opening)",      5000 },
@@ -55,7 +56,12 @@ function layout(pads, _P)
     pcell.pop_overwrites("auxiliary/pad")
 
     local numpads = #_P.padconfig
-    for i, padtype in ipairs(_P.padconfig) do
+    local startindex = _P.padconfigisreversed and numpads or 1
+    local endindex = _P.padconfigisreversed and 1 or numpads
+    local increment = _P.padconfigisreversed and -1 or 1
+    local i = 1
+    for padindex = startindex, endindex, increment do
+        local padtype = _P.padconfig[padindex]
         local x, y
         if _P.orientation == "horizontal" then
             if _P.alignment == "top/left" then
@@ -81,9 +87,9 @@ function layout(pads, _P)
         pad:translate(x, y)
         pads:merge_into(pad)
         pads:inherit_area_anchor_as(pad, "boundary", string.format("padboundary_%i", i))
-        pads:inherit_area_anchor_as(pad, "boundary", string.format("padboundary_%s", _P.padnames[i]))
+        pads:inherit_area_anchor_as(pad, "boundary", string.format("padboundary_%s", _P.padnames[padindex]))
         pads:add_port_with_anchor(
-            string.format("%s", _P.padnames[i]),
+            string.format("%s", _P.padnames[padindex]),
             generics.metalport(-1),
             point.combine(
                 pad:get_area_anchor("boundary").bl,
@@ -91,5 +97,6 @@ function layout(pads, _P)
             ),
             _P.labelsizehint
         )
+        i = i + 1
     end
 end
