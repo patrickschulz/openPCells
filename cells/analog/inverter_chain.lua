@@ -175,6 +175,14 @@ function layout(chain, _P)
     )
     chain:inherit_area_anchor(inverters[1], "input")
     chain:inherit_area_anchor(inverters[#inverters], "output")
+    chain:add_area_anchor_bltr("nmos_implant",
+        inverters[1]:get_area_anchor("nmos_implant").bl,
+        inverters[#inverters]:get_area_anchor("nmos_implant").tr
+    )
+    chain:add_area_anchor_bltr("pmos_implant",
+        inverters[1]:get_area_anchor("pmos_implant").bl,
+        inverters[#inverters]:get_area_anchor("pmos_implant").tr
+    )
     chain:add_area_anchor_bltr("nmos_well",
         inverters[1]:get_area_anchor("nmos_well").bl,
         inverters[#inverters]:get_area_anchor("nmos_well").tr
