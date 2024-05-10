@@ -26,7 +26,8 @@ function parameters()
         { "numleftdummies",                             2 },
         { "numrightdummies",                            2 },
         { "numinnerdummies",                            2 },
-        { "alternatedummycontacts",                 false },
+        { "alternatedummycontacts",                     false },
+        { "drawalternatedummycontactspowerbarvia",      false, follow = "alternatedummycontacts" },
         { "outputmetal",                                2, posvals = interval(2, inf) },
         { "outputwidth",                                technology.get_dimension("Minimum M1 Width") },
         { "outputxshift",                               0 },
@@ -41,6 +42,7 @@ function parameters()
         { "drawrightstopgate",                          false },
         { "leftpolylines",                              {} },
         { "rightpolylines",                             {} },
+        { "drawanalogmarker",                           false },
         { "extendimplanttop",                           0 },
         { "extendimplantbottom",                        0 },
         { "extendimplantleft",                          0 },
@@ -91,6 +93,7 @@ function layout(chain, _P)
             numleftdummies = i == 1 and _P.numleftdummies or _P.numinnerdummies / 2,
             numrightdummies = i == #_P.fingers and _P.numrightdummies or _P.numinnerdummies / 2,
             alternatedummycontacts = _P.alternatedummycontacts,
+            drawalternatedummycontactspowerbarvia = false,
             outputmetal = _P.outputmetal,
             outputwidth = _P.outputwidth,
             outputxshift = _P.outputxshift,
@@ -105,6 +108,7 @@ function layout(chain, _P)
             drawrightstopgate = (i == #_P.fingers) and _P.drawrightstopgate or false,
             leftpolylines = i == 1 and _P.leftpolylines or nil,
             rightpolylines = i == #_P.fingers and _P.rightpolylines or nil,
+            drawanalogmarker = _P.drawanalogmarker,
             extendimplanttop = _P.extendimplanttop,
             extendimplantbottom = _P.extendimplantbottom,
             extendimplantleft = _P.extendimplantleft,
@@ -165,6 +169,7 @@ function layout(chain, _P)
         end
     end
 
+    -- inherit anchors
     chain:add_area_anchor_bltr("vddbar",
         inverters[1]:get_area_anchor("vddbar").bl,
         inverters[#inverters]:get_area_anchor("vddbar").tr
@@ -199,4 +204,16 @@ function layout(chain, _P)
         inverters[1]:get_area_anchor("pmos_active").bl,
         inverters[#inverters]:get_area_anchor("pmos_active").tr
     )
+
+    -- draw vias on power bars (handling this in the individual cells can lead to DRC errors)
+    if _P.alternatedummycontacts and _P.drawalternatedummycontactspowerbarvia then
+        geometry.viabltr(chain, 1, 2,
+            chain:get_area_anchor("vddbar").bl,
+            chain:get_area_anchor("vddbar").tr
+        )
+        geometry.viabltr(chain, 1, 2,
+            chain:get_area_anchor("vssbar").bl,
+            chain:get_area_anchor("vssbar").tr
+        )
+    end
 end

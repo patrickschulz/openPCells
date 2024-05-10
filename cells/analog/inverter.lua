@@ -27,6 +27,7 @@ function parameters()
         { "numleftdummies",                             0 },
         { "numrightdummies",                            0 },
         { "alternatedummycontacts",                     false },
+        { "drawalternatedummycontactspowerbarvia",      false, follow = "alternatedummycontacts" },
         { "splitdrainvias",                             false },
         { "outputmetal",                                2, posvals = interval(2, inf) },
         { "outputwidth",                                technology.get_dimension("Minimum M1 Width") },
@@ -42,6 +43,7 @@ function parameters()
         { "drawrightstopgate",                          false },
         { "leftpolylines",                              {} },
         { "rightpolylines",                             {} },
+        { "drawanalogmarker",                           false, },
         { "extendalltop",                               0 },
         { "extendallbottom",                            0 },
         { "extendallleft",                              0 },
@@ -146,6 +148,7 @@ function layout(inverter, _P)
         drawrightstopgate = _P.drawrightstopgate,
         leftpolylines = _P.leftpolylines,
         rightpolylines = _P.rightpolylines,
+        drawanalogmarker = _P.drawanalogmarker,
         cutwidth = _P.gatelength + _P.gatespace,
         drawoutergatecut = _P.drawoutergatecut,
         cutheight = _P.gatecutheight,
@@ -264,8 +267,28 @@ function layout(inverter, _P)
         )
     end
 
+    -- inherit anchors
+    inverter:inherit_area_anchor_as(cmos, "PRp", "vddbar")
+    inverter:inherit_area_anchor_as(cmos, "PRn", "vssbar")
+    inverter:inherit_area_anchor(cmos, "nmos_implant")
+    inverter:inherit_area_anchor(cmos, "pmos_implant")
+    inverter:inherit_area_anchor(cmos, "nmos_well")
+    inverter:inherit_area_anchor(cmos, "pmos_well")
+    inverter:inherit_area_anchor(cmos, "nmos_active")
+    inverter:inherit_area_anchor(cmos, "pmos_active")
+
     -- connect dummies
     if _P.alternatedummycontacts then
+        if _P.drawalternatedummycontactspowerbarvia then
+            geometry.viabltr_xcontinuous(inverter, 1, 2,
+                inverter:get_area_anchor("vddbar").bl,
+                inverter:get_area_anchor("vddbar").tr
+            )
+            geometry.viabltr_xcontinuous(inverter, 1, 2,
+                inverter:get_area_anchor("vssbar").bl,
+                inverter:get_area_anchor("vssbar").tr
+            )
+        end
         for i = 1, _P.numleftdummies do
             if i % 2 == 1 then
                 geometry.rectanglebltr(inverter, generics.metal(1),
@@ -382,16 +405,6 @@ function layout(inverter, _P)
             )
         end
     end
-
-    -- inherit anchors
-    inverter:inherit_area_anchor_as(cmos, "PRp", "vddbar")
-    inverter:inherit_area_anchor_as(cmos, "PRn", "vssbar")
-    inverter:inherit_area_anchor(cmos, "nmos_implant")
-    inverter:inherit_area_anchor(cmos, "pmos_implant")
-    inverter:inherit_area_anchor(cmos, "nmos_well")
-    inverter:inherit_area_anchor(cmos, "pmos_well")
-    inverter:inherit_area_anchor(cmos, "nmos_active")
-    inverter:inherit_area_anchor(cmos, "pmos_active")
 
     -- place welltaps
     if _P.drawleftnmoswelltap then

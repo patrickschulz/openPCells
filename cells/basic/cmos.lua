@@ -126,7 +126,8 @@ function parameters()
         { "extendanalogmarkertop", 0, follow = "extendalltop" },
         { "extendanalogmarkerbottom", 0, follow = "extendallbottom" },
         { "extendanalogmarkerleft", 0, follow = "extendallleft" },
-        { "extendanalogmarkerright", 0, follow = "extendallright" }
+        { "extendanalogmarkerright", 0, follow = "extendallright" },
+        { "drawanalogmarker", false }
     )
 end
 
@@ -199,6 +200,7 @@ function layout(cmos, _P)
             botgatecutrightext = (_P.cutwidth - _P.gatelength) / 2,
             topgatewidth = _P.gatestrapwidth,
             botgatewidth = _P.gatestrapwidth,
+            drawanalogmarker = _P.drawanalogmarker,
         })
 
         -- pmos
@@ -665,12 +667,12 @@ function layout(cmos, _P)
 
     -- implant anchors
     cmos:add_area_anchor_bltr("nmos_implant",
-        leftndrainarea.bl,
-        rightndrainarea.tr
+        leftnmosimplant.bl,
+        rightnmosimplant.tr
     )
     cmos:add_area_anchor_bltr("pmos_implant",
-        leftpdrainarea.bl,
-        rightpdrainarea.tr
+        leftpmosimplant.bl,
+        rightpmosimplant.tr
     )
 
     -- active anchors
