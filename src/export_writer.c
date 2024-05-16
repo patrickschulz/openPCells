@@ -1028,7 +1028,7 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
     return 1;
 }
 
-int export_writer_write_toplevel(struct export_writer* writer, const struct object* toplevel, int expand_namecontext, int writechildrenports, char leftdelim, char rightdelim)
+int export_writer_write_toplevel(struct export_writer* writer, const struct object* toplevel, int expand_namecontext, int writeports, int writechildrenports, char leftdelim, char rightdelim)
 {
     int ret = 1;
     if(_has_initialize(writer))
@@ -1059,7 +1059,7 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
 
     _write_cell_hierarchy_with_namecontext(writer, toplevel, object_get_name(toplevel), expand_namecontext, writechildrenports, leftdelim, rightdelim);
 
-    ret = _write_cell(writer, toplevel, NULL, expand_namecontext, 1, 1, leftdelim, rightdelim); // NULL: no name context; first 1: istoplevel, second 1: write_ports
+    ret = _write_cell(writer, toplevel, NULL, expand_namecontext, 1, writeports, leftdelim, rightdelim); // NULL: no name context; first 1: istoplevel, second 1: write_ports
     if(!ret)
     {
         // FIXME: proper cleanup

@@ -763,6 +763,12 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
             // expand namecontexts
             export_set_namecontext_expansion(export_state, !cmdoptions_was_provided_long(cmdoptions, "no-expand-namecontexts"));
 
+            // don't write ports
+            if(cmdoptions_was_provided_long(cmdoptions, "disable-ports"))
+            {
+                export_disable_ports(export_state);
+            }
+
             // write children ports
             export_set_write_children_ports(export_state, cmdoptions_was_provided_long(cmdoptions, "write-children-ports"));
 
