@@ -242,8 +242,9 @@ local function _format_layer(layer)
             table.insert(__options, string.format("%s/.style = { %s }", layer.style, _get_layer_style(layer)))
         end
         return string.format("\\path[%s]", layer.style)
+    else
+        return string.format("\\path[%s]", _get_layer_style(layer))
     end
-    return string.format("\\path[%s]", _get_layer_style(layer))
 end
 
 local function _insert(ignore, order, content)
