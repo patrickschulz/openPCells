@@ -4,10 +4,6 @@ function M.get_extension()
     return "tikz"
 end
 
-function M.get_techexport()
-    return "svg"
-end
-
 local __outlineblack = false
 local __standalone = false
 local __drawpatterns = false
@@ -225,7 +221,7 @@ local function _get_layer_style(layer)
         return string.format("draw = %s", color)
     else
         if layer.pattern then
-            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", _get_outline_color(color), color)
+            return string.format("draw = %s, pattern = %s, pattern color = %s", _get_outline_color(color), layer.pattern, color)
         elseif layer.nooutline or __nooutline then
             return string.format("fill = %s", color)
         else
