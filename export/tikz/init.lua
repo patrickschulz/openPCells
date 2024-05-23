@@ -86,6 +86,7 @@ function M.finalize()
         table.insert(t, entry)
     end
     if #__options > 0 then
+        table.sort(__options)
         table.insert(t, "[")
         for i, entry in ipairs(__options) do
             if i ~= #__options then
