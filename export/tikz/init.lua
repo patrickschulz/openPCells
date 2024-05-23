@@ -12,6 +12,7 @@ local __resizebox = false
 local __externaldisable
 local __baseunit = 1
 local __expressionscale = false
+local __overwrite_opacity = nil
 local __prepend = {}
 
 function M.set_options(opt)
@@ -28,6 +29,14 @@ function M.set_options(opt)
         end
         if arg == "--disable-patterns" then
             __drawpatterns = false
+        end
+        if arg == "--overwrite-opacity" then
+            if i < #opt then
+                __overwrite_opacity = tonumber(opt[i + 1])
+            else
+                error("tikz export: --overwrite-opacity: argument (a number) expected")
+            end
+            i = i + 1
         end
         if arg == "-i" or arg == "--write-ignored" then
             __writeignored = true
@@ -238,7 +247,11 @@ local function _format_layer(layer)
     if layer.style then
         if not styles[layer.style] then
             styles[layer.style] = true
-            table.insert(__options, string.format("%s/.style = { %s }", layer.style, _get_layer_style(layer)))
+            if __overwrite_opacity then
+                table.insert(__options, string.format("%s/.style = { %s, opacity = %f }", layer.style, _get_layer_style(layer), __overwrite_opacity))
+            else
+                table.insert(__options, string.format("%s/.style = { %s }", layer.style, _get_layer_style(layer)))
+            end
         end
         return string.format("\\path[%s]", layer.style)
     else
