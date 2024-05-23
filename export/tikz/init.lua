@@ -6,7 +6,7 @@ end
 
 local __outlineblack = false
 local __standalone = false
-local __drawpatterns = false
+local __drawpatterns = true
 local __writeignored = false
 local __resizebox = false
 local __externaldisable
@@ -26,8 +26,8 @@ function M.set_options(opt)
         if arg == "-S" or arg == "--standalone" then
             __standalone = true
         end
-        if arg == "-p" or arg == "--pattern" then
-            __drawpatterns = true
+        if arg == "--disable-patterns" then
+            __drawpatterns = false
         end
         if arg == "-i" or arg == "--write-ignored" then
             __writeignored = true
@@ -111,7 +111,9 @@ function M.at_begin()
     if __standalone then
         table.insert(__header, '\\documentclass{standalone}')
         table.insert(__header, '\\usepackage{tikz}')
-        table.insert(__header, '\\usetikzlibrary{patterns}')
+        if __drawpatterns then
+            table.insert(__header, '\\usetikzlibrary{patterns}')
+        end
         if __resizebox then
             table.insert(__header, '\\usepackage{adjustbox}')
         end
@@ -221,7 +223,7 @@ local function _get_layer_style(layer)
     if layer.nofill then
         return string.format("draw = %s", color)
     else
-        if layer.pattern then
+        if __drawpatterns and layer.pattern then
             return string.format("draw = %s, pattern = %s, pattern color = %s", _get_outline_color(color), layer.pattern, color)
         elseif layer.nooutline or __nooutline then
             return string.format("fill = %s", color)
