@@ -9,10 +9,11 @@
 
 #include "export_common.h"
 #include "export_writer.h"
-#include "util.h"
-#include "lua_util.h"
-#include "gdsexport.h"
 #include "filesystem.h"
+#include "gdsexport.h"
+#include "lua_util.h"
+#include "skillexport.h"
+#include "util.h"
 
 #define EXPORT_STATUS_SUCCESS 0
 #define EXPORT_STATUS_NOTFOUND 1
@@ -130,6 +131,10 @@ static struct export_functions* _get_export_functions(const char* exportname)
     if(strcmp(exportname, "gds") == 0)
     {
         funcs = gdsexport_get_export_functions();
+    }
+    else if(strcmp(exportname, "SKILL") == 0)
+    {
+        funcs = skillexport_get_export_functions();
     }
     else
     {
