@@ -323,6 +323,7 @@ return {
         name = "gatecut",
         layer = {
             gds = { layer = 27, purpose = 0 },
+            SKILL = { layer = "gatecut", purpose = "drawing" },
             svg = { color = "8000ff", order = 1 },
         }
     },
