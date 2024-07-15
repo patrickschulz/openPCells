@@ -98,12 +98,6 @@ local function _format_point(pt, sep)
     return string.format("%s%s%s", sx, sep, sy)
 end
 
-local function _format_xy(x, y, sep)
-    local sx = _format_number(x)
-    local sy = _format_number(y)
-    return string.format("%s%s%s", sx, sep, sy)
-end
-
 local function _get_shape_fmt(shapetype)
     return string.format("dbCreate%s(cv %%s)", shapetype)
 end
@@ -160,12 +154,14 @@ function M.write_rectangle(layer, bl, tr)
     local fmt = _get_shape_fmt("Rect")
     local c = {}
     _prepare_shape_for_group(c)
-    table.insert(c, 
+    table.insert(c,
         string.format(fmt, 
-        string.format("%s list(%s %s)", 
-        _format_lpp(layer), 
-        _format_point(bl, ":"), 
-        _format_point(tr, ":")))
+            string.format("%s list(%s %s)", 
+                _format_lpp(layer), 
+                _format_point(bl, ":"), 
+                _format_point(tr, ":")
+            )
+        )
     )
     _finish_shape_for_group(c)
     _ensure_legal_limit()
@@ -232,7 +228,7 @@ function M.at_end_cell(istoplevel)
     _close_let()
 end
 
-function M.write_cell_reference(identifier, instname, x, y, orientation)
+function M.write_cell_reference(identifier, instname, origin, orientation)
     local orientstr
     if orientation[1] >= 0 and orientation[5] >= 0 then
         if orientation[2] < 0 then
@@ -253,16 +249,16 @@ function M.write_cell_reference(identifier, instname, x, y, orientation)
     local c = {}
     _prepare_shape_for_group(c)
     if instname then
-        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" "%s" %s "%s"', identifier, instname, _format_xy(x, y, ":"), orientstr)))
+        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" "%s" %s "%s"', identifier, instname, _format_point(origin, ":"), orientstr)))
     else
-        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_xy(x, y, ":"), orientstr)))
+        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_point(origin, ":"), orientstr)))
     end
     _finish_shape_for_group(c)
     _ensure_legal_limit()
     table.insert(__content, table.concat(c))
 end
 
-function M.write_cell_array(identifier, instbasename, x, y, orientation, xrep, yrep, xpitch, ypitch)
+function M.write_cell_array(identifier, instbasename, origin, orientation, xrep, yrep, xpitch, ypitch)
     local orientstr
     if orientation[1] >= 0 and orientation[5] >= 0 then
         if orientation[2] < 0 then
@@ -283,9 +279,9 @@ function M.write_cell_array(identifier, instbasename, x, y, orientation, xrep, y
     local c = {}
     _prepare_shape_for_group(c)
     if instbasename then
-        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" "%s" %s "%s" %d %d %s %s nil', identifier, instbasename, _format_xy(x, y, ":"), orientstr, yrep, xrep, _format_number(ypitch), _format_number(xpitch))))
+        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" "%s" %s "%s" %d %d %s %s nil', identifier, instbasename, _format_point(origin, ":"), orientstr, yrep, xrep, _format_number(ypitch), _format_number(xpitch))))
     else
-        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s" %d %d %s %s nil', identifier, _format_xy(x, y, ":"), orientstr, yrep, xrep, _format_number(ypitch), _format_number(xpitch))))
+        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s" %d %d %s %s nil', identifier, _format_point(origin, ":"), orientstr, yrep, xrep, _format_number(ypitch), _format_number(xpitch))))
     end
     _finish_shape_for_group(c)
     _ensure_legal_limit()

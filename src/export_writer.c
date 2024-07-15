@@ -7,8 +7,6 @@
 #include "tagged_value.h"
 #include "util.h"
 
-#include "ldebug.h"
-
 struct export_writer {
     union {
         lua_State* L;
@@ -183,6 +181,22 @@ static int _has_write_triangle(struct export_writer* writer)
     return 0;
 }
 
+static int _has_write_path_extension(struct export_writer* writer)
+{
+    if(writer->islua)
+    {
+        return _check_function(writer->L, "write_path");
+    }
+    else // C
+    {
+        if(writer->funcs->write_path_extension)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static int _has_write_path(struct export_writer* writer)
 {
     if(writer->islua)
@@ -191,7 +205,7 @@ static int _has_write_path(struct export_writer* writer)
     }
     else // C
     {
-        if(writer->funcs->write_path)
+        if(writer->funcs->write_path_extension || writer->funcs->write_path)
         {
             return 1;
         }
@@ -256,11 +270,10 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
         lua_getfield(writer->L, -1, "write_cell_array");
         lua_pushstring(writer->L, identifier);
         lua_pushstring(writer->L, instbasename);
-        lua_pushinteger(writer->L, origin->x);
-        lua_pushinteger(writer->L, origin->y);
+        _push_point(writer->L, origin);
         _push_trans(writer->L, trans);
         _push_rep_pitch(writer->L, xrep, yrep, xpitch, ypitch);
-        int ret = _pcall(writer->L, 9, 0, "write_cell_array");
+        int ret = _pcall(writer->L, 8, 0, "write_cell_array");
         if(!ret)
         {
             return 0;
@@ -269,7 +282,7 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
     }
     else // C
     {
-        writer->funcs->write_cell_array(writer->data, identifier, instbasename, origin->x, origin->y, trans, xrep, yrep, xpitch, ypitch);
+        writer->funcs->write_cell_array(writer->data, identifier, instbasename, origin, trans, xrep, yrep, xpitch, ypitch);
         return 1;
     }
 }
@@ -280,17 +293,18 @@ static int _write_child_manual_array(struct export_writer* writer, const char* r
     {
         for(unsigned int iy = 1; iy <= yrep; ++iy)
         {
-            coordinate_t x = origin->x + (ix - 1) * xpitch;
-            coordinate_t y = origin->y + (iy - 1) * ypitch;
+            point_t where = {
+                .x = origin->x + (ix - 1) * xpitch,
+                .y = origin->y + (iy - 1) * ypitch
+            };
             if(writer->islua)
             {
                 lua_getfield(writer->L, -1, "write_cell_reference");
                 lua_pushstring(writer->L, refname);
                 lua_pushfstring(writer->L, "%s_%d_%d", instname, ix, iy);
-                lua_pushinteger(writer->L, x);
-                lua_pushinteger(writer->L, y);
+                _push_point(writer->L, &where);
                 _push_trans(writer->L, trans);
-                int ret = _pcall(writer->L, 5, 0, "write_cell_reference");
+                int ret = _pcall(writer->L, 4, 0, "write_cell_reference");
                 if(!ret)
                 {
                     return 0;
@@ -298,7 +312,7 @@ static int _write_child_manual_array(struct export_writer* writer, const char* r
             }
             else // C
             {
-                writer->funcs->write_cell_reference(writer->data, refname, instname, x, y, trans);
+                writer->funcs->write_cell_reference(writer->data, refname, instname, &where, trans);
             }
         }
     }
@@ -312,10 +326,9 @@ static int _write_child_single(struct export_writer* writer, const char* refname
         lua_getfield(writer->L, -1, "write_cell_reference");
         lua_pushstring(writer->L, refname);
         lua_pushstring(writer->L, instname);
-        lua_pushinteger(writer->L, origin->x);
-        lua_pushinteger(writer->L, origin->y);
+        _push_point(writer->L, origin);
         _push_trans(writer->L, trans);
-        int ret = _pcall(writer->L, 5, 0, "write_cell_reference");
+        int ret = _pcall(writer->L, 4, 0, "write_cell_reference");
         if(!ret)
         {
             return 0;
@@ -323,7 +336,7 @@ static int _write_child_single(struct export_writer* writer, const char* refname
     }
     else // C
     {
-        writer->funcs->write_cell_reference(writer->data, refname, instname, origin->x, origin->y, trans);
+        writer->funcs->write_cell_reference(writer->data, refname, instname, origin, trans);
     }
     return 1;
 }
@@ -526,7 +539,14 @@ static int _write_cell_shape_path(struct export_writer* writer, const struct sha
         }
         else
         {
-            writer->funcs->write_path(writer->data, layerdata, points, width, extension);
+            if(_has_write_path_extension(writer))
+            {
+                writer->funcs->write_path_extension(writer->data, layerdata, points, width, extension);
+            }
+            else
+            {
+                writer->funcs->write_path(writer->data, layerdata, points, width);
+            }
         }
     }
     else
@@ -710,7 +730,7 @@ static int _write_port(struct export_writer* writer, const char* name, const str
     }
     else
     {
-        writer->funcs->write_port(writer->data, name, layerdata, where->x, where->y, sizehint);
+        writer->funcs->write_port(writer->data, name, layerdata, where, sizehint);
         return 1;
     }
 }
@@ -787,11 +807,11 @@ static int _write_label(struct export_writer* writer, const char* name, const st
     {
         if(writer->funcs->write_label)
         {
-            writer->funcs->write_label(writer->data, name, layerdata, where->x, where->y, sizehint);
+            writer->funcs->write_label(writer->data, name, layerdata, where, sizehint);
         }
         else
         {
-            writer->funcs->write_port(writer->data, name, layerdata, where->x, where->y, sizehint);
+            writer->funcs->write_port(writer->data, name, layerdata, where, sizehint);
         }
         return 1;
     }
@@ -918,9 +938,9 @@ static int _write_cell(struct export_writer* writer, const struct object* cell, 
     }
     else // C
     {
-        writer->funcs->at_begin_cell(writer->data, name);
+        writer->funcs->at_begin_cell(writer->data, name, istoplevel);
         _write_cell_elements(writer, cell, namecontext, expand_namecontext, write_ports, leftdelim, rightdelim);
-        writer->funcs->at_end_cell(writer->data);
+        writer->funcs->at_end_cell(writer->data, istoplevel);
     }
     free(name);
     return 1;
@@ -1043,7 +1063,24 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
 
     int mustdelete = 0;
     struct object* copy;
-    if(!_has_write_cell_reference(writer))
+    if(!_has_write_cell_reference(writer) && !_has_write_path_extension(writer))
+    {
+        fputs("this export does not know how to write hierarchies, hence the cell is being written flat\n", stderr);
+        fputs("this export does not know how to write path extensions, hence all path extensions are being resolved\n", stderr);
+        copy = object_flatten(toplevel, 0); // 0: !flattenports
+        object_foreach_shapes(copy, shape_resolve_path_extensions_inline);
+        toplevel = copy; // extra pointer to silence warning
+        mustdelete = 1;
+    }
+    else if(!_has_write_path_extension(writer))
+    {
+        fputs("this export does not know how to write path extensions, hence all path extensions are being resolved\n", stderr);
+        copy = object_copy(toplevel);
+        object_foreach_shapes(copy, shape_resolve_path_extensions_inline);
+        toplevel = copy; // extra pointer to silence warning
+        mustdelete = 1;
+    }
+    else if(!_has_write_cell_reference(writer))
     {
         fputs("this export does not know how to write hierarchies, hence the cell is being written flat\n", stderr);
         copy = object_flatten(toplevel, 0); // 0: !flattenports
