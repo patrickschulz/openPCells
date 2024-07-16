@@ -22,12 +22,12 @@ void* point_copy(const void* v)
     return new;
 }
 
-coordinate_t point_getx(const point_t* pt)
+inline coordinate_t point_getx(const point_t* pt)
 {
     return pt->x;
 }
 
-coordinate_t point_gety(const point_t* pt)
+inline coordinate_t point_gety(const point_t* pt)
 {
     return pt->y;
 }
