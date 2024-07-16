@@ -115,7 +115,7 @@ static int lgeometry_polygon(lua_State* L)
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
-    const point_t** points = calloc(len, sizeof(*points));
+    const struct point** points = calloc(len, sizeof(*points));
     for(unsigned int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 3, i);
@@ -193,7 +193,7 @@ static int lgeometry_path(lua_State* L)
     {
         lua_rawgeti(L, 3, i);
         struct lpoint* pt = lpoint_checkpoint(L, -1);
-        vector_append(points, (point_t*)lpoint_get(pt));
+        vector_append(points, (struct point*)lpoint_get(pt));
         lua_pop(L, 1);
     }
     lobject_check_proxy(L, cell);
@@ -216,8 +216,8 @@ static int lgeometry_rectanglepath(lua_State* L)
     _get_path_extension(L, 6, &bgnext, &endext, width);
 
     struct vector* points = vector_create(2, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(pt1));
-    vector_append(points, (point_t*)lpoint_get(pt2));
+    vector_append(points, (struct point*)lpoint_get(pt1));
+    vector_append(points, (struct point*)lpoint_get(pt2));
     geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     vector_destroy(points);
     return 0;
@@ -284,8 +284,8 @@ static int lgeometry_rectanglelines_vertical(lua_State* L)
         lua_error(L);
     }
 
-    const point_t* bl = lpoint_get(pt1);
-    const point_t* tr = lpoint_get(pt2);
+    const struct point* bl = lpoint_get(pt1);
+    const struct point* tr = lpoint_get(pt2);
 
     ucoordinate_t totalwidth = point_xdifference(tr, bl);
     // ensure that the width and the space of the lines is even
@@ -325,8 +325,8 @@ static int lgeometry_rectanglelines_vertical_width_space(lua_State* L)
     coordinate_t widthtarget = luaL_checkinteger(L, 5);
     coordinate_t spacetarget = luaL_checkinteger(L, 6);
 
-    const point_t* bl = lpoint_get(pt1);
-    const point_t* tr = lpoint_get(pt2);
+    const struct point* bl = lpoint_get(pt1);
+    const struct point* tr = lpoint_get(pt2);
 
     coordinate_t totalwidth = point_xdifference(tr, bl);
     unsigned int numlines = totalwidth / (widthtarget + spacetarget);
@@ -363,8 +363,8 @@ static int lgeometry_rectanglelines_vertical_numlines_width(lua_State* L)
         lua_error(L);
     }
 
-    const point_t* bl = lpoint_get(pt1);
-    const point_t* tr = lpoint_get(pt2);
+    const struct point* bl = lpoint_get(pt1);
+    const struct point* tr = lpoint_get(pt2);
 
     ucoordinate_t totalwidth = point_xdifference(tr, bl);
     // ensure that the width and the space of the lines is even
@@ -416,8 +416,8 @@ static int lgeometry_rectanglelines_vertical_settings(lua_State* L)
         lua_error(L);
     }
 
-    const point_t* bl = lpoint_get(pt1);
-    const point_t* tr = lpoint_get(pt2);
+    const struct point* bl = lpoint_get(pt1);
+    const struct point* tr = lpoint_get(pt2);
 
     ucoordinate_t totalwidth = point_xdifference(tr, bl);
     // ensure that the width and the space of the lines is even
@@ -452,8 +452,8 @@ static int lgeometry_rectanglelines_vertical_width_space_settings(lua_State* L)
     coordinate_t widthtarget = luaL_checkinteger(L, 3);
     coordinate_t spacetarget = luaL_checkinteger(L, 4);
 
-    const point_t* bl = lpoint_get(pt1);
-    const point_t* tr = lpoint_get(pt2);
+    const struct point* bl = lpoint_get(pt1);
+    const struct point* tr = lpoint_get(pt2);
 
     coordinate_t totalwidth = point_xdifference(tr, bl);
     unsigned int numlines = totalwidth / (widthtarget + spacetarget);
@@ -493,8 +493,8 @@ static int lgeometry_rectanglelines_horizontal(lua_State* L)
         lua_error(L);
     }
 
-    const point_t* bl = lpoint_get(pt1);
-    const point_t* tr = lpoint_get(pt2);
+    const struct point* bl = lpoint_get(pt1);
+    const struct point* tr = lpoint_get(pt2);
 
     ucoordinate_t totalheight = point_ydifference(tr, bl);
     // ensure that the width and the space of the lines is even
@@ -534,8 +534,8 @@ static int lgeometry_rectanglelines_horizontal_height_space(lua_State* L)
     coordinate_t heighttarget = luaL_checkinteger(L, 5);
     coordinate_t spacetarget = luaL_checkinteger(L, 6);
 
-    const point_t* bl = lpoint_get(pt1);
-    const point_t* tr = lpoint_get(pt2);
+    const struct point* bl = lpoint_get(pt1);
+    const struct point* tr = lpoint_get(pt2);
 
     coordinate_t totalheight = point_ydifference(tr, bl);
     unsigned int numlines = totalheight / (heighttarget + spacetarget);
@@ -576,8 +576,8 @@ static int lgeometry_rectanglelines_horizontal_settings(lua_State* L)
         lua_error(L);
     }
 
-    const point_t* bl = lpoint_get(pt1);
-    const point_t* tr = lpoint_get(pt2);
+    const struct point* bl = lpoint_get(pt1);
+    const struct point* tr = lpoint_get(pt2);
 
     ucoordinate_t totalheight = point_ydifference(tr, bl);
     // ensure that the width and the space of the lines is even
@@ -612,8 +612,8 @@ static int lgeometry_rectanglelines_horizontal_height_space_settings(lua_State* 
     coordinate_t heighttarget = luaL_checkinteger(L, 3);
     coordinate_t spacetarget = luaL_checkinteger(L, 4);
 
-    const point_t* bl = lpoint_get(pt1);
-    const point_t* tr = lpoint_get(pt2);
+    const struct point* bl = lpoint_get(pt1);
+    const struct point* tr = lpoint_get(pt2);
 
     coordinate_t totalheight = point_ydifference(tr, bl);
     unsigned int numlines = totalheight / (heighttarget + spacetarget);
@@ -662,7 +662,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     struct vector_const_iterator* origin_it = vector_const_iterator_create(origins);
     while(vector_const_iterator_is_valid(origin_it))
     {
-        const point_t* origin = vector_const_iterator_get(origin_it);
+        const struct point* origin = vector_const_iterator_get(origin_it);
         geometry_rectanglebltrxy(
             lobject_get_full(L, cell),
             layer,
@@ -688,11 +688,11 @@ static int lgeometry_path_2x(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 6, &bgnext, &endext, width);
 
-    point_t* pts1 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y);
+    struct point* pts1 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y);
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     vector_destroy(points);
@@ -711,11 +711,11 @@ static int lgeometry_path_2x_polygon(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 6, &bgnext, &endext, width);
 
-    point_t* pts1 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y);
+    struct point* pts1 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y);
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     vector_destroy(points);
@@ -734,11 +734,11 @@ static int lgeometry_path_2y(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 6, &bgnext, &endext, width);
 
-    point_t* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptend)->y);
+    struct point* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptend)->y);
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     vector_destroy(points);
@@ -757,11 +757,11 @@ static int lgeometry_path_2y_polygon(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 6, &bgnext, &endext, width);
 
-    point_t* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptend)->y);
+    struct point* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptend)->y);
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     vector_destroy(points);
@@ -782,13 +782,13 @@ static int lgeometry_path_3x(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 7, &bgnext, &endext, width);
 
-    point_t* pts1 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptstart)->y);
-    point_t* pts2 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptend)->y);
+    struct point* pts1 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptstart)->y);
+    struct point* pts2 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptend)->y);
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, pts2);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
@@ -810,13 +810,13 @@ static int lgeometry_path_3x_polygon(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 7, &bgnext, &endext, width);
 
-    point_t* pts1 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptstart)->y);
-    point_t* pts2 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptend)->y);
+    struct point* pts1 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptstart)->y);
+    struct point* pts2 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptend)->y);
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, pts2);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
@@ -843,19 +843,19 @@ static int lgeometry_path_3x_diagonal(lua_State* L)
     {
         diff = -diff;
     }
-    point_t* pts1 = point_create(
+    struct point* pts1 = point_create(
         lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor + diff / 2,
         lpoint_get(ptstart)->y
     );
-    point_t* pts2 = point_create(
+    struct point* pts2 = point_create(
         lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor - diff / 2,
         lpoint_get(ptend)->y
     );
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, pts2);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
@@ -882,19 +882,19 @@ static int lgeometry_path_3x_diagonal_polygon(lua_State* L)
     {
         diff = -diff;
     }
-    point_t* pts1 = point_create(
+    struct point* pts1 = point_create(
         lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor + diff / 2,
         lpoint_get(ptstart)->y
     );
-    point_t* pts2 = point_create(
+    struct point* pts2 = point_create(
         lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor - diff / 2,
         lpoint_get(ptend)->y
     );
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, pts2);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
@@ -916,13 +916,13 @@ static int lgeometry_path_3y(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 6, &bgnext, &endext, width);
 
-    point_t* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
-    point_t* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
+    struct point* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
+    struct point* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, pts2);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
@@ -944,13 +944,13 @@ static int lgeometry_path_3y_polygon(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 6, &bgnext, &endext, width);
 
-    point_t* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
-    point_t* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
+    struct point* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
+    struct point* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, pts2);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
@@ -977,19 +977,19 @@ static int lgeometry_path_3y_diagonal(lua_State* L)
     {
         diff = -diff;
     }
-    point_t* pts1 = point_create(
+    struct point* pts1 = point_create(
         lpoint_get(ptstart)->x,
         lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor + diff / 2
     );
-    point_t* pts2 = point_create(
+    struct point* pts2 = point_create(
         lpoint_get(ptend)->x,
         lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor - diff / 2
     );
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, pts2);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
@@ -1016,19 +1016,19 @@ static int lgeometry_path_3y_diagonal_polygon(lua_State* L)
     {
         diff = -diff;
     }
-    point_t* pts1 = point_create(
+    struct point* pts1 = point_create(
         lpoint_get(ptstart)->x,
         lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor + diff / 2
     );
-    point_t* pts2 = point_create(
+    struct point* pts2 = point_create(
         lpoint_get(ptend)->x,
         lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor - diff / 2
     );
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, pts2);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path_polygon(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
@@ -1050,13 +1050,13 @@ static int lgeometry_path_cshape(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 7, &bgnext, &endext, width);
 
-    point_t* pts1 = point_create(offset, lpoint_get(ptstart)->y);
-    point_t* pts2 = point_create(offset, lpoint_get(ptend)->y);
+    struct point* pts1 = point_create(offset, lpoint_get(ptstart)->y);
+    struct point* pts2 = point_create(offset, lpoint_get(ptend)->y);
     struct vector* points = vector_create(3, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, pts2);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
@@ -1078,13 +1078,13 @@ static int lgeometry_path_ushape(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 7, &bgnext, &endext, width);
 
-    point_t* pts1 = point_create(lpoint_get(ptstart)->x, offset);
-    point_t* pts2 = point_create(lpoint_get(ptend)->x, offset);
+    struct point* pts1 = point_create(lpoint_get(ptstart)->x, offset);
+    struct point* pts2 = point_create(lpoint_get(ptend)->x, offset);
     struct vector* points = vector_create(4, NULL); // non-owning
-    vector_append(points, (point_t*)lpoint_get(ptstart));
+    vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
     vector_append(points, pts2);
-    vector_append(points, (point_t*)lpoint_get(ptend));
+    vector_append(points, (struct point*)lpoint_get(ptend));
     geometry_path(lobject_get_full(L, cell), layer, points, width, bgnext, endext);
     point_destroy(pts1);
     point_destroy(pts2);
@@ -1520,8 +1520,8 @@ static int lgeometry_contactbltr(lua_State* L)
     );
     if(!res)
     {
-        const point_t* blp = lpoint_get(bl);
-        const point_t* trp = lpoint_get(tr);
+        const struct point* blp = lpoint_get(bl);
+        const struct point* trp = lpoint_get(tr);
         lua_pushfstring(L, "geometry.contactbltr: could not fit contact from %s to metal 1 (width = %d, height = %d)", region, trp->x - blp->x, trp->y - blp->y);
         lua_error(L);
     }
@@ -1652,15 +1652,15 @@ static int lgeometry_curve(lua_State* L)
         {
             lua_getfield(L, -2, "cpt1");
             struct lpoint* lcpt1 = lpoint_checkpoint(L, -1);
-            const point_t* cpt1 = lpoint_get(lcpt1);
+            const struct point* cpt1 = lpoint_get(lcpt1);
             lua_pop(L, 1);
             lua_getfield(L, -2, "cpt2");
             struct lpoint* lcpt2 = lpoint_checkpoint(L, -1);
-            const point_t* cpt2 = lpoint_get(lcpt2);
+            const struct point* cpt2 = lpoint_get(lcpt2);
             lua_pop(L, 1);
             lua_getfield(L, -2, "endpt");
             struct lpoint* lendpt = lpoint_checkpoint(L, -1);
-            const point_t* endpt = lpoint_get(lendpt);
+            const struct point* endpt = lpoint_get(lendpt);
             lua_pop(L, 1);
             shape_curve_add_cubic_bezier_segment(S, cpt1, cpt2, endpt);
         }
@@ -1719,15 +1719,15 @@ static int lgeometry_curve_rasterized(lua_State* L)
         {
             lua_getfield(L, -2, "cpt1");
             struct lpoint* lcpt1 = lpoint_checkpoint(L, -1);
-            const point_t* cpt1 = lpoint_get(lcpt1);
+            const struct point* cpt1 = lpoint_get(lcpt1);
             lua_pop(L, 1);
             lua_getfield(L, -2, "cpt2");
             struct lpoint* lcpt2 = lpoint_checkpoint(L, -1);
-            const point_t* cpt2 = lpoint_get(lcpt2);
+            const struct point* cpt2 = lpoint_get(lcpt2);
             lua_pop(L, 1);
             lua_getfield(L, -2, "endpt");
             struct lpoint* lendpt = lpoint_checkpoint(L, -1);
-            const point_t* endpt = lpoint_get(lendpt);
+            const struct point* endpt = lpoint_get(lendpt);
             lua_pop(L, 1);
             shape_curve_add_cubic_bezier_segment(S, cpt1, cpt2, endpt);
         }
@@ -1772,7 +1772,7 @@ static int lgeometry_get_side_path_points(lua_State* L)
     lua_newtable(L);
     for(unsigned int i = 0; i < vector_size(newpts); ++i)
     {
-        point_t* pt = vector_get(newpts, i);
+        struct point* pt = vector_get(newpts, i);
         lpoint_create_internal(L, point_getx(pt), point_gety(pt));
         lua_rawseti(L, -2, i + 1);
     }
@@ -1826,7 +1826,7 @@ static int lgeometry_path_points_to_polygon(lua_State* L)
     lua_newtable(L);
     for(unsigned int i = 0; i < vector_size(newpts); ++i)
     {
-        point_t* pt = vector_get(newpts, i);
+        struct point* pt = vector_get(newpts, i);
         lpoint_create_internal(L, point_getx(pt), point_gety(pt));
         lua_rawseti(L, -2, i + 1);
     }

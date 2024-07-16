@@ -194,14 +194,14 @@ static void _write_coordinate(struct export_data* data, coordinate_t num)
     _write_fpart(data, fpart);
 }
 
-static void _write_point(struct export_data* data, const point_t* pt)
+static void _write_point(struct export_data* data, const struct point* pt)
 {
     _write_coordinate(data, point_getx(pt));
     export_data_append_char(data, ':');
     _write_coordinate(data, point_gety(pt));
 }
 
-static void _write_rectangle(struct export_data* data, const struct hashmap* layer, const point_t* bl, const point_t* tr)
+static void _write_rectangle(struct export_data* data, const struct hashmap* layer, const struct point* bl, const struct point* tr)
 {
     _prepare_shape_for_group(data);
     export_data_append_string(data, "dbCreateRect");
@@ -236,7 +236,7 @@ static void _write_polygon(struct export_data* data, const struct hashmap* layer
     struct vector_const_iterator* it = vector_const_iterator_create(pts);
     while(vector_const_iterator_is_valid(it))
     {
-        const point_t* pt = vector_const_iterator_get(it);
+        const struct point* pt = vector_const_iterator_get(it);
         _write_point(data, pt);
         export_data_append_char(data, ' ');
         vector_const_iterator_next(it);
@@ -263,7 +263,7 @@ static void _write_path(struct export_data* data, const struct hashmap* layer, c
     struct vector_const_iterator* it = vector_const_iterator_create(pts);
     while(vector_const_iterator_is_valid(it))
     {
-        const point_t* pt = vector_const_iterator_get(it);
+        const struct point* pt = vector_const_iterator_get(it);
         _write_point(data, pt);
         export_data_append_char(data, ' ');
         vector_const_iterator_next(it);
@@ -319,7 +319,7 @@ static const char* _get_extension(void)
 //    end
 //end
 
-static void _write_port(struct export_data* data, const char* name, const struct hashmap* layer, const point_t* where, unsigned int sizehint)
+static void _write_port(struct export_data* data, const char* name, const struct hashmap* layer, const struct point* where, unsigned int sizehint)
 {
     _prepare_shape_for_group(data);
     export_data_append_string(data, "dbCreateLabel");
@@ -350,7 +350,7 @@ static void _write_port(struct export_data* data, const char* name, const struct
     _ensure_legal_limit(data);
 }
 
-static void _write_cell_reference(struct export_data* data, const char* identifier, const char* instname, const point_t* where, const struct transformationmatrix* trans)
+static void _write_cell_reference(struct export_data* data, const char* identifier, const char* instname, const struct point* where, const struct transformationmatrix* trans)
 {
     _prepare_shape_for_group(data);
     export_data_append_string(data, "dbCreateInstByMasterName");
@@ -400,7 +400,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     _ensure_legal_limit(data);
 }
 
-static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, const point_t* where, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
+static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, const struct point* where, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     _prepare_shape_for_group(data);
     export_data_append_string(data, "dbCreateParamSimpleMosaicByMasterName");

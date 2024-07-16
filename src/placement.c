@@ -18,15 +18,15 @@ void destroy_placement_layerexclude(void* v)
 static int _is_in_targetarea(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct simple_polygon* targetarea)
 {
     // FIXME: this needs a proper polygon intersection test
-    return (polygon_is_point_in_simple_polygon(targetarea, x            , y             ) == 1) &&
+    return (polygon_is_point_in_simple_polygon(targetarea, x - width / 2, y - height / 2) >= 0) &&
+           (polygon_is_point_in_simple_polygon(targetarea, x + width / 2, y + height / 2) >= 0) &&
+           (polygon_is_point_in_simple_polygon(targetarea, x + width / 2, y - height / 2) >= 0) &&
+           (polygon_is_point_in_simple_polygon(targetarea, x - width / 2, y + height / 2) >= 0) &&
            (polygon_is_point_in_simple_polygon(targetarea, x + width / 2, y             ) >= 0) &&
            (polygon_is_point_in_simple_polygon(targetarea, x - width / 2, y             ) >= 0) &&
            (polygon_is_point_in_simple_polygon(targetarea, x            , y + height / 2) >= 0) &&
            (polygon_is_point_in_simple_polygon(targetarea, x            , y - height / 2) >= 0) &&
-           (polygon_is_point_in_simple_polygon(targetarea, x + width / 2, y + height / 2) >= 0) &&
-           (polygon_is_point_in_simple_polygon(targetarea, x - width / 2, y + height / 2) >= 0) &&
-           (polygon_is_point_in_simple_polygon(targetarea, x + width / 2, y - height / 2) >= 0) &&
-           (polygon_is_point_in_simple_polygon(targetarea, x - width / 2, y - height / 2) >= 0);
+           (polygon_is_point_in_simple_polygon(targetarea, x            , y             ) == 1);
 }
 
 static int _is_in_excludes(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct polygon* excludes)
@@ -45,7 +45,7 @@ static void _get_minmax(const struct simple_polygon* targetarea, coordinate_t* m
     struct simple_polygon_const_iterator* it = simple_polygon_const_iterator_create(targetarea);
     while(simple_polygon_const_iterator_is_valid(it))
     {
-        const point_t* pt = simple_polygon_const_iterator_get(it);
+        const struct point* pt = simple_polygon_const_iterator_get(it);
         coordinate_t x = point_getx(pt);
         coordinate_t y = point_gety(pt);
         if(x < *minx)
@@ -70,8 +70,8 @@ static void _get_minmax(const struct simple_polygon* targetarea, coordinate_t* m
 }
 
 struct vector* placement_calculate_grid(
-    const point_t* bl,
-    const point_t* tr,
+    const struct point* bl,
+    const struct point* tr,
     coordinate_t xpitch,
     coordinate_t ypitch,
     const struct polygon* excludes
@@ -153,7 +153,7 @@ static int _has_neighbour(struct vector* grid, int rownum, int colnum)
 struct vector* placement_place_boundary_grid(
     struct object* toplevel,
     struct boundary_celltable* boundary_celltable,
-    const point_t* basept,
+    const struct point* basept,
     struct vector* grid,
     coordinate_t xpitch,
     coordinate_t ypitch,
@@ -362,7 +362,7 @@ void placement_place_at_origins(struct object* toplevel, struct object* cell, co
     int i = 1;
     while(vector_const_iterator_is_valid(origin_it))
     {
-        const point_t* origin = vector_const_iterator_get(origin_it);
+        const struct point* origin = vector_const_iterator_get(origin_it);
         struct object* child = _place_child(toplevel, cell, point_getx(origin), point_gety(origin), basename, i);
         vector_append(children, child);
         i = i + 1;
@@ -371,7 +371,7 @@ void placement_place_at_origins(struct object* toplevel, struct object* cell, co
     vector_const_iterator_destroy(origin_it);
 }
 
-struct vector* placement_place_on_grid(struct object* toplevel, struct object* cell, const char* basename, const point_t* basept, coordinate_t xpitch, coordinate_t ypitch, const struct vector* grid)
+struct vector* placement_place_on_grid(struct object* toplevel, struct object* cell, const char* basename, const struct point* basept, coordinate_t xpitch, coordinate_t ypitch, const struct vector* grid)
 {
     struct vector* children = vector_create(32, NULL);
     struct vector_const_iterator* yit = vector_const_iterator_create(grid);
@@ -423,7 +423,7 @@ void placement_place_within_boundary_merge(struct object* toplevel, struct objec
     struct vector_const_iterator* origin_it = vector_const_iterator_create(origins);
     while(vector_const_iterator_is_valid(origin_it))
     {
-        const point_t* origin = vector_const_iterator_get(origin_it);
+        const struct point* origin = vector_const_iterator_get(origin_it);
         object_move_to(cell, point_getx(origin), point_gety(origin));
         object_merge_into(toplevel, cell);
         vector_const_iterator_next(origin_it);
@@ -432,7 +432,7 @@ void placement_place_within_boundary_merge(struct object* toplevel, struct objec
     vector_destroy(origins);
 }
 
-struct object* placement_place_within_rectangular_boundary(struct object* toplevel, struct object* cell, const char* basename, const point_t* targetbl, const point_t* targettr)
+struct object* placement_place_within_rectangular_boundary(struct object* toplevel, struct object* cell, const char* basename, const struct point* targetbl, const struct point* targettr)
 {
     ucoordinate_t xpitch, ypitch;
     object_width_height_alignmentbox(cell, &xpitch, &ypitch);
@@ -500,8 +500,8 @@ static void _place_within_layer_boundaries_rectangular(
     struct object* toplevel,
     struct vector* celllookup, // contains entries of struct placement_celllookup*
     const char* basename,
-    const point_t* targetbl,
-    const point_t* targettr,
+    const struct point* targetbl,
+    const struct point* targettr,
     coordinate_t xpitch, coordinate_t ypitch,
     struct vector* layerexcludes, // contains entries of struct placement_layerexclude*
     const struct generics* ignorelayer, // ignored layer for extra excludes
@@ -650,8 +650,8 @@ struct vector* placement_place_within_layer_boundaries(
     {
         coordinate_t minx, maxx, miny, maxy;
         _get_minmax(targetarea, &minx, &miny, &maxx, &maxy);
-        point_t* bl = point_create(minx, miny);
-        point_t* tr = point_create(maxx, maxy);
+        struct point* bl = point_create(minx, miny);
+        struct point* tr = point_create(maxx, maxy);
         _place_within_layer_boundaries_rectangular(
             toplevel,
             celllookup,
@@ -685,8 +685,8 @@ struct vector* placement_place_gridlines(
     struct object* toplevel,
     const struct generics* layer,
     coordinate_t size, coordinate_t space,
-    const point_t* targetbl,
-    const point_t* targettr,
+    const struct point* targetbl,
+    const struct point* targettr,
     const struct polygon* excludes
 )
 {
@@ -711,7 +711,7 @@ struct vector* placement_place_gridlines(
             coordinate_t lasty = y1;
             for(size_t i = 0; i < vector_size(yrightintersections); ++i)
             {
-                point_t* pt = vector_get(yrightintersections, i);
+                struct point* pt = vector_get(yrightintersections, i);
                 if(odd)
                 {
                     geometry_rectanglebltr(toplevel, layer,

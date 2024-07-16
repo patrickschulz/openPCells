@@ -757,7 +757,7 @@ static int lobject_get_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
-    point_t* point = object_get_anchor(lobject_get_const(cell), name);
+    struct point* point = object_get_anchor(lobject_get_const(cell), name);
     if(point)
     {
         lpoint_takeover_point(L, point);
@@ -780,7 +780,7 @@ static int lobject_get_alignment_anchor(lua_State* L)
     }
     const char* name = luaL_checkstring(L, 2);
     // FIXME: check that name is a valid identifier
-    point_t* point = object_get_alignment_anchor(lobject_get_const(cell), name);
+    struct point* point = object_get_alignment_anchor(lobject_get_const(cell), name);
     if(point)
     {
         lpoint_takeover_point(L, point);
@@ -822,7 +822,7 @@ static int lobject_get_area_anchor(lua_State* L)
     lua_pop(L, 1); // pop meta table
     struct lobject* cell = lobject_check(L, 1);
     const char* base = luaL_checkstring(L, 2);
-    point_t* pts = object_get_area_anchor(lobject_get_const(cell), base);
+    struct point* pts = object_get_area_anchor(lobject_get_const(cell), base);
     if(pts)
     {
         lua_newtable(L);
@@ -872,7 +872,7 @@ static int lobject_get_array_anchor(lua_State* L)
     int xindex = luaL_checkinteger(L, 2);
     int yindex = luaL_checkinteger(L, 3);
     const char* name = luaL_checkstring(L, 4);
-    point_t* point = object_get_array_anchor(lobject_get_const(cell), xindex, yindex, name);
+    struct point* point = object_get_array_anchor(lobject_get_const(cell), xindex, yindex, name);
     if(point)
     {
         lpoint_takeover_point(L, point);
@@ -892,7 +892,7 @@ static int lobject_get_array_area_anchor(lua_State* L)
     int xindex = luaL_checkinteger(L, 2);
     int yindex = luaL_checkinteger(L, 3);
     const char* base = luaL_checkstring(L, 4);
-    point_t* pts = object_get_array_area_anchor(lobject_get_const(cell), xindex - 1, yindex - 1, base);
+    struct point* pts = object_get_array_area_anchor(lobject_get_const(cell), xindex - 1, yindex - 1, base);
     if(pts)
     {
         lua_newtable(L);
@@ -935,8 +935,8 @@ static int lobject_get_all_regular_anchors(lua_State* L)
     while(hashmap_const_iterator_is_valid(iterator))
     {
         const char* key = hashmap_const_iterator_key(iterator);
-        const point_t* anchor = hashmap_const_iterator_value(iterator);
-        point_t* pt = point_copy(anchor);
+        const struct point* anchor = hashmap_const_iterator_value(iterator);
+        struct point* pt = point_copy(anchor);
         lpoint_adapt_point(L, pt);
         lua_setfield(L, -2, key);
         hashmap_const_iterator_next(iterator);
@@ -1009,7 +1009,7 @@ static int lobject_get_ports(lua_State* L)
     while(port_iterator_is_valid(it))
     {
         const char* portname;
-        const point_t* portwhere;
+        const struct point* portwhere;
         port_iterator_get(it, &portname, &portwhere, NULL, NULL, NULL, NULL);
         lua_newtable(L);
         lua_pushstring(L, portname);
@@ -1434,7 +1434,7 @@ static int lobject_get_boundary(lua_State* L)
     struct vector_iterator* it = vector_iterator_create(boundary);
     while(vector_iterator_is_valid(it))
     {
-        const point_t* pt = vector_iterator_get(it);
+        const struct point* pt = vector_iterator_get(it);
         lpoint_create_internal(L, pt->x, pt->y);
         lua_rawseti(L, -2, i);
         vector_iterator_next(it);
@@ -1474,7 +1474,7 @@ static int lobject_get_layer_boundary(lua_State* L)
         int j = 1;
         while(simple_polygon_iterator_is_valid(it))
         {
-            const point_t* pt = simple_polygon_iterator_get(it);
+            const struct point* pt = simple_polygon_iterator_get(it);
             lpoint_create_internal(L, pt->x, pt->y);
             lua_rawseti(L, -2, j);
             simple_polygon_iterator_next(it);

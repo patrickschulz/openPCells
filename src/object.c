@@ -17,7 +17,7 @@
 
 struct port {
     char* name;
-    point_t* where;
+    struct point* where;
     const struct generics* layer;
     int isbusport;
     int busindex;
@@ -35,10 +35,10 @@ static void _port_destroy(void* p)
 struct anchor {
     union {
         /* regular anchors have one point, area anchors two */
-        point_t* where;
+        struct point* where;
         struct {
-            point_t* bl;
-            point_t* tr;
+            struct point* bl;
+            struct point* tr;
         };
     };
     int is_area;
@@ -123,8 +123,8 @@ struct object {
             struct vector* children; // stores struct object*
             struct vector* references; // stores struct object*
             coordinate_t* alignmentbox; // NULL or contains eight coordinates: blx, blx, trx, try for both outer (first) and inner (second)
-            struct vector* boundary; // a polygon, stores point_t*
-            struct hashmap* layer_boundaries; // contains polygons that store point_t*
+            struct vector* boundary; // a polygon, stores struct point*
+            struct hashmap* layer_boundaries; // contains polygons that store struct point*
             size_t childcounter;
         };
     };
@@ -289,7 +289,7 @@ struct object* object_copy(const struct object* cell)
             struct vector_const_iterator* bit = vector_const_iterator_create(cell->boundary);
             while(vector_const_iterator_is_valid(bit))
             {
-                const point_t* pt = vector_const_iterator_get(bit);
+                const struct point* pt = vector_const_iterator_get(bit);
                 vector_append(new->boundary, point_copy(pt));
                 vector_const_iterator_next(bit);
             }
@@ -548,7 +548,7 @@ static void _swap_coordinates(coordinate_t* c1, coordinate_t* c2)
     *c2 = tmp;
 }
 
-static void _fix_rectangle_order(point_t* bl, point_t* tr)
+static void _fix_rectangle_order(struct point* bl, struct point* tr)
 {
     if(bl->x > tr->x)
     {
@@ -626,12 +626,12 @@ static int _add_area_anchor_bltr(struct object* cell, const char* base, coordina
     return ret;
 }
 
-int object_add_area_anchor_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr)
+int object_add_area_anchor_bltr(struct object* cell, const char* base, const struct point* bl, const struct point* tr)
 {
     return _add_area_anchor_bltr(cell, base, bl->x, bl->y, tr->x, tr->y);
 }
 
-int object_add_area_anchor_points(struct object* cell, const char* base, const point_t* pt1, const point_t* pt2)
+int object_add_area_anchor_points(struct object* cell, const char* base, const struct point* pt1, const struct point* pt2)
 {
     coordinate_t blx = point_getx(pt1);
     coordinate_t bly = point_gety(pt1);
@@ -652,7 +652,7 @@ int object_inherit_area_anchor_as(struct object* cell, const struct object* othe
     {
         return 0;
     }
-    point_t* anchor = object_get_area_anchor(other, name);
+    struct point* anchor = object_get_area_anchor(other, name);
     if(anchor)
     {
         object_add_area_anchor_bltr(cell, newname, anchor + 0, anchor + 1);
@@ -672,7 +672,7 @@ int object_inherit_anchor_as(struct object* cell, const struct object* other, co
     {
         return 0;
     }
-    point_t* anchor = object_get_anchor(other, name);
+    struct point* anchor = object_get_anchor(other, name);
     if(anchor)
     {
         object_add_anchor(cell, newname, point_getx(anchor), point_gety(anchor));
@@ -712,7 +712,7 @@ void object_inherit_all_anchors_with_prefix(struct object* cell, const struct ob
     }
 }
 
-static point_t* _get_regular_anchor(const struct object* cell, const char* name)
+static struct point* _get_regular_anchor(const struct object* cell, const char* name)
 {
     const struct object* obj = cell;
     if(cell->isproxy)
@@ -746,7 +746,7 @@ static void _transform_to_global_coordinates_xy(const struct object* cell, coord
     transformationmatrix_apply_transformation_xy(cell->trans, x, y);
 }
 
-static void _transform_to_global_coordinates(const struct object* cell, point_t* pt)
+static void _transform_to_global_coordinates(const struct object* cell, struct point* pt)
 {
     _transform_to_global_coordinates_xy(cell, &pt->x, &pt->y);
 }
@@ -824,9 +824,9 @@ static coordinate_t* _get_transformed_alignment_box(const struct object* cell)
     return alignmentbox;
 }
 
-point_t* object_get_anchor(const struct object* cell, const char* name)
+struct point* object_get_anchor(const struct object* cell, const char* name)
 {
-    point_t* pt = _get_regular_anchor(cell, name);
+    struct point* pt = _get_regular_anchor(cell, name);
     if(pt)
     {
         _transform_to_global_coordinates(cell, pt);
@@ -836,7 +836,7 @@ point_t* object_get_anchor(const struct object* cell, const char* name)
     return NULL;
 }
 
-point_t* object_get_alignment_anchor(const struct object* cell, const char* name)
+struct point* object_get_alignment_anchor(const struct object* cell, const char* name)
 {
     coordinate_t* ab = _get_transformed_alignment_box(cell);
     coordinate_t x, y;
@@ -889,7 +889,7 @@ point_t* object_get_alignment_anchor(const struct object* cell, const char* name
     return point_create(x, y);
 }
 
-point_t* object_get_area_anchor(const struct object* cell, const char* base)
+struct point* object_get_area_anchor(const struct object* cell, const char* base)
 {
     const struct object* obj = cell;
     if(cell->isproxy)
@@ -920,7 +920,7 @@ point_t* object_get_area_anchor(const struct object* cell, const char* base)
                 bly = try;
                 try = tmp;
             }
-            point_t* pts = malloc(2 * sizeof(*pts));
+            struct point* pts = malloc(2 * sizeof(*pts));
             pts[0].x = blx;
             pts[0].y = bly;
             pts[1].x = trx;
@@ -931,7 +931,7 @@ point_t* object_get_area_anchor(const struct object* cell, const char* base)
     return NULL;
 }
 
-point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name)
+struct point* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name)
 {
     if(!object_is_child_array(cell))
     {
@@ -946,7 +946,7 @@ point_t* object_get_array_anchor(const struct object* cell, int xindex, int yind
     {
         yindex = cell->yrep + yindex + 1;
     }
-    point_t* pt = object_get_anchor(cell, name);
+    struct point* pt = object_get_anchor(cell, name);
     if(pt)
     {
         point_translate(pt, cell->xpitch * (xindex - 1), cell->ypitch * (yindex - 1));
@@ -956,7 +956,7 @@ point_t* object_get_array_anchor(const struct object* cell, int xindex, int yind
     return NULL;
 }
 
-point_t* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base)
+struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base)
 {
     if(!object_is_child_array(cell))
     {
@@ -1004,7 +1004,7 @@ point_t* object_get_array_area_anchor(const struct object* cell, int xindex, int
                 bly = try;
                 try = tmp;
             }
-            point_t* pts = malloc(2 * sizeof(*pts));
+            struct point* pts = malloc(2 * sizeof(*pts));
             pts[0].x = blx;
             pts[0].y = bly;
             pts[1].x = trx;
@@ -1020,7 +1020,7 @@ point_t* object_get_array_area_anchor(const struct object* cell, int xindex, int
     return NULL;
 }
 
-point_t* object_get_alignmentbox_anchor_outerbl(const struct object* cell)
+struct point* object_get_alignmentbox_anchor_outerbl(const struct object* cell)
 {
     coordinate_t* ab = _get_transformed_alignment_box(cell);
     coordinate_t x = _alignmentbox_get_outerblx(ab);
@@ -1029,7 +1029,7 @@ point_t* object_get_alignmentbox_anchor_outerbl(const struct object* cell)
     return point_create(x, y);
 }
 
-point_t* object_get_alignmentbox_anchor_outertr(const struct object* cell)
+struct point* object_get_alignmentbox_anchor_outertr(const struct object* cell)
 {
     coordinate_t* ab = _get_transformed_alignment_box(cell);
     coordinate_t x = _alignmentbox_get_outertrx(ab);
@@ -1038,7 +1038,7 @@ point_t* object_get_alignmentbox_anchor_outertr(const struct object* cell)
     return point_create(x, y);
 }
 
-point_t* object_get_alignmentbox_anchor_innerbl(const struct object* cell)
+struct point* object_get_alignmentbox_anchor_innerbl(const struct object* cell)
 {
     coordinate_t* ab = _get_transformed_alignment_box(cell);
     coordinate_t x = _alignmentbox_get_innerblx(ab);
@@ -1047,7 +1047,7 @@ point_t* object_get_alignmentbox_anchor_innerbl(const struct object* cell)
     return point_create(x, y);
 }
 
-point_t* object_get_alignmentbox_anchor_innertr(const struct object* cell)
+struct point* object_get_alignmentbox_anchor_innertr(const struct object* cell)
 {
     coordinate_t* ab = _get_transformed_alignment_box(cell);
     coordinate_t x = _alignmentbox_get_innertrx(ab);
@@ -1076,8 +1076,8 @@ const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
                 size_t len = strlen(key);
                 char* name = malloc(len + 2 + 1);
                 strcpy(name, key);
-                const point_t* bl = anchor->bl;
-                const point_t* tr = anchor->tr;
+                const struct point* bl = anchor->bl;
+                const struct point* tr = anchor->tr;
                 name[len + 0] = 'b';
                 name[len + 1] = 'l';
                 hashmap_insert(anchors, name, point_create(bl->x, bl->y));
@@ -1278,8 +1278,8 @@ int object_align_bottom_origin(struct object* cell)
 
 int object_abut_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t blx1 = _area_anchor_get_blx(pts1);
     coordinate_t trx2 = _area_anchor_get_trx(pts2);
     object_translate(cell, trx2 - blx1, 0);
@@ -1290,8 +1290,8 @@ int object_abut_area_anchor_right(struct object* cell, const char* anchorname, c
 
 int object_abut_area_anchor_left(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t trx1 = _area_anchor_get_trx(pts1);
     coordinate_t blx2 = _area_anchor_get_blx(pts2);
     object_translate(cell, blx2 - trx1, 0);
@@ -1302,8 +1302,8 @@ int object_abut_area_anchor_left(struct object* cell, const char* anchorname, co
 
 int object_abut_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t bly1 = _area_anchor_get_bly(pts1);
     coordinate_t try2 = _area_anchor_get_try(pts2);
     object_translate(cell, 0, try2 - bly1);
@@ -1314,8 +1314,8 @@ int object_abut_area_anchor_top(struct object* cell, const char* anchorname, con
 
 int object_abut_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t try1 = _area_anchor_get_try(pts1);
     coordinate_t bly2 = _area_anchor_get_bly(pts2);
     object_translate(cell, 0, bly2 - try1);
@@ -1326,8 +1326,8 @@ int object_abut_area_anchor_bottom(struct object* cell, const char* anchorname, 
 
 int object_area_anchors_fit(const struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t blx1 = _area_anchor_get_blx(pts1);
     coordinate_t bly1 = _area_anchor_get_bly(pts1);
     coordinate_t trx1 = _area_anchor_get_trx(pts1);
@@ -1347,8 +1347,8 @@ int object_align_area_anchor(struct object* cell, const char* anchorname, const 
     {
         return 0;
     }
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t blx1 = _area_anchor_get_blx(pts1);
     coordinate_t bly1 = _area_anchor_get_bly(pts1);
     coordinate_t blx2 = _area_anchor_get_blx(pts2);
@@ -1361,8 +1361,8 @@ int object_align_area_anchor(struct object* cell, const char* anchorname, const 
 
 int object_align_area_anchor_x(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t blx1 = _area_anchor_get_blx(pts1);
     coordinate_t blx2 = _area_anchor_get_blx(pts2);
     object_translate(cell, blx2 - blx1, 0);
@@ -1373,8 +1373,8 @@ int object_align_area_anchor_x(struct object* cell, const char* anchorname, cons
 
 int object_align_area_anchor_left(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t blx1 = _area_anchor_get_blx(pts1);
     coordinate_t blx2 = _area_anchor_get_blx(pts2);
     object_translate(cell, blx2 - blx1, 0);
@@ -1385,8 +1385,8 @@ int object_align_area_anchor_left(struct object* cell, const char* anchorname, c
 
 int object_align_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t trx1 = _area_anchor_get_trx(pts1);
     coordinate_t trx2 = _area_anchor_get_trx(pts2);
     object_translate(cell, trx2 - trx1, 0);
@@ -1397,8 +1397,8 @@ int object_align_area_anchor_right(struct object* cell, const char* anchorname, 
 
 int object_align_area_anchor_y(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t bly1 = _area_anchor_get_bly(pts1);
     coordinate_t bly2 = _area_anchor_get_bly(pts2);
     object_translate(cell, 0, bly2 - bly1);
@@ -1409,8 +1409,8 @@ int object_align_area_anchor_y(struct object* cell, const char* anchorname, cons
 
 int object_align_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t try1 = _area_anchor_get_try(pts1);
     coordinate_t try2 = _area_anchor_get_try(pts2);
     object_translate(cell, 0, try2 - try1);
@@ -1421,8 +1421,8 @@ int object_align_area_anchor_top(struct object* cell, const char* anchorname, co
 
 int object_align_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    struct point* pts1 = object_get_area_anchor(cell, anchorname);
+    struct point* pts2 = object_get_area_anchor(other, otheranchorname);
     coordinate_t bly1 = _area_anchor_get_bly(pts1);
     coordinate_t bly2 = _area_anchor_get_bly(pts2);
     object_translate(cell, 0, bly2 - bly1);
@@ -1437,8 +1437,8 @@ void object_set_boundary(struct object* cell, struct vector* boundary)
     struct vector_const_iterator* it = vector_const_iterator_create(boundary);
     while(vector_const_iterator_is_valid(it))
     {
-        const point_t* pt = vector_const_iterator_get(it);
-        point_t* newpt = point_copy(pt);
+        const struct point* pt = vector_const_iterator_get(it);
+        struct point* newpt = point_copy(pt);
         transformationmatrix_apply_inverse_transformation(cell->trans, newpt);
         vector_append(cell->boundary, newpt);
         vector_const_iterator_next(it);
@@ -1477,7 +1477,7 @@ void object_add_layer_boundary(struct object* cell, const struct generics* layer
     struct simple_polygon_iterator* it = simple_polygon_iterator_create(new);
     while(simple_polygon_iterator_is_valid(it))
     {
-        point_t* pt = simple_polygon_iterator_get(it);
+        struct point* pt = simple_polygon_iterator_get(it);
         transformationmatrix_apply_inverse_transformation(cell->trans, pt);
         simple_polygon_iterator_next(it);
     }
@@ -1500,8 +1500,8 @@ void object_inherit_boundary(struct object* cell, const struct object* othercell
     }
     while(vector_const_iterator_is_valid(it))
     {
-        const point_t* pt = vector_const_iterator_get(it);
-        point_t* newpt = point_copy(pt);
+        const struct point* pt = vector_const_iterator_get(it);
+        struct point* newpt = point_copy(pt);
         transformationmatrix_apply_transformation(othercell->trans, newpt);
         transformationmatrix_apply_inverse_transformation(cell->trans, newpt);
         vector_append(cell->boundary, newpt);
@@ -1549,8 +1549,8 @@ struct vector* object_get_boundary(const struct object* cell)
             struct vector_const_iterator* it = vector_const_iterator_create(cellboundary);
             while(vector_const_iterator_is_valid(it))
             {
-                const point_t* pt = vector_const_iterator_get(it);
-                point_t* newpt = point_copy(pt);
+                const struct point* pt = vector_const_iterator_get(it);
+                struct point* newpt = point_copy(pt);
                 transformationmatrix_apply_transformation(cell->reference->trans, newpt);
                 transformationmatrix_apply_transformation(cell->trans, newpt);
                 vector_append(boundary, newpt);
@@ -1578,8 +1578,8 @@ struct vector* object_get_boundary(const struct object* cell)
             struct vector_const_iterator* it = vector_const_iterator_create(cellboundary);
             while(vector_const_iterator_is_valid(it))
             {
-                const point_t* pt = vector_const_iterator_get(it);
-                point_t* newpt = point_copy(pt);
+                const struct point* pt = vector_const_iterator_get(it);
+                struct point* newpt = point_copy(pt);
                 transformationmatrix_apply_transformation(cell->trans, newpt);
                 vector_append(boundary, newpt);
                 vector_const_iterator_next(it);
@@ -1649,8 +1649,8 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
                 struct simple_polygon* single_boundary = simple_polygon_create();
                 while(simple_polygon_const_iterator_is_valid(it))
                 {
-                    const point_t* pt = simple_polygon_const_iterator_get(it);
-                    point_t* newpt = point_copy(pt);
+                    const struct point* pt = simple_polygon_const_iterator_get(it);
+                    struct point* newpt = point_copy(pt);
                     _transform_to_global_coordinates(cell, newpt);
                     simple_polygon_append(single_boundary, newpt);
                     simple_polygon_const_iterator_next(it);
@@ -1700,8 +1700,8 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
                 struct simple_polygon* single_boundary = simple_polygon_create();
                 while(simple_polygon_const_iterator_is_valid(it))
                 {
-                    const point_t* pt = simple_polygon_const_iterator_get(it);
-                    point_t* newpt = point_copy(pt);
+                    const struct point* pt = simple_polygon_const_iterator_get(it);
+                    struct point* newpt = point_copy(pt);
                     _transform_to_global_coordinates(cell, newpt);
                     simple_polygon_append(single_boundary, newpt);
                     simple_polygon_const_iterator_next(it);
@@ -1750,12 +1750,12 @@ static void _add_port(struct object* cell, const char* name, const struct generi
     }
 }
 
-void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, unsigned int sizehint)
+void object_add_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
 {
     _add_port(cell, name, layer, where->x, where->y, 0, 0, sizehint);
 }
 
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint)
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint)
 {
     int shift = 0;
     if(startindex < endindex)
@@ -1797,7 +1797,7 @@ static void _add_label(struct object* cell, const char* name, const struct gener
     }
 }
 
-void object_add_label(struct object* cell, const char* name, const struct generics* layer, const point_t* where, unsigned int sizehint)
+void object_add_label(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
 {
     _add_label(cell, name, layer, where->x, where->y, sizehint);
 }
@@ -1843,10 +1843,10 @@ void object_set_alignment_box(
 // FIXME: this does not account for transformations, at least not really
 void object_inherit_alignment_box(struct object* cell, const struct object* other)
 {
-    point_t* outerbl = object_get_alignmentbox_anchor_outerbl(other);
-    point_t* outertr = object_get_alignmentbox_anchor_outertr(other);
-    point_t* innerbl = object_get_alignmentbox_anchor_innerbl(other);
-    point_t* innertr = object_get_alignmentbox_anchor_innertr(other);
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(other);
+    struct point* innerbl = object_get_alignmentbox_anchor_innerbl(other);
+    struct point* innertr = object_get_alignmentbox_anchor_innertr(other);
     coordinate_t outerblx = outerbl->x;
     coordinate_t outerbly = outerbl->y;
     coordinate_t outertrx = outertr->x;
@@ -1925,7 +1925,7 @@ static void _alignment_box_include_xy(struct object* cell, coordinate_t x, coord
     object_set_alignment_box(cell, outerblx, outerbly, outertrx, outertry, innerblx, innerbly, innertrx, innertry);
 }
 
-void object_alignment_box_include_point(struct object* cell, const point_t* pt)
+void object_alignment_box_include_point(struct object* cell, const struct point* pt)
 {
     if(cell->isproxy)
     {
@@ -2055,13 +2055,13 @@ void object_apply_other_transformation(struct object* cell, const struct transfo
     transformationmatrix_chain_inline(cell->trans, trans);
 }
 
-int object_move_point(struct object* cell, const point_t* source, const point_t* target)
+int object_move_point(struct object* cell, const struct point* source, const struct point* target)
 {
     object_translate(cell, target->x - source->x, target->y - source->y);
     return 1;
 }
 
-int object_move_point_to_origin(struct object* cell, const point_t* target)
+int object_move_point_to_origin(struct object* cell, const struct point* target)
 {
     object_translate(cell, target->x, target->y);
     return 1;
@@ -2073,13 +2073,13 @@ int object_move_point_to_origin_xy(struct object* cell, coordinate_t x, coordina
     return 1;
 }
 
-int object_move_point_x(struct object* cell, const point_t* source, const point_t* target)
+int object_move_point_x(struct object* cell, const struct point* source, const struct point* target)
 {
     object_translate(cell, target->x - source->x, 0);
     return 1;
 }
 
-int object_move_point_y(struct object* cell, const point_t* source, const point_t* target)
+int object_move_point_y(struct object* cell, const struct point* source, const struct point* target)
 {
     object_translate(cell, 0, target->y - source->y);
     return 1;
@@ -2314,7 +2314,7 @@ void object_apply_transformation(struct object* cell)
     }
 }
 
-void object_transform_point(const struct object* cell, point_t* pt)
+void object_transform_point(const struct object* cell, struct point* pt)
 {
     transformationmatrix_apply_transformation(cell->trans, pt);
 }
@@ -2455,7 +2455,7 @@ const char* object_get_child_reference_name(const struct object* child)
 
 coordinate_t object_get_area_anchor_width(const struct object* cell, const char* anchorname)
 {
-    point_t* anchor = object_get_area_anchor(cell, anchorname);
+    struct point* anchor = object_get_area_anchor(cell, anchorname);
     coordinate_t width = anchor[1].x - anchor[0].x;
     free(anchor);
     return width;
@@ -2463,7 +2463,7 @@ coordinate_t object_get_area_anchor_width(const struct object* cell, const char*
 
 coordinate_t object_get_area_anchor_height(const struct object* cell, const char* anchorname)
 {
-    point_t* anchor = object_get_area_anchor(cell, anchorname);
+    struct point* anchor = object_get_area_anchor(cell, anchorname);
     coordinate_t height = anchor[1].y - anchor[0].y;
     free(anchor);
     return height;
@@ -2768,7 +2768,7 @@ void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it)
 struct anchor_iterator {
     const struct object* object;
     struct hashmap_const_iterator* anchoriterator;
-    point_t* container;
+    struct point* container;
 };
 
 struct anchor_iterator* object_create_anchor_iterator(const struct object* cell)
@@ -2790,14 +2790,14 @@ void anchor_iterator_next(struct anchor_iterator* it)
     return hashmap_const_iterator_next(it->anchoriterator);
 }
 
-const point_t* anchor_iterator_anchor(struct anchor_iterator* it)
+const struct point* anchor_iterator_anchor(struct anchor_iterator* it)
 {
     const char* key = hashmap_const_iterator_key(it->anchoriterator);
     const struct anchor* anchor = hashmap_const_iterator_value(it->anchoriterator);
     // get anchor through object methods for proper transformation
     if(_anchor_is_area(anchor))
     {
-        point_t* anchor = object_get_area_anchor(it->object, key);
+        struct point* anchor = object_get_area_anchor(it->object, key);
         if(it->container)
         {
             free(it->container);
@@ -2808,7 +2808,7 @@ const point_t* anchor_iterator_anchor(struct anchor_iterator* it)
     }
     else
     {
-        point_t* anchor = object_get_anchor(it->object, key);
+        struct point* anchor = object_get_anchor(it->object, key);
         if(it->container)
         {
             free(it->container);
@@ -2873,7 +2873,7 @@ void port_iterator_next(struct port_iterator* it)
     it->index += 1;
 }
 
-void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex, unsigned int* sizehint)
+void port_iterator_get(struct port_iterator* it, const char** portname, const struct point** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex, unsigned int* sizehint)
 {
     const struct port* port = vector_get_const(it->ports, it->index);
     if(portname) { *portname = port->name; }
@@ -2920,7 +2920,7 @@ void label_iterator_next(struct label_iterator* it)
     it->index += 1;
 }
 
-void label_iterator_get(struct label_iterator* it, const char** labelname, const point_t** labelwhere, const struct generics** labellayer, unsigned int* sizehint)
+void label_iterator_get(struct label_iterator* it, const char** labelname, const struct point** labelwhere, const struct generics** labellayer, unsigned int* sizehint)
 {
     const struct port* label = vector_get_const(it->labels, it->index);
     if(labelname) { *labelname = label->name; }

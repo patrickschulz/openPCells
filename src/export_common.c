@@ -152,9 +152,9 @@ void export_destroy_functions(struct export_functions* funcs)
 
 enum orientation export_get_matrix_orientation(const struct transformationmatrix* matrix)
 {
-    point_t pt1 = { .x = 1, .y = 0 };
-    point_t pt2 = { .x = 3, .y = 0 };
-    point_t pt3 = { .x = 2, .y = 1 };
+    struct point pt1 = { .x = 1, .y = 0 };
+    struct point pt2 = { .x = 3, .y = 0 };
+    struct point pt3 = { .x = 2, .y = 1 };
     transformationmatrix_apply_transformation_rot_mirr(matrix, &pt1);
     transformationmatrix_apply_transformation_rot_mirr(matrix, &pt2);
     transformationmatrix_apply_transformation_rot_mirr(matrix, &pt3);

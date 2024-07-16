@@ -43,22 +43,22 @@ struct export_functions {
     void (*at_begin_cell)(struct export_data*, const char*, int);
     void (*at_end_cell)(struct export_data*, int);
     // write basic shapes
-    void (*write_rectangle)(struct export_data*, const struct hashmap*, const point_t*, const point_t*);
-    void (*write_triangle)(struct export_data*, const struct hashmap*, const point_t*, const point_t*, const point_t*);
+    void (*write_rectangle)(struct export_data*, const struct hashmap*, const struct point*, const struct point*);
+    void (*write_triangle)(struct export_data*, const struct hashmap*, const struct point*, const struct point*, const struct point*);
     void (*write_polygon)(struct export_data*, const struct hashmap*, const struct vector*);
     void (*write_path_extension)(struct export_data*, const struct hashmap*, const struct vector*, ucoordinate_t, const coordinate_t*);
     void (*write_path)(struct export_data*, const struct hashmap*, const struct vector*, ucoordinate_t);
     // write curves
     void (*setup_curve)(struct export_data*, const struct hashmap);
-    void (*curve_add_line_segment)(struct export_data*, const point_t*, const point_t*);
+    void (*curve_add_line_segment)(struct export_data*, const struct point*, const struct point*);
     void (*close_curve)(struct export_data*, const struct hashmap);
     // write references
-    void (*write_cell_reference)(struct export_data*, const char*, const char*, const point_t*, const struct transformationmatrix*);
-    void (*write_cell_array)(struct export_data*, const char*, const char*, const point_t*, const struct transformationmatrix*, unsigned int, unsigned int, coordinate_t, coordinate_t);
+    void (*write_cell_reference)(struct export_data*, const char*, const char*, const struct point*, const struct transformationmatrix*);
+    void (*write_cell_array)(struct export_data*, const char*, const char*, const struct point*, const struct transformationmatrix*, unsigned int, unsigned int, coordinate_t, coordinate_t);
     // write ports
-    void (*write_port)(struct export_data*, const char* name, const struct hashmap*, const point_t* where, unsigned int sizehint);
+    void (*write_port)(struct export_data*, const char* name, const struct hashmap*, const struct point* where, unsigned int sizehint);
     // write labels
-    void (*write_label)(struct export_data*, const char* name, const struct hashmap*, const point_t* where, unsigned int sizehint);
+    void (*write_label)(struct export_data*, const char* name, const struct hashmap*, const struct point* where, unsigned int sizehint);
 };
 
 struct export_functions* export_create_functions(void);

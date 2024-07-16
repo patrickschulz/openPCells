@@ -37,22 +37,22 @@ struct object* object_add_child_array(struct object* cell, struct object* child,
 
 // anchors
 int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
-int object_add_area_anchor_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr);
-int object_add_area_anchor_points(struct object* cell, const char* base, const point_t* pt1, const point_t* pt2);
+int object_add_area_anchor_bltr(struct object* cell, const char* base, const struct point* bl, const struct point* tr);
+int object_add_area_anchor_points(struct object* cell, const char* base, const struct point* pt1, const struct point* pt2);
 int object_inherit_anchor(struct object* cell, const struct object* other, const char* name);
 int object_inherit_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname);
 int object_inherit_area_anchor(struct object* cell, const struct object* other, const char* name);
 int object_inherit_area_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname);
 void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix);
-point_t* object_get_anchor(const struct object* cell, const char* name);
-point_t* object_get_alignment_anchor(const struct object* cell, const char* name);
-point_t* object_get_area_anchor(const struct object* cell, const char* base);
-point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
-point_t* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* name);
-point_t* object_get_alignmentbox_anchor_outerbl(const struct object* cell);
-point_t* object_get_alignmentbox_anchor_outertr(const struct object* cell);
-point_t* object_get_alignmentbox_anchor_innerbl(const struct object* cell);
-point_t* object_get_alignmentbox_anchor_innertr(const struct object* cell);
+struct point* object_get_anchor(const struct object* cell, const char* name);
+struct point* object_get_alignment_anchor(const struct object* cell, const char* name);
+struct point* object_get_area_anchor(const struct object* cell, const char* base);
+struct point* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
+struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* name);
+struct point* object_get_alignmentbox_anchor_outerbl(const struct object* cell);
+struct point* object_get_alignmentbox_anchor_outertr(const struct object* cell);
+struct point* object_get_alignmentbox_anchor_innerbl(const struct object* cell);
+struct point* object_get_alignmentbox_anchor_innertr(const struct object* cell);
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
 
 // abutment and alignment
@@ -100,12 +100,12 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
 void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer);
 
 // ports
-void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, unsigned int sizehint);
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint);
+void object_add_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint);
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint);
 const struct vector* object_get_ports(const struct object* cell);
 
 // labels
-void object_add_label(struct object* cell, const char* name, const struct generics* layer, const point_t* where, unsigned int sizehint);
+void object_add_label(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint);
 
 // alignment box and bounding box
 void object_clear_alignment_box(struct object* cell);
@@ -117,7 +117,7 @@ void object_set_alignment_box(
     coordinate_t innertrx, coordinate_t innertry
 );
 void object_inherit_alignment_box(struct object* cell, const struct object* other);
-void object_alignment_box_include_point(struct object* cell, const point_t* pt);
+void object_alignment_box_include_point(struct object* cell, const struct point* pt);
 void object_alignment_box_include_x(struct object* cell, coordinate_t x);
 void object_alignment_box_include_y(struct object* cell, coordinate_t y);
 int object_extend_alignment_box(
@@ -148,14 +148,14 @@ void object_rotate_90_left(struct object* cell);
 void object_rotate_90_right(struct object* cell);
 void object_flipx(struct object* cell);
 void object_flipy(struct object* cell);
-int object_move_point(struct object* cell, const point_t* source, const point_t* target);
-int object_move_point_to_origin(struct object* cell, const point_t* target);
+int object_move_point(struct object* cell, const struct point* source, const struct point* target);
+int object_move_point_to_origin(struct object* cell, const struct point* target);
 int object_move_point_to_origin_xy(struct object* cell, coordinate_t x, coordinate_t y);
-int object_move_point_x(struct object* cell, const point_t* source, const point_t* target);
-int object_move_point_y(struct object* cell, const point_t* source, const point_t* target);
+int object_move_point_x(struct object* cell, const struct point* source, const struct point* target);
+int object_move_point_y(struct object* cell, const struct point* source, const struct point* target);
 void object_scale(struct object* cell, double factor);
 void object_apply_transformation(struct object* cell);
-void object_transform_point(const struct object* cell, point_t* pt);
+void object_transform_point(const struct object* cell, struct point* pt);
 void object_apply_other_transformation(struct object* cell, const struct transformationmatrix* trans);
 
 // object info
@@ -225,7 +225,7 @@ struct anchor_iterator* object_create_anchor_iterator(const struct object* cell)
 int anchor_iterator_is_valid(struct anchor_iterator* it);
 void anchor_iterator_next(struct anchor_iterator* it);
 int anchor_iterator_is_area(struct anchor_iterator* it);
-const point_t* anchor_iterator_anchor(struct anchor_iterator* it);
+const struct point* anchor_iterator_anchor(struct anchor_iterator* it);
 const char* anchor_iterator_name(struct anchor_iterator* it);
 void anchor_iterator_destroy(struct anchor_iterator* it);
 
@@ -234,7 +234,7 @@ struct port_iterator;
 struct port_iterator* object_create_port_iterator(const struct object* cell);
 int port_iterator_is_valid(struct port_iterator* it);
 void port_iterator_next(struct port_iterator* it);
-void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex, unsigned int* sizehint);
+void port_iterator_get(struct port_iterator* it, const char** portname, const struct point** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex, unsigned int* sizehint);
 void port_iterator_destroy(struct port_iterator* it);
 
 // label iterator
@@ -242,7 +242,7 @@ struct label_iterator;
 struct label_iterator* object_create_label_iterator(const struct object* cell);
 int label_iterator_is_valid(struct label_iterator* it);
 void label_iterator_next(struct label_iterator* it);
-void label_iterator_get(struct label_iterator* it, const char** labelname, const point_t** labelwhere, const struct generics** labellayer, unsigned int* sizehint);
+void label_iterator_get(struct label_iterator* it, const char** labelname, const struct point** labelwhere, const struct generics** labellayer, unsigned int* sizehint);
 void label_iterator_destroy(struct label_iterator* it);
 
 #endif // OPC_OBJECT_H

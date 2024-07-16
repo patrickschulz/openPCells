@@ -38,7 +38,7 @@ struct simple_polygon* simple_polygon_copy(const struct simple_polygon* old)
     struct vector_const_iterator* it = vector_const_iterator_create(old->points);
     while(vector_const_iterator_is_valid(it))
     {
-        const point_t* pt = vector_const_iterator_get(it);
+        const struct point* pt = vector_const_iterator_get(it);
         vector_append(new->points, point_copy(pt));
         vector_const_iterator_next(it);
     }
@@ -101,10 +101,10 @@ int simple_polygon_is_rectangle(const struct simple_polygon* simple_polygon)
 {
     if(vector_size(simple_polygon->points) == 4)
     {
-        const point_t* pt1 = vector_get_const(simple_polygon->points, 0);
-        const point_t* pt2 = vector_get_const(simple_polygon->points, 1);
-        const point_t* pt3 = vector_get_const(simple_polygon->points, 2);
-        const point_t* pt4 = vector_get_const(simple_polygon->points, 3);
+        const struct point* pt1 = vector_get_const(simple_polygon->points, 0);
+        const struct point* pt2 = vector_get_const(simple_polygon->points, 1);
+        const struct point* pt3 = vector_get_const(simple_polygon->points, 2);
+        const struct point* pt4 = vector_get_const(simple_polygon->points, 3);
         if(
             point_getx(pt1) == point_getx(pt2) &&
             point_gety(pt2) == point_gety(pt3) &&
@@ -144,8 +144,8 @@ int polygon_is_point_in_simple_polygon(const struct simple_polygon* polygon, coo
     size_t j = 0;
     while(j < vector_size(polygon->points))
     {
-        const point_t* A = vector_get(polygon->points, i);
-        const point_t* B = vector_get(polygon->points, j);
+        const struct point* A = vector_get(polygon->points, i);
+        const struct point* B = vector_get(polygon->points, j);
         // corner cases
         if(((x == point_getx(A) && y == point_gety(A)) || (x == point_getx(B) && y == point_gety(B))))
         {
@@ -207,7 +207,7 @@ int polygon_is_point_in_polygon(const struct polygon* polygon, coordinate_t x, c
     return is_in_polygon;
 }
 
-static int _is_intersection(const point_t* s1, const point_t* s2, const point_t* c1, const point_t* c2)
+static int _is_intersection(const struct point* s1, const struct point* s2, const struct point* c1, const struct point* c2)
 {
     coordinate_t snum = (c2->x - c1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (c2->y - c1->y);
     coordinate_t cnum = (s2->x - s1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (s2->y - s1->y);
@@ -234,7 +234,7 @@ static int _is_intersection(const point_t* s1, const point_t* s2, const point_t*
     }
 }
 
-static int _get_intersection(const point_t* s1, const point_t* s2, const point_t* c1, const point_t* c2, point_t** intersection)
+static int _get_intersection(const struct point* s1, const struct point* s2, const struct point* c1, const struct point* c2, struct point** intersection)
 {
     coordinate_t snum = (c2->x - c1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (c2->y - c1->y);
     coordinate_t cnum = (s2->x - s1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (s2->y - s1->y);
@@ -271,11 +271,11 @@ struct vector* simple_polygon_line_intersections(
     struct vector* intersections = vector_create(1, point_destroy);
     for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
     {
-        point_t* cpti1 = vector_get(simple_polygon->points, i);
-        point_t* cpti2 = vector_get(simple_polygon->points, (i + 1) % vector_size(simple_polygon->points));
-        point_t pt1 = { .x = x1, .y = y1 };
-        point_t pt2 = { .x = x2, .y = y2 };
-        point_t* intersection;
+        struct point* cpti1 = vector_get(simple_polygon->points, i);
+        struct point* cpti2 = vector_get(simple_polygon->points, (i + 1) % vector_size(simple_polygon->points));
+        struct point pt1 = { .x = x1, .y = y1 };
+        struct point pt2 = { .x = x2, .y = y2 };
+        struct point* intersection;
         if(_get_intersection(cpti1, cpti2, &pt1, &pt2, &intersection))
         {
             vector_append(intersections, intersection);
@@ -316,12 +316,12 @@ int simple_polygon_intersects_rectangle(
     // FIXME: this check is not sufficient, a more sophisticated polygon intersection test is required
     for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
     {
-        point_t* cpti1 = vector_get(simple_polygon->points, i);
-        point_t* cpti2 = vector_get(simple_polygon->points, (i + 1) % vector_size(simple_polygon->points));
-        point_t bl = { .x = blx, .y = bly };
-        point_t tl = { .x = blx, .y = try };
-        point_t tr = { .x = trx, .y = try };
-        point_t br = { .x = trx, .y = bly };
+        struct point* cpti1 = vector_get(simple_polygon->points, i);
+        struct point* cpti2 = vector_get(simple_polygon->points, (i + 1) % vector_size(simple_polygon->points));
+        struct point bl = { .x = blx, .y = bly };
+        struct point tl = { .x = blx, .y = try };
+        struct point tr = { .x = trx, .y = try };
+        struct point br = { .x = trx, .y = bly };
         if(
             _is_intersection(cpti1, cpti2, &bl, &tl) ||
             _is_intersection(cpti1, cpti2, &tl, &tr) ||
@@ -358,7 +358,7 @@ POLYGON_INTERSECTS_RECTANGLE_FINISHED:
     return ret;
 }
 
-void simple_polygon_append(struct simple_polygon* simple_polygon, point_t* pt)
+void simple_polygon_append(struct simple_polygon* simple_polygon, struct point* pt)
 {
     vector_append(simple_polygon->points, pt);
 }
@@ -368,7 +368,7 @@ coordinate_t simple_polygon_get_minx(const struct simple_polygon* simple_polygon
     coordinate_t minx = COORDINATE_MAX;
     for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
     {
-        const point_t* pt = vector_get(simple_polygon->points, i);
+        const struct point* pt = vector_get(simple_polygon->points, i);
         if(point_getx(pt) < minx)
         {
             minx = point_getx(pt);
@@ -400,7 +400,7 @@ coordinate_t simple_polygon_get_miny(const struct simple_polygon* simple_polygon
     coordinate_t miny = COORDINATE_MAX;
     for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
     {
-        const point_t* pt = vector_get(simple_polygon->points, i);
+        const struct point* pt = vector_get(simple_polygon->points, i);
         if(point_gety(pt) < miny)
         {
             miny = point_gety(pt);
@@ -431,7 +431,7 @@ coordinate_t simple_polygon_get_maxx(const struct simple_polygon* simple_polygon
     coordinate_t maxx = COORDINATE_MIN;
     for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
     {
-        const point_t* pt = vector_get(simple_polygon->points, i);
+        const struct point* pt = vector_get(simple_polygon->points, i);
         if(point_getx(pt) > maxx)
         {
             maxx = point_getx(pt);
@@ -463,7 +463,7 @@ coordinate_t simple_polygon_get_maxy(const struct simple_polygon* simple_polygon
     coordinate_t maxy = COORDINATE_MIN;
     for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
     {
-        const point_t* pt = vector_get(simple_polygon->points, i);
+        const struct point* pt = vector_get(simple_polygon->points, i);
         if(point_gety(pt) > maxy)
         {
             maxy = point_gety(pt);
@@ -505,7 +505,7 @@ int simple_polygon_iterator_is_valid(struct simple_polygon_iterator* iterator)
     return vector_iterator_is_valid(iterator->iterator);
 }
 
-point_t* simple_polygon_iterator_get(struct simple_polygon_iterator* iterator)
+struct point* simple_polygon_iterator_get(struct simple_polygon_iterator* iterator)
 {
     return vector_iterator_get(iterator->iterator);
 }
@@ -537,7 +537,7 @@ int simple_polygon_const_iterator_is_valid(struct simple_polygon_const_iterator*
     return vector_const_iterator_is_valid(iterator->iterator);
 }
 
-const point_t* simple_polygon_const_iterator_get(struct simple_polygon_const_iterator* iterator)
+const struct point* simple_polygon_const_iterator_get(struct simple_polygon_const_iterator* iterator)
 {
     return vector_const_iterator_get(iterator->iterator);
 }

@@ -9,7 +9,7 @@
 #include "geometry.h"
 
 struct rectangle {
-    point_t content [2];
+    struct point content [2];
 };
 
 // macros, because this simplifies const-correctness
@@ -34,7 +34,7 @@ struct curve_segment {
     } type;
     union {
         struct {
-            point_t* pt;
+            struct point* pt;
         };
         struct {
             double startangle;
@@ -43,15 +43,15 @@ struct curve_segment {
             int clockwise;
         };
         struct {
-            point_t* cpt1;
-            point_t* cpt2;
-            point_t* endpt;
+            struct point* cpt1;
+            struct point* cpt2;
+            struct point* endpt;
         };
     };
 };
 
 struct curve {
-    point_t* origin;
+    struct point* origin;
     struct vector* segments;
     unsigned int grid;
     int allow45;
@@ -134,7 +134,7 @@ static void _destroy_segment(void* v)
     free(segment);
 }
 
-static int _check_grid(const point_t* pt, unsigned int grid)
+static int _check_grid(const struct point* pt, unsigned int grid)
 {
     if((pt->x % grid) != 0)
     {
@@ -147,7 +147,7 @@ static int _check_grid(const point_t* pt, unsigned int grid)
     return 1;
 }
 
-static void _fix_grid(point_t* pt, unsigned int grid)
+static void _fix_grid(struct point* pt, unsigned int grid)
 {
     pt->x = (pt->x / grid) * grid;
     pt->y = (pt->y / grid) * grid;
@@ -171,7 +171,7 @@ struct shape* shape_create_curve(const struct generics* layer, coordinate_t x, c
     return shape;
 }
 
-static int _collinear(const point_t* pt1, const point_t* pt2, const point_t* pt3)
+static int _collinear(const struct point* pt1, const struct point* pt2, const struct point* pt3)
 {
     return (pt1->x * (pt2->y - pt3->y) + pt2->x * (pt3->y - pt1->y) + pt3->x * (pt1->y - pt2->y)) == 0;
 }
@@ -181,9 +181,9 @@ static void _remove_superfluous_points(struct vector* pts)
     size_t index = 0;
     while(index + 2 < vector_size(pts))
     {
-        point_t* pt1 = vector_get(pts, index);
-        point_t* pt2 = vector_get(pts, index + 1);
-        point_t* pt3 = vector_get(pts, index + 2);
+        struct point* pt1 = vector_get(pts, index);
+        struct point* pt2 = vector_get(pts, index + 1);
+        struct point* pt3 = vector_get(pts, index + 2);
         if(_collinear(pt1, pt2, pt3))
         {
             vector_remove(pts, index + 1);
@@ -195,8 +195,8 @@ static void _remove_superfluous_points(struct vector* pts)
     }
     if(!vector_empty(pts))
     {
-        point_t* firstpt = vector_get(pts, 0);
-        point_t* lastpt = vector_get(pts, vector_size(pts) - 1);
+        struct point* firstpt = vector_get(pts, 0);
+        struct point* lastpt = vector_get(pts, vector_size(pts) - 1);
         if(firstpt->x == lastpt->x && firstpt->y == lastpt->y)
         {
             vector_remove(pts, vector_size(pts) - 1);
@@ -207,10 +207,10 @@ static void _remove_superfluous_points(struct vector* pts)
 static int _is_counterclockwise(const struct vector* points)
 {
     double sum = 0.0;
-    const point_t* pt1 = vector_get_const(points, vector_size(points) - 1);
+    const struct point* pt1 = vector_get_const(points, vector_size(points) - 1);
     for(size_t i = 0; i < vector_size(points); i++)
     {
-        const point_t* pt2 = vector_get_const(points, i);
+        const struct point* pt2 = vector_get_const(points, i);
         sum += (pt2->x - pt1->x) * (pt2->y + pt1->y);
         pt1 = pt2;
     }
@@ -414,7 +414,7 @@ const void* shape_get_content(const struct shape* shape)
     return shape->content;
 }
 
-int shape_get_rectangle_points(struct shape* shape, const point_t** bl, const point_t** tr)
+int shape_get_rectangle_points(struct shape* shape, const struct point** bl, const struct point** tr)
 {
     if(shape->type != RECTANGLE)
     {
@@ -426,7 +426,7 @@ int shape_get_rectangle_points(struct shape* shape, const point_t** bl, const po
     return 1;
 }
 
-int shape_get_transformed_rectangle_points(const struct shape* shape, const struct transformationmatrix* trans, point_t* bl, point_t* tr)
+int shape_get_transformed_rectangle_points(const struct shape* shape, const struct transformationmatrix* trans, struct point* bl, struct point* tr)
 {
     if(shape->type != RECTANGLE)
     {
@@ -461,7 +461,7 @@ int shape_get_transformed_polygon_points(const struct shape* shape, const struct
     struct vector_const_iterator* it = vector_const_iterator_create(polygon->points);
     while(vector_const_iterator_is_valid(it))
     {
-        point_t* pt = point_copy(vector_const_iterator_get(it));
+        struct point* pt = point_copy(vector_const_iterator_get(it));
         transformationmatrix_apply_transformation(trans, pt);
         vector_append(points, pt);
         vector_const_iterator_next(it);
@@ -491,7 +491,7 @@ int shape_get_transformed_path_points(const struct shape* shape, const struct tr
     struct vector_const_iterator* it = vector_const_iterator_create(path->points);
     while(vector_const_iterator_is_valid(it))
     {
-        point_t* pt = point_copy(vector_const_iterator_get(it));
+        struct point* pt = point_copy(vector_const_iterator_get(it));
         transformationmatrix_apply_transformation(trans, pt);
         vector_append(points, pt);
         vector_const_iterator_next(it);
@@ -590,7 +590,7 @@ SHAPE_FOREACH_CURVE_SEGMENTS_CLEANUP:
     return ret;
 }
 
-int shape_get_curve_origin(const struct shape* shape, const point_t** originp)
+int shape_get_curve_origin(const struct shape* shape, const struct point** originp)
 {
     if(shape->type != CURVE)
     {
@@ -601,7 +601,7 @@ int shape_get_curve_origin(const struct shape* shape, const point_t** originp)
     return 1;
 }
 
-int shape_get_transformed_curve_origin(const struct shape* shape, const struct transformationmatrix* trans, point_t* origin)
+int shape_get_transformed_curve_origin(const struct shape* shape, const struct transformationmatrix* trans, struct point* origin)
 {
     if(shape->type != CURVE)
     {
@@ -630,7 +630,7 @@ void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy)
             struct polygon_shape* polygon = shape->content;
             for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
             {
-                point_t* pt = vector_get(polygon->points, i);
+                struct point* pt = vector_get(polygon->points, i);
                 point_translate(pt, dx, dy);
             }
             break;
@@ -640,7 +640,7 @@ void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy)
             struct path* path = shape->content;
             for(unsigned int i = 0; i < vector_size(path->points); ++i)
             {
-                point_t* pt = vector_get(path->points, i);
+                struct point* pt = vector_get(path->points, i);
                 point_translate(pt, dx, dy);
             }
             break;
@@ -681,8 +681,8 @@ static void _correct_rectangle_point_order(struct shape* shape)
     {
         struct rectangle* rectangle = shape->content;
         // order of points matter, check if bottom left is still bottom left
-        point_t* bl = _bl(rectangle);
-        point_t* tr = _tr(rectangle);
+        struct point* bl = _bl(rectangle);
+        struct point* tr = _tr(rectangle);
         if(bl->x > tr->x)
         {
             coordinate_t tmp = bl->x;
@@ -715,7 +715,7 @@ void shape_apply_transformation(struct shape* shape, const struct transformation
             struct polygon_shape* polygon = shape->content;
             for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
             {
-                point_t* pt = vector_get(polygon->points, i);
+                struct point* pt = vector_get(polygon->points, i);
                 transformationmatrix_apply_transformation(trans, pt);
             }
             break;
@@ -725,7 +725,7 @@ void shape_apply_transformation(struct shape* shape, const struct transformation
             struct path* path = shape->content;
             for(unsigned int i = 0; i < vector_size(path->points); ++i)
             {
-                point_t* pt = vector_get(path->points, i);
+                struct point* pt = vector_get(path->points, i);
                 transformationmatrix_apply_transformation(trans, pt);
             }
             break;
@@ -779,7 +779,7 @@ void shape_apply_inverse_transformation(struct shape* shape, const struct transf
             struct polygon_shape* polygon = shape->content;
             for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
             {
-                point_t* pt = vector_get(polygon->points, i);
+                struct point* pt = vector_get(polygon->points, i);
                 transformationmatrix_apply_inverse_transformation(trans, pt);
             }
             break;
@@ -789,7 +789,7 @@ void shape_apply_inverse_transformation(struct shape* shape, const struct transf
             struct path* path = shape->content;
             for(unsigned int i = 0; i < vector_size(path->points); ++i)
             {
-                point_t* pt = vector_get(path->points, i);
+                struct point* pt = vector_get(path->points, i);
                 transformationmatrix_apply_inverse_transformation(trans, pt);
             }
             break;
@@ -825,15 +825,15 @@ void shape_get_width_height(const struct shape* shape, coordinate_t* widthp, coo
 
 void shape_get_minmax_xy(const struct shape* shape, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
 {
-    point_t* min = point_create_maximum();
-    point_t* max = point_create_minimum();
+    struct point* min = point_create_maximum();
+    struct point* max = point_create_minimum();
     switch(shape->type)
     {
         case RECTANGLE:
         {
             struct rectangle* rectangle = shape->content;
-            point_t bl = *_bl(rectangle);
-            point_t tr = *_tr(rectangle);
+            struct point bl = *_bl(rectangle);
+            struct point tr = *_tr(rectangle);
             point_update_minimum(&min, &bl);
             point_update_maximum(&max, &tr);
             break;
@@ -844,8 +844,8 @@ void shape_get_minmax_xy(const struct shape* shape, coordinate_t* minxp, coordin
             struct polygon_shape* polygon = shape->content;
             for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
             {
-                point_t* ptr = vector_get(polygon->points, i);
-                point_t pt = *ptr;
+                struct point* ptr = vector_get(polygon->points, i);
+                struct point pt = *ptr;
                 point_update_minimum(&min, &pt);
                 point_update_maximum(&max, &pt);
             }
@@ -856,8 +856,8 @@ void shape_get_minmax_xy(const struct shape* shape, coordinate_t* minxp, coordin
             struct path* path = shape->content;
             for(unsigned int i = 0; i < vector_size(path->points); ++i)
             {
-                point_t* ptr = vector_get(path->points, i);
-                point_t pt = *ptr;
+                struct point* ptr = vector_get(path->points, i);
+                struct point pt = *ptr;
                 point_update_minimum(&min, &pt);
                 point_update_maximum(&max, &pt);
             }
@@ -886,14 +886,14 @@ int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y
         return 0;
     }
     struct rectangle* rectangle = shape->content;
-    const point_t* bl = _bl(rectangle);
-    const point_t* tr = _tr(rectangle);
+    const struct point* bl = _bl(rectangle);
+    const struct point* tr = _tr(rectangle);
     *x = (bl->x + tr->x) / 2;
     *y = (bl->y + tr->y) / 2;
     return 1;
 }
 
-void shape_curve_add_line_segment(struct shape* shape, const point_t* pt)
+void shape_curve_add_line_segment(struct shape* shape, const struct point* pt)
 {
     if(shape->type != CURVE)
     {
@@ -929,7 +929,7 @@ void shape_curve_add_arc_segment(struct shape* shape, double startangle, double 
     vector_append(curve->segments, segment);
 }
 
-void shape_curve_add_cubic_bezier_segment(struct shape* shape, const point_t* cpt1, const point_t* cpt2, const point_t* endpt)
+void shape_curve_add_cubic_bezier_segment(struct shape* shape, const struct point* cpt1, const struct point* cpt2, const struct point* endpt)
 {
     if(shape->type != CURVE)
     {
@@ -969,14 +969,14 @@ void shape_resolve_path_extensions_inline(struct shape* shape)
         return;
     }
     struct path* path = shape->content;
-    point_t* pt_start_1 = vector_get(path->points, 1);
-    point_t* pt_start_2 = vector_get(path->points, 0);
+    struct point* pt_start_1 = vector_get(path->points, 1);
+    struct point* pt_start_2 = vector_get(path->points, 0);
     double angle_start = atan2(pt_start_2->y - pt_start_1->y, pt_start_2->x - pt_start_1->x);
     coordinate_t xshift_start = floor(path->extension[0] * cos(angle_start) + 0.5);
     coordinate_t yshift_start = floor(path->extension[0] * sin(angle_start) + 0.5);
     point_translate(pt_start_2, xshift_start, yshift_start);
-    point_t* pt_end_1 = vector_get(path->points, vector_size(path->points) - 2);
-    point_t* pt_end_2 = vector_get(path->points, vector_size(path->points) - 1);
+    struct point* pt_end_1 = vector_get(path->points, vector_size(path->points) - 2);
+    struct point* pt_end_2 = vector_get(path->points, vector_size(path->points) - 1);
     double angle_end = atan2(pt_end_2->y - pt_end_1->y, pt_end_2->x - pt_end_1->x);
     coordinate_t xshift_end = floor(path->extension[1] * cos(angle_end) + 0.5);
     coordinate_t yshift_end = floor(path->extension[1] * sin(angle_end) + 0.5);
@@ -1041,7 +1041,7 @@ void shape_rasterize_curve_inline(struct shape* shape)
     struct vector* rastered_points = vector_create(1024, point_destroy);
     struct curve* curve = shape->content;
     struct vector_const_iterator* it = vector_const_iterator_create(curve->segments);
-    point_t* lastpt = point_copy(curve->origin);
+    struct point* lastpt = point_copy(curve->origin);
     while(vector_const_iterator_is_valid(it))
     {
         const struct curve_segment* segment = vector_const_iterator_get(it);

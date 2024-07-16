@@ -18,13 +18,13 @@ void geometry_rectanglebltrxy(
 void geometry_rectanglebltr(
     struct object* cell,
     const struct generics* layer,
-    const point_t* bl, const point_t* tr
+    const struct point* bl, const struct point* tr
 );
 
 void geometry_rectangleblwh(
     struct object* cell,
     const struct generics* layer,
-    const point_t* bl,
+    const struct point* bl,
     coordinate_t width, coordinate_t height
 );
 
@@ -38,7 +38,7 @@ void geometry_rectanglepointsxy(
 void geometry_rectanglepoints(
     struct object* cell,
     const struct generics* layer,
-    const point_t* bl, const point_t* tr
+    const struct point* bl, const struct point* tr
 );
 
 void geometry_rectanglearray(
@@ -53,7 +53,7 @@ void geometry_rectanglearray(
 void geometry_slotted_rectangle(
     struct object* cell,
     const struct generics* layer,
-    const point_t* bl, const point_t* tr,
+    const struct point* bl, const struct point* tr,
     coordinate_t slotwidth, coordinate_t slotheight,
     coordinate_t slotxspace, coordinate_t slotyspace,
     coordinate_t slotminedgexspace, coordinate_t slotminedgeyspace
@@ -62,7 +62,7 @@ void geometry_slotted_rectangle(
 void geometry_polygon(
     struct object* cell,
     const struct generics* layer,
-    const point_t** points, size_t len
+    const struct point** points, size_t len
 );
 
 void geometry_path(
@@ -84,7 +84,7 @@ void geometry_path_polygon(
 int geometry_check_viabltr(
     struct technology_state* techstate,
     int metal1, int metal2,
-    const point_t* bl, const point_t* tr,
+    const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
     coordinate_t widthclass
@@ -105,7 +105,7 @@ struct viaarray {
 struct vector* geometry_calculate_viabltr(
     struct technology_state* techstate,
     int metal1, int metal2,
-    const point_t* bl, const point_t* tr,
+    const struct point* bl, const struct point* tr,
     coordinate_t minxspace, coordinate_t minyspace,
     int xcont, int ycont,
     int equal_pitch,
@@ -116,7 +116,7 @@ int geometry_viabltr(
     struct object* cell,
     struct technology_state* techstate,
     int metal1, int metal2,
-    const point_t* bl, const point_t* tr,
+    const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
     coordinate_t widthclass
@@ -126,7 +126,7 @@ int geometry_viabarebltr(
     struct object* cell,
     struct technology_state* techstate,
     int metal1, int metal2,
-    const point_t* bl, const point_t* tr,
+    const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
     coordinate_t widthclass
@@ -136,7 +136,7 @@ int geometry_contactbltr(
     struct object* cell,
     struct technology_state* techstate,
     const char* region,
-    const point_t* bl, const point_t* tr,
+    const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
     coordinate_t widthclass
@@ -146,7 +146,7 @@ int geometry_contactbarebltr(
     struct object* cell,
     struct technology_state* techstate,
     const char* region,
-    const point_t* bl, const point_t* tr,
+    const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
     coordinate_t widthclass
@@ -168,8 +168,8 @@ void geometry_unequal_ring(
 void geometry_unequal_ring_pts(
     struct object* cell,
     const struct generics* layer,
-    const point_t* outerbl, const point_t* outertr,
-    const point_t* innerbl, const point_t* innertr
+    const struct point* outerbl, const struct point* outertr,
+    const struct point* innerbl, const struct point* innertr
 );
 
 struct shape* geometry_path_to_polygon(const struct generics* layer, struct vector* points, ucoordinate_t width, int miterjoin);

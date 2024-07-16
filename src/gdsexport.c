@@ -319,7 +319,7 @@ static void _at_end_cell(struct export_data* data, int istoplevel)
     export_data_append_byte(data, DATATYPE_NONE);
 }
 
-static void _write_rectangle(struct export_data* data, const struct hashmap* layer, const point_t* bl, const point_t* tr)
+static void _write_rectangle(struct export_data* data, const struct hashmap* layer, const struct point* bl, const struct point* tr)
 {
     export_data_ensure_additional_capacity(data, 64); // a rectangle has exactly 64 bytes
     _write_layer_unchecked(data, RECORDTYPE_BOUNDARY, layer);
@@ -354,7 +354,7 @@ static void _write_polygon(struct export_data* data, const struct hashmap* layer
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < vector_size(points); ++i)
     {
-        const point_t* pt = vector_get_const(points, i);
+        const struct point* pt = vector_get_const(points, i);
         export_data_append_four_bytes(data, multiplier * pt->x);
         export_data_append_four_bytes(data, multiplier * pt->y);
     }
@@ -429,7 +429,7 @@ static void _write_path(struct export_data* data, const struct hashmap* layer, c
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < vector_size(points); ++i)
     {
-        const point_t* pt = vector_get_const(points, i);
+        const struct point* pt = vector_get_const(points, i);
         export_data_append_four_bytes(data, multiplier * pt->x);
         export_data_append_four_bytes(data, multiplier * pt->y);
     }
@@ -572,7 +572,7 @@ static void _write_strans_angle(struct export_data* data, const struct transform
     }
 }
 
-static void _write_cell_reference(struct export_data* data, const char* identifier, const char* instname, const point_t* where, const struct transformationmatrix* trans)
+static void _write_cell_reference(struct export_data* data, const char* identifier, const char* instname, const struct point* where, const struct transformationmatrix* trans)
 {
     (void) instname; // GDSII does not support instance names
     // SREF
@@ -610,7 +610,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     _write_ENDEL(data);
 }
 
-static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, const point_t* where, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
+static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, const struct point* where, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     (void) instbasename; // GDSII does not support instance names
     // AREF
@@ -668,7 +668,7 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     _write_ENDEL(data);
 }
 
-static void _write_port(struct export_data* data, const char* name, const struct hashmap* layer, const point_t* where, unsigned int sizehint)
+static void _write_port(struct export_data* data, const char* name, const struct hashmap* layer, const struct point* where, unsigned int sizehint)
 {
     _write_layer(data, RECORDTYPE_TEXT, RECORDTYPE_TEXTTYPE, layer);
 

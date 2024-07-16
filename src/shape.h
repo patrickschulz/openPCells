@@ -8,9 +8,9 @@
 #include "technology.h"
 
 struct shape;
-typedef int (*line_segment_handler)(const point_t*, void*);
+typedef int (*line_segment_handler)(const struct point*, void*);
 typedef int (*arc_segment_handler)(double, double, coordinate_t, int, void*);
-typedef int (*cubic_bezier_segment_handler)(const point_t*, const point_t*, const point_t*, void*);
+typedef int (*cubic_bezier_segment_handler)(const struct point*, const struct point*, const struct point*, void*);
 
 struct shape* shape_create_rectangle(const struct generics* layer, coordinate_t bl_x, coordinate_t bl_y, coordinate_t tr_x, coordinate_t tr_y);
 struct shape* shape_create_polygon(const struct generics* layer, size_t capacity);
@@ -36,8 +36,8 @@ int shape_is_curve(const struct shape* shape);
 const void* shape_get_content(const struct shape* shape);
 
 // rectangle access functions
-int shape_get_rectangle_points(struct shape* shape, const point_t** blp, const point_t** trp);
-int shape_get_transformed_rectangle_points(const struct shape* shape, const struct transformationmatrix* trans, point_t* blp, point_t* trp);
+int shape_get_rectangle_points(struct shape* shape, const struct point** blp, const struct point** trp);
+int shape_get_transformed_rectangle_points(const struct shape* shape, const struct transformationmatrix* trans, struct point* blp, struct point* trp);
 
 // polygon (including triangulated) access functions
 int shape_get_polygon_points(struct shape* shape, struct vector** points);
@@ -51,8 +51,8 @@ int shape_get_path_extension(const struct shape* shape, coordinate_t* start, coo
 
 // curve access functions
 int shape_foreach_curve_segments(const struct shape* shape, void* blob, line_segment_handler, arc_segment_handler, cubic_bezier_segment_handler);
-int shape_get_curve_origin(const struct shape* shape, const point_t** origin);
-int shape_get_transformed_curve_origin(const struct shape* shape, const struct transformationmatrix* trans, point_t* origin);
+int shape_get_curve_origin(const struct shape* shape, const struct point** origin);
+int shape_get_transformed_curve_origin(const struct shape* shape, const struct transformationmatrix* trans, struct point* origin);
 
 // transformations
 void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy);
@@ -65,9 +65,9 @@ void shape_get_width_height(const struct shape* shape, coordinate_t* width, coor
 void shape_get_minmax_xy(const struct shape* shape, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
 
 // curve segments
-void shape_curve_add_line_segment(struct shape* shape, const point_t* pt);
+void shape_curve_add_line_segment(struct shape* shape, const struct point* pt);
 void shape_curve_add_arc_segment(struct shape* shape, double startangle, double endangle, coordinate_t radius, int clockwise);
-void shape_curve_add_cubic_bezier_segment(struct shape* shape, const point_t* cpt1, const point_t* cpt2, const point_t* endpt);
+void shape_curve_add_cubic_bezier_segment(struct shape* shape, const struct point* cpt1, const struct point* cpt2, const struct point* endpt);
 
 int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y);
 

@@ -411,10 +411,10 @@ static void _draw_alignmentbox_single(struct object* cell, struct technology_sta
     }
     if(object_has_alignmentbox(cell))
     {
-        point_t* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
-        point_t* outertr = object_get_alignmentbox_anchor_outertr(cell);
-        point_t* innerbl = object_get_alignmentbox_anchor_innerbl(cell);
-        point_t* innertr = object_get_alignmentbox_anchor_innertr(cell);
+        struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
+        struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
+        struct point* innerbl = object_get_alignmentbox_anchor_innerbl(cell);
+        struct point* innertr = object_get_alignmentbox_anchor_innertr(cell);
         geometry_rectanglebltr(cell, layer, outerbl, outertr);
         geometry_rectanglebltr(cell, layer, innerbl, innertr);
         point_destroy(outerbl);
@@ -462,14 +462,14 @@ static void _draw_cell_anchors(struct object* cell, struct technology_state* tec
     {
         if(anchor_iterator_is_area(iterator))
         {
-            const point_t* anchor = anchor_iterator_anchor(iterator);
+            const struct point* anchor = anchor_iterator_anchor(iterator);
             const char* name = anchor_iterator_name(iterator);
             geometry_rectanglebltr(cell, layer, anchor + 0, anchor + 1);
             object_add_port(cell, name, layer, anchor + 0, 100);
         }
         else
         {
-            const point_t* anchor = anchor_iterator_anchor(iterator);
+            const struct point* anchor = anchor_iterator_anchor(iterator);
             const char* name = anchor_iterator_name(iterator);
             object_add_port(cell, name, layer, anchor, 100);
         }
@@ -485,7 +485,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
         const char* const* anchornames = cmdoptions_get_argument_long(cmdoptions, "draw-anchor");
         while(*anchornames)
         {
-            point_t* pt = object_get_anchor(toplevel, *anchornames);
+            struct point* pt = object_get_anchor(toplevel, *anchornames);
             if(pt)
             {
                 object_add_port(toplevel, *anchornames, generics_create_special(techstate), pt, 100);

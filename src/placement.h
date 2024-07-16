@@ -25,8 +25,8 @@ struct boundary_celltable {
 };
 
 struct vector* placement_calculate_grid(
-    const point_t* bl,
-    const point_t* tr,
+    const struct point* bl,
+    const struct point* tr,
     coordinate_t xpitch,
     coordinate_t ypitch,
     const struct polygon* excludes
@@ -35,7 +35,7 @@ struct vector* placement_calculate_grid(
 struct vector* placement_place_boundary_grid(
     struct object* toplevel,
     struct boundary_celltable* boundary_celltable,
-    const point_t* basept,
+    const struct point* basept,
     struct vector* grid,
     coordinate_t xpitch,
     coordinate_t ypitch,
@@ -62,7 +62,7 @@ struct vector* placement_place_on_grid(
     struct object* toplevel,
     struct object* cell,
     const char* basename,
-    const point_t* basept,
+    const struct point* basept,
     coordinate_t xpitch,
     coordinate_t ypitch,
     const struct vector* grid
@@ -95,7 +95,7 @@ struct object* placement_place_within_rectangular_boundary(
     struct object* toplevel,
     struct object* cell,
     const char* basename,
-    const point_t* targetbl, const point_t* targettr
+    const struct point* targetbl, const struct point* targettr
 );
 
 struct placement_celllookup {
@@ -124,8 +124,8 @@ struct vector* placement_place_gridlines(
     struct object* toplevel,
     const struct generics* layer,
     coordinate_t size, coordinate_t space,
-    const point_t* targetbl,
-    const point_t* targettr,
+    const struct point* targetbl,
+    const struct point* targettr,
     const struct polygon* excludes
 );
 
