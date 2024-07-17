@@ -4,18 +4,15 @@ function M.get_extension()
     return "tikz"
 end
 
-function M.get_techexport()
-    return "svg"
-end
-
 local __outlineblack = false
 local __standalone = false
-local __drawpatterns = false
+local __drawpatterns = true
 local __writeignored = false
 local __resizebox = false
 local __externaldisable
 local __baseunit = 1
 local __expressionscale = false
+local __overwrite_opacity = nil
 local __prepend = {}
 
 function M.set_options(opt)
@@ -30,8 +27,16 @@ function M.set_options(opt)
         if arg == "-S" or arg == "--standalone" then
             __standalone = true
         end
-        if arg == "-p" or arg == "--pattern" then
-            __drawpatterns = true
+        if arg == "--disable-patterns" then
+            __drawpatterns = false
+        end
+        if arg == "--overwrite-opacity" then
+            if i < #opt then
+                __overwrite_opacity = tonumber(opt[i + 1])
+            else
+                error("tikz export: --overwrite-opacity: argument (a number) expected")
+            end
+            i = i + 1
         end
         if arg == "-i" or arg == "--write-ignored" then
             __writeignored = true
@@ -90,6 +95,7 @@ function M.finalize()
         table.insert(t, entry)
     end
     if #__options > 0 then
+        table.sort(__options)
         table.insert(t, "[")
         for i, entry in ipairs(__options) do
             if i ~= #__options then
@@ -114,7 +120,9 @@ function M.at_begin()
     if __standalone then
         table.insert(__header, '\\documentclass{standalone}')
         table.insert(__header, '\\usepackage{tikz}')
-        table.insert(__header, '\\usetikzlibrary{patterns}')
+        if __drawpatterns then
+            table.insert(__header, '\\usetikzlibrary{patterns}')
+        end
         if __resizebox then
             table.insert(__header, '\\usepackage{adjustbox}')
         end
@@ -224,8 +232,8 @@ local function _get_layer_style(layer)
     if layer.nofill then
         return string.format("draw = %s", color)
     else
-        if layer.pattern then
-            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", _get_outline_color(color), color)
+        if __drawpatterns and layer.pattern then
+            return string.format("draw = %s, pattern = %s, pattern color = %s", _get_outline_color(color), layer.pattern, color)
         elseif layer.nooutline or __nooutline then
             return string.format("fill = %s", color)
         else
@@ -239,7 +247,11 @@ local function _format_layer(layer)
     if layer.style then
         if not styles[layer.style] then
             styles[layer.style] = true
-            table.insert(__options, string.format("%s/.style = { %s }", layer.style, _get_layer_style(layer)))
+            if __overwrite_opacity then
+                table.insert(__options, string.format("%s/.style = { %s, opacity = %f }", layer.style, _get_layer_style(layer), __overwrite_opacity))
+            else
+                table.insert(__options, string.format("%s/.style = { %s }", layer.style, _get_layer_style(layer)))
+            end
         end
         return string.format("\\path[%s]", layer.style)
     else
