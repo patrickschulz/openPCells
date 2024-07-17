@@ -284,6 +284,24 @@ struct object* object_copy(const struct object* cell)
             }
         }
 
+        // labels
+        if(cell->labels)
+        {
+            new->labels = vector_create(vector_size(cell->labels), _port_destroy);
+            for(unsigned int i = 0; i < vector_size(cell->labels); ++i)
+            {
+                struct port* port = vector_get(cell->labels, i);
+                struct port* newport = malloc(sizeof(*newport));
+                newport->where = point_copy(port->where);
+                newport->layer = port->layer;
+                newport->isbusport = port->isbusport;
+                newport->busindex = port->busindex;
+                newport->name = util_strdup(port->name);
+                newport->sizehint = port->sizehint;
+                vector_append(new->labels, newport);
+            }
+        }
+
         // boundary
         if(cell->boundary)
         {
