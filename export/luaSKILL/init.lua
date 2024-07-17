@@ -6,6 +6,10 @@ function M.get_extension()
     return "il"
 end
 
+function M.get_techexport()
+    return "SKILL"
+end
+
 local __content = {}
 
 function M.finalize()
