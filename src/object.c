@@ -200,6 +200,8 @@ struct object* object_copy(const struct object* cell)
         return NULL;
     }
     new->isproxy = cell->isproxy;
+    new->ismanaged = cell->ismanaged;
+    new->isused = cell->isused;
 
     // trans
     transformationmatrix_destroy(new->trans);
