@@ -262,6 +262,13 @@ static int _check_lua_export(lua_State* L)
             return 0;
         }
     }
+    if(!_check_function(L, "write_label"))
+    {
+        if(!_check_function(L, "write_port"))
+        {
+            return 0;
+        }
+    }
     if(!_check_function(L, "finalize"))
     {
         return 0;
@@ -337,7 +344,7 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
             // check minimal function support
             if(!_check_lua_export(L))
             {
-                fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' (or 'write_triangle') and 'finalize'\n", state->exportname);
+                fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' (or 'write_triangle'), 'write_port'/'write_label' and 'finalize'\n", state->exportname);
                 status = EXPORT_STATUS_LOADERROR;
                 lua_close(L);
                 ret = 0;

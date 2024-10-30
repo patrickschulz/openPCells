@@ -309,7 +309,7 @@ function layout(oscillator, _P)
     end
     -- connect pmos zero gates to vss
     geometry.rectanglebltr(cmarray, generics.metal(1),
-        cmarray:get_area_anchor(string.format("Glower%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers // 2)).tl:translate(-_P.gstwidth / 2, 0),
+        cmarray:get_area_anchor(string.format("Glower%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers // 2)).bl:translate(-_P.gstwidth / 2, 0),
         cmarray:get_area_anchor(string.format("Gupper%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers // 2)).tl:translate( _P.gstwidth / 2, 0)
     )
     for i = 2, cmfingers - _P.pmostunefingers - _P.pmoszerofingers - _P.pmosdiodefingers - _P.pmosseparationfingers, _P.mosdummieseverynth do

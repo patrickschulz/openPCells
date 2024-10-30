@@ -14,14 +14,6 @@ local function _insert_ordered_content(order, content)
     table.insert(__content[order], content)
 end
 
-
-local _shiftx = 0
-local _shifty = 0
-function M.initialize(minx, maxx, miny, maxy)
-    _shiftx = -minx
-    _shifty = -miny
-end
-
 function M.finalize()
     local t = {}
 
@@ -56,6 +48,25 @@ function M.get_techexport()
     return "svg"
 end
 
+local __width = 1400
+local __height
+
+local __minx, __maxx, __miny, __maxy
+function M.initialize(minx, maxx, miny, maxy)
+    local ratio = (maxx - minx) / (maxy - miny)
+    __height = math.floor(__width / ratio)
+    __minx = minx
+    __maxx = maxx
+    __miny = miny
+    __maxy = maxy
+end
+
+local function _translate_coordinates(pt)
+    local xt = __width * (pt.x - __minx) / (__maxx - __minx)
+    local yt = __height * (pt.y - __miny) / (__maxy - __miny)
+    return math.floor(xt), math.floor(yt)
+end
+
 function M.at_begin()
     table.insert(__content.before, "<!DOCTYPE html>")
     table.insert(__content.before, "<html lang=\"en-US\">")
@@ -69,7 +80,7 @@ function M.at_begin()
     table.insert(__content.before, "        </style>")
     table.insert(__content.before, "    </head>")
     table.insert(__content.before, "    <body>")
-    table.insert(__content.before, "        <canvas id=\"canvas\" width=\"1400\" height=\"800\">")
+    table.insert(__content.before, string.format("        <canvas id=\"canvas\" width=\"%d\" height=\"%d\">", __width, __height))
     table.insert(__content.before, "            Canvas not supported")
     table.insert(__content.before, "        </canvas>")
     table.insert(__content.before, "        <script type=\"application/javascript\">")
@@ -84,15 +95,29 @@ function M.at_end()
 end
 
 function M.write_rectangle(layer, bl, tr)
-    local width = tr.x - bl.x
-    local height = tr.y - bl.y
+    local blx, bly = _translate_coordinates(bl)
+    local trx, try = _translate_coordinates(tr)
+    local width = trx - blx
+    local height = try - bly
     _insert_ordered_content(layer.order or 0, string.format("            ctx.fillStyle = '#%s';", layer.color))
     _insert_ordered_content(layer.order or 0, string.format("            ctx.fillRect(%d, %d, %d, %d);", 
-        _shiftx + bl.x, _shifty + bl.y, width, height))
+        blx, bly, width, height))
 end
 
 function M.write_polygon(layer, pts)
-    -- TODO
+    _insert_ordered_content(layer.order or 0, string.format("            ctx.fillStyle = '#%s';", layer.color))
+    _insert_ordered_content(layer.order or 0, "            ctx.beginPath();")
+    local x0, y0 = _translate_coordinates(pts[1])
+    _insert_ordered_content(layer.order or 0, string.format("            ctx.moveTo(%d, %d);", x0, y0))
+    for i = 2, #pts do
+        local x, y = _translate_coordinates(pts[i])
+        _insert_ordered_content(layer.order or 0, string.format("            ctx.lineTo(%d, %d);", x, y))
+    end
+    _insert_ordered_content(layer.order or 0, "            ctx.closePath();")
+    _insert_ordered_content(layer.order or 0, "            ctx.fill();")
+end
+
+function M.write_port()
 end
 
 return M

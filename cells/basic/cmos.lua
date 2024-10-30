@@ -390,11 +390,11 @@ function layout(cmos, _P)
                 table.insert(gateanchors, {
                     nmos = {
                         source = "topgatestrap",
-                        target = string.format("Gupper%d", i)
+                        target = string.format("Glower%d", i)
                     },
                     pmos = {
                         source = "botgatestrap",
-                        target = string.format("Glower%d", i)
+                        target = string.format("Gupper%d", i)
                     }
                 })
             elseif _P.gatecontactpos[i] == "dummy" then
@@ -411,6 +411,16 @@ function layout(cmos, _P)
                 nopt_current.drawtopgatecut = true
                 ngatey = _P.outergatestrapspace
                 pgatey = _P.outergatestrapspace
+                table.insert(gateanchors, {
+                    nmos = {
+                        source = "botgatestrap",
+                        target = string.format("Gn%d", i)
+                    },
+                    pmos = {
+                        source = "topgatestrap",
+                        target = string.format("Gp%d", i)
+                    }
+                })
             elseif _P.gatecontactpos[i] == "unused" then
                 -- do nothing
             else

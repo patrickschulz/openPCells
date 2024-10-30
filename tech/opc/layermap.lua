@@ -35,7 +35,7 @@ return {
         layer = {
             gds = { layer = 4, purpose = 0 },
             SKILL = { layer = "pimplant", purpose = "drawing" },
-            svg = { color = "000000", ignore = true },
+            svg = { color = "333333", ignore = true },
         }
     },
     nimplant = {
@@ -43,7 +43,7 @@ return {
         layer = {
             gds = { layer = 5, purpose = 0 },
             SKILL = { layer = "nimplant", purpose = "drawing" },
-            svg = { color = "000000", ignore = true },
+            svg = { color = "333333", ignore = true },
         }
     },
     gate = {
@@ -99,7 +99,7 @@ return {
         layer = {
             gds = { layer = 10, purpose = 0 },
             SKILL = { layer = "metal2", purpose = "drawing" },
-            svg = { style = "metal2", order = 6, color = "bb0077" },
+            svg = { style = "metal2", order = 6, color = "ff00ff" },
         }
     },
     viacutM2M3 = {
