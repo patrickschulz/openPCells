@@ -11,6 +11,8 @@ src/scriptmanager.c
 src/scriptmanager.h
 src/generate_manpage
 src/tags
+src/debug
+src/release
 opc.1
 
 # generated layouts and helpers
