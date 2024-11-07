@@ -145,7 +145,7 @@ function check(_P)
         return false, "the number of the source/drain contacts must be equal for nmos and pmos"
     end
     if (#_P.gatecontactpos + 1) ~= #_P.ncontactpos then
-        return false, "the number of the source/drain contacts must match the gate contacts (+1)"
+        return false, string.format("the number of the source/drain contacts must match the gate contacts + 1 (%d vs. %d)", #_P.gatecontactpos + 1, #_P.ncontactpos)
     end
     -- check if gate cut width and gatelength match
     if (_P.gatelength % 2) ~= (_P.cutwidth % 2) then
@@ -405,6 +405,12 @@ function layout(cmos, _P)
                 nopt_current.drawtopgatecut = true
                 ngatey = _P.npowerspace
                 pgatey = _P.ppowerspace
+                table.insert(gateanchors, {
+                    nmos = {
+                        source = "botgatestrap",
+                        target = string.format("G%d", i)
+                    }
+                })
             elseif _P.gatecontactpos[i] == "outer" then
                 nopt_current.drawbotgate = true
                 popt_current.drawtopgate = true
@@ -461,26 +467,26 @@ function layout(cmos, _P)
             -- extra handling for last source/drain contact
             if i == fingers then
                 nopt_current.excludesourcedraincontacts = {}
-                if _P.ncontactpos[i] == "power" then
+                if _P.ncontactpos[i + 1] == "power" then
                     nopt_current.drainsize = ncontactpowerheight
                     nopt_current.drainalign = "bottom"
-                elseif _P.ncontactpos[i] == "outer" then
+                elseif _P.ncontactpos[i + 1] == "outer" then
                     nopt_current.drainsize = ncontactheight
                     nopt_current.drainalign = "bottom"
-                elseif _P.ncontactpos[i] == "inner" then
+                elseif _P.ncontactpos[i + 1] == "inner" then
                     nopt_current.drainsize = ncontactheight
                     nopt_current.drainalign = "top"
-                elseif _P.ncontactpos[i] == "dummyouterpower" or _P.ncontactpos[i] == "dummyouter" then
+                elseif _P.ncontactpos[i + 1] == "dummyouterpower" or _P.ncontactpos[i] == "dummyouter" then
                     nopt_current.drainsize = _P.nsddummyouterheight
                     nopt_current.drainalign = "bottom"
-                elseif _P.ncontactpos[i] == "dummyinner" then
+                elseif _P.ncontactpos[i + 1] == "dummyinner" then
                     nopt_current.drainsize = _P.nsddummyinnerheight
                     nopt_current.drainalign = "top"
-                elseif _P.ncontactpos[i] == "full" or _P.ncontactpos[i] == "fullpower" then
+                elseif _P.ncontactpos[i + 1] == "full" or _P.ncontactpos[i] == "fullpower" then
                     -- defaults apply
-                elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "unused" then
+                elseif not _P.ncontactpos[i] or _P.ncontactpos[i + 1] == "unused" then
                     nopt_current.drainsize = _P.nwidth
-                    if not _P.ncontactpos[i - 1] or _P.ncontactpos[i] == "unused" then
+                    if not _P.ncontactpos[i] or _P.ncontactpos[i + 1] == "unused" then
                         nopt_current.excludesourcedraincontacts = { 1, 2 }
                     else
                         nopt_current.excludesourcedraincontacts = { 2 }
@@ -516,26 +522,26 @@ function layout(cmos, _P)
             -- extra handling for last source/drain contact
             if i == fingers then
                 popt_current.excludesourcedraincontacts = {}
-                if _P.pcontactpos[i] == "power" then
+                if _P.pcontactpos[i + 1] == "power" then
                     popt_current.drainsize = pcontactpowerheight
                     popt_current.drainalign = "top"
-                elseif _P.pcontactpos[i] == "outer" then
+                elseif _P.pcontactpos[i + 1] == "outer" then
                     popt_current.drainsize = pcontactheight
                     popt_current.drainalign = "top"
-                elseif _P.pcontactpos[i] == "inner" then
+                elseif _P.pcontactpos[i + 1] == "inner" then
                     popt_current.drainsize = pcontactheight
                     popt_current.drainalign = "bottom"
-                elseif _P.pcontactpos[i] == "dummyouterpower" or _P.pcontactpos[i] == "dummyouter" then
+                elseif _P.pcontactpos[i + 1] == "dummyouterpower" or _P.pcontactpos[i] == "dummyouter" then
                     popt_current.drainsize = _P.psddummyouterheight
                     popt_current.drainalign = "top"
-                elseif _P.pcontactpos[i] == "dummyinner" then
+                elseif _P.pcontactpos[i + 1] == "dummyinner" then
                     popt_current.drainsize = _P.psddummyinnerheight
                     popt_current.drainalign = "bottom"
-                elseif _P.pcontactpos[i] == "full" or _P.pcontactpos[i] == "fullpower" then
+                elseif _P.pcontactpos[i + 1] == "full" or _P.pcontactpos[i + 1] == "fullpower" then
                     -- defaults apply
-                elseif not _P.pcontactpos[i] or _P.pcontactpos[i] == "unused" then
+                elseif not _P.pcontactpos[i + 1] or _P.pcontactpos[i + 1] == "unused" then
                     popt_current.drainsize = _P.pwidth
-                    if not _P.pcontactpos[i - 1] or _P.pcontactpos[i] == "unused" then
+                    if not _P.pcontactpos[i] or _P.pcontactpos[i + 1] == "unused" then
                         popt_current.excludesourcedraincontacts = { 1, 2 }
                     else
                         popt_current.excludesourcedraincontacts = { 2 }
