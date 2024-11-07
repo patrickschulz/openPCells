@@ -86,6 +86,7 @@ return {
             svg = { style = "metal1", order = 4, color = "0000ff" },
         }
     },
+    M1exclude = {},
     viacutM1M2 = {
         name = "via1",
         layer = {
@@ -102,6 +103,7 @@ return {
             svg = { style = "metal2", order = 6, color = "ff00ff" },
         }
     },
+    M2exclude = {},
     viacutM2M3 = {
         name = "via2",
         layer = {
@@ -118,6 +120,7 @@ return {
             svg = { color = "ff1212", order = 8 },
         }
     },
+    M3exclude = {},
     viacutM3M4 = {
         name = "via3",
         layer = {
@@ -134,6 +137,7 @@ return {
             svg = { color = "808080" },
         }
     },
+    M4exclude = {},
     viacutM4M5 = {
         name = "via4",
         layer = {
@@ -150,6 +154,7 @@ return {
             svg = { color = "0080ff" },
         }
     },
+    M5exclude = {},
     viacutM5M6 = {
         name = "via5",
         layer = {
@@ -166,6 +171,7 @@ return {
             svg = { color = "ff0000" },
         }
     },
+    M6exclude = {},
     viacutM6M7 = {
         name = "via6",
         layer = {
@@ -182,6 +188,7 @@ return {
             svg = { color = "8000ff" },
         }
     },
+    M7exclude = {},
     viacutM7M8 = {
         name = "via7",
         layer = {
@@ -198,6 +205,7 @@ return {
             svg = { color = "008000" },
         }
     },
+    M8exclude = {},
     viacutM8M9 = {
         name = "via8",
         layer = {
@@ -214,6 +222,7 @@ return {
             svg = { color = "ff00ff" },
         }
     },
+    M9exclude = {},
     viacutM9M10 = {
         name = "via9",
         layer = {
@@ -230,6 +239,7 @@ return {
             svg = { color = "8000ff" },
         }
     },
+    M10exclude = {},
     -- ports
     M1port = {
         name = "metal1port",
