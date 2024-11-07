@@ -898,9 +898,14 @@ static int _viabltr(
         {
             return 0;
         }
+        struct generics* viacutlayer = generics_create_viacut(techstate, i, i + 1);
+        if(!viacutlayer)
+        {
+            return 0;
+        }
         ret = ret && _via_contact_bltr(cell,
             viadefs, fallback,
-            generics_create_viacut(techstate, i, i + 1),
+            viacutlayer,
             blx, bly, trx, try,
             xcont, ycont,
             equal_pitch,
