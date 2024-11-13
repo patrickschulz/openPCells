@@ -9,11 +9,13 @@ return {
         entries = { 
             { width = 100, height = 100, xspace = 200, yspace = 200, xenclosure = 50, yenclosure = 50 },
         },
+        fallback = { width = 100, height = 100 },
     },
     contactsourcedrain = {
         entries = { 
             { width = 100, height = 100, xspace = 200, yspace = 200, xenclosure = 50, yenclosure = 50 },
         },
+        fallback = { width = 100, height = 100 },
     },
     viaM1M2 = {
         entries = {

@@ -148,3 +148,7 @@ function modassert(predicate, msg)
         moderror(msg)
     end
 end
+
+function fulltraceback(thread, message, level)
+    return debug.traceback(thread, message, level)
+end

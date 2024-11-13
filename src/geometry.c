@@ -822,8 +822,14 @@ struct viaarray* _make_via_array(
     array->yrep = yrep;
     array->xpitch = xpitch;
     array->ypitch = ypitch;
-    array->xoffset = (regionwidth - xrep * width - (xrep - 1) * (xpitch - width)) / 2;
-    array->yoffset = (regionheight - yrep * height - (yrep - 1) * (ypitch - height)) / 2;
+    // FIXME: there was a weird bug with signed/non-signed integers
+    // doing the computation in two steps helped, I don't really understand why
+    // I tried some casts and re-ordering, but in the end I don't really have a full grasp on integer promotion
+    // however, for now this works, so whatever
+    coordinate_t xoffset2 = regionwidth - xrep * width - (xrep - 1) * (xpitch - width);
+    array->xoffset = xoffset2 / 2;
+    coordinate_t yoffset2 = regionheight - yrep * height - (yrep - 1) * (ypitch - height);
+    array->yoffset = yoffset2 / 2;
     array->layer = layer;
     return array;
 }
@@ -898,7 +904,7 @@ static int _viabltr(
         {
             return 0;
         }
-        struct generics* viacutlayer = generics_create_viacut(techstate, i, i + 1);
+        const struct generics* viacutlayer = generics_create_viacut(techstate, i, i + 1);
         if(!viacutlayer)
         {
             return 0;

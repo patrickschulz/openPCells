@@ -94,7 +94,7 @@ function layout(cell, _P)
         local activebl, activetr
         for devnum, device in ipairs(row.devices) do
             if not device.skip or (_P.autoskip and device.fingers <= 0) then
-                local status, mosfet = pcall(pcell.create_layout, "basic/mosfet", device.name, {
+                local status, mosfet = xpcall(pcell.create_layout, fulltraceback, "basic/mosfet", device.name, {
                     channeltype = row.channeltype,
                     implantalignwithactive = not _P.splitgates or row.implantalignwithactive,
                     flippedwell = row.flippedwell,

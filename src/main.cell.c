@@ -662,6 +662,10 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     {
         technology_ignore_premapped_layers(techstate);
     }
+    if(cmdoptions_was_provided_long(cmdoptions, "ignore-missing-layers"))
+    {
+        technology_ignore_missing_layers(techstate);
+    }
 
     // pcell state
     struct vector* cellpaths_to_prepend = vector_create(1, free);

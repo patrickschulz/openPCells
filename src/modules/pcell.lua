@@ -443,7 +443,9 @@ function state.create_cellenv(state, cellname, ovrenv)
         ipairs = ipairs,
         pairs = pairs,
         pcall = pcall,
+        xpcall = xpcall,
         cellerror = moderror,
+        fulltraceback = fulltraceback,
         io = { open = function(filename) return io.open(filename, "r") end }
     }
     envmeta.__index = envmeta

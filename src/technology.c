@@ -42,6 +42,7 @@ struct technology_state {
     int create_fallback_vias;
     int create_via_arrays;
     int ignore_premapped;
+    int ignore_missing_layers;
 
     struct hashmap* layermap;
     struct vector* extra_layers; // stores struct generics*, extra premapped layers
@@ -749,6 +750,7 @@ struct technology_state* technology_initialize(void)
     techstate->layermap = hashmap_create();
     techstate->extra_layers = vector_create(1024, _destroy_layer);
     techstate->empty_layer = _create_empty_layer("_EMPTY_");
+    techstate->ignore_missing_layers = 0;
     return techstate;
 }
 
@@ -795,6 +797,11 @@ void technology_ignore_premapped_layers(struct technology_state* techstate)
 int technology_is_ignore_premapped_layers(const struct technology_state* techstate)
 {
     return techstate->ignore_premapped;
+}
+
+void technology_ignore_missing_layers(struct technology_state* techstate)
+{
+    techstate->ignore_missing_layers = 1;
 }
 
 static int ltechnology_get_dimension(lua_State* L)
@@ -936,8 +943,15 @@ static const struct generics* _get_or_create_layer(struct technology_state* tech
     if(!hashmap_exists(techstate->layermap, layername))
     {
         struct generics* layer = technology_get_layer(techstate, layername);
-        hashmap_insert(techstate->layermap, layername, layer);
-        return layer;
+        if(layer)
+        {
+            hashmap_insert(techstate->layermap, layername, layer);
+            return layer;
+        }
+        else
+        {
+            return techstate->empty_layer;
+        }
     }
     else
     {
