@@ -15,6 +15,8 @@ local __baseunit = 1
 local __expressionscale = false
 local __overwrite_opacity = nil
 local __prepend = {}
+local __xshift = 0
+local __yshift = 0
 
 function M.set_options(opt)
     for i = 1, #opt do
@@ -53,6 +55,22 @@ function M.set_options(opt)
                 __baseunit = tonumber(opt[i + 1])
             else
                 error("tikz export: --base-unit: argument (a number) expected")
+            end
+            i = i + 1
+        end
+        if arg == "--xshift" then
+            if i < #opt then
+                __xshift = tonumber(opt[i + 1])
+            else
+                error("tikz export: --xshift: argument (a number) expected")
+            end
+            i = i + 1
+        end
+        if arg == "--yshift" then
+            if i < #opt then
+                __yshift = tonumber(opt[i + 1])
+            else
+                error("tikz eyport: --yshift: argument (a number) expected")
             end
             i = i + 1
         end
@@ -194,8 +212,8 @@ local function _format_number(num)
 end
 
 local function _format_point(pt)
-    local sx = _format_number(pt.x)
-    local sy = _format_number(pt.y)
+    local sx = _format_number(pt.x + __xshift * __baseunit)
+    local sy = _format_number(pt.y + __yshift * __baseunit)
     if __expressionscale then
         return string.format("{ %s, %s }", sx, sy)
     else
