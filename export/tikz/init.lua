@@ -287,6 +287,11 @@ function M.write_polygon(layer, pts)
     _insert(layer.ignore, layer.order, content)
 end
 
+function M.write_port(name, layer, where, sizehint)
+    local content = string.format("\\node at (%s) {%s};", _format_point(where), name)
+    _insert(layer.ignore, layer.order or 0, content)
+end
+
 local curveignore
 local curveorder
 local curvecontent
