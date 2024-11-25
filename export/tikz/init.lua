@@ -6,6 +6,7 @@ end
 
 local __outlineblack = false
 local __standalone = false
+local __article = false
 local __drawpatterns = true
 local __writeignored = false
 local __resizebox = false
@@ -26,6 +27,9 @@ function M.set_options(opt)
         end
         if arg == "-S" or arg == "--standalone" then
             __standalone = true
+        end
+        if arg == "-a" or arg == "--article" then
+            __article = true
         end
         if arg == "--disable-patterns" then
             __drawpatterns = false
@@ -118,10 +122,14 @@ end
 
 function M.at_begin()
     if __standalone then
-        table.insert(__header, '\\documentclass{standalone}')
+        if __article then
+            table.insert(__header, '\\documentclass{article}')
+        else
+            table.insert(__header, '\\documentclass{standalone}')
+        end
         table.insert(__header, '\\usepackage{tikz}')
         if __drawpatterns then
-            table.insert(__header, '\\usetikzlibrary{patterns}')
+            table.insert(__header, '\\usetikzlibrary{patterns, patterns.meta}')
         end
         if __resizebox then
             table.insert(__header, '\\usepackage{adjustbox}')
@@ -233,11 +241,15 @@ local function _get_layer_style(layer)
         return string.format("draw = %s", color)
     else
         if __drawpatterns and layer.pattern then
-            return string.format("draw = %s, pattern = %s, pattern color = %s", _get_outline_color(color), layer.pattern, color)
+            if layer.fill then -- also fill
+                return string.format("draw = %s, preaction = {fill = %s, fill opacity = %.2f}, pattern = %s, pattern color = %s", _get_outline_color(color), _get_outline_color(color), layer.opacity or 1.0, layer.pattern, color)
+            else
+                return string.format("draw = %s, pattern = %s, pattern color = %s", _get_outline_color(color), layer.pattern, color)
+            end
         elseif layer.nooutline or __nooutline then
-            return string.format("fill = %s", color)
+            return string.format("fill = %s, fill opacity = %.2f", color, layer.opacity or 1.0)
         else
-            return string.format("fill = %s, draw = %s", color, _get_outline_color(color))
+            return string.format("fill = %s, fill opacity = %.2f, draw = %s", color, layer.opacity or 1.0, _get_outline_color(color))
         end
     end
 end
