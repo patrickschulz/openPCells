@@ -124,17 +124,27 @@ static void _insert_lpp_pairs(lua_State* L, struct hashmap* map)
     while (lua_next(L, -2) != 0)
     {
         struct tagged_value* value = NULL;
-        switch(lua_type(L, -1))
+        // check first of number is an integer
+        int success;
+        int num = lua_tointegerx(L, -1, &success);
+        if(success)
         {
-            case LUA_TNUMBER:
-                value = tagged_value_create_integer(lua_tointeger(L, -1));
-                break;
-            case LUA_TSTRING:
-                value = tagged_value_create_string(lua_tostring(L, -1));
-                break;
-            case LUA_TBOOLEAN:
-                value = tagged_value_create_boolean(lua_toboolean(L, -1));
-                break;
+            value = tagged_value_create_integer(num);
+        }
+        else // not an integer, check other values
+        {
+            switch(lua_type(L, -1))
+            {
+                case LUA_TNUMBER:
+                    value = tagged_value_create_number(lua_tonumber(L, -1));
+                    break;
+                case LUA_TSTRING:
+                    value = tagged_value_create_string(lua_tostring(L, -1));
+                    break;
+                case LUA_TBOOLEAN:
+                    value = tagged_value_create_boolean(lua_toboolean(L, -1));
+                    break;
+            }
         }
         if(value)
         {

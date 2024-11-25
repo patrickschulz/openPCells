@@ -76,6 +76,10 @@ static void _push_layer(lua_State* L, const struct hashmap* data)
         {
             lua_pushinteger(L, tagged_value_get_integer(value));
         }
+        if(tagged_value_is_number(value))
+        {
+            lua_pushnumber(L, tagged_value_get_number(value));
+        }
         if(tagged_value_is_string(value))
         {
             lua_pushstring(L, tagged_value_get_const_string(value));
