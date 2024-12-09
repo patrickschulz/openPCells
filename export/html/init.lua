@@ -94,18 +94,30 @@ function M.at_end()
     table.insert(__content.after, "</html>")
 end
 
+local function _get_layer_color(layer)
+    local pattern = "^rgb%((%d+)%s*,%s*(%d+)%s*,%s*(%d+)%s*%)$"
+    local r, g, b = string.match(layer.color, pattern)
+    if r then
+        return string.format("%02x%02x%02x", r, g, b)
+    else
+        return layer.color
+    end
+end
+
 function M.write_rectangle(layer, bl, tr)
     local blx, bly = _translate_coordinates(bl)
     local trx, try = _translate_coordinates(tr)
     local width = trx - blx
     local height = try - bly
-    _insert_ordered_content(layer.order or 0, string.format("            ctx.fillStyle = '#%s';", layer.color))
+    local color = _get_layer_color(layer)
+    _insert_ordered_content(layer.order or 0, string.format("            ctx.fillStyle = '#%s';", color))
     _insert_ordered_content(layer.order or 0, string.format("            ctx.fillRect(%d, %d, %d, %d);", 
         blx, bly, width, height))
 end
 
 function M.write_polygon(layer, pts)
-    _insert_ordered_content(layer.order or 0, string.format("            ctx.fillStyle = '#%s';", layer.color))
+    local color = _get_layer_color(layer)
+    _insert_ordered_content(layer.order or 0, string.format("            ctx.fillStyle = '#%s';", color))
     _insert_ordered_content(layer.order or 0, "            ctx.beginPath();")
     local x0, y0 = _translate_coordinates(pts[1])
     _insert_ordered_content(layer.order or 0, string.format("            ctx.moveTo(%d, %d);", x0, y0))
