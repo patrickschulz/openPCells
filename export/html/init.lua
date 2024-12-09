@@ -110,9 +110,18 @@ function M.write_rectangle(layer, bl, tr)
     local width = trx - blx
     local height = try - bly
     local color = _get_layer_color(layer)
+    _insert_ordered_content(layer.order or 0, "            ctx.globalAlpha = 1;")
+    _insert_ordered_content(layer.order or 0, "            ctx.beginPath();")
+    _insert_ordered_content(layer.order or 0, string.format("            ctx.strokeStyle = '#%s';", color))
     _insert_ordered_content(layer.order or 0, string.format("            ctx.fillStyle = '#%s';", color))
-    _insert_ordered_content(layer.order or 0, string.format("            ctx.fillRect(%d, %d, %d, %d);", 
+    _insert_ordered_content(layer.order or 0, string.format("            ctx.rect(%d, %d, %d, %d);", 
         blx, bly, width, height))
+    if layer.nofill then
+        _insert_ordered_content(layer.order or 0, "            ctx.stroke();")
+    else
+        _insert_ordered_content(layer.order or 0, "            ctx.fill();")
+    end
+    _insert_ordered_content(layer.order or 0, "            ctx.globalAlpha = 1;")
 end
 
 function M.write_polygon(layer, pts)
