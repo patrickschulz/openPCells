@@ -118,7 +118,7 @@ static struct generics_entry* _create_entry(const char* name)
     return entry;
 }
 
-static void _insert_lpp_pairs(lua_State* L, struct hashmap* map)
+static void _insert_lpp_pairs(lua_State* L, struct hashmap* map, const char* layername)
 {
     lua_pushnil(L);
     while (lua_next(L, -2) != 0)
@@ -152,6 +152,9 @@ static void _insert_lpp_pairs(lua_State* L, struct hashmap* map)
         }
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
+    // add layer name for all exports
+    struct tagged_value* vname = tagged_value_create_string(layername);
+    hashmap_insert(map, "name", vname);
 }
 
 static struct generics* _create_empty_layer(const char* name)
@@ -214,7 +217,7 @@ static struct generics* _make_layer_from_lua(const char* layername, lua_State* L
         {
             const char* name = lua_tostring(L, -2);
             struct generics_entry* entry = _create_entry(name);
-            _insert_lpp_pairs(L, entry->data);
+            _insert_lpp_pairs(L, entry->data, layername);
             vector_append(layer->entries, entry);
             lua_pop(L, 1); // pop value, keep key for next iteration
         }
