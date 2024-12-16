@@ -350,6 +350,12 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CONFIG;
     }
 
+    if(cmdoptions_was_provided_long(cmdoptions, "anchors"))
+    {
+        main_list_cell_anchors(cmdoptions, config);
+        goto DESTROY_CONFIG;
+    }
+
     // create cell
     int create_cell_script = cmdoptions_was_provided_long(cmdoptions, "cellscript");
     if(cmdoptions_was_provided_long(cmdoptions, "cell") || create_cell_script)

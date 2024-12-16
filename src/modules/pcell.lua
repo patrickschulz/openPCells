@@ -746,6 +746,11 @@ function pcell.parameters(cellname, cellargs, generictech)
     return str
 end
 
+function pcell.anchors(cellname)
+    local cell = _get_cell(state, cellname)
+    --for k, v in pairs(
+end
+
 local function _perform_cell_check(cellname, name, values)
     for _, pval in ipairs(values) do
         local status, msg = pcall(pcell.create_layout, cellname, { [name] = pval })

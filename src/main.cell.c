@@ -231,6 +231,92 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     lua_close(L);
 }
 
+void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* config)
+{
+    // FIXME: this probably loads too many C modules
+    // FIXME: load dummy technology if not technology was given
+    lua_State* L = _create_and_initialize_lua();
+
+    module_load_aux(L);
+    module_load_util(L);
+    module_load_check(L);
+    module_load_stack(L);
+    module_load_pcell(L);
+    module_load_load(L);
+
+    struct vector* techpaths = hashmap_get(config, "techpaths");
+    vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
+    if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
+    {
+        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
+        while(*arg)
+        {
+            vector_append(techpaths, util_strdup(*arg));
+            ++arg;
+        }
+    }
+    struct const_vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
+    const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
+    if(techname)
+    {
+        struct technology_state* techstate = _create_techstate(techpaths, techname, ignoredlayers);
+        // register techstate
+        lua_pushlightuserdata(L, techstate);
+        lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
+    }
+
+    // pcell state
+    struct vector* cellpaths_to_prepend = vector_create(1, free);
+    struct vector* cellpaths_to_append = vector_create(1, free);
+    _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
+    struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
+    vector_destroy(cellpaths_to_prepend);
+    vector_destroy(cellpaths_to_append);
+    // and register
+    lua_pushlightuserdata(L, pcell_state);
+    lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
+
+    // assemble cell arguments
+    lua_newtable(L);
+    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters");
+    lua_pushstring(L, cellname);
+    lua_setfield(L, -2, "cell");
+    const char* parametersformat = cmdoptions_get_argument_long(cmdoptions, "parameters-format");
+    if(parametersformat)
+    {
+        lua_pushstring(L, parametersformat);
+        lua_setfield(L, -2, "parametersformat");
+    }
+    lua_pushboolean(L, techname ? 0 : 1);
+    lua_setfield(L, -2, "generictech");
+    const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
+    size_t numposargs = 0;
+    lua_newtable(L);
+    while(*ptr)
+    {
+        lua_pushstring(L, *ptr);
+        lua_rawseti(L, -2, numposargs + 1);
+        ++numposargs;
+        ++ptr;
+    }
+    if(numposargs > 0)
+    {
+        lua_setfield(L, -2, "parameternames");
+    }
+    else
+    {
+        lua_pop(L, 1);
+    }
+    lua_setglobal(L, "args");
+
+    int retval = script_call_list_anchors(L);
+    if(retval != LUA_OK)
+    {
+        puts("error while running list_anchors.lua");
+    }
+    lua_close(L);
+}
+
 static int _read_cellenv(lua_State* L, const char* filename)
 {
     if(!filename)
