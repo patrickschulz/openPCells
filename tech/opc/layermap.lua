@@ -1,4 +1,11 @@
 return {
+    outline = {
+        name = "_outline",
+        layer = {
+            gds = { layer = 255, purpose = 255 },
+            SKILL = { layer = "_outline", purpose = "drawing" },
+        }
+    },
     special = {
         name = "_special",
         layer = {
