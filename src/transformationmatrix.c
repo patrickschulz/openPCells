@@ -189,7 +189,7 @@ void transformationmatrix_rotate_90_left(struct transformationmatrix* matrix)
     M(matrix, 5) = tmp;
 }
 
-void transformationmatrix_apply_transformation(const struct transformationmatrix* matrix, point_t* pt)
+void transformationmatrix_apply_transformation(const struct transformationmatrix* matrix, struct point* pt)
 {
     coordinate_t x = pt->x;
     coordinate_t y = pt->y;
@@ -197,7 +197,7 @@ void transformationmatrix_apply_transformation(const struct transformationmatrix
     pt->y = M(matrix, 3) * x + M(matrix, 4) * y + M(matrix, 5);
 }
 
-void transformationmatrix_apply_transformation_rot_mirr(const struct transformationmatrix* matrix, point_t* pt)
+void transformationmatrix_apply_transformation_rot_mirr(const struct transformationmatrix* matrix, struct point* pt)
 {
     coordinate_t x = pt->x;
     coordinate_t y = pt->y;
@@ -222,7 +222,7 @@ void transformationmatrix_apply_inverse_transformation_xy(const struct transform
     *pty = -M(matrix, 3) / det * x + M(matrix, 0) / det * y - (M(matrix, 0) * M(matrix, 5) - M(matrix, 2) * M(matrix, 1)) / det;
 }
 
-void transformationmatrix_apply_inverse_transformation(const struct transformationmatrix* matrix, point_t* pt)
+void transformationmatrix_apply_inverse_transformation(const struct transformationmatrix* matrix, struct point* pt)
 {
     transformationmatrix_apply_inverse_transformation_xy(matrix, &pt->x, &pt->y);
 }

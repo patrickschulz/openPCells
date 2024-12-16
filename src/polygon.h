@@ -23,7 +23,7 @@ struct vector* simple_polygon_line_intersections(const struct simple_polygon* si
 struct vector* polygon_line_intersections(const struct polygon* polygon, coordinate_t x1, coordinate_t y1, coordinate_t x2, coordinate_t y2);
 int simple_polygon_intersects_rectangle(const struct simple_polygon* simple_polygon, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 int polygon_intersects_rectangle(const struct polygon* polygon, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
-void simple_polygon_append(struct simple_polygon* simple_polygon, point_t* pt);
+void simple_polygon_append(struct simple_polygon* simple_polygon, struct point* pt);
 coordinate_t polygon_get_minx(const struct polygon* polygon);
 coordinate_t polygon_get_maxx(const struct polygon* polygon);
 coordinate_t polygon_get_miny(const struct polygon* polygon);
@@ -32,14 +32,14 @@ coordinate_t polygon_get_maxy(const struct polygon* polygon);
 struct simple_polygon_iterator;
 struct simple_polygon_iterator* simple_polygon_iterator_create(struct simple_polygon* simple_polygon);
 int simple_polygon_iterator_is_valid(struct simple_polygon_iterator* iterator);
-point_t* simple_polygon_iterator_get(struct simple_polygon_iterator* iterator);
+struct point* simple_polygon_iterator_get(struct simple_polygon_iterator* iterator);
 void simple_polygon_iterator_next(struct simple_polygon_iterator* iterator);
 void simple_polygon_iterator_destroy(struct simple_polygon_iterator* iterator);
 
 struct simple_polygon_const_iterator;
 struct simple_polygon_const_iterator* simple_polygon_const_iterator_create(const struct simple_polygon* simple_polygon);
 int simple_polygon_const_iterator_is_valid(struct simple_polygon_const_iterator* iterator);
-const point_t* simple_polygon_const_iterator_get(struct simple_polygon_const_iterator* iterator);
+const struct point* simple_polygon_const_iterator_get(struct simple_polygon_const_iterator* iterator);
 void simple_polygon_const_iterator_next(struct simple_polygon_const_iterator* iterator);
 void simple_polygon_const_iterator_destroy(struct simple_polygon_const_iterator* iterator);
 

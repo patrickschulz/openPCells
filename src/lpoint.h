@@ -10,11 +10,11 @@
 struct lpoint;
 
 struct lpoint* lpoint_create_internal(lua_State* L, coordinate_t x, coordinate_t y);
-struct lpoint* lpoint_adapt_point(lua_State* L, point_t* pt);
-struct lpoint* lpoint_takeover_point(lua_State* L, point_t* pt);
+struct lpoint* lpoint_adapt_point(lua_State* L, struct point* pt);
+struct lpoint* lpoint_takeover_point(lua_State* L, struct point* pt);
 int lpoint_create(lua_State* L);
 int lpoint_copy(lua_State* L);
-const point_t* lpoint_get(const struct lpoint* pt);
+const struct point* lpoint_get(const struct lpoint* pt);
 coordinate_t lpoint_checkcoordinate(lua_State* L, int idx, const char* coordinate);
 struct lpoint* lpoint_checkpoint(lua_State* L, int idx);
 int lpoint_is_point(lua_State* L, int idx);

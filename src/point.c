@@ -2,9 +2,9 @@
 
 #include <stdlib.h>
 
-point_t* point_create(coordinate_t x, coordinate_t y)
+struct point* point_create(coordinate_t x, coordinate_t y)
 {
-    point_t* pt = malloc(sizeof(*pt));
+    struct point* pt = malloc(sizeof(*pt));
     pt->x = x;
     pt->y = y;
     return pt;
@@ -17,38 +17,38 @@ void point_destroy(void* pt)
 
 void* point_copy(const void* v)
 {
-    const point_t* pt = v;
-    point_t* new = point_create(pt->x, pt->y);
+    const struct point* pt = v;
+    struct point* new = point_create(pt->x, pt->y);
     return new;
 }
 
-coordinate_t point_getx(const point_t* pt)
+inline coordinate_t point_getx(const struct point* pt)
 {
     return pt->x;
 }
 
-coordinate_t point_gety(const point_t* pt)
+inline coordinate_t point_gety(const struct point* pt)
 {
     return pt->y;
 }
 
-void point_translate(point_t* pt, coordinate_t x, coordinate_t y)
+void point_translate(struct point* pt, coordinate_t x, coordinate_t y)
 {
     pt->x += x;
     pt->y += y;
 }
 
-point_t* point_create_minimum(void)
+struct point* point_create_minimum(void)
 {
     return point_create(COORDINATE_MIN, COORDINATE_MIN);
 }
 
-point_t* point_create_maximum(void)
+struct point* point_create_maximum(void)
 {
     return point_create(COORDINATE_MAX, COORDINATE_MAX);
 }
 
-void point_update_minimum(point_t** min, const point_t* pt)
+void point_update_minimum(struct point** min, const struct point* pt)
 {
     if(pt->x < (*min)->x)
     {
@@ -60,7 +60,7 @@ void point_update_minimum(point_t** min, const point_t* pt)
     }
 }
 
-void point_update_maximum(point_t** max, const point_t* pt)
+void point_update_maximum(struct point** max, const struct point* pt)
 {
     if(pt->x > (*max)->x)
     {
@@ -72,12 +72,12 @@ void point_update_maximum(point_t** max, const point_t* pt)
     }
 }
 
-coordinate_t point_xdifference(const point_t* pt1, const point_t* pt2)
+coordinate_t point_xdifference(const struct point* pt1, const struct point* pt2)
 {
     return pt1->x - pt2->x;
 }
 
-coordinate_t point_ydifference(const point_t* pt1, const point_t* pt2)
+coordinate_t point_ydifference(const struct point* pt1, const struct point* pt2)
 {
     return pt1->y - pt2->y;
 }

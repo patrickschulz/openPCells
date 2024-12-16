@@ -46,7 +46,7 @@ procedure(OPCCreateSettingsForm()
             hiCreateRadioField(
                 ?name 'OPCSettingsWriteChildrenPorts
                 ?choices list("true" "false")
-                ?value "false"
+                ?value "true"
                 ?prompt "Write Ports of Children"
             )
             hiCreateRadioField(

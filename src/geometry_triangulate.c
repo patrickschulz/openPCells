@@ -9,7 +9,7 @@
 
 struct vertex {
     size_t index;
-    point_t* pt;
+    struct point* pt;
     int is_ear;
     struct vertex* next;
     struct vertex* prev;
@@ -25,7 +25,7 @@ static int _xor(int x, int y)
     return !x ^ !y;
 }
 
-static int _area_sign(const point_t* a, const point_t* b, const point_t* c)
+static int _area_sign(const struct point* a, const struct point* b, const struct point* c)
 {
     double area2;
 
@@ -37,7 +37,7 @@ static int _area_sign(const point_t* a, const point_t* b, const point_t* c)
     else return 0;
 }
 
-static int _collinear(const point_t* a, const point_t* b, const point_t* c)
+static int _collinear(const struct point* a, const struct point* b, const struct point* c)
 {
     return _area_sign(a, b, c) == 0;
 }
@@ -46,12 +46,12 @@ static int _collinear(const point_t* a, const point_t* b, const point_t* c)
   Returns true iff c is strictly to the left of the directed
   line through a to b.
   ---------------------------------------------------------------------*/
-static int _left(const point_t* a, const point_t* b, const point_t* c)
+static int _left(const struct point* a, const struct point* b, const struct point* c)
 { 
     return _area_sign(a, b, c) > 0;
 }
 
-static int left_on(const point_t* a, const point_t* b, const point_t* c)
+static int left_on(const struct point* a, const struct point* b, const struct point* c)
 {
     return _area_sign(a, b, c) >= 0;
 }
@@ -61,7 +61,7 @@ static int left_on(const point_t* a, const point_t* b, const point_t* c)
   a point interior to both segments.  The properness of the
   intersection is ensured by using strict leftness.
   ---------------------------------------------------------------------*/
-static int _intersect_prop(const point_t* a, const point_t* b, const point_t* c, const point_t* d)
+static int _intersect_prop(const struct point* a, const struct point* b, const struct point* c, const struct point* d)
 {
     /* Eliminate improper cases. */
     if(_collinear(a, b, c) || _collinear(a, b, d) || _collinear(c, d, a) || _collinear(c, d, b))
@@ -76,7 +76,7 @@ static int _intersect_prop(const point_t* a, const point_t* b, const point_t* c,
   Returns TRUE iff point c lies on the closed segement ab.
   First checks that c is collinear with a and b.
   ---------------------------------------------------------------------*/
-static int _between(const point_t* a, const point_t* b, const point_t* c)
+static int _between(const struct point* a, const struct point* b, const struct point* c)
 {
     if (!_collinear(a, b, c))
     {
@@ -97,7 +97,7 @@ static int _between(const point_t* a, const point_t* b, const point_t* c)
 /*---------------------------------------------------------------------
   Returns TRUE iff segments ab and cd intersect, properly or improperly.
   ---------------------------------------------------------------------*/
-static int _intersect(const point_t* a, const point_t* b, const point_t* c, const point_t* d)
+static int _intersect(const struct point* a, const struct point* b, const struct point* c, const struct point* d)
 {
     if(_intersect_prop(a, b, c, d))
         return 1;
@@ -259,7 +259,7 @@ struct vector* geometry_triangulate_polygon(const struct vector* points)
     struct vector_const_iterator* it = vector_const_iterator_create(points);
     while(vector_const_iterator_is_valid(it))
     {
-        const point_t* pt = vector_const_iterator_get(it);
+        const struct point* pt = vector_const_iterator_get(it);
         struct vertex* v = malloc(sizeof(*v));
         v->pt = point_copy(pt);
         v->index = numvertices;

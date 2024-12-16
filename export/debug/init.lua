@@ -33,8 +33,8 @@ function M.write_polygon(layer, pts)
     table.insert(__content, string.format("poly (%s): %s", layer, table.concat(t, " ")))
 end
 
-function M.write_cell_reference(identifier, instname, x, y)
-    table.insert(__content, string.format("ref  (%s): (%d, %d)", identifier, x, y))
+function M.write_cell_reference(identifier, instname, origin)
+    table.insert(__content, string.format("ref  (%s): (%d, %d)", identifier, origin:getx(), origin:gety()))
 end
 
 function M.at_begin_cell(cellname)

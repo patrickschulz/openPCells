@@ -9,10 +9,11 @@
 
 #include "export_common.h"
 #include "export_writer.h"
-#include "util.h"
-#include "lua_util.h"
-#include "gdsexport.h"
 #include "filesystem.h"
+#include "gdsexport.h"
+#include "lua_util.h"
+#include "skillexport.h"
+#include "util.h"
 
 #define EXPORT_STATUS_SUCCESS 0
 #define EXPORT_STATUS_NOTFOUND 1
@@ -26,6 +27,7 @@ struct export_state {
     char leftdelim, rightdelim;
     const char* const * exportoptions;
     int expand_namecontext;
+    int writeports;
     int writechildrenports;
 };
 
@@ -39,6 +41,7 @@ struct export_state* export_create_state(void)
     memset(state, 0, sizeof(*state));
     state->searchpaths = const_vector_create(1);
     state->expand_namecontext = 1;
+    state->writeports = 1;
     return state;
 }
 
@@ -74,6 +77,11 @@ void export_set_export_options(struct export_state* state, const char* const* ex
 void export_set_namecontext_expansion(struct export_state* state, int expand)
 {
     state->expand_namecontext = expand;
+}
+
+void export_disable_ports(struct export_state* state)
+{
+    state->writeports = 0;
 }
 
 void export_set_write_children_ports(struct export_state* state, int writechildrenports)
@@ -123,6 +131,10 @@ static struct export_functions* _get_export_functions(const char* exportname)
     if(strcmp(exportname, "gds") == 0)
     {
         funcs = gdsexport_get_export_functions();
+    }
+    else if(strcmp(exportname, "SKILL") == 0)
+    {
+        funcs = skillexport_get_export_functions();
     }
     else
     {
@@ -250,6 +262,13 @@ static int _check_lua_export(lua_State* L)
             return 0;
         }
     }
+    if(!_check_function(L, "write_label"))
+    {
+        if(!_check_function(L, "write_port"))
+        {
+            return 0;
+        }
+    }
     if(!_check_function(L, "finalize"))
     {
         return 0;
@@ -302,7 +321,7 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
     if(funcs) // C-defined exports
     {
         struct export_writer* writer = export_writer_create_C(funcs, data);
-        export_writer_write_toplevel(writer, toplevel, state->expand_namecontext, state->writechildrenports, state->leftdelim, state->rightdelim);
+        export_writer_write_toplevel(writer, toplevel, state->expand_namecontext, state->writeports, state->writechildrenports, state->leftdelim, state->rightdelim);
         export_writer_destroy(writer);
         extension = util_strdup(funcs->get_extension());
         status = EXPORT_STATUS_SUCCESS;
@@ -325,7 +344,7 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
             // check minimal function support
             if(!_check_lua_export(L))
             {
-                fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' (or 'write_triangle') and 'finalize'\n", state->exportname);
+                fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' (or 'write_triangle'), 'write_port'/'write_label' and 'finalize'\n", state->exportname);
                 status = EXPORT_STATUS_LOADERROR;
                 lua_close(L);
                 ret = 0;
@@ -376,7 +395,7 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
             }
 
             struct export_writer* writer = export_writer_create_lua(L, data);
-            ret = export_writer_write_toplevel(writer, toplevel, state->expand_namecontext, state->writechildrenports, state->leftdelim, state->rightdelim);
+            ret = export_writer_write_toplevel(writer, toplevel, state->expand_namecontext, state->writeports, state->writechildrenports, state->leftdelim, state->rightdelim);
             export_writer_destroy(writer);
             if(!ret)
             {

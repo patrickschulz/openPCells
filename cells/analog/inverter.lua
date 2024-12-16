@@ -11,9 +11,9 @@ function parameters()
         { "nmosflippedwell(NMOS Flipped Well)",         false },
         { "gatelength(Gate Length)",                    technology.get_dimension("Minimum Gate Length") },
         { "gatespace(Gate Spacing)",                    technology.get_dimension("Minimum Gate XSpace") },
-        { "drawinnergatecut",                           false },
         { "drawoutergatecut",                           false },
         { "gatecutheight",                              0 },
+        { "outergatecutyshift",                         0 },
         { "gatemetal",                                  1 },
         { "sdwidth(Source/Drain Metal Width)",          technology.get_dimension("Minimum M1 Width"), posvals = even() },
         { "gatestrapwidth(Gate Metal Width)",           technology.get_dimension("Minimum M1 Width") },
@@ -26,7 +26,9 @@ function parameters()
         { "ngateext",                                   0 },
         { "numleftdummies",                             0 },
         { "numrightdummies",                            0 },
-        { "alternatedummycontacts",                 false },
+        { "alternatedummycontacts",                     false },
+        { "drawalternatedummycontactspowerbarvia",      false, follow = "alternatedummycontacts" },
+        { "splitdrainvias",                             false },
         { "outputmetal",                                2, posvals = interval(2, inf) },
         { "outputwidth",                                technology.get_dimension("Minimum M1 Width") },
         { "outputxshift",                               0 },
@@ -41,22 +43,55 @@ function parameters()
         { "drawrightstopgate",                          false },
         { "leftpolylines",                              {} },
         { "rightpolylines",                             {} },
-        { "extendimplanttop",                           0 },
-        { "extendimplantbottom",                        0 },
-        { "extendimplantleft",                          0 },
-        { "extendimplantright",                         0 },
-        { "extendoxidetypetop",                         0 },
-        { "extendoxidetypebottom",                      0 },
-        { "extendoxidetypeleft",                        0 },
-        { "extendoxidetyperight",                       0 },
-        { "extendvthtypetop",                           0 },
-        { "extendvthtypebottom",                        0 },
-        { "extendvthtypeleft",                          0 },
-        { "extendvthtyperight",                         0 },
-        { "extendwelltop",                              0 },
-        { "extendwellbottom",                           0 },
-        { "extendwellleft",                             0 },
-        { "extendwellright",                            0 }
+        { "drawanalogmarker",                           false, },
+        { "extendalltop",                               0 },
+        { "extendallbottom",                            0 },
+        { "extendallleft",                              0 },
+        { "extendallright",                             0 },
+        { "extendoxidetypetop",                         0, follow = "extendalltop" },
+        { "extendoxidetypebottom",                      0, follow = "extendallbottom" },
+        { "extendoxidetypeleft",                        0, follow = "extendallleft" },
+        { "extendoxidetyperight",                       0, follow = "extendallright" },
+        { "extendvthtypetop",                           0, follow = "extendalltop" },
+        { "extendvthtypebottom",                        0, follow = "extendallbottom" },
+        { "extendvthtypeleft",                          0, follow = "extendallleft" },
+        { "extendvthtyperight",                         0, follow = "extendallright" },
+        { "extendimplanttop",                           0, follow = "extendalltop" },
+        { "extendimplantbottom",                        0, follow = "extendallbottom" },
+        { "extendimplantleft",                          0, follow = "extendallleft" },
+        { "extendimplantright",                         0, follow = "extendallright" },
+        { "extendwelltop",                              0, follow = "extendalltop" },
+        { "extendwellbottom",                           0, follow = "extendallbottom" },
+        { "extendwellleft",                             0, follow = "extendallleft" },
+        { "extendwellright",                            0, follow = "extendallright" },
+        { "extendlvsmarkertop",                         0, follow = "extendalltop" },
+        { "extendlvsmarkerbottom",                      0, follow = "extendallbottom" },
+        { "extendlvsmarkerleft",                        0, follow = "extendallleft" },
+        { "extendlvsmarkerright",                       0, follow = "extendallright" },
+        { "extendrotationmarkertop",                    0, follow = "extendalltop" },
+        { "extendrotationmarkerbottom",                 0, follow = "extendallbottom" },
+        { "extendrotationmarkerleft",                   0, follow = "extendallleft" },
+        { "extendrotationmarkerright",                  0, follow = "extendallright" },
+        { "extendanalogmarkertop",                      0, follow = "extendalltop" },
+        { "extendanalogmarkerbottom",                   0, follow = "extendallbottom" },
+        { "extendanalogmarkerleft",                     0, follow = "extendallleft" },
+        { "extendanalogmarkerright",                    0, follow = "extendallright" },
+        { "drawleftnmoswelltap",                        false },
+        { "drawrightnmoswelltap",                       false },
+        { "connectnmoswelltap",                         false },
+        { "nmoswelltapwidth",                           200 },
+        { "nmoswelltapshrink",                          0 },
+        { "nmoswelltapshift",                           500 },
+        { "nmoswelltapwellextension",                   0 },
+        { "nmoswelltapsoiopenextension",                0 },
+        { "drawleftpmoswelltap",                        false },
+        { "drawrightpmoswelltap",                       false },
+        { "connectpmoswelltap",                         false },
+        { "pmoswelltapwidth",                           200 },
+        { "pmoswelltapshrink",                          0 },
+        { "pmoswelltapshift",                           500 },
+        { "pmoswelltapwellextension",                   0 },
+        { "pmoswelltapsoiopenextension",                0 }
     )
 end
 
@@ -88,6 +123,11 @@ function layout(inverter, _P)
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,
         ncontactpos = contactpos,
+        psplitoutputvias = _P.splitdrainvias,
+        nsplitoutputvias = _P.splitdrainvias,
+        outputwidth = _P.outputwidth,
+        noutputinlineoffset = _P.nwidth - _P.outputyshift - _P.outputwidth,
+        poutputinlineoffset = _P.pwidth - _P.outputyshift - _P.outputwidth,
         powerwidth = _P.powerwidth,
         npowerspace = _P.powerspace,
         ppowerspace = _P.powerspace,
@@ -95,6 +135,8 @@ function layout(inverter, _P)
         ngateext = _P.ngateext,
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
+        outputmetal = _P.outputmetal,
+        isoutputcontact = util.range(_P.numleftdummies + 2, _P.numleftdummies + _P.fingers, 2),
         innergatestraps = 1,
         gatestrapwidth = _P.gatestrapwidth,
         gatestrapspace = _P.gatestrapspace,
@@ -106,10 +148,12 @@ function layout(inverter, _P)
         drawrightstopgate = _P.drawrightstopgate,
         leftpolylines = _P.leftpolylines,
         rightpolylines = _P.rightpolylines,
+        drawanalogmarker = _P.drawanalogmarker,
         cutwidth = _P.gatelength + _P.gatespace,
-        drawinnergatecut = _P.drawinnergatecut,
         drawoutergatecut = _P.drawoutergatecut,
         cutheight = _P.gatecutheight,
+        poutercutyshift = _P.outergatecutyshift,
+        noutercutyshift = _P.outergatecutyshift,
         extendimplanttop = _P.extendimplanttop,
         extendimplantbottom = _P.extendimplantbottom,
         extendimplantleft = _P.extendimplantleft,
@@ -126,6 +170,18 @@ function layout(inverter, _P)
         extendwellbottom = _P.extendwellbottom,
         extendwellleft = _P.extendwellleft,
         extendwellright = _P.extendwellright,
+        extendlvsmarkertop = _P.extendlvsmarkertop,
+        extendlvsmarkerbottom = _P.extendlvsmarkerbottom,
+        extendlvsmarkerleft = _P.extendlvsmarkerleft,
+        extendlvsmarkerright = _P.extendlvsmarkerright,
+        extendrotationmarkertop = _P.extendrotationmarkertop,
+        extendrotationmarkerbottom = _P.extendrotationmarkerbottom,
+        extendrotationmarkerleft = _P.extendrotationmarkerleft,
+        extendrotationmarkerright = _P.extendrotationmarkerright,
+        extendanalogmarkertop = _P.extendanalogmarkertop,
+        extendanalogmarkerbottom = _P.extendanalogmarkerbottom,
+        extendanalogmarkerleft = _P.extendanalogmarkerleft,
+        extendanalogmarkerright = _P.extendanalogmarkerright,
         psddummyouterheight = _P.psddummyouterheight,
         nsddummyouterheight = _P.nsddummyouterheight,
     })
@@ -211,8 +267,28 @@ function layout(inverter, _P)
         )
     end
 
+    -- inherit anchors
+    inverter:inherit_area_anchor_as(cmos, "PRp", "vddbar")
+    inverter:inherit_area_anchor_as(cmos, "PRn", "vssbar")
+    inverter:inherit_area_anchor(cmos, "nmos_implant")
+    inverter:inherit_area_anchor(cmos, "pmos_implant")
+    inverter:inherit_area_anchor(cmos, "nmos_well")
+    inverter:inherit_area_anchor(cmos, "pmos_well")
+    inverter:inherit_area_anchor(cmos, "nmos_active")
+    inverter:inherit_area_anchor(cmos, "pmos_active")
+
     -- connect dummies
     if _P.alternatedummycontacts then
+        if _P.drawalternatedummycontactspowerbarvia then
+            geometry.viabltr_xcontinuous(inverter, 1, 2,
+                inverter:get_area_anchor("vddbar").bl,
+                inverter:get_area_anchor("vddbar").tr
+            )
+            geometry.viabltr_xcontinuous(inverter, 1, 2,
+                inverter:get_area_anchor("vssbar").bl,
+                inverter:get_area_anchor("vssbar").tr
+            )
+        end
         for i = 1, _P.numleftdummies do
             if i % 2 == 1 then
                 geometry.rectanglebltr(inverter, generics.metal(1),
@@ -330,34 +406,199 @@ function layout(inverter, _P)
         end
     end
 
-    for i = 2, _P.fingers + 1, 2 do
-        geometry.viabltr(inverter, 1, _P.outputmetal,
-            cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).bl,
-            cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).tr
+    -- place welltaps
+    if _P.drawleftnmoswelltap then
+        layouthelpers.place_welltap(
+            inverter,
+            inverter:get_area_anchor("nmos_active").bl:translate(-_P.nmoswelltapshift - _P.nmoswelltapwidth, _P.nmoswelltapshrink),
+            inverter:get_area_anchor("nmos_active").tl:translate(-_P.nmoswelltapshift, -_P.nmoswelltapshrink),
+            "left_nmos_welltap_",
+            {
+                contype = "n",
+                wellleftextension = _P.nmoswelltapwellextension,
+                soiopenleftextension = _P.nmoswelltapsoiopenextension,
+                soiopenrightextension = _P.nmoswelltapsoiopenextension,
+                soiopentopextension = _P.nmoswelltapsoiopenextension,
+                soiopenbottomextension = _P.nmoswelltapsoiopenextension,
+            }
         )
-        geometry.viabltr(inverter, 1, _P.outputmetal,
-            cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).bl,
-            cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).tr
-        )
-        geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
-            cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).bl:translate_x(-_P.extendoutputmetal),
-            cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).tr:translate_x(_P.extendoutputmetal)
-        )
-        geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
-            cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).bl:translate_x(-_P.extendoutputmetal),
-            cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).tr:translate_x(_P.extendoutputmetal)
+        geometry.rectanglebltr(inverter, generics.other("nwell"),
+            point.create(
+                inverter:get_area_anchor("left_nmos_welltap_well").l,
+                inverter:get_area_anchor("nmos_well").b
+            ),
+            point.create(
+                inverter:get_area_anchor("nmos_well").l,
+                inverter:get_area_anchor("nmos_well").t
+            )
         )
     end
-
-    inverter:inherit_area_anchor_as(cmos, "PRp", "vddbar")
-    inverter:inherit_area_anchor_as(cmos, "PRn", "vssbar")
-    inverter:inherit_area_anchor(cmos, "nmos_well")
-    inverter:inherit_area_anchor(cmos, "pmos_well")
-    inverter:inherit_area_anchor(cmos, "nmos_active")
-    inverter:inherit_area_anchor(cmos, "pmos_active")
+    if _P.drawleftpmoswelltap then
+        layouthelpers.place_welltap(
+            inverter,
+            inverter:get_area_anchor("pmos_implant").bl:translate(-_P.pmoswelltapshift - _P.pmoswelltapwidth, _P.pmoswelltapshrink),
+            inverter:get_area_anchor("pmos_implant").tl:translate(-_P.pmoswelltapshift, -_P.pmoswelltapshrink),
+            "left_pmos_welltap_",
+            {
+                contype = "p",
+                wellleftextension = _P.pmoswelltapwellextension,
+                soiopenleftextension = _P.pmoswelltapsoiopenextension,
+                soiopenrightextension = _P.pmoswelltapsoiopenextension,
+                soiopentopextension = _P.pmoswelltapsoiopenextension,
+                soiopenbottomextension = _P.pmoswelltapsoiopenextension,
+            }
+        )
+        geometry.rectanglebltr(inverter, generics.other("pwell"),
+            point.create(
+                inverter:get_area_anchor("left_pmos_welltap_well").l,
+                inverter:get_area_anchor("pmos_well").b
+            ),
+            point.create(
+                inverter:get_area_anchor("pmos_well").l,
+                inverter:get_area_anchor("pmos_well").t
+            )
+        )
+        geometry.rectanglebltr(inverter, generics.other("pimplant"),
+            point.create(
+                inverter:get_area_anchor("left_pmos_welltap_implant").l,
+                inverter:get_area_anchor("pmos_implant").b
+            ),
+            point.create(
+                inverter:get_area_anchor("pmos_implant").l,
+                inverter:get_area_anchor("pmos_implant").t
+            )
+        )
+        if _P.connectpmoswelltap then
+            -- FIXME: currently only support for flipped-well
+            if _P.pmosflippedwell then
+                geometry.polygon(inverter, generics.metal(1), {
+                    point.create(
+                        inverter:get_area_anchor("left_pmos_welltap_boundary").l,
+                        inverter:get_area_anchor("left_pmos_welltap_boundary").b
+                    ),
+                    point.create(
+                        inverter:get_area_anchor("left_pmos_welltap_boundary").l,
+                        inverter:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        inverter:get_area_anchor("vssbar").l,
+                        inverter:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        inverter:get_area_anchor("vssbar").l,
+                        inverter:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        inverter:get_area_anchor("left_pmos_welltap_boundary").r,
+                        inverter:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        inverter:get_area_anchor("left_pmos_welltap_boundary").r,
+                        inverter:get_area_anchor("left_pmos_welltap_boundary").b
+                    ),
+                })
+            end
+        end
+    end
+    if _P.drawrightnmoswelltap then
+        layouthelpers.place_welltap(
+            inverter,
+            inverter:get_area_anchor("nmos_well").br:translate(_P.nmoswelltapshift, _P.nmoswelltapshrink),
+            inverter:get_area_anchor("nmos_well").tr:translate(_P.nmoswelltapshift + _P.nmoswelltapwidth, -_P.nmoswelltapshrink),
+            "right_nmos_welltap_",
+            {
+                contype = "n",
+                wellrightextension = _P.nmoswelltapwellextension,
+                soiopenleftextension = _P.nmoswelltapsoiopenextension,
+                soiopenrightextension = _P.nmoswelltapsoiopenextension,
+                soiopentopextension = _P.nmoswelltapsoiopenextension,
+                soiopenbottomextension = _P.nmoswelltapsoiopenextension,
+            }
+        )
+        geometry.rectanglebltr(inverter, generics.other("nwell"),
+            point.create(
+                inverter:get_area_anchor("nmos_well").l,
+                inverter:get_area_anchor("nmos_well").b
+            ),
+            point.create(
+                inverter:get_area_anchor("right_nmos_welltap_well").l,
+                inverter:get_area_anchor("right_nmos_welltap_well").t
+            )
+        )
+    end
+    if _P.drawrightpmoswelltap then
+        layouthelpers.place_welltap(
+            inverter,
+            inverter:get_area_anchor("pmos_well").br:translate(_P.pmoswelltapshift, _P.pmoswelltapshrink),
+            inverter:get_area_anchor("pmos_well").tr:translate(_P.pmoswelltapshift + _P.pmoswelltapwidth, -_P.pmoswelltapshrink),
+            "right_pmos_welltap_",
+            {
+                contype = "p",
+                wellrightextension = _P.pmoswelltapwellextension,
+                soiopenleftextension = _P.pmoswelltapsoiopenextension,
+                soiopenrightextension = _P.pmoswelltapsoiopenextension,
+                soiopentopextension = _P.pmoswelltapsoiopenextension,
+                soiopenbottomextension = _P.pmoswelltapsoiopenextension,
+            }
+        )
+        geometry.rectanglebltr(inverter, generics.other("pwell"),
+            point.create(
+                inverter:get_area_anchor("pmos_well").r,
+                inverter:get_area_anchor("pmos_well").b
+            ),
+            point.create(
+                inverter:get_area_anchor("right_pmos_welltap_well").l,
+                inverter:get_area_anchor("right_pmos_welltap_well").t
+            )
+        )
+        geometry.rectanglebltr(inverter, generics.other("pimplant"),
+            point.create(
+                inverter:get_area_anchor("pmos_implant").r,
+                inverter:get_area_anchor("pmos_implant").b
+            ),
+            point.create(
+                inverter:get_area_anchor("right_pmos_welltap_implant").r,
+                inverter:get_area_anchor("pmos_implant").t
+            )
+        )
+        if _P.connectpmoswelltap then
+            -- FIXME: currently only support for flipped-well
+            if _P.pmosflippedwell then
+                geometry.polygon(inverter, generics.metal(1), {
+                    point.create(
+                        inverter:get_area_anchor("right_pmos_welltap_boundary").r,
+                        inverter:get_area_anchor("right_pmos_welltap_boundary").b
+                    ),
+                    point.create(
+                        inverter:get_area_anchor("right_pmos_welltap_boundary").r,
+                        inverter:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        inverter:get_area_anchor("vssbar").r,
+                        inverter:get_area_anchor("vssbar").b
+                    ),
+                    point.create(
+                        inverter:get_area_anchor("vssbar").r,
+                        inverter:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        inverter:get_area_anchor("right_pmos_welltap_boundary").l,
+                        inverter:get_area_anchor("vssbar").t
+                    ),
+                    point.create(
+                        inverter:get_area_anchor("right_pmos_welltap_boundary").l,
+                        inverter:get_area_anchor("right_pmos_welltap_boundary").b
+                    ),
+                })
+            end
+        end
+    end
 
     inverter:add_area_anchor_bltr("input",
-        cmos:get_area_anchor(string.format("G%d", 1 + _P.numleftdummies)).bl,
+        point.create(
+            cmos:get_area_anchor(string.format("G%d", 1 + _P.numleftdummies)).l - _P.gatestrapleftextension,
+            cmos:get_area_anchor(string.format("G%d", 1 + _P.numleftdummies)).b
+        ),
         cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).tr
     )
 end

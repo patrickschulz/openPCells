@@ -5,21 +5,21 @@
 #include "math.h"
 #include "vector.h"
 
-#define pointarray_get(p, i) ((point_t*)vector_get_const(p, i))
+#define pointarray_get(p, i) ((struct point*)vector_get_const(p, i))
 
-static point_t* _midpoint(const point_t* p1, const point_t* p2)
+static struct point* _midpoint(const struct point* p1, const struct point* p2)
 {
     return point_create((p1->x + p2->x) / 2, (p1->y + p2->y) / 2);
 }
 
 static void _subdivide(const struct vector* points, struct vector* l, struct vector* r)
 {
-    point_t* l1 = _midpoint(pointarray_get(points, 0), pointarray_get(points, 1));
-    point_t* m = _midpoint(pointarray_get(points, 1), pointarray_get(points, 2));
-    point_t* r2 = _midpoint(pointarray_get(points, 2), pointarray_get(points, 3));
-    point_t* l2 = _midpoint(l1, m);
-    point_t* r1 = _midpoint(m, r2);
-    point_t* l3r0 = _midpoint(l2, r1);
+    struct point* l1 = _midpoint(pointarray_get(points, 0), pointarray_get(points, 1));
+    struct point* m = _midpoint(pointarray_get(points, 1), pointarray_get(points, 2));
+    struct point* r2 = _midpoint(pointarray_get(points, 2), pointarray_get(points, 3));
+    struct point* l2 = _midpoint(l1, m);
+    struct point* r1 = _midpoint(m, r2);
+    struct point* l3r0 = _midpoint(l2, r1);
     point_destroy(m);
 
     vector_append(l, point_copy(pointarray_get(points, 0)));
@@ -49,10 +49,10 @@ static void _flatten_curve(const struct vector* points, unsigned int grid, int a
 {
     if(_is_sufficiently_flat(points))
     {
-        point_t* startpt = point_create(pointarray_get(points, 0)->x, pointarray_get(points, 0)->y);
+        struct point* startpt = point_create(pointarray_get(points, 0)->x, pointarray_get(points, 0)->y);
         startpt->x = (startpt->x / grid) * grid;
         startpt->y = (startpt->y / grid) * grid;
-        point_t* endpt = point_create(pointarray_get(points, vector_size(points) - 1)->x, pointarray_get(points, vector_size(points) - 1)->y);
+        struct point* endpt = point_create(pointarray_get(points, vector_size(points) - 1)->x, pointarray_get(points, vector_size(points) - 1)->y);
         endpt->x = (endpt->x / grid) * grid;
         endpt->y = (endpt->y / grid) * grid;
         graphics_rasterize_line_segment(startpt, endpt, grid, allow45, result);
@@ -71,7 +71,7 @@ static void _flatten_curve(const struct vector* points, unsigned int grid, int a
     }
 }
 
-void graphics_rasterize_cubic_bezier_segment(const point_t* startpt, const point_t* cpt1, const point_t* cpt2, const point_t* endpt, unsigned int grid, int allow45, struct vector* result)
+void graphics_rasterize_cubic_bezier_segment(const struct point* startpt, const struct point* cpt1, const struct point* cpt2, const struct point* endpt, unsigned int grid, int allow45, struct vector* result)
 {
     struct vector* curve = vector_create(4, point_destroy);
     vector_append(curve, point_copy(startpt));
@@ -84,7 +84,7 @@ void graphics_rasterize_cubic_bezier_segment(const point_t* startpt, const point
 
 #define iabs(x) ((x) < 0 ? -(x) : (x))
 
-void graphics_rasterize_line_segment(const point_t* startpt, const point_t* endpt, unsigned int grid, int allow45, struct vector* result)
+void graphics_rasterize_line_segment(const struct point* startpt, const struct point* endpt, unsigned int grid, int allow45, struct vector* result)
 {
     coordinate_t x1 = startpt->x;
     coordinate_t y1 = startpt->y;
@@ -402,7 +402,7 @@ static void _assemble_circle_points(struct vector* quarterpoints, unsigned int* 
             {
                 idx = (q % 2 == 0) ? (vector_size(quarterpoints) - j - 1) : j;
             }
-            point_t* pt = vector_get(quarterpoints, idx);
+            struct point* pt = vector_get(quarterpoints, idx);
             coordinate_t x = pt->x;
             coordinate_t y = pt->y;
             x = x * _xsign(q);
@@ -472,7 +472,7 @@ static void _circle(coordinate_t ox, coordinate_t oy, ucoordinate_t radius, doub
     vector_destroy(quarterpoints);
 }
 
-void graphics_rasterize_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, int clockwise, unsigned int grid, int allow45, struct vector* result)
+void graphics_rasterize_arc_segment(struct point* startpt, double startangle, double endangle, coordinate_t radius, int clockwise, unsigned int grid, int allow45, struct vector* result)
 {
     coordinate_t cx = startpt->x - cos(startangle * M_PI / 180) * radius;
     coordinate_t cy = startpt->y - sin(startangle * M_PI / 180) * radius;

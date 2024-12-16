@@ -308,7 +308,9 @@ function state.create_cellenv(state, cellname, ovrenv)
         },
         technology = {
             get_dimension = technology.get_dimension,
+            get_optional_dimension = technology.get_optional_dimension,
             has_layer = technology.has_layer,
+            has_metal = technology.has_metal,
             resolve_metal = technology.resolve_metal,
             has_multiple_patterning = technology.has_multiple_patterning,
             multiple_patterning_number = technology.multiple_patterning_number,
@@ -354,7 +356,9 @@ function state.create_cellenv(state, cellname, ovrenv)
         ipairs = ipairs,
         pairs = pairs,
         pcall = pcall,
+        xpcall = xpcall,
         cellerror = moderror,
+        fulltraceback = fulltraceback,
         io = { open = function(filename) return io.open(filename, "r") end }
     }
     envmeta.__index = envmeta
@@ -623,6 +627,11 @@ function pcell.parameters(cellname, cellargs, generictech)
 
     _override_cell_environment(nil)
     return str
+end
+
+function pcell.anchors(cellname)
+    local cell = _get_cell(state, cellname)
+    --for k, v in pairs(
 end
 
 local function _perform_cell_check(cellname, name, values)

@@ -54,12 +54,12 @@ void geometry_rectanglebltrxy(struct object* cell, const struct generics* layer,
     object_add_shape(cell, S);
 }
 
-void geometry_rectanglebltr(struct object* cell, const struct generics* layer, const point_t* bl, const point_t* tr)
+void geometry_rectanglebltr(struct object* cell, const struct generics* layer, const struct point* bl, const struct point* tr)
 {
     _rectanglebltr(cell, layer, bl->x, bl->y, tr->x, tr->y);
 }
 
-void geometry_rectangleblwh(struct object* cell, const struct generics* layer, const point_t* bl, coordinate_t width, coordinate_t height)
+void geometry_rectangleblwh(struct object* cell, const struct generics* layer, const struct point* bl, coordinate_t width, coordinate_t height)
 {
     _rectanglebltr(cell, layer, bl->x, bl->y, bl->x + width, bl->y + height);
 }
@@ -89,7 +89,7 @@ void geometry_rectanglepointsxy(
     }
 }
 
-void geometry_rectanglepoints(struct object* cell, const struct generics* layer, const point_t* pt1, const point_t* pt2)
+void geometry_rectanglepoints(struct object* cell, const struct generics* layer, const struct point* pt1, const struct point* pt2)
 {
     geometry_rectanglepointsxy(cell, layer, pt1->x, pt1->y, pt2->x, pt2->y);
 }
@@ -117,7 +117,7 @@ void geometry_rectanglearray(
 void geometry_slotted_rectangle(
     struct object* cell,
     const struct generics* layer,
-    const point_t* bl, const point_t* tr,
+    const struct point* bl, const struct point* tr,
     coordinate_t slotwidth, coordinate_t slotheight,
     coordinate_t slotxspace, coordinate_t slotyspace,
     coordinate_t slotminedgexspace, coordinate_t slotminedgeyspace
@@ -165,7 +165,7 @@ void geometry_slotted_rectangle(
     }
 }
 
-void geometry_polygon(struct object* cell, const struct generics* layer, const point_t** points, size_t len)
+void geometry_polygon(struct object* cell, const struct generics* layer, const struct point** points, size_t len)
 {
     if(len == 0) // don't add empty polygons
     {
@@ -193,7 +193,7 @@ void geometry_path(struct object* cell, const struct generics* layer, const stru
     struct shape* S = shape_create_path(layer, vector_size(points), width, bgnext, endext);
     for(size_t i = 0; i < vector_size(points); ++i)
     {
-        const point_t* pt = vector_get_const(points, i);
+        const struct point* pt = vector_get_const(points, i);
         shape_append(S, pt->x, pt->y);
     }
     object_add_shape(cell, S);
@@ -208,14 +208,14 @@ void geometry_path_polygon(struct object* cell, const struct generics* layer, co
     struct shape* S = shape_create_path(layer, vector_size(points), width, bgnext, endext);
     for(size_t i = 0; i < vector_size(points); ++i)
     {
-        const point_t* pt = vector_get_const(points, i);
+        const struct point* pt = vector_get_const(points, i);
         shape_append(S, pt->x, pt->y);
     }
     shape_resolve_path_inline(S);
     object_add_shape(cell, S);
 }
 
-static void _shift_line(const point_t* pt1, const point_t* pt2, ucoordinate_t width, point_t** spt1, point_t** spt2, unsigned int grid)
+static void _shift_line(const struct point* pt1, const struct point* pt2, ucoordinate_t width, struct point** spt1, struct point** spt2, unsigned int grid)
 {
     double angle = atan2(pt2->y - pt1->y, pt2->x - pt1->x) - M_PI / 2;
     coordinate_t xshift = grid * floor(floor(width * cos(angle) + 0.5) / grid);
@@ -226,7 +226,7 @@ static void _shift_line(const point_t* pt1, const point_t* pt2, ucoordinate_t wi
     (*spt2)->y = pt2->y + yshift;
 }
 
-static void _shift_line_signed(const point_t* pt1, const point_t* pt2, coordinate_t offset, point_t** spt1, point_t** spt2, unsigned int grid)
+static void _shift_line_signed(const struct point* pt1, const struct point* pt2, coordinate_t offset, struct point** spt1, struct point** spt2, unsigned int grid)
 {
     double angle = atan2(pt2->y - pt1->y, pt2->x - pt1->x) - M_PI / 2;
     coordinate_t xshift = grid * trunc(trunc(offset * cos(angle)) / grid);
@@ -249,8 +249,8 @@ static struct vector* _get_edge_segments(struct vector* points, ucoordinate_t wi
     // start to end
     for(unsigned int i = 0; i < numpoints - 1; ++i)
     {
-        point_t* pt1 = vector_get(points, i);
-        point_t* pt2 = vector_get(points, i + 1);
+        struct point* pt1 = vector_get(points, i);
+        struct point* pt2 = vector_get(points, i + 1);
         _shift_line(pt1, pt2, width / 2,
             vector_get_reference(edges, 2 * i), vector_get_reference(edges, 2 * i + 1),
             grid
@@ -259,8 +259,8 @@ static struct vector* _get_edge_segments(struct vector* points, ucoordinate_t wi
     // end to start (shift in other direction)
     for(unsigned int i = numpoints - 1; i > 0; --i)
     {
-        point_t* pt1 = vector_get(points, i);
-        point_t* pt2 = vector_get(points, i - 1);
+        struct point* pt1 = vector_get(points, i);
+        struct point* pt2 = vector_get(points, i - 1);
         // the indexing looks funny, but it works out, trust me
         _shift_line(pt1, pt2, width / 2,
             vector_get_reference(edges, 2 * (2 * numpoints - 2 - i)),
@@ -283,14 +283,14 @@ static struct vector* _get_side_edge_segments(struct vector* points, coordinate_
     // start to end
     for(unsigned int i = 0; i < numpoints - 1; ++i)
     {
-        const point_t* pt1 = vector_get_const(points, i);
-        const point_t* pt2 = vector_get_const(points, i + 1);
+        const struct point* pt1 = vector_get_const(points, i);
+        const struct point* pt2 = vector_get_const(points, i + 1);
         _shift_line_signed(pt1, pt2, offset, vector_get_reference(edges, 2 * i), vector_get_reference(edges, 2 * i + 1), grid);
     }
     return edges;
 }
 
-static int _intersection(const point_t* s1, const point_t* s2, const point_t* c1, const point_t* c2, point_t** pt)
+static int _intersection(const struct point* s1, const struct point* s2, const struct point* c1, const struct point* c2, struct point** pt)
 {
     coordinate_t snum = (c2->x - c1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (c2->y - c1->y);
     coordinate_t cnum = (s2->x - s1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (s2->y - s1->y);
@@ -338,7 +338,7 @@ static struct vector* _get_path_pts(struct vector* edges, int miterjoin)
     for(unsigned int seg = 0; seg < segs - 1; ++seg)
     {
         unsigned int i = 2 * seg + 1;
-        point_t* pt = NULL;
+        struct point* pt = NULL;
         int inner_outer = _intersection(vector_get(edges, i - 1), vector_get(edges, i), vector_get(edges, i + 1), vector_get(edges, i + 2), &pt);
         if(pt)
         {
@@ -361,7 +361,7 @@ static struct vector* _get_path_pts(struct vector* edges, int miterjoin)
     for(unsigned int seg = 0; seg < segs - 1; ++seg)
     {
         unsigned int i = 2 * (segs + seg) + 1;
-        point_t* pt = NULL;
+        struct point* pt = NULL;
         int inner_outer = _intersection(vector_get(edges, i - 1), vector_get(edges, i), vector_get(edges, i + 1), vector_get(edges, i + 2), &pt);
         if(pt)
         {
@@ -395,7 +395,7 @@ static struct vector* _get_side_path_pts(struct vector* edges)
         for(unsigned int seg = 0; seg < segs - 1; ++seg)
         {
             unsigned int i = 2 * seg + 1;
-            point_t* pt = NULL;
+            struct point* pt = NULL;
             _intersection(vector_get(edges, i - 1), vector_get(edges, i), vector_get(edges, i + 1), vector_get(edges, i + 2), &pt);
             if(pt)
             {
@@ -414,8 +414,8 @@ void _make_unique_points(struct vector* points)
     size_t i = vector_size(points) - 1;
     while(i > 1)
     {
-        point_t* pt1 = vector_get(points, i);
-        point_t* pt2 = vector_get(points, i - 1);
+        struct point* pt1 = vector_get(points, i);
+        struct point* pt2 = vector_get(points, i - 1);
         if((pt1->x == pt2->x) && (pt1->y == pt2->y))
         {
             vector_remove(points, i);
@@ -434,8 +434,8 @@ struct shape* geometry_path_to_polygon(const struct generics* layer, struct vect
     // rectangle
     if(numpoints == 2)
     {
-        point_t* pt1 = vector_get(points, 0);
-        point_t* pt2 = vector_get(points, 1);
+        struct point* pt1 = vector_get(points, 0);
+        struct point* pt2 = vector_get(points, 1);
         if((pt1->x == pt2->x) || (pt1->y == pt2->y))
         {
             if    ((pt1->x  < pt2->x) && (pt1->y == pt2->y))
@@ -465,7 +465,7 @@ struct shape* geometry_path_to_polygon(const struct generics* layer, struct vect
     struct vector_const_iterator* it = vector_const_iterator_create(poly);
     while(vector_const_iterator_is_valid(it))
     {
-        const point_t* pt = vector_const_iterator_get(it);
+        const struct point* pt = vector_const_iterator_get(it);
         shape_append(S, pt->x, pt->y);
         vector_const_iterator_next(it);
     }
@@ -609,7 +609,17 @@ static void _equal_pitch_via(
     }
 }
 
-static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionwidth, ucoordinate_t regionheight, struct via_definition** definitions, struct via_definition* fallback, unsigned int* xrep_ptr, unsigned int* yrep_ptr, unsigned int* xpitch_ptr, unsigned int* ypitch_ptr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+static struct via_definition* _get_rectangular_arrayzation(
+    ucoordinate_t regionwidth, ucoordinate_t regionheight,
+    struct via_definition** definitions,
+    struct via_definition* fallback,
+    unsigned int* xrep_ptr, unsigned int* yrep_ptr,
+    unsigned int* xpitch_ptr, unsigned int* ypitch_ptr,
+    coordinate_t minxspace, coordinate_t minyspace,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass
+)
 {
     unsigned int lastarea = 0;
     unsigned int xrep = 0;
@@ -640,11 +650,13 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
         unsigned int _xspace = 0;
         unsigned int _yrep = 0;
         unsigned int _yspace = 0;
+        coordinate_t _minxspace = minxspace > entry->xspace ? minxspace : entry->xspace;
+        coordinate_t _minyspace = minyspace > entry->yspace ? minyspace : entry->yspace;
         if(equal_pitch)
         {
             if(entry->width == entry->height) // only square vias can be equal pitch
             {
-                int space = entry->xspace > entry->yspace ? entry->xspace : entry->yspace;
+                int space = _minxspace > _minyspace ? _minxspace : _minyspace;
                 int enclosure = entry->xenclosure > entry->yenclosure ? entry->xenclosure : entry->yenclosure;
                 _equal_pitch_via(regionwidth, regionheight, entry->width, space, enclosure, &_xrep, &_yrep, &_xspace, &_yspace);
             }
@@ -653,19 +665,19 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
         {
             if(xcont)
             {
-                _continuous_via(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
+                _continuous_via(regionwidth, entry->width, _minxspace, entry->xenclosure, &_xrep, &_xspace);
             }
             else
             {
-                _fit_via(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
+                _fit_via(regionwidth, entry->width, _minxspace, entry->xenclosure, &_xrep, &_xspace);
             }
             if(ycont)
             {
-                _continuous_via(regionheight, entry->height, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
+                _continuous_via(regionheight, entry->height, _minyspace, entry->yenclosure, &_yrep, &_yspace);
             }
             else
             {
-                _fit_via(regionheight, entry->height, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
+                _fit_via(regionheight, entry->height, _minyspace, entry->yenclosure, &_yrep, &_yspace);
             }
         }
         if(_xrep > 0 && _yrep > 0)
@@ -706,6 +718,58 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
     return result;
 }
 
+static int _check_via_contact_bltr(
+    struct via_definition** viadefs, struct via_definition* fallback,
+    coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass
+)
+{
+    ucoordinate_t width = trx - blx;
+    ucoordinate_t height = try - bly;
+    unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
+    struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, 0, 0, xcont, ycont, equal_pitch, widthclass);
+    return entry != NULL;
+}
+
+static int _check_viabltr(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass
+)
+{
+    metal1 = technology_resolve_metal(techstate, metal1);
+    metal2 = technology_resolve_metal(techstate, metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    int ret = 1;
+    for(int i = metal1; i < metal2; ++i)
+    {
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i, i + 1);
+        if(!viadefs)
+        {
+            return 0;
+        }
+        ret = ret && _check_via_contact_bltr(
+            viadefs,
+            NULL, // don't use fallback vias
+            blx, bly, trx, try,
+            xcont, ycont,
+            equal_pitch,
+            widthclass
+        );
+    }
+    return ret;
+}
+
 static int _via_contact_bltr(
     struct object* cell,
     struct via_definition** viadefs, struct via_definition* fallback,
@@ -722,7 +786,7 @@ static int _via_contact_bltr(
         ucoordinate_t width = trx - blx;
         ucoordinate_t height = try - bly;
         unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, xcont, ycont, equal_pitch, widthclass);
+        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, 0, 0, xcont, ycont, equal_pitch, widthclass);
         if(!entry)
         {
             return 0;
@@ -739,6 +803,75 @@ static int _via_contact_bltr(
     else
     {
         _rectanglebltr(cell, cutlayer, blx, bly, trx, try);
+    }
+    return 1;
+}
+
+struct viaarray* _make_via_array(
+    ucoordinate_t regionwidth, ucoordinate_t regionheight,
+    ucoordinate_t width, ucoordinate_t height,
+    unsigned int xrep, unsigned yrep,
+    coordinate_t xpitch, coordinate_t ypitch,
+    const struct generics* layer
+)
+{
+    struct viaarray* array = malloc(sizeof(*array));
+    array->width = width;
+    array->height = height;
+    array->xrep = xrep;
+    array->yrep = yrep;
+    array->xpitch = xpitch;
+    array->ypitch = ypitch;
+    // FIXME: there was a weird bug with signed/non-signed integers
+    // doing the computation in two steps helped, I don't really understand why
+    // I tried some casts and re-ordering, but in the end I don't really have a full grasp on integer promotion
+    // however, for now this works, so whatever
+    coordinate_t xoffset2 = regionwidth - xrep * width - (xrep - 1) * (xpitch - width);
+    array->xoffset = xoffset2 / 2;
+    coordinate_t yoffset2 = regionheight - yrep * height - (yrep - 1) * (ypitch - height);
+    array->yoffset = yoffset2 / 2;
+    array->layer = layer;
+    return array;
+}
+
+static int _calculate_viabltr(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    coordinate_t minxspace, coordinate_t minyspace,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass,
+    struct vector* result
+)
+{
+    metal1 = technology_resolve_metal(techstate, metal1);
+    metal2 = technology_resolve_metal(techstate, metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    for(int i = metal1; i < metal2; ++i)
+    {
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i, i + 1);
+        struct via_definition* fallback = technology_get_via_fallback(techstate, i, i + 1);
+        if(!viadefs)
+        {
+            return 0;
+        }
+        ucoordinate_t width = trx - blx;
+        ucoordinate_t height = try - bly;
+        unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
+        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+        if(!entry)
+        {
+            return 0;
+        }
+        const struct generics* cutlayer = generics_create_viacut(techstate, i, i + 1);
+        struct viaarray* array = _make_via_array(width, height, entry->width, entry->height, viaxrep, viayrep, viaxpitch, viaypitch, cutlayer);
+        vector_append(result, array);
     }
     return 1;
 }
@@ -771,9 +904,14 @@ static int _viabltr(
         {
             return 0;
         }
+        const struct generics* viacutlayer = generics_create_viacut(techstate, i, i + 1);
+        if(!viacutlayer)
+        {
+            return 0;
+        }
         ret = ret && _via_contact_bltr(cell,
             viadefs, fallback,
-            generics_create_viacut(techstate, i, i + 1),
+            viacutlayer,
             blx, bly, trx, try,
             xcont, ycont,
             equal_pitch,
@@ -791,13 +929,33 @@ static int _viabltr(
     return ret;
 }
 
-int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+int geometry_check_viabltr(struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+{
+    return _check_viabltr(techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, widthclass);
+}
+
+struct vector* geometry_calculate_viabltr(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl, const struct point* tr,
+    coordinate_t minxspace, coordinate_t minyspace,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass
+)
+{
+    struct vector* result = vector_create(1, NULL);
+    _calculate_viabltr(techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, result);
+    return result;
+}
+
+int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     int bare = 0;
     return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, bare, widthclass);
 }
 
-int geometry_viabarebltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+int geometry_viabarebltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     int bare = 1;
     return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, bare, widthclass);
@@ -820,9 +978,15 @@ static int _contactbltr(
         return 0;
     }
     int ret = 1;
+    const struct generics* cutlayer = generics_create_contact(techstate, region);
+    if(!cutlayer)
+    {
+        printf("could not create contact layer for region '%s'\n", region);
+        return 0;
+    }
     ret = ret && _via_contact_bltr(cell,
         viadefs, fallback,
-        generics_create_contact(techstate, region),
+        cutlayer,
         blx, bly, trx, try,
         xcont, ycont,
         equal_pitch,
@@ -850,9 +1014,15 @@ static int _contactbarebltr(
         return 0;
     }
     int ret = 1;
+    const struct generics* cutlayer = generics_create_contact(techstate, region);
+    if(!cutlayer)
+    {
+        printf("could not create contact layer for region '%s'\n", region);
+        return 0;
+    }
     ret = ret && _via_contact_bltr(cell,
         viadefs, fallback,
-        generics_create_contact(techstate, region),
+        cutlayer,
         blx, bly, trx, try,
         xcont, ycont,
         equal_pitch,
@@ -866,7 +1036,7 @@ int geometry_contactbltr(
     struct object* cell,
     struct technology_state* techstate,
     const char* region,
-    const point_t* bl, const point_t* tr,
+    const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
     coordinate_t widthclass
@@ -887,7 +1057,7 @@ int geometry_contactbarebltr(
     struct object* cell,
     struct technology_state* techstate,
     const char* region,
-    const point_t* bl, const point_t* tr,
+    const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
     coordinate_t widthclass
@@ -962,8 +1132,8 @@ void geometry_ring(struct object* cell, const struct generics* layer, coordinate
 void geometry_unequal_ring_pts(
     struct object* cell,
     const struct generics* layer,
-    const point_t* outerbl, const point_t* outertr,
-    const point_t* innerbl, const point_t* innertr
+    const struct point* outerbl, const struct point* outertr,
+    const struct point* innerbl, const struct point* innertr
 )
 {
     if(generics_is_empty(layer))

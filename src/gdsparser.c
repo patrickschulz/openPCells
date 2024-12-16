@@ -197,7 +197,7 @@ static int32_t* _parse_four_byte_integer(uint8_t* data, size_t length)
     return pdata;
 }
 
-static inline void _parse_single_point_i(uint8_t* data, size_t i, point_t* pt)
+static inline void _parse_single_point_i(uint8_t* data, size_t i, struct point* pt)
 {
     pt->x = (data[i * 8] << 24) + (data[i * 8 + 1] << 16) + (data[i * 8 + 2] << 8) + data[i * 8 + 3];
     pt->y = (data[i * 8 + 4] << 24) + (data[i * 8 + 5] << 16) + (data[i * 8 + 6] << 8) + data[i * 8 + 7];
@@ -208,7 +208,7 @@ static struct vector* _parse_points(uint8_t* data, size_t length)
     struct vector* points = vector_create(length >> 3, point_destroy);
     for(size_t i = 0; i < length >> 3; ++i)
     {
-        point_t* pt = point_create(0, 0);
+        struct point* pt = point_create(0, 0);
         _parse_single_point_i(data, i, pt);
         vector_append(points, pt);
     }
@@ -735,7 +735,7 @@ static void _rectangle_coordinates(const coordinate_t* points, coordinate_t* blx
 
 struct cellref {
     char* name;
-    point_t* origin;
+    struct point* origin;
     int16_t xrep;
     int16_t yrep;
     coordinate_t xpitch;
@@ -944,7 +944,7 @@ int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
     return 1;
 }
 
-static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t* purpose, point_t* origin, double* angle, int** transformation)
+static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t* purpose, struct point* origin, double* angle, int** transformation)
 {
     int readlayer = 0;
     while(1)
@@ -1158,7 +1158,8 @@ static void _write_cellref(FILE* cellfile, const struct cellref* cellref)
     }
     else
     {
-        fprintf(cellfile, "    child = cell:add_child(ref, \"%s\")\n", cellref->name);
+        //fprintf(cellfile, "    child = cell:add_child(ref, \"%s\")\n", cellref->name);
+        fputs("    child = cell:add_child(ref)\n", cellfile);
     }
     if(cellref->angle == 90)
     {
@@ -1367,7 +1368,7 @@ static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const st
     fputs(", { ", cellfile);
     for(unsigned int i = 0; i < vector_size(points); ++i)
     {
-        const point_t* pt = vector_get_const(points, i);
+        const struct point* pt = vector_get_const(points, i);
         fprintf(cellfile, "point.create(%lld, %lld), ", pt->x, pt->y);
     }
     if(type == 0)
@@ -1561,7 +1562,7 @@ static int _read_structure(
                 return 0;
             }
             int16_t layer, purpose;
-            point_t origin;
+            struct point origin;
             char* str;
             double angle = 0.0;
             int* transformation = NULL;
@@ -1573,7 +1574,7 @@ static int _read_structure(
             }
             if(_check_lpp(layer, purpose, ignorelpp))
             {
-                fprintf(cellfile, "    cell:add_port(\"%s\", ", str);
+                fprintf(cellfile, "    cell:add_port_with_anchor(\"%s\", ", str);
                 _write_layers(cellfile, layer, purpose, gdslayermap);
                 fprintf(cellfile, ", point.create(%lld, %lld))\n", origin.x, origin.y);
                 free(str);

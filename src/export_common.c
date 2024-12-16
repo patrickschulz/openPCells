@@ -55,6 +55,12 @@ void export_data_append_four_bytes(struct export_data* data, uint32_t datum)
     export_data_append_four_bytes_unchecked(data, datum);
 }
 
+void export_data_append_char(struct export_data* data, char ch)
+{
+    export_data_ensure_additional_capacity(data, 1);
+    export_data_append_byte_unchecked(data, (unsigned char) ch);
+}
+
 void export_data_append_string_len(struct export_data* data, const char* str, size_t length)
 {
     export_data_ensure_additional_capacity(data, length);
@@ -142,5 +148,48 @@ struct export_functions* export_create_functions(void)
 void export_destroy_functions(struct export_functions* funcs)
 {
     free(funcs);
+}
+
+enum orientation export_get_matrix_orientation(const struct transformationmatrix* matrix)
+{
+    struct point pt1 = { .x = 1, .y = 0 };
+    struct point pt2 = { .x = 3, .y = 0 };
+    struct point pt3 = { .x = 2, .y = 1 };
+    transformationmatrix_apply_transformation_rot_mirr(matrix, &pt1);
+    transformationmatrix_apply_transformation_rot_mirr(matrix, &pt2);
+    transformationmatrix_apply_transformation_rot_mirr(matrix, &pt3);
+    if((pt1.x < pt2.x) && (pt3.y > pt1.y))
+    {
+        return R0;
+    }
+    else if((pt1.x == pt2.x) && (pt3.x < pt1.x) && (pt3.y > pt1.y))
+    {
+        return R90;
+    }
+    else if((pt1.x > pt2.x) && (pt3.y < pt1.y))
+    {
+        return R180;
+    }
+    else if((pt1.x == pt2.x) && pt3.x > 0 && pt3.y < 0)
+    {
+        return R270;
+    }
+    else if((pt1.x < pt2.x) && (pt3.y < pt1.y))
+    {
+        return MX;
+    }
+    else if((pt1.x > pt2.x) && (pt3.y > pt1.y))
+    {
+        return MY;
+    }
+    else if((pt1.x == pt2.x) && (pt3.x < pt1.x))
+    {
+        return MXR90;
+    }
+    //else if((pt1.x == pt2.x) && (pt3.x > pt1.x))
+    else
+    {
+        return MYR90;
+    }
 }
 

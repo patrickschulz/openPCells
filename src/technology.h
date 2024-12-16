@@ -35,6 +35,7 @@ void technology_enable_fallback_vias(struct technology_state* techstate);
 void technology_disable_via_arrayzation(struct technology_state* techstate);
 int technology_is_create_via_arrays(const struct technology_state* techstate);
 void technology_ignore_premapped_layers(struct technology_state* techstate);
+void technology_ignore_missing_layers(struct technology_state* techstate);
 
 struct generics* technology_get_layer(struct technology_state* state, const char* layername);
 int technology_resolve_metal(const struct technology_state* state, int metalnum);

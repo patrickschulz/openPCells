@@ -69,13 +69,15 @@ function layout(gate, _P)
         sdwidth = bp.sdwidth,
         separation = separation,
         gatecontactsplitshift = routingshift,
-        dummycontheight = bp.drawtopbotwelltaps and bp.powerwidth or (bp.powerwidth / 4),
-        dummycontshift = bp.drawtopbotwelltaps and 0 or (-bp.powerwidth / 2 + bp.powerwidth / 8),
+        --dummycontheight = bp.drawtopbotwelltaps and bp.powerwidth or (bp.powerwidth / 4),
+        --dummycontshift = bp.drawtopbotwelltaps and 0 or (-bp.powerwidth / 2 + bp.powerwidth / 8),
+        dummycontheight = (bp.drawtopbotwelltaps or bp.centereddummycontacts) and bp.powerwidth or (bp.powerwidth / 4),
+        dummycontshift = (bp.drawtopbotwelltaps or bp.centereddummycontacts) and 0 or (-bp.powerwidth / 2 + bp.powerwidth / 8),
         drawleftstopgate = _P.drawleftstopgate,
         leftpolylines = _P.leftpolylines,
         drawrightstopgate = _P.drawrightstopgate,
         rightpolylines = _P.rightpolylines,
-        drawgatecut = true,
+        --drawgatecut = true,
         drawgatecuteverywhere = true,
     })
     gate:exchange(cmos)

@@ -280,10 +280,10 @@ function placement.digital(parent, rows, width, flipfirst, noflip)
         end
     end
 
-    return placement.rowwise(parent, rows, flipfirst, noflip)
+    return placement.rowwise(parent, rows, not flip, flipfirst)
 end
 
-function placement.rowwise(parent, cellsdef, flipfirst, noflip)
+function placement.rowwise(parent, cellsdef, flip, flipfirst)
     local cells = {}
     local references = {}
 
@@ -308,6 +308,14 @@ function placement.rowwise(parent, cellsdef, flipfirst, noflip)
                 cell:abut_right(last)
             end
 
+            -- flip individual cells
+            if entry.flipx then
+                cell:flipx()
+            end
+            if entry.flipy then
+                cell:flipy()
+            end
+
             -- store cell link (numeric and by name)
             cells[rownum][columnnum] = cell
             cells[entry.instance] = cell
@@ -316,13 +324,23 @@ function placement.rowwise(parent, cellsdef, flipfirst, noflip)
         end
     end
 
+    -- check row flips
+    for rownum = 1, #cells do
+        local row = cellsdef[rownum]
+        if row.flip then
+            for columnnum = 1, #cells[rownum] do
+                cells[rownum][columnnum]:flipy()
+            end
+        end
+    end
+
     -- flip every second row
-    if not noflip then
+    if flip then
         local flip = flipfirst
         for row = 1, #cells do
             if flip then
                 for column = 1, #cells[row] do
-                    cells[row][column]:flipy()
+                    cells[row][column]:flipx()
                 end
             end
             flip = not flip
@@ -336,7 +354,7 @@ function placement.rowwise(parent, cellsdef, flipfirst, noflip)
     return cells
 end
 
-function placement.rowwise_flat(parent, cellsdef, flipfirst, noflip)
+function placement.rowwise_flat(parent, cellsdef, flip, flipfirst)
     local cells = {}
     local references = {}
 
@@ -361,6 +379,14 @@ function placement.rowwise_flat(parent, cellsdef, flipfirst, noflip)
                 cell:abut_right(last)
             end
 
+            -- flip individual cells
+            if entry.flipx then
+                cell:flipx()
+            end
+            if entry.flipy then
+                cell:flipy()
+            end
+
             -- merge into parent
             parent:merge_into(cell)
 
@@ -372,13 +398,168 @@ function placement.rowwise_flat(parent, cellsdef, flipfirst, noflip)
         end
     end
 
+    -- check row flips
+    for rownum = 1, #cells do
+        local row = cellsdef[rownum]
+        if row.flip then
+            for columnnum = 1, #cells[rownum] do
+                cells[rownum][columnnum]:flipy()
+            end
+        end
+    end
+
     -- flip every second row
-    if not noflip then
+    if flip then
         local flip = flipfirst
         for row = 1, #cells do
             if flip then
                 for column = 1, #cells[row] do
                     cells[row][column]:flipy()
+                end
+            end
+            flip = not flip
+        end
+    end
+
+    -- update parent alignment box
+    parent:inherit_alignment_box(cells[1][1])
+    parent:inherit_alignment_box(cells[#cells][#cells[#cells]])
+
+    return cells
+end
+
+function placement.columnwise(parent, cellsdef, flip, flipfirst)
+    local cells = {}
+    local references = {}
+
+    local last
+    local lastborder
+    for columnnum, column in ipairs(cellsdef) do
+        cells[columnnum] = {}
+        for rownum, entry in ipairs(column) do
+            -- add cell
+            local cell = parent:add_child(entry.reference, entry.instance)
+
+            -- position cell
+            if rownum == 1 then
+                if columnnum == 1 then -- first cell
+                else
+                    cell:align_bottom(lastborder)
+                    cell:abut_right(lastborder)
+                end
+                lastborder = cell
+            else
+                cell:align_left(last)
+                cell:abut_top(last)
+            end
+
+            -- flip individual cells
+            if entry.flipx then
+                cell:flipx()
+            end
+            if entry.flipy then
+                cell:flipy()
+            end
+
+            -- store cell link (numeric and by name)
+            cells[columnnum][rownum] = cell
+            cells[entry.instance] = cell
+
+            last = cell
+        end
+    end
+
+    -- check column flips
+    for columnnum = 1, #cells do
+        local column = cellsdef[columnnum]
+        if column.flip then
+            for row = 1, #cells[columnnum] do
+                cells[columnnum][row]:flipx()
+            end
+        end
+    end
+
+    -- flip every second column
+    if flip then
+        local flip = flipfirst
+        for column = 1, #cells do
+            if flip then
+                for row = 1, #cells[column] do
+                    cells[column][row]:flipx()
+                end
+            end
+            flip = not flip
+        end
+    end
+
+    -- update parent alignment box
+    parent:inherit_alignment_box(cells[1][1])
+    parent:inherit_alignment_box(cells[#cells][#cells[#cells]])
+
+    return cells
+end
+
+function placement.columnwise_flat(parent, cellsdef, flip, flipfirst)
+    local cells = {}
+    local references = {}
+
+    local last
+    local lastborder
+    for columnnum, column in ipairs(cellsdef) do
+        cells[columnnum] = {}
+        for rownum, entry in ipairs(column) do
+            -- add cell
+            local cell = entry.reference:copy()
+
+            -- position cell
+            if rownum == 1 then
+                if columnnum == 1 then -- first cell
+                else
+                    cell:align_bottom(lastborder)
+                    cell:abut_right(lastborder)
+                end
+                lastborder = cell
+            else
+                cell:align_left(last)
+                cell:abut_top(last)
+            end
+
+            -- flip individual cells
+            if entry.flipx then
+                cell:flipx()
+            end
+            if entry.flipy then
+                cell:flipy()
+            end
+
+            -- merge into parent
+            parent:merge_into(cell)
+
+            -- store cell link (numeric and by name)
+            cells[columnnum][rownum] = cell
+            cells[entry.instance] = cell
+
+            last = cell
+        end
+    end
+
+    -- check column flips
+    for columnnum = 1, #cells do
+        local column = cellsdef[columnnum]
+        if column.flip then
+            for row = 1, #cells[columnnum] do
+                cells[columnnum][row]:flipx()
+            end
+        end
+    end
+
+    -- flip every second column
+    if flip then
+        local flip = flipfirst
+        for column = 1, #cells do
+            if flip then
+                for row = 1, #cells[column] do
+                    cells[column][row]:flipx()
                 end
             end
             flip = not flip

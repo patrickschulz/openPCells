@@ -11,7 +11,7 @@
 #define LPOINTMETA "lpoint"
 
 struct lpoint {
-    point_t* point;
+    struct point* point;
     int destroy;
 };
 
@@ -45,7 +45,7 @@ struct lpoint* lpoint_create_internal(lua_State* L, coordinate_t x, coordinate_t
     return p;
 }
 
-struct lpoint* lpoint_adapt_point(lua_State* L, point_t* pt)
+struct lpoint* lpoint_adapt_point(lua_State* L, struct point* pt)
 {
     struct lpoint* p = lua_newuserdata(L, sizeof(*p));
     luaL_setmetatable(L, LPOINTMETA);
@@ -54,7 +54,7 @@ struct lpoint* lpoint_adapt_point(lua_State* L, point_t* pt)
     return p;
 }
 
-struct lpoint* lpoint_takeover_point(lua_State* L, point_t* pt)
+struct lpoint* lpoint_takeover_point(lua_State* L, struct point* pt)
 {
     struct lpoint* p = lua_newuserdata(L, sizeof(*p));
     luaL_setmetatable(L, LPOINTMETA);
@@ -92,7 +92,7 @@ int lpoint_copy(lua_State* L)
     return 1;
 }
 
-const point_t* lpoint_get(const struct lpoint* pt)
+const struct point* lpoint_get(const struct lpoint* pt)
 {
     return pt->point;
 }
@@ -152,7 +152,7 @@ static int lpoint_fix(lua_State* L)
 {
     struct lpoint* self = lpoint_checkpoint(L, 1);
     int grid = luaL_checkinteger(L, 2);
-    point_t* pt = self->point;
+    struct point* pt = self->point;
     pt->x = grid * (pt->x / grid);
     pt->y = grid * (pt->y / grid);
     return 0;
@@ -302,7 +302,7 @@ struct lpoint* lpoint_checkpoint(lua_State* L, int idx)
 static int lpoint_tostring(lua_State* L)
 {
     struct lpoint* self = lpoint_checkpoint(L, 1);
-    const point_t* pt = lpoint_get(self);
+    const struct point* pt = lpoint_get(self);
     char buf[256];
     //char* buf = malloc(len + 1);
     sprintf(buf, "point: (%lld, %lld)", point_getx(pt), point_gety(pt));

@@ -10,6 +10,7 @@
 #include "vector.h"
 #include "tagged_value.h"
 #include "util.h"
+#include "ldebug.h"
 
 struct generics_entry {
     char* exportname;
@@ -41,6 +42,7 @@ struct technology_state {
     int create_fallback_vias;
     int create_via_arrays;
     int ignore_premapped;
+    int ignore_missing_layers;
 
     struct hashmap* layermap;
     struct vector* extra_layers; // stores struct generics*, extra premapped layers
@@ -116,23 +118,33 @@ static struct generics_entry* _create_entry(const char* name)
     return entry;
 }
 
-static void _insert_lpp_pairs(lua_State* L, struct hashmap* map)
+static void _insert_lpp_pairs(lua_State* L, struct hashmap* map, const char* layername)
 {
     lua_pushnil(L);
     while (lua_next(L, -2) != 0)
     {
         struct tagged_value* value = NULL;
-        switch(lua_type(L, -1))
+        // check first of number is an integer
+        int success;
+        int num = lua_tointegerx(L, -1, &success);
+        if(success)
         {
-            case LUA_TNUMBER:
-                value = tagged_value_create_integer(lua_tointeger(L, -1));
-                break;
-            case LUA_TSTRING:
-                value = tagged_value_create_string(lua_tostring(L, -1));
-                break;
-            case LUA_TBOOLEAN:
-                value = tagged_value_create_boolean(lua_toboolean(L, -1));
-                break;
+            value = tagged_value_create_integer(num);
+        }
+        else // not an integer, check other values
+        {
+            switch(lua_type(L, -1))
+            {
+                case LUA_TNUMBER:
+                    value = tagged_value_create_number(lua_tonumber(L, -1));
+                    break;
+                case LUA_TSTRING:
+                    value = tagged_value_create_string(lua_tostring(L, -1));
+                    break;
+                case LUA_TBOOLEAN:
+                    value = tagged_value_create_boolean(lua_toboolean(L, -1));
+                    break;
+            }
         }
         if(value)
         {
@@ -140,6 +152,9 @@ static void _insert_lpp_pairs(lua_State* L, struct hashmap* map)
         }
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
+    // add layer name for all exports
+    struct tagged_value* vname = tagged_value_create_string(layername);
+    hashmap_insert(map, "name", vname);
 }
 
 static struct generics* _create_empty_layer(const char* name)
@@ -202,7 +217,7 @@ static struct generics* _make_layer_from_lua(const char* layername, lua_State* L
         {
             const char* name = lua_tostring(L, -2);
             struct generics_entry* entry = _create_entry(name);
-            _insert_lpp_pairs(L, entry->data);
+            _insert_lpp_pairs(L, entry->data, layername);
             vector_append(layer->entries, entry);
             lua_pop(L, 1); // pop value, keep key for next iteration
         }
@@ -587,6 +602,15 @@ struct via_definition* technology_get_contact_fallback(struct technology_state* 
     return fallback;
 }
 
+int technology_has_metal(const struct technology_state* techstate, int metalnum)
+{
+    if(metalnum < 0)
+    {
+        metalnum = -metalnum;
+    }
+    return metalnum <= (int)techstate->config->metals;
+}
+
 int technology_resolve_metal(const struct technology_state* techstate, int metalnum)
 {
     if(metalnum < 0)
@@ -652,14 +676,7 @@ static int _resolve_layer(struct generics* layer, const char* exportname)
         }
         if(!found)
         {
-            if(vector_size(layer->entries) > 1)
-            {
-                printf("no layer data for export type '%s' found (layer: %s, has %zd entries)\n", exportname, layer->name, vector_size(layer->entries));
-            }
-            else
-            {
-                printf("no layer data for export type '%s' found (layer: %s, has 1 entry)\n", exportname, layer->name);
-            }
+            printf("no layer data for export type '%s' found (layer: %s, number of entries: %zd)\n", exportname, layer->name, vector_size(layer->entries));
             return 0;
         }
 
@@ -739,6 +756,7 @@ struct technology_state* technology_initialize(void)
     techstate->layermap = hashmap_create();
     techstate->extra_layers = vector_create(1024, _destroy_layer);
     techstate->empty_layer = _create_empty_layer("_EMPTY_");
+    techstate->ignore_missing_layers = 0;
     return techstate;
 }
 
@@ -785,6 +803,11 @@ void technology_ignore_premapped_layers(struct technology_state* techstate)
 int technology_is_ignore_premapped_layers(const struct technology_state* techstate)
 {
     return techstate->ignore_premapped;
+}
+
+void technology_ignore_missing_layers(struct technology_state* techstate)
+{
+    techstate->ignore_missing_layers = 1;
 }
 
 static int ltechnology_get_dimension(lua_State* L)
@@ -855,6 +878,17 @@ static int ltechnology_has_layer(lua_State* L)
     return 1;
 }
 
+static int ltechnology_has_metal(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int metal = luaL_checkinteger(L, 1);
+    int hasmetal = technology_has_metal(techstate, metal);
+    lua_pushboolean(L, hasmetal);
+    return 1;
+}
+
 static int ltechnology_resolve_metal(lua_State* L)
 {
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
@@ -896,6 +930,7 @@ int open_ltechnology_lib(lua_State* L)
         { "list_techpaths",                 ltechnology_list_techpaths              },
         { "get_dimension",                  ltechnology_get_dimension               },
         { "get_optional_dimension",         ltechnology_get_optional_dimension      },
+        { "has_metal",                      ltechnology_has_metal                   },
         { "has_layer",                      ltechnology_has_layer                   },
         { "resolve_metal",                  ltechnology_resolve_metal               },
         { "has_multiple_patterning",        ltechnology_has_multiple_patterning     },
@@ -903,6 +938,7 @@ int open_ltechnology_lib(lua_State* L)
         { NULL,                             NULL                                    }
     };
     luaL_setfuncs(L, modfuncs, 0);
+
     lua_setglobal(L, "technology");
 
     return 0;
@@ -913,8 +949,15 @@ static const struct generics* _get_or_create_layer(struct technology_state* tech
     if(!hashmap_exists(techstate->layermap, layername))
     {
         struct generics* layer = technology_get_layer(techstate, layername);
-        hashmap_insert(techstate->layermap, layername, layer);
-        return layer;
+        if(layer)
+        {
+            hashmap_insert(techstate->layermap, layername, layer);
+            return layer;
+        }
+        else
+        {
+            return techstate->empty_layer;
+        }
     }
     else
     {

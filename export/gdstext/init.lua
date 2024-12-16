@@ -259,7 +259,7 @@ function M.write_path(layer, pts, width, extension)
     _write_record(recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_cell_reference(identifier, instname, x, y, orientation)
+function M.write_cell_reference(identifier, instname, origin, orientation)
     _write_record(recordtypes.SREF, datatypes.NONE)
     _write_record(recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
     if orientation == "fx" then
@@ -275,11 +275,11 @@ function M.write_cell_reference(identifier, instname, x, y, orientation)
         _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 90 })
     end
     local multiplier = 1e9 * __databaseunit -- opc works in nanometers
-    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, { multiplier * x, multiplier * y })
+    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, { multiplier * origin:getx(), multiplier * origin:gety() })
     _write_record(recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_cell_array(identifier, instbasename, x, y, orientation, xrep, yrep, xpitch, ypitch)
+function M.write_cell_array(identifier, instbasename, origin, orientation, xrep, yrep, xpitch, ypitch)
     _write_record(recordtypes.AREF, datatypes.NONE)
     _write_record(recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
     if orientation == "fx" then
@@ -293,9 +293,9 @@ function M.write_cell_array(identifier, instbasename, x, y, orientation, xrep, y
     _write_record(recordtypes.COLROW, datatypes.TWO_BYTE_INTEGER, { xrep, yrep })
     local multiplier = 1e9 * __databaseunit -- opc works in nanometers
     _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, {
-        multiplier * x,                   multiplier * y,
-        multiplier * (x + xrep + xpitch), multiplier * y,
-        multiplier * x,                   multiplier * (y + yrep + ypitch),
+        multiplier * origin:getx(),                   multiplier * origin:gety(),
+        multiplier * (origin:getx() + xrep + xpitch), multiplier * origin:gety(),
+        multiplier * origin:getx(),                   multiplier * (origin:gety() + yrep + ypitch),
     })
     _write_record(recordtypes.ENDEL, datatypes.NONE)
 end

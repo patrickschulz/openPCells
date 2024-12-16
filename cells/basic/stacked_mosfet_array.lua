@@ -94,7 +94,7 @@ function layout(cell, _P)
         local activebl, activetr
         for devnum, device in ipairs(row.devices) do
             if not device.skip or (_P.autoskip and device.fingers <= 0) then
-                local status, mosfet = pcall(pcell.create_layout, "basic/mosfet", device.name, {
+                local status, mosfet = xpcall(pcell.create_layout, fulltraceback, "basic/mosfet", device.name, {
                     channeltype = row.channeltype,
                     implantalignwithactive = not _P.splitgates or row.implantalignwithactive,
                     flippedwell = row.flippedwell,
@@ -113,6 +113,10 @@ function layout(cell, _P)
                     sdwidth = _select_parameter("sdwidth", device, row, _P),
                     sdviawidth = _select_parameter("sdviawidth", device, row),
                     sdmetalwidth = _select_parameter("sdmetalwidth", device, row),
+                    interweavevias = _select_parameter("interweavevias", device, row),
+                    alternateinterweaving = _select_parameter("alternateinterweaving", device, row),
+                    minviaxspace = _select_parameter("minviaxspace", device, row),
+                    minviayspace = _select_parameter("minviayspace", device, row),
                     gtopext = _select_switch(((rownum == #_P.rows) or _P.splitgates), _select_parameter("gtopext", device, row), _P.separation / 2),
                     gbotext = _select_switch(((rownum == 1) or _P.splitgates), _select_parameter("gbotext", device, row), _P.separation / 2), 
                     gtopextadd = _select_parameter("gtopextadd", device, row),

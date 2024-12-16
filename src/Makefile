@@ -4,21 +4,47 @@ CC=gcc
 
 PPFLAGS=-DLUA_USE_LINUX -DCMDOPTIONS_ENABLE_TERM_WIDTH
 
-CFLAGS=-std=c99 -O3 -Wall -Wextra -Wstrict-prototypes -pthread $(PPFLAGS)
+CFLAGS=-std=c99 -Wall -Wextra -Wstrict-prototypes -pthread $(PPFLAGS)
 ifeq ($(DEBUG), 1)
     CFLAGS=-std=c99 -O0 -g -Wall -Wextra -Wstrict-prototypes -pthread $(PPFLAGS)
+endif
+ifeq ($(PROFILE), 1)
+    CFLAGS=-std=c99 -O3 -g -Wall -Wextra -Wstrict-prototypes -pthread $(PPFLAGS)
 endif
 ifeq ($(DEBUGANALYZE), 1)
     CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Wno-analyzer-deref-before-check -Werror=discarded-qualifiers -Wstrict-prototypes -pthread $(PPFLAGS)
 endif
 
-OPCOBJ:= cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o shape.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
+OBJS:= cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o shape.o skillexport.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
+DEBUGOBJS = $(addprefix debug/, $(OBJS))
+RELEASEOBJS = $(addprefix release/, $(OBJS))
 
 .PHONY: default
-default: $(PROGNAME)
+default: $(PROGNAME) $(PROGNAME)-debug
 
-$(PROGNAME): main.c lua/liblua.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(OPCOBJ)
-	$(CC) $(CFLAGS) -o $(PROGNAME) main.c $(OPCOBJ) modulemanager.c scriptmanager.c lua/liblua.a -lm -ldl
+$(PROGNAME): release/$(PROGNAME)
+	cp release/$(PROGNAME) $(PROGNAME)
+
+$(PROGNAME)-debug: debug/$(PROGNAME)
+	cp debug/$(PROGNAME) $(PROGNAME)-debug
+
+release:
+	mkdir -p release
+
+release/$(PROGNAME): release main.c lua/liblua.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(RELEASEOBJS)
+	$(CC) $(CFLAGS) -O3 -o release/$(PROGNAME) main.c $(RELEASEOBJS) modulemanager.c scriptmanager.c lua/liblua.a -lm -ldl
+
+release/%.o: %.c
+	$(CC) -c $(CFLAGS) -O3 -o $@ $<
+
+debug:
+	mkdir -p debug
+
+debug/$(PROGNAME): debug main.c lua/liblua.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(DEBUGOBJS)
+	$(CC) $(CFLAGS) -O0 -g -o debug/$(PROGNAME) main.c $(DEBUGOBJS) modulemanager.c scriptmanager.c lua/liblua.a -lm -ldl
+
+debug/%.o: %.c
+	$(CC) -c $(CFLAGS) -O0 -g -o $@ $<
 
 opc.1: cmdoptions_def.c generate_manpage
 	./generate_manpage > opc.1
@@ -34,6 +60,7 @@ scriptmanager.c: embed_compiled_lua_file scripts/*.lua
 	./embed_compiled_lua_file --script scripts/list_cells.lua script_call list_cells scriptmanager.c
 	./embed_compiled_lua_file --script scripts/assistant.lua script_call assistant scriptmanager.c
 	./embed_compiled_lua_file --script scripts/list_parameters.lua script_call list_parameters scriptmanager.c
+	./embed_compiled_lua_file --script scripts/list_anchors.lua script_call list_anchors scriptmanager.c
 
 scriptmanager.h:
 	@echo '#ifndef OPC_SCRIPTMANAGER_H' > scriptmanager.h
@@ -43,6 +70,7 @@ scriptmanager.h:
 	@echo 'int script_call_list_cells(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_assistant(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_list_parameters(lua_State* L);' >> scriptmanager.h
+	@echo 'int script_call_list_anchors(lua_State* L);' >> scriptmanager.h
 	@echo '#endif // OPC_SCRIPTMANAGER_H' >> scriptmanager.h
 
 modulemanager.c: embed_compiled_lua_file modules/*.lua
@@ -92,15 +120,14 @@ create_latex_API_doc: create_latex_API_doc.c main.api_help.c main.api_help.h vec
 
 .PHONY: clean
 clean:
-	rm -f lua/liblua.a $(LUA_CORE_O) $(LUA_LIB_O)
+	rm -rf release debug
 	rm -f $(PROGNAME)
+	rm -f lua/liblua.a $(LUA_CORE_O) $(LUA_LIB_O)
 	rm -f embed_compiled_lua_file
 	rm -f generate_manpage
 	rm -f modulemanager.h modulemanager.c
 	rm -f scriptmanager.h scriptmanager.c
 	rm -f scriptmanager.h scriptmanager.c
-	rm -f $(OPCOBJ)
-	rm -f lua/*.o lua/liblua.a
 
 # generated by gcc -MM -MG *.c
 # the following files are removed manually:

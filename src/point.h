@@ -12,27 +12,27 @@ typedef unsigned long long int ucoordinate_t;
 #define UCOORDINATE_MIN 0
 #define coordinate_abs llabs
 
-typedef struct {
+struct point {
     coordinate_t x;
     coordinate_t y;
-} point_t;
+};
 
-point_t* point_create(coordinate_t x, coordinate_t y);
+struct point* point_create(coordinate_t x, coordinate_t y);
 void point_destroy(void* pt); // void*, otherwise we get a warning while destroying vectors
 void* point_copy(const void* pt);
 
-coordinate_t point_getx(const point_t* pt);
-coordinate_t point_gety(const point_t* pt);
+coordinate_t point_getx(const struct point* pt);
+coordinate_t point_gety(const struct point* pt);
 
-void point_translate(point_t* pt, coordinate_t x, coordinate_t y);
+void point_translate(struct point* pt, coordinate_t x, coordinate_t y);
 
 // min/max calculations
-point_t* point_create_minimum(void);
-point_t* point_create_maximum(void);
-void point_update_minimum(point_t** min, const point_t* pt);
-void point_update_maximum(point_t** max, const point_t* pt);
+struct point* point_create_minimum(void);
+struct point* point_create_maximum(void);
+void point_update_minimum(struct point** min, const struct point* pt);
+void point_update_maximum(struct point** max, const struct point* pt);
 
-coordinate_t point_xdifference(const point_t* pt1, const point_t* pt2);
-coordinate_t point_ydifference(const point_t* pt1, const point_t* pt2);
+coordinate_t point_xdifference(const struct point* pt1, const struct point* pt2);
+coordinate_t point_ydifference(const struct point* pt1, const struct point* pt2);
 
 #endif // OPC_POINT_H

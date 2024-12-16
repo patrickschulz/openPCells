@@ -4,19 +4,19 @@ function M.get_extension()
     return "tikz"
 end
 
-function M.get_techexport()
-    return "svg"
-end
-
 local __outlineblack = false
 local __standalone = false
-local __drawpatterns = false
+local __article = false
+local __drawpatterns = true
 local __writeignored = false
 local __resizebox = false
 local __externaldisable
 local __baseunit = 1
 local __expressionscale = false
+local __overwrite_opacity = nil
 local __prepend = {}
+local __xshift = 0
+local __yshift = 0
 
 function M.set_options(opt)
     for i = 1, #opt do
@@ -30,8 +30,19 @@ function M.set_options(opt)
         if arg == "-S" or arg == "--standalone" then
             __standalone = true
         end
-        if arg == "-p" or arg == "--pattern" then
-            __drawpatterns = true
+        if arg == "-a" or arg == "--article" then
+            __article = true
+        end
+        if arg == "--disable-patterns" then
+            __drawpatterns = false
+        end
+        if arg == "--overwrite-opacity" then
+            if i < #opt then
+                __overwrite_opacity = tonumber(opt[i + 1])
+            else
+                error("tikz export: --overwrite-opacity: argument (a number) expected")
+            end
+            i = i + 1
         end
         if arg == "-i" or arg == "--write-ignored" then
             __writeignored = true
@@ -44,6 +55,22 @@ function M.set_options(opt)
                 __baseunit = tonumber(opt[i + 1])
             else
                 error("tikz export: --base-unit: argument (a number) expected")
+            end
+            i = i + 1
+        end
+        if arg == "--xshift" then
+            if i < #opt then
+                __xshift = tonumber(opt[i + 1])
+            else
+                error("tikz export: --xshift: argument (a number) expected")
+            end
+            i = i + 1
+        end
+        if arg == "--yshift" then
+            if i < #opt then
+                __yshift = tonumber(opt[i + 1])
+            else
+                error("tikz eyport: --yshift: argument (a number) expected")
             end
             i = i + 1
         end
@@ -90,6 +117,7 @@ function M.finalize()
         table.insert(t, entry)
     end
     if #__options > 0 then
+        table.sort(__options)
         table.insert(t, "[")
         for i, entry in ipairs(__options) do
             if i ~= #__options then
@@ -112,9 +140,15 @@ end
 
 function M.at_begin()
     if __standalone then
-        table.insert(__header, '\\documentclass{standalone}')
+        if __article then
+            table.insert(__header, '\\documentclass{article}')
+        else
+            table.insert(__header, '\\documentclass{standalone}')
+        end
         table.insert(__header, '\\usepackage{tikz}')
-        table.insert(__header, '\\usetikzlibrary{patterns}')
+        if __drawpatterns then
+            table.insert(__header, '\\usetikzlibrary{patterns, patterns.meta}')
+        end
         if __resizebox then
             table.insert(__header, '\\usepackage{adjustbox}')
         end
@@ -178,8 +212,8 @@ local function _format_number(num)
 end
 
 local function _format_point(pt)
-    local sx = _format_number(pt.x)
-    local sy = _format_number(pt.y)
+    local sx = _format_number(pt.x + __xshift * __baseunit)
+    local sy = _format_number(pt.y + __yshift * __baseunit)
     if __expressionscale then
         return string.format("{ %s, %s }", sx, sy)
     else
@@ -224,12 +258,16 @@ local function _get_layer_style(layer)
     if layer.nofill then
         return string.format("draw = %s", color)
     else
-        if layer.pattern then
-            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", _get_outline_color(color), color)
+        if __drawpatterns and layer.pattern then
+            if layer.fill then -- also fill
+                return string.format("draw = %s, preaction = {fill = %s, fill opacity = %.2f}, pattern = %s, pattern color = %s", _get_outline_color(color), _get_outline_color(color), layer.opacity or 1.0, layer.pattern, color)
+            else
+                return string.format("draw = %s, pattern = %s, pattern color = %s", _get_outline_color(color), layer.pattern, color)
+            end
         elseif layer.nooutline or __nooutline then
-            return string.format("fill = %s", color)
+            return string.format("fill = %s, fill opacity = %.2f", color, layer.opacity or 1.0)
         else
-            return string.format("fill = %s, draw = %s", color, _get_outline_color(color))
+            return string.format("fill = %s, fill opacity = %.2f, draw = %s", color, layer.opacity or 1.0, _get_outline_color(color))
         end
     end
 end
@@ -239,11 +277,16 @@ local function _format_layer(layer)
     if layer.style then
         if not styles[layer.style] then
             styles[layer.style] = true
-            table.insert(__options, string.format("%s/.style = { %s }", layer.style, _get_layer_style(layer)))
+            if __overwrite_opacity then
+                table.insert(__options, string.format("%s/.style = { %s, opacity = %f }", layer.style, _get_layer_style(layer), __overwrite_opacity))
+            else
+                table.insert(__options, string.format("%s/.style = { %s }", layer.style, _get_layer_style(layer)))
+            end
         end
         return string.format("\\path[%s]", layer.style)
+    else
+        return string.format("\\path[%s]", _get_layer_style(layer))
     end
-    return string.format("\\path[%s]", _get_layer_style(layer))
 end
 
 local function _insert(ignore, order, content)
@@ -272,6 +315,11 @@ function M.write_polygon(layer, pts)
     end
     local content = string.format("%s %s -- cycle;", _format_layer(layer), table.concat(ptstream, " -- "))
     _insert(layer.ignore, layer.order, content)
+end
+
+function M.write_port(name, layer, where, sizehint)
+    local content = string.format("\\node at (%s) {%s};", _format_point(where), name)
+    _insert(layer.ignore, layer.order or 0, content)
 end
 
 local curveignore

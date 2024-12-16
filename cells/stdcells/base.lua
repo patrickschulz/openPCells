@@ -32,6 +32,7 @@ function parameters()
         { "topbotwelltapspace",                                         technology.get_dimension("Minimum M1 Space") },
         { "dummycontheight(Dummy Gate Contact Height)",                 technology.get_dimension("Minimum M1 Width") },
         { "drawdummygcut(Draw Dummy Gate Cut)",                         false },
+        { "centereddummycontacts(Centered Dummy Contacts)",               true },
         { "compact(Compact Layout)",                                    true }
     )
 end

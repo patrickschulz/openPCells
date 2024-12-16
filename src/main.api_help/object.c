@@ -847,7 +847,7 @@
     vector_append(entries, _make_api_entry(
         "get_all_regular_anchors",
         MODULE_OBJECT,
-        "Create a table containing all regular (non-area and non-alignment) anchors of a cell. The table can be iterated with standard lua methods (pairs)",
+        "Create a table containing all regular (non-alignment) anchors of a cell. The table can be iterated with standard lua methods (pairs). Area anchors are reported with four anchors (bl, br, tl and tr)",
         "cell:get_all_regular_anchors()",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );

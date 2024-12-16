@@ -3,14 +3,17 @@ function parameters()
         { "cellsize", 10000 },
         { "meshmetals", { 1, 2, 3, 4, 5, 6, 7, 8 } },
         { "gridmetals", { 9, 10 } },
+        { "gridstartwithleftright", true },
+        { "drawgridvddline", true },
         { "interconnectmetal", 8 },
         { "guardringwidth", 500 },
         { "drawguardring", true },
         { "drawmoscap", true },
-        { "moscapgatelength", 250 },
-        { "moscapgatespace", 250 },
+        { "moscapgatelength", technology.get_dimension("Minimum Gate Length") },
+        { "moscapgatespace", technology.get_dimension("Minimum Gate XSpace") },
         { "moscapxspace", 250 },
         { "moscapyspace", 250 },
+        { "moscapsdwidth", 200 },
         { "moscapvthtype", 1 },
         { "moscapchanneltype", "nmos" },
         { "moscapflippedwell", false },
@@ -42,6 +45,34 @@ function parameters()
         { "soiopenextension", 0 },
         { "drawfillexcludes", true }
     )
+end
+
+function check(_P)
+    for _, metal in ipairs(_P.meshmetals) do
+        if not technology.has_metal(metal) then
+            return false, string.format("technology does not have metal %d", metal)
+        end
+    end
+    for _, metal in ipairs(_P.gridmetals) do
+        if not technology.has_metal(metal) then
+            return false, string.format("technology does not have metal %d", metal)
+        end
+    end
+    if #_P.meshmetals ~= #_P.meshmetalwidths then
+        return false, string.format("number of mesh metal widths must match number of mesh metals (%d vs. %d)", #_P.meshmetalwidths, #_P.meshmetals)
+    end
+    if #_P.gridmetals ~= #_P.gridmetalwidths then
+        return false, string.format("number of grid metal widths must match number of grid metals (%d vs. %d)", #_P.gridmetalwidths, #_P.gridmetals)
+    end
+    for i, entry in ipairs(_P.gridmetalwidths) do
+        if type(entry) ~= "table" then
+            return false, string.format("grid metal width entry #%d is not a table", i)
+        end
+        if not entry.vdd and not entry.vss then
+            return false, string.format("grid metal width entry #%d does not have all required fields ('vdd' and 'vss')", i)
+        end
+    end
+    return true
 end
 
 function layout(decap, _P)
@@ -138,7 +169,7 @@ function layout(decap, _P)
     end
 
     -- grid metals
-    local leftright = true
+    local leftright = _P.gridstartwithleftright
     if _P.drawgrid then
         for i = 1, #_P.gridmetals do
             local metal = _P.gridmetals[i]
@@ -171,10 +202,12 @@ function layout(decap, _P)
                         point.create(vssright, -_P.cellsize / 2 + vsswidth / 2 )
                     )
                 end
-                geometry.rectanglebltr(decap, generics.metal(metal),
-                    point.create(vddleft, -vddwidth / 2),
-                    point.create(vddright, vddwidth / 2)
-                )
+                if _P.drawgridvddline then
+                    geometry.rectanglebltr(decap, generics.metal(metal),
+                        point.create(vddleft, -vddwidth / 2),
+                        point.create(vddright, vddwidth / 2)
+                    )
+                end
                 if not _P.restrictvss or _P.drawtop then
                     geometry.rectanglebltr(decap, generics.metal(metal),
                         point.create(vssleft,  _P.cellsize / 2 - vsswidth / 2),
@@ -206,10 +239,12 @@ function layout(decap, _P)
                         point.create(-_P.cellsize / 2 + vsswidth / 2, vsstop)
                     )
                 end
-                geometry.rectanglebltr(decap, generics.metal(metal),
-                    point.create(-vddwidth / 2, vddbottom),
-                    point.create( vddwidth / 2, vddtop)
-                )
+                if _P.drawgridvddline then
+                    geometry.rectanglebltr(decap, generics.metal(metal),
+                        point.create(-vddwidth / 2, vddbottom),
+                        point.create( vddwidth / 2, vddtop)
+                    )
+                end
                 if not _P.restrictvss or not _P.drawright then
                     geometry.rectanglebltr(decap, generics.metal(metal),
                         point.create(_P.cellsize / 2 - vsswidth / 2, vssbottom),
@@ -344,7 +379,7 @@ function layout(decap, _P)
             drawbotgate = true,
             botgatewidth = _P.meshmetalwidths[1],
             botgatespace = _P.moscapyspace,
-            sdwidth = 100,
+            sdwidth = _P.moscapsdwidth,
             sourcemetal = 2,
             drainmetal = 2,
             connectsource = true,

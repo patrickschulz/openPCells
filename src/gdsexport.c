@@ -267,8 +267,9 @@ static void _at_end(struct export_data* data)
     export_data_append_byte(data, DATATYPE_NONE);
 }
 
-static void _at_begin_cell(struct export_data* data, const char* name)
+static void _at_begin_cell(struct export_data* data, const char* name, int istoplevel)
 {
+    (void) istoplevel;
     // BGNSTR
     _write_length_short(data, 28);
     export_data_append_byte(data, RECORDTYPE_BGNSTR);
@@ -310,14 +311,15 @@ static void _at_begin_cell(struct export_data* data, const char* name)
     }
 }
 
-static void _at_end_cell(struct export_data* data)
+static void _at_end_cell(struct export_data* data, int istoplevel)
 {
+    (void) istoplevel;
     _write_length_short(data, 4);
     export_data_append_byte(data, RECORDTYPE_ENDSTR);
     export_data_append_byte(data, DATATYPE_NONE);
 }
 
-static void _write_rectangle(struct export_data* data, const struct hashmap* layer, const point_t* bl, const point_t* tr)
+static void _write_rectangle(struct export_data* data, const struct hashmap* layer, const struct point* bl, const struct point* tr)
 {
     export_data_ensure_additional_capacity(data, 64); // a rectangle has exactly 64 bytes
     _write_layer_unchecked(data, RECORDTYPE_BOUNDARY, layer);
@@ -352,7 +354,7 @@ static void _write_polygon(struct export_data* data, const struct hashmap* layer
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < vector_size(points); ++i)
     {
-        const point_t* pt = vector_get_const(points, i);
+        const struct point* pt = vector_get_const(points, i);
         export_data_append_four_bytes(data, multiplier * pt->x);
         export_data_append_four_bytes(data, multiplier * pt->y);
     }
@@ -427,67 +429,12 @@ static void _write_path(struct export_data* data, const struct hashmap* layer, c
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < vector_size(points); ++i)
     {
-        const point_t* pt = vector_get_const(points, i);
+        const struct point* pt = vector_get_const(points, i);
         export_data_append_four_bytes(data, multiplier * pt->x);
         export_data_append_four_bytes(data, multiplier * pt->y);
     }
 
     _write_ENDEL(data);
-}
-
-enum orientation
-{
-    R0,
-    R90,
-    R180,
-    R270,
-    MX,
-    MY,
-    MXR90,
-    MYR90
-};
-
-static enum orientation _get_matrix_orientation(const struct transformationmatrix* matrix)
-{
-    point_t pt1 = { .x = 1, .y = 0 };
-    point_t pt2 = { .x = 3, .y = 0 };
-    point_t pt3 = { .x = 2, .y = 1 };
-    transformationmatrix_apply_transformation_rot_mirr(matrix, &pt1);
-    transformationmatrix_apply_transformation_rot_mirr(matrix, &pt2);
-    transformationmatrix_apply_transformation_rot_mirr(matrix, &pt3);
-    if((pt1.x < pt2.x) && (pt3.y > pt1.y))
-    {
-        return R0;
-    }
-    else if((pt1.x == pt2.x) && (pt3.x < pt1.x) && (pt3.y > pt1.y))
-    {
-        return R90;
-    }
-    else if((pt1.x > pt2.x) && (pt3.y < pt1.y))
-    {
-        return R180;
-    }
-    else if((pt1.x == pt2.x) && pt3.x > 0 && pt3.y < 0)
-    {
-        return R270;
-    }
-    else if((pt1.x < pt2.x) && (pt3.y < pt1.y))
-    {
-        return MX;
-    }
-    else if((pt1.x > pt2.x) && (pt3.y > pt1.y))
-    {
-        return MY;
-    }
-    else if((pt1.x == pt2.x) && (pt3.x < pt1.x))
-    {
-        return MXR90;
-    }
-    //else if((pt1.x == pt2.x) && (pt3.x > pt1.x))
-    else
-    {
-        return MYR90;
-    }
 }
 
 static void _write_reflection(struct export_data* data)
@@ -548,7 +495,7 @@ static void _rotate_vector(coordinate_t* x, coordinate_t* y, const struct transf
 {
     coordinate_t xx = *x;
     coordinate_t yy = *y;
-    enum orientation orientation = _get_matrix_orientation(trans);
+    enum orientation orientation = export_get_matrix_orientation(trans);
     /*
     *x = cos(alpha) * xx -sin(alpha) * yy;
     *y = sin(alpha) * xx cos(alpha) * yy;
@@ -593,7 +540,7 @@ static void _rotate_vector(coordinate_t* x, coordinate_t* y, const struct transf
 
 static void _write_strans_angle(struct export_data* data, const struct transformationmatrix* trans)
 {
-    enum orientation orientation = _get_matrix_orientation(trans);
+    enum orientation orientation = export_get_matrix_orientation(trans);
     switch(orientation)
     {
         case R0:
@@ -625,7 +572,7 @@ static void _write_strans_angle(struct export_data* data, const struct transform
     }
 }
 
-static void _write_cell_reference(struct export_data* data, const char* identifier, const char* instname, coordinate_t x, coordinate_t y, const struct transformationmatrix* trans)
+static void _write_cell_reference(struct export_data* data, const char* identifier, const char* instname, const struct point* where, const struct transformationmatrix* trans)
 {
     (void) instname; // GDSII does not support instance names
     // SREF
@@ -657,13 +604,13 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     _write_length_short(data, 12);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
-    export_data_append_four_bytes(data, x * multiplier);
-    export_data_append_four_bytes(data, y * multiplier);
+    export_data_append_four_bytes(data, point_getx(where) * multiplier);
+    export_data_append_four_bytes(data, point_gety(where) * multiplier);
 
     _write_ENDEL(data);
 }
 
-static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, coordinate_t x, coordinate_t y, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
+static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, const struct point* where, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     (void) instbasename; // GDSII does not support instance names
     // AREF
@@ -703,25 +650,25 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     _write_length_short(data, 28);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
-    export_data_append_four_bytes(data, x * multiplier);
-    export_data_append_four_bytes(data, y * multiplier);
+    export_data_append_four_bytes(data, point_getx(where) * multiplier);
+    export_data_append_four_bytes(data, point_gety(where) * multiplier);
     // column vector
     coordinate_t xcol = xrep * xpitch;
     coordinate_t ycol = 0;
     _rotate_vector(&xcol, &ycol, trans);
-    export_data_append_four_bytes(data, (x + xcol) * multiplier);
-    export_data_append_four_bytes(data, (y + ycol) * multiplier);
+    export_data_append_four_bytes(data, (point_getx(where) + xcol) * multiplier);
+    export_data_append_four_bytes(data, (point_gety(where) + ycol) * multiplier);
     // row vector
     coordinate_t xrow = 0;
     coordinate_t yrow = yrep * ypitch;
     _rotate_vector(&xrow, &yrow, trans);
-    export_data_append_four_bytes(data, (x + xrow) * multiplier);
-    export_data_append_four_bytes(data, (y + yrow) * multiplier);
+    export_data_append_four_bytes(data, (point_getx(where) + xrow) * multiplier);
+    export_data_append_four_bytes(data, (point_gety(where) + yrow) * multiplier);
 
     _write_ENDEL(data);
 }
 
-static void _write_port(struct export_data* data, const char* name, const struct hashmap* layer, coordinate_t x, coordinate_t y, unsigned int sizehint)
+static void _write_port(struct export_data* data, const char* name, const struct hashmap* layer, const struct point* where, unsigned int sizehint)
 {
     _write_layer(data, RECORDTYPE_TEXT, RECORDTYPE_TEXTTYPE, layer);
 
@@ -755,8 +702,8 @@ static void _write_port(struct export_data* data, const char* name, const struct
     _write_length_short(data, 12);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
-    export_data_append_four_bytes(data, x * multiplier);
-    export_data_append_four_bytes(data, y * multiplier);
+    export_data_append_four_bytes(data, point_getx(where) * multiplier);
+    export_data_append_four_bytes(data, point_gety(where) * multiplier);
 
     // NAME
     size_t len = strlen(name);
@@ -786,10 +733,12 @@ struct export_functions* gdsexport_get_export_functions(void)
     funcs->at_end_cell = _at_end_cell;
     funcs->write_rectangle = _write_rectangle;
     funcs->write_polygon = _write_polygon_wrapper;
-    funcs->write_path = _write_path;
+    funcs->write_path_extension = _write_path;
+    funcs->write_path = NULL;
     funcs->write_cell_reference = _write_cell_reference;
     funcs->write_cell_array = _write_cell_array;
     funcs->write_port = _write_port;
+    funcs->write_label = _write_port;
     funcs->get_extension = _get_extension;
     return funcs;
 }
