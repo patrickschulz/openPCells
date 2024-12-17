@@ -101,9 +101,18 @@ done
 
 # create Makefile
 cat > Makefile << EOF
-opc: src/config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c
-	@\$(MAKE) -C src default
+DEPENDENCIES := src/config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c
+
+.PHONY: default
+default: opc .WAIT opc-debug
+
+opc: \$(DEPENDENCIES)
+	@\$(MAKE) -C src opc
 	@mv src/opc .
+
+opc-debug: \$(DEPENDENCIES)
+	@\$(MAKE) -C src opc-debug
+	@mv src/opc-debug .
 
 opc.1: src/cmdoptions_def.c
 	@\$(MAKE) -C src opc.1
@@ -127,7 +136,7 @@ doc:
 .PHONY: clean
 clean:
 	@\$(MAKE) -C src clean
-	rm -f opc
+	rm -f opc opc-debug
 	rm -f opc.1
 
 .PHONY: cleanall
