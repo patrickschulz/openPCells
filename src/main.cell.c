@@ -443,8 +443,23 @@ static struct object* _create_cell(
     // register args
     lua_setglobal(L, "args");
 
+
     // create cell
     int retval = script_call_create_cell(L);
+
+    ///////////////
+    pcell_enable_debug(debugcell);
+    pcell_enable_dprint(enabledprint);
+    if(iscellscript)
+    {
+        pcell_create_layout_from_script(pcell_state, cellname, cellargs);
+    }
+    else
+    {
+        // FIXME: if #args.additionalargs > 0 then
+        pcell_create_layout_env(pcell_state, cellname, toplevelname, 
+    }
+    ///////////////
 
     /* scripts/create_cell.lua:
     pcell.enable_debug(args.debugcell)
