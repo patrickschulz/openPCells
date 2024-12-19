@@ -6,16 +6,20 @@
 
 #include "cells.h"
 
+#include "main.functions.h"
 #include "util.h"
 #include "lua_util.h"
 #include "ldir.h"
+#include "lobject.h"
+#include "main.functions.h"
 
 #include "scriptmanager.h"
 #include "modulemanager.h"
 
 struct pcell_state {
     struct vector* cellpaths;
-    //int enable_dprint;
+    int enable_dprint;
+    int enable_debug;
 };
 
 /*
@@ -48,6 +52,8 @@ struct pcell_state* pcell_initialize_state(struct vector* cellpaths_to_prepend, 
             pcell_append_cellpath(pcell_state, vector_get_const(cellpaths_to_append, i));
         }
     }
+    pcell_state->enable_dprint = 0;
+    pcell_state->enable_debug = 0;
     return pcell_state;
 }
 
@@ -55,6 +61,208 @@ void pcell_destroy_state(struct pcell_state* pcell_state)
 {
     vector_destroy(pcell_state->cellpaths);
     free(pcell_state);
+}
+
+void pcell_enable_debug(struct pcell_state* pcell_state)
+{
+    pcell_state->enable_debug = 1;
+}
+
+void pcell_enable_dprint(struct pcell_state* pcell_state)
+{
+    pcell_state->enable_dprint = 1;
+}
+
+static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, struct technology_state* techstate)
+{
+    lua_State* L = main_create_and_initialize_lua();
+
+    // register techstate
+    lua_pushlightuserdata(L, techstate);
+    lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
+
+    // register pcell state
+    lua_pushlightuserdata(L, pcell_state);
+    lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
+
+    // load main modules
+    module_load_aux(L);
+    module_load_check(L);
+    module_load_globals(L);
+    module_load_graphics(L);
+    module_load_load(L);
+    module_load_stack(L); // must be loaded before pcell (FIXME: explicitly create the lua pcell state)
+    module_load_pcell(L);
+    module_load_placement(L);
+    module_load_routing(L);
+    module_load_util(L);
+    module_load_layouthelpers(L);
+
+    lua_getglobal(L, "pcell");
+    lua_getfield(L, -1, "register_pcell_state");
+    lua_pushlightuserdata(L, pcell_state);
+    int retval = main_lua_pcall(L, 1, 0);
+    if(retval != LUA_OK)
+    {
+        fputs("could not initialize pcell state\n", stderr);
+        lua_close(L);
+        return NULL;
+    }
+
+    /*
+    // assemble cell arguments
+    lua_newtable(L);
+
+    // object name
+    lua_pushstring(L, name);
+    lua_setfield(L, -2, "toplevelname");
+
+    // input args
+    lua_newtable(L);
+    for(unsigned int i = 0; i < vector_size(cellargs); ++i)
+    {
+        lua_pushstring(L, vector_get(cellargs, i));
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_setfield(L, -2, "additionalargs");
+    */
+
+    /*
+    // pfiles
+    lua_newtable(L);
+    if(pfilenames)
+    {
+        for(unsigned int i = 0; i < const_vector_size(pfilenames); ++i)
+        {
+            const char* pfilename = const_vector_get(pfilenames, i);
+            _read_table_from_file(L, pfilename); // don't stop on error
+            lua_pushnil(L);
+            while(lua_next(L, -2) != 0)
+            {
+                if(lua_type(L, -1) == LUA_TTABLE)
+                {
+                    puts("no nested tables are allowed in parameter files");
+                    lua_close(L);
+                    return NULL;
+                }
+                if(lua_type(L, -2) != LUA_TSTRING)
+                {
+                    puts("non-string keys in parameter files are prohibited");
+                    lua_close(L);
+                    return NULL;
+                }
+                lua_pushvalue(L, -2);
+                lua_pushvalue(L, -2);
+                lua_rawset(L, -6);
+                lua_pop(L, 1);
+            }
+            lua_pop(L, 1);
+        }
+    }
+    lua_setfield(L, -2, "cellargs");
+    */
+
+    /*
+    // cell environment
+    if(cellenvfilename)
+    {
+        if(!_read_table_from_file(L, cellenvfilename))
+        {
+            lua_close(L);
+            return NULL;
+        }
+    }
+    else
+    {
+        lua_newtable(L);
+    }
+    lua_setfield(L, -2, "cellenv");
+    */
+
+    /*
+    // register args
+    lua_setglobal(L, "args");
+    */
+
+    return L;
+}
+
+struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* name, struct vector* cellargs)
+{
+    int iscellscript = 1;
+    lua_State* L = _prepare_layout_generation(pcell_state, techstate);
+    if(!L)
+    {
+        return NULL;
+    }
+    ////////////
+    //int retval = script_call_create_cell(L);
+    //pcell.enable_debug(args.debugcell)
+    //pcell.enable_dprint(args.enabledprint)
+
+    lua_getglobal(L, "pcell");
+    lua_getfield(L, -1, "create_layout_from_script");
+    lua_pushstring(L, scriptname);
+    // cell arguments
+    lua_newtable(L);
+    for(unsigned int i = 0; i < vector_size(cellargs); ++i)
+    {
+        lua_pushstring(L, vector_get(cellargs, i));
+        lua_rawseti(L, -2, i + 1);
+    }
+    int retval = main_lua_pcall(L, 2, 1);
+    if(retval != LUA_OK)
+    {
+        lua_close(L);
+        return NULL;
+    }
+    struct lobject* lobject = lobject_check_soft(L, -1);
+    if(!lobject)
+    {
+        fputs("cell/cellscript did not return an object\n", stderr);
+        lua_close(L);
+        return NULL;
+    }
+    struct object* toplevel = lobject_get_unchecked(lobject);
+    lobject_disown(lobject);
+    lua_pop(L, 1); // pop pcell table
+    lua_close(L);
+    return toplevel;
+}
+
+struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* toplevelname)
+{
+    int iscellscript = 1;
+    lua_State* L = _prepare_layout_generation(pcell_state, techstate);
+    if(!L)
+    {
+        return NULL;
+    }
+    //cell = pcell.create_layout_env(args.cell, args.toplevelname, args.cellargs, args.cellenv)
+    lua_getglobal(L, "pcell");
+    lua_getfield(L, -1, "create_layout_env");
+    lua_pushstring(L, cellname);
+    lua_pushstring(L, toplevelname);
+    lua_pushnil(L); // FIXME: args.cellargs
+    lua_pushnil(L); // FIXME: args.cellenv
+    int retval = main_lua_pcall(L, 4, 1);
+    if(retval != LUA_OK)
+    {
+        lua_close(L);
+        return NULL;
+    }
+    struct lobject* lobject = lobject_check_soft(L, -1);
+    if(!lobject)
+    {
+        fputs("cell/cellscript did not return an object\n", stderr);
+        lua_close(L);
+        return NULL;
+    }
+    struct object* toplevel = lobject_get_unchecked(lobject);
+    lobject_disown(lobject);
+    lua_pop(L, 1); // pop pcell table
+    lua_close(L);
+    return toplevel;
 }
 
 void pcell_prepend_cellpath(struct pcell_state* pcell_state, const char* path)
@@ -115,7 +323,7 @@ struct object* pcell_create_layout(const char* cellname, struct technology_state
 {
     cell_layout_func layout_func = _get_layout_function(pcell_state, cellname);
     struct object* cell = object_create("__EMPTY__");
-    int ret = layout_func(cell, techstate, pcell_state);
+    int ret = layout_func(pcell_state, techstate, cell);
     if(!ret)
     {
         // FIXME: error message, clean up
@@ -173,6 +381,30 @@ static int lpcell_append_cellpath(lua_State* L)
     return 0;
 }
 
+static int lpcell_dprint(lua_State* L)
+{
+    struct pcell_state* pcell_state = lua_touserdata(L, 1);
+    if(!pcell_state->enable_dprint)
+    {
+        return 0;
+    }
+    // taken from lbaselib.c:
+    int n = lua_gettop(L);  /* number of arguments */
+    // skip pcell state (first argument)
+    for(int i = 2; i <= n; i++) 
+    {  /* for each argument */
+        size_t l;
+        const char *s = luaL_tolstring(L, i, &l);  /* convert it to string */
+        if (i > 2)  /* not the first element? */
+            lua_writestring("\t", 1);  /* add a tab before it */
+        lua_writestring(s, l);  /* print it */
+        lua_pop(L, 1);  /* pop result */
+    }
+    lua_writeline();
+    return 0;
+    return 0;
+}
+
 int open_lpcell_lib(lua_State* L)
 {
     lua_newtable(L);
@@ -180,6 +412,7 @@ int open_lpcell_lib(lua_State* L)
     {
         { "get_cell_filename",       lpcell_get_cell_filename       },
         { "append_cellpath",         lpcell_append_cellpath         },
+        { "dprint",                  lpcell_dprint                  },
         { NULL,                      NULL                           }
     };
     luaL_setfuncs(L, modfuncs, 0);

@@ -267,7 +267,12 @@ local state = {
     loadedcells = {},
     cellrefs = {},
     debug = false,
+    internal_state = nil
 }
+
+function pcell.register_pcell_state(internal_state)
+    state.internal_state = internal_state
+end
 
 function state.create_cellenv(state, cellname, ovrenv)
     local bindstatecell = function(func)
@@ -337,19 +342,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         table = table,
         marker = marker,
         transformationmatrix = transformationmatrix,
-        dprint = function(...) if state.enabledprint then print(...) end end,
-        dmarker = function(cell, location)
-            if state.enabledprint then
-                geometry.rectanglebltr(cell, generics.special(),
-                    location:copy():translate(-10, -100),
-                    location:copy():translate(10, 100)
-                )
-                geometry.rectanglebltr(cell, generics.special(),
-                    location:copy():translate(-100, -10),
-                    location:copy():translate(100, 10)
-                )
-            end
-        end,
+        dprint = function(...) pcell.dprint(state.internal_state, ...) end,
         moderror = moderror,
         tonumber = tonumber,
         type = type,
@@ -376,19 +369,11 @@ function pcell.get_parameters(othercell, cellargs)
     return _get_parameters(state, othercell, cellargs)
 end
 
-function pcell.add_cell(cellname, funcs)
-    _add_cell(state, cellname, funcs)
-end
-
 function pcell.enable_debug(d)
     state.debug = d
 end
 
-function pcell.enable_dprint(d)
-    state.enabledprint = d
-end
-
-local function _create_layout_internal(obj, cellname, cellargs, env)
+local function _create_layout_internal(state, obj, cellname, cellargs, env)
     local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
     if not libpart then
         error(string.format("pcell.create_layout: malformed cellname. Expected library/cell, got '%s'", cellname))
@@ -437,7 +422,7 @@ function pcell.create_layout(cellname, name, cellargs, ...)
         error("pcell.create_layout was called with more three two arguments. If you wanted to pass an environment, use pcell.create_layout_env")
     end
     local obj = object.create(name)
-    _create_layout_internal(obj, cellname, cellargs)
+    _create_layout_internal(state, obj, cellname, cellargs)
     return obj
 end
 
@@ -455,7 +440,7 @@ function pcell.create_layout_env(cellname, name, cellargs, env)
     local oldenv = _globalenv
     _globalenv = env
     local obj = object.create(name)
-    _create_layout_internal(obj, cellname, cellargs, _globalenv)
+    _create_layout_internal(state, obj, cellname, cellargs, _globalenv)
     _globalenv = oldenv
     return obj
 end
@@ -470,7 +455,7 @@ function pcell.create_layout_in_object(obj, cellname, name, cellargs, ...)
     if select("#", ...) > 0 then
         error("pcell.create_layout was called with more three two arguments. If you wanted to pass an environment, use pcell.create_layout_env")
     end
-    _create_layout_internal(obj, cellname, cellargs)
+    _create_layout_internal(state, obj, cellname, cellargs)
 end
 
 function pcell.create_layout_env_in_object(obj, cellname, cellargs, env)
@@ -486,7 +471,7 @@ function pcell.create_layout_env_in_object(obj, cellname, cellargs, env)
     end
     local oldenv = _globalenv
     _globalenv = env
-    _create_layout_internal(obj, cellname, cellargs, _globalenv)
+    _create_layout_internal(state, obj, cellname, cellargs, _globalenv)
     _globalenv = oldenv
 end
 

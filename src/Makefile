@@ -56,7 +56,6 @@ scriptmanager.c: embed_compiled_lua_file scripts/*.lua
 	@echo '#include "scriptmanager.h"' > scriptmanager.c
 	@echo '#include <stddef.h>' >> scriptmanager.c
 	@echo '#include "main.functions.h"' >> scriptmanager.c
-	./embed_compiled_lua_file --script scripts/create_cell.lua script_call create_cell scriptmanager.c
 	./embed_compiled_lua_file --script scripts/list_cells.lua script_call list_cells scriptmanager.c
 	./embed_compiled_lua_file --script scripts/assistant.lua script_call assistant scriptmanager.c
 	./embed_compiled_lua_file --script scripts/list_parameters.lua script_call list_parameters scriptmanager.c
@@ -66,7 +65,6 @@ scriptmanager.h:
 	@echo '#ifndef OPC_SCRIPTMANAGER_H' > scriptmanager.h
 	@echo '#define OPC_SCRIPTMANAGER_H' >> scriptmanager.h
 	@echo '#include "lua/lua.h"' >> scriptmanager.h
-	@echo 'int script_call_create_cell(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_list_cells(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_assistant(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_list_parameters(lua_State* L);' >> scriptmanager.h

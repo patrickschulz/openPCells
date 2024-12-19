@@ -18,45 +18,12 @@
 #include "util_cmodule.h"
 #include "util.h"
 
-#include "ldir.h"
-#include "lgenerics.h"
-#include "lgeometry.h"
-#include "lobject.h"
-#include "lplacement.h"
-#include "lplacer.h"
-#include "lpoint.h"
-#include "lpostprocess.h"
-#include "lrouter.h"
-#include "lua_util.h"
-
 #include "config.h"
 
 #include "main.functions.h"
 
 #include "modulemanager.h"
 #include "scriptmanager.h"
-
-static lua_State* _create_and_initialize_lua(void)
-{
-    lua_State* L = util_create_basic_lua_state();
-
-    // opc libraries
-    open_ldir_lib(L);
-    open_lfilesystem_lib(L);
-    open_lpoint_lib(L);
-    open_lgeometry_lib(L);
-    open_lgenerics_lib(L);
-    open_ltechnology_lib(L);
-    open_lpcell_lib(L);
-    open_lobject_lib(L);
-    open_lplacement_lib(L);
-    open_lpostprocess(L);
-    open_lutil_cmodule_lib(L);
-    // FIXME: these libraries are probably not needed for cell creation (they are used in place & route scripts)
-    open_lplacer_lib(L);
-    open_lrouter_lib(L);
-    return L;
-}
 
 static struct technology_state* _create_techstate(struct vector* techpaths, const char* techname, const struct const_vector* ignoredlayers)
 {
@@ -149,7 +116,7 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
 {
     // FIXME: this probably loads too many C modules
     // FIXME: load dummy technology if not technology was given
-    lua_State* L = _create_and_initialize_lua();
+    lua_State* L = main_create_and_initialize_lua();
 
     module_load_aux(L);
     module_load_util(L);
@@ -235,7 +202,7 @@ void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* confi
 {
     // FIXME: this probably loads too many C modules
     // FIXME: load dummy technology if not technology was given
-    lua_State* L = _create_and_initialize_lua();
+    lua_State* L = main_create_and_initialize_lua();
 
     module_load_aux(L);
     module_load_util(L);
@@ -336,164 +303,20 @@ static struct object* _create_cell(
     struct vector* cellargs,
     struct technology_state* techstate,
     struct pcell_state* pcell_state,
-    int enabledprint,
     struct const_vector* pfilenames,
     const char* cellenvfilename
 )
 {
-    lua_State* L = _create_and_initialize_lua();
-
-    // register techstate
-    lua_pushlightuserdata(L, techstate);
-    lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
-
-    // register pcell state
-    lua_pushlightuserdata(L, pcell_state);
-    lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
-
-    // load main modules
-    module_load_aux(L);
-    module_load_check(L);
-    module_load_globals(L);
-    module_load_graphics(L);
-    module_load_load(L);
-    module_load_stack(L); // must be loaded before pcell (FIXME: explicitly create the lua pcell state)
-    module_load_pcell(L);
-    module_load_placement(L);
-    module_load_routing(L);
-    module_load_util(L);
-    module_load_layouthelpers(L);
-
-    // assemble cell arguments
-    lua_newtable(L);
-
-    // is cell script
-    lua_pushboolean(L, iscellscript);
-    lua_setfield(L, -2, "isscript");
-
-    // cell name
-    lua_pushstring(L, cellname);
-    lua_setfield(L, -2, "cell");
-
-    // object name
-    lua_pushstring(L, name);
-    lua_setfield(L, -2, "toplevelname");
-
-    // enable dprint
-    lua_pushboolean(L, enabledprint);
-    lua_setfield(L, -2, "enabledprint");
-
-    // input args
-    lua_newtable(L);
-    for(unsigned int i = 0; i < vector_size(cellargs); ++i)
-    {
-        lua_pushstring(L, vector_get(cellargs, i));
-        lua_rawseti(L, -2, i + 1);
-    }
-    lua_setfield(L, -2, "additionalargs");
-
-    // pfiles
-    lua_newtable(L);
-    if(pfilenames)
-    {
-        for(unsigned int i = 0; i < const_vector_size(pfilenames); ++i)
-        {
-            const char* pfilename = const_vector_get(pfilenames, i);
-            _read_table_from_file(L, pfilename); // don't stop on error
-            lua_pushnil(L);
-            while(lua_next(L, -2) != 0)
-            {
-                if(lua_type(L, -1) == LUA_TTABLE)
-                {
-                    puts("no nested tables are allowed in parameter files");
-                    lua_close(L);
-                    return NULL;
-                }
-                if(lua_type(L, -2) != LUA_TSTRING)
-                {
-                    puts("non-string keys in parameter files are prohibited");
-                    lua_close(L);
-                    return NULL;
-                }
-                lua_pushvalue(L, -2);
-                lua_pushvalue(L, -2);
-                lua_rawset(L, -6);
-                lua_pop(L, 1);
-            }
-            lua_pop(L, 1);
-        }
-    }
-    lua_setfield(L, -2, "cellargs");
-
-    // cell environment
-    if(cellenvfilename)
-    {
-        if(!_read_table_from_file(L, cellenvfilename))
-        {
-            lua_close(L);
-            return NULL;
-        }
-    }
-    else
-    {
-        lua_newtable(L);
-    }
-    lua_setfield(L, -2, "cellenv");
-
-    // register args
-    lua_setglobal(L, "args");
-
-
-    // create cell
-    int retval = script_call_create_cell(L);
-
-    ///////////////
-    pcell_enable_debug(debugcell);
-    pcell_enable_dprint(enabledprint);
+    struct object* toplevel;
     if(iscellscript)
     {
-        pcell_create_layout_from_script(pcell_state, cellname, cellargs);
+        toplevel = pcell_create_layout_from_script(pcell_state, techstate, cellname, name, cellargs);
     }
     else
     {
         // FIXME: if #args.additionalargs > 0 then
-        pcell_create_layout_env(pcell_state, cellname, toplevelname, 
+        toplevel = pcell_create_layout_env(pcell_state, techstate, cellname, name);
     }
-    ///////////////
-
-    /* scripts/create_cell.lua:
-    pcell.enable_debug(args.debugcell)
-    pcell.enable_dprint(args.enabledprint)
-    local cell
-    if args.isscript then
-        cell = pcell.create_layout_from_script(args.cell, args.additionalargs)
-    else
-        if #args.additionalargs > 0 then
-            error("creating a cell from a cell definition, but additional positional arguments (non-key-value pairs) are present")
-        end
-        cell = pcell.create_layout_env(args.cell, args.toplevelname, args.cellargs, args.cellenv)
-    end
-
-    return cell
-    */
-
-    if(retval != LUA_OK)
-    {
-        lua_close(L);
-        return NULL;
-    }
-    struct lobject* lobject = lobject_check_soft(L, -1);
-    if(!lobject)
-    {
-        fputs("cell/cellscript did not return an object\n", stderr);
-        lua_close(L);
-        return NULL;
-    }
-    struct object* toplevel = lobject_get_unchecked(lobject);
-    lobject_disown(lobject);
-
-    lua_close(L);
-
     return toplevel;
 }
 
@@ -834,7 +657,18 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     {
         cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
     }
-    int enabledprint = cmdoptions_was_provided_long(cmdoptions, "enable-dprint");
+    
+    // enable dprint
+    if(cmdoptions_was_provided_long(cmdoptions, "enable-dprint"))
+    {
+        pcell_enable_dprint(pcell_state);
+    }
+
+    // enable debug
+    if(cmdoptions_was_provided_long(cmdoptions, "debug-cell"))
+    {
+        pcell_enable_debug(pcell_state);
+    }
 
     // read pfile prepend/append lists
     struct const_vector* pfilenames = NULL;
@@ -863,7 +697,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 
     const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
     const char* name = cmdoptions_get_argument_long(cmdoptions, "cellname");
-    struct object* toplevel = _create_cell(cellname, name, iscellscript, cellargs, techstate, pcell_state, enabledprint, pfilenames, cellenvfilename);
+    struct object* toplevel = _create_cell(cellname, name, iscellscript, cellargs, techstate, pcell_state, pfilenames, cellenvfilename);
     vector_destroy(cellargs);
     if(pfilenames)
     {

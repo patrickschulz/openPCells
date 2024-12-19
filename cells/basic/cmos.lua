@@ -184,7 +184,7 @@ function layout(cmos, _P)
     local firstgate
     if _P.drawtransistors then
         -- common transistor options
-        pcell.push_overwrites("basic/mosfet", {
+        local baseopt = {
             gatelength = _P.gatelength,
             gatespace = _P.gatespace,
             sdwidth = _P.sdwidth,
@@ -201,10 +201,10 @@ function layout(cmos, _P)
             topgatewidth = _P.gatestrapwidth,
             botgatewidth = _P.gatestrapwidth,
             drawanalogmarker = _P.drawanalogmarker,
-        })
+        }
 
         -- pmos
-        local popt = {
+        local popt = util.add_options(baseopt, {
             channeltype = "pmos",
             vthtype = _P.pvthtype,
             flippedwell = _P.pmosflippedwell,
@@ -257,8 +257,8 @@ function layout(cmos, _P)
             vthtypealignrightwithactive = _P.vthtypealignrightwithactive,
             vthtypealigntopwithactive = _P.vthtypealigntopwithactive,
             vthtypealignbottomwithactive = true,
-        }
-        local nopt = {
+        })
+        local nopt = util.add_options(baseopt, {
             channeltype = "nmos",
             vthtype = _P.nvthtype,
             flippedwell = _P.nmosflippedwell,
@@ -312,7 +312,7 @@ function layout(cmos, _P)
             vthtypealignrightwithactive = _P.vthtypealignrightwithactive,
             vthtypealigntopwithactive = true,
             vthtypealignbottomwithactive = _P.vthtypealignbottomwithactive,
-        }
+        })
         -- main
         for i = 1, fingers do
             local nopt_current = util.clone_shallow(nopt)
@@ -643,8 +643,6 @@ function layout(cmos, _P)
         end
         nopt.drawtopgatecut = true
         popt.drawbotgatecut = true
-        -- pop general transistor settings
-        pcell.pop_overwrites("basic/mosfet")
     end
 
     -- power rails

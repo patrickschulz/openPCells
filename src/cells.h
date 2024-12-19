@@ -4,6 +4,6 @@
 #include "pcell.h"
 #include "technology.h"
 
-int cell_powergrid_layout(struct object* powergrid, struct technology_state* techstate, struct pcell_state* pcell_state);
+int cell_powergrid_layout(struct pcell_state* pcell_state, struct technology_state* techstate, struct object* powergrid);
 
 #endif /* OPC_CELLS_H */
