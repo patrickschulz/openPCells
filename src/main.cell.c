@@ -74,7 +74,6 @@ static int _parse_point(const char* arg, int* xptr, int* yptr)
 
 static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append, struct cmdoptions* cmdoptions, struct hashmap* config)
 {
-
     if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
     {
         const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
@@ -294,30 +293,6 @@ static int _read_table_from_file(lua_State* L, const char* filename)
         return 0;
     }
     return 1;
-}
-
-static struct object* _create_cell(
-    const char* cellname,
-    const char* name,
-    int iscellscript,
-    struct vector* cellargs,
-    struct technology_state* techstate,
-    struct pcell_state* pcell_state,
-    struct const_vector* pfilenames,
-    const char* cellenvfilename
-)
-{
-    struct object* toplevel;
-    if(iscellscript)
-    {
-        toplevel = pcell_create_layout_from_script(pcell_state, techstate, cellname, name, cellargs);
-    }
-    else
-    {
-        // FIXME: if #args.additionalargs > 0 then
-        toplevel = pcell_create_layout_env(pcell_state, techstate, cellname, name);
-    }
-    return toplevel;
 }
 
 static void _move_origin(struct object* toplevel, struct cmdoptions* cmdoptions)
@@ -697,7 +672,16 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 
     const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
     const char* name = cmdoptions_get_argument_long(cmdoptions, "cellname");
-    struct object* toplevel = _create_cell(cellname, name, iscellscript, cellargs, techstate, pcell_state, pfilenames, cellenvfilename);
+    struct object* toplevel;
+    if(iscellscript)
+    {
+        toplevel = pcell_create_layout_from_script(pcell_state, techstate, cellname, name, cellargs);
+    }
+    else
+    {
+        // FIXME: if #args.additionalargs > 0 then
+        toplevel = pcell_create_layout_env(pcell_state, techstate, cellname, name);
+    }
     vector_destroy(cellargs);
     if(pfilenames)
     {

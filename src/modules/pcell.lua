@@ -91,7 +91,7 @@ local function _load_cell(state, cellname, env)
     if not cellname then
         error("pcell: load_cell expects a cellname")
     end
-    local filename = pcell.get_cell_filename(cellname)
+    local filename = state.internal_state.get_cell_filename(state.internal_state, cellname)
     local reader = _get_reader(filename)
     if not reader then
         error(string.format("could not open cell file '%s'", filename))
@@ -269,6 +269,8 @@ local state = {
     debug = false,
     internal_state = nil
 }
+
+pcell = {}
 
 function pcell.register_pcell_state(internal_state)
     state.internal_state = internal_state

@@ -12,6 +12,7 @@
 #include "ldir.h"
 #include "lobject.h"
 #include "main.functions.h"
+#include "ldebug.h"
 
 #include "scriptmanager.h"
 #include "modulemanager.h"
@@ -73,6 +74,14 @@ void pcell_enable_dprint(struct pcell_state* pcell_state)
     pcell_state->enable_dprint = 1;
 }
 
+// lua bridge
+struct lpcell {
+    struct pcell_state* pcell_state;
+};
+
+static void _create_lua_state(lua_State* L, struct pcell_state* pcell_state);
+static int _open_lpcell_lib(lua_State* L);
+
 static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, struct technology_state* techstate)
 {
     lua_State* L = main_create_and_initialize_lua();
@@ -80,10 +89,6 @@ static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, st
     // register techstate
     lua_pushlightuserdata(L, techstate);
     lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
-
-    // register pcell state
-    lua_pushlightuserdata(L, pcell_state);
-    lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
 
     // load main modules
     module_load_aux(L);
@@ -98,9 +103,11 @@ static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, st
     module_load_util(L);
     module_load_layouthelpers(L);
 
+    _open_lpcell_lib(L);
+
     lua_getglobal(L, "pcell");
     lua_getfield(L, -1, "register_pcell_state");
-    lua_pushlightuserdata(L, pcell_state);
+    _create_lua_state(L, pcell_state);
     int retval = main_lua_pcall(L, 1, 0);
     if(retval != LUA_OK)
     {
@@ -189,17 +196,11 @@ static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, st
 
 struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* name, struct vector* cellargs)
 {
-    int iscellscript = 1;
     lua_State* L = _prepare_layout_generation(pcell_state, techstate);
     if(!L)
     {
         return NULL;
     }
-    ////////////
-    //int retval = script_call_create_cell(L);
-    //pcell.enable_debug(args.debugcell)
-    //pcell.enable_dprint(args.enabledprint)
-
     lua_getglobal(L, "pcell");
     lua_getfield(L, -1, "create_layout_from_script");
     lua_pushstring(L, scriptname);
@@ -232,7 +233,6 @@ struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, 
 
 struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* toplevelname)
 {
-    int iscellscript = 1;
     lua_State* L = _prepare_layout_generation(pcell_state, techstate);
     if(!L)
     {
@@ -335,10 +335,9 @@ struct object* pcell_create_layout(const char* cellname, struct technology_state
 
 static int lpcell_get_cell_filename(lua_State* L)
 {
-    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
-    struct pcell_state* pcell_state = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop pcell state
-    const char* cellname = luaL_checkstring(L, 1);
+    struct lpcell* lpcell = luaL_checkudata(L, 1, "LPCELL");
+    struct pcell_state* pcell_state = lpcell->pcell_state;
+    const char* cellname = luaL_checkstring(L, 2);
     for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
     {
         const char* path = vector_get_const(pcell_state->cellpaths, i);
@@ -354,69 +353,70 @@ static int lpcell_get_cell_filename(lua_State* L)
         }
         free(filename);
     }
-    lua_newtable(L);
     lua_pushfstring(L, "could not find cell '%s' in:\n", cellname);
+    unsigned int num = 0;
     for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
     {
         lua_pushstring(L, "  ");
+        ++num;
         const char* path = vector_get_const(pcell_state->cellpaths, i);
         lua_pushstring(L, path);
+        ++num;
         if(i < vector_size(pcell_state->cellpaths) - 1)
         {
             lua_pushstring(L, "\n");
+            ++num;
         }
     }
-    lua_concat(L, 3 * vector_size(pcell_state->cellpaths));
+    lua_concat(L, num + 1);
     lua_error(L);
-    return 0;
-}
-
-static int lpcell_append_cellpath(lua_State* L)
-{
-    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
-    struct pcell_state* pcell_state = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop pcell state
-    const char* path = luaL_checkstring(L, 1);
-    vector_append(pcell_state->cellpaths, util_strdup(path));
     return 0;
 }
 
 static int lpcell_dprint(lua_State* L)
 {
     struct pcell_state* pcell_state = lua_touserdata(L, 1);
-    if(!pcell_state->enable_dprint)
+    if(pcell_state->enable_dprint)
     {
-        return 0;
+        // taken from lbaselib.c:
+        int n = lua_gettop(L);  /* number of arguments */
+        // skip pcell state (first argument)
+        for(int i = 2; i <= n; i++) 
+        {  /* for each argument */
+            size_t l;
+            const char *s = luaL_tolstring(L, i, &l);  /* convert it to string */
+            if (i > 2)  /* not the first element? */
+                lua_writestring("\t", 1);  /* add a tab before it */
+            lua_writestring(s, l);  /* print it */
+            lua_pop(L, 1);  /* pop result */
+        }
+        lua_writeline();
     }
-    // taken from lbaselib.c:
-    int n = lua_gettop(L);  /* number of arguments */
-    // skip pcell state (first argument)
-    for(int i = 2; i <= n; i++) 
-    {  /* for each argument */
-        size_t l;
-        const char *s = luaL_tolstring(L, i, &l);  /* convert it to string */
-        if (i > 2)  /* not the first element? */
-            lua_writestring("\t", 1);  /* add a tab before it */
-        lua_writestring(s, l);  /* print it */
-        lua_pop(L, 1);  /* pop result */
-    }
-    lua_writeline();
-    return 0;
     return 0;
 }
 
-int open_lpcell_lib(lua_State* L)
+static void _create_lua_state(lua_State* L, struct pcell_state* pcell_state)
 {
-    lua_newtable(L);
-    static const luaL_Reg modfuncs[] =
-    {
+    struct lpcell* lpcell = lua_newuserdata(L, sizeof(*lpcell));
+    lpcell->pcell_state = pcell_state;
+    luaL_setmetatable(L, "LPCELL");
+    // no return value, as the value on the stack is used
+}
+
+static int _open_lpcell_lib(lua_State* L)
+{
+    static const luaL_Reg modfuncs[] = {
         { "get_cell_filename",       lpcell_get_cell_filename       },
-        { "append_cellpath",         lpcell_append_cellpath         },
         { "dprint",                  lpcell_dprint                  },
         { NULL,                      NULL                           }
     };
+    luaL_newmetatable(L, "LPCELL");
+    // add __index
+    lua_pushstring(L, "__index");
+    lua_pushvalue(L, -2);
+    lua_rawset(L, -3);
+    // register functions
     luaL_setfuncs(L, modfuncs, 0);
-    lua_setglobal(L, "pcell");
+    lua_pop(L, 1);
     return 0;
 }
-

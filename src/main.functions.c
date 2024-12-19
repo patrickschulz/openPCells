@@ -32,7 +32,6 @@ lua_State* main_create_and_initialize_lua(void)
     open_lgeometry_lib(L);
     open_lgenerics_lib(L);
     open_ltechnology_lib(L);
-    open_lpcell_lib(L);
     open_lobject_lib(L);
     open_lplacement_lib(L);
     open_lpostprocess(L);
