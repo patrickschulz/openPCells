@@ -115,25 +115,23 @@ static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, st
         lua_close(L);
         return NULL;
     }
+    return L;
+}
 
-    /*
-    // assemble cell arguments
-    lua_newtable(L);
-
-    // object name
-    lua_pushstring(L, name);
-    lua_setfield(L, -2, "toplevelname");
-
-    // input args
-    lua_newtable(L);
-    for(unsigned int i = 0; i < vector_size(cellargs); ++i)
+static int _read_table_from_file(lua_State* L, const char* filename)
+{
+    // call adapted from macro for luaL_dofile (only one return value as a fail-safe)
+    if((luaL_loadfile(L, filename) || lua_pcall(L, 0, 1, 0)) != LUA_OK)
     {
-        lua_pushstring(L, vector_get(cellargs, i));
-        lua_rawseti(L, -2, i + 1);
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "error while loading cell environment file: %s\n", msg);
+        return 0;
     }
-    lua_setfield(L, -2, "additionalargs");
-    */
+    return 1;
+}
 
+static void _load_pfiles()
+{
     /*
     // pfiles
     lua_newtable(L);
@@ -168,7 +166,10 @@ static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, st
     }
     lua_setfield(L, -2, "cellargs");
     */
+}
 
+static void _load_cellenv()
+{
     /*
     // cell environment
     if(cellenvfilename)
@@ -185,13 +186,26 @@ static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, st
     }
     lua_setfield(L, -2, "cellenv");
     */
+}
 
-    /*
-    // register args
-    lua_setglobal(L, "args");
-    */
-
-    return L;
+static struct object* _process_object(lua_State* L, int retval)
+{
+    if(retval != LUA_OK)
+    {
+        lua_close(L);
+        return NULL;
+    }
+    struct lobject* lobject = lobject_check_soft(L, -1);
+    if(!lobject)
+    {
+        fputs("cell/cellscript did not return an object\n", stderr);
+        lua_close(L);
+        return NULL;
+    }
+    struct object* toplevel = lobject_get_unchecked(lobject);
+    lobject_disown(lobject);
+    lua_close(L);
+    return toplevel;
 }
 
 struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* name, struct vector* cellargs)
@@ -212,23 +226,7 @@ struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, 
         lua_rawseti(L, -2, i + 1);
     }
     int retval = main_lua_pcall(L, 2, 1);
-    if(retval != LUA_OK)
-    {
-        lua_close(L);
-        return NULL;
-    }
-    struct lobject* lobject = lobject_check_soft(L, -1);
-    if(!lobject)
-    {
-        fputs("cell/cellscript did not return an object\n", stderr);
-        lua_close(L);
-        return NULL;
-    }
-    struct object* toplevel = lobject_get_unchecked(lobject);
-    lobject_disown(lobject);
-    lua_pop(L, 1); // pop pcell table
-    lua_close(L);
-    return toplevel;
+    return _process_object(L, retval);
 }
 
 struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* toplevelname)
@@ -246,23 +244,7 @@ struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct t
     lua_pushnil(L); // FIXME: args.cellargs
     lua_pushnil(L); // FIXME: args.cellenv
     int retval = main_lua_pcall(L, 4, 1);
-    if(retval != LUA_OK)
-    {
-        lua_close(L);
-        return NULL;
-    }
-    struct lobject* lobject = lobject_check_soft(L, -1);
-    if(!lobject)
-    {
-        fputs("cell/cellscript did not return an object\n", stderr);
-        lua_close(L);
-        return NULL;
-    }
-    struct object* toplevel = lobject_get_unchecked(lobject);
-    lobject_disown(lobject);
-    lua_pop(L, 1); // pop pcell table
-    lua_close(L);
-    return toplevel;
+    return _process_object(L, retval);
 }
 
 void pcell_prepend_cellpath(struct pcell_state* pcell_state, const char* path)

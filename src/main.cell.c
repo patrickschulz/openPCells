@@ -283,18 +283,6 @@ void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* confi
     lua_close(L);
 }
 
-static int _read_table_from_file(lua_State* L, const char* filename)
-{
-    // call adapted from macro for luaL_dofile (only one return value as a fail-safe)
-    if((luaL_loadfile(L, filename) || lua_pcall(L, 0, 1, 0)) != LUA_OK)
-    {
-        const char* msg = lua_tostring(L, -1);
-        fprintf(stderr, "error while loading cell environment file: %s\n", msg);
-        return 0;
-    }
-    return 1;
-}
-
 static void _move_origin(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "origin"))
