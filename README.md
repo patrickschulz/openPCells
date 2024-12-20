@@ -27,6 +27,8 @@ For more instructions on building and installation, see the section about [build
 
 # Basic Usage
 After building opc, layouts can be generated either from pcell definition (`--cell` option) or from so-called cellscripts (`--cellscript`).
+Please note that the `--cell` option is easy and quicker to use, but I'm thinking of removing support for it.
+I'm using it here to show some examples, but `--cellscript` is superior for more complex tasks (and what I solely use for my work).
 Besides a cell/cellscript, a technology node (`--technology`) and an export type (`--export`) must be provided.
 The project supplies generic technology files ('opc'), so you can directly test the setup.
 Common required export formats are also available.
