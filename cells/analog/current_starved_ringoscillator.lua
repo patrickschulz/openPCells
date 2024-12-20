@@ -414,11 +414,11 @@ function layout(oscillator, _P)
         bufferactivecontacts[_P.bufspacers + 1 + i + 1] = "power"
     end
     -- FIXME: add right dummies?
-    local bufferarray = pcell.create_layout("basic/cmos", "buffer", {
+    local bufferarray = pcell.create_layout("basic/cmos", "buffer", util.add_options(baseopt, {
         gatecontactpos = buffergatecontacts,
         pcontactpos = bufferactivecontacts,
         ncontactpos = bufferactivecontacts,
-    })
+    }))
     geometry.rectanglebltr(bufferarray,
         generics.metal(1),
         bufferarray:get_area_anchor(string.format("G%d", _P.bufspacers + 1)).bl,
