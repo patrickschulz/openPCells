@@ -169,24 +169,21 @@ static int _load_pfiles(struct pcell_state* pcell_state, lua_State* L)
     return 1;
 }
 
-static void _load_cellenv()
+static int _load_cellenv(lua_State* L, const char* cellenvfilename)
 {
-    /*
     // cell environment
     if(cellenvfilename)
     {
         if(!_read_table_from_file(L, cellenvfilename))
         {
-            lua_close(L);
-            return NULL;
+            return 0;
         }
     }
     else
     {
         lua_newtable(L);
     }
-    lua_setfield(L, -2, "cellenv");
-    */
+    return 1;
 }
 
 static struct object* _process_object(lua_State* L, int retval)
@@ -282,7 +279,7 @@ static void _process_input_arguments(lua_State* L, struct const_vector* cellargs
     }
 }
 
-struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* name, struct const_vector* cellargs)
+struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* name, struct const_vector* cellargs, const char *cellenvfilename)
 {
     lua_State* L = _prepare_layout_generation(pcell_state, techstate);
     if(!L)
@@ -301,7 +298,7 @@ struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, 
     return toplevel;
 }
 
-struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* toplevelname, struct const_vector* cellargs)
+struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* toplevelname, const char* cellenvfilename)
 {
     lua_State* L = _prepare_layout_generation(pcell_state, techstate);
     if(!L)
@@ -309,19 +306,28 @@ struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct t
         return NULL;
     }
     struct object* toplevel = NULL;
+    // get function
     lua_getglobal(L, "pcell");
     lua_getfield(L, -1, "create_layout_env");
+    // push arguments: cellname and object name
     lua_pushstring(L, cellname);
     lua_pushstring(L, toplevelname);
+    // assemble cell arguments
     lua_newtable(L);
     if(!_load_pfiles(pcell_state, L))
     {
         fputs("could not load pfiles\n", stderr);
         goto create_layout_finish;
     }
-    _process_input_arguments(L, cellargs);
-    lua_newtable(L); // FIXME: args.cellenv
+    // load cell environment
+    if(!_load_cellenv(L, cellenvfilename))
+    {
+        fprintf(stderr, "could not load cell environment in '%s'\n", cellenvfilename);
+        goto create_layout_finish;
+    }
+    // call layout generation function
     int retval = main_lua_pcall(L, 4, 1);
+    // check for errors and retrieve object in C
     toplevel = _process_object(L, retval);
 create_layout_finish:
     lua_close(L);

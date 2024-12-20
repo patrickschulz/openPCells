@@ -658,15 +658,21 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 
     const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
     const char* name = cmdoptions_get_argument_long(cmdoptions, "cellname");
-    struct object* toplevel;
+    struct object* toplevel = NULL;
     if(iscellscript)
     {
-        toplevel = pcell_create_layout_from_script(pcell_state, techstate, cellname, name, cellargs);
+        toplevel = pcell_create_layout_from_script(pcell_state, techstate, cellname, name, cellargs, cellenvfilename);
     }
     else
     {
-        // FIXME: if #args.additionalargs > 0 then
-        toplevel = pcell_create_layout_env(pcell_state, techstate, cellname, name, cellargs);
+        if(const_vector_size(cellargs) > 0)
+        {
+            fputs("creating a cell from a cell definition, but additional positional arguments are present\n", stderr);
+        }
+        else
+        {
+            toplevel = pcell_create_layout_env(pcell_state, techstate, cellname, name, cellenvfilename);
+        }
     }
     const_vector_destroy(cellargs);
     if(toplevel)
