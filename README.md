@@ -27,42 +27,66 @@ For more instructions on building and installation, see the section about [build
 
 # Basic Usage
 After building opc, layouts can be generated either from pcell definition (`--cell` option) or from so-called cellscripts (`--cellscript`).
-Please note that the `--cell` option is easy and quicker to use, but I'm thinking of removing support for it.
-I'm using it here to show some examples, but `--cellscript` is superior for more complex tasks (and what I solely use for my work).
 Besides a cell/cellscript, a technology node (`--technology`) and an export type (`--export`) must be provided.
 The project supplies generic technology files ('opc'), so you can directly test the setup.
 Common required export formats are also available.
 Currently, the most important and sophisticated export type is the GDSII (`--export gds`), but for this introduction the SVG format will be used to directly show the generated layouts [^1].
 Since IC layouts are not suitable to be viewed as a flat images, these representations only give an overview and are not meant to show the actual circuit layouts.
-Positional command line arguments (that is, arguments without `-` or `--`) are taken as key-value pairs for cell parameters:
+Cell parameters are given in so-called parameter files (pfiles) with the option `--pfile`.
+
+A basic example is:
 
     ./opc --technology opc --export svg --cell basic/mosfet
-    ./opc --technology opc --export svg --cell basic/mosfet fingers=4
 
-These two calls produce the following images:
+In order to customize the cell, parameters are used.
+These are modified by the aforementioned pfiles.
+Pfiles are regular lua files and should return tables with key-value pairs defining parameter values.
+A possible pfile (called pfile.lua) for modifying the number of fingers is:
+
+    return {
+        fingers = 4,
+    }
+
+Then the following call creates a MOSFET with four fingers:
+    ./opc --technology opc --export svg --cell basic/mosfet --pfile pfile.lua
+
+The two generation calls produce the following images:
 
 ![Example transistor layouts (left: fingers=1, right: fingers=4)](./doc/info/mosfet.png)
 
 The mosfet cell currently supports more than 200 parameters, it can draw gate contacts, guard rings, deep n-wells and many more.
-The more complex example
 
-    ./opc --technology opc --export svg --cell basic/mosfet gatelength=300 gatespace=500 fingerwidth=1500 fingers=4 drawtopgate=true connectsource=true drawguardring=true guardringleftsep=600 guardringrightsep=600 guardringtopsep=600 guardringbottomsep=600
+A more complex example is produced with the following pfile:
 
-produces
+    return {
+        gatelength = 300,
+        gatespace = 500,
+        fingerwidth = 1500,
+        fingers = 4,
+        drawtopgate = true,
+        connectsource = true,
+        drawguardring = true,
+        guardringleftsep = 600,
+        guardringrightsep = 600,
+        guardringtopsep = 600,
+        guardringbottomsep = 600
+    }
 
-![Complex transistor with many parameters](./doc/info/mosfet_complex.png)
+This yields:
 
-Increasing complexity is displayed by a current-starved ring oscillator:
+![Complex transistor with many parameters](./doc/info/mosfet_complex.svg)
+
+Higher-level cells are then built from the basic cells, for example a current-starved ring oscillator:
 
     ./opc --technology opc --export svg --cell analog/current_starved_ringoscillator
 
-![Current-starved ring oscillator](./doc/info/ringoscillator.png)
+![Current-starved ring oscillator](./doc/info/ringoscillator.svg)
 
 Available cells can be listed with
 
     ./opc -L
 
-Paths to additional cells can be given with
+Paths to additional (custom) cells can be given with
 
     ./opc --cellpath path/to/cells
 
