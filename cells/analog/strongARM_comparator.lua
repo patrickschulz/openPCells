@@ -94,7 +94,7 @@ function layout(comparator, _P)
     local xpitch = _P.gatelength + _P.gatespace
     local separation = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2
 
-    pcell.push_overwrites("basic/mosfet", {
+    local baseopt = {
         gatelength = _P.gatelength,
         gatespace = _P.gatespace,
         sdwidth = _P.sdwidth,
@@ -125,7 +125,7 @@ function layout(comparator, _P)
         extendwellbot = separation,
         extendlvsmarkerleft = 3 * xpitch,
         extendlvsmarkerright = 3 * xpitch,
-    })
+    }
 
     -- create transistor layouts
     local rslatchfingers = 1
@@ -152,7 +152,7 @@ function layout(comparator, _P)
     -- the transistor in the middle can be used to equalize the width regarding the input transistors
     local clockdummyref
     if _P.clockdummyfingers > 0 then
-        clockdummyref = pcell.create_layout("basic/mosfet", "clockdummy", {
+        clockdummyref = pcell.create_layout("basic/mosfet", "clockdummy", util.add_options(baseopt, {
             channeltype = "nmos",
             flippedwell = _P.nfetflippedwell,
             vthtype = _P.nfetvthtype,
@@ -173,10 +173,10 @@ function layout(comparator, _P)
             extendimplantbot = 100, -- FIXME
             extendwellbot = 2 * _P.powerspace + _P.powerwidth + 100, -- FIXME
             gbotext = 2 * _P.powerspace + _P.powerwidth,
-        })
+        }))
     end
     -- clock tail transistor
-    local clock = pcell.create_layout("basic/mosfet", "clock", {
+    local clock = pcell.create_layout("basic/mosfet", "clock", util.add_options(baseopt, {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
@@ -197,8 +197,8 @@ function layout(comparator, _P)
         extendimplantbot = 100,
         extendwellbot = 2 * _P.powerspace + _P.powerwidth + 100, -- FIXME
         gbotext = 2 * _P.powerspace + _P.powerwidth,
-    })
-    local clockfill = pcell.create_layout("basic/mosfet", "clockfill", {
+    }))
+    local clockfill = pcell.create_layout("basic/mosfet", "clockfill", util.add_options(baseopt, {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
@@ -222,16 +222,16 @@ function layout(comparator, _P)
         extendwellbot = 2 * _P.powerspace + _P.powerwidth + 100, -- FIXME
         leftpolylines = { { length = 40, space = 90 }, { length = 40, space = 90 } },
         gbotext = 2 * _P.powerspace + _P.powerwidth,
-    })
+    }))
     -- input transistors
-    local inputdummy = pcell.create_layout("basic/mosfet", "inputdummy", {
+    local inputdummy = pcell.create_layout("basic/mosfet", "inputdummy", util.add_options(baseopt, {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
         fingers = _P.inputdummyfingers,
         fingerwidth = _P.inputfingerwidth,
-    })
-    local input = pcell.create_layout("basic/mosfet", "input", {
+    }))
+    local input = pcell.create_layout("basic/mosfet", "input", util.add_options(baseopt, {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
@@ -249,8 +249,8 @@ function layout(comparator, _P)
         connectdrainwidth = _P.sdwidth,
         connectdrainspace = separation - _P.sdwidth / 2,
         drawtopgcut = true
-    })
-    local inputfill = pcell.create_layout("basic/mosfet", "inputfill", {
+    }))
+    local inputfill = pcell.create_layout("basic/mosfet", "inputfill", util.add_options(baseopt, {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
@@ -264,9 +264,9 @@ function layout(comparator, _P)
         extrabotstrapwidth = _P.sdwidth,
         extrabotstrapspace = _P.clockinputgatespace,
         extrabotstraprightalign = (maxfingers - inputrowfingers) / 2,
-    })
+    }))
     -- CMOS inverter
-    local nmosdummy = pcell.create_layout("basic/mosfet", "nmosdummy", {
+    local nmosdummy = pcell.create_layout("basic/mosfet", "nmosdummy", util.add_options(baseopt, {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
@@ -275,8 +275,8 @@ function layout(comparator, _P)
         extendimplanttop = -_P.invskip,
         extendvthtop = -_P.invskip,
         drawtopgcut = true,
-    })
-    local nmosinv = pcell.create_layout("basic/mosfet", "nmosinv", {
+    }))
+    local nmosinv = pcell.create_layout("basic/mosfet", "nmosinv", util.add_options(baseopt, {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
@@ -298,8 +298,8 @@ function layout(comparator, _P)
         extendimplanttop = -_P.latchgatewidth / 2,
         extendvthtop = -_P.latchgatewidth / 2,
         drawbotgcut = true
-    })
-    local nmosinvfill = pcell.create_layout("basic/mosfet", "nmosinvfill", {
+    }))
+    local nmosinvfill = pcell.create_layout("basic/mosfet", "nmosinvfill", util.add_options(baseopt, {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
@@ -315,8 +315,8 @@ function layout(comparator, _P)
         extrabotstrapwidth = _P.sdwidth,
         extrabotstrapspace = _P.clockinputgatespace,
         extrabotstraprightalign = (maxfingers - invnfingers) / 2,
-    })
-    local pmosinv = pcell.create_layout("basic/mosfet", "pmosinv", {
+    }))
+    local pmosinv = pcell.create_layout("basic/mosfet", "pmosinv", util.add_options(baseopt, {
         channeltype = "pmos",
         flippedwell = _P.pfetflippedwell,
         vthtype = _P.pfetvthtype,
@@ -333,8 +333,8 @@ function layout(comparator, _P)
         gtopext = 2 * _P.powerspace + _P.powerwidth,
         extendimplanttop = 100, -- FIXME
         extendwelltop = 2 * _P.powerspace + _P.powerwidth + 100, -- FIXME
-    })
-    local pmosinvfill = pcell.create_layout("basic/mosfet", "pmosinvfill", {
+    }))
+    local pmosinvfill = pcell.create_layout("basic/mosfet", "pmosinvfill", util.add_options(baseopt, {
         channeltype = "pmos",
         flippedwell = _P.pfetflippedwell,
         vthtype = _P.pfetvthtype,
@@ -353,9 +353,9 @@ function layout(comparator, _P)
         extendimplanttop = 100, -- FIXME
         extendwelltop = 2 * _P.powerspace + _P.powerwidth + 100, -- FIXME
         leftpolylines = { { length = 40, space = 90 }, { length = 40, space = 90 } },
-    })
+    }))
 
-    local pmosdummy = pcell.create_layout("basic/mosfet", "pmosdummy", {
+    local pmosdummy = pcell.create_layout("basic/mosfet", "pmosdummy", util.add_options(baseopt, {
         channeltype = "pmos",
         flippedwell = _P.pfetflippedwell,
         vthtype = _P.pfetvthtype,
@@ -376,9 +376,9 @@ function layout(comparator, _P)
         extendimplanttop = 100, -- FIXME
         extendwelltop = 2 * _P.powerspace + _P.powerwidth + 100, -- FIXME
         gtopext = 2 * _P.powerspace + _P.powerwidth,
-    })
+    }))
     -- reset switches
-    local pmosresetref = pcell.create_layout("basic/mosfet", "pmosresetref", {
+    local pmosresetref = pcell.create_layout("basic/mosfet", "pmosresetref", util.add_options(baseopt, {
         channeltype = "pmos",
         flippedwell = _P.pfetflippedwell,
         vthtype = _P.pfetvthtype,
@@ -399,20 +399,20 @@ function layout(comparator, _P)
         extendimplanttop = 100, -- FIXME
         extendwelltop = 2 * _P.powerspace + _P.powerwidth + 100, -- FIXME
         gtopext = 2 * _P.powerspace + _P.powerwidth,
-    })
+    }))
 
     local pmosbuf
     local nmosbufspacer
     local nmosbuf
     if _P.drawoutputbuffer then
-        nmosbufspacer = pcell.create_layout("basic/mosfet", "nmosbufspacer", {
+        nmosbufspacer = pcell.create_layout("basic/mosfet", "nmosbufspacer", util.add_options(baseopt, {
             fingers = 2 * _P.resetfingers,
             channeltype = "nmos",
             flippedwell = _P.nfetflippedwell,
             vthtype = _P.nfetvthtype,
             fingerwidth = _P.latchnfingerwidth,
-        })
-        nmosbuf = pcell.create_layout("basic/mosfet", "nmosbuf", {
+        }))
+        nmosbuf = pcell.create_layout("basic/mosfet", "nmosbuf", util.add_options(baseopt, {
             channeltype = "nmos",
             flippedwell = _P.nfetflippedwell,
             vthtype = _P.nfetvthtype,
@@ -429,8 +429,8 @@ function layout(comparator, _P)
             drawdrainvia = true,
             connectdrain = true,
             drawbotgcut = true
-        })
-        pmosbuf = pcell.create_layout("basic/mosfet", "pmosbuf", {
+        }))
+        pmosbuf = pcell.create_layout("basic/mosfet", "pmosbuf", util.add_options(baseopt, {
             channeltype = "pmos",
             flippedwell = _P.pfetflippedwell,
             vthtype = _P.pfetvthtype,
@@ -444,13 +444,13 @@ function layout(comparator, _P)
             gtopext = 2 * _P.powerspace + _P.powerwidth,
             extendimplanttop = 100, -- FIXME
             extendwelltop = 2 * _P.powerspace + _P.powerwidth + 100, -- FIXME
-        })
+        }))
     end
 
     local nmosrslatch1, nmosrslatch2
     local pmosrslatch1, pmosrslatch2
     if _P.drawoutputlatch then
-        nmosrslatch1 = pcell.create_layout("basic/mosfet", "nmosrslatch1", {
+        nmosrslatch1 = pcell.create_layout("basic/mosfet", "nmosrslatch1", util.add_options(baseopt, {
             channeltype = "nmos",
             flippedwell = _P.nfetflippedwell,
             vthtype = _P.nfetvthtype,
@@ -461,8 +461,8 @@ function layout(comparator, _P)
             fingerwidth = _P.latchnfingerwidth,
             --drawsourcedrain = "drain", -- optional, but less regular
             drawbotgcut = true
-        })
-        nmosrslatch2 = pcell.create_layout("basic/mosfet", "nmosrslatch2", {
+        }))
+        nmosrslatch2 = pcell.create_layout("basic/mosfet", "nmosrslatch2", util.add_options(baseopt, {
             channeltype = "nmos",
             flippedwell = _P.nfetflippedwell,
             vthtype = _P.nfetvthtype,
@@ -478,8 +478,8 @@ function layout(comparator, _P)
             connectsourceleftext = xpitch,
             drawbotgcut = true,
             --drawsourcedrain = "source", -- optional, but less regular
-        })
-        pmosrslatch1 = pcell.create_layout("basic/mosfet", "pmosrslatch1", {
+        }))
+        pmosrslatch1 = pcell.create_layout("basic/mosfet", "pmosrslatch1", util.add_options(baseopt, {
             channeltype = "pmos",
             flippedwell = _P.pfetflippedwell,
             vthtype = _P.pfetvthtype,
@@ -489,8 +489,8 @@ function layout(comparator, _P)
             gtopext = 2 * _P.powerspace + _P.powerwidth,
             extendimplanttop = 100, -- FIXME
             extendwelltop = 2 * _P.powerspace + _P.powerwidth + 100, -- FIXME
-        })
-        pmosrslatch2 = pcell.create_layout("basic/mosfet", "pmosrslatch2", {
+        }))
+        pmosrslatch2 = pcell.create_layout("basic/mosfet", "pmosrslatch2", util.add_options(baseopt, {
             channeltype = "pmos",
             flippedwell = _P.pfetflippedwell,
             vthtype = _P.pfetvthtype,
@@ -508,10 +508,8 @@ function layout(comparator, _P)
             gtopext = 2 * _P.powerspace + _P.powerwidth,
             extendimplanttop = 100, -- FIXME
             extendwelltop = 2 * _P.powerspace + _P.powerwidth + 100, -- FIXME
-        })
+        }))
     end
-
-    pcell.pop_overwrites("basic/mosfet")
 
     local halfref = object.create("half")
 

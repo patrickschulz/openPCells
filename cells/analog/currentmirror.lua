@@ -9,7 +9,7 @@ function parameters()
 end
 
 function layout(currentmirror, _P)
-    pcell.push_overwrites("basic/mosfet", {
+    local baseopt = {
         fingerwidth = 500,
         connectsource = true,
         connsourcewidth = 200,
@@ -18,16 +18,16 @@ function layout(currentmirror, _P)
         drawtopgatestrap = true,
         topgatecompsd = false,
     })
-    local diode = pcell.create_layout("basic/mosfet", "diode", {
+    local diode = pcell.create_layout("basic/mosfet", "diode", util.add_options(baseopt, {
         fingers = _P.ifingers,
         diodeconnected = true,
-    })
-    local source = pcell.create_layout("basic/mosfet", "source", {
+    }))
+    local source = pcell.create_layout("basic/mosfet", "source", util.add_options(baseopt, {
         fingers = _P.ofingers,
         conndrainmetal = 2,
         drawdrainvia = true,
         connectdrain = true,
-    })
+    }))
     diode:move_anchor("sourcedrainrightbl")
     source:move_anchor("sourcedrainleftbl")
     currentmirror:merge_into(diode)

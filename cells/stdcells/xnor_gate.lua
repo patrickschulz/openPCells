@@ -88,12 +88,10 @@ function layout(gate, _P)
     gate:inherit_alignment_box(invb)
 
     -- inverter A
-    pcell.push_overwrites("stdcells/base", { compact = false })
     local inva = pcell.create_layout("stdcells/not_gate", "inva", { inputpos = "lower", shiftoutput = xpitch / 2 })
     inva:abut_left(invb)
     gate:merge_into(inva)
     gate:inherit_alignment_box(inva)
-    pcell.pop_overwrites("stdcells/base")
 
     -- output connection
     geometry.path(gate, generics.metal(1), geometry.path_points_xy(

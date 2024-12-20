@@ -52,7 +52,7 @@ function layout(oscillator, _P)
     local cbp = pcell.get_parameters("basic/cmos")
     local xpitch = _P.glength + _P.gspace
 
-    pcell.push_overwrites("basic/cmos", {
+    local baseopt = {
         gatelength = _P.glength,
         gatespace = _P.gspace,
         nvthtype = 1,
@@ -66,7 +66,7 @@ function layout(oscillator, _P)
         gstwidth = _P.gstwidth,
         gstspace = _P.gstspace,
         sdwidth = _P.sdwidth,
-    })
+    }
 
     -- place inverter cells
     local invgatecontacts = {}
@@ -89,12 +89,11 @@ function layout(oscillator, _P)
             invactivecontacts[_P.invdummies + i] = "power"
         end
     end
-    local inverterref = pcell.create_layout("basic/cmos", "inverter", { 
+    local inverterref = pcell.create_layout("basic/cmos", "inverter", util.add_options(baseopt, { 
         gatecontactpos = invgatecontacts, 
         pcontactpos = invactivecontacts, 
         ncontactpos = invactivecontacts,
-    })
-    pcell.pop_overwrites("basic/cmos")
+    }))
 
     geometry.rectanglebltr(inverterref, generics.metal(1), 
         inverterref:get_anchor(string.format("G%dll", _P.invdummies + 1)),

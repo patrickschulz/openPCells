@@ -32,8 +32,6 @@ function layout(ccp, _P)
     ccp:merge_into(left)
     ccp:merge_into(right)
 
-    pcell.pop_overwrites("basic/mosfet")
-
     local leftgate = left:get_area_anchor("topgatestrap").bl
     local rightgate = right:get_area_anchor("topgatestrap").bl:translate(0, -200)
     --geometry.crossing(
