@@ -86,6 +86,12 @@ Building and installing system-wide:
     make
     sudo make install
 
+Building and installing in packages (e.g. PKGBUILDs in archlinux)
+
+    ./configure.sh
+    make
+    sudo make install DESTDIR=SOMEFOLDER
+
 Building and installing locally:
 
     ./configure --all-load-paths-local
