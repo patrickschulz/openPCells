@@ -3,16 +3,12 @@ PROGNAME=opc
 CC=gcc
 
 PPFLAGS=-DLUA_USE_LINUX -DCMDOPTIONS_ENABLE_TERM_WIDTH
+WARNFLAGS=-Wall -Wextra -Wstrict-prototypes -Werror=strict-prototypes -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Wno-analyzer-deref-before-check -Werror=discarded-qualifiers
+COMMONFLAGS=-pthread
 
-CFLAGS=-std=c99 -Wall -Wextra -Wstrict-prototypes -pthread $(PPFLAGS)
-ifeq ($(DEBUG), 1)
-    CFLAGS=-std=c99 -O0 -g -Wall -Wextra -Wstrict-prototypes -pthread $(PPFLAGS)
-endif
-ifeq ($(PROFILE), 1)
-    CFLAGS=-std=c99 -O3 -g -Wall -Wextra -Wstrict-prototypes -pthread $(PPFLAGS)
-endif
+CFLAGS=-std=c99 $(WARNFLAGS) $(COMMONFLAGS) $(PPFLAGS)
 ifeq ($(DEBUGANALYZE), 1)
-    CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Wno-analyzer-deref-before-check -Werror=discarded-qualifiers -Wstrict-prototypes -pthread $(PPFLAGS)
+    CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined $(WARNFLAGS) $(COMMONFLAGS) $(PPFLAGS)
 endif
 
 OBJS:= cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o shape.o skillexport.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util_cmodule.o util.o vector.o

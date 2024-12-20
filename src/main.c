@@ -258,6 +258,7 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CONFIG;
     }
 
+    // list tech paths
     if(cmdoptions_was_provided_long(cmdoptions, "listtechpaths"))
     {
         printf("%s\n", OPC_TECH_PATH "/tech");
@@ -282,74 +283,18 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "listcellpaths") ||
        cmdoptions_was_provided_long(cmdoptions, "list"))
     {
-        struct vector* cellpaths_to_prepend = vector_create(8, free);
-        if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
-        {
-            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
-            while(*arg)
-            {
-                vector_append(cellpaths_to_prepend, util_strdup(*arg));
-                ++arg;
-            }
-        }
-        struct vector* cellpaths_to_append = vector_create(8, free);
-        if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
-        {
-            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
-            while(*arg)
-            {
-                vector_append(cellpaths_to_append, util_strdup(*arg));
-                ++arg;
-            }
-        }
-        if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
-        {
-            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
-            while(*arg)
-            {
-                vector_append(cellpaths_to_append, util_strdup(*arg));
-                ++arg;
-            }
-        }
-        if(hashmap_exists(config, "prepend_cellpaths"))
-        {
-            struct vector* config_cellpaths_to_prepend = hashmap_get(config, "prepend_cellpaths");
-            for(unsigned int i = 0; i < vector_size(config_cellpaths_to_prepend); ++i)
-            {
-                vector_append(cellpaths_to_prepend, util_strdup((const char*)vector_get(config_cellpaths_to_prepend, i)));
-            }
-        }
-        if(hashmap_exists(config, "prepend_cellpaths"))
-        {
-            struct vector* config_cellpaths_to_append = hashmap_get(config, "append_cellpaths");
-            for(unsigned int i = 0; i < vector_size(config_cellpaths_to_append); ++i)
-            {
-                vector_append(cellpaths_to_append, util_strdup((const char*)vector_get(config_cellpaths_to_append, i)));
-            }
-        }
-        vector_append(cellpaths_to_append, util_strdup(OPC_CELL_PATH "/cells"));
-        struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
-        vector_destroy(cellpaths_to_prepend);
-        vector_destroy(cellpaths_to_append);
-        if(cmdoptions_was_provided_long(cmdoptions, "list"))
-        {
-            const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
-            pcell_list_cells(pcell_state, listformat);
-        }
-        if(cmdoptions_was_provided_long(cmdoptions, "listcellpaths"))
-        {
-            pcell_list_cellpaths(pcell_state);
-        }
-        pcell_destroy_state(pcell_state);
+        main_list_cells_cellpaths(cmdoptions, config);
         goto DESTROY_CONFIG;
     }
 
+    // cell parameters
     if(cmdoptions_was_provided_long(cmdoptions, "parameters"))
     {
         main_list_cell_parameters(cmdoptions, config);
         goto DESTROY_CONFIG;
     }
 
+    // cell anchors (FIXME: broken)
     if(cmdoptions_was_provided_long(cmdoptions, "anchors"))
     {
         main_list_cell_anchors(cmdoptions, config);

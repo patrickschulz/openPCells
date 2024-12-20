@@ -72,23 +72,15 @@ static int _parse_point(const char* arg, int* xptr, int* yptr)
     return 1;
 }
 
-static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append, struct cmdoptions* cmdoptions, struct hashmap* config)
+static void _prepare_cellpaths(struct pcell_state* pcell_state, struct cmdoptions* cmdoptions, struct hashmap* config)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
     {
         const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
         while(*arg)
         {
-            vector_append(cellpaths_to_prepend, util_strdup(*arg));
-            ++arg;
-        }
-    }
-    if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
-    {
-        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
-        while(*arg)
-        {
-            vector_append(cellpaths_to_append, util_strdup(*arg));
+
+            pcell_append_cellpath(pcell_state, *arg);
             ++arg;
         }
     }
@@ -97,7 +89,16 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
     {
         for(unsigned int i = 0; i < vector_size(config_prepend_cellpaths); ++i)
         {
-            vector_append(cellpaths_to_prepend, util_strdup(vector_get(config_prepend_cellpaths, i)));
+            pcell_append_cellpath(pcell_state, vector_get(config_prepend_cellpaths, i));
+        }
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
+    {
+        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
+        while(*arg)
+        {
+            pcell_append_cellpath(pcell_state, *arg);
+            ++arg;
         }
     }
     struct vector* config_append_cellpaths = hashmap_get(config, "append_cellpaths");
@@ -105,25 +106,32 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
     {
         for(unsigned int i = 0; i < vector_size(config_append_cellpaths); ++i)
         {
-            vector_append(cellpaths_to_append, util_strdup(vector_get(config_append_cellpaths, i)));
+            pcell_append_cellpath(pcell_state, vector_get(config_append_cellpaths, i));
         }
     }
-    vector_append(cellpaths_to_append, util_strdup(OPC_CELL_PATH "/cells"));
+    // add default path
+    pcell_append_cellpath(pcell_state, OPC_CELL_PATH "/cells");
+}
+
+void main_list_cells_cellpaths(struct cmdoptions* cmdoptions, struct hashmap* config)
+{
+    struct pcell_state* pcell_state = pcell_initialize_state();
+    _prepare_cellpaths(pcell_state, cmdoptions, config);
+    if(cmdoptions_was_provided_long(cmdoptions, "list"))
+    {
+        const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
+        pcell_list_cells(pcell_state, listformat);
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "listcellpaths"))
+    {
+        pcell_list_cellpaths(pcell_state);
+    }
+    pcell_destroy_state(pcell_state);
 }
 
 void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* config)
 {
-    // FIXME: this probably loads too many C modules
-    // FIXME: load dummy technology if not technology was given
-    lua_State* L = main_create_and_initialize_lua();
-
-    module_load_aux(L);
-    module_load_util(L);
-    module_load_check(L);
-    module_load_stack(L);
-    module_load_pcell(L);
-    module_load_load(L);
-
+    // techstate
     struct vector* techpaths = hashmap_get(config, "techpaths");
     vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
@@ -137,64 +145,40 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     }
     struct const_vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
     const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
+    struct technology_state* techstate = NULL;
     if(techname)
     {
-        struct technology_state* techstate = _create_techstate(techpaths, techname, ignoredlayers);
-        // register techstate
-        lua_pushlightuserdata(L, techstate);
-        lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
+        techstate = _create_techstate(techpaths, techname, ignoredlayers);
     }
 
     // pcell state
-    struct vector* cellpaths_to_prepend = vector_create(1, free);
-    struct vector* cellpaths_to_append = vector_create(1, free);
-    _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
-    struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
-    vector_destroy(cellpaths_to_prepend);
-    vector_destroy(cellpaths_to_append);
-    // and register
-    lua_pushlightuserdata(L, pcell_state);
-    lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
+    struct pcell_state* pcell_state = pcell_initialize_state();
+    if(!pcell_state)
+    {
+        fputs("could not initialize pcell state\n", stderr);
+        return;
+        goto LIST_PARAMETERS_DESTROY_TECHNOLOGY;
+    }
+    _prepare_cellpaths(pcell_state, cmdoptions, config);
 
-    // assemble cell arguments
-    lua_newtable(L);
+    // cellname
     const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters");
-    lua_pushstring(L, cellname);
-    lua_setfield(L, -2, "cell");
-    const char* parametersformat = cmdoptions_get_argument_long(cmdoptions, "parameters-format");
-    if(parametersformat)
-    {
-        lua_pushstring(L, parametersformat);
-        lua_setfield(L, -2, "parametersformat");
-    }
-    lua_pushboolean(L, techname ? 0 : 1);
-    lua_setfield(L, -2, "generictech");
-    const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
-    size_t numposargs = 0;
-    lua_newtable(L);
-    while(*ptr)
-    {
-        lua_pushstring(L, *ptr);
-        lua_rawseti(L, -2, numposargs + 1);
-        ++numposargs;
-        ++ptr;
-    }
-    if(numposargs > 0)
-    {
-        lua_setfield(L, -2, "parameternames");
-    }
-    else
-    {
-        lua_pop(L, 1);
-    }
-    lua_setglobal(L, "args");
 
-    int retval = script_call_list_parameters(L);
-    if(retval != LUA_OK)
+    // parameter format
+    const char* parametersformat = cmdoptions_get_argument_long(cmdoptions, "parameters-format");
+
+    // parameter names
+    const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
+    struct const_vector* parameternames = const_vector_adapt_from_pointer_array((void**)ptr);
+
+    pcell_list_parameters(pcell_state, techstate, cellname, parametersformat, parameternames);
+LIST_PARAMETERS_DESTROY_PCELL_STATE:
+    pcell_destroy_state(pcell_state);
+LIST_PARAMETERS_DESTROY_TECHNOLOGY:
+    if(techstate)
     {
-        puts("error while running list_parameters.lua");
+        technology_destroy(techstate);
     }
-    lua_close(L);
 }
 
 void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* config)
@@ -232,15 +216,8 @@ void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* confi
     }
 
     // pcell state
-    struct vector* cellpaths_to_prepend = vector_create(1, free);
-    struct vector* cellpaths_to_append = vector_create(1, free);
-    _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
-    struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
-    vector_destroy(cellpaths_to_prepend);
-    vector_destroy(cellpaths_to_append);
-    // and register
-    lua_pushlightuserdata(L, pcell_state);
-    lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
+    struct pcell_state* pcell_state = pcell_initialize_state();
+    _prepare_cellpaths(pcell_state, cmdoptions, config);
 
     // assemble cell arguments
     lua_newtable(L);
@@ -597,18 +574,13 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     }
 
     // pcell state
-    struct vector* cellpaths_to_prepend = vector_create(1, free);
-    struct vector* cellpaths_to_append = vector_create(1, free);
-    _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
-    struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
-    vector_destroy(cellpaths_to_prepend);
-    vector_destroy(cellpaths_to_append);
-
+    struct pcell_state* pcell_state = pcell_initialize_state();
     if(!pcell_state)
     {
         retval = 0;
         goto DESTROY_TECHNOLOGY;
     }
+    _prepare_cellpaths(pcell_state, cmdoptions, config);
     const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
     struct const_vector* cellargs = const_vector_adapt_from_pointer_array((void**)ptr);
     const char* cellname;

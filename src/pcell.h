@@ -11,7 +11,7 @@ struct pcell_state;
 
 typedef int (*cell_layout_func)(struct pcell_state* pcell_state, struct technology_state* techstate, struct object* cell);
 
-struct pcell_state* pcell_initialize_state(struct vector* to_prepend, struct vector* to_append);
+struct pcell_state* pcell_initialize_state(void);
 void pcell_destroy_state(struct pcell_state* state);
 
 struct object* pcell_create_layout(const char* cellname, struct technology_state* techstate, struct pcell_state* pcell_state);
@@ -22,7 +22,8 @@ void pcell_append_cellpath(struct pcell_state*, const char* path);
 void pcell_append_pfile(struct pcell_state* pcell_state, const char* pfile);
 
 void pcell_list_cellpaths(const struct pcell_state* pcell_state);
-void pcell_list_cells(const struct pcell_state* pcell_state, const char* listformat);
+void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat);
+void pcell_list_parameters(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* parametersformat, struct const_vector* parameternames);
 
 int open_lpcell_lib(lua_State* L);
 

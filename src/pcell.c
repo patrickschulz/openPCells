@@ -38,24 +38,10 @@ void pcell_dprint(struct pcell_state* pcell_state, const char* fmt, ...)
 }
 */
 
-struct pcell_state* pcell_initialize_state(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append)
+struct pcell_state* pcell_initialize_state(void)
 {
     struct pcell_state* pcell_state = malloc(sizeof(*pcell_state));
     pcell_state->cellpaths = vector_create(64, free);
-    if(cellpaths_to_prepend)
-    {
-        for(unsigned int i = 0; i < vector_size(cellpaths_to_prepend); ++i)
-        {
-            pcell_prepend_cellpath(pcell_state, vector_get_const(cellpaths_to_prepend, i));
-        }
-    }
-    if(cellpaths_to_append)
-    {
-        for(unsigned int i = 0; i < vector_size(cellpaths_to_append); ++i)
-        {
-            pcell_append_cellpath(pcell_state, vector_get_const(cellpaths_to_append, i));
-        }
-    }
     pcell_state->pfilenames = const_vector_create(4);
     pcell_state->enable_dprint = 0;
     pcell_state->enable_debug = 0;
@@ -97,8 +83,11 @@ static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, st
     lua_State* L = main_create_and_initialize_lua();
 
     // register techstate
-    lua_pushlightuserdata(L, techstate);
-    lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
+    if(techstate)
+    {
+        lua_pushlightuserdata(L, techstate);
+        lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
+    }
 
     // load main modules
     module_load_aux(L);
@@ -352,7 +341,7 @@ void pcell_list_cellpaths(const struct pcell_state* pcell_state)
     }
 }
 
-void pcell_list_cells(const struct pcell_state* pcell_state, const char* listformat)
+void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
 {
     lua_State* L = util_create_basic_lua_state();
     module_load_aux(L);
@@ -400,6 +389,50 @@ struct object* pcell_create_layout(const char* cellname, struct technology_state
         return NULL;
     }
     return cell;
+}
+
+void pcell_list_parameters(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* parametersformat, struct const_vector* parameternames)
+{
+    lua_State* L = _prepare_layout_generation(pcell_state, techstate);
+
+    // assemble cell arguments
+    lua_newtable(L);
+    // cell name
+    lua_pushstring(L, cellname);
+    lua_setfield(L, -2, "cell");
+    // format
+    if(parametersformat)
+    {
+        lua_pushstring(L, parametersformat);
+        lua_setfield(L, -2, "parametersformat");
+    }
+    lua_pushboolean(L, techstate ? 0 : 1);
+    lua_setfield(L, -2, "generictech");
+    // parameter names
+    size_t numposargs = 0;
+    lua_newtable(L);
+    for(size_t i = 0; i < const_vector_size(parameternames); ++i)
+    {
+        lua_pushstring(L, const_vector_get(parameternames, i));
+        lua_rawseti(L, -2, numposargs + 1);
+        ++numposargs;
+    }
+    if(numposargs > 0)
+    {
+        lua_setfield(L, -2, "parameternames");
+    }
+    else
+    {
+        lua_pop(L, 1);
+    }
+    lua_setglobal(L, "args");
+
+    int retval = script_call_list_parameters(L);
+    if(retval != LUA_OK)
+    {
+        puts("error while running list_parameters.lua");
+    }
+    lua_close(L);
 }
 
 static int lpcell_get_cell_filename(lua_State* L)
