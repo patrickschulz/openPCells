@@ -3,7 +3,7 @@
     struct parameter parameters[] = {
         { "cell",               OBJECT,     NULL, "cell to be moved" },
         { "anchorname",         STRING,     NULL, "abutment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",         OBJECT,     NULL, "alignment target cell" },
         { "targetanchorname",   STRING,     NULL, "target abutment anchor" }
     };
     vector_append(entries, _make_api_entry(
@@ -20,7 +20,7 @@
     struct parameter parameters[] = {
         { "cell",               OBJECT,     NULL, "cell to be moved" },
         { "anchorname",         STRING,     NULL, "abutment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",         OBJECT,     NULL, "alignment target cell" },
         { "targetanchorname",   STRING,     NULL, "target abutment anchor" }
     };
     vector_append(entries, _make_api_entry(
@@ -37,7 +37,7 @@
     struct parameter parameters[] = {
         { "cell",               OBJECT,     NULL, "cell to be moved" },
         { "anchorname",         STRING,     NULL, "abutment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",         OBJECT,     NULL, "alignment target cell" },
         { "targetanchorname",   STRING,     NULL, "target abutment anchor" }
     };
     vector_append(entries, _make_api_entry(
@@ -53,7 +53,7 @@
     struct parameter parameters[] = {
         { "cell",               OBJECT,     NULL, "cell to be moved" },
         { "anchorname",         STRING,     NULL, "abutment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",         OBJECT,     NULL, "alignment target cell" },
         { "targetanchorname",   STRING,     NULL, "target abutment anchor" },
     };
     vector_append(entries, _make_api_entry(
@@ -83,7 +83,7 @@
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to be abutted" },
-        { "targercell",     OBJECT,     NULL, "abutment target cell" },
+        { "targetcell",     OBJECT,     NULL, "abutment target cell" },
     };
     vector_append(entries, _make_api_entry(
         "abut_bottom",
@@ -112,7 +112,7 @@
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to be abutted" },
-        { "targercell",     OBJECT,     NULL, "abutment target cell" },
+        { "targetcell",     OBJECT,     NULL, "abutment target cell" },
     };
     vector_append(entries, _make_api_entry(
         "abut_left",
@@ -140,7 +140,7 @@
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to be abutted" },
-        { "targercell",     OBJECT,     NULL, "abutment target cell" },
+        { "targetcell",     OBJECT,     NULL, "abutment target cell" },
     };
     vector_append(entries, _make_api_entry(
         "abut_right",
@@ -169,7 +169,7 @@
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to be abutted" },
-        { "targercell",     OBJECT,     NULL, "abutment target cell" },
+        { "targetcell",     OBJECT,     NULL, "abutment target cell" },
     };
     vector_append(entries, _make_api_entry(
         "abut_top",
@@ -325,7 +325,7 @@
     struct parameter parameters[] = {
         { "cell",               OBJECT,     NULL, "cell to be moved" },
         { "anchorname",         STRING,     NULL, "alignment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",         OBJECT,     NULL, "alignment target cell" },
         { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
     };
     vector_append(entries, _make_api_entry(
@@ -342,7 +342,7 @@
     struct parameter parameters[] = {
         { "cell",               OBJECT,     NULL, "cell to be moved" },
         { "anchorname",         STRING,     NULL, "alignment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",         OBJECT,     NULL, "alignment target cell" },
         { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
     };
     vector_append(entries, _make_api_entry(
@@ -359,7 +359,7 @@
     struct parameter parameters[] = {
         { "cell",               OBJECT,     NULL, "cell to be moved" },
         { "anchorname",         STRING,     NULL, "alignment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",         OBJECT,     NULL, "alignment target cell" },
         { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
     };
     vector_append(entries, _make_api_entry(
@@ -376,7 +376,7 @@
     struct parameter parameters[] = {
         { "cell",               OBJECT,     NULL, "cell to be moved" },
         { "anchorname",         STRING,     NULL, "alignment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",         OBJECT,     NULL, "alignment target cell" },
         { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
     };
     vector_append(entries, _make_api_entry(
@@ -393,7 +393,7 @@
     struct parameter parameters[] = {
         { "cell",               OBJECT,     NULL, "cell to be moved" },
         { "anchorname",         STRING,     NULL, "alignment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",         OBJECT,     NULL, "alignment target cell" },
         { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
     };
     vector_append(entries, _make_api_entry(
@@ -410,7 +410,7 @@
     struct parameter parameters[] = {
         { "cell",               OBJECT,     NULL, "cell to be moved" },
         { "anchorname",         STRING,     NULL, "alignment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",         OBJECT,     NULL, "alignment target cell" },
         { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
     };
     vector_append(entries, _make_api_entry(
@@ -427,7 +427,7 @@
     struct parameter parameters[] = {
         { "cell",               OBJECT,     NULL, "cell to be moved" },
         { "anchorname",         STRING,     NULL, "alignment anchor" },
-        { "targercell",         OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",         OBJECT,     NULL, "alignment target cell" },
         { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
     };
     vector_append(entries, _make_api_entry(
@@ -443,7 +443,7 @@
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to be aligned" },
-        { "targercell",     OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",     OBJECT,     NULL, "alignment target cell" },
     };
     vector_append(entries, _make_api_entry(
         "align_bottom",
@@ -486,7 +486,7 @@
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to be aligned" },
-        { "targercell",     OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",     OBJECT,     NULL, "alignment target cell" },
     };
     vector_append(entries, _make_api_entry(
         "align_left",
@@ -560,7 +560,7 @@
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to be aligned" },
-        { "targercell",     OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",     OBJECT,     NULL, "alignment target cell" },
     };
     vector_append(entries, _make_api_entry(
         "align_right",
@@ -589,7 +589,7 @@
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to be aligned" },
-        { "targercell",     OBJECT,     NULL, "alignment target cell" },
+        { "targetcell",     OBJECT,     NULL, "alignment target cell" },
     };
     vector_append(entries, _make_api_entry(
         "align_top",
