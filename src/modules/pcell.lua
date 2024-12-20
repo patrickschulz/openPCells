@@ -429,14 +429,6 @@ function pcell.create_layout(cellname, name, cellargs, ...)
 end
 
 function pcell.create_layout_env(cellname, name, cellargs, env)
-    print("cellargs:")
-    for k, v in pairs(cellargs) do
-        print(k, v, type(k), type(v))
-    end
-    print("environment:")
-    for k, v in pairs(env) do
-        print(k, v, type(k), type(v))
-    end
     if not cellname or type(cellname) ~= "string" then
         error("pcell.create_layout_env: expected cellname as first argument")
     end
