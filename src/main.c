@@ -259,7 +259,7 @@ int main(int argc, const char* const * argv)
     }
 
     // list tech paths
-    if(cmdoptions_was_provided_long(cmdoptions, "listtechpaths"))
+    if(cmdoptions_was_provided_long(cmdoptions, "list-techpaths"))
     {
         printf("%s\n", OPC_TECH_PATH "/tech");
         const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
