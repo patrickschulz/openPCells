@@ -74,13 +74,13 @@ A more complex example is produced with the following pfile:
 
 This yields:
 
-![Complex transistor with many parameters](./doc/info/mosfet_complex.svg)
+![Complex transistor with many parameters](./doc/info/mosfet_complex.png)
 
 Higher-level cells are then built from the basic cells, for example a current-starved ring oscillator:
 
     ./opc --technology opc --export svg --cell analog/current_starved_ringoscillator
 
-![Current-starved ring oscillator](./doc/info/ringoscillator.svg)
+![Current-starved ring oscillator](./doc/info/ringoscillator.png)
 
 Available cells can be listed with
 
