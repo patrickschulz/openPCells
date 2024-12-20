@@ -280,7 +280,7 @@ int main(int argc, const char* const * argv)
     }
 
     // list + listcellpaths
-    if(cmdoptions_was_provided_long(cmdoptions, "listcellpaths") ||
+    if(cmdoptions_was_provided_long(cmdoptions, "list-cellpaths") ||
        cmdoptions_was_provided_long(cmdoptions, "list"))
     {
         main_list_cells_cellpaths(cmdoptions, config);

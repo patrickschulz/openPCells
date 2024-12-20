@@ -122,7 +122,7 @@ void main_list_cells_cellpaths(struct cmdoptions* cmdoptions, struct hashmap* co
         const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
         pcell_list_cells(pcell_state, listformat);
     }
-    if(cmdoptions_was_provided_long(cmdoptions, "listcellpaths"))
+    if(cmdoptions_was_provided_long(cmdoptions, "list-cellpaths"))
     {
         pcell_list_cellpaths(pcell_state);
     }
