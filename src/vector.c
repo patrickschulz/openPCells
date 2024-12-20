@@ -31,18 +31,6 @@ struct vector* vector_create(size_t capacity, void (*destructor)(void*))
     return vector;
 }
 
-struct vector* vector_adapt_from_pointer_array(void** ptrarray)
-{
-    struct vector* vector = vector_create(8, NULL);
-    void** ptr = ptrarray;
-    while(*ptr)
-    {
-        vector_append(vector, *ptr);
-        ++ptr;
-    }
-    return vector;
-}
-
 void vector_destroy(void* v)
 {
     struct vector* vector = v;
@@ -292,6 +280,18 @@ struct const_vector* const_vector_create(size_t capacity)
     const_vector->size = 0;
     _const_resize_data(const_vector, capacity);
     return const_vector;
+}
+
+struct const_vector* const_vector_adapt_from_pointer_array(void** ptrarray)
+{
+    struct const_vector* vector = const_vector_create(8);
+    void** ptr = ptrarray;
+    while(*ptr)
+    {
+        const_vector_append(vector, *ptr);
+        ++ptr;
+    }
+    return vector;
 }
 
 void const_vector_destroy(void* v)

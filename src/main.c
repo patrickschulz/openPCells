@@ -186,7 +186,7 @@ int main(int argc, const char* const * argv)
     {
         const char* scriptname = cmdoptions_get_argument_long(cmdoptions, "import-verilog");
         const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
-        const struct vector* args = vector_adapt_from_pointer_array((void**)ptr);
+        const struct const_vector* args = const_vector_adapt_from_pointer_array((void**)ptr);
         main_verilog_import(scriptname, args);
         goto DESTROY_CMDOPTIONS;
     }

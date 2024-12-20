@@ -610,7 +610,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         goto DESTROY_TECHNOLOGY;
     }
     const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
-    struct vector* cellargs = vector_adapt_from_pointer_array((void**)ptr);
+    struct const_vector* cellargs = const_vector_adapt_from_pointer_array((void**)ptr);
     const char* cellname;
     if(iscellscript)
     {
@@ -634,16 +634,14 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     }
 
     // read pfile prepend/append lists
-    struct const_vector* pfilenames = NULL;
     if(!cmdoptions_was_provided_long(cmdoptions, "disable-pfiles"))
     {
-        pfilenames = const_vector_create(1);
         const char* const * prependpfilenames = cmdoptions_get_argument_long(cmdoptions, "prepend-parameter-file");
         if(prependpfilenames)
         {
             while(*prependpfilenames)
             {
-                const_vector_append(pfilenames, *prependpfilenames);
+                pcell_append_pfile(pcell_state, *prependpfilenames);
                 ++prependpfilenames;
             }
         }
@@ -652,7 +650,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         {
             while(*appendpfilenames)
             {
-                const_vector_append(pfilenames, *appendpfilenames);
+                pcell_append_pfile(pcell_state, *appendpfilenames);
                 ++appendpfilenames;
             }
         }
@@ -668,13 +666,9 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     else
     {
         // FIXME: if #args.additionalargs > 0 then
-        toplevel = pcell_create_layout_env(pcell_state, techstate, cellname, name);
+        toplevel = pcell_create_layout_env(pcell_state, techstate, cellname, name, cellargs);
     }
-    vector_destroy(cellargs);
-    if(pfilenames)
-    {
-        const_vector_destroy(pfilenames);
-    }
+    const_vector_destroy(cellargs);
     if(toplevel)
     {
         _move_origin(toplevel, cmdoptions);

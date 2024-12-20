@@ -19,6 +19,8 @@ struct object* pcell_create_layout(const char* cellname, struct technology_state
 void pcell_prepend_cellpath(struct pcell_state*, const char* path);
 void pcell_append_cellpath(struct pcell_state*, const char* path);
 
+void pcell_append_pfile(struct pcell_state* pcell_state, const char* pfile);
+
 void pcell_list_cellpaths(const struct pcell_state* pcell_state);
 void pcell_list_cells(const struct pcell_state* pcell_state, const char* listformat);
 
@@ -27,7 +29,7 @@ int open_lpcell_lib(lua_State* L);
 void pcell_enable_debug(struct pcell_state* pcell_state);
 void pcell_enable_dprint(struct pcell_state* pcell_state);
 
-struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* name, struct vector* cellargs);
-struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* toplevelname);
+struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* name, struct const_vector* cellargs);
+struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* toplevelname, struct const_vector* cellargs);
 
 #endif // OPC_PCELL_H

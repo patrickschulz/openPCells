@@ -16,7 +16,7 @@
 
 #include "main.functions.h"
 
-void main_verilog_import(const char* scriptname, const struct vector* args)
+void main_verilog_import(const char* scriptname, const struct const_vector* args)
 {
     lua_State* L = util_create_basic_lua_state();
     module_load_globals(L);
@@ -66,9 +66,9 @@ void main_verilog_import(const char* scriptname, const struct vector* args)
 
     // script args
     lua_newtable(L);
-    for(unsigned int i = 0; i < vector_size(args); ++i)
+    for(unsigned int i = 0; i < const_vector_size(args); ++i)
     {
-        lua_pushstring(L, vector_get_const(args, i));
+        lua_pushstring(L, const_vector_get(args, i));
         lua_rawseti(L, -2, i + 1);
     }
     lua_setglobal(L, "args");

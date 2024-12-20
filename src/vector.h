@@ -5,7 +5,6 @@
 
 struct vector;
 struct vector* vector_create(size_t capacity, void (*destructor)(void*));
-struct vector* vector_adapt_from_pointer_array(void**);
 void vector_destroy(void* vector);
 struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*));
 void vector_reserve(struct vector* vector, size_t capacity);
@@ -44,6 +43,7 @@ void vector_const_iterator_destroy(struct vector_const_iterator* iterator);
 
 struct const_vector;
 struct const_vector* const_vector_create(size_t capacity);
+struct const_vector* const_vector_adapt_from_pointer_array(void**);
 void const_vector_destroy(void* const_vector);
 size_t const_vector_size(const struct const_vector* const_vector);
 const void* const_vector_get(const struct const_vector* const_vector, size_t i);
