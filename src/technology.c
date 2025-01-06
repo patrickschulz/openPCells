@@ -952,12 +952,8 @@ static const struct generics* _get_or_create_layer(struct technology_state* tech
         if(layer)
         {
             hashmap_insert(techstate->layermap, layername, layer);
-            return layer;
         }
-        else
-        {
-            return techstate->empty_layer;
-        }
+        return layer; // is NULL if not found
     }
     else
     {
