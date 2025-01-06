@@ -21,11 +21,18 @@ The pcells are defined in general layers (such as "gate" or "M1" or "lastmetal")
 Furthermore, vias and contacts have to be put into arrays, which requires knowledge about the technology.
 The technology-defining files (the \enquote{techfiles}) describe the required rules and layer mappings.
 In order to make it easy to start with techfiles they only need to contain what is required by the generated cell.
-That means that an inductor on only one metal layer without any vias only needs to find the respective mapping for that metal layer.
+That means for example that an inductor with only one metal layer only the mapping for that metal is required.
+If a cell is generated where some layers are missing in the techfile, you will see the following message (with the requested layer listed, in this case \shellinline{metal(2)}):
+\begin{shellcode}
+    generics: got NULL layer: generics.metal(2)
+    if this layer is not needed, set it to {}
+\end{shellcode}
+This message shows you which layer has to be added to the techfile in order to make the cell run successfully.
+This guide will explain how to add these layers and which information is required.
 
 \section{Adding Technologies}
 A technology definition is a collection of files in one directory.
-These files get loaded by opc when requested as technology, the directory has to be within on of the paths in the technology search path (see the --techpath command line option).
+These files get loaded by opc when requested as technology, the directory has to be within one of the paths in the technology search path (see the \shellinline{--techpath} command line option).
 OpenPCells expects a technology to provide at least three files: \shellinline{config.lua}, \shellinline{layermap.lua} and \shellinline{vias.lua}.
 All these files return one lua table, so a basic (empty technology) has the following content for all of these files:
 \begin{lualisting}
@@ -34,16 +41,28 @@ All these files return one lua table, so a basic (empty technology) has the foll
 Of course, this does not really make sense, so the following sections explore what (and when) to put into these files.
 
 \subsection{Config}
-The config is pretty simple:
+The config is pretty simple, as it only requires a few keys set.
+Currently, only the number of metals in the stack is necessary for some calculations in specific cells, but the other options will be included in the project in the future.
+More options are also likely to come.
 
 \begin{lualisting}
     return {
         grid = 1, -- in nanometers,
-        metals = 10, -- number of metals in the stack
+        substrate_dopand = "p-substrate", -- dopand type of the substrate
+        has_triple_well = true, -- support for tripe-wells
+        is_SOI = false, -- silicon-on-insulator node
+        FEOL_method = "active_plus_implant", -- method for specifying active (transistor) regions
+        has_gatecut = false, -- special layer for cutting gates
+        metals = 4, -- number of metals in the stack
     }
 \end{lualisting}
 
-The `grid` defines the granularity of the shapes, `metals` is the total number of available metal (and interconnect) layers in this technology node.
+The \luainline{grid} defines the granularity of the shapes, \luainline{metals} is the total number of available metal (and interconnect) layers in this technology node.
+\luainline{substrate_dopand} and \luainline{has_triple_well} configure the wells.
+\luainline{is_SOI} is a simple boolean switch whether this technology node is a silicon-on-insulator process.
+The front-end-of-line method (\luainline{FEOL_method}) configures the way active transistor regions are specified.
+Supported options are \luainline{active_plus_implant}, \luainline{dedicated_active} or \luainline{asymmetric_active}.
+
 \subsection{Layermap}
 The layermap includes information on the human-readable layer data as well as the stream numbers (virtuoso could also work just with the stream
 numbers, but often the layers have internal numbers that are NOT the stream numbers).
@@ -66,9 +85,17 @@ Therefore every entry is a table containing a table for the layer and a table fo
 The needed layers depends on the cells that are being used, but the program will also tell you when you are missing something.
 Therefore, you can also keep running it until it works.
 The `opc` technology layer map contains most of the used layers and can be used as a reference.
+
+The \luainline{name} field is optional, but helps when debugging cells.
+In fact, only one entry in the \luainline{layer} subtable for the corresponding export type is required.
+
 \subsection{Vias}
 The via rules file defines the via/contact geometries.
+In general, via regions (specified as rectangles within cells) are turned into arrays of individual cuts, defined by the via technology file.
+Therefore, the cut sizing must be given (\luainline{width} and \luainline{height}) as well as minimum space in x- and y-direction as well as outer enclosure (often different then inter-cut spacing).
+
 Multiple entries are possible to accomodate the different ways of drawing vias.
+Furthermore, via entries can be restricted to certain maximum widths and/or heights of the via regions, with the keys \luainline{maxwidth} and \luainline{maxheight}.
 
 \begin{lualisting}
     viaM1M2 = {
@@ -87,7 +114,11 @@ Multiple entries are possible to accomodate the different ways of drawing vias.
     },
 \end{lualisting}
 
-The entry describes the geometry of the actual cuts as well as margin for the surrounding conductors.
+\subsection{Summary}
+This already concludes the information on writing techfiles.
+There are some subleties here and there, but this document should be enough to get a basic technology mapping going.
+In general, the more advanced the used cells are, the more complex these files will get.
+This means on the other hand that only a few lines in each of these files are already enough to start using some of the cells and learning the opc workflow.
 
 \end{document}
 
