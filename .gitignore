@@ -1,6 +1,7 @@
 # main programs and generated code files
 Makefile
 opc
+opc-debug
 !tech/opc
 src/embed_compiled_lua_file
 src/create_latex_API_doc
