@@ -344,7 +344,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         table = table,
         marker = marker,
         transformationmatrix = transformationmatrix,
-        dprint = function(...) pcell.dprint(state.internal_state, ...) end,
+        dprint = function(...) state.internal_state.dprint(state.internal_state, ...) end,
         moderror = moderror,
         tonumber = tonumber,
         type = type,
