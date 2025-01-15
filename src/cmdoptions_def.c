@@ -117,20 +117,4 @@ cmdoptions_add_option(cmdoptions, 'v', "version", NO_ARG, "display version");
 cmdoptions_add_option(cmdoptions, 'h', "help", NO_ARG, "display help");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "stderr-to", SINGLE_ARG, "redirect standard error to the given file (will be overwritten)");
 
-/* Help Header */
-cmdoptions_prepend_help_message(cmdoptions, "openPCells layout generator (opc) - Patrick Kurth 2020 - 2025");
-cmdoptions_prepend_help_message(cmdoptions, "");
-cmdoptions_prepend_help_message(cmdoptions, "Generate layouts of integrated circuit geometry");
-cmdoptions_prepend_help_message(cmdoptions, "opc supports technology-independent descriptions of parametric layout cells (pcells),");
-cmdoptions_prepend_help_message(cmdoptions, "which can be translated into a physical technology and exported to a file via a specific export.");
-
-/* Help Footer */
-cmdoptions_append_help_message(cmdoptions, "");
-cmdoptions_append_help_message(cmdoptions, "Most common usage examples:");
-cmdoptions_append_help_message(cmdoptions, "   get cell parameter information:             opc --cell stdcells/dff --parameters");
-cmdoptions_append_help_message(cmdoptions, "   create a cell:                              opc --technology TECH --export gds --cell stdcells/dff");
-cmdoptions_append_help_message(cmdoptions, "   create a cell from a foreign collection:    opc --cellpath /path/to/collection --technology TECH --export gds --cell other/somecell");
-cmdoptions_append_help_message(cmdoptions, "   create a cell by using a cellscript:        opc --technology TECH --export gds --cellscript celldef.lua");
-cmdoptions_append_help_message(cmdoptions, "   read a GDS stream file and create cells:    opc --read-GDS stream.gds");
-
 // vim: nowrap

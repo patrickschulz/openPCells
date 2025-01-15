@@ -117,6 +117,7 @@ void _print_general_info(void)
 {
     printf("This is the openPCell layout generator (opc), version %u.%u.%u.\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
     puts("Copyright 2020-2025 Patrick Kurth");
+    puts("");
     puts("To generate a layout, you need to pass the technology, the export type and a cellname.");
     puts("Example:");
     puts("         opc --technology opc --export gds --cell stdcells/not_gate");
@@ -139,6 +140,36 @@ int main(int argc, const char* const * argv)
     struct cmdoptions* cmdoptions = cmdoptions_create();
     cmdoptions_disable_narrow_mode(cmdoptions);
     #include "cmdoptions_def.c" // yes, I did that
+
+    // Help Header
+    const char* helpheader_first_part = "openPCells layout generator (opc) version";
+    const char* helpheader_second_part = "- Patrick Kurth 2020 - 2025";
+    size_t helpheader_size = 
+        strlen(helpheader_first_part) + strlen(helpheader_second_part) +
+        2 + // extra white space
+        util_num_digits(OPC_VERSION_MAJOR) + 1 +
+        util_num_digits(OPC_VERSION_MINOR) + 1 +
+        util_num_digits(OPC_VERSION_REVISION) +
+        1 // terminating zero
+        ;
+    char* helpheader_with_version = malloc(helpheader_size);
+    snprintf(helpheader_with_version, helpheader_size, "%s %u.%u.%u %s", helpheader_first_part, OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION, helpheader_second_part);
+    cmdoptions_prepend_help_message(cmdoptions, helpheader_with_version);
+    free(helpheader_with_version);
+    cmdoptions_prepend_help_message(cmdoptions, "");
+    cmdoptions_prepend_help_message(cmdoptions, "Generate layouts of integrated circuit geometry");
+    cmdoptions_prepend_help_message(cmdoptions, "opc supports technology-independent descriptions of parametric layout cells (pcells),");
+    cmdoptions_prepend_help_message(cmdoptions, "which can be translated into a physical technology and exported to a file via a specific export.");
+
+    // Help Footer
+    cmdoptions_append_help_message(cmdoptions, "");
+    cmdoptions_append_help_message(cmdoptions, "Most common usage examples:");
+    cmdoptions_append_help_message(cmdoptions, "   get cell parameter information:             opc --cell stdcells/dff --parameters");
+    cmdoptions_append_help_message(cmdoptions, "   create a cell:                              opc --technology TECH --export gds --cell stdcells/dff");
+    cmdoptions_append_help_message(cmdoptions, "   create a cell from a foreign collection:    opc --cellpath /path/to/collection --technology TECH --export gds --cell other/somecell");
+    cmdoptions_append_help_message(cmdoptions, "   create a cell by using a cellscript:        opc --technology TECH --export gds --cellscript celldef.lua");
+    cmdoptions_append_help_message(cmdoptions, "   read a GDS stream file and create cells:    opc --read-GDS stream.gds");
+
     if(!cmdoptions_parse(cmdoptions, argc, argv))
     {
         returnvalue = 1;
