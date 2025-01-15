@@ -447,7 +447,7 @@ function pcell.create_layout_env(cellname, name, cellargs, env)
     return obj
 end
 
-function pcell.create_layout_in_object(obj, cellname, name, cellargs, ...)
+function pcell.create_layout_in_object(obj, cellname, cellargs, ...)
     if not obj or not object.is_object(obj) then
         error("pcell.create_layout_in_object: expected an object as first argument")
     end

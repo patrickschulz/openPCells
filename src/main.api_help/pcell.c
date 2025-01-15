@@ -100,7 +100,7 @@
         { "cellname",   STRING, NULL,   "cellname of the to-be-generated layout cell in the form libname/cellname" },
         { "objectname", STRING, NULL,   "name of the to-be-generated object. This name will be used as identifier in exports that support hierarchies (e.g. GDSII, SKILL)" },
         { "parameters", TABLE, NULL,  "a table with key-value pairs to be used for the layout pcell. The parameter must exist in the pcell, otherwise this triggers an error" },
-        { "environment", TABLE, NULL,  "a table containing the environment for all cells called from this cell. The content of the environment can contain anything and is defined by the cells. It is useful in order to pass a set of common options to multiple cells" }
+        { "environment", TABLE, NULL,  "a table containing the environment for all cells called from this cell. The environment can contain anything and is defined by the cells. It is useful in order to pass a set of common options to multiple cells" }
     };
     vector_append(entries, _make_api_entry(
         "create_layout_env",
@@ -112,20 +112,37 @@
     ));
 }
 
+/* pcell.create_layout_in_object */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT, NULL,   "object to place shapes in" },
+        { "cellname",   STRING, NULL,   "cellname of the to-be-generated layout cell in the form libname/cellname" },
+        { "parameters", TABLE,  NULL,  "a table with key-value pairs to be used for the layout pcell. The parameter must exist in the pcell, otherwise this triggers an error" }
+    };
+    vector_append(entries, _make_api_entry(
+        "create_layout_in_object",
+        MODULE_PCELL,
+        "Create a layout based on a parametric cell in an existing cell. This function does NOT return a new object but places everything from the pcell in the given object (first argument)",
+        "pcell.create_layout_in_object(cell, \"libname/cellname\", args)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+
 /* pcell.create_layout_env_in_object */
 {
     struct parameter parameters[] = {
         { "cell",       OBJECT, NULL,   "object to place shapes in" },
         { "cellname",   STRING, NULL,   "cellname of the to-be-generated layout cell in the form libname/cellname" },
-        { "objectname", STRING, NULL,   "name of the to-be-generated object. This name will be used as identifier in exports that support hierarchies (e.g. GDSII, SKILL)" },
-        { "parameters", TABLE, NULL,  "a table with key-value pairs to be used for the layout pcell. The parameter must exist in the pcell, otherwise this triggers an error" },
+        { "parameters", TABLE,  NULL,  "a table with key-value pairs to be used for the layout pcell. The parameter must exist in the pcell, otherwise this triggers an error" },
         { "environment", TABLE, NULL,  "a table containing the environment for all cells called from this cell. The content of the environment can contain anything and is defined by the cells. It is useful in order to pass a set of common options to multiple cells" }
     };
     vector_append(entries, _make_api_entry(
         "create_layout_env_in_object",
         MODULE_PCELL,
         "Create a layout based on a parametric cell with a given cell environment in an existing cell. This function does NOT return a new object but places everything from the pcell in the given object (first argument)",
-        "pcell.create_layout_env_in_object(cell, \"libname/cellname\", \"toplevel\", args, env)",
+        "pcell.create_layout_env_in_object(cell, \"libname/cellname\", args, env)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
