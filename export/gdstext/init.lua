@@ -8,8 +8,78 @@ local __databaseunit = 1e-9
 
 local __labelsize = 1
 
-local recordtypes = gdstypetable.recordtypes
-local datatypes = gdstypetable.datatypes
+local recordtypes = {
+    ["HEADER"] =       { code = 0x00, name = "HEADER", },
+    ["BGNLIB"] =       { code = 0x01, name = "BGNLIB", },
+    ["LIBNAME"] =      { code = 0x02, name = "LIBNAME", },
+    ["UNITS"] =        { code = 0x03, name = "UNITS", },
+    ["ENDLIB"] =       { code = 0x04, name = "ENDLIB", },
+    ["BGNSTR"] =       { code = 0x05, name = "BGNSTR", },
+    ["STRNAME"] =      { code = 0x06, name = "STRNAME", },
+    ["ENDSTR"] =       { code = 0x07, name = "ENDSTR", },
+    ["BOUNDARY"] =     { code = 0x08, name = "BOUNDARY", },
+    ["PATH"] =         { code = 0x09, name = "PATH", },
+    ["SREF"] =         { code = 0x0a, name = "SREF", },
+    ["AREF"] =         { code = 0x0b, name = "AREF", },
+    ["TEXT"] =         { code = 0x0c, name = "TEXT", },
+    ["LAYER"] =        { code = 0x0d, name = "LAYER", },
+    ["DATATYPE"] =     { code = 0x0e, name = "DATATYPE", },
+    ["WIDTH"] =        { code = 0x0f, name = "WIDTH", },
+    ["XY"] =           { code = 0x10, name = "XY", },
+    ["ENDEL"] =        { code = 0x11, name = "ENDEL", },
+    ["SNAME"] =        { code = 0x12, name = "SNAME", },
+    ["COLROW"] =       { code = 0x13, name = "COLROW", },
+    ["TEXTNODE"] =     { code = 0x14, name = "TEXTNODE", },
+    ["NODE"] =         { code = 0x15, name = "NODE", },
+    ["TEXTTYPE"] =     { code = 0x16, name = "TEXTTYPE", },
+    ["PRESENTATION"] = { code = 0x17, name = "PRESENTATION", },
+    ["SPACING"] =      { code = 0x18, name = "SPACING", },
+    ["STRING"] =       { code = 0x19, name = "STRING", },
+    ["STRANS"] =       { code = 0x1a, name = "STRANS", },
+    ["MAG"] =          { code = 0x1b, name = "MAG", },
+    ["ANGLE"] =        { code = 0x1c, name = "ANGLE", },
+    ["UINTEGER"] =     { code = 0x1d, name = "UINTEGER", },
+    ["USTRING"] =      { code = 0x1e, name = "USTRING", },
+    ["REFLIBS"] =      { code = 0x1f, name = "REFLIBS", },
+    ["FONTS"] =        { code = 0x20, name = "FONTS", },
+    ["PATHTYPE"] =     { code = 0x21, name = "PATHTYPE", },
+    ["GENERATIONS"] =  { code = 0x22, name = "GENERATIONS", },
+    ["ATTRTABLE"] =    { code = 0x23, name = "ATTRTABLE", },
+    ["STYPTABLE"] =    { code = 0x24, name = "STYPTABLE", },
+    ["STRTYPE"] =      { code = 0x25, name = "STRTYPE", },
+    ["ELFLAGS"] =      { code = 0x26, name = "ELFLAGS", },
+    ["ELKEY"] =        { code = 0x27, name = "ELKEY", },
+    ["LINKTYPE"] =     { code = 0x28, name = "LINKTYPE", },
+    ["LINKKEYS"] =     { code = 0x29, name = "LINKKEYS", },
+    ["NODETYPE"] =     { code = 0x2a, name = "NODETYPE", },
+    ["PROPATTR"] =     { code = 0x2b, name = "PROPATTR", },
+    ["PROPVALUE"] =    { code = 0x2c, name = "PROPVALUE", },
+    ["BOX"] =          { code = 0x2d, name = "BOX", },
+    ["BOXTYPE"] =      { code = 0x2e, name = "BOXTYPE", },
+    ["PLEX"] =         { code = 0x2f, name = "PLEX", },
+    ["BGNEXTN"] =      { code = 0x30, name = "BGNEXTN", },
+    ["ENDEXTN"] =      { code = 0x31, name = "ENDEXTN", },
+    ["TAPENUM"] =      { code = 0x32, name = "TAPENUM", },
+    ["TAPECODE"] =     { code = 0x33, name = "TAPECODE", },
+    ["STRCLASS"] =     { code = 0x34, name = "STRCLASS", },
+    ["RESERVED"] =     { code = 0x35, name = "RESERVED", },
+    ["FORMAT"] =       { code = 0x36, name = "FORMAT", },
+    ["MASK"] =         { code = 0x37, name = "MASK", },
+    ["ENDMASKS"] =     { code = 0x38, name = "ENDMASKS", },
+    ["LIBDIRSIZE"] =   { code = 0x39, name = "LIBDIRSIZE", },
+    ["SRFNAME"] =      { code = 0x3a, name = "SRFNAME", },
+    ["LIBSECUR"] =     { code = 0x3b, name = "LIBSECUR", },
+}
+
+local datatypes = {
+    ["NONE"] =                0x00,
+    ["BIT_ARRAY"] =           0x01,
+    ["TWO_BYTE_INTEGER"] =    0x02,
+    ["FOUR_BYTE_INTEGER"] =   0x03,
+    ["FOUR_BYTE_REAL"] =      0x04,
+    ["EIGHT_BYTE_REAL"] =     0x05,
+    ["ASCII_STRING"] =        0x06,
+}
 
 local function _number_to_gdsfloat(num, width)
     local data = {}
@@ -46,12 +116,21 @@ local function _number_to_gdsfloat(num, width)
     return data
 end
 
+local function _split_in_bytes(number, numbytes)
+    local data = {}
+    for i = 1, numbytes do
+        data[i] = number & 0xff
+        number = number // 256
+    end
+    return data
+end
+
 local datatable = {
     [datatypes.NONE] = nil,
     [datatypes.BIT_ARRAY] = function(nums)
         local data = {}
         for _, num in ipairs(nums) do
-            for _, b in ipairs(binarylib.split_in_bytes(num, 2)) do
+            for _, b in ipairs(_split_in_bytes(num, 2)) do
                 table.insert(data, b)
             end
         end
@@ -60,7 +139,7 @@ local datatable = {
     [datatypes.TWO_BYTE_INTEGER] = function(nums)
         local data = {}
         for _, num in ipairs(nums) do
-            for _, b in ipairs(binarylib.split_in_bytes(num, 2)) do
+            for _, b in ipairs(_split_in_bytes(num, 2)) do
                 table.insert(data, b)
             end
         end
@@ -69,7 +148,7 @@ local datatable = {
     [datatypes.FOUR_BYTE_INTEGER] = function(nums)
         local data = {}
         for _, num in ipairs(nums) do
-            for _, b in ipairs(binarylib.split_in_bytes(num, 4)) do
+            for _, b in ipairs(_split_in_bytes(num, 4)) do
                 table.insert(data, b)
             end
         end
@@ -111,30 +190,39 @@ local function _assemble_data(recordtype, datatype, content)
     if #data % 2 ~= 0 then
         table.insert(data, 0x00)
     end
-    local lenbytes = binarylib.split_in_bytes(#data, 2)
+    local lenbytes = _split_in_bytes(#data, 2)
     data[1], data[2] = lenbytes[1], lenbytes[2]
     return data
 end
 
 local __content = {}
 
+local function _intconcat(t, sep)
+    local res = {}
+    for _, e in ipairs(t) do
+        table.insert(res, string.format("%d", e))
+    end
+    return table.concat(res, sep)
+end
+
 local function _write_record(recordtype, datatype, content)
     if datatype == datatypes.NONE then
-        table.insert(__content, string.format("%12s #(%4d)\n", recordtype.name, 4))
+        table.insert(__content, string.format("%12s (%d)\n", recordtype.name, 4))
     else
         local data = _assemble_data(recordtype.code, datatype, content)
         local str
         if datatype == datatypes.NONE then
         elseif datatype == datatypes.BIT_ARRAY or
-               datatype == datatypes.TWO_BYTE_INTEGER or
-               datatype == datatypes.FOUR_BYTE_INTEGER or
                datatype == datatypes.FOUR_BYTE_REAL or
                datatype == datatypes.EIGHT_BYTE_REAL then
             str = table.concat(content, " ")
+        elseif datatype == datatypes.TWO_BYTE_INTEGER or
+               datatype == datatypes.FOUR_BYTE_INTEGER then
+            str = _intconcat(content, " ")
         elseif datatype == datatypes.ASCII_STRING then
             str = content
         end
-        table.insert(__content, string.format("%12s #(%4d): { %s }\n", recordtype.name, #data, str))
+        table.insert(__content, string.format("%12s (%d) -> data: %s\n", recordtype.name, #data, str))
     end
 end
 
@@ -155,6 +243,10 @@ end
 
 function M.get_extension()
     return "gdstext"
+end
+
+function M.get_techexport()
+    return "gds"
 end
 
 function M.set_options(opt)
@@ -226,12 +318,12 @@ function M.write_rectangle(layer, bl, tr)
 end
 
 function M.write_polygon(layer, pts)
-    --local ptstream = _unpack_points(pts)
-    --_write_record(recordtypes.BOUNDARY, datatypes.NONE)
-    --_write_record(recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
-    --_write_record(recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
-    --_write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
-    --_write_record(recordtypes.ENDEL, datatypes.NONE)
+    local ptstream = _unpack_points(pts)
+    _write_record(recordtypes.BOUNDARY, datatypes.NONE)
+    _write_record(recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
+    _write_record(recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
+    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
+    _write_record(recordtypes.ENDEL, datatypes.NONE)
 end
 
 function M.write_path(layer, pts, width, extension)
