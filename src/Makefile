@@ -27,7 +27,7 @@ $(PROGNAME)-debug: debug/$(PROGNAME)
 release:
 	mkdir -p release
 
-release/$(PROGNAME): release main.c lua/liblua.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(RELEASEOBJS)
+release/$(PROGNAME): release cmdoptions_def.c main.c lua/liblua.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(RELEASEOBJS)
 	$(CC) $(CFLAGS) -O3 -o release/$(PROGNAME) main.c $(RELEASEOBJS) modulemanager.c scriptmanager.c lua/liblua.a -lm -ldl
 
 release/%.o: %.c
@@ -36,7 +36,7 @@ release/%.o: %.c
 debug:
 	mkdir -p debug
 
-debug/$(PROGNAME): debug main.c lua/liblua.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(DEBUGOBJS)
+debug/$(PROGNAME): debug cmdoptions_def.c main.c lua/liblua.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(DEBUGOBJS)
 	$(CC) $(CFLAGS) -O0 -g -o debug/$(PROGNAME) main.c $(DEBUGOBJS) modulemanager.c scriptmanager.c lua/liblua.a -lm -ldl
 
 debug/%.o: %.c
