@@ -21,8 +21,8 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "append-parameter-file", MULTI_ARGS,
 cmdoptions_add_alias(cmdoptions, "append-parameter-file", 'p', "pfile", "synonym for --append-parameter-file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-pfiles", NO_ARG, "disable reading of any parameter files");
 cmdoptions_add_option_default(cmdoptions, 'f', "filename", SINGLE_ARG, "openPCells", "specify output filename for export. The name should be specified without an extension (such as '.gds'), as the export types add their specific extension to the filename, this is especially useful when using more than one export type");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "origin", SINGLE_ARG, "origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parantheses)");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "translate", SINGLE_ARG, "move cell by (x, y). This option expects a point input, e.g. '(10, 10)' (with parantheses)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "origin", SINGLE_ARG, "origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parentheses)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "translate", SINGLE_ARG, "move cell by (x, y). This option expects a point input, e.g. '(10, 10)' (with parentheses)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "orientation", SINGLE_ARG, "orientation of cell (possible values: 0 (regular), fx (flip x), fy (flip y), fxy (flip x and y))");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "scale", SINGLE_ARG, "scale factor for all shapes");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "no-expand-namecontexts", NO_ARG, "don't expand name contexts while exporting cells. This means that higher-level cell names are not inherited and prepended by lower cells, for example: Without this option, a child of the cell (with name 'toplevel') will be named 'toplevel_CHILDNAME'. With this option it simply becomes 'CHILDNAME'. Use this option cautiously, as currently there are no checks if a child with this name already exists. If this is the case the resulting exported file will be broken.");
