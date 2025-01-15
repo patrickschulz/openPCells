@@ -20,11 +20,6 @@ procedure(OPCCreateSettingsForm()
                 ?value "opc.cells"
                 ?prompt "File Name for Cell Listings"
             )
-            hiCreateStringField(
-                ?name 'OPCPfileFilename
-                ?value "opc.pfile"
-                ?prompt "File Name for Parameter Bindings (Parameter File)"
-            )
             hiCreateFloatField(
                 ?name 'OPCSettingsLabelSize
                 ?value 0.1
@@ -117,11 +112,6 @@ procedure(OPCCreateSettingsForm()
                 ?value "xterm -fa monaco -fs 13 -e 'vim %s'"
                 ?prompt "Edit command for update"
             )
-            hiCreateButton(
-                ?name 'OPCSettingsUpdateCellList
-                ?callback "OPCUpdateCellList()"
-                ?buttonText "Update List of Cells"
-            )
         )
     )
 ) ; procedure
@@ -129,14 +119,4 @@ procedure(OPCCreateSettingsForm()
 procedure(OPCSettingsCallback()
     hiDisplayForm(OPCSettingsForm 100:100)
 ) ; procedure
-
-procedure(OPCUpdateCellList()
-	let(
-		(OPCCmd)
-        OPCCmd = OPCBuildCallCommand("-L --list-format 'OPCData = list(\\n:)\\n:::list(\\\"%b\\\" list(:))\\n:\\\"%c\\\" '")
-        OPCCall(OPCCmd ?redirect OPCSettingsForm->OPCListFilename->value)
-		load(OPCSettingsForm->OPCListFilename->value)
-        OPCCleanUp(OPCSettingsForm->OPCListFilename->value)
-	)
-)
 
