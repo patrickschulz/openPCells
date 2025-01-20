@@ -775,6 +775,7 @@ static int _via_contact_bltr(
     struct via_definition** viadefs, struct via_definition* fallback,
     const struct generics* cutlayer,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    coordinate_t minxspace, coordinate_t minyspace,
     int xcont, int ycont,
     int equal_pitch,
     coordinate_t widthclass,
@@ -786,7 +787,7 @@ static int _via_contact_bltr(
         ucoordinate_t width = trx - blx;
         ucoordinate_t height = try - bly;
         unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, 0, 0, xcont, ycont, equal_pitch, widthclass);
+        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
         if(!entry)
         {
             return 0;
@@ -881,6 +882,7 @@ static int _viabltr(
     struct technology_state* techstate,
     int metal1, int metal2,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    coordinate_t minxspace, coordinate_t minyspace,
     int xcont, int ycont,
     int equal_pitch,
     int bare,
@@ -913,6 +915,7 @@ static int _viabltr(
             viadefs, fallback,
             viacutlayer,
             blx, bly, trx, try,
+            minxspace, minyspace,
             xcont, ycont,
             equal_pitch,
             widthclass,
@@ -949,16 +952,16 @@ struct vector* geometry_calculate_viabltr(
     return result;
 }
 
-int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     int bare = 0;
-    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, bare, widthclass);
+    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
 }
 
-int geometry_viabarebltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+int geometry_viabarebltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     int bare = 1;
-    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, bare, widthclass);
+    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
 }
 
 static int _contactbltr(
@@ -988,6 +991,7 @@ static int _contactbltr(
         viadefs, fallback,
         cutlayer,
         blx, bly, trx, try,
+        0, 0, // TODO: minxspace, minyspace
         xcont, ycont,
         equal_pitch,
         widthclass,
@@ -1024,6 +1028,7 @@ static int _contactbarebltr(
         viadefs, fallback,
         cutlayer,
         blx, bly, trx, try,
+        0, 0, // TODO: minxspace, minyspace
         xcont, ycont,
         equal_pitch,
         widthclass,

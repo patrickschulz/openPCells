@@ -117,6 +117,7 @@ int geometry_viabltr(
     struct technology_state* techstate,
     int metal1, int metal2,
     const struct point* bl, const struct point* tr,
+    coordinate_t minxspace, coordinate_t minyspace,
     int xcont, int ycont,
     int equal_pitch,
     coordinate_t widthclass
@@ -127,6 +128,7 @@ int geometry_viabarebltr(
     struct technology_state* techstate,
     int metal1, int metal2,
     const struct point* bl, const struct point* tr,
+    coordinate_t minxspace, coordinate_t minyspace,
     int xcont, int ycont,
     int equal_pitch,
     coordinate_t widthclass
