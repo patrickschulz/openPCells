@@ -1,4 +1,4 @@
-# opc (openPCells) &ndash; A framework for tool-independent layout cell generators
+# opc (openPCells) &ndash; A framework for tool-independent layout cell generators for integrated circuits
 This project provides a layout generator for parametric cells (PCells) for use in analog/digital integrated circuit design.
 It offers a framework for developing these pcells in a technology- and tool-independent way, so that cell re-use is greatly enhanced.
 The cells are described in an intermediate format, which allows them to be converted to an actual technology node and file format.
