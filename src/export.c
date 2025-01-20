@@ -296,6 +296,43 @@ static char* _find_lua_export(const struct const_vector* searchpaths, const char
     return NULL;
 }
 
+static struct vector* _assemble_C_options(const char* const* opt)
+{
+    struct vector* vopt = vector_create(1, free);
+    if(!opt)
+    {
+        return vopt;
+    }
+    while(*opt)
+    {
+        // split string at whitespace
+        const char* str = *opt;
+        int numopts = 1;
+        while(*str)
+        {
+            const char* end = str;
+            while(*end && *end != ' ')
+            {
+                ++end;
+            }
+            char* new = malloc(end - str + 1);
+            strncpy(new, str, end - str);
+            new[end - str] = 0; // terminate
+            vector_append(vopt, new);
+            if(*end)
+            {
+                str = end + 1;
+            }
+            else
+            {
+                str = end;
+            }
+        }
+        ++opt;
+    }
+    return vopt;
+}
+
 int export_write_toplevel(struct object* toplevel, struct export_state* state)
 {
     if(object_is_pseudo(toplevel))
@@ -321,6 +358,14 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
     if(funcs) // C-defined exports
     {
         struct export_writer* writer = export_writer_create_C(funcs, data);
+        const char* const * opt = state->exportoptions;
+        struct vector* vopt = _assemble_C_options(opt);
+        ret = funcs->set_options(vopt);
+        vector_destroy(vopt);
+        if(!ret)
+        {
+            goto EXPORT_CLEANUP;
+        }
         export_writer_write_toplevel(writer, toplevel, state->expand_namecontext, state->writeports, state->writechildrenports, state->leftdelim, state->rightdelim);
         export_writer_destroy(writer);
         extension = util_strdup(funcs->get_extension());

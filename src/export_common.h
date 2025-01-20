@@ -37,6 +37,7 @@ struct export_functions {
     const char* (*get_extension)(void);
     const char* (*get_techexport)(void);
     void (*initialize)(const struct object*);
+    int (*set_options)(const struct vector* vopt);
     // at begin/end
     void (*at_begin)(struct export_data*);
     void (*at_end)(struct export_data*);

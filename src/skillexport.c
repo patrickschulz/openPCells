@@ -1,7 +1,8 @@
 #include "skillexport.h"
 
-#include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "tagged_value.h"
 #include "util.h"
@@ -13,7 +14,7 @@ static const char* __groupname = "opcgroup";
 static coordinate_t __labelsize = 100;
 static int __splitlets = 1;
 static unsigned int __counter = 0;
-static unsigned int __maxletlimit = 65536;
+static unsigned int __maxletlimit = 1000;
 static int __istoplevel = 0;
 static char* __cellname = NULL;
 
@@ -283,41 +284,68 @@ static const char* _get_extension(void)
     return "il";
 }
 
-//function M.set_options(opt)
-//    local i = 1
-//    while i < #opt do
-//        local arg = opt[i]
-//        if arg == "-L" or arg == "--label-size" then
-//            if i < #opt then
-//                __labelsize = opt[i + 1]
-//            else
-//                error("SKILL export: --label-size: argument expected")
-//            end
-//            i = i + 1
-//        elseif arg == "-g" or arg == "--group" then
-//            __group = true
-//        elseif arg == "-n" or arg == "--group-name" then
-//            if i < #opt then
-//                __groupname = opt[i + 1]
-//            else
-//                error("SKILL export: --group-name: argument expected")
-//            end
-//            i = i + 1
-//        elseif arg == "--no-let-splits" then
-//            __splitlets = false
-//        elseif arg == "--max-let-splits" then
-//            if i < #opt then
-//                __maxletlimit = tonumber(opt[i + 1])
-//            else
-//                error("SKILL export: --max-let-splits: argument expected")
-//            end
-//            i = i + 1
-//        else
-//            error(string.format("SKILL export: unknown option '%s'", arg))
-//        end
-//        i = i + 1
-//    end
-//end
+static int _set_options(const struct vector* vopt)
+{
+    size_t i = 0;
+    while(i < vector_size(vopt))
+    {
+        const char* arg = vector_get_const(vopt, i);
+        if((strcmp(arg, "-L") == 0) || (strcmp(arg, "--label-size") == 0))
+        {
+            if(i < vector_size(vopt) - 1)
+            {
+                __labelsize = atoi(vector_get_const(vopt, i + 1));
+            }
+            else
+            {
+                fputs("SKILL export: --label-size: argument expected\n", stderr);
+                return 0;
+            }
+            ++i;
+        }
+        else if((strcmp(arg, "-g") == 0) || (strcmp(arg, "--group") == 0))
+        {
+            __group = 1;
+        }
+        else if((strcmp(arg, "-n") == 0) || (strcmp(arg, "--group-name") == 0))
+        {
+            if(i < vector_size(vopt) - 1)
+            {
+                __groupname = vector_get_const(vopt, i + 1);
+            }
+            else
+            {
+                fputs("SKILL export: --group-name: argument expected\n", stderr);
+                return 0;
+            }
+            ++i;
+        }
+        else if((strcmp(arg, "--no-let-splits") == 0))
+        {
+            __splitlets = 1;
+        }
+        else if((strcmp(arg, "--max-let-splits") == 0))
+        {
+            if(i < vector_size(vopt) - 1)
+            {
+                __maxletlimit = atoi(vector_get_const(vopt, i + 1));
+            }
+            else
+            {
+                fputs("SKILL export: --max-let-splits: argument expected\n", stderr);
+                return 0;
+            }
+            ++i;
+        }
+        else
+        {
+            fprintf(stderr, "SKILL export: unknown option '%s'\n", arg);
+            return 0;
+        }
+        ++i;
+    }
+    return 1;
+}
 
 static void _write_port(struct export_data* data, const char* name, const struct hashmap* layer, const struct point* where, unsigned int sizehint)
 {
@@ -462,6 +490,7 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
 struct export_functions* skillexport_get_export_functions(void)
 {
     struct export_functions* funcs = export_create_functions();
+    funcs->set_options = _set_options;
     funcs->at_begin = _at_begin;
     funcs->at_end = _at_end;
     funcs->at_begin_cell = _at_begin_cell;

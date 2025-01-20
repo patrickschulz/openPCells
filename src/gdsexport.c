@@ -76,6 +76,12 @@
 #define DATATYPE_EIGHT_BYTE_REAL     0x05
 #define DATATYPE_ASCII_STRING        0x06
 
+static int _set_options(const struct vector* vopt)
+{
+    (void)vopt;
+    return 1;
+}
+
 static void _number_to_gdsfloat(double num, unsigned int width, char* data)
 {
     if(num == 0)
@@ -727,6 +733,7 @@ static const char* _get_extension(void)
 struct export_functions* gdsexport_get_export_functions(void)
 {
     struct export_functions* funcs = export_create_functions();
+    funcs->set_options = _set_options;
     funcs->at_begin = _at_begin;
     funcs->at_end = _at_end;
     funcs->at_begin_cell = _at_begin_cell;
