@@ -298,8 +298,8 @@
     vector_append(entries, _make_api_entry(
         "rectangle_fill_in_boundary",
         MODULE_GEOMETRY,
-        "Fill a given boundary (a polygon) with rectangles of a given width and height. If given, the rectangles are not placed in the regions defined by the exclude rectangles. The excludes table should contain polygons",
-        "geometry.rectangle_fill_in_boundary(cell, generics.metal(1), 100, 100, 200, 200, { point.create(-10000, -10000), point.create(10000, -10000), point.create(10000, 10000), point.create(-10000, 10000) })",
+        "Fill a given boundary (a polygon) with rectangles of a given width and height. If given, the rectangles are not placed in the regions defined by the exclude rectangles. Optionally, binary excludes can be given, where no fill is placed. This should be a table containing polygons, which can (for instance) be fetched from cells by object:get_boundary().",
+        "geometry.rectangle_fill_in_boundary(\n    cell,\n     generics.metal(1),\n     100, 100,\n     200, 200,\n     { point.create(-10000, -10000), point.create(10000, -10000), point.create(10000, 10000), point.create(-10000, 10000) },\n     { util.rectangle_to_polygon( point.create(1000, 1000), point.create(2000, 2000)) }\n)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
