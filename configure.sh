@@ -104,7 +104,7 @@ cat > Makefile << EOF
 DEPENDENCIES := src/config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c
 
 .PHONY: default
-default: opc .WAIT opc-debug
+default: opc
 
 opc: \$(DEPENDENCIES)
 	@\$(MAKE) -C src opc
