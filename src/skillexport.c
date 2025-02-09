@@ -491,6 +491,7 @@ struct export_functions* skillexport_get_export_functions(void)
 {
     struct export_functions* funcs = export_create_functions();
     funcs->set_options = _set_options;
+    funcs->finalize = NULL;
     funcs->at_begin = _at_begin;
     funcs->at_end = _at_end;
     funcs->at_begin_cell = _at_begin_cell;

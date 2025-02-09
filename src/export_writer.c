@@ -1013,6 +1013,37 @@ static int _write_at_end(struct export_writer* writer)
     }
 }
 
+static int _call_finalize(struct export_writer* writer)
+{
+    if(writer->islua)
+    {
+        lua_getfield(writer->L, -1, "finalize");
+        int ret = _pcall(writer->L, 0, 1, "finalize");
+        if(!ret)
+        {
+            return 0;
+        }
+        if(lua_type(writer->L, -1) != LUA_TSTRING)
+        {
+            lua_pushstring(writer->L, "finalize() did not return a string");
+            return 0;
+        }
+        size_t datalen;
+        const char* strdata = lua_tolstring(writer->L, -1, &datalen);
+        export_data_append_string_len(writer->data, strdata, datalen);
+        lua_pop(writer->L, 1); // pop data
+        return 1;
+    }
+    else // C
+    {
+        if(writer->funcs->finalize)
+        {
+            writer->funcs->finalize();
+        }
+        return 1;
+    }
+}
+
 static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int write_ports, char leftdelim, char rightdelim)
 {
     struct reference_iterator* ref_it = object_create_reference_iterator(cell);
@@ -1118,24 +1149,11 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         return 0;
     }
 
-    // finalize (only lua exports)
-    if(writer->islua)
+    // finalize
+    ret = _call_finalize(writer);
+    if(!ret)
     {
-        lua_getfield(writer->L, -1, "finalize");
-        ret = _pcall(writer->L, 0, 1, "finalize");
-        if(!ret)
-        {
-            return 0;
-        }
-        if(lua_type(writer->L, -1) != LUA_TSTRING)
-        {
-            lua_pushstring(writer->L, "finalize() did not return a string");
-            return 0;
-        }
-        size_t datalen;
-        const char* strdata = lua_tolstring(writer->L, -1, &datalen);
-        export_data_append_string_len(writer->data, strdata, datalen);
-        lua_pop(writer->L, 1); // pop data
+        return 0;
     }
 
     return 1;

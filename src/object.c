@@ -358,9 +358,16 @@ void object_destroy(void* cellv)
             hashmap_destroy(cell->anchors, _anchor_destroy);
         }
 
+        // ports
         if(cell->ports)
         {
             vector_destroy(cell->ports);
+        }
+
+        // labels
+        if(cell->labels)
+        {
+            vector_destroy(cell->labels);
         }
 
         // alignmentbox

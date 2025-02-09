@@ -33,11 +33,12 @@ void export_data_append_string_unchecked(struct export_data* data, const char* s
 void export_data_write_to_file(struct export_data* data, FILE* file);
 
 struct export_functions {
-    // initialization
+    // initialization/cleanup
     const char* (*get_extension)(void);
     const char* (*get_techexport)(void);
     void (*initialize)(const struct object*);
     int (*set_options)(const struct vector* vopt);
+    void (*finalize)(void);
     // at begin/end
     void (*at_begin)(struct export_data*);
     void (*at_end)(struct export_data*);
