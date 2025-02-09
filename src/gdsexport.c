@@ -78,6 +78,8 @@
 #define DATATYPE_EIGHT_BYTE_REAL     0x05
 #define DATATYPE_ASCII_STRING        0x06
 
+unsigned int __userunit = 1000; // default: user unit is 1000 * 1 nm = 1 um
+double __databaseunit = 1000000000; // default: data base unit is 1 nm
 char* __libname = NULL;
 
 static int _set_options(const struct vector* vopt)
@@ -95,6 +97,32 @@ static int _set_options(const struct vector* vopt)
             else
             {
                 fputs("gds export: --library-name: argument expected\n", stderr);
+                return 0;
+            }
+            ++i;
+        }
+        else if(strcmp(arg, "--user-unit") == 0)
+        {
+            if(i < vector_size(vopt) - 1)
+            {
+                __userunit = atoi(vector_get_const(vopt, i + 1));;
+            }
+            else
+            {
+                fputs("gds export: --user-unit: argument expected\n", stderr);
+                return 0;
+            }
+            ++i;
+        }
+        else if(strcmp(arg, "--database-unit") == 0)
+        {
+            if(i < vector_size(vopt) - 1)
+            {
+                __databaseunit = atof(vector_get_const(vopt, i + 1));;
+            }
+            else
+            {
+                fputs("gds export: --database-unit: argument expected\n", stderr);
                 return 0;
             }
             ++i;
@@ -303,12 +331,12 @@ static void _at_begin(struct export_data* data)
     export_data_append_byte(data, RECORDTYPE_UNITS);
     export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
     char unitdata[8];
-    _number_to_gdsfloat(0.001, 8, unitdata);
+    _number_to_gdsfloat(1.0 / __userunit, 8, unitdata);
     for(unsigned int i = 0; i < 8; ++i)
     {
         export_data_append_byte(data, unitdata[i]);
     }
-    _number_to_gdsfloat(1e-9, 8, unitdata);
+    _number_to_gdsfloat(__databaseunit, 8, unitdata);
     for(unsigned int i = 0; i < 8; ++i)
     {
         export_data_append_byte(data, unitdata[i]);
@@ -372,7 +400,7 @@ static void _write_rectangle(struct export_data* data, const struct hashmap* lay
     _write_layer_unchecked(data, RECORDTYPE_BOUNDARY, layer);
 
     // XY (44 bytes)
-    unsigned int multiplier = 1; // FIXME: make proper use of units
+    double multiplier = 1e-9 / __databaseunit;
     write_length_unchecked(data, 44);
     export_data_append_byte_unchecked(data, RECORDTYPE_XY);
     export_data_append_byte_unchecked(data, DATATYPE_FOUR_BYTE_INTEGER);
@@ -395,7 +423,7 @@ static void _write_polygon(struct export_data* data, const struct hashmap* layer
     _write_layer(data, RECORDTYPE_BOUNDARY, RECORDTYPE_DATATYPE, layer);
 
     // XY
-    unsigned int multiplier = 1; // FIXME: make proper use of units
+    double multiplier = 1e-9 / __databaseunit;
     export_data_append_two_bytes(data, 4 + 4 * 2 * vector_size(points));
     export_data_append_byte(data, RECORDTYPE_XY);
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
@@ -470,7 +498,7 @@ static void _write_path(struct export_data* data, const struct hashmap* layer, c
     export_data_append_four_bytes(data, extension[1]);
 
     // XY
-    unsigned int multiplier = 1; // FIXME: make proper use of units
+    double multiplier = 1e-9 / __databaseunit;
     export_data_append_two_bytes(data, 4 + 4 * 2 * vector_size(points));
     export_data_append_byte(data, RECORDTYPE_XY);
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
@@ -632,7 +660,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
 
     _write_strans_angle(data, trans);
 
-    unsigned int multiplier = 1; // FIXME: make proper use of units
+    double multiplier = 1e-9 / __databaseunit;
     _write_length(data, 12);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
@@ -663,7 +691,7 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     export_data_append_two_bytes(data, yrep);
 
     // XY
-    unsigned int multiplier = 1; // FIXME: make proper use of units
+    double multiplier = 1e-9 / __databaseunit;
     _write_length(data, 28);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
@@ -715,7 +743,7 @@ static void _write_port(struct export_data* data, const char* name, const struct
     }
 
     // XY
-    unsigned int multiplier = 1; // FIXME: make proper use of units
+    double multiplier = 1e-9 / __databaseunit;
     _write_length(data, 12);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
