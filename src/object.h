@@ -136,6 +136,7 @@ void object_width_height_alignmentbox(const struct object* cell, ucoordinate_t* 
 
 // transformations
 const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell);
+const struct transformationmatrix* object_get_array_transformation_matrix(const struct object* cell);
 void object_move_to(struct object* cell, coordinate_t x, coordinate_t y);
 void object_reset_translation(struct object* cell);
 void object_translate(struct object* cell, coordinate_t x, coordinate_t y);
@@ -146,6 +147,8 @@ void object_mirror_at_yaxis(struct object* cell);
 void object_mirror_at_origin(struct object* cell);
 void object_rotate_90_left(struct object* cell);
 void object_rotate_90_right(struct object* cell);
+void object_array_rotate_90_left(struct object* cell);
+void object_array_rotate_90_right(struct object* cell);
 void object_flipx(struct object* cell);
 void object_flipy(struct object* cell);
 int object_move_point(struct object* cell, const struct point* source, const struct point* target);

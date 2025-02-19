@@ -267,7 +267,7 @@ static int _pcall(lua_State* L, int nargs, int nresults, const char* str)
     }
 }
 
-static int _write_child_array(struct export_writer* writer, const char* identifier, const char* instbasename, const struct point* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
+static int _write_child_array(struct export_writer* writer, const char* identifier, const char* instbasename, const struct point* origin, const struct transformationmatrix* trans, const struct transformationmatrix* array_trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     if(writer->islua)
     {
@@ -286,13 +286,14 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
     }
     else // C
     {
-        writer->funcs->write_cell_array(writer->data, identifier, instbasename, origin, trans, xrep, yrep, xpitch, ypitch);
+        writer->funcs->write_cell_array(writer->data, identifier, instbasename, origin, trans, array_trans, xrep, yrep, xpitch, ypitch);
         return 1;
     }
 }
 
-static int _write_child_manual_array(struct export_writer* writer, const char* refname, const char* instname, const struct point* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
+static int _write_child_manual_array(struct export_writer* writer, const char* refname, const char* instname, const struct point* origin, const struct transformationmatrix* trans, const struct transformationmatrix* array_trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
+    // FIXME: array_trans
     for(unsigned int ix = 1; ix <= xrep; ++ix)
     {
         for(unsigned int iy = 1; iy <= yrep; ++iy)
@@ -371,12 +372,13 @@ static int _write_child(struct export_writer* writer, const struct object* child
     char* refname = _concat_namecontext(expand_namecontext ? namecontext : NULL, object_get_child_reference_name(child));
     const char* instname = object_get_name(child);
     const struct transformationmatrix* trans = object_get_transformation_matrix(child);
+    const struct transformationmatrix* array_trans = object_get_array_transformation_matrix(child);
     coordinate_t xpitch = object_get_child_xpitch(child);
     coordinate_t ypitch = object_get_child_ypitch(child);
     // FIXME: error checking
     if(object_is_child_array(child) && _has_write_cell_array(writer))
     {
-        int ret = _write_child_array(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
+        int ret = _write_child_array(writer, refname, instname, origin, trans, array_trans, xrep, yrep, xpitch, ypitch);
         if(!ret)
         {
             free(refname);
@@ -388,7 +390,7 @@ static int _write_child(struct export_writer* writer, const struct object* child
         // this check is necessary for pretty-printing of singular instance names (e.g. avoid names like 'instance_1_1' when there is only one)
         if(xrep > 1 && yrep > 1)
         {
-            int ret = _write_child_manual_array(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
+            int ret = _write_child_manual_array(writer, refname, instname, origin, trans, array_trans, xrep, yrep, xpitch, ypitch);
             if(!ret)
             {
                 free(refname);

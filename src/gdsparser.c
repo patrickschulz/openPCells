@@ -1095,42 +1095,23 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
                 coordinate_t dycolumn = y2 - y1;
                 coordinate_t dxrow = x3 - x1;
                 coordinate_t dyrow = y3 - y1;
-                /*
-                coordinate_t columnxdir = cos(cellref->angle / 180 * M_PI);
-                coordinate_t columnydir = -sin(cellref->angle / 180 * M_PI);
-                coordinate_t rowxdir = sin(cellref->angle / 180 * M_PI);
-                coordinate_t rowydir = cos(cellref->angle / 180 * M_PI);
                 if(!(((dxcolumn == 0) && (dyrow == 0)) || ((dxrow == 0) && (dycolumn == 0))))
                 {
                     puts("array vectors are not orthogonal");
                 }
-                if(columnxdir > 0)
-                {
-                    cellref->xpitch = dxcolumn / cellref->xrep;
-                }
-                else
-                {
-                    cellref->ypitch = dxcolumn / cellref->xrep;
-                }
-                if(rowydir > 0)
-                {
-                    cellref->ypitch = dyrow / cellref->xrep;
-                }
-                else
-                {
-                    cellref->xpitch = dyrow / cellref->xrep;
-                }
-                */
-                // this assumes that the vectors are orthogonal
                 if(dxcolumn > 0)
                 {
                     cellref->xpitch = dxcolumn / cellref->xrep;
-                    cellref->ypitch = dyrow / cellref->xrep;
+                    cellref->ypitch = dyrow / cellref->yrep;
                 }
                 else
                 {
-                    cellref->ypitch = dxrow / cellref->xrep;
-                    cellref->xpitch = dycolumn / cellref->xrep;
+                    // column vector points in y-direction, flip direction
+                    int16_t tmp = cellref->xrep;
+                    cellref->xrep = cellref->yrep;
+                    cellref->yrep = tmp;
+                    cellref->xpitch = dxrow / cellref->xrep;
+                    cellref->ypitch = dycolumn / cellref->yrep;
                 }
             }
         }
@@ -1172,7 +1153,9 @@ static void _write_cellref(FILE* cellfile, const struct cellref* cellref)
     }
     else if(cellref->angle == 270)
     {
-        fputs("    child:rotate_90_right()\n", cellfile);
+        fputs("    child:rotate_90_left()\n", cellfile);
+        fputs("    child:rotate_90_left()\n", cellfile);
+        fputs("    child:rotate_90_left()\n", cellfile);
     }
     if(cellref->transformation && cellref->transformation[0] == 1)
     {

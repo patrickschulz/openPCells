@@ -323,6 +323,20 @@ static int lobject_rotate_90_right(lua_State* L)
     return 1;
 }
 
+static int lobject_array_rotate_90_left(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    object_array_rotate_90_left(lobject_get(L, cell));
+    return 1;
+}
+
+static int lobject_array_rotate_90_right(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    object_array_rotate_90_right(lobject_get(L, cell));
+    return 1;
+}
+
 static int lobject_flipx(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1549,6 +1563,8 @@ int open_lobject_lib(lua_State* L)
         { "mirror_at_origin",                       lobject_mirror_at_origin                    },
         { "rotate_90_left",                         lobject_rotate_90_left                      },
         { "rotate_90_right",                        lobject_rotate_90_right                     },
+        { "array_rotate_90_left",                   lobject_array_rotate_90_left                },
+        { "array_rotate_90_right",                  lobject_array_rotate_90_right               },
         { "flipx",                                  lobject_flipx                               },
         { "flipy",                                  lobject_flipy                               },
         { "move_point",                             lobject_move_point                          },

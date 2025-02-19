@@ -10,7 +10,7 @@
 const unsigned int __baseunit = 1000; // virtuoso is micrometer-based. The implementation tried to make future changes possible, but this should be a power-of-ten
 const unsigned int __numdigits = 3; // digits after the decimal point. Must be log10(__baseunit)
 static int __group = 0;
-static const char* __groupname = "opcgroup";
+static char* __groupname = NULL;
 static coordinate_t __labelsize = 100;
 static int __splitlets = 1;
 static unsigned int __counter = 0;
@@ -69,11 +69,32 @@ static void _start_let(struct export_data* data, int initial)
     if(__group)
     {
         export_data_append_string(data, "        (group if(dbGetFigGroupByName(cv \"");
-        export_data_append_string(data, __groupname);
+        if(__groupname)
+        {
+            export_data_append_string(data, __groupname);
+        }
+        else
+        {
+            export_data_append_string(data, "opcgroup");
+        }
         export_data_append_string(data, "\") then dbGetFigGroupByName(cv \"");
-        export_data_append_string(data, __groupname);
+        if(__groupname)
+        {
+            export_data_append_string(data, __groupname);
+        }
+        else
+        {
+            export_data_append_string(data, "opcgroup");
+        }
         export_data_append_string(data, "\") else dbCreateFigGroup(cv \"");
-        export_data_append_string(data, __groupname);
+        if(__groupname)
+        {
+            export_data_append_string(data, __groupname);
+        }
+        else
+        {
+            export_data_append_string(data, "opcgroup");
+        }
         export_data_append_string(data, "\" t 0:0 \"R0\")))");
         export_data_append_char(data, '\n');
     }
@@ -311,7 +332,7 @@ static int _set_options(const struct vector* vopt)
         {
             if(i < vector_size(vopt) - 1)
             {
-                __groupname = vector_get_const(vopt, i + 1);
+                __groupname = util_strdup(vector_get_const(vopt, i + 1));
             }
             else
             {
@@ -428,7 +449,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     _ensure_legal_limit(data);
 }
 
-static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, const struct point* where, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
+static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, const struct point* where, const struct transformationmatrix* trans, const struct transformationmatrix* array_trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     _prepare_shape_for_group(data);
     export_data_append_string(data, "dbCreateParamSimpleMosaicByMasterName");
@@ -442,6 +463,7 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     export_data_append_string(data, "\" ");
     _write_point(data, where);
     export_data_append_string(data, " \"");
+    // FIXME: make proper use of array_trans
     enum orientation orientation = export_get_matrix_orientation(trans);
     switch(orientation)
     {
@@ -487,11 +509,19 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     _ensure_legal_limit(data);
 }
 
+static void _finalize(void)
+{
+    if(__groupname)
+    {
+        free(__groupname);
+    }
+}
+
 struct export_functions* skillexport_get_export_functions(void)
 {
     struct export_functions* funcs = export_create_functions();
     funcs->set_options = _set_options;
-    funcs->finalize = NULL;
+    funcs->finalize = _finalize;
     funcs->at_begin = _at_begin;
     funcs->at_end = _at_end;
     funcs->at_begin_cell = _at_begin_cell;

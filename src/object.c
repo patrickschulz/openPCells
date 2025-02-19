@@ -113,6 +113,7 @@ struct object {
             unsigned int yrep;
             coordinate_t xpitch;
             coordinate_t ypitch;
+            struct transformationmatrix* array_trans;
         };
         // full objects
         struct {
@@ -215,6 +216,8 @@ struct object* object_copy(const struct object* cell)
         new->yrep = cell->yrep;
         new->xpitch = cell->xpitch;
         new->ypitch = cell->ypitch;
+        transformationmatrix_destroy(new->array_trans);
+        new->array_trans = transformationmatrix_copy(cell->array_trans);
     }
     else
     {
@@ -388,6 +391,10 @@ void object_destroy(void* cellv)
             hashmap_destroy(cell->layer_boundaries, polygon_destroy);
         }
     }
+    else // isproxy
+    {
+        transformationmatrix_destroy(cell->array_trans);
+    }
 
     // name
     free(cell->name);
@@ -500,6 +507,8 @@ struct object* object_add_child_array(struct object* cell, struct object* child,
     proxy->yrep = yrep;
     proxy->xpitch = xpitch;
     proxy->ypitch = ypitch;
+    proxy->array_trans = transformationmatrix_create();
+    transformationmatrix_identity(proxy->array_trans);
     return proxy;
 }
 
@@ -2077,6 +2086,16 @@ void object_rotate_90_right(struct object* cell)
     transformationmatrix_rotate_90_right(cell->trans);
 }
 
+void object_array_rotate_90_left(struct object* cell)
+{
+    transformationmatrix_rotate_90_left(cell->array_trans);
+}
+
+void object_array_rotate_90_right(struct object* cell)
+{
+    transformationmatrix_rotate_90_right(cell->array_trans);
+}
+
 void object_apply_other_transformation(struct object* cell, const struct transformationmatrix* trans)
 {
     transformationmatrix_chain_inline(cell->trans, trans);
@@ -2248,6 +2267,11 @@ void object_rasterize_curves(struct object* cell)
 const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell)
 {
     return cell->trans;
+}
+
+const struct transformationmatrix* object_get_array_transformation_matrix(const struct object* cell)
+{
+    return cell->array_trans;
 }
 
 static void _get_transformation_correction(const struct object* cell, coordinate_t* cx, coordinate_t* cy)

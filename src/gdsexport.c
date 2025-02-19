@@ -78,9 +78,9 @@
 #define DATATYPE_EIGHT_BYTE_REAL     0x05
 #define DATATYPE_ASCII_STRING        0x06
 
-unsigned int __userunit = 1000; // default: user unit is 1000 * 1 nm = 1 um
-double __databaseunit = 1000000000; // default: data base unit is 1 nm
-char* __libname = NULL;
+static unsigned int __userunit = 1000; // default: user unit is 1000 * 1 nm = 1 um
+static double __databaseunit = 1e-9; // default: data base unit is 1 nm
+static char* __libname = NULL;
 
 static int _set_options(const struct vector* vopt)
 {
@@ -192,7 +192,7 @@ static inline void _write_length(struct export_data* data, uint8_t length)
     export_data_append_byte(data, length);
 }
 
-static inline void write_length_unchecked(struct export_data* data, uint8_t length)
+static inline void _write_length_unchecked(struct export_data* data, uint8_t length)
 {
     export_data_append_byte_unchecked(data, 0);
     export_data_append_byte_unchecked(data, length);
@@ -239,12 +239,12 @@ static inline void _write_layer(struct export_data* data, uint8_t type, uint8_t 
 static inline void _write_layer_unchecked(struct export_data* data, uint8_t type, const struct hashmap* layer)
 {
     // BOUNDARY (4 bytes)
-    _write_length(data, 4);
+    _write_length_unchecked(data, 4);
     export_data_append_byte_unchecked(data, type);
     export_data_append_byte_unchecked(data, DATATYPE_NONE);
 
     // LAYER (6 bytes)
-    write_length_unchecked(data, 6);
+    _write_length_unchecked(data, 6);
     export_data_append_byte_unchecked(data, RECORDTYPE_LAYER);
     export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
     const struct tagged_value* vl = hashmap_get_const(layer, "layer");
@@ -252,7 +252,7 @@ static inline void _write_layer_unchecked(struct export_data* data, uint8_t type
     export_data_append_two_bytes_unchecked(data, (int16_t)layernum);
 
     // DATATYPE (6 bytes)
-    write_length_unchecked(data, 6);
+    _write_length_unchecked(data, 6);
     export_data_append_byte_unchecked(data, RECORDTYPE_DATATYPE);
     export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
     const struct tagged_value* vp = hashmap_get_const(layer, "purpose");
@@ -401,7 +401,7 @@ static void _write_rectangle(struct export_data* data, const struct hashmap* lay
 
     // XY (44 bytes)
     double multiplier = 1e-9 / __databaseunit;
-    write_length_unchecked(data, 44);
+    _write_length_unchecked(data, 44);
     export_data_append_byte_unchecked(data, RECORDTYPE_XY);
     export_data_append_byte_unchecked(data, DATATYPE_FOUR_BYTE_INTEGER);
     export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
@@ -658,6 +658,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     // SNAME
     _write_string(data, identifier, RECORDTYPE_SNAME);
 
+    // transformation
     _write_strans_angle(data, trans);
 
     double multiplier = 1e-9 / __databaseunit;
@@ -670,7 +671,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     _write_ENDEL(data);
 }
 
-static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, const struct point* where, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
+static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, const struct point* where, const struct transformationmatrix* trans, const struct transformationmatrix* array_trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
     (void) instbasename; // GDSII does not support instance names
     // AREF
@@ -681,7 +682,11 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     // SNAME
     _write_string(data, identifier, RECORDTYPE_SNAME);
 
+    // cell transformation
     _write_strans_angle(data, trans);
+
+    // array transformation
+    _write_strans_angle(data, array_trans);
 
     // COLROW
     _write_length(data, 8);
@@ -700,13 +705,13 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     // column vector
     coordinate_t xcol = xrep * xpitch;
     coordinate_t ycol = 0;
-    _rotate_vector(&xcol, &ycol, trans);
+    _rotate_vector(&xcol, &ycol, array_trans);
     export_data_append_four_bytes(data, (point_getx(where) + xcol) * multiplier);
     export_data_append_four_bytes(data, (point_gety(where) + ycol) * multiplier);
     // row vector
     coordinate_t xrow = 0;
     coordinate_t yrow = yrep * ypitch;
-    _rotate_vector(&xrow, &yrow, trans);
+    _rotate_vector(&xrow, &yrow, array_trans);
     export_data_append_four_bytes(data, (point_getx(where) + xrow) * multiplier);
     export_data_append_four_bytes(data, (point_gety(where) + yrow) * multiplier);
 

@@ -56,7 +56,7 @@ struct export_functions {
     void (*close_curve)(struct export_data*, const struct hashmap);
     // write references
     void (*write_cell_reference)(struct export_data*, const char*, const char*, const struct point*, const struct transformationmatrix*);
-    void (*write_cell_array)(struct export_data*, const char*, const char*, const struct point*, const struct transformationmatrix*, unsigned int, unsigned int, coordinate_t, coordinate_t);
+    void (*write_cell_array)(struct export_data*, const char*, const char*, const struct point*, const struct transformationmatrix*, const struct transformationmatrix*, unsigned int, unsigned int, coordinate_t, coordinate_t);
     // write ports
     void (*write_port)(struct export_data*, const char* name, const struct hashmap*, const struct point* where, unsigned int sizehint);
     // write labels
