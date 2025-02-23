@@ -30,7 +30,7 @@ procedure(OPCSubCellUpdate()
         opcgroup = OPCSubCellGet()
         if(opcgroup
             then
-                OPCUpdateCallback(?hierarchical nil ?xpath opcgroup->opcpath ?xgroupname opcgroup->name)
+                OPCUpdateCallback(?hierarchical nil ?xpath opcgroup->opcpath ?origin opcgroup->origin ?xgroupname opcgroup->name)
             else
                 nil
         ) ; if opcgroup

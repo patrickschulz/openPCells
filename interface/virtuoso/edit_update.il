@@ -15,7 +15,7 @@ procedure(OPCEditCallback()
     )
 ) ; procedure
 
-procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil) (xgroupname nil))
+procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (origin list(0 0)) (xpath nil) (xgroupname nil))
     letseq(
         (
             (cv geGetEditCellView())
@@ -38,6 +38,7 @@ procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil) (xgrou
         )
         OPCArgs = OPCPrepareArgsForCellCreation(
             lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value)
+            origin
             ?groupname groupname
         )
         unless(hierarchical
@@ -77,6 +78,7 @@ procedure(OPCUpdateAsGDS()
         )
         OPCArgs = OPCPrepareArgsForCellCreation(
             lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value)
+            list(0 0) ; origin
             ?exporttype "gds"
             ?groupname nil
         )
