@@ -4,7 +4,8 @@ procedure(OPCSubCellGet()
         cv = geGetEditCellView()
         selset = geGetSelSet()
         when(length(selset) == 1 ; only one object selected
-            when(car(selset)->objType == "figGroup" ; selected object is a group
+            opcgroup = car(selset)
+            when(opcgroup->objType == "figGroup" ; selected object is a group
                 when(setof(p opcgroup->prop p->name == "opcpath") ; group is an opc group
                     opcgroup
                 ) ; when has opcpath
@@ -29,7 +30,7 @@ procedure(OPCSubCellUpdate()
         opcgroup = OPCSubCellGet()
         if(opcgroup
             then
-                OPCUpdateCallback(?hierachical nil ?xpath opcgroup->opcpath ?xgroupname opcgroup->name)
+                OPCUpdateCallback(?hierarchical nil ?xpath opcgroup->opcpath ?xgroupname opcgroup->name)
             else
                 nil
         ) ; if opcgroup
