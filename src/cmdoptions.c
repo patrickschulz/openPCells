@@ -1084,6 +1084,7 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                     if(option->was_provided && !(option->numargs & MULTI_ARGS))
                     {
                         printf("option '%s' is only allowed once\n", longopt);
+                        return 0;
                     }
                     if(!_store_argument(option, &i, argc, argv))
                     {
