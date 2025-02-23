@@ -13,6 +13,10 @@ procedure(OPCCreateLayoutMenu()
         updateflatold = hiCreateMenuItem(?name 'OPCCellScriptFlatOld ?itemText "Update Design (flat, reuse existing file)" ?callback "OPCUpdateCallback(?callopc nil ?hierarchical nil)")
         remove = hiCreateMenuItem(?name 'OPCCellScriptRemove ?itemText "Delete Design File" ?callback "OPCDeleteDesignFile()")
 
+        ; sub cells
+        editsubcell = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Edit Sub-Cell" ?callback "OPCSubCellEdit()")
+        updatesubcell = hiCreateMenuItem(?name 'OPCSubCellScript ?itemText "Update Sub-Cell" ?callback "OPCSubCellUpdate()")
+
         ; export gds
         exportgds = hiCreateMenuItem(?name 'OPCCellScriptGDS ?itemText "Update as GDSII" ?callback "OPCUpdateAsGDS()")
 
@@ -29,7 +33,7 @@ procedure(OPCCreateLayoutMenu()
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
 
         ; assemble main menu
-        itemlist = list(about separator edit updatehierarchical updateflat updatehierarchicalold updateflatold remove separator exportgds separator export separator settings)
+        itemlist = list(about separator edit updatehierarchical updateflat updatehierarchicalold updateflatold remove separator editsubcell updatesubcell separator exportgds separator export separator settings)
         hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
 )

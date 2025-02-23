@@ -1,23 +1,37 @@
-procedure(OPCCreateSubCell(name)
-    ; (1) create group with given name
-    ; (2) open editor for cell script
-    ; (3) call opc on cell script (with --flatten)
-    ; (4) load generated cell shapes into group
-    ; (5) store property with cell script path on group
-)
+procedure(OPCSubCellGet()
+    let(
+        (cv selset path)
+        cv = geGetEditCellView()
+        selset = geGetSelSet()
+        when(length(selset) == 1 ; only one object selected
+            when(car(selset)->objType == "figGroup" ; selected object is a group
+                when(setof(p opcgroup->prop p->name == "opcpath") ; group is an opc group
+                    opcgroup
+                ) ; when has opcpath
+            ) ; when is group
+        ) ; when only one object in selection set
+    ) ; let
+) ; procedure
 
-procedure(OPCEditSubCell()
-    ; (1) check if selSet contains only one entry
-    ; (2) check if selected object is a group
-    ; (3) check if group has opc_cellscript_path property
-    ; (4) open cell script
-)
+procedure(OPCSubCellEdit()
+    let(
+        (opcgroup)
+        opcgroup = OPCSubCellGet()
+        when(opcgroup
+            OPCOpenEditor(opcgroup->opcpath)
+        ) ; when opcgroup
+    ) ; let
+) ; procedure
 
-procedure(OPCUpdateSubCell()
-    ; (1) check if selSet contains only one entry
-    ; (2) check if selected object is a group
-    ; (3) check if group has opc_cellscript_path property
-    ; (4) execute cell script
-    ; (5) delete all shapes in group
-    ; (6) load generated cell shapes into group
-)
+procedure(OPCSubCellUpdate()
+    let(
+        (opcgroup)
+        opcgroup = OPCSubCellGet()
+        if(opcgroup
+            then
+                OPCUpdateCallback(?hierachical nil ?xpath opcgroup->opcpath ?xgroupname opcgroup->name)
+            else
+                nil
+        ) ; if opcgroup
+    ) ; let
+) ; procedure

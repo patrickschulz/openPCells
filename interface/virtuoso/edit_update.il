@@ -1,3 +1,7 @@
+procedure(OPCOpenEditor(path)
+    ipcBeginProcess(lsprintf(OPCSettingsForm->OPCSettingsEditCmd->value path))
+) ; procedure
+
 procedure(OPCEditCallback()
     letseq(
         (
@@ -7,25 +11,18 @@ procedure(OPCEditCallback()
             path OPCArgs
         )
         path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
-        unless(isFile(path)
-            let(((file outfile(path)))
-                fprintf(file "%s" "local cell = object.create(\"cell\")\n\nreturn cell")
-                close(file)
-                OPCCleanUp(path)
-            )
-        )
-        pid = ipcBeginProcess(lsprintf(OPCSettingsForm->OPCSettingsEditCmd->value path))
+        OPCOpenEditor(path)
     )
 ) ; procedure
 
-procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil))
+procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil) (xgroupname nil))
     letseq(
         (
             (cv geGetEditCellView())
             (libPath cv->lib->readPath)
             (libname cv->libName) ; read by generated .il script, don't remove
             (cellName cv->cellName)
-            path OPCArgs OPCCmd success
+            path groupname OPCArgs OPCCmd success
         )
         if(xpath
             then
@@ -33,7 +30,16 @@ procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil))
             else
                 path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
         )
-        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value))
+        if(xgroupname
+            then
+                groupname = xgroupname
+            else
+                groupname = OPCGetGroupName()
+        )
+        OPCArgs = OPCPrepareArgsForCellCreation(
+            lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value)
+            ?groupname groupname
+        )
         unless(hierarchical
             OPCArgs = lsprintf("%s --flat" OPCArgs)
         )
@@ -72,6 +78,7 @@ procedure(OPCUpdateAsGDS()
         OPCArgs = OPCPrepareArgsForCellCreation(
             lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value)
             ?exporttype "gds"
+            ?groupname nil
         )
         /*
         unless(hierarchical

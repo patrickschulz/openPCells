@@ -1,7 +1,4 @@
-procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil) (exporttype "SKILL"))
-    ; the SKILL export currently does not properly handle path extensions
-    ; therefore, path extensions are being resolved by opc
-    OPCArgs = lsprintf("--technology %s --export %s --resolve-path-extensions %s -X '-L %f'" OPCTech exporttype args OPCSettingsForm->OPCSettingsLabelSize->value)
+procedure(OPCGetGroupName(@key (newgroup nil))
     when(OPCSettingsForm->OPCSettingsGroup->value == "true"
         if(!newgroup && OPCSettingsForm->OPCSettingsGroupConsecutively->value == "true"
             then
@@ -10,11 +7,20 @@ procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil) (exporttype "SK
                     while(dbGetFigGroupByName(geGetEditCellView() lsprintf("%s_%d" OPCSettingsForm->OPCSettingsGroupname->value i)) != nil
                         i = i + 1
                     )
-                    OPCArgs = lsprintf("%s -X -g -X '-n %s_%d'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value i)
+                    lsprintf("%s_%d" OPCSettingsForm->OPCSettingsGroupname->value i)
                 )
             else
-                OPCArgs = lsprintf("%s -X -g -X '-n %s'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value)
+                OPCSettingsForm->OPCSettingsGroupname->value
         )
+    )
+)
+
+procedure(OPCPrepareArgsForCellCreation(args @key (groupname nil) (exporttype "SKILL"))
+    ; the SKILL export currently does not properly handle path extensions
+    ; therefore, path extensions are being resolved by opc
+    OPCArgs = lsprintf("--technology %s --export %s --resolve-path-extensions %s -X '-L %f'" OPCTech exporttype args OPCSettingsForm->OPCSettingsLabelSize->value)
+    when(groupname
+        OPCArgs = lsprintf("%s -X '-g -n %s'" OPCArgs groupname)
     )
     when(OPCSettingsForm->OPCSettingsEnableFallbackVias->value == "true"
         OPCArgs = lsprintf("%s --enable-fallback-vias" OPCArgs)
@@ -37,18 +43,15 @@ procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil) (exporttype "SK
         else
             OPCArgs = lsprintf("%s -X '--max-let-splits %d'" OPCArgs OPCSettingsForm->OPCSettingsMaxLetSplits->value)
     )
+    OPCArgs = lsprintf("%s %s" OPCArgs OPCSettingsForm->OPCSettingsCmdAdditionalArgs->value)
+    when(OPCSettingsForm->OPCSettingsMerge->value == "true"
+        OPCArgs = lsprintf("%s --merge-rectangles" OPCArgs)
+    )
     OPCArgs
 )
 
 procedure(OPCBuildCallCommand(args)
-    let(
-        ((additionalargs ""))
-        additionalargs = OPCSettingsForm->OPCSettingsCmdAdditionalArgs->value
-        when(OPCSettingsForm->OPCSettingsMerge->value == "true"
-            additionalargs = lsprintf("%s --merge-rectangles" additionalargs)
-        )
-        lsprintf( "%s/%s %s %s" OPCPath OPCExec args additionalargs)
-    )
+    lsprintf( "%s/%s %s %s" OPCPath OPCExec args additionalargs)
 )
 
 procedure(OPCCall(OPCCommand @key (redirect nil))
