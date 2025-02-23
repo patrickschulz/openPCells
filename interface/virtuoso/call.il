@@ -51,7 +51,7 @@ procedure(OPCPrepareArgsForCellCreation(args @key (groupname nil) (exporttype "S
 )
 
 procedure(OPCBuildCallCommand(args)
-    lsprintf( "%s/%s %s %s" OPCPath OPCExec args additionalargs)
+    lsprintf("%s/%s %s %s" OPCPath OPCExec args)
 )
 
 procedure(OPCCall(OPCCommand @key (redirect nil))
