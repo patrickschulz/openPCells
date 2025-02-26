@@ -14,6 +14,7 @@ procedure(OPCCreateLayoutMenu()
         remove = hiCreateMenuItem(?name 'OPCCellScriptRemove ?itemText "Delete Design File" ?callback "OPCDeleteDesignFile()")
 
         ; sub cells
+        createsubcell = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Edit Sub-Cell" ?callback "OPCSubCellCreate()")
         editsubcell = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Edit Sub-Cell" ?callback "OPCSubCellEdit()")
         updatesubcell = hiCreateMenuItem(?name 'OPCSubCellScript ?itemText "Update Sub-Cell" ?callback "OPCSubCellUpdate()")
 
@@ -33,7 +34,7 @@ procedure(OPCCreateLayoutMenu()
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
 
         ; assemble main menu
-        itemlist = list(about separator edit updatehierarchical updateflat updatehierarchicalold updateflatold remove separator editsubcell updatesubcell separator exportgds separator export separator settings)
+        itemlist = list(about separator edit updatehierarchical updateflat updatehierarchicalold updateflatold remove separator createsubcell editsubcell updatesubcell separator exportgds separator export separator settings)
         hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
 )

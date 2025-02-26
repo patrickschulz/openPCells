@@ -29,6 +29,28 @@ procedure(OPCSubCellGet()
     ) ; let
 ) ; procedure
 
+procedure(OPCSubCellCreate()
+    ; (1) open dialog to get group name/layout path (should they be the same?)
+    hiCreateAppForm(
+        ?name 'OPCSubCellCreationForm
+        ?formTitle "Create OPC Sub-Cell"
+        ?buttonLayout 'OKCancel
+        ?initialSize t ; size form to fit all fields
+        ?fields list(
+            hiCreateStringField(
+                ?name 'OPCSubCellName
+                ?value ""
+                ?prompt "Name of Sub-Cell"
+            )
+        )
+    )
+    ; (2) create group with some dummy shape
+    ; (3) set name of group
+    ; (4) add opcpath property
+    ; (5) call opc and fill group with shapes
+    ; (6) place/move group
+) ; procedure
+
 procedure(OPCSubCellEdit()
     let(
         (opcgroup)
