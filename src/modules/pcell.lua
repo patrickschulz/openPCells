@@ -307,7 +307,7 @@ function state.create_cellenv(state, cellname, ovrenv)
             add_parameter                   = bindstatecell(_add_parameter),
             add_parameters                  = bindstatecell(_add_parameters),
             -- the following functions don't not need cell binding as they are called for other cells
-            get_parameters                  = bindstate(_get_parameters),
+            inherit_parameters              = bindstatecell(_inherit_parameters),
             create_layout                   = pcell.create_layout,
             create_layout_env               = pcell.create_layout_env,
             create_layout_in_object         = pcell.create_layout_in_object,
@@ -364,11 +364,6 @@ function state.create_cellenv(state, cellname, ovrenv)
     end
     setmetatable(env, envmeta)
     return env
-end
-
--- Public functions
-function pcell.get_parameters(othercell, cellargs)
-    return _get_parameters(state, othercell, cellargs)
 end
 
 function pcell.enable_debug(d)

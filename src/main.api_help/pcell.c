@@ -46,21 +46,6 @@
     ));
 }
 
-/* pcell.get_parameters */
-{
-    struct parameter parameters[] = {
-        { "cellname", STRING, NULL, "cellname of the cell whose parameters should be queried" }
-    };
-    vector_append(entries, _make_api_entry(
-        "get_parameters",
-        MODULE_PCELL,
-        "access the (updated) parameter values of another cell",
-        "function parameters()\n    end\n\nfunction layout(cell)\n    local bp = pcell.get_parameters(\"foo/bar\")\nend",
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
-    ));
-}
-
 /* pcell.check_expression */
 {
     struct parameter parameters[] = {
