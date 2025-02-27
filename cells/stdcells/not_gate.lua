@@ -7,11 +7,11 @@ function parameters()
     pcell.add_parameter("shiftoutput", 0)
     pcell.add_parameter("swapoddcorrectiongate", false)
     pcell.add_parameter("connectoutput", true)
+    pcell.inherit_parameters("stdcells/harness")
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("stdcells/base")
-    local xpitch = bp.gspace + bp.glength
+    local xpitch = _P.gspace + _P.glength
 
     local gatecontactpos = {}
     for i = 1, _P.fingers do gatecontactpos[i] = _P.inputpos end
@@ -55,10 +55,10 @@ function layout(gate, _P)
     -- signal transistors drain connections
     if _P.connectoutput then
         geometry.path_cshape(gate, generics.metal(1),
-            harness:get_area_anchor(string.format("pSD%d", 2)).br:translate(0, bp.sdwidth / 2),
-            harness:get_area_anchor(string.format("nSD%d", 2)).tr:translate(0, -bp.sdwidth / 2),
+            harness:get_area_anchor(string.format("pSD%d", 2)).br:translate(0, _P.sdwidth / 2),
+            harness:get_area_anchor(string.format("nSD%d", 2)).tr:translate(0, -_P.sdwidth / 2),
             harness:get_area_anchor(string.format("G%d", _P.fingers)).bl:translate(xpitch + _P.shiftoutput, 0),
-            bp.sdwidth
+            _P.sdwidth
         )
     end
 
