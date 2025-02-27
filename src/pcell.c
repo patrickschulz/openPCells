@@ -138,11 +138,15 @@ static int _load_pfiles(struct pcell_state* pcell_state, lua_State* L)
         lua_pushnil(L);
         while(lua_next(L, -2) != 0)
         {
+            /*
+             * FIXME: this was here, but some cells have table parameters,
+             *        this would make the use of those in pfiles impossible
             if(lua_type(L, -1) == LUA_TTABLE)
             {
                 puts("no nested tables are allowed in parameter files");
                 return 0;
             }
+            */
             if(lua_type(L, -2) != LUA_TSTRING)
             {
                 puts("non-string keys in parameter files are prohibited");
