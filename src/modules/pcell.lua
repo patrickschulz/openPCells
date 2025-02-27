@@ -163,6 +163,15 @@ local function _add_parameter_internal(cell, name, value, argtype, posvals, info
     cell.parameters:add(name, value, argtype, posvals, info, follow, readonly)
 end
 
+local function _inherit_parameters(state, cellname, othercellname)
+    local cell = _get_cell(state, cellname)
+    local othercell = _get_cell(state, othercellname)
+    local cellparams = othercell.parameters.values
+    for k, v in pairs(cellparams) do
+        _add_parameter_internal(cell, v.name, v.value, v.argtype, nil, nil, nil, v.readonly)
+    end
+end
+
 local function _get_parameters(state, cellname, cellargs)
     local cell = _get_cell(state, cellname)
     local cellparams = cell.parameters.values
