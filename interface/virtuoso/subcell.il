@@ -98,7 +98,13 @@ procedure(OPCSubCellUpdate()
         opcgroup = OPCSubCellGet()
         if(opcgroup
             then
-                OPCUpdateCallback(?hierarchical nil ?xpath opcgroup->opcpath ?origin opcgroup->origin ?xgroupname opcgroup->name)
+                OPCUpdateCallback(
+                    ?hierarchical nil
+                    ?deleteAll nil
+                    ?xpath opcgroup->opcpath
+                    ?origin opcgroup->origin
+                    ?xgroupname opcgroup->name
+                )
             else
                 nil
         ) ; if opcgroup
