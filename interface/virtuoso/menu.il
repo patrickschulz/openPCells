@@ -14,7 +14,7 @@ procedure(OPCCreateLayoutMenu()
         remove = hiCreateMenuItem(?name 'OPCCellScriptRemove ?itemText "Delete Design File" ?callback "OPCDeleteDesignFile()")
 
         ; sub cells
-        createsubcell = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Edit Sub-Cell" ?callback "OPCSubCellCreate()")
+        createsubcell = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Create Sub-Cell" ?callback "OPCSubCellCreate()")
         editsubcell = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Edit Sub-Cell" ?callback "OPCSubCellEdit()")
         updatesubcell = hiCreateMenuItem(?name 'OPCSubCellScript ?itemText "Update Sub-Cell" ?callback "OPCSubCellUpdate()")
 
