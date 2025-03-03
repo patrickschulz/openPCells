@@ -45,7 +45,7 @@ procedure(OPCSubCellCreate()
         )
         ?callback "OPCSubCellCreateCallback()"
     )
-    hiDisplayForm(OPCAboutForm 100:100)
+    hiDisplayForm(OPCSubCellCreationForm 100:100)
 )
 
 procedure(OPCSubCellCreateCallback()
