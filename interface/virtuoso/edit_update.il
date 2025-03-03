@@ -65,9 +65,7 @@ procedure(OPCUpdateCallback(@key (deleteAll t) (callopc t) (hierarchical t) (ori
                     foreach(via cv->vias dbDeleteObject(via))
                 else
                     let(((group dbGetFigGroupByName(cv groupname)))
-                        foreach(shape group->shapes dbDeleteObject(shape))
-                        foreach(inst group->instances dbDeleteObject(inst))
-                        foreach(via group->vias dbDeleteObject(via))
+                        foreach(obj group->figs dbDeleteObject(obj))
                     )
             )
             load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
