@@ -15,7 +15,7 @@ procedure(OPCEditCallback()
     )
 ) ; procedure
 
-procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (origin list(0 0)) (xpath nil) (xgroupname nil))
+procedure(OPCUpdateCallback(@key (deleteAll t) (callopc t) (hierarchical t) (origin list(0 0)) (xpath nil) (xgroupname nil))
     letseq(
         (
             (cv geGetEditCellView())
@@ -51,16 +51,25 @@ procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (origin list(0 0))
                     then
                         success = t
                     else
-                        success = nil
                         printf("opc call: %s\n" OPCCmd)
+                        success = nil
                 )
             else
                 success = t
         )
         when(success
-            foreach(shape cv->shapes dbDeleteObject(shape))
-            foreach(inst cv->instances dbDeleteObject(inst))
-            foreach(via cv->vias dbDeleteObject(via))
+            if(deleteAll
+                then
+                    foreach(shape cv->shapes dbDeleteObject(shape))
+                    foreach(inst cv->instances dbDeleteObject(inst))
+                    foreach(via cv->vias dbDeleteObject(via))
+                else
+                    let(((group dbGetFigGroupByName(cv groupname)))
+                        foreach(shape group->shapes dbDeleteObject(shape))
+                        foreach(inst group->instances dbDeleteObject(inst))
+                        foreach(via group->vias dbDeleteObject(via))
+                    )
+            )
             load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
             OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
         )
