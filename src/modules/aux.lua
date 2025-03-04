@@ -94,7 +94,7 @@ function aux.make_even(num)
 end
 
 function aux.assert_one_of(msg, key, ...)
-    assert(aux.any_of(function(v) return v == key end, { ... }),
+    assert(util.any_of(function(v) return v == key end, { ... }),
         string.format("%s must be one of { %s }", msg, table.concat({ ... }, ", "))
     )
 end
