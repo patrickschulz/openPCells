@@ -74,6 +74,7 @@ procedure(OPCCall(OPCCommand @key (redirect nil))
         exitstatus = ipcGetExitStatus(pid)
         if(exitstatus != 0
             then 
+                warn("opc call failed, command was: %s\n" OPCCommand)
                 errmsg = ipcReadProcess(pid)
                 unless(errmsg
                     errmsg = "unknown error, this is a bug in opc (likely a segmentation fault)"

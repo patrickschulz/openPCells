@@ -45,17 +45,11 @@ procedure(OPCUpdateCallback(@key (deleteAll t) (callopc t) (hierarchical t) (ori
             OPCArgs = lsprintf("%s --flat" OPCArgs)
         )
         OPCCmd = OPCBuildCallCommand(OPCArgs)
-        if(callopc
+        success = if(callopc
             then
-                if(OPCCall(OPCCmd)
-                    then
-                        success = t
-                    else
-                        printf("opc call: %s\n" OPCCmd)
-                        success = nil
-                )
+                OPCCall(OPCCmd)
             else
-                success = t
+                t
         )
         when(success
             if(deleteAll
