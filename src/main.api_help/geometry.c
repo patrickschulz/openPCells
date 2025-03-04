@@ -472,7 +472,7 @@
     vector_append(entries, _make_api_entry(
         "path_cshape",
         MODULE_GEOMETRY,
-        "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the x-coordinate of the offset point is taken, creating a shape resembling a (possibly inverter) 'C'",
+        "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the x-coordinate of the offset point is taken, creating a shape resembling a (possibly inverted) 'C'",
         "geometry.path_cshape(cell, generics.metal(1), point.create(-50, 50), point.create(-50, -50), point.create(100, 0))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
@@ -492,7 +492,7 @@
     vector_append(entries, _make_api_entry(
         "path_ushape",
         MODULE_GEOMETRY,
-        "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the y-coordinate of the offset point is taken, creating a shape resembling a (possibly inverter) 'U'",
+        "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the y-coordinate of the offset point is taken, creating a shape resembling a (possibly inverted) 'U'",
         "geometry.path_ushape(cell, generics.metal(1), point.create(-50, 0), point.create(50, 0), point.create(0, 100))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
