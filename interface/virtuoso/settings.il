@@ -6,6 +6,11 @@ procedure(OPCCreateSettingsForm()
         ?initialSize t ; size form to fit all fields
         ?fields list(
             hiCreateStringField(
+                ?name 'OPCCellEnvironmentFile
+                ?value ""
+                ?prompt "File Name for Cell Environment"
+            )
+            hiCreateStringField(
                 ?name 'OPCCellFilename
                 ?value "openPCells"
                 ?prompt "File Name for Generated Layouts"

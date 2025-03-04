@@ -55,9 +55,21 @@ function paramlib.check_readonly(parameter)
     end
 end
 
+function _has_parameter(self, name)
+    for _, p in ipairs(self.values) do
+        if p.name == name then
+            return true
+        end
+    end
+    return false
+end
+
 function parammeta.add(self, name, value, argtype, posvals, info, follow, readonly)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
     if not pname then pname = name end -- no display name
+    if _has_parameter(self, pname) then
+        moderror(string.format("tried to add parameter '%s', but it already exists", pname))
+    end
     local new = {
         name      = pname,
         display   = dname,
@@ -163,12 +175,14 @@ local function _add_parameter_internal(cell, name, value, argtype, posvals, info
     cell.parameters:add(name, value, argtype, posvals, info, follow, readonly)
 end
 
-local function _inherit_parameters(state, cellname, othercellname)
+local function _inherit_parameters(state, cellname, othercellname, excludelist)
     local cell = _get_cell(state, cellname)
     local othercell = _get_cell(state, othercellname)
     local cellparams = othercell.parameters.values
     for k, v in pairs(cellparams) do
-        _add_parameter_internal(cell, v.name, v.value, v.argtype, nil, nil, nil, v.readonly)
+        if not util.any_of(k, excludelist or {}) then
+            _add_parameter_internal(cell, v.name, v.value, v.argtype, nil, nil, nil, v.readonly)
+        end
     end
 end
 
@@ -315,12 +329,13 @@ function state.create_cellenv(state, cellname, ovrenv)
             set_property                    = bindstatecell(_set_property),
             add_parameter                   = bindstatecell(_add_parameter),
             add_parameters                  = bindstatecell(_add_parameters),
-            -- the following functions don't not need cell binding as they are called for other cells
             inherit_parameters              = bindstatecell(_inherit_parameters),
+            -- the following functions don't not need cell binding as they are called for other cells
             create_layout                   = pcell.create_layout,
             create_layout_env               = pcell.create_layout_env,
             create_layout_in_object         = pcell.create_layout_in_object,
             create_layout_env_in_object     = pcell.create_layout_env_in_object,
+            has_parameter                   = pcell.has_parameter,
         },
         technology = {
             get_dimension = technology.get_dimension,
@@ -481,7 +496,7 @@ function pcell.create_layout_env_in_object(obj, cellname, cellargs, env)
     _globalenv = oldenv
 end
 
-function pcell.create_layout_from_script(scriptpath, args)
+function pcell.create_layout_from_script(scriptpath, args, cellenv)
     local reader = _get_reader(scriptpath)
     if reader then
         local env = _ENV
@@ -491,6 +506,7 @@ function pcell.create_layout_from_script(scriptpath, args)
         -- save args and then replace them
         local savedargs = env.args
         env.args = args
+        env.cellenv = cellenv
         -- run script
         local cell = _dofile(reader, string.format("@%s", scriptpath), nil, env)
         if not cell then
@@ -555,6 +571,16 @@ local function _collect_parameters(cell, ptype, parent, str)
             posvals = entry.posvals
         })
     end
+end
+
+function pcell.has_parameter(cellname, parametername)
+    local cell = _get_cell(state, cellname)
+    for _, entry in ipairs(cell.parameters.values) do
+        if entry.name == parametername then
+            return true
+        end
+    end
+    return false
 end
 
 function pcell.parameters(cellname, cellargs, generictech)

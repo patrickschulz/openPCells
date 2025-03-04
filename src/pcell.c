@@ -275,6 +275,7 @@ static void _process_input_arguments(lua_State* L, struct const_vector* cellargs
 struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* name, struct const_vector* cellargs, const char *cellenvfilename)
 {
     lua_State* L = _prepare_layout_generation(pcell_state, techstate);
+    struct object* toplevel = NULL;
     if(!L)
     {
         return NULL;
@@ -285,8 +286,19 @@ struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, 
     // cell arguments
     lua_newtable(L);
     _process_input_arguments(L, cellargs);
-    int retval = main_lua_pcall(L, 2, 1);
-    struct object* toplevel = _process_object(L, retval);
+    // load cell environment
+    if(!_load_cellenv(L, cellenvfilename))
+    {
+        fprintf(stderr, "could not load cell environment in '%s'\n", cellenvfilename);
+        goto create_layout_from_script_finish;
+    }
+    // arguments:
+    // (1) scriptpath
+    // (2) args
+    // (3) cellenv
+    int retval = main_lua_pcall(L, 3, 1);
+    toplevel = _process_object(L, retval);
+create_layout_from_script_finish:
     lua_close(L);
     return toplevel;
 }

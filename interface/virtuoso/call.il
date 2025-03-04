@@ -28,6 +28,9 @@ procedure(OPCPrepareArgsForCellCreation(args origin @key (groupname nil) (export
     when(groupname
         OPCArgs = lsprintf("%s -X '-g -n %s'" OPCArgs groupname)
     )
+    when(OPCSettingsForm->OPCCellEnvironmentFile->value != ""
+        OPCArgs = lsprintf("%s --cell-environment %s" OPCArgs OPCSettingsForm->OPCCellEnvironmentFile->value)
+    )
     when(OPCSettingsForm->OPCSettingsEnableFallbackVias->value == "true"
         OPCArgs = lsprintf("%s --enable-fallback-vias" OPCArgs)
     )
