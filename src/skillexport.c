@@ -43,15 +43,22 @@ static void _start_let(struct export_data* data, int initial)
     export_data_append_string(data, "let(");
     export_data_append_char(data, '\n');
     export_data_append_string(data, "    (");
+    export_data_append_string(data, "cv");
+    if(__group)
+    {
+        export_data_append_string(data, " group");
+    }
+    export_data_append_string(data, ")");
     export_data_append_char(data, '\n');
+
     if(__istoplevel)
     {
-        export_data_append_string(data, "        (cv geGetEditCellView())");
-        export_data_append_char(data, '\n');
+        export_data_append_string(data, "    cv = geGetEditCellView()");
     }
     else
     {
-        export_data_append_string(data, "        (cv dbOpenCellViewByType(libname \"");
+        export_data_append_string(data, "    ; libname needs to be defined by calling function\n");
+        export_data_append_string(data, "    cv = dbOpenCellViewByType(libname \"");
         export_data_append_string(data, __cellname);
         export_data_append_string(data, "\" \"layout\" \"maskLayout\"");
         export_data_append_char(data, ' ');
@@ -63,12 +70,12 @@ static void _start_let(struct export_data* data, int initial)
         {
             export_data_append_string(data, "\"a\"");
         }
-        export_data_append_string(data, "))");
-        export_data_append_char(data, '\n');
+        export_data_append_string(data, ")");
     }
     if(__group)
     {
-        export_data_append_string(data, "        (group if(dbGetFigGroupByName(cv \"");
+        export_data_append_char(data, '\n');
+        export_data_append_string(data, "    group = if(dbGetFigGroupByName(cv \"");
         if(__groupname)
         {
             export_data_append_string(data, __groupname);
@@ -95,10 +102,8 @@ static void _start_let(struct export_data* data, int initial)
         {
             export_data_append_string(data, "opcgroup");
         }
-        export_data_append_string(data, "\" t 0:0 \"R0\")))");
-        export_data_append_char(data, '\n');
+        export_data_append_string(data, "\" t 0:0 \"R0\"))");
     }
-    export_data_append_string(data, "    )");
     export_data_append_char(data, '\n');
 }
 
@@ -149,6 +154,7 @@ static void _at_end_cell(struct export_data* data, int istoplevel)
         export_data_append_char(data, '\n');
     }
     _close_let(data);
+    free(__cellname);
 }
 
 static inline void _write_layer(struct export_data* data, const struct hashmap* layer)
@@ -239,8 +245,8 @@ static void _write_rectangle(struct export_data* data, const struct hashmap* lay
     _write_point(data, tr);
     export_data_append_char(data, ')');
     export_data_append_char(data, ')');
-    export_data_append_char(data, '\n');
     _finish_shape_for_group(data);
+    export_data_append_char(data, '\n');
     _ensure_legal_limit(data);
 }
 

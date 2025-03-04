@@ -217,7 +217,10 @@ struct object* object_copy(const struct object* cell)
         new->xpitch = cell->xpitch;
         new->ypitch = cell->ypitch;
         transformationmatrix_destroy(new->array_trans);
-        new->array_trans = transformationmatrix_copy(cell->array_trans);
+        if(cell->isarray)
+        {
+            new->array_trans = transformationmatrix_copy(cell->array_trans);
+        }
     }
     else
     {
