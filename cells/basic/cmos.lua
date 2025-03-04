@@ -1,144 +1,147 @@
 function parameters()
     pcell.add_parameters(
-        { "oxidetype(Oxide Type)",                             1 },
-        { "gatemarker(Gate Marker Index)",                     1 },
-        { "pvthtype(PMOS Threshold Voltage Type) ",            1 },
-        { "nvthtype(NMOS Threshold Voltage Type)",             1 },
-        { "pmosflippedwell(PMOS Flipped Well) ",            false },
-        { "nmosflippedwell(NMOS Flipped Well)",             false },
-        { "pwidth(PMOS Finger Width)",                         technology.get_dimension("Minimum Gate Width"), posvals = even() },
-        { "nwidth(NMOS Finger Width)",                         technology.get_dimension("Minimum Gate Width"), posvals = even() },
-        { "separation(Separation Between Active Regions)",     technology.get_dimension("Minimum Active Space") },
-        { "gatelength(Gate Length)",                           technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
-        { "gatespace(Gate Spacing)",                           technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
-        { "sdwidth(Source/Drain Metal Width)",                 technology.get_dimension("Minimum M1 Width"), posvals = even() },
-        { "innergatestraps(Number of Inner Gate Straps)",      3 },
-        { "gatestrapwidth(Gate Strap Metal Width)",                  technology.get_dimension("Minimum M1 Width") },
-        { "gatestrapspace(Gate Strap Metal Space)",                  technology.get_dimension("Minimum M1 Space") },
-        { "gatecontactsplitshift(Gate Contact Split Shift)",   technology.get_dimension("Minimum M1 Width") + technology.get_dimension("Minimum M1 Space") },
-        { "powerwidth(Power Rail Metal Width)",                technology.get_dimension("Minimum M1 Width") },
-        { "npowerspace(NMOS Power Rail Space)",                technology.get_dimension("Minimum M1 Space"), posvals = positive() },
-        { "ppowerspace(PMOS Power Rail Space)",                technology.get_dimension("Minimum M1 Space"), posvals = positive() },
-        { "pgateext(pMOS Gate Extension)",                     0 },
-        { "ngateext(nMOS Gate Extension)",                     0 },
-        { "psdheight(PMOS Source/Drain Contact Height)",       0 },
-        { "nsdheight(NMOS Source/Drain Contact Height)",       0 },
-        { "psdpowerheight(PMOS Source/Drain Contact Height)",  0 },
-        { "nsdpowerheight(NMOS Source/Drain Contact Height)",  0 },
-        { "psddummyouterheight(PMOS Source/Drain Outer Dummy Contact Height)",  0 },
-        { "nsddummyouterheight(NMOS Source/Drain Outer Dummy Contact Height)",  0 },
-        { "psddummyinnerheight(PMOS Source/Drain Inner Dummy Contact Height)",  0 },
-        { "nsddummyinnerheight(NMOS Source/Drain Inner Dummy Contact Height)",  0 },
-        { "isoutputcontact", { } },
-        { "outputmetal", 1 },
-        { "nsplitoutputvias", false },
-        { "psplitoutputvias", false },
-        { "outputwidth", technology.get_dimension("Minimum M1 Width") },
-        { "noutputinlineoffset", 0 },
-        { "poutputinlineoffset", 0 },
-        { "cutwidth",                                          0, follow = "gatelength" }, -- FIXME: allow expressions for follower parameters
-        { "cutheight",                                         technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
-        { "poutercutyshift",                                   0 },
-        { "noutercutyshift",                                   0 },
-        { "compact(Compact Layout)",                           true },
-        { "connectoutput",                                     true },
-        { "drawtransistors", true },
-        { "drawactive", true },
-        { "drawrails", true },
-        { "drawgatecontacts", true },
-        { "outergatestrapwidth(Outer Gate Strap Metal Width)",  technology.get_dimension("Minimum M1 Width") },
-        { "outergatestrapspace(Outer Gate Strap Metal Space)",  technology.get_dimension("Minimum M1 Space") },
-        { "outergateshift(Outer Gate Strap Metal Shift)",  0 },
-        { "gatecontactpos", { "center" }, argtype = "strtable" },
-        { "gatenames", {}, argtype = "strtable" },
-        { "shiftgatecontacts", 0 },
-        { "pcontactpos", {}, argtype = "strtable" },
-        { "ncontactpos", {}, argtype = "strtable" },
-        { "shiftpcontactsinner", 0 },
-        { "shiftpcontactsouter", 0 },
-        { "shiftncontactsinner", 0 },
-        { "shiftncontactsouter", 0 },
-        { "drawdummygatecontacts", true },
-        { "drawdummyactivecontacts", true },
-        { "drawoutergatecut", false },
-        { "drawgatecuteverywhere", false },
-        { "dummycontheight(Dummy Gate Contact Height)",        technology.get_dimension("Minimum M1 Width") },
-        { "dummycontshift(Dummy Gate Shift)",                  0 },
-        { "drawnmoswelltap(Draw nMOS Well Tap)", false },
-        { "nmoswelltapspace(nMOS Well Tap Space)", technology.get_dimension("Minimum M1 Space") },
-        { "nmoswelltapwidth(nMOS Well Tap Width)", technology.get_dimension("Minimum M1 Width") },
-        { "drawpmoswelltap(Draw pMOS Well Tap)", false },
-        { "pmoswelltapspace(pMOS Well Tap Space)", technology.get_dimension("Minimum M1 Space") },
-        { "pmoswelltapwidth(pMOS Well Tap Width)", technology.get_dimension("Minimum M1 Width") },
-        { "welltapcontinuouscontact(Well Tap Draw Continuous Contacts)", true },
-        { "welltapextendleft", 0 },
-        { "welltapextendright", 0 },
-        { "drawactivedummy", false },
-        { "activedummywidth", 0 },
-        { "activedummyspace", 0 },
-        { "drawleftstopgate", false },
-        { "drawrightstopgate", false },
-        { "leftpolylines", {} },
-        { "rightpolylines", {} },
-        { "implantalignwithactive", false },
-        { "implantalignleftwithactive", false, follow = "implantalignwithactive" },
-        { "implantalignrightwithactive", false, follow = "implantalignwithactive" },
-        { "implantaligntopwithactive", false, follow = "implantalignwithactive" },
-        { "implantalignbottomwithactive", false, follow = "implantalignwithactive" },
-        { "oxidetypealignwithactive", false },
-        { "oxidetypealignleftwithactive", false, follow = "oxidetypealignwithactive" },
-        { "oxidetypealignrightwithactive", false, follow = "oxidetypealignwithactive" },
-        { "oxidetypealigntopwithactive", false, follow = "oxidetypealignwithactive" },
-        { "oxidetypealignbottomwithactive", false, follow = "oxidetypealignwithactive" },
-        { "vthtypealignwithactive", false },
-        { "vthtypealignleftwithactive", false, follow = "vthtypealignwithactive" },
-        { "vthtypealignrightwithactive", false, follow = "vthtypealignwithactive" },
-        { "vthtypealigntopwithactive", false, follow = "vthtypealignwithactive" },
-        { "vthtypealignbottomwithactive", false, follow = "vthtypealignwithactive" },
-        { "extendalltop", 0 },
-        { "extendallbottom", 0 },
-        { "extendallleft", 0 },
-        { "extendallright", 0 },
-        { "extendoxidetypetop", 0, follow = "extendalltop" },
-        { "extendoxidetypebottom", 0, follow = "extendallbottom" },
-        { "extendoxidetypeleft", 0, follow = "extendallleft" },
-        { "extendoxidetyperight", 0, follow = "extendallright" },
-        { "extendvthtypetop", 0, follow = "extendalltop" },
-        { "extendvthtypebottom", 0, follow = "extendallbottom" },
-        { "extendvthtypeleft", 0, follow = "extendallleft" },
-        { "extendvthtyperight", 0, follow = "extendallright" },
-        { "extendimplanttop", 0, follow = "extendalltop" },
-        { "extendimplantbottom", 0, follow = "extendallbottom" },
-        { "extendimplantleft", 0, follow = "extendallleft" },
-        { "extendimplantright", 0, follow = "extendallright" },
-        { "extendwelltop", 0, follow = "extendalltop" },
-        { "extendwellbottom", 0, follow = "extendallbottom" },
-        { "extendwellleft", 0, follow = "extendallleft" },
-        { "extendwellright", 0, follow = "extendallright" },
-        { "extendlvsmarkertop", 0, follow = "extendalltop" },
-        { "extendlvsmarkerbottom", 0, follow = "extendallbottom" },
-        { "extendlvsmarkerleft", 0, follow = "extendallleft" },
-        { "extendlvsmarkerright", 0, follow = "extendallright" },
-        { "extendrotationmarkertop", 0, follow = "extendalltop" },
-        { "extendrotationmarkerbottom", 0, follow = "extendallbottom" },
-        { "extendrotationmarkerleft", 0, follow = "extendallleft" },
-        { "extendrotationmarkerright", 0, follow = "extendallright" },
-        { "extendanalogmarkertop", 0, follow = "extendalltop" },
-        { "extendanalogmarkerbottom", 0, follow = "extendallbottom" },
-        { "extendanalogmarkerleft", 0, follow = "extendallleft" },
-        { "extendanalogmarkerright", 0, follow = "extendallright" },
-        { "drawanalogmarker", false }
+        { "oxidetype(Oxide Type)",                                                  1 },
+        { "gatemarker(Gate Marker Index)",                                          1 },
+        { "pvthtype(PMOS Threshold Voltage Type) ",                                 1 },
+        { "nvthtype(NMOS Threshold Voltage Type)",                                  1 },
+        { "pmosflippedwell(PMOS Flipped Well) ",                                    false },
+        { "nmosflippedwell(NMOS Flipped Well)",                                     false },
+        { "pwidth(PMOS Finger Width)",                                              technology.get_dimension("Minimum Gate Width"), posvals = even() },
+        { "nwidth(NMOS Finger Width)",                                              technology.get_dimension("Minimum Gate Width"), posvals = even() },
+        { "separation(Separation Between Active Regions)",                          technology.get_dimension("Minimum Active Space") },
+        { "separationautocalc(Automatically Calculate Separation)",                 false },
+        { "ignoreseparationchecks(Ignore Separation Checks)",                       false },
+        { "gatelength(Gate Length)",                                                technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
+        { "gatespace(Gate Spacing)",                                                technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
+        { "sdwidth(Source/Drain Metal Width)",                                      technology.get_dimension("Minimum M1 Width"), posvals = even() },
+        { "innergatestraps(Number of Inner Gate Straps)",                           3 },
+        { "gatestrapwidth(Gate Strap Metal Width)",                                 technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapspace(Gate Strap Metal Space)",                                 technology.get_dimension("Minimum M1 Space") },
+        { "gatecontactsplitshift(Gate Contact Split Shift)",                        technology.get_dimension("Minimum M1 Width") + technology.get_dimension("Minimum M1 Space") },
+        { "powerwidth(Power Rail Metal Width)",                                     technology.get_dimension("Minimum M1 Width") },
+        { "npowerspace(NMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), posvals = positive() },
+        { "ppowerspace(PMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), posvals = positive() },
+        { "pgateext(pMOS Gate Extension)",                                          0 },
+        { "ngateext(nMOS Gate Extension)",                                          0 },
+        { "psdheight(PMOS Source/Drain Contact Height)",                            0 },
+        { "nsdheight(NMOS Source/Drain Contact Height)",                            0 },
+        { "psdpowerheight(PMOS Source/Drain Contact Height)",                       0 },
+        { "nsdpowerheight(NMOS Source/Drain Contact Height)",                       0 },
+        { "psddummyouterheight(PMOS Source/Drain Outer Dummy Contact Height)",      0 },
+        { "nsddummyouterheight(NMOS Source/Drain Outer Dummy Contact Height)",      0 },
+        { "psddummyinnerheight(PMOS Source/Drain Inner Dummy Contact Height)",      0 },
+        { "nsddummyinnerheight(NMOS Source/Drain Inner Dummy Contact Height)",      0 },
+        { "isoutputcontact",                                                        { } },
+        { "outputmetal",                                                            1 },
+        { "nsplitoutputvias",                                                       false },
+        { "psplitoutputvias",                                                       false },
+        { "outputwidth",                                                            technology.get_dimension("Minimum M1 Width") },
+        { "noutputinlineoffset",                                                    0 },
+        { "poutputinlineoffset",                                                    0 },
+        { "cutwidth",                                                               0, follow = "gatelength" }, -- FIXME: allow expressions for follower parameters
+        { "cutheight",                                                              technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
+        { "poutercutyshift",                                                        0 },
+        { "noutercutyshift",                                                        0 },
+        { "compact(Compact Layout)",                                                true },
+        { "connectoutput",                                                          true },
+        { "drawtransistors",                                                        true },
+        { "drawactive",                                                             true },
+        { "drawrails",                                                              true },
+        { "drawgatecontacts",                                                       true },
+        { "outergatestrapwidth(Outer Gate Strap Metal Width)",                      technology.get_dimension("Minimum M1 Width") },
+        { "outergatestrapspace(Outer Gate Strap Metal Space)",                      technology.get_dimension("Minimum M1 Space") },
+        { "outergateshift(Outer Gate Strap Metal Shift)",                           0 },
+        { "gatecontactpos",                                                         { "center" }, argtype = "strtable" },
+        { "gatenames",                                                              {}, argtype = "strtable" },
+        { "shiftgatecontacts",                                                      0 },
+        { "pcontactpos",                                                            {}, argtype = "strtable" },
+        { "ncontactpos",                                                            {}, argtype = "strtable" },
+        { "shiftpcontactsinner",                                                    0 },
+        { "shiftpcontactsouter",                                                    0 },
+        { "shiftncontactsinner",                                                    0 },
+        { "shiftncontactsouter",                                                    0 },
+        { "drawdummygatecontacts",                                                  true },
+        { "drawdummyactivecontacts",                                                true },
+        { "drawoutergatecut",                                                       false },
+        { "drawgatecuteverywhere",                                                  false },
+        { "dummycontheight(Dummy Gate Contact Height)",                             technology.get_dimension("Minimum M1 Width") },
+        { "dummycontshift(Dummy Gate Shift)",                                       0 },
+        { "drawnmoswelltap(Draw nMOS Well Tap)",                                    false },
+        { "nmoswelltapspace(nMOS Well Tap Space)",                                  technology.get_dimension("Minimum M1 Space") },
+        { "nmoswelltapwidth(nMOS Well Tap Width)",                                  technology.get_dimension("Minimum M1 Width") },
+        { "drawpmoswelltap(Draw pMOS Well Tap)",                                    false },
+        { "pmoswelltapspace(pMOS Well Tap Space)",                                  technology.get_dimension("Minimum M1 Space") },
+        { "pmoswelltapwidth(pMOS Well Tap Width)",                                  technology.get_dimension("Minimum M1 Width") },
+        { "welltapcontinuouscontact(Well Tap Draw Continuous Contacts)",            true },
+        { "welltapextendleft",                                                      0 },
+        { "welltapextendright",                                                     0 },
+        { "drawactivedummy",                                                        false },
+        { "activedummywidth",                                                       0 },
+        { "activedummyspace",                                                       0 },
+        { "drawleftstopgate",                                                       false },
+        { "drawrightstopgate",                                                      false },
+        { "leftpolylines",                                                          {} },
+        { "rightpolylines",                                                         {} },
+        { "implantalignwithactive",                                                 false },
+        { "implantalignleftwithactive",         false, follow = "implantalignwithactive" },
+        { "implantalignrightwithactive",        false, follow = "implantalignwithactive" },
+        { "implantaligntopwithactive",          false, follow = "implantalignwithactive" },
+        { "implantalignbottomwithactive",       false, follow = "implantalignwithactive" },
+        { "oxidetypealignwithactive",           false },
+        { "oxidetypealignleftwithactive",       false, follow = "oxidetypealignwithactive" },
+        { "oxidetypealignrightwithactive",      false, follow = "oxidetypealignwithactive" },
+        { "oxidetypealigntopwithactive",        false, follow = "oxidetypealignwithactive" },
+        { "oxidetypealignbottomwithactive",     false, follow = "oxidetypealignwithactive" },
+        { "vthtypealignwithactive",             false },
+        { "vthtypealignleftwithactive",         false, follow = "vthtypealignwithactive" },
+        { "vthtypealignrightwithactive",        false, follow = "vthtypealignwithactive" },
+        { "vthtypealigntopwithactive",          false, follow = "vthtypealignwithactive" },
+        { "vthtypealignbottomwithactive",       false, follow = "vthtypealignwithactive" },
+        { "extendalltop",                       0 },
+        { "extendallbottom",                    0 },
+        { "extendallleft",                      0 },
+        { "extendallright",                     0 },
+        { "extendoxidetypetop",                 0, follow = "extendalltop" },
+        { "extendoxidetypebottom",              0, follow = "extendallbottom" },
+        { "extendoxidetypeleft",                0, follow = "extendallleft" },
+        { "extendoxidetyperight",               0, follow = "extendallright" },
+        { "extendvthtypetop",                   0, follow = "extendalltop" },
+        { "extendvthtypebottom",                0, follow = "extendallbottom" },
+        { "extendvthtypeleft",                  0, follow = "extendallleft" },
+        { "extendvthtyperight",                 0, follow = "extendallright" },
+        { "extendimplanttop",                   0, follow = "extendalltop" },
+        { "extendimplantbottom",                0, follow = "extendallbottom" },
+        { "extendimplantleft",                  0, follow = "extendallleft" },
+        { "extendimplantright",                 0, follow = "extendallright" },
+        { "extendwelltop",                      0, follow = "extendalltop" },
+        { "extendwellbottom",                   0, follow = "extendallbottom" },
+        { "extendwellleft",                     0, follow = "extendallleft" },
+        { "extendwellright",                    0, follow = "extendallright" },
+        { "extendlvsmarkertop",                 0, follow = "extendalltop" },
+        { "extendlvsmarkerbottom",              0, follow = "extendallbottom" },
+        { "extendlvsmarkerleft",                0, follow = "extendallleft" },
+        { "extendlvsmarkerright",               0, follow = "extendallright" },
+        { "extendrotationmarkertop",            0, follow = "extendalltop" },
+        { "extendrotationmarkerbottom",         0, follow = "extendallbottom" },
+        { "extendrotationmarkerleft",           0, follow = "extendallleft" },
+        { "extendrotationmarkerright",          0, follow = "extendallright" },
+        { "extendanalogmarkertop",              0, follow = "extendalltop" },
+        { "extendanalogmarkerbottom",           0, follow = "extendallbottom" },
+        { "extendanalogmarkerleft",             0, follow = "extendallleft" },
+        { "extendanalogmarkerright",            0, follow = "extendallright" },
+        { "drawanalogmarker",                   false }
     )
 end
 
 function check(_P)
     -- check separation
-    if (_P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace) > _P.separation then
-        return false, string.format("can't fit all gate straps into the separation between nmos and pmos: %d > %d", _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace, _P.separation)
-    end
-    -- FIXME: this check is not necessary, but the current implementation is broken if this condition is met
-    if (_P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace) ~= _P.separation then
-        return false, string.format("the separation between nmos and pmos must have the exact size to fit three rows of gate contacts (%d vs. %d)", _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace, _P.separation)
+    if not _P.ignoreseparationchecks then
+        if (_P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace) > _P.separation then
+            return false, string.format("can't fit all gate straps into the separation between nmos and pmos: %d > %d", _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace, _P.separation)
+        end
+        if (_P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace) ~= _P.separation then
+            return false, string.format("the separation between nmos and pmos must have the exact size to fit %d rows of gate contacts (%d vs. %d)", _P.innergatestraps, _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace, _P.separation)
+        end
     end
     -- check number of gate and source/drain contacts
     if #_P.pcontactpos ~= #_P.ncontactpos then
@@ -190,7 +193,6 @@ function layout(cmos, _P)
             sdwidth = _P.sdwidth,
             oxidetype = _P.oxidetype,
             gatemarker = _P.gatemarker,
-            excludesourcedraincontacts = { 2 },
             drawactive = _P.drawactive,
             topgatecutheight = _P.cutheight,
             botgatecutheight = _P.cutheight,
@@ -345,7 +347,11 @@ function layout(cmos, _P)
             local ngatey = (_P.separation - _P.gatestrapwidth) / 2 + _P.shiftgatecontacts
             local pgatey = (_P.separation - _P.gatestrapwidth) / 2 + _P.shiftgatecontacts
             local gateanchors = {}
+            local evenoddgatestrapshift = (_P.innergatestraps % 2 == 0) and (_P.gatestrapwidth + _P.gatestrapspace) / 2 or 0
             if _P.gatecontactpos[i] == "center" then
+                if _P.innergatestraps % 2 == 0 then
+                    moderror("requested 'center' gate contact position, but the number of inner gate straps is even. The center gate strap only exists with an odd number of inner gate straps")
+                end
                 nopt_current.drawtopgate = true
                 ngatey = ngatey + 0
                 table.insert(gateanchors, {
@@ -359,8 +365,12 @@ function layout(cmos, _P)
                 if not index then
                     moderror(string.format("bad gate contact position format: [%d] = '%s' (should be 'upperNUMBER')", i, _P.gatecontactpos[i]))
                 end
+                index = tonumber(index)
+                if index > math.floor(_P.innergatestraps / 2) then
+                    moderror(string.format("upper gate contact is outside of inner gate strap range: gate strap %d requested, but only %d is/are available", index, math.floor(_P.innergatestraps / 2)))
+                end
                 nopt_current.drawtopgate = true
-                ngatey = ngatey + index * (_P.gatestrapwidth + _P.gatestrapspace)
+                ngatey = ngatey + index * (_P.gatestrapwidth + _P.gatestrapspace) - evenoddgatestrapshift
                 table.insert(gateanchors, {
                     nmos = {
                         source = "topgatestrap",
@@ -372,8 +382,12 @@ function layout(cmos, _P)
                 if not index then
                     moderror(string.format("bad gate contact position format: [%d] = '%s' (should be 'lowerNUMBER')", i, _P.gatecontactpos[i]))
                 end
+                index = tonumber(index)
+                if index > math.floor(_P.innergatestraps / 2) then
+                    moderror(string.format("lower gate contact is outside of inner gate strap range: gate strap %d requested, but only %d is/are available", index, math.floor(_P.innergatestraps / 2)))
+                end
                 nopt_current.drawtopgate = true
-                ngatey = ngatey - index * (_P.gatestrapwidth + _P.gatestrapspace)
+                ngatey = ngatey - index * (_P.gatestrapwidth + _P.gatestrapspace) + evenoddgatestrapshift
                 table.insert(gateanchors, {
                     nmos = {
                         source = "topgatestrap",
@@ -384,8 +398,8 @@ function layout(cmos, _P)
                 -- FIXME: could add support for splitN
                 nopt_current.drawtopgate = true
                 popt_current.drawbotgate = true
-                ngatey = ngatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace)
-                pgatey = pgatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace)
+                ngatey = ngatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace) + evenoddgatestrapshift
+                pgatey = pgatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace) + evenoddgatestrapshift
                 nopt_current.drawtopgatecut = true
                 table.insert(gateanchors, {
                     nmos = {
@@ -440,7 +454,13 @@ function layout(cmos, _P)
             local ncontactheight = (_P.nsdheight > 0) and _P.nsdheight or aux.make_even(_P.nwidth / 2)
             local pcontactpowerheight = (_P.psdpowerheight > 0) and _P.psdpowerheight or aux.make_even(_P.pwidth / 2)
             local ncontactpowerheight = (_P.nsdpowerheight > 0) and _P.nsdpowerheight or aux.make_even(_P.nwidth / 2)
+            local pcontactinnerdummyheight = (_P.psddummyinnerheight > 0) and _P.psddummyouterheight or aux.make_even(_P.pwidth / 2)
+            local ncontactinnerdummyheight = (_P.nsddummyinnerheight > 0) and _P.nsddummyouterheight or aux.make_even(_P.nwidth / 2)
+            local pcontactouterdummyheight = (_P.psddummyouterheight > 0) and _P.psddummyouterheight or aux.make_even(_P.pwidth / 2)
+            local ncontactouterdummyheight = (_P.nsddummyouterheight > 0) and _P.nsddummyouterheight or aux.make_even(_P.nwidth / 2)
             -- source/drain contact positions (nmos)
+            local excludeleftncontact = false
+            local excluderightncontact = true
             if _P.ncontactpos[i] == "power" then
                 nopt_current.sourcesize = ncontactpowerheight
                 nopt_current.sourcealign = "bottom"
@@ -451,22 +471,21 @@ function layout(cmos, _P)
                 nopt_current.sourcesize = ncontactheight
                 nopt_current.sourcealign = "top"
             elseif _P.ncontactpos[i] == "dummyouterpower" or _P.ncontactpos[i] == "dummyouter" then
-                nopt_current.sourcesize = _P.nsddummyouterheight
+                nopt_current.sourcesize = ncontactouterdummyheight
                 nopt_current.sourcealign = "bottom"
             elseif _P.ncontactpos[i] == "dummyinner" then
-                nopt_current.sourcesize = _P.nsddummyinnerheight
+                nopt_current.sourcesize = ncontactinnerdummyheight
                 nopt_current.sourcealign = "top"
             elseif _P.ncontactpos[i] == "full" or _P.ncontactpos[i] == "fullpower" then
                 -- defaults apply
             elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "unused" then
-                nopt_current.sourcesize = _P.nwidth
-                nopt_current.excludesourcedraincontacts = { 1, 2 }
+                excludeleftncontact = true
             else
-                moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.ncontactpos[i]))
+                moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nshould be one of 'power', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i, _P.ncontactpos[i]))
             end
             -- extra handling for last source/drain contact
             if i == fingers then
-                nopt_current.excludesourcedraincontacts = {}
+                excluderightncontact = false
                 if _P.ncontactpos[i + 1] == "power" then
                     nopt_current.drainsize = ncontactpowerheight
                     nopt_current.drainalign = "bottom"
@@ -476,26 +495,30 @@ function layout(cmos, _P)
                 elseif _P.ncontactpos[i + 1] == "inner" then
                     nopt_current.drainsize = ncontactheight
                     nopt_current.drainalign = "top"
-                elseif _P.ncontactpos[i + 1] == "dummyouterpower" or _P.ncontactpos[i] == "dummyouter" then
-                    nopt_current.drainsize = _P.nsddummyouterheight
+                elseif _P.ncontactpos[i + 1] == "dummyouterpower" or _P.ncontactpos[i + 1] == "dummyouter" then
+                    nopt_current.drainsize = ncontactouterdummyheight
                     nopt_current.drainalign = "bottom"
                 elseif _P.ncontactpos[i + 1] == "dummyinner" then
-                    nopt_current.drainsize = _P.nsddummyinnerheight
+                    nopt_current.drainsize = ncontactinnerdummyheight
                     nopt_current.drainalign = "top"
-                elseif _P.ncontactpos[i + 1] == "full" or _P.ncontactpos[i] == "fullpower" then
+                elseif _P.ncontactpos[i + 1] == "full" or _P.ncontactpos[i + 1] == "fullpower" then
                     -- defaults apply
-                elseif not _P.ncontactpos[i] or _P.ncontactpos[i + 1] == "unused" then
-                    nopt_current.drainsize = _P.nwidth
-                    if not _P.ncontactpos[i] or _P.ncontactpos[i + 1] == "unused" then
-                        nopt_current.excludesourcedraincontacts = { 1, 2 }
-                    else
-                        nopt_current.excludesourcedraincontacts = { 2 }
-                    end
+                elseif not _P.ncontactpos[i + 1] or _P.ncontactpos[i + 1] == "unused" then
+                    excluderightncontact = true
                 else
-                    moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.ncontactpos[i]))
+                    moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nshould be one of 'power', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i + 1, _P.ncontactpos[i]))
                 end
             end
+            nopt_current.excludesourcedraincontacts = {}
+            if excludeleftncontact then
+                table.insert(nopt_current.excludesourcedraincontacts, 1)
+            end
+            if excluderightncontact then
+                table.insert(nopt_current.excludesourcedraincontacts, 2)
+            end
             -- source/drain contact positions (pmos)
+            local excludeleftpcontact = false
+            local excluderightpcontact = true
             if _P.pcontactpos[i] == "power" then
                 popt_current.sourcesize = pcontactpowerheight
                 popt_current.sourcealign = "top"
@@ -506,22 +529,21 @@ function layout(cmos, _P)
                 popt_current.sourcesize = pcontactheight
                 popt_current.sourcealign = "bottom"
             elseif _P.pcontactpos[i] == "dummyouterpower" or _P.pcontactpos[i] == "dummyouter" then
-                popt_current.sourcesize = _P.psddummyouterheight
+                popt_current.sourcesize = pcontactouterdummyheight
                 popt_current.sourcealign = "top"
             elseif _P.pcontactpos[i] == "dummyinner" then
-                popt_current.sourcesize = _P.psddummyinnerheight
+                popt_current.sourcesize = pcontactinnerdummyheight
                 popt_current.sourcealign = "bottom"
             elseif _P.pcontactpos[i] == "full" or _P.pcontactpos[i] == "fullpower" then
                 -- defaults apply
             elseif not _P.pcontactpos[i] or _P.pcontactpos[i] == "unused" then
-                popt_current.sourcesize = _P.pwidth
-                popt_current.excludesourcedraincontacts = { 1, 2 }
+                excludeleftpcontact = true
             else
-                moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.pcontactpos[i]))
+                moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nshould be one of 'power', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i, _P.pcontactpos[i]))
             end
             -- extra handling for last source/drain contact
             if i == fingers then
-                popt_current.excludesourcedraincontacts = {}
+                excluderightpcontact = false
                 if _P.pcontactpos[i + 1] == "power" then
                     popt_current.drainsize = pcontactpowerheight
                     popt_current.drainalign = "top"
@@ -531,24 +553,26 @@ function layout(cmos, _P)
                 elseif _P.pcontactpos[i + 1] == "inner" then
                     popt_current.drainsize = pcontactheight
                     popt_current.drainalign = "bottom"
-                elseif _P.pcontactpos[i + 1] == "dummyouterpower" or _P.pcontactpos[i] == "dummyouter" then
-                    popt_current.drainsize = _P.psddummyouterheight
+                elseif _P.pcontactpos[i + 1] == "dummyouterpower" or _P.pcontactpos[i + 1] == "dummyouter" then
+                    popt_current.drainsize = pcontactouterdummyheight
                     popt_current.drainalign = "top"
                 elseif _P.pcontactpos[i + 1] == "dummyinner" then
-                    popt_current.drainsize = _P.psddummyinnerheight
+                    popt_current.drainsize = pcontactinnerdummyheight
                     popt_current.drainalign = "bottom"
                 elseif _P.pcontactpos[i + 1] == "full" or _P.pcontactpos[i + 1] == "fullpower" then
                     -- defaults apply
                 elseif not _P.pcontactpos[i + 1] or _P.pcontactpos[i + 1] == "unused" then
-                    popt_current.drainsize = _P.pwidth
-                    if not _P.pcontactpos[i] or _P.pcontactpos[i + 1] == "unused" then
-                        popt_current.excludesourcedraincontacts = { 1, 2 }
-                    else
-                        popt_current.excludesourcedraincontacts = { 2 }
-                    end
+                    excluderightpcontact = true
                 else
-                    moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.pcontactpos[i]))
+                    moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nshould be one of 'power', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i + 1, _P.pcontactpos[i]))
                 end
+            end
+            popt_current.excludesourcedraincontacts = {}
+            if excludeleftpcontact then
+                table.insert(popt_current.excludesourcedraincontacts, 1)
+            end
+            if excluderightpcontact then
+                table.insert(popt_current.excludesourcedraincontacts, 2)
             end
             -- output drain/source vias
             if util.any_of(i, _P.isoutputcontact) then
@@ -611,6 +635,13 @@ function layout(cmos, _P)
                     cmos:inherit_area_anchor_as(pfet, entry.pmos.source, entry.pmos.target)
                 end
             end
+            -- gate x-anchors
+            cmos:add_area_anchor_bltr(
+                string.format("Gbase%d", i),
+                nfet:get_area_anchor("gate1").bl,
+                pfet:get_area_anchor("gate1").tr
+            )
+                    
             -- source/drain anchors
             cmos:inherit_area_anchor_as(nfet, "sourcedrain1", string.format("nSD%d", i))
             cmos:inherit_area_anchor_as(nfet, "sourcedrain1", string.format("nSD%d", i - fingers - 2))
