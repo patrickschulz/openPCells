@@ -2,36 +2,44 @@ function parameters()
     pcell.add_parameters(
         { "subgate", "nand_gate", posvals = set("nand_gate", "nor_gate", "xor_gate") },
         { "subgatefingers", 1 },
-        { "notfingers", 1 },
-        { "pwidthoffset", 0 },
-        { "nwidthoffset", 0 }
+        { "notfingers", 1 }
     )
+    pcell.inherit_parameters("stdcells/base")
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("stdcells/base")
-    local xpitch = bp.glength + bp.gspace
+    local xpitch = _P.glength + _P.gspace
 
-    local subgateref = pcell.create_layout(string.format("stdcells/%s", _P.subgate), "subgate", {
+    local subgatename = string.format("stdcells/%s", _P.subgate)
+
+    local subgate_baseparameters = {}
+    for k, v in pairs(_P) do
+        if pcell.has_parameter(subgatename, k) then
+            subgate_baseparameters[k] = v
+        end
+    end
+    local subgateref = pcell.create_layout(subgatename, "subgate", util.add_options(subgate_baseparameters, {
         fingers = _P.subgatefingers,
-        pwidthoffset = _P.pwidthoffset,
-        nwidthoffset = _P.nwidthoffset,
-    })
+    }))
     gate:merge_into(subgateref)
 
-    local invref = pcell.create_layout("stdcells/not_gate", "inv", {
+    local notgate_baseparameters = {}
+    for k, v in pairs(_P) do
+        if pcell.has_parameter("stdcells/not_gate", k) then
+            notgate_baseparameters[k] = v
+        end
+    end
+    local invref = pcell.create_layout("stdcells/not_gate", "inv", util.add_options(notgate_baseparameters, {
         fingers = _P.notfingers,
         shiftoutput = xpitch / 2,
-        pwidthoffset = _P.pwidthoffset,
-        nwidthoffset = _P.nwidthoffset,
-    })
+    }))
     invref:abut_right(subgateref)
     gate:merge_into(invref)
 
     -- draw connection
     geometry.rectanglebltr(gate, generics.metal(1),
-        subgateref:get_anchor("O") .. invref:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
-        invref:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, bp.routingwidth)
+        subgateref:get_anchor("O") .. invref:get_anchor("I"):translate(xpitch - _P.sdwidth / 2 - _P.routingspace, 0),
+        invref:get_anchor("I"):translate(xpitch - _P.sdwidth / 2 - _P.routingspace, _P.routingwidth)
     )
 
     gate:inherit_alignment_box(subgateref)

@@ -1,12 +1,10 @@
 function parameters()
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("leftnotright", true)
-    pcell.add_parameter("pwidthoffset", 0)
-    pcell.add_parameter("nwidthoffset", 0)
+    pcell.inherit_parameters("stdcells/base")
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("stdcells/base")
     local gatecontactpos = { "dummy" }
     local sdcontacts
     if _P.leftnotright then
@@ -17,19 +15,23 @@ function layout(gate, _P)
     local leftpolylines = {}
     local rightpolylines = {}
     for i = 1, _P.fingers do
-        local entry = { length = bp.glength, space = bp.gspace }
+        local entry = { length = _P.glength, space = _P.gspace }
         if _P.leftnotright then
             leftpolylines[i] = entry
         else
             rightpolylines[i] = entry
         end
     end
-    local harness = pcell.create_layout("stdcells/harness", "harness", {
+    local baseparameters = {}
+    for name, value in pairs(_P) do
+        if pcell.has_parameter("stdcells/harness", name) then
+            baseparameters[name] = value
+        end
+    end
+    local harness = pcell.create_layout("stdcells/harness", "harness", util.add_options(baseparameters, {
         gatecontactpos = gatecontactpos,
         pcontactpos = sdcontacts,
         ncontactpos = sdcontacts,
-        pwidthoffset = _P.pwidthoffset,
-        nwidthoffset = _P.nwidthoffset,
         drawactive = false,
         drawgatecontacts = false,
         drawtopgcut = false,
@@ -38,7 +40,7 @@ function layout(gate, _P)
         leftpolylines = leftpolylines,
         drawrightstopgate = not _P.leftnotright,
         rightpolylines = rightpolylines,
-    })
+    }))
     gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 end

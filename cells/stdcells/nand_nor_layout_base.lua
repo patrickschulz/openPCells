@@ -6,12 +6,10 @@ function parameters()
     pcell.add_parameters(
         { "fingers",       1 },
         { "gatetype", "nand" },
-        { "pwidthoffset", 0 },
-        { "nwidthoffset", 0 },
         { "swapinputs", false },
         { "shiftoutput", 0 }
     )
-    pcell.inherit_parameters("stdcells/harness")
+    pcell.inherit_parameters("stdcells/base")
 end
 
 function layout(gate, _P)
@@ -57,13 +55,17 @@ function layout(gate, _P)
         ncontacts[#ncontacts + 1] = "power"
     end
 
-    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
+    local baseparameters = {}
+    for k, v in pairs(_P) do
+        if pcell.has_parameter("stdcells/harness", k) then
+            baseparameters[k] = v
+        end
+    end
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", util.add_options(baseparameters, {
         gatecontactpos = gatecontactpos,
         pcontactpos = _P.gatetype == "nand" and pcontacts or ncontacts,
         ncontactpos = _P.gatetype == "nand" and ncontacts or pcontacts,
-        pwidthoffset = _P.pwidthoffset,
-        nwidthoffset = _P.nwidthoffset,
-    })
+    }))
     gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 
@@ -123,9 +125,9 @@ function layout(gate, _P)
         _P.sdwidth
     )
 
-    gate:add_port("A", generics.metalport(1), harness:get_area_anchor("G1").bl)
-    gate:add_port("B", generics.metalport(1), harness:get_area_anchor("G2").bl)
-    gate:add_port("O", generics.metalport(1), harness:get_area_anchor("G3").bl)
-    gate:add_port("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
-    gate:add_port("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
+    gate:add_port_with_anchor("A", generics.metalport(1), harness:get_area_anchor("G1").bl)
+    gate:add_port_with_anchor("B", generics.metalport(1), harness:get_area_anchor("G2").bl)
+    gate:add_port_with_anchor("O", generics.metalport(1), harness:get_area_anchor("G3").bl)
+    gate:add_port_with_anchor("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
+    gate:add_port_with_anchor("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
 end

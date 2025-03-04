@@ -5,22 +5,27 @@ function parameters()
         { "shiftinput1", 0 },
         { "shiftinput2", 0 }
     )
+    pcell.inherit_parameters("stdcells/base")
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("stdcells/base")
-
-    local iinv = pcell.create_layout("stdcells/not_gate", "iinv", { 
+    local baseparameters = {}
+    for name, value in pairs(_P) do
+        if pcell.has_parameter("stdcells/not_gate", name) then
+            baseparameters[name] = value
+        end
+    end
+    local iinv = pcell.create_layout("stdcells/not_gate", "iinv", util.add_options(baseparameters, { 
         fingers = _P.ifingers, 
         shiftinput = _P.shiftinput1, 
-        shiftoutput = bp.glength / 2 + bp.gspace / 2 
-    })
+        shiftoutput = _P.glength / 2 + _P.gspace / 2 
+    }))
 
-    local oinv = pcell.create_layout("stdcells/not_gate", "oinv", { 
+    local oinv = pcell.create_layout("stdcells/not_gate", "oinv", util.add_options(baseparameters, { 
         fingers = _P.ofingers, 
         shiftinput = _P.shiftinput2, 
-        shiftoutput = bp.glength / 2 + bp.gspace / 2 
-    })
+        shiftoutput = _P.glength / 2 + _P.gspace / 2 
+    }))
     oinv:abut_right(iinv)
     gate:merge_into(iinv)
     gate:merge_into(oinv)
@@ -30,7 +35,7 @@ function layout(gate, _P)
     geometry.path(gate, generics.metal(1), 
         geometry.path_points_yx(iinv:get_anchor("O"), {
         oinv:get_anchor("I"),
-    }), bp.sdwidth)
+    }), _P.sdwidth)
 
     gate:inherit_alignment_box(iinv)
     gate:inherit_alignment_box(oinv)

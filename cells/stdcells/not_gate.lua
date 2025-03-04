@@ -1,13 +1,13 @@
 function parameters()
-    pcell.add_parameter("fingers", 1)
-    pcell.add_parameter("pwidthoffset", 0)
-    pcell.add_parameter("nwidthoffset", 0)
-    pcell.add_parameter("shiftinput", 0)
-    pcell.add_parameter("inputpos", "center", { posvals = set("center", "lower", "upper") })
-    pcell.add_parameter("shiftoutput", 0)
-    pcell.add_parameter("swapoddcorrectiongate", false)
-    pcell.add_parameter("connectoutput", true)
-    pcell.inherit_parameters("stdcells/harness")
+    pcell.add_parameters(
+        { "fingers", 1 },
+        { "shiftinput", 0 },
+        { "inputpos", "center", { posvals = set("center", "lower", "upper") } },
+        { "shiftoutput", 0 },
+        { "swapoddcorrectiongate", false },
+        { "connectoutput", true }
+    )
+    pcell.inherit_parameters("stdcells/base")
 end
 
 function layout(gate, _P)
@@ -32,14 +32,17 @@ function layout(gate, _P)
         end
         table.insert(contactpos, "power")
     end
-    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
-        pwidthoffset = _P.pwidthoffset,
-        nwidthoffset = _P.nwidthoffset,
-        shiftgatecontacts = _P.shiftinput,
+    local baseparameters = {}
+    for name, value in pairs(_P) do
+        if pcell.has_parameter("stdcells/harness", name) then
+            baseparameters[name] = value
+        end
+    end
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", util.add_options(baseparameters, {
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,
         ncontactpos = contactpos,
-    })
+    }))
     gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 
@@ -64,13 +67,13 @@ function layout(gate, _P)
 
     -- ports
     if _P.swapoddcorrectiongate then
-        gate:add_port("I", generics.metalport(1), harness:get_area_anchor("G2").bl)
+        gate:add_port_with_anchor("I", generics.metalport(1), harness:get_area_anchor("G2").bl)
     else
-        gate:add_port("I", generics.metalport(1), harness:get_area_anchor("G1").bl)
+        gate:add_port_with_anchor("I", generics.metalport(1), harness:get_area_anchor("G1").bl)
     end
     --if _P.connectoutput then
-        gate:add_port("O", generics.metalport(1), harness:get_area_anchor(string.format("G%d", _P.fingers)).bl:translate(xpitch + _P.shiftoutput, 0))
+        gate:add_port_with_anchor("O", generics.metalport(1), harness:get_area_anchor(string.format("G%d", _P.fingers)).bl:translate(xpitch + _P.shiftoutput, 0))
     --end
-    gate:add_port("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
-    gate:add_port("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
+    gate:add_port_with_anchor("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
+    gate:add_port_with_anchor("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
 end

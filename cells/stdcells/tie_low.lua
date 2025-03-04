@@ -1,17 +1,20 @@
 function parameters()
     pcell.add_parameters(
-        { "pwidthoffset", 0 },
-        { "nwidthoffset", 0 },
         { "fingers", 2, posvals = even() }
     )
+    pcell.inherit_parameters("stdcells/base")
 end
 
 function layout(cell, _P)
-    local base = pcell.create_layout("stdcells/tie_highlow", "tie_low", {
+    local baseparameters = {}
+    for name, value in pairs(_P) do
+        if pcell.has_parameter("stdcells/tie_highlow", name) then
+            baseparameters[name] = value
+        end
+    end
+    local base = pcell.create_layout("stdcells/tie_highlow", "tie_low", util.add_options(baseparameters, {
         high = false,
-        pwidthoffset = _P.pwidthoffset,
-        nwidthoffset = _P.nwidthoffset,
         fingers = _P.fingers
-    })
+    }))
     cell:exchange(base)
 end

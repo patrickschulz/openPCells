@@ -27,47 +27,52 @@
 function parameters()
     pcell.add_parameter("fingers", 1, { posvals = set(1) })
     pcell.add_parameter("shiftoutput", 0)
+    pcell.inherit_parameters("stdcells/base")
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("stdcells/base")
-    local xpitch = bp.gspace + bp.glength
+    local xpitch = _P.gspace + _P.glength
 
-    local harness = pcell.create_layout("stdcells/harness", "mosfets", { 
-        drawgatecontacts = true,
-        gatecontactpos = { "lower", "dummy", "dummy", "upper", "lower", "center", "center", "dummy", "upper", "center", "lower" },
+    local baseparameters = {}
+    for name, value in pairs(_P) do
+        if pcell.has_parameter("stdcells/harness", name) then
+            baseparameters[name] = value
+        end
+    end
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", util.add_options(baseparameters, {
+        gatecontactpos = { "lower1", "dummy", "dummy", "upper1", "lower1", "center", "center", "dummy", "upper1", "center", "lower1" },
         pcontactpos = { "power", "inner", "power", "inner", "power", "outer", "outer", "outer", "full", "unused", "power", "power" },
         ncontactpos = { "power", "inner", "power", "inner", "power", "power", "unused", "outer", "full", "outer", "outer", "power" },
-    })
+    }))
     gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 
     -- short pmos
     geometry.rectanglebltr(gate, generics.metal(1), 
-        harness:get_area_anchor("pSD6").tr:translate(0, -bp.sdwidth),
+        harness:get_area_anchor("pSD6").tr:translate(0, -_P.sdwidth),
         harness:get_area_anchor("pSD7").tl
     )
     geometry.rectanglebltr(gate, generics.metal(1), 
-        harness:get_area_anchor("pSD8").tr:translate(0, -bp.sdwidth),
+        harness:get_area_anchor("pSD8").tr:translate(0, -_P.sdwidth),
         harness:get_area_anchor("pSD9").tl
     )
 
     -- short nmos
     geometry.rectanglebltr(gate, generics.metal(1), 
         harness:get_area_anchor("nSD10").br,
-        harness:get_area_anchor("nSD11").bl:translate(0, bp.sdwidth)
+        harness:get_area_anchor("nSD11").bl:translate(0, _P.sdwidth)
     )
     geometry.rectanglebltr(gate, generics.metal(1), 
         harness:get_area_anchor("nSD8").br,
-        harness:get_area_anchor("nSD9").bl:translate(0, bp.sdwidth)
+        harness:get_area_anchor("nSD9").bl:translate(0, _P.sdwidth)
     )
 
     -- output connection
     geometry.path_cshape(gate, generics.metal(1),
-        harness:get_area_anchor("pSD9").br:translate(0, bp.sdwidth / 2),
-        harness:get_area_anchor("nSD9").tr:translate(0, -bp.sdwidth / 2),
+        harness:get_area_anchor("pSD9").br:translate(0, _P.sdwidth / 2),
+        harness:get_area_anchor("nSD9").tr:translate(0, -_P.sdwidth / 2),
         harness:get_area_anchor("G11").bl:translate(xpitch, 0),
-        bp.sdwidth
+        _P.sdwidth
     )
 
     -- A
@@ -108,18 +113,18 @@ function layout(gate, _P)
 
     -- not A
     geometry.path_cshape(gate, generics.metal(1),
-        harness:get_area_anchor("pSD2").br:translate(0, bp.sdwidth / 2),
-        harness:get_area_anchor("nSD2").tr:translate(0, -bp.sdwidth / 2),
+        harness:get_area_anchor("pSD2").br:translate(0, _P.sdwidth / 2),
+        harness:get_area_anchor("nSD2").tr:translate(0, -_P.sdwidth / 2),
         harness:get_area_anchor("G2").bl,
-        bp.sdwidth
+        _P.sdwidth
     )
 
     -- not B
     geometry.path_cshape(gate, generics.metal(1),
-        harness:get_area_anchor("pSD4").br:translate(0, bp.sdwidth / 2),
-        harness:get_area_anchor("nSD4").tr:translate(0, -bp.sdwidth / 2),
+        harness:get_area_anchor("pSD4").br:translate(0, _P.sdwidth / 2),
+        harness:get_area_anchor("nSD4").tr:translate(0, -_P.sdwidth / 2),
         harness:get_area_anchor("G7").bl,
-        bp.sdwidth
+        _P.sdwidth
     )
 
     geometry.rectanglebltr(gate, generics.metal(1),

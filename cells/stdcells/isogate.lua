@@ -3,13 +3,11 @@ function config()
 end
 
 function parameters()
-    pcell.add_parameter("pwidthoffset", 0)
-    pcell.add_parameter("nwidthoffset", 0)
+    pcell.inherit_parameters("stdcells/base")
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("stdcells/base")
-    local xpitch = bp.gspace + bp.glength
+    local xpitch = _P.gspace + _P.glength
 
     local harness = pcell.create_layout("stdcells/harness", "mosfets", {
         gatecontactpos = { "dummy" },

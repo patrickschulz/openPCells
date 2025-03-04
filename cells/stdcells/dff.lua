@@ -18,8 +18,6 @@
 function parameters()
     pcell.add_parameters(
         -- FIXME: add more transistor finger width control
-        { "pwidthoffset", 0 },
-        { "nwidthoffset", 0 },
         { "clockpolarity", "positive", posvals = set("positive", "negative") },
         { "enable_Q", true },
         { "enable_QN", false },
@@ -30,7 +28,7 @@ function parameters()
         { "tgatelatch2separationdummies", 1 },
         { "latch2outbufseparationdummies", 1 }
     )
-    pcell.inherit_parameters("stdcells/harness")
+    pcell.inherit_parameters("stdcells/base")
 end
 
 function check(_P)
@@ -170,13 +168,17 @@ function layout(dff, _P)
     table.insert(pcontactpos, "power")
     table.insert(ncontactpos, "power")
 
-    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
-        pwidthoffset = _P.pwidthoffset,
-        nwidthoffset = _P.nwidthoffset,
+    local baseparameters = {
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
-    })
+    }
+    for name, value in pairs(_P) do
+        if pcell.has_parameter("stdcells/harness", name) then
+            baseparameters[name] = value
+        end
+    end
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", baseparameters)
     dff:exchange(harness)
 
     -- easy anchor access functions
@@ -268,6 +270,7 @@ function layout(dff, _P)
         gate("cinvinput").bl:translate_x(-2 * xpitch),
         gate("cinvinput").tl:translate_x( 1 * xpitch - spacing)
     )
+    --[[
     geometry.rectanglebltr(dff, generics.metal(2),
         gate("clockbufinput1").bl:translate(-xpitch,           2 * (_P.routingwidth + _P.routingspace)),
         gate("cinvinput").tl:translate_x( 1 * xpitch - spacing)
@@ -525,4 +528,5 @@ function layout(dff, _P)
     if _P.enable_reset then
         dff:add_port("RST", generics.metalport(2), gate("clockbufinput1").bl)
     end
+    --]]
 end
