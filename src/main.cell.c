@@ -704,6 +704,12 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
                 export_disable_ports(export_state);
             }
 
+            // don't export malformed shapes
+            if(cmdoptions_was_provided_long(cmdoptions, "ignore-malformed-shapes"))
+            {
+                export_disable_malformed_shapes(export_state);
+            }
+
             // write children ports
             export_set_write_children_ports(export_state, cmdoptions_was_provided_long(cmdoptions, "write-children-ports"));
 

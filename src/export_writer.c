@@ -657,7 +657,48 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
     return 1;
 }
 
-static int _write_shapes(struct export_writer* writer, const struct object* cell)
+static int _write_shapes_no_malformed(struct export_writer* writer, const struct object* cell)
+{
+    struct shape_iterator* it = object_create_shape_iterator(cell);
+    const struct transformationmatrix* trans = object_get_transformation_matrix(cell);
+    int ret = 1;
+    while(shape_iterator_is_valid(it))
+    {
+        const struct shape* shape = shape_iterator_get(it);
+        if(!shape_is_malformed(shape))
+        {
+            if(shape_is_rectangle(shape))
+            {
+                ret = _write_cell_shape_rectangle(writer, shape, trans);
+            }
+            else if(shape_is_polygon(shape))
+            {
+                ret = _write_cell_shape_polygon(writer, shape, trans);
+            }
+            else if(shape_is_triangulated_polygon(shape))
+            {
+                ret = _write_cell_shape_triangulated_polygon(writer, shape, trans);
+            }
+            else if(shape_is_path(shape))
+            {
+                ret = _write_cell_shape_path(writer, shape, trans);
+            }
+            else if(shape_is_curve(shape))
+            {
+                ret = _write_cell_shape_curve(writer, shape, trans);
+            }
+            if(!ret)
+            {
+                break;
+            }
+        }
+        shape_iterator_next(it);
+    }
+    shape_iterator_destroy(it);
+    return ret;
+}
+
+static int _write_shapes_with_malformed(struct export_writer* writer, const struct object* cell)
 {
     struct shape_iterator* it = object_create_shape_iterator(cell);
     const struct transformationmatrix* trans = object_get_transformation_matrix(cell);
@@ -848,10 +889,18 @@ static int _write_labels(struct export_writer* writer, const struct object* cell
     return ret;
 }
 
-static int _write_cell_elements(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell_elements(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int write_ports, int write_malformed, char leftdelim, char rightdelim)
 {
     /* shapes */
-    int ret = _write_shapes(writer, cell);
+    int ret;
+    if(write_malformed)
+    {
+        ret = _write_shapes_with_malformed(writer, cell);
+    }
+    else
+    {
+        ret = _write_shapes_no_malformed(writer, cell);
+    }
     if(!ret)
     {
         return 0;
@@ -910,7 +959,7 @@ static int _call_or_pop_nil(lua_State* L, int numargs)
     }
 }
 
-static int _write_cell(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int istoplevel, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int istoplevel, int write_ports, int write_malformed, char leftdelim, char rightdelim)
 {
     // FIXME: split up function calls to at_begin, at_end and write_cell_elements in order to have more abstraction from lua/C
     char* name = _concat_namecontext(expand_namecontext ? namecontext : NULL, object_get_name(cell));
@@ -926,7 +975,7 @@ static int _write_cell(struct export_writer* writer, const struct object* cell, 
             free(name);
             return 0;
         }
-        ret = _write_cell_elements(writer, cell, namecontext, expand_namecontext, write_ports, leftdelim, rightdelim);
+        ret = _write_cell_elements(writer, cell, namecontext, expand_namecontext, write_ports, write_malformed, leftdelim, rightdelim);
         if(!ret)
         {
             free(name);
@@ -945,7 +994,7 @@ static int _write_cell(struct export_writer* writer, const struct object* cell, 
     else // C
     {
         writer->funcs->at_begin_cell(writer->data, name, istoplevel);
-        _write_cell_elements(writer, cell, namecontext, expand_namecontext, write_ports, leftdelim, rightdelim);
+        _write_cell_elements(writer, cell, namecontext, expand_namecontext, write_ports, write_malformed, leftdelim, rightdelim);
         writer->funcs->at_end_cell(writer->data, istoplevel);
     }
     free(name);
@@ -1046,7 +1095,7 @@ static int _call_finalize(struct export_writer* writer)
     }
 }
 
-static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int write_ports, int write_malformed, char leftdelim, char rightdelim)
 {
     struct reference_iterator* ref_it = object_create_reference_iterator(cell);
     while(reference_iterator_is_valid(ref_it))
@@ -1071,8 +1120,8 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
             {
                 newnamecontext = util_strdup(name);
             }
-            _write_cell_hierarchy_with_namecontext(writer, reference, newnamecontext, expand_namecontext, write_ports, leftdelim, rightdelim);
-            int ret = _write_cell(writer, reference, namecontext, expand_namecontext, 0, write_ports, leftdelim, rightdelim); // 0: cell is not toplevel
+            _write_cell_hierarchy_with_namecontext(writer, reference, newnamecontext, expand_namecontext, write_ports, write_malformed, leftdelim, rightdelim);
+            int ret = _write_cell(writer, reference, namecontext, expand_namecontext, 0, write_ports, write_malformed, leftdelim, rightdelim); // 0: cell is not toplevel
             if(!ret)
             {
                 return 0;
@@ -1085,7 +1134,7 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
     return 1;
 }
 
-int export_writer_write_toplevel(struct export_writer* writer, const struct object* toplevel, int expand_namecontext, int writeports, int writechildrenports, char leftdelim, char rightdelim)
+int export_writer_write_toplevel(struct export_writer* writer, const struct object* toplevel, int expand_namecontext, int writeports, int writechildrenports, int write_malformed, char leftdelim, char rightdelim)
 {
     int ret = 1;
     if(_has_initialize(writer))
@@ -1131,9 +1180,9 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         return 0;
     }
 
-    _write_cell_hierarchy_with_namecontext(writer, toplevel, object_get_name(toplevel), expand_namecontext, writechildrenports, leftdelim, rightdelim);
+    _write_cell_hierarchy_with_namecontext(writer, toplevel, object_get_name(toplevel), expand_namecontext, writechildrenports, write_malformed, leftdelim, rightdelim);
 
-    ret = _write_cell(writer, toplevel, NULL, expand_namecontext, 1, writeports, leftdelim, rightdelim); // NULL: no name context; first 1: istoplevel, second 1: write_ports
+    ret = _write_cell(writer, toplevel, NULL, expand_namecontext, 1, writeports, write_malformed, leftdelim, rightdelim); // NULL: no name context; first 1: istoplevel, second 1: write_ports
     if(!ret)
     {
         // FIXME: proper cleanup

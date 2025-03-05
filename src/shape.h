@@ -33,6 +33,8 @@ int shape_is_polygon(const struct shape* shape);
 int shape_is_triangulated_polygon(const struct shape* shape);
 int shape_is_curve(const struct shape* shape);
 
+int shape_is_malformed(const struct shape* shape);
+
 const void* shape_get_content(const struct shape* shape);
 
 // rectangle access functions

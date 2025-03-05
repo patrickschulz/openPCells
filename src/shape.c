@@ -409,6 +409,22 @@ int shape_is_curve(const struct shape* shape)
     return shape->type == CURVE;
 }
 
+int shape_is_malformed(const struct shape* shape)
+{
+    if(shape_is_rectangle(shape))
+    {
+        struct rectangle* rectangle = shape->content;
+        struct point* bl = _bl(rectangle);
+        struct point* tr = _tr(rectangle);
+        return (point_getx(bl) == point_getx(tr)) || (point_gety(bl) == point_gety(tr));
+    }
+    else
+    {
+        // FIXME: implement malformed checks for other shapes
+        return 0;
+    }
+}
+
 const void* shape_get_content(const struct shape* shape)
 {
     return shape->content;

@@ -37,6 +37,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-layer", MULTI_ARGS, "ignore 
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-layers", NO_ARG, "ignore missing layers in the technology translation. Layers that are not present in the layermap file are handled as if their values was '{}'");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-export", NO_ARG, "ignore layers with missing exports in the technology translation");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-premapped-layers", NO_ARG, "ignore premapped layers (they are handled as if their value was '{}')");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-malformed-shapes", NO_ARG, "don't export malformed shapes (e.g. rectangles with zero width or height)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-gatecut", NO_ARG, "disable gatecut (only useful for technologies that support gate cuts)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "merge-rectangles", NO_ARG, "merge rectangles");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "resolve-paths", NO_ARG, "resolve paths to rectangles and polygons");

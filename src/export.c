@@ -29,6 +29,7 @@ struct export_state {
     int expand_namecontext;
     int writeports;
     int writechildrenports;
+    int write_malformed;
 };
 
 struct export_state* export_create_state(void)
@@ -42,6 +43,7 @@ struct export_state* export_create_state(void)
     state->searchpaths = const_vector_create(1);
     state->expand_namecontext = 1;
     state->writeports = 1;
+    state->write_malformed = 1;
     return state;
 }
 
@@ -87,6 +89,11 @@ void export_disable_ports(struct export_state* state)
 void export_set_write_children_ports(struct export_state* state, int writechildrenports)
 {
     state->writechildrenports = writechildrenports;
+}
+
+void export_disable_malformed_shapes(struct export_state* state)
+{
+    state->write_malformed = 0;
 }
 
 void export_set_bus_delimiters(struct export_state* state, char leftdelim, char rightdelim)
@@ -307,7 +314,6 @@ static struct vector* _assemble_C_options(const char* const* opt)
     {
         // split string at whitespace
         const char* str = *opt;
-        int numopts = 1;
         while(*str)
         {
             const char* end = str;
@@ -366,7 +372,7 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
         {
             goto EXPORT_CLEANUP;
         }
-        export_writer_write_toplevel(writer, toplevel, state->expand_namecontext, state->writeports, state->writechildrenports, state->leftdelim, state->rightdelim);
+        export_writer_write_toplevel(writer, toplevel, state->expand_namecontext, state->writeports, state->writechildrenports, state->write_malformed, state->leftdelim, state->rightdelim);
         export_writer_destroy(writer);
         extension = util_strdup(funcs->get_extension());
         status = EXPORT_STATUS_SUCCESS;
@@ -440,7 +446,7 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
             }
 
             struct export_writer* writer = export_writer_create_lua(L, data);
-            ret = export_writer_write_toplevel(writer, toplevel, state->expand_namecontext, state->writeports, state->writechildrenports, state->leftdelim, state->rightdelim);
+            ret = export_writer_write_toplevel(writer, toplevel, state->expand_namecontext, state->writeports, state->writechildrenports, state->write_malformed, state->leftdelim, state->rightdelim);
             export_writer_destroy(writer);
             if(!ret)
             {
