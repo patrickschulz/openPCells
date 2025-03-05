@@ -144,28 +144,29 @@ function layout(chain, _P)
     end
 
     for i = 1, #inverters - 1 do
-        geometry.viabltr(chain, 1, _P.outputmetal,
-            point.create(
-                inverters[i + 1]:get_area_anchor("input").l - (_P.numinnerdummies - 1) * (_P.gatelength + _P.gatespace),
-                inverters[i + 1]:get_area_anchor("input").b
-            ),
-            point.create(
-                inverters[i + 1]:get_area_anchor("input").l,
-                inverters[i + 1]:get_area_anchor("input").t
-            )
-        )
-        if _P.outputisinside then
-            geometry.rectanglebltr(chain, generics.metal(_P.outputmetal),
+        if _P.numinnerdummies > 0 then
+            geometry.viabltr(chain, 1, _P.outputmetal,
                 point.create(
-                    inverters[i]:get_area_anchor("output").r,
-                    inverters[i]:get_area_anchor("output").b
+                    inverters[i + 1]:get_area_anchor("input").l - (_P.numinnerdummies - 0) * (_P.gatelength + _P.gatespace),
+                    inverters[i + 1]:get_area_anchor("input").b
                 ),
                 point.create(
-                    inverters[i + 1]:get_area_anchor("output").l - (_P.numinnerdummies - 1) * (_P.gatelength + _P.gatespace),
-                    inverters[i]:get_area_anchor("output").t
+                    inverters[i + 1]:get_area_anchor("input").l - _P.gatespace,
+                    inverters[i + 1]:get_area_anchor("input").t
+                )
+            )
+            geometry.rectanglebltr(chain, generics.metal(1),
+                point.create(
+                    inverters[i + 1]:get_area_anchor("input").l - _P.gatespace,
+                    inverters[i + 1]:get_area_anchor("input").b
+                ),
+                point.create(
+                    inverters[i + 1]:get_area_anchor("input").l,
+                    inverters[i + 1]:get_area_anchor("input").t
                 )
             )
         else
+            moderror("inverter_chain: connections between inverters are currently not implemented for numinnerdummies == 0")
         end
     end
 
