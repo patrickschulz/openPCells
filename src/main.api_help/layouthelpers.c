@@ -120,7 +120,7 @@
         { "cell",           OBJECT,     NULL, "cell to place guardring in" },
         { "bl",             POINT,      NULL, "bottom-left boundary corner" },
         { "tr",             POINT,      NULL, "top-right boundary corner" },
-        { "anchorprefix",   STRING,     NULL, "anchor prefix for inherited anchors (cell inherits the 'boundary' area anchor)" },
+        { "anchorprefix",   STRING,     NULL, "anchor prefix for inherited anchors (cell inherits the 'boundary' area anchor). If this is nil, no anchors are inherited" },
         { "options",        TABLE,      NULL, "placement options" }
     };
     vector_append(entries, _make_api_entry(
