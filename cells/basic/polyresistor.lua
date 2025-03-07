@@ -145,7 +145,7 @@ function layout(resistor, _P)
     if _P.markercoverall then
         for y = 1, _P.nyfingers do
             local yshift = (y - 1) * (_P.length + _P.contactheight + 2 * _P.extension + 2 * _P.yspace) + _P.contactheight + _P.extension
-            geometry.rectanglebltr(resistor, generics.other("polyresistormarker"),
+            geometry.rectanglebltr(resistor, generics.other("silicideblocker"),
                 point.create(_P.nonresdummies * (_P.width + _P.xspace) - _P.markextension, yshift),
                 point.create((_P.nxfingers + 2 * _P.dummies + _P.nonresdummies) * (_P.width + _P.xspace) - _P.xspace + _P.markextension, yshift + _P.length)
             )
@@ -154,7 +154,7 @@ function layout(resistor, _P)
         for x = 1, _P.nxfingers + 2 * _P.dummies do
             local xshift = (x + _P.nonresdummies - 1) * (_P.width + _P.xspace)
             for y = 1, _P.nyfingers do
-                geometry.rectanglebltr(resistor, generics.other("polyresistormarker"),
+                geometry.rectanglebltr(resistor, generics.other("silicideblocker"),
                     point.create(xshift - _P.markextension, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace)),
                     point.create(xshift + _P.width + _P.markextension, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace) + _P.length)
                 )
