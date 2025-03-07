@@ -22,7 +22,7 @@ function parameters()
         { "extendwelly", 0 },
         { "extendlvsmarkerx", 0 },
         { "extendlvsmarkery", 0 },
-        { "conntype", "parallel", posvals = set("parallel", "series") },
+        { "conntype", "parallel", posvals = set("none", "parallel", "series") },
         { "invertseriesconnections", false },
         { "drawrotationmarker", false },
         { "resistortype", 1 }
@@ -195,7 +195,7 @@ function layout(resistor, _P)
                 )
             end
         end
-    else -- "series" FIXME
+    elseif _P.conntype == "series" then
         for x = 1, _P.nxfingers - 1 do
             local yindex
             if _P.invertseriesconnections then
