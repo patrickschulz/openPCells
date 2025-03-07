@@ -41,15 +41,15 @@ function layout(resistor, _P)
                 local yshift = (y - 1) * (_P.length + 2 * _P.extension + 2 * _P.contactheight + _P.yspace)
                 geometry.rectanglebltr(
                     resistor, generics.other("gate"),
-                    point.create((x - 1) * (_P.width + _P.xspace), yshift),
-                    point.create((x - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.length + 2 * _P.extension + 2 * _P.contactheight)
+                    point.create((x - 1) * (_P.width + _P.xspace), yshift - _P.extraextension),
+                    point.create((x - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.length + 2 * _P.extension + 2 * _P.contactheight + _P.extraextension)
                 )
             end
         else
             geometry.rectanglebltr(
                 resistor, generics.other("gate"),
-                point.create((x - 1) * (_P.width + _P.xspace), 0),
-                point.create((x - 1) * (_P.width + _P.xspace) + _P.width, polyheight)
+                point.create((x - 1) * (_P.width + _P.xspace), -_P.extraextension),
+                point.create((x - 1) * (_P.width + _P.xspace) + _P.width, polyheight + _P.extraextension)
             )
         end
     end
