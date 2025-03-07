@@ -45,6 +45,8 @@ function parameters()
         { "drawrightstopgate(Draw Left Stop Gate)",                                                     false, info = "draw a gate where one half of it covers the active region, the other does not (right side). This gate is covered with the layer 'diffusionbreakgate'. This is required in some technologies for short-length devices" },
         { "endleftwithgate(End Left Side With Gate)",                                                   false, follow = "drawleftstopgate", info = "align the left end of the active region so that only half of the left-most gate covers the active region. Follows 'drawleftstopgate'." },
         { "endrightwithgate(End Right Side With Gate)",                                                 false, follow = "drawrightstopgate", info = "align the right end of the active region so that only half of the right-most gate covers the active region. Follows 'drawrightstopgate'." },
+        { "leftendgatelength(Left End Gate Length)",                                                    0, follow = "gatelength" },
+        { "rightendgatelength(Right End Gate Length)",                                                  0, follow = "gatelength" },
         { "drawtopgate(Draw Top Gate Contact)",                                                         false, info = "draw gate contacts on the upper side of the active region. The contact region width is the gate length, the height is 'topgatewidth'. The space to the active region is 'topgatespace'." },
         { "drawtopgatestrap(Draw Top Gate Strap)",                                                      false, follow = "drawtopgate", info = "Connect all top gate contacts by a metal strap. Follows 'drawtopgate'." },
         { "topgatewidth(Top Gate Width)",                                                               technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "Width of the metal strap connecting all top gate contacts." },
@@ -276,6 +278,12 @@ function check(_P)
     if not (not _P.endrightwithgate or (_P.gatelength % 2 == 0)) then
         return false, "gatelength must be even when endrightwithgate is true"
     end
+    if _P.leftendgatelength % 2 ~= 0 then
+        return false, "leftendgatelength must be even"
+    end
+    if _P.rightendgatelength % 2 ~= 0 then
+        return false, "rightendgatelength must be even"
+    end
     if
         _P.shortdevice and
         (_P.shortdeviceleftoffset > 0 or _P.shortdevicerightoffset > 0) and
@@ -464,25 +472,25 @@ function layout(transistor, _P)
     if _P.endleftwithgate then
         geometry.rectanglebltr(transistor,
             generics.other("gate"),
-            point.create(gateblx - gatepitch, gatebly),
-            point.create(gatetrx - gatepitch, gatetry)
+            point.create(gateblx + (_P.gatelength - _P.leftendgatelength) / 2 - gatepitch, gatebly),
+            point.create(gatetrx - (_P.gatelength - _P.leftendgatelength) / 2 - gatepitch, gatetry)
         )
         transistor:add_area_anchor_bltr(
             "endleftgate",
-            point.create(gateblx - gatepitch, gatebly),
-            point.create(gatetrx - gatepitch, gatetry)
+            point.create(gateblx + (_P.gatelength - _P.leftendgatelength) / 2 - gatepitch, gatebly),
+            point.create(gatetrx - (_P.gatelength - _P.leftendgatelength) / 2 - gatepitch, gatetry)
         )
     end
     if _P.endrightwithgate then
         geometry.rectanglebltr(transistor,
             generics.other("gate"),
-            point.create(gateblx + _P.fingers * gatepitch, gatebly),
-            point.create(gatetrx + _P.fingers * gatepitch, gatetry)
+            point.create(gateblx + (_P.gatelength - _P.rightendgatelength) / 2 + _P.fingers * gatepitch, gatebly),
+            point.create(gatetrx - (_P.gatelength - _P.rightendgatelength) / 2 + _P.fingers * gatepitch, gatetry)
         )
         transistor:add_area_anchor_bltr(
             "endrightgate",
-            point.create(gateblx + _P.fingers * gatepitch, gatebly),
-            point.create(gatetrx + _P.fingers * gatepitch, gatetry)
+            point.create(gateblx + (_P.gatelength - _P.rightendgatelength) / 2 + _P.fingers * gatepitch, gatebly),
+            point.create(gatetrx - (_P.gatelength - _P.rightendgatelength) / 2 + _P.fingers * gatepitch, gatetry)
         )
     end
 
@@ -595,12 +603,12 @@ function layout(transistor, _P)
         end
         geometry.rectanglebltr(transistor,
             generics.other("diffusionbreakgate"),
-            point.create(gateblx - (_P.leftfloatingdummies + 1) * gatepitch, bly),
-            point.create(gatetrx - (_P.leftfloatingdummies + 1) * gatepitch, try)
+            point.create(gateblx + (_P.gatelength - _P.leftendgatelength) / 2 - (_P.leftfloatingdummies + 1) * gatepitch, bly),
+            point.create(gatetrx - (_P.gatelength - _P.leftendgatelength) / 2 - (_P.leftfloatingdummies + 1) * gatepitch, try)
         )
         transistor:add_area_anchor_bltr("leftstopgate",
-            point.create(gateblx - (_P.leftfloatingdummies + 1) * gatepitch, bly),
-            point.create(gatetrx - (_P.leftfloatingdummies + 1) * gatepitch, try)
+            point.create(gateblx + (_P.gatelength - _P.leftendgatelength) / 2 - (_P.leftfloatingdummies + 1) * gatepitch, bly),
+            point.create(gatetrx - (_P.gatelength - _P.leftendgatelength) / 2 - (_P.leftfloatingdummies + 1) * gatepitch, try)
         )
     end
 
@@ -637,12 +645,12 @@ function layout(transistor, _P)
         end
         geometry.rectanglebltr(transistor,
             generics.other("diffusionbreakgate"),
-            point.create(gateblx + (_P.fingers + _P.rightfloatingdummies) * gatepitch, bly),
-            point.create(gatetrx + (_P.fingers + _P.rightfloatingdummies) * gatepitch, try)
+            point.create(gateblx + (_P.gatelength - _P.rightendgatelength) / 2 + (_P.fingers + _P.rightfloatingdummies) * gatepitch, bly),
+            point.create(gatetrx - (_P.gatelength - _P.rightendgatelength) / 2 + (_P.fingers + _P.rightfloatingdummies) * gatepitch, try)
         )
         transistor:add_area_anchor_bltr("rightstopgate",
-            point.create(gateblx + (_P.fingers + _P.rightfloatingdummies) * gatepitch, bly),
-            point.create(gatetrx + (_P.fingers + _P.rightfloatingdummies) * gatepitch, try)
+            point.create(gateblx + (_P.gatelength - _P.rightendgatelength) / 2 + (_P.fingers + _P.rightfloatingdummies) * gatepitch, bly),
+            point.create(gatetrx - (_P.gatelength - _P.rightendgatelength) / 2 + (_P.fingers + _P.rightfloatingdummies) * gatepitch, try)
         )
     end
 
