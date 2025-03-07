@@ -216,8 +216,8 @@ function layout(resistor, _P)
 
     -- alignment box
     resistor:set_alignment_box(
-        point.create((1 + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), 0),
-        point.create((_P.nxfingers + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.nyfingers * (_P.length + _P.contactheight + 2 * _P.extension) + _P.contactheight)
+        point.create((1 + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) - _P.xspace / 2, -_P.yspace / 2),
+        point.create((_P.nxfingers + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.xspace / 2 + _P.width, _P.nyfingers * (_P.length + _P.contactheight + 2 * _P.extension) + _P.contactheight + _P.yspace / 2)
     )
 
     -- ports and anchors
