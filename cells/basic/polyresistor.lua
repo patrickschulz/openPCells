@@ -87,6 +87,10 @@ function layout(resistor, _P)
                     point.create((x + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), yshift),
                     point.create((x + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.contactheight)
                 )
+                resistor:add_area_anchor_bltr(string.format("contact_%d_%d", _P.nxfingers - x + 1, _P.nyfingers - y + 1),
+                    point.create((x + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), yshift),
+                    point.create((x + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.contactheight)
+                )
             end
         end
     end
