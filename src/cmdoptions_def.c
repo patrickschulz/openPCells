@@ -64,6 +64,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "debug-cell", NO_ARG, "show detailed
 cmdoptions_add_section(cmdoptions, "Miscellaneous functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "no-user-config", NO_ARG, "don't load the user config");
 cmdoptions_add_option(cmdoptions, 'w', "watch", NO_ARG, "start 'watch' mode. This continuously monitors the specified cell and regenerates the layout upon changes in the file.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "template", SINGLE_ARG, "print a template for the specified cell. The template shows the main parameters and usage of the cell");
 
 /* Generator Functions (Import) */
 cmdoptions_add_section(cmdoptions, "Layout import functions");

@@ -24,7 +24,7 @@
 
 static int _load_config(struct hashmap* config)
 {
-    // prepare config
+    /* prepare config */
     struct vector* techpaths = vector_create(8, free);
     hashmap_insert(config, "techpaths", techpaths);
     struct vector* prepend_cellpaths = vector_create(8, free);
@@ -41,14 +41,14 @@ static int _load_config(struct hashmap* config)
     if(!filesystem_exists(filename))
     {
         free(filename);
-        return 1; // non-existing user config is not an error
+        return 1; /* non-existing user config is not an error */
     }
     lua_State* L = util_create_basic_lua_state();
     int ret = luaL_dofile(L, filename);
     free(filename);
     if(ret == LUA_OK)
     {
-        // techpaths
+        /* techpaths */
         techpaths = hashmap_get(config, "techpaths");
         lua_getfield(L, -1, "techpaths");
         if(!lua_isnil(L, -1))
@@ -193,6 +193,18 @@ int main(int argc, const char* const * argv)
         pfd_f = fopen(stderrto, "w");
         int pfd = fileno(pfd_f);
         dup2(pfd, STDERR_FILENO);
+    }
+
+    /* templates */
+    if(cmdoptions_was_provided_long(cmdoptions, "template"))
+    {
+        const char* template_name = cmdoptions_get_argument_long(cmdoptions, "template");
+        lua_State* L = util_create_basic_lua_state();
+        lua_pushstring(L, template_name);
+        lua_setglobal(L, "template");
+        script_call_templates(L);
+        lua_close(L);
+        goto DESTROY_CMDOPTIONS;
     }
 
     if(cmdoptions_was_provided_long(cmdoptions, "api-help"))
