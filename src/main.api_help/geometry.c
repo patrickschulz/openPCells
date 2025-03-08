@@ -553,6 +553,25 @@
     ));
 }
 
+/* geometry.check_viabltr */
+{
+    struct parameter parameters[] = {
+        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "properties", TABLE,      NULL,   "optional properties table" }
+    };
+    vector_append(entries, _make_api_entry(
+        "check_viabltr",
+        MODULE_GEOMETRY,
+        "Check whether a via can be created. This is essentially a dry-run of geometry.viabltr(). It is useful for cells that (for instance) place vias on the intersections of vertical and horizontal powerlines with non-matching pitch. Here it can occur that a via is built only on a partial overlap, making the creation fail. As this does not actually create a via, a cell as target is not present as function parameter. The properties table is the same as for geometry.viabltr()",
+        "geometry.check_viabltr(1, 3, point.create(-100, -20), point.create(100, 4))",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* geometry.viabltr */
 {
     struct parameter parameters[] = {
