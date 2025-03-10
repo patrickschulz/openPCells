@@ -190,6 +190,36 @@ static int lgenerics_create_vthtype(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_active(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_active(techstate);
+    if(!layer)
+    {
+        lua_pushstring(L, "generics: got NULL layer: generics.active()\nif this layer is not needed, set it to {}");
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
+static int lgenerics_create_gate(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_gate(techstate);
+    if(!layer)
+    {
+        lua_pushstring(L, "generics: got NULL layer: generics.gate()\nif this layer is not needed, set it to {}");
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
 static int lgenerics_create_other(lua_State* L)
 {
     const char* str = luaL_checkstring(L, 1);
@@ -293,6 +323,8 @@ int open_lgenerics_lib(lua_State* L)
         { "oxide",                    lgenerics_create_oxide             },
         { "implant",                  lgenerics_create_implant           },
         { "vthtype",                  lgenerics_create_vthtype           },
+        { "active",                   lgenerics_create_active            },
+        { "gate",                     lgenerics_create_gate              },
         { "other",                    lgenerics_create_other             },
         { "otherport",                lgenerics_create_otherport         },
         { "outline",                  lgenerics_create_outline           },

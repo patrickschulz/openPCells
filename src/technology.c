@@ -1085,6 +1085,18 @@ const struct generics* generics_create_vthtype(struct technology_state* techstat
     return layer;
 }
 
+const struct generics* generics_create_active(struct technology_state* techstate)
+{
+    const struct generics* layer = _get_or_create_layer(techstate, "active");
+    return layer;
+}
+
+const struct generics* generics_create_gate(struct technology_state* techstate)
+{
+    const struct generics* layer = _get_or_create_layer(techstate, "gate");
+    return layer;
+}
+
 const struct generics* generics_create_other(struct technology_state* techstate, const char* layername)
 {
     const struct generics* layer = _get_or_create_layer(techstate, layername);

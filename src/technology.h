@@ -68,6 +68,8 @@ const struct generics* generics_create_contact(struct technology_state* techstat
 const struct generics* generics_create_oxide(struct technology_state* techstate, int num);
 const struct generics* generics_create_implant(struct technology_state* techstate, char polarity);
 const struct generics* generics_create_vthtype(struct technology_state* techstate, char channeltype, int vthtype);
+const struct generics* generics_create_active(struct technology_state* techstate);
+const struct generics* generics_create_gate(struct technology_state* techstate);
 const struct generics* generics_create_other(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_otherport(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_outline(struct technology_state* techstate);
