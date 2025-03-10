@@ -71,7 +71,7 @@ procedure(OPCCall(OPCCommand @key (redirect nil))
     let(
         (errmsg)
         when(redirect
-            OPCCommand = lsprintf( "%s > %s" OPCCommand redirect)
+            OPCCommand = lsprintf("%s > %s" OPCCommand redirect)
         )
         when(OPCSettingsForm->OPCSettingsLog->value == "true"
             printf("opc call: %s\n" OPCCommand)

@@ -42,6 +42,11 @@ procedure(OPCSubCellCreate()
                 ?value ""
                 ?prompt "Name of Sub-Cell"
             )
+            hiCreateStringField(
+                ?name 'OPCSubCellTemplate
+                ?value ""
+                ?prompt "Template for Cell Creation"
+            )
         )
         ?callback "OPCSubCellCreateCallback()"
     )
@@ -50,9 +55,10 @@ procedure(OPCSubCellCreate()
 
 procedure(OPCSubCellCreateCallback()
     let(
-        (cv group path label groupname)
+        (cv group path label groupname template)
         cv = geGetEditCellView()
         groupname = OPCSubCellCreationForm->OPCSubCellName->value
+        template = OPCSubCellCreationForm->OPCSubCellTemplate->value
         if(dbGetFigGroupByName(cv groupname)
             then
                 hiDisplayAppDBox(
@@ -73,6 +79,13 @@ procedure(OPCSubCellCreateCallback()
                 dbCreateProp(group "opcpath" "string" lsprintf("%s/%s.lua" path groupname))
                 label = dbCreateLabel(cv list("OUTLINE" "drawing") 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
+                unless(template == ""
+                    let((filename cmd)
+                        cmd = OPCBuildCallCommand(lsprintf("--template %s" template))
+                        filename = lsprintf("%s/%s.lua" path groupname)
+                        OPCCall(cmd ?redirect filename)
+                    ) ; let
+                ) ; unless template == ""
                 t
         )
     )
