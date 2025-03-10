@@ -16,10 +16,11 @@ procedure(OPCGetGroupName(@key (newgroup nil))
 )
 
 procedure(OPCPrepareArgsForCellCreation(args origin @key (groupname nil) (exporttype "SKILL"))
-    ; the SKILL export currently does not properly handle path extensions
+    ; virtuoso chokes on loading files with malformed shapes, hence these are ignored
+    ; furthermore, the SKILL export currently does not properly handle path extensions
     ; therefore, path extensions are being resolved by opc
     OPCArgs = lsprintf(
-        "--technology %s --export %s --origin '(%d, %d)' --redirect-dprint openPCells.dprint --ignore-malformed-shapes --resolve-path-extensions %s -X '-L %f'"
+        "--technology %s --export %s --origin '(%d, %d)' --ignore-malformed-shapes --resolve-path-extensions %s -X '-L %f'"
         OPCTech exporttype 
         fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
         args
@@ -30,6 +31,9 @@ procedure(OPCPrepareArgsForCellCreation(args origin @key (groupname nil) (export
     )
     when(OPCSettingsForm->OPCCellEnvironmentFile->value != ""
         OPCArgs = lsprintf("%s --cell-environment %s" OPCArgs OPCSettingsForm->OPCCellEnvironmentFile->value)
+    )
+    when(OPCSettingsForm->OPCSettingsEnableDprint->value == "true"
+        OPCArgs = lsprintf("%s --enable-dprint --redirect-dprint %s" OPCArgs OPCSettingsForm->OPCDprintFilename)
     )
     when(OPCSettingsForm->OPCSettingsEnableFallbackVias->value == "true"
         OPCArgs = lsprintf("%s --enable-fallback-vias" OPCArgs)

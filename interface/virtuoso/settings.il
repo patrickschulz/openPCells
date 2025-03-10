@@ -32,6 +32,17 @@ procedure(OPCCreateSettingsForm()
                 ?prompt "Size of Created Labels"
             )
             hiCreateRadioField(
+                ?name 'OPCSettingsEnableDprint
+                ?choices list("true" "false")
+                ?value "false"
+                ?prompt "Enable Cell Debug Print (dprint)"
+            )
+            hiCreateStringField(
+                ?name 'OPCDprintFilename
+                ?value "openPCells.dprint"
+                ?prompt "File Name for Debug Print (dprint)"
+            )
+            hiCreateRadioField(
                 ?name 'OPCSettingsEnableFallbackVias
                 ?choices list("true" "false")
                 ?value "false"
