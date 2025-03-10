@@ -1,7 +1,7 @@
 local template_lookup = {
 
-    ["basic/mosfet"] = [[
-local mosfet = pcell.create_layout("basic/mosfet", "_mosfet", {
+    ["basic/mosfet"] =
+[[local mosfet = pcell.create_layout("basic/mosfet", "_mosfet", {
     channeltype = "nmos",
     vthtype = 1,
     oxidetype = 1,
@@ -22,8 +22,8 @@ local mosfet = pcell.create_layout("basic/mosfet", "_mosfet", {
     connectdrainspace = 80,
 })]],
 
-    ["basic/cmos"] = [[
-local cmos = pcell.create_layout("basic/cmos", "_cmos", {
+    ["basic/cmos"] =
+[[local cmos = pcell.create_layout("basic/cmos", "_cmos", {
     gatecontactpos = { "center", "upper1", "lower1" },
     pcontactpos = { "power", "inner", "outer", "power" },
     ncontactpos = { "power", "inner", "outer", "power" },
@@ -52,8 +52,8 @@ local cmos = pcell.create_layout("basic/cmos", "_cmos", {
     extendallright = 0,
 })]],
 
-    ["auxiliary/guardring"] = [[
-local guardring = pcell.create_layout("auxiliary/guardring", "_guardring", {
+    ["auxiliary/guardring"] =
+[[local guardring = pcell.create_layout("auxiliary/guardring", "_guardring", {
     contype = "p",
     holewidth = 5000,
     holeheight = 5000,
@@ -68,8 +68,8 @@ local guardring = pcell.create_layout("auxiliary/guardring", "_guardring", {
     deepwelloffset = 0,
 })]],
 
-    ["basic/stacked_mosfet_array"] = [[
-local row1 = {
+    ["basic/stacked_mosfet_array"] =
+[[local row1 = {
     -- almost all parameters of basic/mosfet are accepted here
     -- (exceptions are those that only make sense for individual devices, such as fingers)
     channeltype = "nmos",
@@ -101,8 +101,8 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     separation = 500,
 })]],
 
-    ["basic/polyresistor"] = [[
-local resistor = pcell.create_layout("basic/polyresistor", "_resistor", {
+    ["basic/polyresistor"] =
+[[local resistor = pcell.create_layout("basic/polyresistor", "_resistor", {
     conntype = "none",
     nxfingers = 8,
     nyfingers = 1,
@@ -113,8 +113,8 @@ local resistor = pcell.create_layout("basic/polyresistor", "_resistor", {
     contactheight = 200,
 })]],
 
-    ["auxiliary/metalgrid"] = [[
-local metalgrid = pcell.create_layout("auxiliary/metalgrid", "_resistor", {
+    ["auxiliary/metalgrid"] =
+[[local metalgrid = pcell.create_layout("auxiliary/metalgrid", "_grid", {
     metalh = 1,
     metalv = 2,
     mhwidth = 500,
@@ -125,6 +125,17 @@ local metalgrid = pcell.create_layout("auxiliary/metalgrid", "_resistor", {
     mvlines = 2,
 })]],
 
+    ["passive/capacitor/mom"] =
+[[[[local metalgrid = pcell.create_layout("passive/capacitor/mom", "_momcap", {
+        fingers = 4,
+        fingerwidth = 100,
+        fingerspace = 100,
+        fingerheight = 1000,
+        fingeroffset = 100,
+        railwidth = 100,
+        firstmetal = 1,
+        lastmetal = 2,
+})]],
 }
 
 if not template_lookup[template] then
