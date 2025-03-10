@@ -22,6 +22,7 @@
 struct pcell_state {
     struct vector* cellpaths;
     struct const_vector* pfilenames;
+    FILE* dprint_target;
     int enable_dprint;
     int enable_debug;
 };
@@ -43,6 +44,7 @@ struct pcell_state* pcell_initialize_state(void)
     struct pcell_state* pcell_state = malloc(sizeof(*pcell_state));
     pcell_state->cellpaths = vector_create(64, free);
     pcell_state->pfilenames = const_vector_create(4);
+    pcell_state->dprint_target = NULL;
     pcell_state->enable_dprint = 0;
     pcell_state->enable_debug = 0;
     return pcell_state;
@@ -50,6 +52,10 @@ struct pcell_state* pcell_initialize_state(void)
 
 void pcell_destroy_state(struct pcell_state* pcell_state)
 {
+    if(pcell_state->dprint_target)
+    {
+        fclose(pcell_state->dprint_target);
+    }
     vector_destroy(pcell_state->cellpaths);
     const_vector_destroy(pcell_state->pfilenames);
     free(pcell_state);
@@ -63,6 +69,11 @@ void pcell_append_pfile(struct pcell_state* pcell_state, const char* pfile)
 void pcell_enable_debug(struct pcell_state* pcell_state)
 {
     pcell_state->enable_debug = 1;
+}
+
+void pcell_set_dprint_target(struct pcell_state* pcell_state, const char* filename)
+{
+    pcell_state->dprint_target = fopen(filename, "w");
 }
 
 void pcell_enable_dprint(struct pcell_state* pcell_state)
@@ -272,8 +283,9 @@ static void _process_input_arguments(lua_State* L, struct const_vector* cellargs
     }
 }
 
-struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* name, struct const_vector* cellargs, const char *cellenvfilename)
+struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* toplevelname, struct const_vector* cellargs, const char *cellenvfilename)
 {
+    (void)toplevelname;
     lua_State* L = _prepare_layout_generation(pcell_state, techstate);
     struct object* toplevel = NULL;
     if(!L)
@@ -493,7 +505,13 @@ static int lpcell_get_cell_filename(lua_State* L)
 
 static int lpcell_dprint(lua_State* L)
 {
-    struct pcell_state* pcell_state = lua_touserdata(L, 1);
+    struct lpcell* lpcell = luaL_checkudata(L, 1, "LPCELL");
+    struct pcell_state* pcell_state = lpcell->pcell_state;
+    FILE* outfile = stdout;
+    if(pcell_state->dprint_target)
+    {
+        outfile = pcell_state->dprint_target;
+    }
     if(pcell_state->enable_dprint)
     {
         // taken from lbaselib.c:
@@ -504,11 +522,12 @@ static int lpcell_dprint(lua_State* L)
             size_t l;
             const char *s = luaL_tolstring(L, i, &l);  /* convert it to string */
             if (i > 2)  /* not the first element? */
-                lua_writestring("\t", 1);  /* add a tab before it */
-            lua_writestring(s, l);  /* print it */
+                fwrite("\t", sizeof(char), 1, outfile); /* add a tab before it */
+            fwrite(s, sizeof(char), l, outfile); /* print it */
             lua_pop(L, 1);  /* pop result */
         }
-        lua_writeline();
+        fwrite("\n", sizeof(char), 1, outfile); /* add a tab before it */
+        fflush(stdout);
     }
     return 0;
 }

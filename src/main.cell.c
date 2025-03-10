@@ -599,6 +599,13 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         pcell_enable_dprint(pcell_state);
     }
 
+    // dprint target
+    if(cmdoptions_was_provided_long(cmdoptions, "redirect-dprint"))
+    {
+        const char* target = cmdoptions_get_argument_long(cmdoptions, "redirect-dprint");
+        pcell_set_dprint_target(pcell_state, target);
+    }
+
     // enable debug
     if(cmdoptions_was_provided_long(cmdoptions, "debug-cell"))
     {

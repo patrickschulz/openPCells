@@ -58,6 +58,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-alignmentbox", NO_ARG, "draw t
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-all-alignmentboxes", NO_ARG, "draw all present alignment box (also those of subcells). The box is drawn in the 'special' layer, so your layermap needs to have an entry for that.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-alignmentboxes-as-outline", NO_ARG, "mark all alignmentboxes in the 'outline' layer, not the 'special' layer");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "enable-dprint", NO_ARG, "enables debugging print statements in cell layout definitions");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "redirect-dprint", SINGLE_ARG, "write all dprint output to the specified file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "debug-cell", NO_ARG, "show detailed cell debugging call stack");
 
 /* Miscellaneous Functions */
