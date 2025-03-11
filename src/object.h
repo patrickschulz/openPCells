@@ -39,6 +39,7 @@ struct object* object_add_child_array(struct object* cell, struct object* child,
 int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
 int object_add_area_anchor_bltr(struct object* cell, const char* base, const struct point* bl, const struct point* tr);
 int object_add_area_anchor_points(struct object* cell, const char* base, const struct point* pt1, const struct point* pt2);
+int object_add_area_anchor_blwh(struct object* cell, const char* base, const struct point* bl, coordinate_t width, coordinate_t height);
 int object_inherit_anchor(struct object* cell, const struct object* other, const char* name);
 int object_inherit_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname);
 int object_inherit_area_anchor(struct object* cell, const struct object* other, const char* name);

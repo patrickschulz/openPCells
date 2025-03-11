@@ -206,8 +206,43 @@
     vector_append(entries, _make_api_entry(
         "add_area_anchor_bltr",
         MODULE_OBJECT,
-        "Similar to add_area_anchor, but takes to lower-left and upper-right corner points of the rectangular area",
-        "cell:add_area_anchor(\"source\", point.create(-100, -20), point.create(100, 20))",
+        "Add an area anchor to a cell, defined by the lower-left and upper-right corner points of the rectangular area",
+        "cell:add_area_anchor_bltr(\"source\", point.create(-100, -20), point.create(100, 20))",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.add_area_anchor_points */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
+        { "name",   STRING,  NULL, "name of the anchor" },
+        { "pt1",    POINT,   NULL, "first point of the rectangular area" },
+        { "pt2",    POINT,   NULL, "second point of the rectangular area" }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_area_anchor_points",
+        MODULE_OBJECT,
+        "Add an area anchor to a cell, defined by the two corner points of the rectangular area (order does not matter)",
+        "cell:add_area_anchor_points(\"source\", point.create(100, 20), point.create(-100, -20))",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.add_area_anchor_blwh */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
+        { "name",   STRING,  NULL, "name of the anchor" },
+        { "pt1",    POINT,   NULL, "first point of the rectangular area" },
+        { "width",  INTEGER, NULL, "width of the rectangular area" },
+        { "height", INTEGER, NULL, "height of the rectangular area" }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_area_anchor_blwh",
+        MODULE_OBJECT,
+        "Add an area anchor to a cell, defined by the the lower-left corner point and the width and height of the rectangular area",
+        "cell:add_area_anchor_blwh(\"source\", point.create(-100, -20), 200, 40)",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }

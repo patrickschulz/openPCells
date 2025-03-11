@@ -680,6 +680,11 @@ int object_add_area_anchor_points(struct object* cell, const char* base, const s
     return _add_area_anchor_bltr(cell, base, blx, bly, trx, try);
 }
 
+int object_add_area_anchor_blwh(struct object* cell, const char* base, const struct point* bl, coordinate_t width, coordinate_t height)
+{
+    return _add_area_anchor_bltr(cell, base, bl->x, bl->y, bl->x + width, bl->y + height);
+}
+
 int object_inherit_area_anchor(struct object* cell, const struct object* other, const char* name)
 {
     return object_inherit_area_anchor_as(cell, other, name, name);
