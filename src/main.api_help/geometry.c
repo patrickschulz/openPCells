@@ -80,9 +80,9 @@
         { "layer",  GENERICS,   NULL,   "Layer of the generated rectangular shape" },
         { "width",  INTEGER,    NULL,   "Width of the generated rectangular shape" },
         { "height", INTEGER,    NULL,   "Height of the generated rectangular shape" },
-        { "xshift", INTEGER,    NULL,   "Number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-        { "yshift", INTEGER,    NULL,   "Number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-        { "xrep",   INTEGER,    NULL,   "Number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+        { "xshift", INTEGER,    NULL,   "global shift in x direction. Can be positive or negative" },
+        { "yshift", INTEGER,    NULL,   "global shift in y direction. Can be positive or negative" },
+        { "xrep",   INTEGER,    NULL,   "Number of repetitions in x direction. The Rectangles are shifted so that an equal number is left and right" },
         { "yrep",   INTEGER,    NULL,   "Number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
         { "xpitch", INTEGER,    NULL,   "Pitch in x direction, used for repetition in x" },
         { "ypitch", INTEGER,    NULL,   "Pitch in y direction, used for repetition in y" }
