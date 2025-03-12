@@ -10,6 +10,7 @@ function parameters()
         { "viaoverlapextension(Via Overlap Extension)",                       0 },
         { "extension(Line Extension)",                                    40000 },
         { "extsep(Extension Separation)",                                  6000 },
+        { "drawaspolygon",                                                 true },
         { "allow45(Allow Angles with 45 Degrees)",                         true },
         { "drawlvsresistor(Draw LVS Resistor)",                           false },
         { "lvsreswidth(LVS Resistor Width)",                               1000 },
@@ -36,6 +37,12 @@ local function _scale_tanpi8(num)
 end
 
 function layout(inductor, _P)
+    local pathfunction
+    if _P.drawaspolygon then
+        pathfunction = geometry.path_polygon
+    else
+        pathfunction = geometry.path
+    end
     local pitch = _P.separation + _P.width
 
     local mainmetal = generics.metal(_P.topmetal)
@@ -93,8 +100,8 @@ function layout(inductor, _P)
                 via1tr = point.create(-pitch / 2 - _scale_tanpi8(_P.width / 2) - _P.viashift + _P.width / 2, -sign * (radius + pitch) + _P.width / 2)
                 via2bl = point.create( pitch / 2 + _scale_tanpi8(_P.width / 2) + _P.viashift - _P.width / 2, -sign * radius - _P.width / 2)
                 via2tr = point.create( pitch / 2 + _scale_tanpi8(_P.width / 2) + _P.viashift + _P.width / 2, -sign * radius + _P.width / 2)
-                geometry.path_polygon(inductor, mainmetal, up1pts, _P.width, true)
-                geometry.path_polygon(inductor, auxmetal, util.xmirror(up2pts), _P.width, true)
+                pathfunction(inductor, mainmetal, up1pts, _P.width, true)
+                pathfunction(inductor, auxmetal, util.xmirror(up2pts), _P.width, true)
             else
                 append1(-radiustanpi8, -sign * radius)
                 append1(-radiustanpi8 + pitch, -sign * (radius + pitch))
@@ -120,8 +127,8 @@ function layout(inductor, _P)
                     radiustanpi8 + _P.viashift + _P.width / 2,
                     -sign * radius + sign * _P.viashift + _P.width / 2
                 )
-                geometry.path_polygon(inductor, mainmetal, up1pts, _P.width, true)
-                geometry.path_polygon(inductor, auxmetal, util.xmirror(up2pts), _P.width, true)
+                pathfunction(inductor, mainmetal, up1pts, _P.width, true)
+                pathfunction(inductor, auxmetal, util.xmirror(up2pts), _P.width, true)
             end
             -- place vias
             geometry.viabarebltr(inductor, _P.topmetal, _P.topmetal - 1, via1bl, via1tr)
@@ -154,8 +161,8 @@ function layout(inductor, _P)
             end
         end
 
-        geometry.path_polygon(inductor, mainmetal, pathpts, _P.width, true)
-        geometry.path_polygon(inductor, mainmetal, util.xmirror(pathpts), _P.width, true)
+        pathfunction(inductor, mainmetal, pathpts, _P.width, true)
+        pathfunction(inductor, mainmetal, util.xmirror(pathpts), _P.width, true)
     end
 
     local lastradius = _P.radius + (_P.turns - 1) * pitch
