@@ -1,288 +1,179 @@
 return {
-    oxthick1  = {},
+    oxide1  = {},
     vthtype1  = {},
     contactsourcedrain = {
-        array {
-            name = "licon1",
-            lpp = {
-                gds      = { layer = 66,       purpose = 44 },
-                virtuoso = { layer = "licon1", purpose = "drawing" },
-                magic    = { layer = "licon1", purpose = "drawing" },
-                svg      = { color = "yellow", fill = true, order = 5 },
-            },
-            width = 170,
-            height = 170,
-            xspace = 170,
-            yspace = 170,
-            xencl = 40,
-            yencl = 40
+        name = "licon1",
+        layer = {
+            gds      = { layer = 66,       purpose = 44 },
+            virtuoso = { layer = "licon1", purpose = "drawing" },
+            magic    = { layer = "licon1", purpose = "drawing" },
+            svg      = { color = "yellow", fill = true, order = 5 },
         },
     },
     contactgate = {
-        array { 
-            name = "licon1",
-            lpp = {
-                gds      = { layer = 66,   purpose = 44 },
-                virtuoso = { layer = "licon1", purpose = "drawing", },
-                magic    = { layer = "licon1", purpose = "drawing", },
-                svg      = { color = "yellow", fill = true},
-            },
-            width = 170,
-            height = 170,
-            xspace = 250,
-            yspace = 170,
-            xencl = 40,
-            yencl = 80
+        name = "licon1",
+        layer = {
+            gds      = { layer = 66,   purpose = 44 },
+            virtuoso = { layer = "licon1", purpose = "drawing", },
+            magic    = { layer = "licon1", purpose = "drawing", },
+            svg      = { color = "yellow", fill = true},
         },
     },
-    feol = {},
-    --[[
-    contactgate = {
-        layers = {
-            {
-                lpp = {
-                    gds      = { layer = 66,     purpose = 20 },
-                    virtuoso = { layer = "poly", purpose = "drawing", },
-                    magic    = { layer = "poly", purpose = "drawing", },
-                },
-                enlarge = 100
-            },
-            {
-                lpp = {
-                    gds      = { layer = 95,      purpose = 20 },
-                    virtuoso = { layer = "npc", purpose = "drawing", },
-                    magic    = { layer = "npc", purpose = "drawing", },
-                },
-                enlarge = 100
-            },
-            {
-                lpp = {
-                    gds      = { layer = 66,   purpose = 44 },
-                    virtuoso = { layer = "licon1", purpose = "drawing", },
-                    magic    = { layer = "licon1", purpose = "drawing", },
-                },
-            },
-        },
-        width = 170,
-        height = 170,
-        xspace = 250,
-        yspace = 170,
-        xencl = 40,
-        yencl = 80
-    },
-    --]]
     active = {
-        map {
-            name = "diff",
-            lpp = {
-                gds      = { layer = 65,    purpose = 20 },
-                virtuoso = { layer ="diff", purpose = "drawing" },
-                magic    = { layer ="diff", purpose = "drawing" },
-                svg      = { color ="green", fill = true, order = 2 },
-            },
+        name = "diff",
+        layer = {
+            gds      = { layer = 65,    purpose = 20 },
+            virtuoso = { layer ="diff", purpose = "drawing" },
+            magic    = { layer ="diff", purpose = "drawing" },
+            svg      = { color ="green", fill = true, order = 2 },
         },
     },
     nimpl = {
-        map {
-            name = "nsdm",
-            lpp = {
-                gds      = { layer = 93,    purpose = 44 },
-                virtuoso = { layer ="nsdm", purpose = "drawing" },
-                magic    = { layer ="nsdm", purpose = "drawing" },
-                svg      = { color ="black", opacity = 1, fill = false  },
-            },
+        name = "nsdm",
+        layer = {
+            gds      = { layer = 93,    purpose = 44 },
+            virtuoso = { layer ="nsdm", purpose = "drawing" },
+            magic    = { layer ="nsdm", purpose = "drawing" },
+            svg      = { color ="black", opacity = 1, fill = false  },
         },
     },
     pimpl = {
-        map {
-            name = "psdm",
-            lpp = {
-                gds      = { layer = 94,    purpose = 20 },
-                virtuoso = { layer ="psdm", purpose = "drawing" },
-                magic    = { layer ="psdm", purpose = "drawing" },
-            },
+        name = "psdm",
+        layer = {
+            gds      = { layer = 94,    purpose = 20 },
+            virtuoso = { layer ="psdm", purpose = "drawing" },
+            magic    = { layer ="psdm", purpose = "drawing" },
         },
     },
     soiopen = {},
     nwell = {
-        map {
-            name = "nwell",
-            lpp = {
-                gds      = { layer = 64,     purpose = 20 },
-                virtuoso = { layer ="nwell", purpose = "drawing" },
-                magic    = { layer ="nwell", purpose = "drawing" },
-                svg      = { color ="yellow", opacity = 0.1, fill = true },
-            },
+        name = "nwell",
+        layer = {
+            gds      = { layer = 64,     purpose = 20 },
+            virtuoso = { layer ="nwell", purpose = "drawing" },
+            magic    = { layer ="nwell", purpose = "drawing" },
+            svg      = { color ="yellow", opacity = 0.1, fill = true },
         },
     },
     pwell = {},
     deepnwell = {
-        map {
-            name = "dnwell",
-            lpp = {
-                gds      = { layer = 64,       purpose = 18 },
-                virtuoso = { layer = "dnwell", purpose = "drawing" },
-                magic    = { layer = "dnwell", purpose = "drawing" },
-            },
+        name = "dnwell",
+        layer = {
+            gds      = { layer = 64,       purpose = 18 },
+            virtuoso = { layer = "dnwell", purpose = "drawing" },
+            magic    = { layer = "dnwell", purpose = "drawing" },
         },
     },
     gate = {
-        map {
-            name = "poly",
-            lpp = {
-                gds      = { layer = 66,    purpose = 20 },
-                virtuoso = { layer ="poly", purpose = "drawing" },
-                magic    = { layer ="poly", purpose = "drawing" },
-                svg      = { color ="red",  fill = true, order = 3 },
-            },
+        name = "poly",
+        layer = {
+            gds      = { layer = 66,    purpose = 20 },
+            virtuoso = { layer ="poly", purpose = "drawing" },
+            magic    = { layer ="poly", purpose = "drawing" },
+            svg      = { color ="red",  fill = true, order = 3 },
         },
     },
     M1 = {
-        map {
-            name = "li1",
-            lpp = {
-                gds      = { layer = 67,    purpose = 20 },
-                virtuoso = { layer ="li1",  purpose = "drawing" },
-                magic    = { layer ="li1",  purpose = "drawing" },
-                svg      = { color ="blue", fill = true, order = 4 },
-            },
+        name = "li1",
+        layer = {
+            gds      = { layer = 67,    purpose = 20 },
+            virtuoso = { layer ="li1",  purpose = "drawing" },
+            magic    = { layer ="li1",  purpose = "drawing" },
+            svg      = { color ="blue", fill = true, order = 4 },
         },
     },
-    viaM1M2 = {
-        array {
-            name = "mcon",
-            lpp = {
-                gds      = { layer = 67,     purpose = 44 },
-                virtuoso = { layer = "mcon", purpose = "drawing", },
-                magic    = { layer = "mcon", purpose = "drawing", },
-            },
-            width = 170,
-            height = 170,
-            xspace = 250,
-            yspace = 170,
-            xencl = 40,
-            yencl = 80
-        }
+    viacutM1M2 = {
+        name = "mcon",
+        layer = {
+            gds      = { layer = 67,     purpose = 44 },
+            virtuoso = { layer = "mcon", purpose = "drawing", },
+            magic    = { layer = "mcon", purpose = "drawing", },
+        },
     },
     M2 = {
-        map {
-            name = "met1",
-            lpp = {
-                gds      = { layer = 68,    purpose = 20 },
-                virtuoso = { layer ="met1", purpose = "drawing", },
-                magic    = { layer ="met1", purpose = "drawing", },
-            },
+        name = "met1",
+        layer = {
+            gds      = { layer = 68,    purpose = 20 },
+            virtuoso = { layer ="met1", purpose = "drawing", },
+            magic    = { layer ="met1", purpose = "drawing", },
         },
     },
-    viaM2M3 = {
-        array {
-            name = "via",
-            lpp = {
-                gds      = { layer = 68,      purpose = 44 },
-                virtuoso = { layer = "via", purpose = "drawing", },
-                magic    = { layer = "via", purpose = "drawing", },
-            },
-            width = 150,
-            height = 150,
-            xspace = 170,
-            yspace = 170,
-            xencl = 55,
-            yencl = 55
+    viacutM2M3 = {
+        name = "via",
+        layer = {
+            gds      = { layer = 68,      purpose = 44 },
+            virtuoso = { layer = "via", purpose = "drawing", },
+            magic    = { layer = "via", purpose = "drawing", },
         },
     },
     M3 = {
-        map {
-            name = "met2",
-            lpp = {
-                gds      = { layer = 69,    purpose = 20 },
-                virtuoso = { layer ="met2", purpose = "drawing", },
-                magic    = { layer ="met2", purpose = "drawing", },
-            },
+        name = "met2",
+        layer = {
+            gds      = { layer = 69,    purpose = 20 },
+            virtuoso = { layer ="met2", purpose = "drawing", },
+            magic    = { layer ="met2", purpose = "drawing", },
         },
     },
-    viaM3M4 = {
-        array {
-            name = "via2",
-            lpp = {
-                gds      = { layer = 69,     purpose = 44 },
-                virtuoso = { layer = "via2", purpose = "drawing", },
-                magic    = { layer = "via2", purpose = "drawing", },
-            },
-            width = 200,
-            height = 200,
-            xspace = 200,
-            yspace = 200,
-            xencl = 40,
-            yencl = 40
+    viacutM3M4 = {
+        name = "via2",
+        layer = {
+            gds      = { layer = 69,     purpose = 44 },
+            virtuoso = { layer = "via2", purpose = "drawing", },
+            magic    = { layer = "via2", purpose = "drawing", },
         },
     },
     M4 = {
-        map {
-            name = "met3",
-            lpp = {
-                gds      = { layer = 70,    purpose = 20 },
-                virtuoso = { layer ="met3", purpose = "drawing", },
-                magic    = { layer ="met3", purpose = "drawing", },
-            },
+        name = "met3",
+        layer = {
+            gds      = { layer = 70,    purpose = 20 },
+            virtuoso = { layer ="met3", purpose = "drawing", },
+            magic    = { layer ="met3", purpose = "drawing", },
         },
     },
-    viaM4M5 = {
-        array {
-            name = "via3",
-            lpp = {
-                gds      = { layer = 70,     purpose = 44 },
-                virtuoso = { layer = "via3", purpose = "drawing", },
-                magic    = { layer = "via3", purpose = "drawing", },
-            },
-            width = 200,
-            height = 200,
-            xspace = 200,
-            yspace = 200,
-            xencl = 60,
-            yencl = 60
+    viacutM4M5 = {
+        name = "via3",
+        layer = {
+            gds      = { layer = 70,     purpose = 44 },
+            virtuoso = { layer = "via3", purpose = "drawing", },
+            magic    = { layer = "via3", purpose = "drawing", },
         },
     },
     M5 = {
-        map {
-            name = "met4",
-            lpp = {
-                gds      = { layer = 71, purpose = 20 },
-                virtuoso = { layer = "met4", purpose = "drawing", },
-                magic    = { layer = "met4", purpose = "drawing", },
-                svg      = { color = "blue", opacity = 0.5, fill = true, order = 1 },
-            },
+        name = "met4",
+        layer = {
+            gds      = { layer = 71, purpose = 20 },
+            virtuoso = { layer = "met4", purpose = "drawing", },
+            magic    = { layer = "met4", purpose = "drawing", },
+            svg      = { color = "blue", opacity = 0.5, fill = true, order = 1 },
         },
     },
-    viaM5M6 = {
-        array {
-            name = "via4",
-            lpp = {
-                gds      = { layer = 71,     purpose = 44 },
-                virtuoso = { layer = "via4", purpose = "drawing" },
-                magic    = { layer = "via4", purpose = "drawing" },
-                svg      = { color = "white", opacity = 0.5, fill = true, order = 1 },
-            },
-            width = 800,
-            height = 800,
-            xspace = 800,
-            yspace = 800,
-            xencl = 190,
-            yencl = 190
+    viacutM5M6 = {
+        name = "via4",
+        layer = {
+            gds      = { layer = 71,     purpose = 44 },
+            virtuoso = { layer = "via4", purpose = "drawing" },
+            magic    = { layer = "via4", purpose = "drawing" },
+            svg      = { color = "white", opacity = 0.5, fill = true, order = 1 },
         },
     },
     M6 = {
-        map {
-            name = "met5",
-            lpp = {
-                gds      = { layer = 72,     purpose = 20        },
-                virtuoso = { layer = "met5", purpose = "drawing" },
-                magic    = { layer = "met5", purpose = "drawing" },
-                svg      = { color = "red",  opacity = 0.5, fill = true, order = 2 },
-            }
+        name = "met5",
+        layer = {
+            gds      = { layer = 72,     purpose = 20        },
+            virtuoso = { layer = "met5", purpose = "drawing" },
+            magic    = { layer = "met5", purpose = "drawing" },
+            svg      = { color = "red",  opacity = 0.5, fill = true, order = 2 },
         }
     },
-    --lastmetal = { layer = { number = 72, name = "met5"      }, purpose = { number = 20, name = "drawing" } },
-    --passopen  = { layer = { number = 76, name = "pad"       }, purpose = { number = 20, name = "drawing" } },
+    padopening = {
+        name = "pad",
+        layer = {
+            gds      = { layer = 76,    purpose = 20        },
+            virtuoso = { layer = "pad", purpose = "drawing" },
+            magic    = { layer = "pad", purpose = "drawing" },
+            svg      = { color = "red",  opacity = 0.5, fill = true, order = 2 },
+        },
+    },
     --inductor  = { layer = { number = 82, name = "inductor"  }, purpose = { number = 24, name = "drawing" } },
     --momcap    = { layer = { number = 82, name = "capacitor" }, purpose = { number = 64, name = "drawing" } },
     --polyres1  = { layer = { number = 86, name = "rpm"       }, purpose = { number = 20, name = "drawing" } },
