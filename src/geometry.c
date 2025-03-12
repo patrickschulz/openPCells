@@ -909,6 +909,7 @@ static int _viabltr(
         const struct generics* viacutlayer = generics_create_viacut(techstate, i, i + 1);
         if(!viacutlayer)
         {
+            puts("no viacutlayer defined");
             return 0;
         }
         ret = ret && _via_contact_bltr(cell,
