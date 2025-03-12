@@ -185,6 +185,22 @@ static int _has_write_triangle(struct export_writer* writer)
     return 0;
 }
 
+static int _has_write_polygon(struct export_writer* writer)
+{
+    if(writer->islua)
+    {
+        return _check_function(writer->L, "write_polygon");
+    }
+    else // C
+    {
+        if(writer->funcs->write_polygon)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static int _has_write_path_extension(struct export_writer* writer)
 {
     if(writer->islua)
@@ -1149,29 +1165,53 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
 
     int mustdelete = 0;
     struct object* copy;
-    if(!_has_write_cell_reference(writer) && !_has_write_path_extension(writer))
+    int has_write_paths = 1;
+    int has_write_polygon = 1;
+    int has_write_cell_reference = 1;
+    int has_write_path_extensions = 1;
+
+    if(!_has_write_path(writer))
+    {
+        fputs("this export does not know how to write paths, hence all paths are converted to polygons\n", stderr);
+        has_write_paths = 0;
+    }
+    if(!_has_write_polygon(writer))
+    {
+        fputs("this export does not know how to write polygon, hence all polygons are triangulated\n", stderr);
+        has_write_polygon = 0;
+    }
+    if(!_has_write_path_extension(writer))
+    {
+        fputs("this export does not know how to write path extensions, hence all path extensions are being resolved\n", stderr);
+        has_write_path_extensions = 0;
+    }
+    if(!_has_write_cell_reference(writer))
     {
         fputs("this export does not know how to write hierarchies, hence the cell is being written flat\n", stderr);
-        fputs("this export does not know how to write path extensions, hence all path extensions are being resolved\n", stderr);
-        copy = object_flatten(toplevel, 0); // 0: !flattenports
-        object_foreach_shapes(copy, shape_resolve_path_extensions_inline);
-        toplevel = copy; // extra pointer to silence warning
-        mustdelete = 1;
+        has_write_cell_reference = 0;
     }
-    else if(!_has_write_path_extension(writer))
+
+    if(!has_write_paths || !has_write_polygon || !has_write_cell_reference || !has_write_path_extensions)
     {
-        fputs("this export does not know how to write path extensions, hence all path extensions are being resolved\n", stderr);
-        copy = object_copy(toplevel);
-        object_foreach_shapes(copy, shape_resolve_path_extensions_inline);
-        toplevel = copy; // extra pointer to silence warning
-        mustdelete = 1;
-    }
-    else if(!_has_write_cell_reference(writer))
-    {
-        fputs("this export does not know how to write hierarchies, hence the cell is being written flat\n", stderr);
         copy = object_flatten(toplevel, 0); // 0: !flattenports
-        toplevel = copy; // extra pointer to silence warning
         mustdelete = 1;
+        if(!has_write_paths)
+        {
+            object_foreach_shapes(copy, shape_resolve_path_inline);
+        }
+        if(!has_write_path_extensions)
+        {
+            object_foreach_shapes(copy, shape_resolve_path_extensions_inline);
+        }
+        if(!has_write_polygon)
+        {
+            object_foreach_shapes(copy, shape_triangulate_polygon_inline);
+        }
+        if(!has_write_cell_reference)
+        {
+            object_flatten_inline(copy, 0); // 0: !flattenports
+        }
+        toplevel = copy; // extra pointer to silence warning
     }
 
     ret = _write_at_begin(writer);
