@@ -126,7 +126,7 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
 })]],
 
     ["passive/capacitor/mom"] =
-[[[[local metalgrid = pcell.create_layout("passive/capacitor/mom", "_momcap", {
+[[local metalgrid = pcell.create_layout("passive/capacitor/mom", "_momcap", {
         fingers = 4,
         fingerwidth = 100,
         fingerspace = 100,
@@ -136,6 +136,22 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
         firstmetal = 1,
         lastmetal = 2,
 })]],
+
+    ["passive/inductor/octagonal"] =
+[[local inductor = pcell.create_layout("passive/inductor/octagonal", "_inductor", {
+    topmetal = -1,
+    turns = 3,
+    radius = 40000,
+    cornerradius = 14000,
+    width = 6000,
+    separation = 6000,
+    extension = 40000,
+    viashift = 0,
+    viaoverlapextension = 0,
+    extsep = 6000,
+    allow45 = true,
+})]],
+
 }
 
 if not template_lookup[template] then
