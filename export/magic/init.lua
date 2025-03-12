@@ -50,4 +50,8 @@ function M.write_triangle(layer, pt1, pt2, pt3)
     print("write_triangle is not finished, as at that time I did not know the exact required format. This should be trivial to fix")
 end
 
+function M.write_port(name, layer, where, sizehint)
+    print("write_port is not finished, as at that time I did not know the exact required format. This should be trivial to fix")
+end
+
 return M
