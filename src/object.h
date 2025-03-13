@@ -40,6 +40,8 @@ int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coo
 int object_add_area_anchor_bltr(struct object* cell, const char* base, const struct point* bl, const struct point* tr);
 int object_add_area_anchor_points(struct object* cell, const char* base, const struct point* pt1, const struct point* pt2);
 int object_add_area_anchor_blwh(struct object* cell, const char* base, const struct point* bl, coordinate_t width, coordinate_t height);
+int object_add_anchor_line_x(struct object* cell, const char* name, coordinate_t c);
+int object_add_anchor_line_y(struct object* cell, const char* name, coordinate_t c);
 int object_inherit_anchor(struct object* cell, const struct object* other, const char* name);
 int object_inherit_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname);
 int object_inherit_area_anchor(struct object* cell, const struct object* other, const char* name);
@@ -50,6 +52,8 @@ struct point* object_get_alignment_anchor(const struct object* cell, const char*
 struct point* object_get_area_anchor(const struct object* cell, const char* base);
 struct point* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
 struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* name);
+coordinate_t* object_get_anchor_line_x(const struct object* cell, const char* name);
+coordinate_t* object_get_anchor_line_y(const struct object* cell, const char* name);
 struct point* object_get_alignmentbox_anchor_outerbl(const struct object* cell);
 struct point* object_get_alignmentbox_anchor_outertr(const struct object* cell);
 struct point* object_get_alignmentbox_anchor_innerbl(const struct object* cell);

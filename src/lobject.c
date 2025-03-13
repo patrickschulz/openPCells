@@ -745,6 +745,34 @@ static int lobject_add_area_anchor_blwh(lua_State* L)
     return 0;
 }
 
+static int lobject_add_anchor_line_x(lua_State* L)
+{
+    if(lua_gettop(L) != 3)
+    {
+        lua_pushfstring(L, "object.add_anchor_line_x: expected three arguments, got %d", lua_gettop(L));
+        lua_error(L);
+    }
+    struct lobject* cell = lobject_check(L, 1);
+    const char* name = luaL_checkstring(L, 2);
+    coordinate_t x = lpoint_checkcoordinate(L, 3, "x");
+    object_add_anchor_line_x(lobject_get(L, cell), name, x);
+    return 0;
+}
+
+static int lobject_add_anchor_line_y(lua_State* L)
+{
+    if(lua_gettop(L) != 3)
+    {
+        lua_pushfstring(L, "object.add_anchor_line_y: expected three arguments, got %d", lua_gettop(L));
+        lua_error(L);
+    }
+    struct lobject* cell = lobject_check(L, 1);
+    const char* name = luaL_checkstring(L, 2);
+    coordinate_t y = lpoint_checkcoordinate(L, 3, "y");
+    object_add_anchor_line_y(lobject_get(L, cell), name, y);
+    return 0;
+}
+
 static int lobject_inherit_area_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -972,6 +1000,40 @@ static int lobject_get_all_regular_anchors(lua_State* L)
         hashmap_const_iterator_next(iterator);
     }
     hashmap_const_iterator_destroy(iterator);
+    return 1;
+}
+
+static int lobject_get_anchor_line_x(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* name = luaL_checkstring(L, 2);
+    coordinate_t* c = object_get_anchor_line_x(lobject_get(L, cell), name);
+    if(c)
+    {
+        lua_pushinteger(L, *c);
+    }
+    else
+    {
+        lua_pushfstring(L, "trying to access an undefined anchor line '%s' (object: '%s')", name, object_get_name(lobject_get_const(cell)));
+        lua_error(L);
+    }
+    return 1;
+}
+
+static int lobject_get_anchor_line_y(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* name = luaL_checkstring(L, 2);
+    coordinate_t* c = object_get_anchor_line_y(lobject_get(L, cell), name);
+    if(c)
+    {
+        lua_pushinteger(L, *c);
+    }
+    else
+    {
+        lua_pushfstring(L, "trying to access an undefined anchor line '%s' (object: '%s')", name, object_get_name(lobject_get_const(cell)));
+        lua_error(L);
+    }
     return 1;
 }
 
@@ -1545,6 +1607,8 @@ int open_lobject_lib(lua_State* L)
         { "add_area_anchor_bltr",                   lobject_add_area_anchor_bltr                },
         { "add_area_anchor_points",                 lobject_add_area_anchor_points              },
         { "add_area_anchor_blwh",                   lobject_add_area_anchor_blwh                },
+        { "add_anchor_line_x",                      lobject_add_anchor_line_x                   },
+        { "add_anchor_line_y",                      lobject_add_anchor_line_y                   },
         { "inherit_area_anchor",                    lobject_inherit_area_anchor                 },
         { "inherit_area_anchor_as",                 lobject_inherit_area_anchor_as              },
         { "inherit_all_anchors_with_prefix",        lobject_inherit_all_anchors_with_prefix     },
@@ -1554,6 +1618,8 @@ int open_lobject_lib(lua_State* L)
         { "get_array_anchor",                       lobject_get_array_anchor                    },
         { "get_array_area_anchor",                  lobject_get_array_area_anchor               },
         { "get_all_regular_anchors",                lobject_get_all_regular_anchors             },
+        { "get_anchor_line_x",                      lobject_get_anchor_line_x                   },
+        { "get_anchor_line_y",                      lobject_get_anchor_line_y                   },
         { "add_port",                               lobject_add_port                            },
         { "add_port_with_anchor",                   lobject_add_port_with_anchor                },
         { "add_bus_port",                           lobject_add_bus_port                        },

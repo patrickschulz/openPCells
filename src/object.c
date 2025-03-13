@@ -120,7 +120,8 @@ struct object {
             struct vector* shapes; // stores struct shape*
             struct vector* ports; // stores struct port*
             struct vector* labels; // like a port, but always drawn; stores struct port*
-            struct hashmap* anchors;
+            struct hashmap* anchors; // stores struct anchor*
+            struct hashmap* anchorlines;
             struct vector* children; // stores struct object*
             struct vector* references; // stores struct object*
             coordinate_t* alignmentbox; // NULL or contains eight coordinates: blx, blx, trx, try for both outer (first) and inner (second)
@@ -611,17 +612,22 @@ static void _fix_rectangle_order_xy(coordinate_t* blx, coordinate_t* bly, coordi
     }
 }
 
+static void _transform_to_cell_coordinates_xy(const struct object* cell, coordinate_t* x, coordinate_t* y)
+{
+    transformationmatrix_apply_inverse_transformation_xy(cell->trans, x, y);
+}
+
 static void _transform_anchor_to_cell_coordinates(struct object* cell, struct anchor* anchor)
 {
     if(_anchor_is_area(anchor))
     {
-        transformationmatrix_apply_inverse_transformation(cell->trans, anchor->bl);
-        transformationmatrix_apply_inverse_transformation(cell->trans, anchor->tr);
+        _transform_to_cell_coordinates_xy(cell, &anchor->bl->x, &anchor->bl->y);
+        _transform_to_cell_coordinates_xy(cell, &anchor->tr->x, &anchor->tr->y);
         _fix_rectangle_order(anchor->bl, anchor->tr);
     }
     else
     {
-        transformationmatrix_apply_inverse_transformation(cell->trans, anchor->where);
+        _transform_to_cell_coordinates_xy(cell, &anchor->where->x, &anchor->where->y);
     }
 }
 
@@ -779,6 +785,48 @@ static struct point* _get_regular_anchor(const struct object* cell, const char* 
         }
     }
     return NULL;
+}
+
+int object_add_anchor_line_x(struct object* cell, const char* name, coordinate_t c)
+{
+    if(!cell->anchorlines)
+    {
+        cell->anchorlines = hashmap_create();
+    }
+    if(hashmap_exists(cell->anchorlines, name))
+    {
+        return 0;
+    }
+    else
+    {
+        coordinate_t dummy = 0;
+        _transform_to_cell_coordinates_xy(cell, &c, &dummy);
+        coordinate_t* ptr = malloc(sizeof(*ptr));
+        *ptr = c;
+        hashmap_insert(cell->anchorlines, name, ptr);
+    }
+    return 1;
+}
+
+int object_add_anchor_line_y(struct object* cell, const char* name, coordinate_t c)
+{
+    if(!cell->anchorlines)
+    {
+        cell->anchorlines = hashmap_create();
+    }
+    if(hashmap_exists(cell->anchorlines, name))
+    {
+        return 0;
+    }
+    else
+    {
+        coordinate_t dummy = 0;
+        _transform_to_cell_coordinates_xy(cell, &dummy, &c);
+        coordinate_t* ptr = malloc(sizeof(*ptr));
+        *ptr = c;
+        hashmap_insert(cell->anchorlines, name, ptr);
+    }
+    return 1;
 }
 
 static void _transform_to_global_coordinates_xy(const struct object* cell, coordinate_t* x, coordinate_t* y)
@@ -1059,6 +1107,48 @@ struct point* object_get_array_area_anchor(const struct object* cell, int xindex
             pts[1].x += xindex * cell->xpitch;
             pts[1].y += yindex * cell->ypitch;
             return pts;
+        }
+    }
+    return NULL;
+}
+
+coordinate_t* object_get_anchor_line_x(const struct object* cell, const char* name)
+{
+    const struct object* obj = cell;
+    if(cell->isproxy)
+    {
+        obj = cell->reference;
+    }
+
+    if(obj->anchorlines)
+    {
+        if(hashmap_exists(obj->anchorlines, name))
+        {
+            coordinate_t* x = hashmap_get(obj->anchorlines, name);
+            coordinate_t dummy = 0;
+            _transform_to_global_coordinates_xy(cell, x, &dummy);
+            return x;
+        }
+    }
+    return NULL;
+}
+
+coordinate_t* object_get_anchor_line_y(const struct object* cell, const char* name)
+{
+    const struct object* obj = cell;
+    if(cell->isproxy)
+    {
+        obj = cell->reference;
+    }
+
+    if(obj->anchorlines)
+    {
+        if(hashmap_exists(obj->anchorlines, name))
+        {
+            coordinate_t* y = hashmap_get(obj->anchorlines, name);
+            coordinate_t dummy = 0;
+            _transform_to_global_coordinates_xy(cell, &dummy, y);
+            return y;
         }
     }
     return NULL;
