@@ -33,7 +33,7 @@ procedure(OPCPrepareArgsForCellCreation(args origin @key (groupname nil) (export
         OPCArgs = lsprintf("%s --cell-environment %s" OPCArgs OPCSettingsForm->OPCCellEnvironmentFile->value)
     )
     when(OPCSettingsForm->OPCSettingsEnableDprint->value == "true"
-        OPCArgs = lsprintf("%s --enable-dprint --redirect-dprint %s" OPCArgs OPCSettingsForm->OPCDprintFilename)
+        OPCArgs = lsprintf("%s --enable-dprint --redirect-dprint %s" OPCArgs OPCSettingsForm->OPCDprintFilename->value)
     )
     when(OPCSettingsForm->OPCSettingsEnableFallbackVias->value == "true"
         OPCArgs = lsprintf("%s --enable-fallback-vias" OPCArgs)
