@@ -6,6 +6,14 @@ This module provides a collection of geometry-related helper functions such as:
     - easier insertion of points in arrays
 --]]
 
+function util.make_counter(start)
+    local i = start or 1
+    return function()
+        i = i + 1
+        return i - 1
+    end
+end
+
 function util.sum(t)
     local sum = 0
     for _, e in ipairs(t) do

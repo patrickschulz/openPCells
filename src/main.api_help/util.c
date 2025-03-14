@@ -1,3 +1,18 @@
+/* util.make_counter(polygon) */
+{
+    struct parameter parameters[] = {
+        { "start", INTEGER, NULL, "optional start value" }
+    };
+    vector_append(entries, _make_api_entry(
+        "make_counter",
+        MODULE_UTIL,
+        "create a counter function that increments and returns its current value everytime it is called. If a value is given, the counter starts at that value. The default is 1.",
+        "local counter = util.make_counter()\nprint(counter()) -- 1\nprint(counter()) -- 2\nprint(counter()) -- 3",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* util.polygon_xmin(polygon) */
 {
     struct parameter parameters[] = {
