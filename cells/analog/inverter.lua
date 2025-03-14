@@ -276,6 +276,9 @@ function layout(inverter, _P)
     inverter:inherit_area_anchor(cmos, "pmos_well")
     inverter:inherit_area_anchor(cmos, "nmos_active")
     inverter:inherit_area_anchor(cmos, "pmos_active")
+    for i = 1, _P.numleftdummies + _P.numrightdummies + _P.fingers do
+        inverter:inherit_area_anchor(cmos, string.format("G%d", i))
+    end
 
     -- connect dummies
     if _P.alternatedummycontacts then
