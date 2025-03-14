@@ -192,5 +192,12 @@ function layout(ldmos, _P)
         guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(0, -_P.gatestrapspace - _P.gatestrapwidth - _P.gbotext))
         guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
         ldmos:merge_into(guardring)
+        ldmos:set_alignment_box(
+            guardring:get_area_anchor("outerboundary").bl,
+            guardring:get_area_anchor("outerboundary").tr,
+            guardring:get_area_anchor("innerboundary").bl,
+            guardring:get_area_anchor("innerboundary").tr
+        )
     end
+
 end
