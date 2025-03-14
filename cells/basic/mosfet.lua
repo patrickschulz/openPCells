@@ -238,8 +238,9 @@ function parameters()
         { "botwelltapspace",                                                                            technology.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                                                       0 },
         { "botwelltapextendright",                                                                      0 },
-        { "drawstopgatetopgatecut",                                                                        false },
-        { "drawstopgatebotgatecut",                                                                        false },
+        { "drawstopgatetopgatecut",                                                                     false },
+        { "drawstopgatebotgatecut",                                                                     false },
+        { "excludestopgatesfromcutregions",                                                             true },
         { "leftpolylines",                                                                              {} },
         { "rightpolylines",                                                                             {} },
         { "drawrotationmarker",                                                                         false },
@@ -564,10 +565,7 @@ function layout(transistor, _P)
 
     -- stop gates
     if _P.drawleftstopgate then
-        local bly = gatebly
-        local try = gatetry
         if _P.drawstopgatetopgatecut then
-            try = _P.fingerwidth + _P.topgatecutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
@@ -581,7 +579,6 @@ function layout(transistor, _P)
             )
         end
         if _P.drawstopgatebotgatecut then
-            bly = -_P.botgatecutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
@@ -594,10 +591,20 @@ function layout(transistor, _P)
                 )
             )
         end
+        local byoffset = 0
+        local tyoffset = 0
+        if _P.excludestopgatesfromcutregions then
+            if _P.drawstopgatetopgatecut then
+                tyoffset = -gateaddtop + _P.topgatecutspace
+            end
+            if _P.drawstopgatebotgatecut then
+                byoffset = gateaddbottom - _P.botgatecutspace
+            end
+        end
         geometry.rectanglebltr(transistor,
             generics.other("diffusionbreakgate"),
-            transistor:get_area_anchor("endleftgate").bl,
-            transistor:get_area_anchor("endleftgate").tr
+            transistor:get_area_anchor("endleftgate").bl:translate_y(byoffset),
+            transistor:get_area_anchor("endleftgate").tr:translate_y(tyoffset)
         )
         transistor:add_area_anchor_bltr("leftstopgate",
             transistor:get_area_anchor("endleftgate").bl,
@@ -606,10 +613,7 @@ function layout(transistor, _P)
     end
 
     if _P.drawrightstopgate then
-        local bly = gatebly
-        local try = gatetry
         if _P.drawstopgatetopgatecut then
-            try = _P.fingerwidth + _P.topgatecutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
@@ -623,7 +627,6 @@ function layout(transistor, _P)
             )
         end
         if _P.drawstopgatebotgatecut then
-            bly = -_P.botgatecutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
@@ -636,10 +639,20 @@ function layout(transistor, _P)
                 )
             )
         end
+        local byoffset = 0
+        local tyoffset = 0
+        if _P.excludestopgatesfromcutregions then
+            if _P.drawstopgatetopgatecut then
+                tyoffset = -gateaddtop + _P.topgatecutspace
+            end
+            if _P.drawstopgatebotgatecut then
+                byoffset = gateaddbottom - _P.botgatecutspace
+            end
+        end
         geometry.rectanglebltr(transistor,
             generics.other("diffusionbreakgate"),
-            transistor:get_area_anchor("endrightgate").bl,
-            transistor:get_area_anchor("endrightgate").tr
+            transistor:get_area_anchor("endrightgate").bl:translate_y(byoffset),
+            transistor:get_area_anchor("endrightgate").tr:translate_y(tyoffset)
         )
         transistor:add_area_anchor_bltr("rightstopgate",
             transistor:get_area_anchor("endrightgate").bl,
