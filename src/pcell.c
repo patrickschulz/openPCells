@@ -527,7 +527,7 @@ static int lpcell_dprint(lua_State* L)
             lua_pop(L, 1);  /* pop result */
         }
         fwrite("\n", sizeof(char), 1, outfile); /* add a tab before it */
-        fflush(stdout);
+        fflush(outfile);
     }
     return 0;
 }
