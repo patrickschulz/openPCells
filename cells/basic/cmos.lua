@@ -85,6 +85,12 @@ function parameters()
         { "activedummyspace",                                                       0 },
         { "drawleftstopgate",                                                       false },
         { "drawrightstopgate",                                                      false },
+        { "endleftwithgate",                                                        false, follow = "drawleftstopgate" },
+        { "leftendgatelength",                                                      0, follow = "gatelength" },
+        { "leftendgatespace",                                                       0, follow = "gatespace" },
+        { "endrightwithgate",                                                       false, follow = "drawrightstopgate" },
+        { "rightendgatelength",                                                     0, follow = "gatelength" },
+        { "rightendgatespace",                                                      0, follow = "gatespace" },
         { "leftpolylines",                                                          {} },
         { "rightpolylines",                                                         {} },
         { "implantalignwithactive",                                                 false },
@@ -331,9 +337,21 @@ function layout(cmos, _P)
                     nopt_current.drawleftstopgate = true
                     nopt_current.drawstopgatetopgatecut = true
                     nopt_current.drawstopgatebotgatecut = false
+                    nopt_current.leftendgatelength = _P.leftendgatelength
+                    nopt_current.leftendgatespace = _P.leftendgatespace
                     popt_current.drawleftstopgate = true
                     popt_current.drawstopgatetopgatecut = false
                     popt_current.drawstopgatebotgatecut = true
+                    popt_current.leftendgatelength = _P.leftendgatelength
+                    popt_current.leftendgatespace = _P.leftendgatespace
+                end
+                if _P.endleftwithgate then
+                    nopt_current.endleftwithgate = true
+                    nopt_current.leftendgatelength = _P.leftendgatelength
+                    nopt_current.leftendgatespace = _P.leftendgatespace
+                    popt_current.endleftwithgate = true
+                    popt_current.leftendgatelength = _P.leftendgatelength
+                    popt_current.leftendgatespace = _P.leftendgatespace
                 end
             end
             if i == fingers then
@@ -343,9 +361,21 @@ function layout(cmos, _P)
                     nopt_current.drawrightstopgate = true
                     nopt_current.drawstopgatetopgatecut = true
                     nopt_current.drawstopgatebotgatecut = false
+                    nopt_current.rightendgatelength = _P.rightendgatelength
+                    nopt_current.rightendgatespace = _P.rightendgatespace
                     popt_current.drawrightstopgate = true
                     popt_current.drawstopgatetopgatecut = false
                     popt_current.drawstopgatebotgatecut = true
+                    popt_current.rightendgatelength = _P.rightendgatelength
+                    popt_current.rightendgatespace = _P.rightendgatespace
+                end
+                if _P.endrightwithgate then
+                    nopt_current.endrightwithgate = true
+                    nopt_current.rightendgatelength = _P.rightendgatelength
+                    nopt_current.rightendgatespace = _P.rightendgatespace
+                    popt_current.endrightwithgate = true
+                    popt_current.rightendgatelength = _P.rightendgatelength
+                    popt_current.rightendgatespace = _P.rightendgatespace
                 end
             end
             -- gate contact positions
