@@ -68,6 +68,7 @@ function parameters()
         { "drawdummyactivecontacts",                                                true },
         { "drawoutergatecut",                                                       false },
         { "drawgatecuteverywhere",                                                  false },
+        { "drawdummygatecut",                                                       true },
         { "dummycontheight(Dummy Gate Contact Height)",                             technology.get_dimension("Minimum M1 Width") },
         { "dummycontshift(Dummy Gate Shift)",                                       0 },
         { "drawnmoswelltap(Draw nMOS Well Tap)",                                    false },
@@ -420,7 +421,7 @@ function layout(cmos, _P)
                 nopt_current.botgatewidth = _P.dummycontheight
                 popt_current.drawtopgate = true
                 popt_current.topgatewidth = _P.dummycontheight
-                nopt_current.drawtopgatecut = true
+                nopt_current.drawtopgatecut = _P.drawdummygatecut
                 ngatey = _P.npowerspace
                 pgatey = _P.ppowerspace
                 table.insert(gateanchors, {
