@@ -1,5 +1,16 @@
 local M = {}
 
+function M.via_area_anchor_multiple(cell, startmetal, endmetal, fmt, startindex, endindex, increment)
+    local f = string.gsub(fmt, "%%", "%%d")
+    increment = increment or 1
+    for i = startindex, endindex, increment do
+        geometry.viabltr(ldmos, startmetal, endmetal,
+            cell:get_area_anchor_fmt(f, i).bl,
+            cell:get_area_anchor_fmt(f, i).tr
+        )
+    end
+end
+
 function M.place_bus(cell, layer, pathpoints, numbits, width, space)
     for i = 1, numbits do
         local offset = (i - 1 - (numbits - 1) / 2) * (width + space)

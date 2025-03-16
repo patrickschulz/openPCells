@@ -1,3 +1,24 @@
+/* layouthelpers.via_area_anchor_multiple */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place bus in" },
+        { "startmetal",     INTEGER,    NULL, "start metal for via stack" },
+        { "endmetal",       INTEGER,    NULL, "end metal for via stack" },
+        { "fmt",            STRING,     NULL, "base format string for area anchors. Percent signs ('%') are replaced by the iterator value (an integer)" },
+        { "startindex",     INTEGER,    NULL, "start index for numeric for-loop" },
+        { "endindex",       INTEGER,    NULL, "end index for numeric for-loop" },
+        { "increment",      INTEGER,    NULL, "increment for numeric for-loop (optional, default 1)" }
+    };
+    vector_append(entries, _make_api_entry(
+        "via_area_anchor_multiple",
+        MODULE_LAYOUTHELPERS,
+        "place a via stack on an area anchor of the given cell (also places the via stack in the given cell). The via stack starts at the startmetal and ends at the endmetal. The vias are created within a for-loop that starts at the given startindex and ends at the given endindex. Optionally, an increment value (default 1) can be given. The fourth argument is a base name for the area anchor, in with the percent sign ('%') is replaced by the current iterator value.",
+"layouthelpers.via_area_anchor_multiple(cell, 1, 2, \"gate_%\", 1, 8\n)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* layouthelpers.place_bus */
 {
     struct parameter parameters[] = {
