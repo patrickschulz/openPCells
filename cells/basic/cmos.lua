@@ -162,6 +162,10 @@ function check(_P)
     if (_P.separation % 2) ~= (_P.cutheight % 2) then
         return false, "separation and cutheight must both be either odd or even"
     end
+    -- check if gate names are valid
+    if (#_P.gatenames > 0) and (#_P.gatenames ~= #_P.gatecontactpos) then
+        moderror(string.format("basic/cmos: number of entries in 'gatenames' must match 'gatecontactpos' (got %d, must be %d)", #_P.gatenames, #_P.gatecontactpos))
+    end
     return true
 end
 
@@ -175,11 +179,6 @@ function layout(cmos, _P)
         if util.any_of("outer", _P.gatecontactpos) then
             outergateshift = _P.outergateshift + _P.gatestrapwidth
         end
-    end
-
-    -- check if gate names are valid
-    if (#_P.gatenames > 0) and (#_P.gatenames ~= #_P.gatecontactpos) then
-        moderror(string.format("basic/cmos: number of entries in 'gatenames' must match 'gatecontactpos' (got %d, must be %d)", #_P.gatenames, #_P.gatecontactpos))
     end
 
     local leftndrainarea, rightndrainarea
