@@ -1,47 +1,53 @@
 function parameters()
     pcell.add_parameters(
-        { "fingers",                2, posvals = even() },
-        { "fingerwidth",            0 },
-        { "channeltype",            "nmos", posvals = set("nmos", "pmos") },
-        { "gatelength",             0 },
-        { "gatestrapwidth",         0 },
-        { "gatestrapspace",         0 },
-        { "sourcemetal",            1 },
-        { "sourcewidth",            0 },
-        { "sourcespace",            0 },
-        { "sourceskip",             0 },
-        { "drainmetal",             1 },
-        { "drainwidth",             0 },
-        { "drainspace",             0 },
-        { "gtopext",                0 },
-        { "gbotext",                0 },
-        { "drawguardring",          true },
-        { "guardringwidth",         0 },
-        { "guardringtopsep",        0 },
-        { "guardringbottomsep",     0 },
-        { "guardringleftsep",       0 },
-        { "guardringrightsep",      0 },
-        { "extendall",              0 },
-        { "extendalltop",           0, follow = "extendall" },
-        { "extendallbottom",        0, follow = "extendall" },
-        { "extendallleft",          0, follow = "extendall" },
-        { "extendallright",         0, follow = "extendall" },
-        { "extendoxidetypetop",     0, follow = "extendalltop" },
-        { "extendoxidetypebottom",  0, follow = "extendallbottom" },
-        { "extendoxidetypeleft",    0, follow = "extendallleft" },
-        { "extendoxidetyperight",   0, follow = "extendallright" },
-        { "extendvthtypetop",       0, follow = "extendalltop" },
-        { "extendvthtypebottom",    0, follow = "extendallbottom" },
-        { "extendvthtypeleft",      0, follow = "extendallleft" },
-        { "extendvthtyperight",     0, follow = "extendallright" },
-        { "extendimplanttop",       0, follow = "extendalltop" },
-        { "extendimplantbottom",    0, follow = "extendallbottom" },
-        { "extendimplantleft",      0, follow = "extendallleft" },
-        { "extendimplantright",     0, follow = "extendallright" },
-        { "extendwelltop",          0, follow = "extendalltop" },
-        { "extendwellbottom",       0, follow = "extendallbottom" },
-        { "extendwellleft",         0, follow = "extendallleft" },
-        { "extendwellright",        0, follow = "extendallright" }
+        { "fingers",                        2, posvals = even() },
+        { "fingerwidth",                    0 },
+        { "channeltype",                    "nmos", posvals = set("nmos", "pmos") },
+        { "gatelength",                     0 },
+        { "gatestrapwidth",                 0 },
+        { "gatestrapspace",                 0 },
+        { "sourcemetal",                    1 },
+        { "sourcewidth",                    0 },
+        { "sourcespace",                    0 },
+        { "sourceskip",                     0 },
+        { "drainmetal",                     1 },
+        { "drainwidth",                     0 },
+        { "drainspace",                     0 },
+        { "gtopext",                        0 },
+        { "gbotext",                        0 },
+        { "subblocksourceextension",        0 },
+        { "subblockdrainextension",         0 },
+        { "drawinnerguardring",             true },
+        { "guardringwidth",                 0 },
+        { "guardringtopsep",                0 },
+        { "guardringbottomsep",             0 },
+        { "guardringleftsep",               0 },
+        { "guardringrightsep",              0 },
+        { "extendall",                      0 },
+        { "extendalltop",                   0, follow = "extendall" },
+        { "extendallbottom",                0, follow = "extendall" },
+        { "extendallleft",                  0, follow = "extendall" },
+        { "extendallright",                 0, follow = "extendall" },
+        { "extendoxidetypetop",             0, follow = "extendalltop" },
+        { "extendoxidetypebottom",          0, follow = "extendallbottom" },
+        { "extendoxidetypeleft",            0, follow = "extendallleft" },
+        { "extendoxidetyperight",           0, follow = "extendallright" },
+        { "extendvthtypetop",               0, follow = "extendalltop" },
+        { "extendvthtypebottom",            0, follow = "extendallbottom" },
+        { "extendvthtypeleft",              0, follow = "extendallleft" },
+        { "extendvthtyperight",             0, follow = "extendallright" },
+        { "extendimplanttop",               0, follow = "extendalltop" },
+        { "extendimplantbottom",            0, follow = "extendallbottom" },
+        { "extendimplantleft",              0, follow = "extendallleft" },
+        { "extendimplantright",             0, follow = "extendallright" },
+        { "extendwelltop",                  0, follow = "extendalltop" },
+        { "extendwellbottom",               0, follow = "extendallbottom" },
+        { "extendwellleft",                 0, follow = "extendallleft" },
+        { "extendwellright",                0, follow = "extendallright" },
+        { "extendsoiopentop",               0, follow = "extendalltop" },
+        { "extendsoiopenbottom",            0, follow = "extendallbottom" },
+        { "extendsoiopenleft",              0, follow = "extendallleft" },
+        { "extendsoiopenright",             0, follow = "extendallright" }
     )
 end
 
@@ -175,14 +181,53 @@ function layout(ldmos, _P)
         )
     end
 
+    -- soi open
+    if not _P.drawinnerguardring then
+        geometry.rectanglebltr(ldmos, generics.other("soiopen"),
+            point.create(
+                - _P.extendsoiopenleft + _P.sourcewidth,
+                - _P.gatestrapspace - _P.gatestrapwidth - _P.gbotext - _P.extendsoiopenbottom
+            ),
+            point.create(
+                (_P.fingers / 2 - 1) * xpitch + _P.sourcewidth + _P.sourcespace + 2 * _P.drainspace + _P.drainwidth + 2 * _P.gatelength + _P.sourcespace + _P.sourcewidth + _P.extendsoiopenright,
+                _P.fingerwidth + _P.gatestrapspace + _P.gatestrapwidth + _P.gtopext + _P.extendsoiopentop
+            )
+        )
+    end
+
+    -- substrate doping blocker
+    for i = 1, _P.fingers / 2 do
+        geometry.rectanglebltr(ldmos, generics.other("subblock"),
+            point.create(
+                (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace - _P.subblocksourceextension,
+                0
+            ),
+            point.create(
+                (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + _P.subblockdrainextension,
+                _P.fingerwidth
+            )
+        )
+        geometry.rectanglebltr(ldmos, generics.other("subblock"),
+            point.create(
+                (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace - _P.subblocksourceextension + _P.gatelength + 2 * _P.drainspace + _P.drainwidth,
+                0
+            ),
+            point.create(
+                (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.subblockdrainextension + _P.gatelength + 2 * _P.drainspace + _P.drainwidth + _P.gatelength,
+                _P.fingerwidth
+            )
+        )
+    end
+
     -- guard ring
-    if _P.drawguardring then
+    if _P.drawinnerguardring then
         local guardring = pcell.create_layout("auxiliary/guardring", "_guardring", {
             contype = _P.channeltype == "nmos" and "p" or "n",
             ringwidth = _P.guardringwidth,
             holewidth = (_P.fingers / 2 - 1) * xpitch + 2 * _P.sourcewidth + 2 * _P.sourcespace + 2 * _P.drainspace + _P.drainwidth + 2 * _P.gatelength  + _P.guardringleftsep + _P.guardringrightsep,
             holeheight = _P.fingerwidth + 2 * (_P.gatestrapwidth + _P.gatestrapspace) + _P.gtopext + _P.gbotext + _P.guardringtopsep + _P.guardringbottomsep,
             fillwell = true,
+            fillsoiopen = true,
             --drawsegments = _P.guardringsegments,
             --fillimplant = _P.guardringfillimplant,
             --wellextension = _P.guardringwellextension,
