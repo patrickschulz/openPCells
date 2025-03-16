@@ -151,6 +151,29 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     extsep = 6000,
     allow45 = true,
 })]],
+    ["basic/ldmos"] =
+[[local ldmos = pcell.create_layout("basic/ldmos", "_ldmos", {
+    fingers = 4,
+    fingerwidth = 2000,
+    channeltype = "pmos",
+    gatelength = 280,
+    gatestrapwidth = 200,
+    gatestrapspace = 200,
+    gtopext = 100,
+    gbotext = 100,
+    sourcewidth = 100,
+    sourcespace = 120,
+    sourceskip = 50,
+    drainwidth = 200,
+    drainspace = 450,
+    extendall = 200,
+    drawguardring = true,
+    guardringwidth = 200,
+    guardringtopsep = 200,
+    guardringbottomsep = 200,
+    guardringleftsep = 200,
+    guardringrightsep = 200,
+})]],
 
 }
 
