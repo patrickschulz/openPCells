@@ -870,7 +870,7 @@ static int _area_anchor_index_func(lua_State* L)
     return 0;
 }
 
-static int lobject_get_area_anchor(lua_State* L)
+static void _get_area_anchor(lua_State* L, const struct object* cell, const char* base)
 {
     if(luaL_newmetatable(L, "areaanchor"))
     {
@@ -878,9 +878,7 @@ static int lobject_get_area_anchor(lua_State* L)
         lua_setfield(L, -2, "__index");
     }
     lua_pop(L, 1); // pop meta table
-    struct lobject* cell = lobject_check(L, 1);
-    const char* base = luaL_checkstring(L, 2);
-    struct point* pts = object_get_area_anchor(lobject_get_const(cell), base);
+    struct point* pts = object_get_area_anchor(cell, base);
     if(pts)
     {
         lua_newtable(L);
@@ -908,10 +906,9 @@ static int lobject_get_area_anchor(lua_State* L)
     }
     else
     {
-        const char* name = object_get_name(lobject_get_const(cell));
+        const char* name = object_get_name(cell);
         if(name)
         {
-            const char* name = object_get_name(lobject_get_const(cell));
             lua_pushfstring(L, "trying to access undefined area anchor '%s' (object: '%s')", base, name);
             lua_error(L);
         }
@@ -921,6 +918,29 @@ static int lobject_get_area_anchor(lua_State* L)
             lua_error(L);
         }
     }
+}
+
+static int lobject_get_area_anchor(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* base = luaL_checkstring(L, 2);
+    _get_area_anchor(L, lobject_get_const(cell), base);
+    return 1;
+}
+
+static int lobject_get_area_anchor_fmt(lua_State* L)
+{
+    int num_args = lua_gettop(L) - 1;
+    struct lobject* cell = lobject_check(L, 1);
+    lua_getglobal(L, "string");
+    lua_getfield(L, -1, "format");
+    for(int n = 1; n <= num_args; ++n)
+    {
+        lua_pushvalue(L, n + 1);
+    }
+    lua_call(L, num_args, 1);
+    const char* base = luaL_checkstring(L, -1);
+    _get_area_anchor(L, lobject_get_const(cell), base);
     return 1;
 }
 
@@ -1615,6 +1635,7 @@ int open_lobject_lib(lua_State* L)
         { "get_anchor",                             lobject_get_anchor                          },
         { "get_alignment_anchor",                   lobject_get_alignment_anchor                },
         { "get_area_anchor",                        lobject_get_area_anchor                     },
+        { "get_area_anchor_fmt",                    lobject_get_area_anchor_fmt                 },
         { "get_array_anchor",                       lobject_get_array_anchor                    },
         { "get_array_area_anchor",                  lobject_get_array_area_anchor               },
         { "get_all_regular_anchors",                lobject_get_all_regular_anchors             },
