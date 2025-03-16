@@ -13,6 +13,7 @@ function parameters()
         { "ignoreseparationchecks(Ignore Separation Checks)",                       false },
         { "gatelength(Gate Length)",                                                technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
         { "gatespace(Gate Spacing)",                                                technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
+        { "actext(Active Extension)",                                               0, },
         { "sdwidth(Source/Drain Metal Width)",                                      technology.get_dimension("Minimum M1 Width"), posvals = even() },
         { "innergatestraps(Number of Inner Gate Straps)",                           3 },
         { "gatestrapwidth(Gate Strap Metal Width)",                                 technology.get_dimension("Minimum M1 Width") },
@@ -190,6 +191,7 @@ function layout(cmos, _P)
         local baseopt = {
             gatelength = _P.gatelength,
             gatespace = _P.gatespace,
+            actext = _P.actext,
             sdwidth = _P.sdwidth,
             oxidetype = _P.oxidetype,
             gatemarker = _P.gatemarker,
