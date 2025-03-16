@@ -888,6 +888,35 @@
     );
 }
 
+/* object.get_anchor_line_x */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT, NULL, "object to get an anchor from" },
+        { "anchorname", STRING, NULL, "name of the anchor line" }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_anchor_line_x",
+        MODULE_OBJECT,
+        "Retrieve an anchor line from a cell. This function returns a coordinate that contains the x-position of the specified anchor line, corrected by the cell transformation. Retrieving non-existing anchor lines raises an error. There is (and can't) be any checks that an x-coordinate is not used as a y-coordinate and vice versa.",
+        "cell:get_anchor_line_x(\"activeleft\")",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.get_anchor_line_y */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT, NULL, "object to get an anchor from" },
+        { "anchorname", STRING, NULL, "name of the anchor line" }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_anchor_line_y",
+        MODULE_OBJECT,
+        "Retrieve an anchor line from a cell. This function returns a coordinate that contains the y-position of the specified anchor line, corrected by the cell transformation. Retrieving non-existing anchor lines raises an error. There is (and can't) be any checks that an x-coordinate is not used as a y-coordinate and vice versa.",
+        "cell:get_anchor_line_y(\"activetop\")",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
 
 /* object.get_anchor */
 {

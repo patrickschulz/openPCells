@@ -478,6 +478,52 @@ static void _print_with_newlines_and_offset(const char* str, unsigned int offset
 }
 */
 
+/* copied from cmdoptions.c */
+static void _print_sep(unsigned int num)
+{
+    unsigned int i;
+    for(i = 0; i < num; ++i)
+    {
+        putchar(' ');
+    }
+}
+
+static void _put_line(unsigned int textwidth, unsigned int* linewidth, const char** ch, const char* wptr, unsigned int leftmargin)
+{
+    if(*linewidth + wptr - *ch > textwidth)
+    {
+        *linewidth = 0;
+        putchar('\n');
+        if(leftmargin > 0)
+        {
+            _print_sep(leftmargin - 1);
+        }
+    }
+    *linewidth += (wptr - *ch);
+    while(*ch < wptr)
+    {
+        putchar(**ch);
+        ++(*ch);
+    }
+}
+
+static void _print_wrapped_paragraph(const char* text, unsigned int textwidth, unsigned int leftmargin)
+{
+    const char* ch = text;
+    const char* wptr = ch;
+    unsigned int linewidth = 0;
+    while(*wptr)
+    {
+        if(*wptr == ' ')
+        {
+            _put_line(textwidth, &linewidth, &ch, wptr, leftmargin);
+        }
+        ++wptr;
+    }
+    _put_line(textwidth, &linewidth, &ch, wptr, leftmargin);
+}
+/* ***** */
+
 static void _print_api_entry(const struct api_entry* entry)
 {
     // function name
@@ -513,7 +559,8 @@ static void _print_api_entry(const struct api_entry* entry)
     
     // function info
     putchar('\n');
-    _putstr(entry->info);
+    //_putstr(entry->info);
+    _print_wrapped_paragraph(entry->info, 100, 0);
     putchar('\n');
     putchar('\n');
 
