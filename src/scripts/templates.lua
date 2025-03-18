@@ -59,6 +59,7 @@ local template_lookup = {
     holeheight = 5000,
     ringwidth = 200,
     -- all extensions can also be specified by inner/outer for more control
+    -- for this, use (e.g.) wellouterextension and wellinnerextension
     wellextension = 50,
     soiopenextension = 50,
     implantextension = 50,
@@ -66,6 +67,10 @@ local template_lookup = {
     fillwell = true,
     drawdeepwell = false,
     deepwelloffset = 0,
+    -- the inside of the guardring can be filled with an implant to simplify placing transistor arrays inside
+    fillinnerimplant = true,
+    innerimplantpolarity = "n", -- can be opposite than the main guardring type
+    innerimplantspace = 0, -- abutted to the outer implant, but a gap can be introduced
 })]],
 
     ["basic/stacked_mosfet_array"] =
@@ -172,12 +177,21 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     drainwidth = 200,
     drainspace = 450,
     extendall = 200,
-    drawguardring = true,
+    drawinnerguardring = true,
     guardringwidth = 200,
     guardringtopsep = 200,
     guardringbottomsep = 200,
     guardringleftsep = 200,
     guardringrightsep = 200,
+})]],
+
+    ["auxiliary/welltap"] =
+[[local welltap = pcell.create_layout("auxiliary/welltap", "_welltap", {
+    contype = p,
+    width = 5000,
+    height = 5000,
+    extendall = 50, -- more fine-grained variants exist for left/right/top/bottom
+                    -- also individual parameters for implant/well/soiopen
 })]],
 
 }
@@ -187,3 +201,5 @@ if not template_lookup[template] then
 else
     print(template_lookup[template])
 end
+
+
