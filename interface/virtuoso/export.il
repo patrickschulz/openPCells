@@ -61,8 +61,7 @@ procedure(OPCExportCell(filename)
             file
         )
         file = outfile(path "w")
-        println(file)
-        fprintf(file "local cell = object.create()\n")
+        fprintf(file "local cell = object.create(\"%s\")\n" cv->cellName)
         foreach(shape cv->shapes
             OPCWriteShape(file shape 0 0)
         )
