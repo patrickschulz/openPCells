@@ -2,9 +2,11 @@ local M = {}
 
 function M.via_area_anchor_multiple(cell, startmetal, endmetal, fmt, startindex, endindex, increment)
     local f = string.gsub(fmt, "%%", "%%d")
+    startindex = startindex or 1
+    endindex = endindex or 1
     increment = increment or 1
     for i = startindex, endindex, increment do
-        geometry.viabltr(ldmos, startmetal, endmetal,
+        geometry.viabltr(cell, startmetal, endmetal,
             cell:get_area_anchor_fmt(f, i).bl,
             cell:get_area_anchor_fmt(f, i).tr
         )
@@ -380,6 +382,15 @@ function M.collect_gridlines(t, cells, anchorname)
             table.insert(t, { bl = bl:copy(), tr = tr:copy() })
         end
     end
+end
+
+function M.gather_layer_boundaries(cell, layer)
+    return {
+        util.rectangle_to_polygon(
+            point.create(2500, 0),
+            point.create(2700, 2000)
+        )
+    }
 end
 
 return M
