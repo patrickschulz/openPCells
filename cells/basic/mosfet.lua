@@ -248,6 +248,189 @@ function parameters()
     )
 end
 
+function anchors()
+    pcell.add_area_anchor_documentation(
+        "active",
+        "region of the active diffusion",
+        "drawactive == true"
+    )
+    pcell.add_area_anchor_documentation(
+        "implant",
+        "region of the implant"
+    )
+    pcell.add_area_anchor_documentation(
+        "well",
+        "region of the well"
+    )
+    pcell.add_area_anchor_documentation(
+        "leftactivedummy",
+        "region of the left dummy active diffusion",
+        "(drawactive == true) and (drawleftactivedummy == true)"
+    )
+    pcell.add_area_anchor_documentation(
+        "rightactivedummy",
+        "region of the right dummy active diffusion",
+        "(drawactive == true) and (drawrightactivedummy == true)"
+    )
+    pcell.add_area_anchor_documentation(
+        "topactivedummy",
+        "region of the top dummy active diffusion",
+        "(drawactive == true) and (drawtopactivedummy == true)"
+    )
+    pcell.add_area_anchor_documentation(
+        "bottomactivedummy",
+        "region of the bottom dummy active diffusion",
+        "(drawactive == true) and (drawbottomactivedummy == true)"
+    )
+    pcell.add_area_anchor_documentation(
+        "gate%d",
+        "drawn gate, one for every finger (gate1, gate2, ...). Counting starts at 1 and left, going right",
+        "fingers > 0"
+    )
+    pcell.add_area_anchor_documentation(
+        "gate-%d",
+        "drawn gate, inverse anchor, one for every finger (gate-1, gate-2, ...). Counting starts at -1 and right, going left",
+        "fingers > 0"
+    )
+    pcell.add_area_anchor_documentation(
+        "leftgate",
+        "left-most gate anchor (like gate1, but always present)"
+    )
+    pcell.add_area_anchor_documentation(
+        "rightgate",
+        "right-most gate anchor (like gate-1, but always present)"
+    )
+    pcell.add_area_anchor_documentation(
+        "topgate%d",
+        "anchor of the nth top gate. Like gate%d, but only includes the part of the gate that is covered the top gate strap",
+        "drawtopgate == true"
+    )
+    pcell.add_area_anchor_documentation(
+        "botgate%d",
+        "anchor of the nth bottom gate. Like gate%d, but only includes the part of the gate that is covered the bottom gate strap",
+        "drawbotgate == true"
+    )
+    pcell.add_area_anchor_documentation(
+        "topgatestrap",
+        "anchor of the top gate strap",
+        "fingers > 0 and drawtopgatestrap"
+    )
+    pcell.add_area_anchor_documentation(
+        "botgatestrap",
+        "anchor of the bottom gate strap",
+        "drawbotgate == true",
+        "fingers > 0 and drawbotgatestrap"
+    )
+    pcell.add_area_anchor_documentation(
+        "endleftgate",
+        "anchor of left end gate (not gate1)",
+        "endleftgate == true"
+    )
+    pcell.add_area_anchor_documentation(
+        "endrightgate",
+        "anchor of right end gate (not gate-1)",
+        "endrightgate == true"
+    )
+    pcell.add_area_anchor_documentation(
+        "leftpolyline%d",
+        "anchor of nth left poly line",
+        "leftpolylines has at least one entry"
+    )
+    pcell.add_area_anchor_documentation(
+        "rightpolyline%d",
+        "anchor of nth right poly line",
+        "rightpolylines has at least one entry"
+    )
+    pcell.add_area_anchor_documentation(
+        "leftstopgate",
+        "anchor of left stop gate (not gate1). Identical to endleftgate",
+        "drawleftstopgate == true"
+    )
+    pcell.add_area_anchor_documentation(
+        "rightstopgate",
+        "anchor of right stop gate (not gate1). Identical to endrightgate",
+        "drawrightstopgate == true"
+    )
+    pcell.add_area_anchor_documentation(
+        "sourcedrainactive%d",
+        "anchor of nth source/drain active region (independent of metal), starting counting from the left. For most use-cases, the area anchor 'sourcedrain%d' is better suited",
+        "fingers > 1"
+    )
+    pcell.add_area_anchor_documentation(
+        "sourcedrainactive-%d",
+        "anchor of nth source/drain active region (independent of metal), starting counting from the right. For most use-cases, the area anchor 'sourcedrain%d' is better suited",
+        "fingers > 1"
+    )
+    pcell.add_area_anchor_documentation(
+        "sourcedrainactiveleft",
+        "most-left active source/drain region. Useful for alignment"
+    )
+    pcell.add_area_anchor_documentation(
+        "sourcedrainactiveright",
+        "most-right active source/drain region. Useful for alignment"
+    )
+    pcell.add_area_anchor_documentation(
+        "sourcedrain%d",
+        "anchor of nth source/drain region (covered by metal). Both source and drain regions are included, but only if both are drawn, e.g. with drawsourcedrain == \"source\", only every second anchor will be present",
+        "drawsourcedrain ~= none"
+    )
+    pcell.add_area_anchor_documentation(
+        "sourcedrain-%d",
+        "anchor of nth source/drain region (covered by metal), starting counting at the right side",
+        "drawsourcedrain ~= none"
+    )
+    pcell.add_area_anchor_documentation(
+        "sourcedrainmetal%d",
+        "like sourcedrain%d, but dependent on the size of the source/drain via",
+        "drawsourcedrain ~= none"
+    )
+    pcell.add_area_anchor_documentation(
+        "sourcedrainmetal-%d",
+        "like sourcedrain%d, but dependent on the size of the source/drain via. Starting counting at the right side",
+        "drawsourcedrain ~= none"
+    )
+    pcell.add_area_anchor_documentation(
+        "sourcestrap",
+        "region of the source strap connecting all source regions",
+        "fingers > 0"
+    )
+    pcell.add_area_anchor_documentation(
+        "othersourcestrap",
+        "region of the other source strap (on the opposite side) connecting all source regions",
+        "(fingers > 0) and (connectsourceboth == true)"
+    )
+    pcell.add_area_anchor_documentation(
+        "drainstrap",
+        "region of the drain strap connecting all drain regions",
+        "fingers > 0"
+    )
+    pcell.add_area_anchor_documentation(
+        "otherdrainstrap",
+        "region of the other drain strap (on the opposite side) connecting all drain regions",
+        "(fingers > 0) and (connectdrainboth == true)"
+    )
+    pcell.add_area_anchor_documentation(
+        "extratopstrap",
+        "region of the extra top metal strap",
+        "drawextratopstrap"
+    )
+    pcell.add_area_anchor_documentation(
+        "extrabotstrap",
+        "region of the extra bottom metal strap",
+        "drawextrabotstrap"
+    )
+    pcell.add_area_anchor_documentation(
+        "innerguardring",
+        "inner boundary region of the guardring",
+        "drawguardring"
+    )
+    pcell.add_area_anchor_documentation(
+        "outerguardring",
+        "outer boundary region of the guardring",
+        "drawguardring"
+    )
+end
+
 function check(_P)
     if (_P.gatespace % 2) ~= (_P.sdwidth % 2) then
         return false, "gatespace and sdwidth must both be even or odd"
@@ -1667,3 +1850,4 @@ function layout(transistor, _P)
         transistor:get_area_anchor(string.format("sourcedrainactive%d", _P.fingers + 1)).tr
     )
 end
+

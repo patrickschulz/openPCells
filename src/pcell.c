@@ -463,6 +463,48 @@ void pcell_list_parameters(struct pcell_state* pcell_state, struct technology_st
     lua_close(L);
 }
 
+void pcell_list_anchors(struct pcell_state* pcell_state, const char* cellname, const char* anchorsformat, struct const_vector* anchornames)
+{
+    lua_State* L = _prepare_layout_generation(pcell_state, NULL); // don't need technology
+
+    // assemble cell arguments
+    lua_newtable(L);
+    // cell name
+    lua_pushstring(L, cellname);
+    lua_setfield(L, -2, "cell");
+    // format
+    if(anchorsformat)
+    {
+        lua_pushstring(L, anchorsformat);
+        lua_setfield(L, -2, "anchorsformat");
+    }
+    // anchor names
+    size_t numposargs = 0;
+    lua_newtable(L);
+    for(size_t i = 0; i < const_vector_size(anchornames); ++i)
+    {
+        lua_pushstring(L, const_vector_get(anchornames, i));
+        lua_rawseti(L, -2, numposargs + 1);
+        ++numposargs;
+    }
+    if(numposargs > 0)
+    {
+        lua_setfield(L, -2, "anchornames");
+    }
+    else
+    {
+        lua_pop(L, 1);
+    }
+    lua_setglobal(L, "args");
+
+    int retval = script_call_list_anchors(L);
+    if(retval != LUA_OK)
+    {
+        puts("error while running list_anchors.lua");
+    }
+    lua_close(L);
+}
+
 static int lpcell_get_cell_filename(lua_State* L)
 {
     struct lpcell* lpcell = luaL_checkudata(L, 1, "LPCELL");

@@ -120,8 +120,8 @@ local function _load_cell(state, cellname, env)
     )
     -- check if only allowed values are defined
     for funcname in pairs(env) do
-        if not util.any_of(function(v) return v == funcname end, { "config", "parameters", "layout", "check" }) then
-            moderror(string.format("pcell: all defined toplevel values must be one of 'parameters', 'layout', 'check' or 'config'. Illegal name: '%s'", funcname))
+        if not util.any_of(function(v) return v == funcname end, { "config", "parameters", "layout", "check", "anchors" }) then
+            moderror(string.format("pcell: all defined global values must be one of 'parameters', 'anchors', 'layout', 'check' or 'config'. Illegal name: '%s'", funcname))
         end
     end
     return env
@@ -146,6 +146,7 @@ local function _add_cell(state, cellname, funcs, nocallparams)
     local cell = {
         funcs       = funcs,
         parameters  = paramlib.create_directory(),
+        anchors     = {}, -- stores anchor documentation
         properties  = {},
     }
     rawset(state.loadedcells, cellname, cell)
@@ -157,6 +158,9 @@ local function _add_cell(state, cellname, funcs, nocallparams)
     end
     if funcs.config then
         funcs.config()
+    end
+    if funcs.anchors then
+        funcs.anchors()
     end
 end
 
@@ -271,6 +275,14 @@ local function _add_parameters(state, cellname, ...)
     end
 end
 
+local function _add_area_anchor_documentation(state, cellname, name, info, conditions)
+    local cell = _get_cell(state, cellname)
+    cell.anchors[name] = {
+        info = info,
+        conditions = conditions
+    }
+end
+
 local function _resolve_cellname(state, cellname)
     local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
     if libpart == "." then -- relative library
@@ -330,6 +342,7 @@ function state.create_cellenv(state, cellname, ovrenv)
             add_parameter                   = bindstatecell(_add_parameter),
             add_parameters                  = bindstatecell(_add_parameters),
             inherit_parameters              = bindstatecell(_inherit_parameters),
+            add_area_anchor_documentation   = bindstatecell(_add_area_anchor_documentation),
             -- the following functions don't not need cell binding as they are called for other cells
             create_layout                   = pcell.create_layout,
             create_layout_env               = pcell.create_layout_env,
@@ -648,7 +661,7 @@ end
 
 function pcell.anchors(cellname)
     local cell = _get_cell(state, cellname)
-    --for k, v in pairs(
+    return cell.anchors
 end
 
 local function _perform_cell_check(cellname, name, values)

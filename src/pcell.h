@@ -24,6 +24,7 @@ void pcell_append_pfile(struct pcell_state* pcell_state, const char* pfile);
 void pcell_list_cellpaths(const struct pcell_state* pcell_state);
 void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat);
 void pcell_list_parameters(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* parametersformat, struct const_vector* parameternames);
+void pcell_list_anchors(struct pcell_state* pcell_state, const char* cellname, const char* anchorsformat, struct const_vector* anchornames);
 
 int open_lpcell_lib(lua_State* L);
 

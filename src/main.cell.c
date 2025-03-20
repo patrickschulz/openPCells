@@ -156,7 +156,6 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     if(!pcell_state)
     {
         fputs("could not initialize pcell state\n", stderr);
-        return;
         goto LIST_PARAMETERS_DESTROY_TECHNOLOGY;
     }
     _prepare_cellpaths(pcell_state, cmdoptions, config);
@@ -183,81 +182,28 @@ LIST_PARAMETERS_DESTROY_TECHNOLOGY:
 
 void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* config)
 {
-    // FIXME: this probably loads too many C modules
-    // FIXME: load dummy technology if not technology was given
-    lua_State* L = main_create_and_initialize_lua();
-
-    module_load_aux(L);
-    module_load_util(L);
-    module_load_check(L);
-    module_load_stack(L);
-    module_load_pcell(L);
-    module_load_load(L);
-
-    struct vector* techpaths = hashmap_get(config, "techpaths");
-    vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
-    if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
-    {
-        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
-        while(*arg)
-        {
-            vector_append(techpaths, util_strdup(*arg));
-            ++arg;
-        }
-    }
-    struct const_vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
-    const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
-    if(techname)
-    {
-        struct technology_state* techstate = _create_techstate(techpaths, techname, ignoredlayers);
-        // register techstate
-        lua_pushlightuserdata(L, techstate);
-        lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
-    }
-
     // pcell state
     struct pcell_state* pcell_state = pcell_initialize_state();
+    if(!pcell_state)
+    {
+        fputs("could not initialize pcell state\n", stderr);
+        return;
+    }
     _prepare_cellpaths(pcell_state, cmdoptions, config);
 
-    // assemble cell arguments
-    lua_newtable(L);
-    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters");
-    lua_pushstring(L, cellname);
-    lua_setfield(L, -2, "cell");
-    const char* parametersformat = cmdoptions_get_argument_long(cmdoptions, "parameters-format");
-    if(parametersformat)
-    {
-        lua_pushstring(L, parametersformat);
-        lua_setfield(L, -2, "parametersformat");
-    }
-    lua_pushboolean(L, techname ? 0 : 1);
-    lua_setfield(L, -2, "generictech");
-    const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
-    size_t numposargs = 0;
-    lua_newtable(L);
-    while(*ptr)
-    {
-        lua_pushstring(L, *ptr);
-        lua_rawseti(L, -2, numposargs + 1);
-        ++numposargs;
-        ++ptr;
-    }
-    if(numposargs > 0)
-    {
-        lua_setfield(L, -2, "parameternames");
-    }
-    else
-    {
-        lua_pop(L, 1);
-    }
-    lua_setglobal(L, "args");
+    // cellname
+    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "anchors");
 
-    int retval = script_call_list_anchors(L);
-    if(retval != LUA_OK)
-    {
-        puts("error while running list_anchors.lua");
-    }
-    lua_close(L);
+    // parameter format
+    const char* anchorsformat = cmdoptions_get_argument_long(cmdoptions, "anchors-format");
+
+    // parameter names
+    const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
+    struct const_vector* parameternames = const_vector_adapt_from_pointer_array((void**)ptr);
+
+    pcell_list_anchors(pcell_state, cellname, anchorsformat, parameternames);
+LIST_ANCHORS_DESTROY_PCELL_STATE:
+    pcell_destroy_state(pcell_state);
 }
 
 static void _move_origin(struct object* toplevel, struct cmdoptions* cmdoptions)
