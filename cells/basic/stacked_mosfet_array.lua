@@ -259,7 +259,7 @@ function layout(cell, _P)
                     extendallleft = _select_parameter("extendallleft", device, row),
                     extendallright = _select_parameter("extendallright", device, row),
                     extendoxidetypetop = _select_switch(((rownum == #_P.rows) or _P.splitoxidetype), _select_parameter("extendoxidetypetop", device, row), _P.separation / 2),
-                    extendoxidetypebottom = _select_switch(((rownum == 1) or _P.oxidetype), _select_parameter("extendoxidetypebottom", device, row), _P.separation / 2),
+                    extendoxidetypebottom = _select_switch(((rownum == 1) or _P.splitoxidetype), _select_parameter("extendoxidetypebottom", device, row), _P.separation / 2),
                     extendoxidetypeleft = _select_parameter("extendoxidetypeleft", device, row),
                     extendoxidetyperight = _select_parameter("extendoxidetyperight", device, row),
                     extendvthtypetop = _select_switch(((rownum == #_P.rows) or _P.splitvthtype), _select_parameter("extendvthtypetop", device, row), _P.separation / 2),
