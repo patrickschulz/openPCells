@@ -9,6 +9,7 @@ local template_lookup = {
     gatespace = 100,
     fingerwidth = 1000,
     fingers = 8,
+    sdwidth = 60,
     drawtopgate = true,
     topgatewidth = 50,
     topgatespace = 50,
