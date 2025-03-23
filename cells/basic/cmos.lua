@@ -362,8 +362,8 @@ function layout(cmos, _P)
                 end
             end
             -- gate contact positions
-            local ngatey = (_P.separation - _P.gatestrapwidth) / 2 + _P.shiftgatecontacts
-            local pgatey = (_P.separation - _P.gatestrapwidth) / 2 + _P.shiftgatecontacts
+            local ngatey = (separation - _P.gatestrapwidth) / 2 + _P.shiftgatecontacts
+            local pgatey = (separation - _P.gatestrapwidth) / 2 + _P.shiftgatecontacts
             local gateanchors = {}
             local evenoddgatestrapshift = (_P.innergatestraps % 2 == 0) and (_P.gatestrapwidth + _P.gatestrapspace) / 2 or 0
             if _P.gatecontactpos[i] == "center" then
