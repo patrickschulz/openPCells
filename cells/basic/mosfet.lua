@@ -505,12 +505,6 @@ function layout(transistor, _P)
         gateaddbottom = _P.gatebotabsoluteheight
     end
 
-    local drainshift = enable(_P.connectdrain, _P.connectdrainwidth + _P.connectdrainspace)
-    local sourceshift = enable(_P.connectsource, _P.connectsourcewidth + _P.connectsourcespace)
-    if _P.channeltype == "pmos" then
-        drainshift, sourceshift = sourceshift, drainshift
-    end
-
     local hasgatecut = not _P.simulatemissinggatecut and technology.has_layer(generics.other("gatecut"))
 
     -- active
