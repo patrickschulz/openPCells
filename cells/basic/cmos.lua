@@ -54,7 +54,6 @@ function parameters()
         { "drawgatecontacts",                                                       true },
         { "outergatestrapwidth(Outer Gate Strap Metal Width)",                      technology.get_dimension("Minimum M1 Width") },
         { "outergatestrapspace(Outer Gate Strap Metal Space)",                      technology.get_dimension("Minimum M1 Space") },
-        { "outergateshift(Outer Gate Strap Metal Shift)",                           0 },
         { "gatecontactpos",                                                         { "center" }, argtype = "strtable" },
         { "gatenames",                                                              {}, argtype = "strtable" },
         { "shiftgatecontacts",                                                      0 },
@@ -146,7 +145,7 @@ end
 
 function check(_P)
     -- check separation
-    if not _P.ignoreseparationchecks then
+    if not (_P.ignoreseparationchecks or _P.separationautocalc) then
         if (_P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace) > _P.separation then
             return false, string.format("can't fit all gate straps into the separation between nmos and pmos: %d > %d", _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace, _P.separation)
         end
@@ -180,12 +179,10 @@ function layout(cmos, _P)
     local gatepitch = _P.gatespace + _P.gatelength
     local fingers = #_P.gatecontactpos
 
-    -- check if outer gates are drawn
-    local outergateshift = 0
-    if _P.drawgatecontacts then
-        if util.any_of("outer", _P.gatecontactpos) then
-            outergateshift = _P.outergateshift + _P.gatestrapwidth
-        end
+    -- inner separation
+    local separation = _P.separation
+    if _P.separationautocalc then
+        separation = _P.innergatestraps * _P.gatestrapwidth
     end
 
     local leftndrainarea, rightndrainarea
@@ -236,27 +233,27 @@ function layout(cmos, _P)
             vthtype = _P.pvthtype,
             flippedwell = _P.pmosflippedwell,
             fingerwidth = _P.pwidth,
-            gbotext = _P.overwriteinnergateextensions and _P.innerpgateext or _P.separation / 2,
+            gbotext = _P.overwriteinnergateextensions and _P.innerpgateext or separation / 2,
             gtopext = _P.pgateext,
             topgatecutspace = -_P.powerwidth / 2,
             drawtopactivedummy = _P.drawactivedummy,
             topactivedummywidth = _P.activedummywidth,
             topactivedummyspace = _P.activedummyspace,
-            botgatecutspace = _P.separation / 2 - _P.cutheight / 2,
+            botgatecutspace = separation / 2 - _P.cutheight / 2,
             extendoxidetypetop = _P.extendoxidetypetop,
-            extendoxidetypebottom = _P.separation / 2,
+            extendoxidetypebottom = separation / 2,
             extendvthtypetop = _P.extendvthtypetop,
-            extendvthtypebottom = _P.separation / 2,
+            extendvthtypebottom = separation / 2,
             extendimplanttop = _P.extendimplanttop,
-            extendimplantbottom = _P.separation / 2,
+            extendimplantbottom = separation / 2,
             extendwelltop = _P.extendwelltop,
-            extendwellbottom = _P.separation / 2,
+            extendwellbottom = separation / 2,
             extendlvsmarkertop = _P.extendlvsmarkertop,
-            extendlvsmarkerbottom = _P.separation / 2,
+            extendlvsmarkerbottom = separation / 2,
             extendrotationmarkertop = _P.extendrotationmarkertop,
-            extendrotationmarkerbottom = _P.separation / 2,
+            extendrotationmarkerbottom = separation / 2,
             extendanalogmarkertop = _P.extendanalogmarkertop,
-            extendanalogmarkerbottom = _P.separation / 2,
+            extendanalogmarkerbottom = separation / 2,
             connectsourceinlineoffset = _P.poutputinlineoffset,
             implantalignleftwithactive = _P.implantalignleftwithactive,
             implantalignrightwithactive = _P.implantalignrightwithactive,
@@ -276,27 +273,27 @@ function layout(cmos, _P)
             vthtype = _P.nvthtype,
             flippedwell = _P.nmosflippedwell,
             fingerwidth = _P.nwidth,
-            gtopext = _P.overwriteinnergateextensions and _P.innerngateext or _P.separation / 2,
+            gtopext = _P.overwriteinnergateextensions and _P.innerngateext or separation / 2,
             gbotext = _P.ngateext,
             botgatecutspace = _P.powerwidth / 2,
             drawbotgatecut = false,
             drawbottomactivedummy = _P.drawactivedummy,
             bottomactivedummywidth = _P.activedummywidth,
             bottomactivedummyspace = _P.activedummyspace,
-            topgatecutspace = _P.separation / 2 - _P.cutheight / 2,
-            extendoxidetypetop = _P.separation / 2,
+            topgatecutspace = separation / 2 - _P.cutheight / 2,
+            extendoxidetypetop = separation / 2,
             extendoxidetypebottom = _P.extendoxidetypebottom,
-            extendvthtypetop = _P.separation / 2,
+            extendvthtypetop = separation / 2,
             extendvthtypebottom = _P.extendvthtypebottom,
-            extendimplanttop = _P.separation / 2,
+            extendimplanttop = separation / 2,
             extendimplantbottom = _P.extendimplantbottom,
-            extendwelltop = _P.separation / 2,
+            extendwelltop = separation / 2,
             extendwellbottom = _P.extendwellbottom,
-            extendlvsmarkertop = _P.separation / 2,
+            extendlvsmarkertop = separation / 2,
             extendlvsmarkerbottom = _P.extendlvsmarkerbottom,
-            extendrotationmarkertop = _P.separation / 2,
+            extendrotationmarkertop = separation / 2,
             extendrotationmarkerbottom = _P.extendrotationmarkerbottom,
-            extendanalogmarkertop = _P.separation / 2,
+            extendanalogmarkertop = separation / 2,
             extendanalogmarkerbottom = _P.extendanalogmarkerbottom,
             connectsourceinlineoffset = _P.noutputinlineoffset,
             implantalignleftwithactive = _P.implantalignleftwithactive,
@@ -614,7 +611,7 @@ function layout(cmos, _P)
                 nfet,
                 "active"
             )
-            pfet:translate(shift, _P.separation)
+            pfet:translate(shift, separation)
             cmos:merge_into(pfet)
             -- connect source/drain region to power bar
             if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "fullpower" or _P.ncontactpos[i] == "dummyouterpower" then
@@ -759,7 +756,7 @@ function layout(cmos, _P)
             width = welltapwidth,
             height = _P.pmoswelltapwidth,
             xcontinuous = _P.welltapcontinuouscontact
-        }):translate(leftpdrainarea.tl:getx(), _P.nwidth + _P.separation + _P.pwidth + _P.ppowerspace + _P.powerwidth + _P.pmoswelltapspace))
+        }):translate(leftpdrainarea.tl:getx(), _P.nwidth + separation + _P.pwidth + _P.ppowerspace + _P.powerwidth + _P.pmoswelltapspace))
     end
     if _P.drawnmoswelltap then
         cmos:merge_into(pcell.create_layout("auxiliary/welltap", "nmoswelltap", {
@@ -797,8 +794,8 @@ function layout(cmos, _P)
     )
 
     -- alignment box
-    local ybottom = -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2
-    local ytop =  _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2
+    local ybottom = -separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2
+    local ytop =  separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2
     if _P.drawpmoswelltap then
         ytop = ytop + _P.powerwidth / 2 + _P.pmoswelltapspace + _P.pmoswelltapwidth / 2
     end
