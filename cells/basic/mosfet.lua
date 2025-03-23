@@ -1142,7 +1142,8 @@ function layout(transistor, _P)
             contactfun(transistor,
                 gatecontacttype,
                 point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
-                point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth)
+                point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth),
+                string.format("top gate contact:\n    x parameters: gatelength (%d), gatespace (%d)\n    y parameters: topgatewidth (%d), topgatespace (%d)", _P.gatelength, _P.gatespace, _P.topgatewidth, _P.topgatespace)
             )
             transistor:add_area_anchor_bltr(string.format("topgate%d", i),
                 point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),

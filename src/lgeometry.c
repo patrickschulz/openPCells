@@ -1239,6 +1239,11 @@ void _get_viacontact_properties(lua_State* L, int idx, int* xcont, int* ycont, c
         *widthclass = lua_tointeger(L, -1);
         lua_pop(L, 1);
     }
+    else if(lua_type(L, idx) != LUA_TNONE)
+    {
+        lua_pushfstring(L, "via/contact properties: expected table, got %s", lua_typename(L, lua_type(L, idx)));
+        lua_error(L);
+    }
 }
 
 static int lgeometry_check_viabltr(lua_State* L)
@@ -1540,13 +1545,14 @@ static int lgeometry_contactbltr(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
     _check_rectangle_points(L, bl, tr, "geometry.contactbltr");
+    const char* debugstring = lua_tostring(L, 5);
     int xcont = 0;
     int ycont = 0;
     coordinate_t minxspace = 0;
     coordinate_t minyspace = 0;
     int equal_pitch = 0;
     coordinate_t widthclass = 0;
-    _get_viacontact_properties(L, 9, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
+    _get_viacontact_properties(L, 5, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
@@ -1557,7 +1563,8 @@ static int lgeometry_contactbltr(lua_State* L)
         lpoint_get(bl), lpoint_get(tr),
         xcont, ycont,
         equal_pitch,
-        widthclass
+        widthclass,
+        debugstring
     );
     if(!res)
     {
@@ -1576,13 +1583,14 @@ static int lgeometry_contactbarebltr(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
     _check_rectangle_points(L, bl, tr, "geometry.contactbarebltr");
+    const char* debugstring = lua_tostring(L, 5);
     int xcont = 0;
     int ycont = 0;
     coordinate_t minxspace = 0;
     coordinate_t minyspace = 0;
     int equal_pitch = 0;
     coordinate_t widthclass = 0;
-    _get_viacontact_properties(L, 9, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
+    _get_viacontact_properties(L, 6, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
@@ -1593,7 +1601,8 @@ static int lgeometry_contactbarebltr(lua_State* L)
         lpoint_get(bl), lpoint_get(tr),
         xcont, ycont,
         equal_pitch,
-        widthclass
+        widthclass,
+        debugstring
     );
     if(!res)
     {

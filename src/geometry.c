@@ -972,7 +972,8 @@ static int _contactbltr(
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    const char* debugstring
 )
 {
     struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
@@ -998,6 +999,10 @@ static int _contactbltr(
         widthclass,
         technology_is_create_via_arrays(techstate)
     );
+    if(!ret && debugstring)
+    {
+        fputs(debugstring, stderr);
+    }
     _rectanglebltr(cell, generics_create_metal(techstate, 1), blx, bly, trx, try);
     return ret;
 }
@@ -1009,7 +1014,8 @@ static int _contactbarebltr(
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    const char* debugstring
 )
 {
     struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
@@ -1035,6 +1041,12 @@ static int _contactbarebltr(
         widthclass,
         technology_is_create_via_arrays(techstate)
     );
+    if(!ret && debugstring)
+    {
+        fputs("contact creation failed:\n", stderr);
+        fputs(debugstring, stderr);
+        fputc('\n', stderr);
+    }
     return ret;
 }
 
@@ -1045,7 +1057,8 @@ int geometry_contactbltr(
     const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    const char* debugstring
 )
 {
     return _contactbltr(
@@ -1055,7 +1068,8 @@ int geometry_contactbltr(
         bl->x, bl->y, tr->x, tr->y,
         xcont, ycont,
         equal_pitch,
-        widthclass
+        widthclass,
+        debugstring
     );
 }
 
@@ -1066,7 +1080,8 @@ int geometry_contactbarebltr(
     const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    const char* debugstring
 )
 {
     return _contactbarebltr(
@@ -1076,7 +1091,8 @@ int geometry_contactbarebltr(
         bl->x, bl->y, tr->x, tr->y,
         xcont, ycont,
         equal_pitch,
-        widthclass
+        widthclass,
+        debugstring
     );
 }
 

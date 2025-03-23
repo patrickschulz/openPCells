@@ -141,7 +141,8 @@ int geometry_contactbltr(
     const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    const char* debugstring
 );
 
 int geometry_contactbarebltr(
@@ -151,7 +152,8 @@ int geometry_contactbarebltr(
     const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    const char* debugstring
 );
 
 void geometry_cross(struct object* cell, const struct generics* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize);
