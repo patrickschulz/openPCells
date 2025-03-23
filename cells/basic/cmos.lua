@@ -97,6 +97,11 @@ function parameters()
         { "implantalignrightwithactive",        false, follow = "implantalignwithactive" },
         { "implantaligntopwithactive",          false, follow = "implantalignwithactive" },
         { "implantalignbottomwithactive",       false, follow = "implantalignwithactive" },
+        { "wellalignwithactive",                false },
+        { "wellalignleftwithactive",            false, follow = "wellalignwithactive" },
+        { "wellalignrightwithactive",           false, follow = "wellalignwithactive" },
+        { "wellaligntopwithactive",             false, follow = "wellalignwithactive" },
+        { "wellalignbottomwithactive",          false, follow = "wellalignwithactive" },
         { "oxidetypealignwithactive",           false },
         { "oxidetypealignleftwithactive",       false, follow = "oxidetypealignwithactive" },
         { "oxidetypealignrightwithactive",      false, follow = "oxidetypealignwithactive" },
@@ -182,7 +187,7 @@ function layout(cmos, _P)
     -- inner separation
     local separation = _P.separation
     if _P.separationautocalc then
-        separation = _P.innergatestraps * _P.gatestrapwidth
+        separation = _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace
     end
 
     local leftndrainarea, rightndrainarea
@@ -259,6 +264,10 @@ function layout(cmos, _P)
             implantalignrightwithactive = _P.implantalignrightwithactive,
             implantaligntopwithactive = _P.implantaligntopwithactive,
             implantalignbottomwithactive = true,
+            wellalignleftwithactive = _P.wellalignleftwithactive,
+            wellalignrightwithactive = _P.wellalignrightwithactive,
+            wellaligntopwithactive = _P.wellaligntopwithactive,
+            wellalignbottomwithactive = true,
             oxidetypealignleftwithactive = _P.oxidetypealignleftwithactive,
             oxidetypealignrightwithactive = _P.oxidetypealignrightwithactive,
             oxidetypealigntopwithactive = _P.oxidetypealigntopwithactive,
@@ -429,6 +438,38 @@ function layout(cmos, _P)
                         target = string.format("Gupper%d", i)
                     }
                 })
+            elseif _P.gatecontactpos[i] == "split_nmosdummy" then
+                -- FIXME: could add support for splitN
+                nopt_current.drawbotgate = true
+                nopt_current.botgatewidth = _P.dummycontheight
+                popt_current.drawbotgate = true
+                ngatey = _P.npowerspace
+                pgatey = pgatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace) + evenoddgatestrapshift
+                nopt_current.drawtopgatecut = true
+                --[[
+                table.insert(gateanchors, {
+                    pmos = {
+                        source = "botgatestrap",
+                        target = string.format("Gupper%d", i)
+                    }
+                })
+                --]]
+            elseif _P.gatecontactpos[i] == "split_pmosdummy" then
+                -- FIXME: could add support for splitN
+                nopt_current.drawtopgate = true
+                popt_current.drawtopgate = true
+                popt_current.topgatewidth = _P.dummycontheight
+                ngatey = ngatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace) + evenoddgatestrapshift
+                pgatey = _P.ppowerspace
+                nopt_current.drawtopgatecut = true
+                --[[
+                table.insert(gateanchors, {
+                    nmos = {
+                        source = "topgatestrap",
+                        target = string.format("G%d", i)
+                    },
+                })
+                --]]
             elseif _P.gatecontactpos[i] == "dummy" then
                 nopt_current.drawbotgate = true
                 nopt_current.botgatewidth = _P.dummycontheight
