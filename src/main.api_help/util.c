@@ -1,3 +1,33 @@
+/* util.min(t) */
+{
+    struct parameter parameters[] = {
+        { "t", TABLE, NULL, "table as numeric array" }
+    };
+    vector_append(entries, _make_api_entry(
+        "min",
+        MODULE_UTIL,
+        "retrieve the minimum value of a numeric array. Returns the corresponding index as second return value",
+        "local min, idx = util.min({ 1, 4, 2, 3 }) -- 1, 1",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.max(t) */
+{
+    struct parameter parameters[] = {
+        { "t", TABLE, NULL, "table as numeric array" }
+    };
+    vector_append(entries, _make_api_entry(
+        "max",
+        MODULE_UTIL,
+        "retrieve the maximum value of a numeric array. Returns the corresponding index as second return value",
+        "local max, idx = util.max({ 1, 4, 2, 3 }) -- 4, 2",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* util.make_counter(polygon) */
 {
     struct parameter parameters[] = {

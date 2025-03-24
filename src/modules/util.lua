@@ -6,6 +6,30 @@ This module provides a collection of geometry-related helper functions such as:
     - easier insertion of points in arrays
 --]]
 
+function util.min(t)
+    local idx = 1
+    local min = math.huge
+    for i = 1, #t do
+        if t[i] < min then
+            idx = i
+            min = t[i]
+        end
+    end
+    return min, idx
+end
+
+function util.max(t)
+    local idx = 1
+    local max = -math.huge
+    for i = 1, #t do
+        if t[i] > max then
+            idx = i
+            max = t[i]
+        end
+    end
+    return max, idx
+end
+
 function util.make_counter(start)
     local i = start or 1
     return function()
