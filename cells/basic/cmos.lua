@@ -163,7 +163,7 @@ function check(_P)
         return false, "the number of the source/drain contacts must be equal for nmos and pmos"
     end
     if (#_P.gatecontactpos + 1) ~= #_P.ncontactpos then
-        return false, string.format("the number of the source/drain contacts must match the gate contacts + 1 (%d vs. %d)", #_P.gatecontactpos + 1, #_P.ncontactpos)
+        return false, string.format("the number of the source/drain contacts must match the gate contacts + 1 (%d vs. %d)", _P.ncontactpos, #_P.gatecontactpos + 1)
     end
     -- check if gate cut width and gatelength match
     if (_P.gatelength % 2) ~= (_P.cutwidth % 2) then
