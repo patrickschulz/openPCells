@@ -1,4 +1,4 @@
-{ ... }--[[
+--[[
 This file is part of the openPCells project.
 
 This module provides a collection of geometry-related helper functions such as:
@@ -645,8 +645,10 @@ function util.add_options(base, t)
     check.arg(1, "base", "table", base)
     check.arg_optional(2, "t", "table", t)
     local new = util.clone_shallow(base)
-    for k, v in pairs(t) do
-        new[k] = v
+    if t then
+        for k, v in pairs(t) do
+            new[k] = v
+        end
     end
     return new
 end
