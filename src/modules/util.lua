@@ -1,4 +1,4 @@
---[[
+{ ... }--[[
 This file is part of the openPCells project.
 
 This module provides a collection of geometry-related helper functions such as:
@@ -7,6 +7,8 @@ This module provides a collection of geometry-related helper functions such as:
 --]]
 
 function util.min(t)
+    check.set_next_function_name("util.min")
+    check.arg(1, "t", "table", t)
     local idx = 1
     local min = math.huge
     for i = 1, #t do
@@ -19,6 +21,8 @@ function util.min(t)
 end
 
 function util.max(t)
+    check.set_next_function_name("util.max")
+    check.arg(1, "t", "table", t)
     local idx = 1
     local max = -math.huge
     for i = 1, #t do
@@ -39,6 +43,8 @@ function util.make_counter(start)
 end
 
 function util.sum(t)
+    check.set_next_function_name("util.sum")
+    check.arg(1, "t", "table", t)
     local sum = 0
     for _, e in ipairs(t) do
         sum = sum + e
@@ -47,6 +53,8 @@ function util.sum(t)
 end
 
 function util.polygon_xmin(pts)
+    check.set_next_function_name("util.polygon_xmin")
+    check.arg(1, "pts", "table", pts)
     local min = math.huge
     for i, pt in ipairs(pts) do
         local x = pt:getx()
@@ -58,6 +66,8 @@ function util.polygon_xmin(pts)
 end
 
 function util.polygon_ymin(pts)
+    check.set_next_function_name("util.polygon_ymin")
+    check.arg(1, "pts", "table", pts)
     local min = math.huge
     for i, pt in ipairs(pts) do
         local y = pt:gety()
@@ -69,6 +79,8 @@ function util.polygon_ymin(pts)
 end
 
 function util.polygon_xmax(pts)
+    check.set_next_function_name("util.polygon_xmax")
+    check.arg(1, "pts", "table", pts)
     local max = -math.huge
     for i, pt in ipairs(pts) do
         local x = pt:getx()
@@ -80,6 +92,8 @@ function util.polygon_xmax(pts)
 end
 
 function util.polygon_ymax(pts)
+    check.set_next_function_name("util.polygon_ymax")
+    check.arg(1, "pts", "table", pts)
     local max = -math.huge
     for i, pt in ipairs(pts) do
         local y = pt:gety()
@@ -91,12 +105,22 @@ function util.polygon_ymax(pts)
 end
 
 function util.make_rectangle(center, width, height)
+    check.set_next_function_name("util.make_rectangle")
+    check.arg(1, "width", "number", width)
+    check.arg(2, "height", "number", height)
     local bl = point.create(center:getx() - width / 2, center:gety() - height / 2)
     local tr = point.create(center:getx() + width / 2, center:gety() + height / 2)
     return bl, tr
 end
 
 function util.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
+    check.set_next_function_name("util.rectangle_to_polygon")
+    check.arg_func(1, "bl", "point", bl, point.is_point)
+    check.arg_func(2, "tr", "point", tr, point.is_point)
+    check.arg_optional(3, "leftext", "number", leftext)
+    check.arg_optional(4, "rightext", "number", rightext)
+    check.arg_optional(5, "bottomext", "number", bottomext)
+    check.arg_optional(6, "topext", "number", topext)
     return {
         point.create(bl:getx() - (leftext  or 0), bl:gety() - (bottomext or 0)),
         point.create(tr:getx() + (rightext or 0), bl:gety() - (bottomext or 0)),
@@ -106,6 +130,15 @@ function util.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
 end
 
 function util.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext, xmultiple, ymultiple)
+    check.set_next_function_name("util.fit_rectangular_polygon")
+    check.arg_func(1, "bl", "point", bl, point.is_point)
+    check.arg_func(2, "tr", "point", tr, point.is_point)
+    check.arg(3, "xgrid", "number", xgrid)
+    check.arg(4, "ygrid", "number", ygrid)
+    check.arg_optional(5, "minxext", "number", minxext)
+    check.arg_optional(6, "minyext", "number", minyext)
+    check.arg_optional(7, "xmultiple", "number", xmultiple)
+    check.arg_optional(8, "ymultiple", "number", ymultiple)
     local dx = point.xdistance_abs(bl, tr)
     local dy = point.ydistance_abs(bl, tr)
     local xcorr = util.fix_to_grid_abs_higher(dx, xgrid) - dx
@@ -149,6 +182,11 @@ function util.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext, xm
 end
 
 function util.rectangle_intersection(bl1, tr1, bl2, tr2)
+    check.set_next_function_name("util.rectangle_intersection")
+    check.arg_func(1, "bl1", "point", bl1, point.is_point)
+    check.arg_func(2, "tr1", "point", tr1, point.is_point)
+    check.arg_func(3, "bl2", "point", bl2, point.is_point)
+    check.arg_func(4, "tr2", "point", tr2, point.is_point)
     local bl1x = bl1:getx()
     local bl1y = bl1:gety()
     local tr1x = tr1:getx()
@@ -171,6 +209,9 @@ function util.rectangle_intersection(bl1, tr1, bl2, tr2)
 end
 
 function util.xmirror(pts, xcenter)
+    check.set_next_function_name("util.xmirror")
+    check.arg(1, "pts", "table", pts)
+    check.arg_optional(2, "xcenter", "number", xcenter)
     local mirrored = {}
     xcenter = xcenter or 0
     for i, pt in ipairs(pts) do
@@ -181,6 +222,9 @@ function util.xmirror(pts, xcenter)
 end
 
 function util.ymirror(pts, ycenter)
+    check.set_next_function_name("util.ymirror")
+    check.arg(1, "pts", "table", pts)
+    check.arg_optional(2, "ycenter", "number", ycenter)
     local mirrored = {}
     ycenter = ycenter or 0
     for i, pt in ipairs(pts) do
@@ -191,6 +235,10 @@ function util.ymirror(pts, ycenter)
 end
 
 function util.xymirror(pts, xcenter, ycenter)
+    check.set_next_function_name("util.xymirror")
+    check.arg(1, "pts", "table", pts)
+    check.arg_optional(2, "xcenter", "number", xcenter)
+    check.arg_optional(3, "ycenter", "number", ycenter)
     local mirrored = {}
     xcenter = xcenter or 0
     ycenter = ycenter or 0
@@ -202,6 +250,9 @@ function util.xymirror(pts, xcenter, ycenter)
 end
 
 function util.transform_points(pts, func)
+    check.set_next_function_name("util.transform_points")
+    check.arg(1, "pts", "table", pts)
+    check.arg(2, "func", "function", func)
     local result = {}
     for _, pt in ipairs(pts) do
         local new = pt:copy()
@@ -212,6 +263,9 @@ function util.transform_points(pts, func)
 end
 
 function util.filter_forward(pts, fun)
+    check.set_next_function_name("util.filter_forward")
+    check.arg(1, "pts", "table", pts)
+    check.arg(2, "func", "function", func)
     local filtered = {}
     for i = 1, #pts, 1 do
         if fun(pts[i]) then
@@ -222,6 +276,9 @@ function util.filter_forward(pts, fun)
 end
 
 function util.filter_backward(pts, fun)
+    check.set_next_function_name("util.filter_backward")
+    check.arg(1, "pts", "table", pts)
+    check.arg(2, "func", "function", func)
     local filtered = {}
     for i = #pts, 1, -1 do
         if fun(pts[i]) then
@@ -232,18 +289,26 @@ function util.filter_backward(pts, fun)
 end
 
 function util.merge_forwards(pts, pts2)
+    check.set_next_function_name("util.merge_forwards")
+    check.arg(1, "pts", "table", pts)
+    check.arg(2, "pts2", "table", pts2)
     for i = 1, #pts2 do
         table.insert(pts, pts2[i])
     end
 end
 
 function util.merge_backwards(pts, pts2)
+    check.set_next_function_name("util.merge_backwards")
+    check.arg(1, "pts", "table", pts)
+    check.arg(2, "pts2", "table", pts2)
     for i = #pts2, 1, -1 do
         table.insert(pts, pts2[i])
     end
 end
 
 function util.reverse(pts)
+    check.set_next_function_name("util.reverse")
+    check.arg(1, "pts", "table", pts)
     local new = {}
     for _, pt in ipairs(pts) do
         table.insert(new, 1, pt:copy())
@@ -252,6 +317,9 @@ function util.reverse(pts)
 end
 
 function util.make_insert_xy(pts, idx)
+    check.set_next_function_name("util.make_insert_xy")
+    check.arg(1, "pts", "table", pts)
+    check.arg_optional(2, "idx", "number", idx)
     if idx then
         return function(x, y) table.insert(pts, idx, point.create(x, y)) end
     else
@@ -260,6 +328,9 @@ function util.make_insert_xy(pts, idx)
 end
 
 function util.make_insert_pts(pts, idx)
+    check.set_next_function_name("util.make_insert_pts")
+    check.arg(1, "pts", "table", pts)
+    check.arg_optional(2, "idx", "number", idx)
     if idx then
         return function(...)
             for _, pt in ipairs({ ... }) do
@@ -276,12 +347,23 @@ function util.make_insert_pts(pts, idx)
 end
 
 function util.check_grid(grid, ...)
-    for _, num in ipairs({ ... }) do
+    check.set_next_function_name("util.check_grid")
+    check.arg(1, "grid", "number", grid)
+    local args = { ... }
+    for i = 2, select("#") do
+        check.arg(i, string.format("c_%d", i - 1), "number", args[i])
+    end
+    for _, num in ipairs(args) do
         assert(num % grid == 0, string.format("number is not on-grid: %d", num))
     end
 end
 
 function util.intersection(s1, s2, c1, c2)
+    check.set_next_function_name("util.intersection")
+    check.arg_func(1, "s1", "point", s1, point.is_point)
+    check.arg_func(2, "s2", "point", s2, point.is_point)
+    check.arg_func(3, "c1", "point", c1, point.is_point)
+    check.arg_func(4, "c2", "point", c2, point.is_point)
     local s1x, s1y = s1:unwrap()
     local s2x, s2y = s2:unwrap()
     local c1x, c1y = c1:unwrap()
@@ -306,6 +388,9 @@ function util.intersection(s1, s2, c1, c2)
 end
 
 function util.intersection_ab(P, Q)
+    check.set_next_function_name("util.intersection_ab")
+    check.arg(1, "P", "table", P)
+    check.arg(2, "Q", "table", Q)
     local P1x, P1y = P[1]:unwrap()
     local P2x, P2y = P[2]:unwrap()
     local Q1x, Q1y = Q[1]:unwrap()
@@ -392,6 +477,10 @@ function util.intersection_ab(P, Q)
 end
 
 function util.range(lower, upper, incr)
+    check.set_next_function_name("util.range")
+    check.arg(1, "lower", "number", lower)
+    check.arg(2, "upper", "number", upper)
+    check.arg(3, "incr", "number", incr)
     local t = {}
     for i = lower, upper, incr or 1 do
         table.insert(t, i)
@@ -400,6 +489,9 @@ function util.range(lower, upper, incr)
 end
 
 function util.remove(t, comp)
+    check.set_next_function_name("util.remove")
+    check.arg(1, "t", "table", t)
+    -- FIXME: check compt
     local result = {}
     for _, e in ipairs(t) do
         if type(comp) == "function" then
@@ -416,6 +508,9 @@ function util.remove(t, comp)
 end
 
 function util.remove_index(t, index)
+    check.set_next_function_name("util.remove_index")
+    check.arg(1, "t", "table", t)
+    -- FIXME: check index
     local result = {}
     for i, e in ipairs(t) do
         if type(index) == "table" then
@@ -432,6 +527,9 @@ function util.remove_index(t, index)
 end
 
 function util.remove_inplace(t, comp)
+    check.set_next_function_name("util.remove_inplace")
+    check.arg(1, "t", "table", t)
+    -- FIXME: check index
     for i, e in ipairs(t) do
         if type(comp) == "function" then
             if comp(e) then
@@ -446,10 +544,14 @@ function util.remove_inplace(t, comp)
 end
 
 function util.remove_index_inplace(t, index)
+    check.set_next_function_name("util.remove_index_inplace")
+    check.arg(1, "t", "table", t)
     table.remove(t, index)
 end
 
 function util.clone_shallow(t)
+    check.set_next_function_name("util.clone_shallow")
+    check.arg(1, "t", "table", t)
     local new = {}
     for k, v in pairs(t) do
         new[k] = v
@@ -458,6 +560,9 @@ function util.clone_shallow(t)
 end
 
 function util.clone_shallow_predicate(t, predicate)
+    check.set_next_function_name("util.clone_shallow")
+    check.arg(1, "t", "table", t)
+    check.arg(2, "predicate", "function", predicate)
     local new = {}
     for k, v in pairs(t) do
         if predicate(k, v) then
@@ -468,6 +573,8 @@ function util.clone_shallow_predicate(t, predicate)
 end
 
 function util.find(t, value)
+    check.set_next_function_name("util.find")
+    check.arg(1, "t", "table", t)
     for i, v in ipairs(t) do
         if v == value then
             return i, v
@@ -476,6 +583,9 @@ function util.find(t, value)
 end
 
 function util.find_predicate(t, predicate)
+    check.set_next_function_name("util.find_predicate")
+    check.arg(1, "t", "table", t)
+    check.arg(2, "predicate", "function", predicate)
     for i, v in ipairs(t) do
         if predicate(v) then
             return i, v
@@ -484,6 +594,8 @@ function util.find_predicate(t, predicate)
 end
 
 function util.fill_all_with(num, filler)
+    check.set_next_function_name("util.fill_all_with")
+    check.arg(1, "num", "number", num)
     local t = {}
     for i = 1, num do
         t[i] = filler
@@ -492,6 +604,9 @@ function util.fill_all_with(num, filler)
 end
 
 function util.fill_predicate_with(num, filler, predicate, other)
+    check.set_next_function_name("util.fill_predicate_with")
+    check.arg(1, "num", "number", num)
+    check.arg(3, "predicate", "function", predicate)
     local t = {}
     for i = 1, num do
         if predicate(i) then
@@ -504,14 +619,20 @@ function util.fill_predicate_with(num, filler, predicate, other)
 end
 
 function util.fill_even_with(num, filler, other)
+    check.set_next_function_name("util.fill_even_with")
+    check.arg(1, "num", "number", num)
     return util.fill_predicate_with(num, filler, function(i) return i % 2 == 0 end, other)
 end
 
 function util.fill_odd_with(num, filler, other)
+    check.set_next_function_name("util.fill_odd_with")
+    check.arg(1, "num", "number", num)
     return util.fill_predicate_with(num, filler, function(i) return i % 2 == 1 end, other)
 end
 
 function util.sum(t)
+    check.set_next_function_name("util.sum")
+    check.arg(1, "t", "table", t)
     local total = 0
     for _, e in ipairs(t) do
         total = total + e
@@ -520,6 +641,9 @@ function util.sum(t)
 end
 
 function util.add_options(base, t)
+    check.set_next_function_name("util.add_options")
+    check.arg(1, "base", "table", base)
+    check.arg_optional(2, "t", "table", t)
     local new = util.clone_shallow(base)
     for k, v in pairs(t) do
         new[k] = v
@@ -528,6 +652,9 @@ function util.add_options(base, t)
 end
 
 function util.ratio_split_even(value, ratio)
+    check.set_next_function_name("util.ratio_split_even")
+    check.arg(1, "value", "number", value)
+    check.arg(2, "ratio", "number", ratio)
     local second = value // (ratio + 1)
     if second % 2 == 1 then
         second = second - 1
@@ -537,6 +664,10 @@ function util.ratio_split_even(value, ratio)
 end
 
 function util.ratio_split_multiple_of(value, ratio, multiple)
+    check.set_next_function_name("util.ratio_split_multiple_of")
+    check.arg(1, "value", "number", value)
+    check.arg(2, "ratio", "number", ratio)
+    check.arg(3, "multiple", "number", multiple)
     if value % multiple ~= 0 then
         error(string.format("util.ratio_split_multiple_of: value must be divisible by the multiple, got: %d and %d", value, multiple))
     end
@@ -549,18 +680,30 @@ function util.ratio_split_multiple_of(value, ratio, multiple)
 end
 
 function util.round_to_grid(c, grid)
+    check.set_next_function_name("util.round_to_grid")
+    check.arg(1, "c", "number", c)
+    check.arg(2, "grid", "number", grid)
     return grid * math.floor(c / grid + 0.5)
 end
 
 function util.fix_to_grid_higher(c, grid)
+    check.set_next_function_name("util.fix_to_grid_higher")
+    check.arg(1, "c", "number", c)
+    check.arg(2, "grid", "number", grid)
     return grid * math.ceil(c / grid)
 end
 
 function util.fix_to_grid_lower(c, grid)
+    check.set_next_function_name("util.fix_to_grid_lower")
+    check.arg(1, "c", "number", c)
+    check.arg(2, "grid", "number", grid)
     return grid * math.floor(c / grid)
 end
 
 function util.fix_to_grid_abs_higher(c, grid)
+    check.set_next_function_name("util.fix_to_grid_abs_higher")
+    check.arg(1, "c", "number", c)
+    check.arg(2, "grid", "number", grid)
     if c < 0 then
         return -grid * math.ceil(-c / grid)
     else
@@ -569,6 +712,9 @@ function util.fix_to_grid_abs_higher(c, grid)
 end
 
 function util.fix_to_grid_abs_lower(c, grid)
+    check.set_next_function_name("util.fix_to_grid_abs_lower")
+    check.arg(1, "c", "number", c)
+    check.arg(2, "grid", "number", grid)
     if c < 0 then
         return -grid * math.floor(-c / grid)
     else
@@ -577,6 +723,8 @@ function util.fix_to_grid_abs_lower(c, grid)
 end
 
 function util.any_of(comp, t, ...)
+    check.set_next_function_name("util.any_of")
+    check.arg(1, "t", "table", t)
     if type(comp) == "function" then
         for _, v in ipairs(t) do
             if comp(v, ...) then
@@ -595,6 +743,8 @@ function util.any_of(comp, t, ...)
 end
 
 function util.all_of(comp, t, ...)
+    check.set_next_function_name("util.all_of")
+    check.arg(1, "t", "table", t)
     if type(comp) == "function" then
         for _, v in ipairs(t) do
             if not comp(v, ...) then
@@ -613,6 +763,9 @@ function util.all_of(comp, t, ...)
 end
 
 function util.foreach(t, f, ...)
+    check.set_next_function_name("util.foreach")
+    check.arg(1, "t", "table", t)
+    check.arg(2, "f", "function", f)
     local new = {}
     for _, e in ipairs(t) do
         table.insert(new, f(e, ...))
@@ -621,10 +774,18 @@ function util.foreach(t, f, ...)
 end
 
 function util.fit_lines_upper(total, size, space)
+    check.set_next_function_name("util.fit_lines_upper")
+    check.arg(1, "total", "number", total)
+    check.arg(2, "size", "number", size)
+    check.arg(3, "space", "number", space)
     return math.ceil((total + space) / (size + space))
 end
 
 function util.fit_lines_lower(total, size, space)
+    check.set_next_function_name("util.fit_lines_lower")
+    check.arg(1, "total", "number", total)
+    check.arg(2, "size", "number", size)
+    check.arg(3, "space", "number", space)
     return math.floor((total + space) / (size + space))
 end
 
