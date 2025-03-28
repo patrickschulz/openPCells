@@ -965,6 +965,27 @@ int geometry_viabarebltr(struct object* cell, struct technology_state* techstate
     return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
 }
 
+int geometry_viapoints(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* pt1, const struct point* pt2, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+{
+    int bare = 0;
+    if(pt1->x <= pt2->x && pt1->y <= pt2->y)
+    {
+        return _viabltr(cell, techstate, metal1, metal2, pt1->x, pt1->y, pt2->x, pt2->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+    }
+    else if(pt1->x <= pt2->x && pt1->y  > pt2->y)
+    {
+        return _viabltr(cell, techstate, metal1, metal2, pt1->x, pt2->y, pt2->x, pt1->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+    }
+    else if(pt1->x  > pt2->x && pt1->y <= pt2->y)
+    {
+        return _viabltr(cell, techstate, metal1, metal2, pt2->x, pt1->y, pt1->x, pt2->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+    }
+    else//if(pt1->x  > pt2->x && pt1->y  > pt2->y)
+    {
+        return _viabltr(cell, techstate, metal1, metal2, pt2->x, pt2->y, pt1->x, pt1->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+    }
+}
+
 static int _contactbltr(
     struct object* cell,
     struct technology_state* techstate,

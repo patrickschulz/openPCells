@@ -1373,6 +1373,33 @@ static int lgeometry_viabarebltr(lua_State* L)
     return 0;
 }
 
+static int lgeometry_viapoints(lua_State* L)
+{
+    lcheck_check_numargs2(L, 5, 6, "geometry.viapoints");
+    struct lobject* cell = lobject_check(L, 1);
+    int metal1 = luaL_checkinteger(L, 2);
+    int metal2 = luaL_checkinteger(L, 3);
+    struct lpoint* pt1 = lpoint_checkpoint(L, 4);
+    struct lpoint* pt2 = lpoint_checkpoint(L, 5);
+    int xcont = 0;
+    int ycont = 0;
+    coordinate_t minxspace = 0;
+    coordinate_t minyspace = 0;
+    int equal_pitch = 0;
+    coordinate_t widthclass = 0;
+    _get_viacontact_properties(L, 6, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_viapoints(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(pt1), lpoint_get(pt2), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    if(!res)
+    {
+        lua_pushfstring(L, "geometry.viapoints: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(pt1)->x, lpoint_get(pt1)->y, lpoint_get(pt2)->x, lpoint_get(pt2)->y);
+        lua_error(L);
+    }
+    return 0;
+}
+
 static int lgeometry_viabltr_xcontinuous(lua_State* L)
 {
     lcheck_check_numargs2(L, 5, 6, "geometry.viabltr_xcontinuous");
@@ -1984,6 +2011,7 @@ int open_lgeometry_lib(lua_State* L)
         { "calculate_viabltr",                          lgeometry_calculate_viabltr                                 },
         { "viabltr",                                    lgeometry_viabltr                                           },
         { "viabarebltr",                                lgeometry_viabarebltr                                       },
+        { "viapoints",                                  lgeometry_viapoints                                         },
         { "viabltr_xcontinuous",                        lgeometry_viabltr_xcontinuous                               },
         { "viabltr_ycontinuous",                        lgeometry_viabltr_ycontinuous                               },
         { "viabltr_continuous",                         lgeometry_viabltr_continuous                                },

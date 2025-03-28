@@ -134,6 +134,17 @@ int geometry_viabarebltr(
     coordinate_t widthclass
 );
 
+int geometry_viapoints(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* pt1, const struct point* pt2,
+    coordinate_t minxspace, coordinate_t minyspace,
+    int xcont, int ycont,
+    int equal_pitch,
+    coordinate_t widthclass
+);
+
 int geometry_contactbltr(
     struct object* cell,
     struct technology_state* techstate,
