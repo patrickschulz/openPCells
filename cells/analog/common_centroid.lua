@@ -380,29 +380,36 @@ function layout(cell, _P)
         --)
     end
 
-    --[[
-    -- connect all sources
-    for i = 2, _P.fingers, 2 do
+    -- connect all sources (horizontal)
+    for rownum = 1, numrows do
+        local fets = _get_devices(function(entry) return entry.row == rownum end)
+        local leftfet = fets[1]
+        local rightfet = fets[numdevicesperrow]
         geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
-            point.create(
-                cell:get_area_anchor_fmt("M%s_sourcedrainactive%d", "1l", i).l,
-                cell:get_area_anchor_fmt("M%s_sourcestrap", "1l").b
-            ),
-            point.create(
-                cell:get_area_anchor_fmt("M%s_sourcedrainactive%d", "1l", i).r,
-                cell:get_area_anchor_fmt("M%s_sourcestrap", "2l").t
-            )
+            cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", leftfet.device, leftfet.row, leftfet.index).br,
+            cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", rightfet.device, rightfet.row, rightfet.index).tl
         )
         geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
-            point.create(
-                cell:get_area_anchor_fmt("M%s_sourcedrainactive%d", "2r", i).l,
-                cell:get_area_anchor_fmt("M%s_sourcestrap", "2r").b
-            ),
-            point.create(
-                cell:get_area_anchor_fmt("M%s_sourcedrainactive%d", "2r", i).r,
-                cell:get_area_anchor_fmt("M%s_sourcestrap", "1r").t
-            )
+            cell:get_area_anchor_fmt("M_%d_%d_%d_othersourcestrap", leftfet.device, leftfet.row, leftfet.index).br,
+            cell:get_area_anchor_fmt("M_%d_%d_%d_othersourcestrap", rightfet.device, rightfet.row, rightfet.index).tl
         )
     end
-    --]]
+
+    -- connect all sources (vertical)
+    for i = 1, numdevicesperrow do
+        local lowerfet = botrowdevices[i]
+        local upperfet = toprowdevices[i]
+        for finger = 2, _P.fingers, 2 do
+            geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
+                point.create(
+                    cell:get_area_anchor_fmt("M_%d_%d_%d_sourcedrainactive%d", lowerfet.device, lowerfet.row, lowerfet.index, finger).l,
+                    cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", lowerfet.device, lowerfet.row, lowerfet.index).b
+                ),
+                point.create(
+                    cell:get_area_anchor_fmt("M_%d_%d_%d_sourcedrainactive%d", upperfet.device, upperfet.row, upperfet.index, finger).r,
+                    cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", upperfet.device, upperfet.row, upperfet.index).t
+                )
+            )
+        end
+    end
 end
