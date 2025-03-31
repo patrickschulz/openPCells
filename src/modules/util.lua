@@ -791,3 +791,17 @@ function util.fit_lines_lower(total, size, space)
     return math.floor((total + space) / (size + space))
 end
 
+function util.uniq(t)
+    check.set_next_function_name("util.uniq")
+    check.arg(1, "t", "table", t)
+    local results = {}
+    local set = {}
+    for _, e in ipairs(t) do
+        if not set[e] then
+            set[e] = true
+            table.insert(results, e)
+        end
+    end
+    return results
+end
+

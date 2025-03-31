@@ -251,7 +251,7 @@ function layout(cell, _P)
 
     local function _get_uniq_row_devices(rownum)
         local doublerowdevices = _get_devices(function(device) return device.row == 2 * rownum - 1 or device.row == 2 * rownum end)
-        local indices = util.uniq(util.mapcar(doublerowdevices, function(entry) return entry.device end))
+        local indices = util.uniq(util.foreach(doublerowdevices, function(entry) return entry.device end))
         table.sort(indices)
         return indices
     end
