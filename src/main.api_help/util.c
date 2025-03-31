@@ -750,6 +750,21 @@
     ));
 }
 
+/* util.uniq(t) */
+{
+    struct parameter parameters[] = {
+        { "t", TABLE, NULL, "table as array" }
+    };
+    vector_append(entries, _make_api_entry(
+        "uniq",
+        MODULE_UTIL,
+        "create an array where only unique entries of the input array t are present. Equality is checked via the comparison operator '=='",
+        "local u = util.uniq({ 1, 2, 3, 1, 4, 5, 2, 1, 7 }) -- { 1, 2, 3, 4, 5, 7 }",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /*
     FIXME:
 	util.check_grid
