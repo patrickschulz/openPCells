@@ -161,10 +161,16 @@ function parameters()
         { "extratopstrapleftextension(Left Extension for Extra Top Strap)",                             0 },
         { "extratopstraprightextension(Left Extension for Extra Top Strap)",                            0 },
         { "extratopstrapleftalign(Left Alignment for Extra Top Strap)",                                 1 },
-        { "extratopstraprightalign(Right Alignment for Extra Top Strap)",                               1, follow = "fingers" },
+        { "extratopstraprightalign(Right Alignment for Extra Top Strap)",                               1, follow = "fingers" }
+    )
+    -- split necessary because of lua limitations.
+    -- FIXME: split at sensible locations (group parameters)
+    pcell.add_parameters(
         { "shortdevice(Short Transistor)",                                                              false },
         { "shortdeviceleftoffset(Short Transistor Left Offset)",                                        0 },
         { "shortdevicerightoffset(Short Transistor Right Offset)",                                      0 },
+        { "shortsourcegate(Short Source with Gate)",                                                    false },
+        { "shortdraingate(Short Drain with Gate)",                                                      false },
         { "shortlocation",                                                                              "inline", posvals = set("inline", "top", "bottom") },
         { "shortspace",                                                                                 technology.get_dimension("Minimum M1 Space") },
         { "shortwidth",                                                                                 technology.get_dimension("Minimum M1 Width") },
@@ -477,11 +483,15 @@ function check(_P)
     if _P.rightendgatelength % 2 ~= 0 then
         return false, "rightendgatelength must be even"
     end
-    if
-        _P.shortdevice and
-        (_P.shortdeviceleftoffset > 0 or _P.shortdevicerightoffset > 0) and
-        (_P.fingers - _P.shortdevicerightoffset - _P.shortdeviceleftoffset <= 0) then
-        return false, "can't short device with zero fingers and non-zero short offsets"
+    if _P.shortdevice then
+        if
+            (_P.shortdeviceleftoffset > 0 or _P.shortdevicerightoffset > 0) and
+            (_P.fingers - _P.shortdevicerightoffset - _P.shortdeviceleftoffset <= 0) then
+            return false, "the sum of left/right short offsets can't be equal to or larger than the number of fingers"
+        end
+    end
+    if _P.shortsourcegate and (not (_P.drawtopgate and _P.drawtopgatestrap) and not (_P.drawbotgate and _P.drawbotgatestrap)) then
+        return false, "if shortsourcegate is true, drawtopgate and drawtopgatestrap also have to be true"
     end
     return true
 end
@@ -1819,6 +1829,123 @@ function layout(transistor, _P)
             -- can not happen
         end
     end
+
+    if _P.shortsourcegate then
+        if _P.drawtopgate and _P.drawtopgatestrap then
+            geometry.rectanglebltr(transistor, generics.metal(1),
+                point.create(
+                    transistor:get_area_anchor_fmt("sourcedrain%d", 1).l,
+                    transistor:get_area_anchor("topgatestrap").b
+                ),
+                point.create(
+                    transistor:get_area_anchor_fmt("sourcedrain%d", -1).r,
+                    transistor:get_area_anchor("topgatestrap").t
+                )
+            )
+            for i = 1, _P.fingers + 1, 2 do
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    transistor:get_area_anchor_fmt("sourcedrain%d", i).tl,
+                    point.create(
+                        transistor:get_area_anchor_fmt("sourcedrain%d", i).r,
+                        transistor:get_area_anchor("topgatestrap").b
+                    )
+                )
+            end
+        end
+        if _P.drawbotgate and _P.drawbotgatestrap then
+            geometry.rectanglebltr(transistor, generics.metal(1),
+                point.create(
+                    transistor:get_area_anchor_fmt("sourcedrain%d", 1).l,
+                    transistor:get_area_anchor("botgatestrap").b
+                ),
+                point.create(
+                    transistor:get_area_anchor_fmt("sourcedrain%d", -1).r,
+                    transistor:get_area_anchor("botgatestrap").t
+                )
+            )
+            for i = 1, _P.fingers + 1, 2 do
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    point.create(
+                        transistor:get_area_anchor_fmt("sourcedrain%d", i).l,
+                        transistor:get_area_anchor("botgatestrap").t
+                    ),
+                    transistor:get_area_anchor_fmt("sourcedrain%d", i).br
+                )
+            end
+        end
+    end
+
+    if _P.shortdraingate then
+        if _P.drawtopgate and _P.drawtopgatestrap then
+            if _P.fingers > 2 then
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    point.create(
+                        transistor:get_area_anchor_fmt("sourcedrain%d", 2).l,
+                        transistor:get_area_anchor("topgatestrap").b
+                    ),
+                    point.create(
+                        transistor:get_area_anchor_fmt("sourcedrain%d", -2).r,
+                        transistor:get_area_anchor("topgatestrap").t
+                    )
+                )
+            else
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    point.create(
+                        transistor:get_area_anchor("topgatestrap").l,
+                        transistor:get_area_anchor("topgatestrap").b
+                    ),
+                    point.create(
+                        transistor:get_area_anchor_fmt("sourcedrain%d", 2).r,
+                        transistor:get_area_anchor("topgatestrap").t
+                    )
+                )
+            end
+            for i = 2, _P.fingers + 1, 2 do
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    transistor:get_area_anchor_fmt("sourcedrain%d", i).tl,
+                    point.create(
+                        transistor:get_area_anchor_fmt("sourcedrain%d", i).r,
+                        transistor:get_area_anchor("topgatestrap").b
+                    )
+                )
+            end
+        end
+        if _P.drawbotgate and _P.drawbotgatestrap then
+            if _P.fingers > 2 then
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    point.create(
+                        transistor:get_area_anchor_fmt("sourcedrain%d", 2).l,
+                        transistor:get_area_anchor("botgatestrap").b
+                    ),
+                    point.create(
+                        transistor:get_area_anchor_fmt("sourcedrain%d", -2).r,
+                        transistor:get_area_anchor("botgatestrap").t
+                    )
+                )
+            else
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    point.create(
+                        transistor:get_area_anchor("botgatestrap").l,
+                        transistor:get_area_anchor("botgatestrap").b
+                    ),
+                    point.create(
+                        transistor:get_area_anchor_fmt("sourcedrain%d", 2).r,
+                        transistor:get_area_anchor("botgatestrap").t
+                    )
+                )
+            end
+            for i = 2, _P.fingers + 1, 2 do
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    point.create(
+                        transistor:get_area_anchor_fmt("sourcedrain%d", i).l,
+                        transistor:get_area_anchor("botgatestrap").t
+                    ),
+                    transistor:get_area_anchor_fmt("sourcedrain%d", i).br
+                )
+            end
+        end
+    end
+
 
     -- anchors for source drain active regions
     for i = 1, _P.fingers + 1 do

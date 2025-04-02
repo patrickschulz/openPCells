@@ -99,6 +99,8 @@ function layout(cell, _P)
     local lastmosfet = nil
     for rownum, row in ipairs(_P.rows) do
         local activebl, activetr
+        local wellbl, welltr
+        local implantbl, implanttr
         for devnum, device in ipairs(row.devices) do
             if not device.skip or (_P.autoskip and device.fingers <= 0) then
                 local status, mosfet = xpcall(pcell.create_layout, fulltraceback, "basic/mosfet", device.name, {
@@ -243,6 +245,8 @@ function layout(cell, _P)
                     shortlocation = _select_parameter("shortlocation", device, row),
                     shortwidth = _select_parameter("shortwidth", device, row),
                     shortspace = _select_parameter("shortspace", device, row),
+                    shortsourcegate = _select_parameter("shortsourcegate", device, row),
+                    shortdraingate = _select_parameter("shortdraingate", device, row),
                     drawtopactivedummy = _select_parameter("drawtopactivedummy", device, row),
                     topactivedummywidth = _select_parameter("topactivedummywidth", device, row),
                     topactivedummysep = _select_parameter("topactivedummysep", device, row),
@@ -332,13 +336,31 @@ function layout(cell, _P)
                 cell:inherit_all_anchors_with_prefix(mosfet, device.name .. "_")
                 if not activebl then
                     activebl = mosfet:get_area_anchor("active").bl
+                    wellbl = mosfet:get_area_anchor("well").bl
+                    implantbl = mosfet:get_area_anchor("implant").bl
                 end
                 activetr = mosfet:get_area_anchor("active").tr
+                welltr = mosfet:get_area_anchor("well").tr
+                implanttr = mosfet:get_area_anchor("implant").tr
             end
         end
         cell:add_area_anchor_bltr(string.format("active_%d", rownum), activebl, activetr)
+        cell:add_area_anchor_bltr(string.format("well_%d", rownum), wellbl, welltr)
+        cell:add_area_anchor_bltr(string.format("implant_%d", rownum), implantbl, implanttr)
         lastpoint:translate_y(_P.separation)
         lastmosfet = nil
     end
+    cell:add_area_anchor_bltr("active_all",
+        cell:get_area_anchor_fmt("active_%d", 1).bl,
+        cell:get_area_anchor_fmt("active_%d", #_P.rows).tr
+    )
+    cell:add_area_anchor_bltr("well_all",
+        cell:get_area_anchor_fmt("well_%d", 1).bl,
+        cell:get_area_anchor_fmt("well_%d", #_P.rows).tr
+    )
+    cell:add_area_anchor_bltr("implant_all",
+        cell:get_area_anchor_fmt("implant_%d", 1).bl,
+        cell:get_area_anchor_fmt("implant_%d", #_P.rows).tr
+    )
 end
 

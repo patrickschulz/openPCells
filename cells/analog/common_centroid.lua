@@ -133,7 +133,6 @@ function layout(cell, _P)
     }
 
     local dummyoptions = {
-        shortdevice = true,
         shortwidth = _P.gatestrapwidth,
         shortspace = _P.gatestrapspace,
         topgatewidth = _P.gatestrapwidth,
@@ -182,6 +181,8 @@ function layout(cell, _P)
                 fingers = _P.outerdummies,
                 drawtopgate = rownum % 2 == 0,
                 drawbotgate = rownum % 2 == 1,
+                shortdevice = _P.outerdummies > 1,
+                shortsourcegate = _P.outerdummies == 1,
                 shortlocation = (rownum % 2 == 0) and "top" or "bottom",
                 shortdevicerightoffset = 1,
                 topgaterightextension = -_P.gatelength,
@@ -207,7 +208,10 @@ function layout(cell, _P)
                         fingers = _P.innerdummies,
                         drawtopgate = rownum % 2 == 0,
                         drawbotgate = rownum % 2 == 1,
-                        shortdevice = false
+                        shortdevice = _P.innerdummies > 2,
+                        shortlocation = (rownum % 2 == 0) and "top" or "bottom",
+                        shortdeviceleftoffset = 1,
+                        shortdevicerightoffset = 1,
                     })
                 )
             end
@@ -218,6 +222,8 @@ function layout(cell, _P)
                 fingers = _P.outerdummies,
                 drawtopgate = rownum % 2 == 0,
                 drawbotgate = rownum % 2 == 1,
+                shortdevice = _P.outerdummies > 1,
+                shortdraingate = _P.outerdummies == 1,
                 shortlocation = (rownum % 2 == 0) and "top" or "bottom",
                 shortdeviceleftoffset = 1,
                 topgateleftextension = -_P.gatelength,
@@ -243,12 +249,22 @@ function layout(cell, _P)
     cell:inherit_all_anchors_with_prefix(array, "")
 
     -- connect outer and inner dummies
-    for rownum = 1, numrows do
-        local gate = (rownum % 2 == 0) and "top" or "bot"
-        geometry.rectanglebltr(cell, generics.metal(1),
-            cell:get_area_anchor_fmt("outerleftdummy_%d_%sgatestrap", rownum, gate).br,
-            cell:get_area_anchor_fmt("outerrightdummy_%d_%sgatestrap", rownum, gate).tl
-        )
+    if _P.outerdummies > 0 then
+        for rownum = 1, numrows do
+            local gate = (rownum % 2 == 0) and "top" or "bot"
+            geometry.rectanglebltr(cell, generics.metal(1),
+                cell:get_area_anchor_fmt("outerleftdummy_%d_%sgatestrap", rownum, gate).br,
+                cell:get_area_anchor_fmt("outerrightdummy_%d_%sgatestrap", rownum, gate).tl
+            )
+        end
+    elseif _P.innerdummies > 0 then
+        for rownum = 1, numrows do
+            local gate = (rownum % 2 == 0) and "top" or "bot"
+            geometry.rectanglebltr(cell, generics.metal(1),
+                cell:get_area_anchor_fmt("innerdummy_%d_%d_%sgatestrap", rownum, 1, gate).br,
+                cell:get_area_anchor_fmt("innerdummy_%d_%d_%sgatestrap", rownum, numinstancesperrow - 1, gate).tl
+            )
+        end
     end
 
     local function _get_uniq_row_devices(rownum)
@@ -266,7 +282,7 @@ function layout(cell, _P)
         if _P.equalgatenets then
             cell:add_area_anchor_bltr(string.format("gateline_%d", rownum),
                 point.create(
-                    cell:get_area_anchor_fmt("M_%d_%d_%d_active", leftdevice).l,
+                    cell:get_area_anchor_fmt("M_%d_%d_%d_active", leftdevice.device, leftdevice.row, leftdevice.index).l,
                     cell:get_area_anchor_fmt("M_%d_%d_%d_active", leftdevice.device, leftdevice.row, leftdevice.index).t + gateline_offset + _P.gatestrapspace + _P.gatestrapwidth + _P.gatelinespace
                 ),
                 point.create(
