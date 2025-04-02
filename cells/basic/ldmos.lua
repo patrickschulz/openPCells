@@ -165,6 +165,28 @@ function layout(ldmos, _P)
                 _P.fingerwidth
             )
         )
+        if _P.sourcemetal > 1 then
+            geometry.viabltr(ldmos, 1, _P.sourcemetal,
+                point.create(
+                    (i - 1) * xpitch,
+                    0
+                ),
+                point.create(
+                    (i - 1) * xpitch + _P.sourcewidth,
+                    _P.fingerwidth
+                )
+            )
+            geometry.viabltr(ldmos, 1, _P.sourcemetal,
+                point.create(
+                    (i - 1) * xpitch + _P.sourcewidth + 2 * _P.sourcespace + 2 * _P.drainspace + _P.drainwidth + 2 * _P.gatelength,
+                    0
+                ),
+                point.create(
+                    (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + 2 * _P.drainspace + _P.drainwidth + 2 * _P.gatelength + _P.sourcespace + _P.sourcewidth,
+                    _P.fingerwidth
+                )
+            )
+        end
     end
 
     -- drain contacts
@@ -179,6 +201,18 @@ function layout(ldmos, _P)
                 _P.fingerwidth
             )
         )
+        if _P.drainmetal > 1 then
+            geometry.viabltr(ldmos, 1, _P.drainmetal,
+                point.create(
+                    (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + _P.drainspace,
+                    0
+                ),
+                point.create(
+                    (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + _P.drainspace + _P.drainwidth,
+                    _P.fingerwidth
+                )
+            )
+        end
     end
 
     -- soi open
@@ -244,5 +278,4 @@ function layout(ldmos, _P)
             guardring:get_area_anchor("innerboundary").tr
         )
     end
-
 end
