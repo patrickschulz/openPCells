@@ -91,10 +91,13 @@ function layout(cell, _P)
         end
         numdevicesperrow[i] = count
     end
-    local maxnumdevicesperrow = util.max(numdevicesperrow)
-    local maxnumgatelines = _P.equalgatenets and 1 or maxnumdevicesperrow
+    local maxnumdevicesperdoublerow = 0
+    for rownum = 1, #numdevicesperrow - 1, 2 do
+        maxnumdevicesperdoublerow = math.max(maxnumdevicesperdoublerow, #util.uniq(util.merge_tables(_P.pattern[rownum], _P.pattern[rownum + 1])))
+    end
+    local maxnumgatelines = _P.equalgatenets and 1 or maxnumdevicesperdoublerow
     local gateline_space_occupation = 2 * _P.gatestrapspace + 2 * _P.gatestrapwidth + (maxnumgatelines + 1) * _P.gatelinespace + maxnumgatelines * _P.gatelinewidth
-    local interconnectline_space_occupation = 2 * _P.sourcedrainstrapspace + 2 * _P.sourcedrainstrapwidth + (maxnumdevicesperrow + 1) * _P.interconnectlinespace + maxnumdevicesperrow * _P.interconnectlinewidth
+    local interconnectline_space_occupation = 2 * _P.sourcedrainstrapspace + 2 * _P.sourcedrainstrapwidth + (maxnumdevicesperdoublerow + 1) * _P.interconnectlinespace + maxnumdevicesperdoublerow * _P.interconnectlinewidth
     local separation = math.max(interconnectline_space_occupation, gateline_space_occupation)
     local gateline_offset = (separation - gateline_space_occupation) / 2
     local interconnectline_offset = separation - interconnectline_space_occupation
@@ -296,8 +299,8 @@ function layout(cell, _P)
             )
         else
             local devindices = _get_uniq_row_devices(rownum)
-            for line = 1, numdevicesperrow[rownum] do
-                cell:add_area_anchor_bltr(string.format("gateline_%d_%d", rownum, devindices[line]),
+            for line, index in ipairs(devindices) do
+                cell:add_area_anchor_bltr(string.format("gateline_%d_%d", rownum, index),
                     point.create(
                         cell:get_area_anchor_fmt("M_%d_%d_%d_active", leftdevice.device, leftdevice.row, leftdevice.index).l,
                         cell:get_area_anchor_fmt("M_%d_%d_%d_active", leftdevice.device, leftdevice.row, leftdevice.index).t + gateline_offset + _P.gatestrapspace + _P.gatestrapwidth + _P.gatelinespace + (line - 1) * (_P.gatelinespace + _P.gatelinewidth)
@@ -308,8 +311,8 @@ function layout(cell, _P)
                     )
                 )
                 geometry.rectanglebltr(cell, generics.metal(_P.gatemetal),
-                    cell:get_area_anchor_fmt("gateline_%d_%d", rownum, devindices[line]).bl,
-                    cell:get_area_anchor_fmt("gateline_%d_%d", rownum, devindices[line]).tr
+                    cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).bl,
+                    cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).tr
                 )
             end
         end
@@ -404,8 +407,8 @@ function layout(cell, _P)
         local doublerowdevices = _get_devices(function(device) return device.row == 2 * rownum - 1 or device.row == 2 * rownum end)
         local leftdevice = doublerowdevices[1]
         local rightdevice = doublerowdevices[numinstancesperrow]
-        for line = 1, numdevicesperrow[rownum] do
-            cell:add_area_anchor_bltr(string.format("interconnectline_%d_%d", rownum, devindices[line]),
+        for line, index in ipairs(devindices) do
+            cell:add_area_anchor_bltr(string.format("interconnectline_%d_%d", rownum, index),
                 point.create(
                     cell:get_area_anchor_fmt("M_%d_%d_%d_active", leftdevice.device, leftdevice.row, leftdevice.index).l,
                     cell:get_area_anchor_fmt("M_%d_%d_%d_active", leftdevice.device, leftdevice.row, leftdevice.index).t + interconnectline_offset + _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth + _P.interconnectlinespace + (line - 1) * (_P.interconnectlinespace + _P.interconnectlinewidth)
@@ -416,8 +419,8 @@ function layout(cell, _P)
                 )
             )
             geometry.rectanglebltr(cell, generics.metal(_P.interconnectmetal),
-                cell:get_area_anchor_fmt("interconnectline_%d_%d", rownum, devindices[line]).bl,
-                cell:get_area_anchor_fmt("interconnectline_%d_%d", rownum, devindices[line]).tr
+                cell:get_area_anchor_fmt("interconnectline_%d_%d", rownum, index).bl,
+                cell:get_area_anchor_fmt("interconnectline_%d_%d", rownum, index).tr
             )
         end
     end
