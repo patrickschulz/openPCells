@@ -18,6 +18,8 @@ function parameters()
         { "viaoffset", 1000 },
         { "gatestrapwidth", 70 },
         { "gatestrapspace", 70 },
+        { "gatestrapleftext", 0 },
+        { "gatestraprightext", 0 },
         { "gatelinewidth", 100 },
         { "gatelinespace", 100 },
         { "gatelineviawidth", 100 },
@@ -41,6 +43,7 @@ function parameters()
         { "diodeconnected", {} },
         { "innerdummies", 2 },
         { "outerdummies", 2 },
+        { "connectdummies", true },
         { "interoutputvias", "topdown", posvals = set("topdown", "leftright") },
         { "extendallleft", 0 },
         { "extendallright", 0 }
@@ -112,6 +115,10 @@ function layout(cell, _P)
         sdwidth = _P.sdwidth,
         gtopext = _P.gatestrapspace + _P.gatestrapwidth,
         gbotext = _P.gatestrapspace + _P.gatestrapwidth,
+        topgateleftextension = _P.gatestrapleftext,
+        botgateleftextension = _P.gatestrapleftext,
+        topgaterightextension = _P.gatestraprightext,
+        botgaterightextension = _P.gatestraprightext,
         extendalltop = separation / 2,
         extendallbottom = separation / 2,
         extendallleft = _P.extendallleft,
@@ -580,18 +587,20 @@ function layout(cell, _P)
     end
 
     -- connect all sources (horizontal)
-    for rownum = 1, numrows do
-        local fets = _get_devices(function(entry) return entry.row == rownum end)
-        local leftfet = fets[1]
-        local rightfet = fets[numinstancesperrow]
-        geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
-            cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", leftfet.device, leftfet.row, leftfet.index).br,
-            cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", rightfet.device, rightfet.row, rightfet.index).tl
-        )
-        geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
-            cell:get_area_anchor_fmt("M_%d_%d_%d_othersourcestrap", leftfet.device, leftfet.row, leftfet.index).br,
-            cell:get_area_anchor_fmt("M_%d_%d_%d_othersourcestrap", rightfet.device, rightfet.row, rightfet.index).tl
-        )
+    if _P.innerdummies > 0 then -- source straps touch if no dummies are present
+        for rownum = 1, numrows do
+            local fets = _get_devices(function(entry) return entry.row == rownum end)
+            local leftfet = fets[1]
+            local rightfet = fets[numinstancesperrow]
+            geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
+                cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", leftfet.device, leftfet.row, leftfet.index).bl,
+                cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", rightfet.device, rightfet.row, rightfet.index).tl
+            )
+            geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
+                cell:get_area_anchor_fmt("M_%d_%d_%d_othersourcestrap", leftfet.device, leftfet.row, leftfet.index).br,
+                cell:get_area_anchor_fmt("M_%d_%d_%d_othersourcestrap", rightfet.device, rightfet.row, rightfet.index).tl
+            )
+        end
     end
 
     -- connect all sources (vertical)
@@ -602,13 +611,31 @@ function layout(cell, _P)
             geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
                 point.create(
                     cell:get_area_anchor_fmt("M_%d_%d_%d_sourcedrainactive%d", lowerfet.device, lowerfet.row, lowerfet.index, finger).l,
-                    cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", lowerfet.device, lowerfet.row, lowerfet.index).b
+                    cell:get_area_anchor_fmt("M_%d_%d_%d_lowersourcestrap", lowerfet.device, lowerfet.row, lowerfet.index).b
                 ),
                 point.create(
                     cell:get_area_anchor_fmt("M_%d_%d_%d_sourcedrainactive%d", upperfet.device, upperfet.row, upperfet.index, finger).r,
-                    cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", upperfet.device, upperfet.row, upperfet.index).t
+                    cell:get_area_anchor_fmt("M_%d_%d_%d_uppersourcestrap", upperfet.device, upperfet.row, upperfet.index).t
                 )
             )
         end
     end
+
+    -- connect all dummies (vertical)
+    if _P.outerdummies > 0 then
+        geometry.rectanglebltr(cell, generics.metal(-1),
+            cell:get_area_anchor_fmt("outerleftdummy_%d_sourcedrain1", 1).tl,
+            cell:get_area_anchor_fmt("outerleftdummy_%d_sourcedrain1", numrows).br
+        )
+        geometry.rectanglebltr(cell, generics.metal(-1),
+            cell:get_area_anchor_fmt("outerrightdummy_%d_sourcedrain-1", 1).tl,
+            cell:get_area_anchor_fmt("outerrightdummy_%d_sourcedrain-1", numrows).br
+        )
+    end
+
+    -- anchors
+    cell:add_area_anchor_bltr("well",
+        cell:get_area_anchor("well_all").bl,
+        cell:get_area_anchor("well_all").tr
+    )
 end

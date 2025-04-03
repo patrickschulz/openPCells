@@ -1613,6 +1613,25 @@ function layout(transistor, _P)
                     point.create(blx - _P.connectsourceotherleftext, bly2),
                     point.create(trx + _P.connectsourceotherrightext, bly2 + _P.connectsourceotherwidth)
                 )
+                if bly1 < bly2 then
+                    transistor:add_area_anchor_bltr("uppersourcestrap",
+                        point.create(blx - leftext, bly2),
+                        point.create(trx + rightext, bly2 + _P.connectsourcewidth)
+                    )
+                    transistor:add_area_anchor_bltr("lowersourcestrap",
+                        point.create(blx - leftext, bly1),
+                        point.create(trx + rightext, bly1 + _P.connectsourcewidth)
+                    )
+                else
+                    transistor:add_area_anchor_bltr("uppersourcestrap",
+                        point.create(blx - leftext, bly2),
+                        point.create(trx + rightext, bly2 + _P.connectsourceotherwidth)
+                    )
+                    transistor:add_area_anchor_bltr("lowersourcestrap",
+                        point.create(blx - leftext, bly1),
+                        point.create(trx + rightext, bly1 + _P.connectsourcewidth)
+                    )
+                end
             end
         end
     end
@@ -1764,6 +1783,25 @@ function layout(transistor, _P)
                     point.create(blx - _P.connectdrainotherleftext, bly2),
                     point.create(trx + _P.connectdrainotherrightext, bly2 + _P.connectdrainotherwidth)
                 )
+                if bly1 < bly2 then
+                    transistor:add_area_anchor_bltr("upperdrainstrap",
+                        point.create(blx - leftext, bly2),
+                        point.create(trx + rightext, bly2 + _P.connectdrainwidth)
+                    )
+                    transistor:add_area_anchor_bltr("lowerdrainstrap",
+                        point.create(blx - leftext, bly1),
+                        point.create(trx + rightext, bly1 + _P.connectdrainwidth)
+                    )
+                else
+                    transistor:add_area_anchor_bltr("upperdrainstrap",
+                        point.create(blx - leftext, bly2),
+                        point.create(trx + rightext, bly2 + _P.connectdrainotherwidth)
+                    )
+                    transistor:add_area_anchor_bltr("lowerdrainstrap",
+                        point.create(blx - leftext, bly1),
+                        point.create(trx + rightext, bly1 + _P.connectdrainwidth)
+                    )
+                end
             end
         end
     end
