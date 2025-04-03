@@ -14,6 +14,18 @@ function parameters()
         { "topoffset", 200000 },
         { "bottomoffset", 200000 },
         { "labelsizehint", 10000 },
+        { "Spadwidth", 50000 },
+        { "Spadheight", 54000 },
+        { "Spadopeningxoffset", 5000 },
+        { "Spadopeningyoffset", 5000 },
+        { "Gpadwidth", 60000 },
+        { "Gpadheight", 80000 },
+        { "Gpadopeningxoffset", 5000 },
+        { "Gpadopeningyoffset", 5000 },
+        { "Ppadwidth", 60000 },
+        { "Ppadheight", 80000 },
+        { "Ppadopeningxoffset", 5000 },
+        { "Ppadopeningyoffset", 5000 },
         { "usepadnames", true }
     )
 end
@@ -42,6 +54,18 @@ function layout(padring, _P)
         padconfigisreversed = true,
         orientation = "vertical",
         labelsizehint = _P.labelsizehint,
+        Spadwidth = _P.Spadwidth,
+        Spadheight = _P.Spadheight,
+        Spadopeningxoffset = _P.Spadopeningxoffset,
+        Spadopeningyoffset = _P.Spadopeningyoffset,
+        Gpadwidth = _P.Gpadwidth,
+        Gpadheight = _P.Gpadheight,
+        Gpadopeningxoffset = _P.Gpadopeningxoffset,
+        Gpadopeningyoffset = _P.Gpadopeningyoffset,
+        Ppadwidth = _P.Ppadwidth,
+        Ppadheight = _P.Ppadheight,
+        Ppadopeningxoffset = _P.Ppadopeningxoffset,
+        Ppadopeningyoffset = _P.Ppadopeningyoffset,
     })
     left:translate_x(-_P.leftoffset)
     padring:merge_into_with_ports(left)
@@ -64,6 +88,18 @@ function layout(padring, _P)
         padnames = _P.rightpadnames,
         orientation = "vertical",
         labelsizehint = _P.labelsizehint,
+        Spadwidth = _P.Spadwidth,
+        Spadheight = _P.Spadheight,
+        Spadopeningxoffset = _P.Spadopeningxoffset,
+        Spadopeningyoffset = _P.Spadopeningyoffset,
+        Gpadwidth = _P.Gpadwidth,
+        Gpadheight = _P.Gpadheight,
+        Gpadopeningxoffset = _P.Gpadopeningxoffset,
+        Gpadopeningyoffset = _P.Gpadopeningyoffset,
+        Ppadwidth = _P.Ppadwidth,
+        Ppadheight = _P.Ppadheight,
+        Ppadopeningxoffset = _P.Ppadopeningxoffset,
+        Ppadopeningyoffset = _P.Ppadopeningyoffset,
     })
     right:translate_x(_P.rightoffset)
     padring:merge_into_with_ports(right)
@@ -87,6 +123,18 @@ function layout(padring, _P)
         padconfigisreversed = true,
         orientation = "horizontal",
         labelsizehint = _P.labelsizehint,
+        Spadwidth = _P.Spadwidth,
+        Spadheight = _P.Spadheight,
+        Spadopeningxoffset = _P.Spadopeningxoffset,
+        Spadopeningyoffset = _P.Spadopeningyoffset,
+        Gpadwidth = _P.Gpadwidth,
+        Gpadheight = _P.Gpadheight,
+        Gpadopeningxoffset = _P.Gpadopeningxoffset,
+        Gpadopeningyoffset = _P.Gpadopeningyoffset,
+        Ppadwidth = _P.Ppadwidth,
+        Ppadheight = _P.Ppadheight,
+        Ppadopeningxoffset = _P.Ppadopeningxoffset,
+        Ppadopeningyoffset = _P.Ppadopeningyoffset,
     })
     top:translate_y(_P.topoffset)
     padring:merge_into_with_ports(top)
@@ -109,6 +157,18 @@ function layout(padring, _P)
         padnames = _P.bottompadnames,
         orientation = "horizontal",
         labelsizehint = _P.labelsizehint,
+        Spadwidth = _P.Spadwidth,
+        Spadheight = _P.Spadheight,
+        Spadopeningxoffset = _P.Spadopeningxoffset,
+        Spadopeningyoffset = _P.Spadopeningyoffset,
+        Gpadwidth = _P.Gpadwidth,
+        Gpadheight = _P.Gpadheight,
+        Gpadopeningxoffset = _P.Gpadopeningxoffset,
+        Gpadopeningyoffset = _P.Gpadopeningyoffset,
+        Ppadwidth = _P.Ppadwidth,
+        Ppadheight = _P.Ppadheight,
+        Ppadopeningxoffset = _P.Ppadopeningxoffset,
+        Ppadopeningyoffset = _P.Ppadopeningyoffset,
     })
     bottom:translate_y(-_P.bottomoffset)
     padring:merge_into_with_ports(bottom)
