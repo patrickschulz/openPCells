@@ -331,18 +331,19 @@ function layout(cell, _P)
             for colnum = 1, numinstancesperrow do
                 local doublerowdevices = _get_devices(function(device) return (device.row == 2 * rownum - 1 or device.row == 2 * rownum) and (device.column == colnum) end)
                 for i, device in ipairs(doublerowdevices) do
+                    local gate = (i % 2 == 1) and "top" or "bot"
                     geometry.viabltr(cell, 1, _P.gatemetal,
                         point.create(
                             0.5 * (
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).l +
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).r
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).l +
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).r
                             ) - _P.gatelineviawidth / 2,
                             cell:get_area_anchor_fmt("gateline_%d", rownum).b
                         ),
                         point.create(
                             0.5 * (
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).l +
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).r
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).l +
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).r
                             ) + _P.gatelineviawidth / 2,
                             cell:get_area_anchor_fmt("gateline_%d", rownum).t
                         )
@@ -350,17 +351,17 @@ function layout(cell, _P)
                     geometry.rectanglepoints(cell, generics.metal(1),
                         point.create(
                             0.5 * (
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).l +
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).r
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).l +
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).r
                             ) - _P.gatelinewidth / 2,
                             cell:get_area_anchor_fmt("gateline_%d", rownum).b
                         ),
                         point.create(
                             0.5 * (
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).l +
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).r
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).l +
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).r
                             ) + _P.gatelinewidth / 2,
-                            cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).t
+                            cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).t
                         )
                     )
                 end
@@ -370,19 +371,20 @@ function layout(cell, _P)
                 local doublerowdevices = _get_devices(function(device) return (device.row == 2 * rownum - 1 or device.row == 2 * rownum) and (device.column == colnum) end)
                 local spread = doublerowdevices[1].device ~= doublerowdevices[2].device
                 for i, device in ipairs(doublerowdevices) do
+                    local gate = (i % 2 == 1) and "top" or "bot"
                     local shift = spread and (i - 1.5) * _P.gatelineviapitch or 0
                     geometry.viabltr(cell, 1, _P.gatemetal,
                         point.create(
                             0.5 * (
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).l +
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).r
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).l +
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).r
                             ) - _P.gatelineviawidth / 2 + shift,
                             cell:get_area_anchor_fmt("gateline_%d_%d", rownum, device.device).b
                         ),
                         point.create(
                             0.5 * (
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).l +
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).r
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).l +
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).r
                             ) + _P.gatelineviawidth / 2 + shift,
                             cell:get_area_anchor_fmt("gateline_%d_%d", rownum, device.device).t
                         )
@@ -390,17 +392,17 @@ function layout(cell, _P)
                     geometry.rectanglepoints(cell, generics.metal(1),
                         point.create(
                             0.5 * (
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).l +
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).r
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).l +
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).r
                             ) - _P.gatelinewidth / 2 + shift,
                             cell:get_area_anchor_fmt("gateline_%d_%d", rownum, device.device).b
                         ),
                         point.create(
                             0.5 * (
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).l +
-                                cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).r
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).l +
+                                cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).r
                             ) + _P.gatelinewidth / 2 + shift,
-                            cell:get_area_anchor_fmt("M_%d_%d_%d_drainstrap", device.device, device.row, device.index).t
+                            cell:get_area_anchor_fmt("M_%d_%d_%d_%sgatestrap", device.device, device.row, device.index, gate).t
                         )
                     )
                 end
