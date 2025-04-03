@@ -216,6 +216,22 @@
     ));
 }
 
+/* util.merge_tables(t1, t2) */
+{
+    struct parameter parameters[] = {
+        { "t1", TABLE,  NULL,   "table 1" },
+        { "t2", TABLE,  NULL,   "table 2" }
+    };
+    vector_append(entries, _make_api_entry(
+        "merge_tables",
+        MODULE_UTIL,
+        "create a new table with t1 and t2 concatenated. The elements of t2 are append after thos of t1. Only the array entries of t1 and t2 are processed.",
+        "util.merge_tables({ 1, 2, 3 }, { 4, 5, 6 }) -- { 1, 2, 3, 4, 5, 6 }",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* util.reverse(pts) */
 {
     struct parameter parameters[] = {

@@ -306,6 +306,20 @@ function util.merge_backwards(pts, pts2)
     end
 end
 
+function util.merge_tables(t1, t2)
+    check.set_next_function_name("util.merge_tables")
+    check.arg(1, "t1", "table", t1)
+    check.arg(2, "t2", "table", t2)
+    local new = {}
+    for i = 1, #t1 do
+        table.insert(new, t1[i])
+    end
+    for i = 1, #t2 do
+        table.insert(new, t2[i])
+    end
+    return new
+end
+
 function util.reverse(pts)
     check.set_next_function_name("util.reverse")
     check.arg(1, "pts", "table", pts)
