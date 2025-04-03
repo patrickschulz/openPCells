@@ -625,11 +625,11 @@ function layout(cell, _P)
 
     -- connect all dummies (vertical)
     if _P.outerdummies > 0 then
-        geometry.rectanglebltr(cell, generics.metal(-1),
+        geometry.rectanglebltr(cell, generics.metal(1),
             cell:get_area_anchor_fmt("outerleftdummy_%d_sourcedrain1", 1).tl,
             cell:get_area_anchor_fmt("outerleftdummy_%d_sourcedrain1", numrows).br
         )
-        geometry.rectanglebltr(cell, generics.metal(-1),
+        geometry.rectanglebltr(cell, generics.metal(1),
             cell:get_area_anchor_fmt("outerrightdummy_%d_sourcedrain-1", 1).tl,
             cell:get_area_anchor_fmt("outerrightdummy_%d_sourcedrain-1", numrows).br
         )
