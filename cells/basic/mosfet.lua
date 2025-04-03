@@ -1623,11 +1623,11 @@ function layout(transistor, _P)
                         point.create(trx + rightext, bly1 + _P.connectsourcewidth)
                     )
                 else
-                    transistor:add_area_anchor_bltr("uppersourcestrap",
+                    transistor:add_area_anchor_bltr("lowersourcestrap",
                         point.create(blx - leftext, bly2),
                         point.create(trx + rightext, bly2 + _P.connectsourceotherwidth)
                     )
-                    transistor:add_area_anchor_bltr("lowersourcestrap",
+                    transistor:add_area_anchor_bltr("uppersourcestrap",
                         point.create(blx - leftext, bly1),
                         point.create(trx + rightext, bly1 + _P.connectsourcewidth)
                     )
@@ -1793,11 +1793,11 @@ function layout(transistor, _P)
                         point.create(trx + rightext, bly1 + _P.connectdrainwidth)
                     )
                 else
-                    transistor:add_area_anchor_bltr("upperdrainstrap",
+                    transistor:add_area_anchor_bltr("lowerdrainstrap",
                         point.create(blx - leftext, bly2),
                         point.create(trx + rightext, bly2 + _P.connectdrainotherwidth)
                     )
-                    transistor:add_area_anchor_bltr("lowerdrainstrap",
+                    transistor:add_area_anchor_bltr("upperdrainstrap",
                         point.create(blx - leftext, bly1),
                         point.create(trx + rightext, bly1 + _P.connectdrainwidth)
                     )
