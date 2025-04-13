@@ -1579,7 +1579,7 @@ static int lgeometry_contactbltr(lua_State* L)
     coordinate_t minyspace = 0;
     int equal_pitch = 0;
     coordinate_t widthclass = 0;
-    _get_viacontact_properties(L, 5, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
+    _get_viacontact_properties(L, 6, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
