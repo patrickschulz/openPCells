@@ -90,7 +90,6 @@ function parameters()
         { "clockgatestrapxshift", 0 },
         { "clockgatestrapyshift", 0 },
         { "dummygatecontactwidth", technology.get_dimension("Minimum M1 Width") },
-        { "invdrainsourcewidth", 80 },
         { "invgatewidth", 60 },
         { "invgatestrapxshift", 0 },
         { "invgatestrapyshift", 0 },
@@ -1086,7 +1085,7 @@ function layout(divider, _P)
             "left_pmos_welltap_",
             {
                 contype = "p",
-                wellleftextension = _P.welltapwellextension,
+                extendwellleft = _P.welltapwellextension,
             }
         )
         geometry.rectanglebltr(latch, generics.other("pwell"),
@@ -1170,7 +1169,7 @@ function layout(divider, _P)
             "right_pmos_welltap_",
             {
                 contype = "p",
-                wellrightextension = _P.welltapwellextension,
+                extendwellright = _P.welltapwellextension,
             }
         )
         geometry.rectanglebltr(latch, generics.other("pwell"),
@@ -1816,7 +1815,7 @@ function layout(divider, _P)
             "left_pmos_welltap_",
             {
                 contype = "p",
-                wellleftextension = _P.welltapwellextension,
+                extendwellleft = _P.welltapwellextension,
             }
         )
         geometry.rectanglebltr(bufferref, generics.other("pwell"),
@@ -1900,7 +1899,7 @@ function layout(divider, _P)
             "right_pmos_welltap_",
             {
                 contype = "p",
-                wellrightextension = _P.welltapwellextension,
+                extendwellright = _P.welltapwellextension,
             }
         )
         geometry.rectanglebltr(bufferref, generics.other("pwell"),
