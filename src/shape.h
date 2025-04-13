@@ -35,8 +35,6 @@ int shape_is_curve(const struct shape* shape);
 
 int shape_is_malformed(const struct shape* shape);
 
-const void* shape_get_content(const struct shape* shape);
-
 // rectangle access functions
 int shape_get_rectangle_points(struct shape* shape, const struct point** blp, const struct point** trp);
 int shape_get_transformed_rectangle_points(const struct shape* shape, const struct transformationmatrix* trans, struct point* blp, struct point* trp);

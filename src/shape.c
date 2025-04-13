@@ -425,11 +425,6 @@ int shape_is_malformed(const struct shape* shape)
     }
 }
 
-const void* shape_get_content(const struct shape* shape)
-{
-    return shape->content;
-}
-
 int shape_get_rectangle_points(struct shape* shape, const struct point** bl, const struct point** tr)
 {
     if(shape->type != RECTANGLE)
