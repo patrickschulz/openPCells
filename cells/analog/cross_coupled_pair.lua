@@ -485,7 +485,8 @@ function layout(ccp, _P)
             soiopenextension = _P.guardring_soiopenextension,
             implantextension = _P.guardring_implantextension,
             fit = false,
-            fillimplant = true,
+            innerimplantpolarity = "p",
+            fillinnerimplant = true,
         }
     )
 
