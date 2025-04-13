@@ -59,7 +59,8 @@ function layout(guardring, _P)
         geometry.contactbarebltr(contactbase, "active",
             point.create(0, 0),
             point.create(_P.ringwidth, _P.ringwidth),
-            1, 1, 0, 0, { xcontinuous = true, ycontinuous = true }
+            "basecontact",
+             { xcontinuous = true, ycontinuous = true }
         )
     else
         holewidth = _P.holewidth

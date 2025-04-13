@@ -48,7 +48,7 @@ function layout(welltap, _P)
     geometry.contactbltr(welltap, "active",
         point.create(0, 0),
         point.create(_P.width, _P.height),
-        1, 1, 0, 0,
+        "welltabcontacts",
         { xcontinuous = _P.xcontinuous, ycontinuous = _P.ycontinuous }
     )
 
