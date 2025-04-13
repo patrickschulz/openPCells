@@ -137,8 +137,8 @@ function util.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext, xm
     check.arg(4, "ygrid", "number", ygrid)
     check.arg_optional(5, "minxext", "number", minxext)
     check.arg_optional(6, "minyext", "number", minyext)
-    check.arg_optional(7, "xmultiple", "number", xmultiple)
-    check.arg_optional(8, "ymultiple", "number", ymultiple)
+    check.arg_optional(7, "xmultiple", "string", xmultiple)
+    check.arg_optional(8, "ymultiple", "string", ymultiple)
     local dx = point.xdistance_abs(bl, tr)
     local dy = point.ydistance_abs(bl, tr)
     local xcorr = util.fix_to_grid_abs_higher(dx, xgrid) - dx
@@ -494,7 +494,7 @@ function util.range(lower, upper, incr)
     check.set_next_function_name("util.range")
     check.arg(1, "lower", "number", lower)
     check.arg(2, "upper", "number", upper)
-    check.arg(3, "incr", "number", incr)
+    check.arg_optional(3, "incr", "number", incr)
     local t = {}
     for i = lower, upper, incr or 1 do
         table.insert(t, i)
