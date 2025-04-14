@@ -3,6 +3,7 @@ local template_lookup = {
     ["basic/mosfet"] =
 [[local mosfet = pcell.create_layout("basic/mosfet", "_mosfet", {
     channeltype = "nmos",
+    flippedwell = false,
     vthtype = 1,
     oxidetype = 1,
     gatelength = 100,
