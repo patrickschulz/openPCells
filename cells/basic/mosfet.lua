@@ -1080,7 +1080,7 @@ function layout(transistor, _P)
     if _P.drawtopwelltap then
         transistor:merge_into(pcell.create_layout("auxiliary/welltap", "topwelltap", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
-            width = activewidth + _P.topwelltapextendleft + _P.topwelltapextendright,
+            width = activewidth + leftactext + leftactauxext + rightactext + rightactauxext + _P.topwelltapextendleft + _P.topwelltapextendright,
             height = _P.topwelltapwidth,
         }):translate(
             (_P.topwelltapextendright - _P.topwelltapextendleft) / 2,
@@ -1090,11 +1090,11 @@ function layout(transistor, _P)
     if _P.drawbotwelltap then
         transistor:merge_into(pcell.create_layout("auxiliary/welltap", "botwelltap", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
-            width = activewidth + _P.botwelltapextendleft + _P.botwelltapextendright,
+            width = activewidth + leftactext + leftactauxext + rightactext + rightactauxext + _P.botwelltapextendleft + _P.botwelltapextendright,
             height = _P.botwelltapwidth,
         }):translate(
-            (_P.topwelltapextendright - _P.topwelltapextendleft) / 2,
-            _P.fingerwidth + _P.topwelltapspace
+            (_P.botwelltapextendright - _P.botwelltapextendleft) / 2,
+            -_P.botwelltapwidth - _P.botwelltapspace
         ))
     end
 
