@@ -22,6 +22,7 @@ local template_lookup = {
     connectdrain = true,
     connectdrainwidth = 80,
     connectdrainspace = 80,
+    extendall = 100,
 })]],
 
     ["basic/cmos"] =
