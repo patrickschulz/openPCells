@@ -42,6 +42,10 @@ function parameters()
         { "extendvthtypebottom",            0, follow = "extendallbottom" },
         { "extendvthtypeleft",              0, follow = "extendallleft" },
         { "extendvthtyperight",             0, follow = "extendallright" },
+        { "extendimplanttop",               0, follow = "extendalltop" },
+        { "extendimplantbottom",            0, follow = "extendallbottom" },
+        { "extendimplantleft",              0, follow = "extendallleft" },
+        { "extendimplantright",             0, follow = "extendallright" },
         { "extendwelltop",                  0, follow = "extendalltop" },
         { "extendwellbottom",               0, follow = "extendallbottom" },
         { "extendwellleft",                 0, follow = "extendallleft" },
@@ -62,6 +66,18 @@ function layout(ldmos, _P)
         point.create(
             (_P.fingers / 2 - 1) * xpitch + 2 * _P.sourcewidth + 2 * _P.sourcespace + 2 * _P.drainspace + _P.drainwidth + 2 * _P.gatelength,
             _P.fingerwidth
+        )
+    )
+
+    -- implant
+    geometry.rectanglebltr(ldmos, generics.implant(_P.channeltype),
+        point.create(
+            -_P.extendimplantleft,
+            -_P.gatestrapspace - _P.gatestrapwidth - _P.gbotext - _P.extendimplantbottom
+        ),
+        point.create(
+            (_P.fingers / 2 - 1) * xpitch + 2 * _P.sourcewidth + 2 * _P.sourcespace + 2 * _P.drainspace + _P.drainwidth + 2 * _P.gatelength + _P.extendallright,
+            _P.fingerwidth + _P.gatestrapspace + _P.gatestrapwidth + _P.gtopext + _P.extendimplanttop
         )
     )
 
