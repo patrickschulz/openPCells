@@ -48,6 +48,7 @@ A possible pfile (called pfile.lua) for modifying the number of fingers is:
     }
 
 Then the following call creates a MOSFET with four fingers:
+
     ./opc --technology opc --export svg --cell basic/mosfet --pfile pfile.lua
 
 The two generation calls produce the following images:
