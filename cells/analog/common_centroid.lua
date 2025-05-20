@@ -51,6 +51,9 @@ function parameters()
         { "connectdummygatestoactive", false },
         { "connectdummies", true },
         { "connectdummysources", true },
+        { "connectdummiestointernalnet", false },
+        { "innerdummiesasdiode", false },
+        { "outerdummiesasdiode", false },
         { "interoutputvias", "topdown", posvals = set("topdown", "leftright") },
         { "extendalltop", 0 },
         { "extendallbottom", 0 },
@@ -167,12 +170,10 @@ function layout(cell, _P)
         connectsourceboth = _P.connectdummysources,
         connectsourcewidth = _P.sourcedrainstrapwidth,
         connectsourcespace = _P.sourcedrainstrapspace,
-        sourcemetal = _P.sourcemetal,
         connectdrain = _P.connectdummysources,
         connectdrainboth = _P.connectdummysources,
         connectdrainwidth = _P.sourcedrainstrapwidth,
         connectdrainspace = _P.sourcedrainstrapspace,
-        drainmetal = _P.sourcemetal,
         topgatewidth = _P.gatestrapwidth,
         topgatespace = _P.gatestrapsincenter and (separation - _P.gatestrapwidth) / 2 or _P.gatestrapspace,
         botgatewidth = _P.gatestrapwidth,
@@ -220,10 +221,10 @@ function layout(cell, _P)
                 gatelength = _P.outerdummygatelength,
                 drawtopgate = _P.connectgatesonbothsides or (rownum % 2 == 0),
                 drawbotgate = _P.connectgatesonbothsides or (rownum % 2 == 1),
-                shortdevice = not _P.connectdummysources and (_P.outerdummies > 1),
+                shortdevice = _P.connectdummiestointernalnet or (not _P.connectdummysources and (_P.outerdummies > 1)),
                 shortsourcegate = _P.outerdummies == 1,
                 shortlocation = (rownum % 2 == 0) and "top" or "bottom",
-                shortdevicerightoffset = 1,
+                shortdevicerightoffset = _P.connectdummiestointernalnet and 0 or 1,
                 topgaterightextension = -_P.gatelength,
             })
         )
@@ -247,10 +248,10 @@ function layout(cell, _P)
                         fingers = _P.innerdummies,
                         drawtopgate = _P.connectgatesonbothsides or (rownum % 2 == 0),
                         drawbotgate = _P.connectgatesonbothsides or (rownum % 2 == 1),
-                        shortdevice = _P.innerdummies > 2,
+                        shortdevice = _P.connectdummiestointernalnet or (_P.innerdummies > 2),
                         shortlocation = (rownum % 2 == 0) and "top" or "bottom",
-                        shortdeviceleftoffset = 1,
-                        shortdevicerightoffset = 1,
+                        shortdeviceleftoffset = _P.connectdummiestointernalnet and 0 or 1,
+                        shortdevicerightoffset = _P.connectdummiestointernalnet and 0 or 1,
                     })
                 )
             end
@@ -262,10 +263,10 @@ function layout(cell, _P)
                 gatelength = _P.outerdummygatelength,
                 drawtopgate = _P.connectgatesonbothsides or (rownum % 2 == 0),
                 drawbotgate = _P.connectgatesonbothsides or (rownum % 2 == 1),
-                shortdevice = not _P.connectdummysources and (_P.outerdummies > 1),
+                shortdevice = _P.connectdummiestointernalnet or (not _P.connectdummysources and (_P.outerdummies > 1)),
                 shortdraingate = _P.outerdummies == 1,
                 shortlocation = (rownum % 2 == 0) and "top" or "bottom",
-                shortdeviceleftoffset = 1,
+                shortdeviceleftoffset = _P.connectdummiestointernalnet and 0 or 1,
                 topgateleftextension = -_P.gatelength,
             })
         )
