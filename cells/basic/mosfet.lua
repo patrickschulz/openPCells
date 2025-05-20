@@ -1109,10 +1109,14 @@ function layout(transistor, _P)
                 fillwell = true,
                 drawsegments = _P.guardringsegments,
                 fillwell = _P.guardringfillwell,
-                fillimplant = _P.guardringfillimplant,
-                wellextension = _P.guardringwellextension,
-                implantextension = _P.guardringimplantextension,
-                soiopenextension = _P.guardringsoiopenextension,
+                fillinnerimplant = _P.guardringfillimplant,
+                innerimplantpolarity = _P.channeltype == "nmos" and "n" or "p",
+                wellinnerextension = _P.guardringwellextension,
+                wellouterextension = _P.guardringwellextension,
+                implantinnerextension = _P.guardringimplantextension,
+                implantouterextension = _P.guardringimplantextension,
+                soiopeninnerextension = _P.guardringsoiopenextension,
+                soiopenouterextension = _P.guardringsoiopenextension,
             })
             guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext - _P.leftactivedummywidth - _P.leftactivedummyspace, - _P.bottomactivedummywidth - _P.bottomactivedummyspace))
             guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
@@ -1125,10 +1129,14 @@ function layout(transistor, _P)
                 fillwell = true,
                 drawsegments = _P.guardringsegments,
                 fillwell = _P.guardringfillwell,
-                fillimplant = _P.guardringfillimplant,
-                wellextension = _P.guardringwellextension,
-                implantextension = _P.guardringimplantextension,
-                soiopenextension = _P.guardringsoiopenextension,
+                fillinnerimplant = _P.guardringfillimplant,
+                innerimplantpolarity = _P.channeltype == "nmos" and "n" or "p",
+                wellinnerextension = _P.guardringwellextension,
+                wellouterextension = _P.guardringwellextension,
+                implantinnerextension = _P.guardringimplantextension,
+                implantouterextension = _P.guardringimplantextension,
+                soiopeninnerextension = _P.guardringsoiopenextension,
+                soiopenouterextension = _P.guardringsoiopenextension,
             })
             guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext, 0))
             guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
@@ -1153,7 +1161,7 @@ function layout(transistor, _P)
                 gatecontacttype,
                 point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
                 point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth),
-                string.format("top gate contact:\n    x parameters: gatelength (%d), gatespace (%d)\n    y parameters: topgatewidth (%d), topgatespace (%d)", _P.gatelength, _P.gatespace, _P.topgatewidth, _P.topgatespace)
+                string.format("top gate contact:\n    x parameters: gatelength (%d)\n    y parameters: topgatewidth (%d), topgatespace (%d)", _P.gatelength, _P.gatespace, _P.topgatewidth, _P.topgatespace)
             )
             transistor:add_area_anchor_bltr(string.format("topgate%d", i),
                 point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
@@ -1180,7 +1188,8 @@ function layout(transistor, _P)
             contactfun(transistor,
                 gatecontacttype,
                 point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
-                point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace)
+                point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace),
+                "botgatecontact"
             )
             transistor:add_area_anchor_bltr(string.format("botgate%d", i),
                 point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),

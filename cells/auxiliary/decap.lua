@@ -85,9 +85,12 @@ function layout(decap, _P)
             ringwidth = _P.guardringwidth,
             fit = true,
             drawmetal = false,
-            wellextension = _P.wellextension,
-            implantextension = _P.implantextension,
-            soiopenextension = _P.soiopenextension,
+            wellinnerextension = _P.wellextension,
+            implantinnerextension = _P.implantextension,
+            soiopeninnerextension = _P.soiopenextension,
+            wellouterextension = _P.wellextension,
+            implantouterextension = _P.implantextension,
+            soiopenouterextension = _P.soiopenextension,
         })
         guardring:move_point(
             guardring:get_area_anchor("innerboundary").bl,

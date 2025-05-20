@@ -76,7 +76,8 @@ function layout(guardring, _P)
         else
             geometry.contactbarebltr(guardring, "active",
                 point.create(0, holeheight),
-                point.create(holewidth, holeheight + _P.ringwidth)
+                point.create(holewidth, holeheight + _P.ringwidth),
+                "topcontacts"
             )
         end
         if _P.drawmetal then
@@ -123,7 +124,8 @@ function layout(guardring, _P)
         else
             geometry.contactbarebltr(guardring, "active",
                 point.create(0, -_P.ringwidth),
-                point.create(holewidth, 0)
+                point.create(holewidth, 0),
+                "bottomcontacts"
             )
         end
         if _P.drawmetal then
@@ -169,7 +171,8 @@ function layout(guardring, _P)
         else
             geometry.contactbarebltr(guardring, "active",
                 point.create(-_P.ringwidth, 0),
-                point.create(0,  holeheight)
+                point.create(0,  holeheight),
+                "leftcontacts"
             )
         end
         if _P.drawmetal then
@@ -215,7 +218,8 @@ function layout(guardring, _P)
         else
             geometry.contactbarebltr(guardring, "active",
                 point.create(holewidth, 0),
-                point.create(holewidth + _P.ringwidth, holeheight)
+                point.create(holewidth + _P.ringwidth, holeheight),
+                "rightcontacts"
             )
         end
         if _P.drawmetal then
