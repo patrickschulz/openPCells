@@ -32,7 +32,6 @@ function parameters()
         { "outputwidth",                                technology.get_dimension("Minimum M1 Width") },
         { "outputxshift",                               0 },
         { "outputyshift",                               0 },
-        { "dummycontshift",                             0 },
         { "extendoutputmetal",                          0 },
         { "dummycontheight",                            technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
         { "dummycontshift",                             0 },
