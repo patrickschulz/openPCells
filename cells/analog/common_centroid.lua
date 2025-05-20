@@ -226,6 +226,8 @@ function layout(cell, _P)
                 shortlocation = (rownum % 2 == 0) and "top" or "bottom",
                 shortdevicerightoffset = _P.connectdummiestointernalnet and 0 or 1,
                 topgaterightextension = -_P.gatelength,
+                drainmetal = _P.outerdummiesasdiode and 1 or _P.sourcemetal,
+                sourcemetal = _P.outerdummiesasdiode and 1 or _P.sourcemetal,
             })
         )
         for deviceindex, device in ipairs(devicerow) do
@@ -249,9 +251,12 @@ function layout(cell, _P)
                         drawtopgate = _P.connectgatesonbothsides or (rownum % 2 == 0),
                         drawbotgate = _P.connectgatesonbothsides or (rownum % 2 == 1),
                         shortdevice = _P.connectdummiestointernalnet or (_P.innerdummies > 2),
+                        diodeconnected = _P.innerdummies == 2,
                         shortlocation = (rownum % 2 == 0) and "top" or "bottom",
                         shortdeviceleftoffset = _P.connectdummiestointernalnet and 0 or 1,
                         shortdevicerightoffset = _P.connectdummiestointernalnet and 0 or 1,
+                        drainmetal = _P.innerdummiesasdiode and 1 or _P.sourcemetal,
+                        sourcemetal = _P.innerdummiesasdiode and 1 or _P.sourcemetal,
                     })
                 )
             end
@@ -268,6 +273,8 @@ function layout(cell, _P)
                 shortlocation = (rownum % 2 == 0) and "top" or "bottom",
                 shortdeviceleftoffset = _P.connectdummiestointernalnet and 0 or 1,
                 topgateleftextension = -_P.gatelength,
+                drainmetal = _P.outerdummiesasdiode and 1 or _P.sourcemetal,
+                sourcemetal = _P.outerdummiesasdiode and 1 or _P.sourcemetal,
             })
         )
         return devices
