@@ -77,12 +77,14 @@ function layout(momcap, _P)
             viafunc(
                 momcap, firstmetal, lastmetal,
                 point.create(-_P.rext, 0),
-                point.create(_P.fingers * _P.fingerwidth + (_P.fingers - 1) * _P.fingerspace + _P.rext, _P.lrailwidth)
+                point.create(_P.fingers * _P.fingerwidth + (_P.fingers - 1) * _P.fingerspace + _P.rext, _P.lrailwidth),
+                string.format("lower rail via:\n    x parameters: rext (%d), fingers (%d), fingerwidth (%d), fingerspace (%d)\n    y parameters: lrailwidth (%d)", _P.rext, _P.fingers, _P.fingerwidth, _P.fingerspace, _P.lrailwidth)
             )
             viafunc(
                 momcap, firstmetal, lastmetal,
                 point.create(-_P.rext, _P.fingerheight + 2 * _P.fingeroffset + _P.lrailwidth),
-                point.create(_P.fingers * _P.fingerwidth + (_P.fingers - 1) * _P.fingerspace + _P.rext, _P.fingerheight + 2 * _P.fingeroffset + _P.lrailwidth + _P.urailwidth)
+                point.create(_P.fingers * _P.fingerwidth + (_P.fingers - 1) * _P.fingerspace + _P.rext, _P.fingerheight + 2 * _P.fingeroffset + _P.lrailwidth + _P.urailwidth),
+                string.format("upper rail via:\n    x parameters: rext (%d), fingers (%d), fingerwidth (%d), fingerspace (%d)\n    y parameters: lrailwidth (%d)", _P.rext, _P.fingers, _P.fingerwidth, _P.fingerspace, _P.urailwidth)
             )
         end
     end
