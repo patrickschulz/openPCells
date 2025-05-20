@@ -120,7 +120,8 @@ int geometry_viabltr(
     coordinate_t minxspace, coordinate_t minyspace,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    const char* debugstring
 );
 
 int geometry_viabarebltr(
@@ -131,7 +132,8 @@ int geometry_viabarebltr(
     coordinate_t minxspace, coordinate_t minyspace,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    const char* debugstring
 );
 
 int geometry_viapoints(
@@ -142,7 +144,8 @@ int geometry_viapoints(
     coordinate_t minxspace, coordinate_t minyspace,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    const char* debugstring
 );
 
 int geometry_contactbltr(

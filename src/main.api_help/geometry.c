@@ -575,12 +575,13 @@
 /* geometry.viabltr */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
-        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
-        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
-        { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
-        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" },
-        { "options",    TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x), ycontinuous (make cut array continuous in y), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl",             POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "tr",             POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x), ycontinuous (make cut array continuous in y), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
     };
     vector_append(entries, _make_api_entry(
         "viabltr",
@@ -595,12 +596,13 @@
 /* geometry.viabarebltr */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
-        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
-        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
-        { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
-        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" },
-        { "options",    TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x), ycontinuous (make cut array continuous in y), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl",             POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "tr",             POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x), ycontinuous (make cut array continuous in y), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
     };
     vector_append(entries, _make_api_entry(
         "viabarebltr",
@@ -615,12 +617,13 @@
 /* geometry.viabltr_xcontinuous */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
-        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
-        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
-        { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
-        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" },
-        { "options",    TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl",             POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "tr",             POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
     };
     vector_append(entries, _make_api_entry(
         "viabltr_xcontinuous",
@@ -635,12 +638,13 @@
 /* geometry.viabltr_ycontinuous */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
-        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
-        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
-        { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
-        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" },
-        { "options",    TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl",             POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "tr",             POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
     };
     vector_append(entries, _make_api_entry(
         "viabltr_ycontinuous",
@@ -655,12 +659,13 @@
 /* geometry.viabltr_continuous */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
-        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
-        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
-        { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
-        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" },
-        { "options",    TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl",             POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "tr",             POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
     };
     vector_append(entries, _make_api_entry(
         "viabltr_continuous",
@@ -675,12 +680,13 @@
 /* geometry.viabarebltr_xcontinuous */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
-        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
-        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
-        { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
-        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" },
-        { "options",    TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl",             POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "tr",             POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
     };
     vector_append(entries, _make_api_entry(
         "viabarebltr_xcontinuous",
@@ -695,12 +701,13 @@
 /* geometry.viabarebltr_ycontinuous */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
-        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
-        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
-        { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
-        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" },
-        { "options",    TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl",             POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "tr",             POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
     };
     vector_append(entries, _make_api_entry(
         "viabarebltr_ycontinuous",
@@ -715,12 +722,13 @@
 /* geometry.viabarebltr_continuous */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
-        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
-        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
-        { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
-        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" },
-        { "options",    TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl",             POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "tr",             POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x, ignored for this function), ycontinuous (make cut array continuous in y, ignored for this function), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
     };
     vector_append(entries, _make_api_entry(
         "viabarebltr_continuous",

@@ -886,7 +886,8 @@ static int _viabltr(
     int xcont, int ycont,
     int equal_pitch,
     int bare,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    const char* debugstring
 )
 {
     metal1 = technology_resolve_metal(techstate, metal1);
@@ -930,6 +931,12 @@ static int _viabltr(
             _rectanglebltr(cell, generics_create_metal(techstate, i), blx, bly, trx, try);
         }
     }
+    if(!ret && debugstring)
+    {
+        fputs("via creation failed, debug message:\n", stderr);
+        fputs(debugstring, stderr);
+        fputc('\n', stderr);
+    }
     return ret;
 }
 
@@ -953,36 +960,36 @@ struct vector* geometry_calculate_viabltr(
     return result;
 }
 
-int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass, const char* debugstring)
 {
     int bare = 0;
-    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass, debugstring);
 }
 
-int geometry_viabarebltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+int geometry_viabarebltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass, const char* debugstring)
 {
     int bare = 1;
-    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass, debugstring);
 }
 
-int geometry_viapoints(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* pt1, const struct point* pt2, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
+int geometry_viapoints(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* pt1, const struct point* pt2, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass, const char* debugstring)
 {
     int bare = 0;
     if(pt1->x <= pt2->x && pt1->y <= pt2->y)
     {
-        return _viabltr(cell, techstate, metal1, metal2, pt1->x, pt1->y, pt2->x, pt2->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+        return _viabltr(cell, techstate, metal1, metal2, pt1->x, pt1->y, pt2->x, pt2->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass, debugstring);
     }
     else if(pt1->x <= pt2->x && pt1->y  > pt2->y)
     {
-        return _viabltr(cell, techstate, metal1, metal2, pt1->x, pt2->y, pt2->x, pt1->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+        return _viabltr(cell, techstate, metal1, metal2, pt1->x, pt2->y, pt2->x, pt1->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass, debugstring);
     }
     else if(pt1->x  > pt2->x && pt1->y <= pt2->y)
     {
-        return _viabltr(cell, techstate, metal1, metal2, pt2->x, pt1->y, pt1->x, pt2->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+        return _viabltr(cell, techstate, metal1, metal2, pt2->x, pt1->y, pt1->x, pt2->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass, debugstring);
     }
     else//if(pt1->x  > pt2->x && pt1->y  > pt2->y)
     {
-        return _viabltr(cell, techstate, metal1, metal2, pt2->x, pt2->y, pt1->x, pt1->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+        return _viabltr(cell, techstate, metal1, metal2, pt2->x, pt2->y, pt1->x, pt1->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass, debugstring);
     }
 }
 
@@ -1022,7 +1029,9 @@ static int _contactbltr(
     );
     if(!ret && debugstring)
     {
+        fputs("contact creation failed, debug message:\n", stderr);
         fputs(debugstring, stderr);
+        fputc('\n', stderr);
     }
     _rectanglebltr(cell, generics_create_metal(techstate, 1), blx, bly, trx, try);
     return ret;
@@ -1064,9 +1073,7 @@ static int _contactbarebltr(
     );
     if(!ret && debugstring)
     {
-        fputs("contact creation failed:\n", stderr);
-        fputs(debugstring, stderr);
-        fputc('\n', stderr);
+        fprintf(stderr, "contact creation failed: '%s'\n", debugstring);
     }
     return ret;
 }

@@ -1325,6 +1325,7 @@ static int lgeometry_viabltr(lua_State* L)
     int metal2 = luaL_checkinteger(L, 3);
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
+    const char* debugstring = lua_tostring(L, 6);
     _check_rectangle_points(L, bl, tr, "geometry.viabltr");
     int xcont = 0;
     int ycont = 0;
@@ -1332,11 +1333,11 @@ static int lgeometry_viabltr(lua_State* L)
     coordinate_t minyspace = 0;
     int equal_pitch = 0;
     coordinate_t widthclass = 0;
-    _get_viacontact_properties(L, 6, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
+    _get_viacontact_properties(L, 7, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1353,6 +1354,7 @@ static int lgeometry_viabarebltr(lua_State* L)
     int metal2 = luaL_checkinteger(L, 3);
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
+    const char* debugstring = lua_tostring(L, 6);
     _check_rectangle_points(L, bl, tr, "geometry.viabarebltr");
     int xcont = 0;
     int ycont = 0;
@@ -1360,11 +1362,11 @@ static int lgeometry_viabarebltr(lua_State* L)
     coordinate_t minyspace = 0;
     int equal_pitch = 0;
     coordinate_t widthclass = 0;
-    _get_viacontact_properties(L, 6, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
+    _get_viacontact_properties(L, 7, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabarebltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1381,17 +1383,18 @@ static int lgeometry_viapoints(lua_State* L)
     int metal2 = luaL_checkinteger(L, 3);
     struct lpoint* pt1 = lpoint_checkpoint(L, 4);
     struct lpoint* pt2 = lpoint_checkpoint(L, 5);
+    const char* debugstring = lua_tostring(L, 6);
     int xcont = 0;
     int ycont = 0;
     coordinate_t minxspace = 0;
     coordinate_t minyspace = 0;
     int equal_pitch = 0;
     coordinate_t widthclass = 0;
-    _get_viacontact_properties(L, 6, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
+    _get_viacontact_properties(L, 7, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viapoints(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(pt1), lpoint_get(pt2), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viapoints(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(pt1), lpoint_get(pt2), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viapoints: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(pt1)->x, lpoint_get(pt1)->y, lpoint_get(pt2)->x, lpoint_get(pt2)->y);
@@ -1408,6 +1411,7 @@ static int lgeometry_viabltr_xcontinuous(lua_State* L)
     int metal2 = luaL_checkinteger(L, 3);
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
+    const char* debugstring = lua_tostring(L, 6);
     _check_rectangle_points(L, bl, tr, "geometry.viabltr_xcontinuous");
     int xcont = 1;
     int ycont = 0;
@@ -1415,11 +1419,11 @@ static int lgeometry_viabltr_xcontinuous(lua_State* L)
     coordinate_t minyspace = 0;
     int equal_pitch = 0;
     coordinate_t widthclass = 0;
-    _get_viacontact_properties(L, 6, NULL, NULL, &minxspace, &minyspace, &equal_pitch, &widthclass);
+    _get_viacontact_properties(L, 7, NULL, NULL, &minxspace, &minyspace, &equal_pitch, &widthclass);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_xcontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1436,6 +1440,7 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
     int metal2 = luaL_checkinteger(L, 3);
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
+    const char* debugstring = lua_tostring(L, 6);
     _check_rectangle_points(L, bl, tr, "geometry.viabltr_ycontinuous");
     int xcont = 0;
     int ycont = 1;
@@ -1443,11 +1448,11 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
     coordinate_t minyspace = 0;
     int equal_pitch = 0;
     coordinate_t widthclass = 0;
-    _get_viacontact_properties(L, 6, NULL, NULL, &minxspace, &minyspace, &equal_pitch, &widthclass);
+    _get_viacontact_properties(L, 7, NULL, NULL, &minxspace, &minyspace, &equal_pitch, &widthclass);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_ycontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1464,6 +1469,7 @@ static int lgeometry_viabltr_continuous(lua_State* L)
     int metal2 = luaL_checkinteger(L, 3);
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
+    const char* debugstring = lua_tostring(L, 6);
     _check_rectangle_points(L, bl, tr, "geometry.viabltr_continuous");
     int xcont = 1;
     int ycont = 1;
@@ -1471,11 +1477,11 @@ static int lgeometry_viabltr_continuous(lua_State* L)
     coordinate_t minyspace = 0;
     int equal_pitch = 0;
     coordinate_t widthclass = 0;
-    _get_viacontact_properties(L, 6, NULL, NULL, &minxspace, &minyspace, &equal_pitch, &widthclass);
+    _get_viacontact_properties(L, 7, NULL, NULL, &minxspace, &minyspace, &equal_pitch, &widthclass);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_continuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1492,6 +1498,7 @@ static int lgeometry_viabarebltr_xcontinuous(lua_State* L)
     int metal2 = luaL_checkinteger(L, 3);
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
+    const char* debugstring = lua_tostring(L, 6);
     _check_rectangle_points(L, bl, tr, "geometry.viabarebltr_xcontinuous");
     int xcont = 1;
     int ycont = 0;
@@ -1502,7 +1509,7 @@ static int lgeometry_viabarebltr_xcontinuous(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_xcontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1519,6 +1526,7 @@ static int lgeometry_viabarebltr_ycontinuous(lua_State* L)
     int metal2 = luaL_checkinteger(L, 3);
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
+    const char* debugstring = lua_tostring(L, 6);
     _check_rectangle_points(L, bl, tr, "geometry.viabarebltr_ycontinuous");
     int xcont = 0;
     int ycont = 1;
@@ -1529,7 +1537,7 @@ static int lgeometry_viabarebltr_ycontinuous(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_ycontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -1546,6 +1554,7 @@ static int lgeometry_viabarebltr_continuous(lua_State* L)
     int metal2 = luaL_checkinteger(L, 3);
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
+    const char* debugstring = lua_tostring(L, 6);
     _check_rectangle_points(L, bl, tr, "geometry.viabarebltr_continuous");
     int xcont = 1;
     int ycont = 1;
@@ -1556,7 +1565,7 @@ static int lgeometry_viabarebltr_continuous(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr_continuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
