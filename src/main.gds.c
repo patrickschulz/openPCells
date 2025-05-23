@@ -30,6 +30,12 @@ void main_gds_show_cell_hierarchy(struct cmdoptions* cmdoptions)
     gdsparser_show_cell_hierarchy(filename, depth);
 }
 
+void main_gds_show_cell_definitions(struct cmdoptions* cmdoptions)
+{
+    const char* filename = cmdoptions_get_argument_long(cmdoptions, "show-gds-cell-definitions");
+    gdsparser_show_cell_definitions(filename);
+}
+
 void main_gds_read(struct cmdoptions* cmdoptions)
 {
     const char* readgds = cmdoptions_get_argument_long(cmdoptions, "read-gds");

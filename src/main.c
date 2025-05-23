@@ -284,6 +284,13 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CONFIG;
     }
 
+    // show gds cell definitions
+    if(cmdoptions_was_provided_long(cmdoptions, "show-gds-cell-definitions"))
+    {
+        main_gds_show_cell_definitions(cmdoptions);
+        goto DESTROY_CONFIG;
+    }
+
     // read gds
     if(cmdoptions_was_provided_long(cmdoptions, "read-gds"))
     {

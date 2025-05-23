@@ -534,6 +534,56 @@ void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
     vector_destroy(tree);
 }
 
+int gdsparser_show_cell_definitions(const char* filename)
+{
+    struct stream* stream = NULL;
+    long errorbyte = 0;
+    int status = _read_raw_stream_noerror(filename, &stream, &errorbyte);
+    if(!status)
+    {
+        printf("show GDSII records: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
+        return 0;
+    }
+
+    int is_structure = 0;
+    while(1)
+    {
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            _destroy_stream(stream);
+            return 0;
+        }
+        if(record->recordtype == BGNSTR)
+        {
+            is_structure = 1;
+        }
+        if(record->recordtype == ENDSTR)
+        {
+            is_structure = 0;
+        }
+        if(is_structure && record->recordtype == STRNAME)
+        {
+            for(int i = 0; i < record->length - 4; ++i)
+            {
+                char ch = ((char*)record->data)[i];
+                if(ch) // odd-length strings are zero padded, don't print that character
+                {
+                    putchar(ch);
+                }
+            }
+            putchar('\n');
+        }
+
+        if(record->recordtype == ENDLIB)
+        {
+            break;
+        }
+    }
+    _destroy_stream(stream);
+    return 1;
+}
+
 int gdsparser_show_records(const char* filename, int raw)
 {
     struct stream* stream = NULL;

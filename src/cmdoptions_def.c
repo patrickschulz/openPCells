@@ -107,6 +107,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data", SINGLE_ARG, "show d
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "show-gds-data-flags", MULTI_ARGS, "all", "flags to control what data is shown with --show-gds-data (default: all)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data-raw", NO_ARG, "also print the raw stream data after the parsed data");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-hierarchy", SINGLE_ARG, "show cell hierarchy in a GDS stream file");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-definitions", SINGLE_ARG, "show cell definitions in a GDS stream file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-depth", SINGLE_ARG, "maximum depth for gds traversal (affects --show-gds-hierarchy)");
 
 /* Diagnostic Functions */
