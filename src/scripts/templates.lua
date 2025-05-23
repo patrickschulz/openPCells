@@ -197,6 +197,53 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
                     -- also individual parameters for implant/well/soiopen
 })]],
 
+    ["analog/inverter"] =
+[[local inverter = pcell.create_layout("analog/inverter", "_inverter", {
+    fingers = 8,
+    pwidth = 1200,
+    nwidth = 800,
+    gatelength = 100,
+    gatespace = 200,
+    oxidetype = 1,
+    pvthtype = 2,
+    nvthtype = 1,
+    pmosflippedwell = false,
+    nmosflippedwell = true,
+    gatemetal = 2,
+    sdwidth = 80,
+    gatestrapwidth = 100,
+    gatestrapspace = 120,
+    powerwidth = 200,
+    powerspace = 100,
+    -- helpful with DRC:
+    gatestrapleftextension = 20,
+    gatestraprightextension = 20,
+    numleftdummies = 2,
+    numrightdummies = 2,
+    -- output net
+    outputisinside = true,
+    outputmetal = 4,
+    outputwidth = 200,
+    --outputxshift/outputyshift = xxx,
+    extendall = 200,
+    drawleftnmoswelltap = true,
+    drawrightnmoswelltap = true,
+    --connectnmoswelltap = false,
+    --nmoswelltapwidth = 200,
+    --nmoswelltapshrink = 0,
+    --nmoswelltapshift = 500,
+    --nmoswelltapwellextension = 0,
+    --nmoswelltapsoiopenextension = 0,
+    --drawleftpmoswelltap = false,
+    --drawrightpmoswelltap = false,
+    --connectpmoswelltap = false,
+    --pmoswelltapwidth = 200,
+    --pmoswelltapshrink = 0,
+    --pmoswelltapshift = 500,
+    --pmoswelltapwellextension = 0,
+    --pmoswelltapsoiopenextension = 0,
+})]],
+
 }
 
 if not template_lookup[template] then
@@ -204,5 +251,4 @@ if not template_lookup[template] then
 else
     print(template_lookup[template])
 end
-
 
