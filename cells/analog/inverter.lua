@@ -11,6 +11,7 @@ function parameters()
         { "nmosflippedwell(NMOS Flipped Well)",         false },
         { "gatelength(Gate Length)",                    technology.get_dimension("Minimum Gate Length") },
         { "gatespace(Gate Spacing)",                    technology.get_dimension("Minimum Gate XSpace") },
+        { "allgatesequalheight",                        true },
         { "actext",                                     0 },
         { "drawoutergatecut",                           false },
         { "drawgatecuteverywhere",                      false },
@@ -46,10 +47,11 @@ function parameters()
         { "leftpolylines",                              {} },
         { "rightpolylines",                             {} },
         { "drawanalogmarker",                           false, },
-        { "extendalltop",                               0 },
-        { "extendallbottom",                            0 },
-        { "extendallleft",                              0 },
-        { "extendallright",                             0 },
+        { "extendall",                                  0 },
+        { "extendalltop",                               0, follow = "extendall" },
+        { "extendallbottom",                            0, follow = "extendall" },
+        { "extendallleft",                              0, follow = "extendall" },
+        { "extendallright",                             0, follow = "extendall" },
         { "extendoxidetypetop",                         0, follow = "extendalltop" },
         { "extendoxidetypebottom",                      0, follow = "extendallbottom" },
         { "extendoxidetypeleft",                        0, follow = "extendallleft" },
@@ -134,8 +136,8 @@ function layout(inverter, _P)
         powerwidth = _P.powerwidth,
         npowerspace = _P.powerspace,
         ppowerspace = _P.powerspace,
-        pgateext = _P.pgateext,
-        ngateext = _P.ngateext,
+        pgateext = (_P.allgatesequalheight and (_P.powerspace + _P.powerwidth) or 0) + _P.pgateext,
+        ngateext = (_P.allgatesequalheight and (_P.powerspace + _P.powerwidth) or 0) + _P.ngateext,
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
         outputmetal = _P.outputmetal,
@@ -417,16 +419,16 @@ function layout(inverter, _P)
     if _P.drawleftnmoswelltap then
         layouthelpers.place_welltap(
             inverter,
-            inverter:get_area_anchor("nmos_active").bl:translate(-_P.nmoswelltapshift - _P.nmoswelltapwidth, _P.nmoswelltapshrink),
-            inverter:get_area_anchor("nmos_active").tl:translate(-_P.nmoswelltapshift, -_P.nmoswelltapshrink),
+            inverter:get_area_anchor("nmos_well").bl:translate(-_P.nmoswelltapshift - _P.nmoswelltapwidth, _P.nmoswelltapshrink),
+            inverter:get_area_anchor("nmos_well").tl:translate(-_P.nmoswelltapshift, -_P.nmoswelltapshrink),
             "left_nmos_welltap_",
             {
                 contype = "n",
                 extendwellleft = _P.nmoswelltapwellextension,
-                soiopenleftextension = _P.nmoswelltapsoiopenextension,
-                soiopenrightextension = _P.nmoswelltapsoiopenextension,
-                soiopentopextension = _P.nmoswelltapsoiopenextension,
-                soiopenbottomextension = _P.nmoswelltapsoiopenextension,
+                extendsoiopenleft = _P.nmoswelltapsoiopenextension,
+                extendsoiopenright = _P.nmoswelltapsoiopenextension,
+                extendsoiopentop = _P.nmoswelltapsoiopenextension,
+                extendsoiopenbottom = _P.nmoswelltapsoiopenextension,
             }
         )
         geometry.rectanglebltr(inverter, generics.other("nwell"),
@@ -443,8 +445,8 @@ function layout(inverter, _P)
     if _P.drawleftpmoswelltap then
         layouthelpers.place_welltap(
             inverter,
-            inverter:get_area_anchor("pmos_implant").bl:translate(-_P.pmoswelltapshift - _P.pmoswelltapwidth, _P.pmoswelltapshrink),
-            inverter:get_area_anchor("pmos_implant").tl:translate(-_P.pmoswelltapshift, -_P.pmoswelltapshrink),
+            inverter:get_area_anchor("pmos_well").bl:translate(-_P.pmoswelltapshift - _P.pmoswelltapwidth, _P.pmoswelltapshrink),
+            inverter:get_area_anchor("pmos_well").tl:translate(-_P.pmoswelltapshift, -_P.pmoswelltapshrink),
             "left_pmos_welltap_",
             {
                 contype = "p",
@@ -515,7 +517,7 @@ function layout(inverter, _P)
             "right_nmos_welltap_",
             {
                 contype = "n",
-                wellrightextension = _P.nmoswelltapwellextension,
+                extendwellright = _P.nmoswelltapwellextension,
                 extendsoiopenleft = _P.nmoswelltapsoiopenextension,
                 extendsoiopenright = _P.nmoswelltapsoiopenextension,
                 extendsoiopentop = _P.nmoswelltapsoiopenextension,
@@ -524,12 +526,12 @@ function layout(inverter, _P)
         )
         geometry.rectanglebltr(inverter, generics.other("nwell"),
             point.create(
-                inverter:get_area_anchor("nmos_well").l,
+                inverter:get_area_anchor("nmos_well").r,
                 inverter:get_area_anchor("nmos_well").b
             ),
             point.create(
-                inverter:get_area_anchor("right_nmos_welltap_well").l,
-                inverter:get_area_anchor("right_nmos_welltap_well").t
+                inverter:get_area_anchor("right_nmos_welltap_well").r,
+                inverter:get_area_anchor("nmos_well").t
             )
         )
     end
