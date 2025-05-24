@@ -3,9 +3,9 @@ function parameters()
         { "contype",                                       "p" },
         { "topmetal",                                        1 },
         { "drawmetal",                                    true },
-        { "holewidth",                                    5000 },
-        { "holeheight",                                   5000 },
-        { "ringwidth",                                     200 },
+        { "holewidth",                                    5000, posvals = positive() },
+        { "holeheight",                                   5000, posvals = positive() },
+        { "ringwidth",                                     200, posvals = positive() },
         { "drawsegments", { "left", "right", "top", "bottom" } },
         { "extendall",                                      50 },
         { "extendallinner",                                 50, follow = "extendall" },
@@ -32,6 +32,65 @@ function parameters()
         { "deepwelloffset",                                  0 },
         { "fit",                                         false },
         { "failifnotfit",                                false }
+    )
+end
+
+function anchors()
+    pcell.add_area_anchor_documentation(
+        "topsegment",
+        "rectangular area of the active diffusion of the top guardring part",
+        "'drawsegments' includes 'top'"
+    )
+    pcell.add_area_anchor_documentation(
+        "bottomsegment",
+        "rectangular area of the active diffusion of the bottom guardring part",
+        "'drawsegments' includes 'bottom'"
+    )
+    pcell.add_area_anchor_documentation(
+        "leftsegment",
+        "rectangular area of the active diffusion of the left guardring part",
+        "'drawsegments' includes 'left'"
+    )
+    pcell.add_area_anchor_documentation(
+        "rightsegment",
+        "rectangular area of the active diffusion of the right guardring part",
+        "'drawsegments' includes 'right'"
+    )
+    pcell.add_area_anchor_documentation(
+        "outerwell",
+        "rectangular area of the outer well boundary"
+    )
+    pcell.add_area_anchor_documentation(
+        "innerwell",
+        "rectangular area of the inner well boundary"
+    )
+    pcell.add_area_anchor_documentation(
+        "outerdeepwell",
+        "rectangular area of the outer deep well boundary"
+    )
+    pcell.add_area_anchor_documentation(
+        "outerimplant",
+        "rectangular area of the outer implant boundary"
+    )
+    pcell.add_area_anchor_documentation(
+        "innerimplant",
+        "rectangular area of the inner implant boundary"
+    )
+    pcell.add_area_anchor_documentation(
+        "outersoiopen",
+        "rectangular area of the outer soiopen boundary. Always present, but only meaningful in an SOI node"
+    )
+    pcell.add_area_anchor_documentation(
+        "innersoiopen",
+        "rectangular area of the inner soiopen boundary. Always present, but only meaningful in an SOI node"
+    )
+    pcell.add_area_anchor_documentation(
+        "outerboundary",
+        "rectangular area of the outer active diffusion boundary"
+    )
+    pcell.add_area_anchor_documentation(
+        "innerboundary",
+        "rectangular area of the inner active diffusion boundary"
     )
 end
 

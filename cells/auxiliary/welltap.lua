@@ -1,8 +1,8 @@
 function parameters()
     pcell.add_parameters(
         { "contype",                    "p" },
-        { "width",                      5000 },
-        { "height",                     5000 },
+        { "width",                      5000, posvals = positive() },
+        { "height",                     5000, posvals = positive() },
         { "extendall",                  50 },
         { "extendalltop",               50, follow = "extendall" },
         { "extendallbottom",            50, follow = "extendall" },
@@ -22,6 +22,25 @@ function parameters()
         { "extendwellbottom",           50, follow = "extendallbottom" },
         { "xcontinuous",                false },
         { "ycontinuous",                false }
+    )
+end
+
+function anchors()
+    pcell.add_area_anchor_documentation(
+        "boundary",
+        "region of the active diffusion"
+    )
+    pcell.add_area_anchor_documentation(
+        "well",
+        "region of the well"
+    )
+    pcell.add_area_anchor_documentation(
+        "implant",
+        "region of the implant"
+    )
+    pcell.add_area_anchor_documentation(
+        "soiopen",
+        "region of the soi opening layer. Always present, but only meaningful in an SOI node"
     )
 end
 
