@@ -813,7 +813,7 @@ function layout(transistor, _P)
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
-                    transistor:get_area_anchor("endrightgate").l + _P.topgatecutleftext,
+                    transistor:get_area_anchor("endrightgate").l - _P.topgatecutleftext,
                     _P.fingerwidth + _P.topgatecutspace
                 ),
                 point.create(
