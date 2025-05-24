@@ -80,22 +80,30 @@ function parameters()
         { "extendanalogmarkerbottom",                   0, follow = "extendallbottom" },
         { "extendanalogmarkerleft",                     0, follow = "extendallleft" },
         { "extendanalogmarkerright",                    0, follow = "extendallright" },
-        { "drawleftnmoswelltap",                        false },
-        { "drawrightnmoswelltap",                       false },
+        { "drawnmoslowerwelltap",                       false },
+        { "drawnmosleftrightwelltap",                   false },
+        { "drawnmosleftwelltap",                        false, follow = "drawnmosleftrightwelltap" },
+        { "drawnmosrightwelltap",                       false, follow = "drawnmosleftrightwelltap" },
         { "connectnmoswelltap",                         false },
         { "nmoswelltapwidth",                           200 },
-        { "nmoswelltapshrink",                          0 },
-        { "nmoswelltapshift",                           500 },
+        { "nmoswelltapextension",                       0 },
+        { "nmoswelltapspace",                           500 },
         { "nmoswelltapwellextension",                   0 },
         { "nmoswelltapsoiopenextension",                0 },
-        { "drawleftpmoswelltap",                        false },
-        { "drawrightpmoswelltap",                       false },
+        { "drawpmosupperwelltap",                       false },
+        { "drawpmosleftrightwelltap",                   false },
+        { "drawpmosleftwelltap",                        false, follow = "drawpmosleftrightwelltap" },
+        { "drawpmosrightwelltap",                       false, follow = "drawpmosleftrightwelltap" },
         { "connectpmoswelltap",                         false },
         { "pmoswelltapwidth",                           200 },
-        { "pmoswelltapshrink",                          0 },
-        { "pmoswelltapshift",                           500 },
+        { "pmoswelltapextension",                       0 },
+        { "pmoswelltapspace",                           500 },
         { "pmoswelltapwellextension",                   0 },
-        { "pmoswelltapsoiopenextension",                0 }
+        { "pmoswelltapsoiopenextension",                0 },
+        { "drawguardring",                              false },
+        { "guardringwidth",                             0 },
+        { "guardringspace",                             0 },
+        { "guardringdeepwelloffset",                    0 }
     )
 end
 
@@ -190,6 +198,18 @@ function layout(inverter, _P)
         extendanalogmarkerright = _P.extendanalogmarkerright,
         psddummyouterheight = _P.psddummyouterheight,
         nsddummyouterheight = _P.nsddummyouterheight,
+        drawnmoslowerwelltap = _P.drawnmoslowerwelltap,
+        drawnmosleftwelltap = _P.drawnmosleftwelltap,
+        drawnmosrightwelltap = _P.drawnmosrightwelltap,
+        nmoswelltapwidth = _P.nmoswelltapwidth,
+        nmoswelltapspace = _P.nmoswelltapspace,
+        nmoswelltapextension = _P.nmoswelltapextension,
+        drawpmosupperwelltap = _P.drawpmosupperwelltap,
+        drawpmosleftwelltap = _P.drawpmosleftwelltap,
+        drawpmosrightwelltap = _P.drawpmosrightwelltap,
+        pmoswelltapwidth = _P.pmoswelltapwidth,
+        pmoswelltapspace = _P.pmoswelltapspace,
+        pmoswelltapextension = _P.pmoswelltapextension,
     })
     inverter:merge_into(cmos)
 
@@ -415,192 +435,57 @@ function layout(inverter, _P)
         end
     end
 
-    -- place welltaps
-    if _P.drawleftnmoswelltap then
-        layouthelpers.place_welltap(
-            inverter,
-            inverter:get_area_anchor("nmos_well").bl:translate(-_P.nmoswelltapshift - _P.nmoswelltapwidth, _P.nmoswelltapshrink),
-            inverter:get_area_anchor("nmos_well").tl:translate(-_P.nmoswelltapshift, -_P.nmoswelltapshrink),
-            "left_nmos_welltap_",
-            {
-                contype = "n",
-                extendwellleft = _P.nmoswelltapwellextension,
-                extendsoiopenleft = _P.nmoswelltapsoiopenextension,
-                extendsoiopenright = _P.nmoswelltapsoiopenextension,
-                extendsoiopentop = _P.nmoswelltapsoiopenextension,
-                extendsoiopenbottom = _P.nmoswelltapsoiopenextension,
-            }
+    -- guardring
+    if _P.drawguardring then
+        local guardringw1, guardringw2
+        if _P.drawpmosleftwelltap then
+            guardringw1 = cmos:get_area_anchor("pmosleftwelltap_boundary").l
+        else
+            guardringw1 = cmos:get_area_anchor("pmos_active").l
+        end
+        if _P.drawpmosrightwelltap then
+            guardringw2 = cmos:get_area_anchor("pmosrightwelltap_boundary").r
+        else
+            guardringw2 = cmos:get_area_anchor("pmos_active").r
+        end
+        local guardringh1, guardringh2
+        if _P.drawnmoslowerwelltap then
+            guardringh1 = cmos:get_area_anchor("nmoslowerwelltap_boundary").b
+        else
+            guardringh1 = cmos:get_area_anchor("PRn").b
+        end
+        if _P.drawpmosupperwelltap then
+            guardringh2 = cmos:get_area_anchor("pmosupperwelltap_boundary").t
+        else
+            guardringh2 = cmos:get_area_anchor("PRp").t
+        end
+        local guardringwidth = guardringw2 - guardringw1
+        local guardringheight = guardringh2 - guardringh1
+        local firstguardring = pcell.create_layout("auxiliary/guardring", "_firstguardring", {
+            contype = "n",
+            ringwidth = _P.guardringwidth,
+            holewidth = guardringwidth + 2 * _P.guardringspace,
+            holeheight = guardringheight + 2 * _P.guardringspace,
+            fillwell = false,
+            drawdeepwell = true,
+            deepwelloffset = _P.guardringdeepwelloffset,
+        })
+        firstguardring:move_point(
+            firstguardring:get_area_anchor("innerboundary").bl,
+            point.create(
+                guardringw1,
+                guardringh1
+            )
         )
+        firstguardring:translate(-_P.guardringspace, -_P.guardringspace)
+        inverter:merge_into(firstguardring)
         geometry.rectanglebltr(inverter, generics.other("nwell"),
+            firstguardring:get_area_anchor("outerwell").bl,
             point.create(
-                inverter:get_area_anchor("left_nmos_welltap_well").l,
-                inverter:get_area_anchor("nmos_well").b
-            ),
-            point.create(
-                inverter:get_area_anchor("nmos_well").l,
+                firstguardring:get_area_anchor("outerwell").r,
                 inverter:get_area_anchor("nmos_well").t
             )
         )
-    end
-    if _P.drawleftpmoswelltap then
-        layouthelpers.place_welltap(
-            inverter,
-            inverter:get_area_anchor("pmos_well").bl:translate(-_P.pmoswelltapshift - _P.pmoswelltapwidth, _P.pmoswelltapshrink),
-            inverter:get_area_anchor("pmos_well").tl:translate(-_P.pmoswelltapshift, -_P.pmoswelltapshrink),
-            "left_pmos_welltap_",
-            {
-                contype = "p",
-                extendwellleft = _P.pmoswelltapwellextension,
-                extendsoiopenleft = _P.pmoswelltapsoiopenextension,
-                extendsoiopenright = _P.pmoswelltapsoiopenextension,
-                extendsoiopentop = _P.pmoswelltapsoiopenextension,
-                extendsoiopenbottom = _P.pmoswelltapsoiopenextension,
-            }
-        )
-        geometry.rectanglebltr(inverter, generics.other("pwell"),
-            point.create(
-                inverter:get_area_anchor("left_pmos_welltap_well").l,
-                inverter:get_area_anchor("pmos_well").b
-            ),
-            point.create(
-                inverter:get_area_anchor("pmos_well").l,
-                inverter:get_area_anchor("pmos_well").t
-            )
-        )
-        geometry.rectanglebltr(inverter, generics.other("pimplant"),
-            point.create(
-                inverter:get_area_anchor("left_pmos_welltap_implant").l,
-                inverter:get_area_anchor("pmos_implant").b
-            ),
-            point.create(
-                inverter:get_area_anchor("pmos_implant").l,
-                inverter:get_area_anchor("pmos_implant").t
-            )
-        )
-        if _P.connectpmoswelltap then
-            -- FIXME: currently only support for flipped-well
-            if _P.pmosflippedwell then
-                geometry.polygon(inverter, generics.metal(1), {
-                    point.create(
-                        inverter:get_area_anchor("left_pmos_welltap_boundary").l,
-                        inverter:get_area_anchor("left_pmos_welltap_boundary").b
-                    ),
-                    point.create(
-                        inverter:get_area_anchor("left_pmos_welltap_boundary").l,
-                        inverter:get_area_anchor("vssbar").b
-                    ),
-                    point.create(
-                        inverter:get_area_anchor("vssbar").l,
-                        inverter:get_area_anchor("vssbar").b
-                    ),
-                    point.create(
-                        inverter:get_area_anchor("vssbar").l,
-                        inverter:get_area_anchor("vssbar").t
-                    ),
-                    point.create(
-                        inverter:get_area_anchor("left_pmos_welltap_boundary").r,
-                        inverter:get_area_anchor("vssbar").t
-                    ),
-                    point.create(
-                        inverter:get_area_anchor("left_pmos_welltap_boundary").r,
-                        inverter:get_area_anchor("left_pmos_welltap_boundary").b
-                    ),
-                })
-            end
-        end
-    end
-    if _P.drawrightnmoswelltap then
-        layouthelpers.place_welltap(
-            inverter,
-            inverter:get_area_anchor("nmos_well").br:translate(_P.nmoswelltapshift, _P.nmoswelltapshrink),
-            inverter:get_area_anchor("nmos_well").tr:translate(_P.nmoswelltapshift + _P.nmoswelltapwidth, -_P.nmoswelltapshrink),
-            "right_nmos_welltap_",
-            {
-                contype = "n",
-                extendwellright = _P.nmoswelltapwellextension,
-                extendsoiopenleft = _P.nmoswelltapsoiopenextension,
-                extendsoiopenright = _P.nmoswelltapsoiopenextension,
-                extendsoiopentop = _P.nmoswelltapsoiopenextension,
-                extendsoiopenbottom = _P.nmoswelltapsoiopenextension,
-            }
-        )
-        geometry.rectanglebltr(inverter, generics.other("nwell"),
-            point.create(
-                inverter:get_area_anchor("nmos_well").r,
-                inverter:get_area_anchor("nmos_well").b
-            ),
-            point.create(
-                inverter:get_area_anchor("right_nmos_welltap_well").r,
-                inverter:get_area_anchor("nmos_well").t
-            )
-        )
-    end
-    if _P.drawrightpmoswelltap then
-        layouthelpers.place_welltap(
-            inverter,
-            inverter:get_area_anchor("pmos_well").br:translate(_P.pmoswelltapshift, _P.pmoswelltapshrink),
-            inverter:get_area_anchor("pmos_well").tr:translate(_P.pmoswelltapshift + _P.pmoswelltapwidth, -_P.pmoswelltapshrink),
-            "right_pmos_welltap_",
-            {
-                contype = "p",
-                wellrightextension = _P.pmoswelltapwellextension,
-                extendsoiopenleft = _P.pmoswelltapsoiopenextension,
-                extendsoiopenright = _P.pmoswelltapsoiopenextension,
-                extendsoiopentop = _P.pmoswelltapsoiopenextension,
-                extendsoiopenbottom = _P.pmoswelltapsoiopenextension,
-            }
-        )
-        geometry.rectanglebltr(inverter, generics.other("pwell"),
-            point.create(
-                inverter:get_area_anchor("pmos_well").r,
-                inverter:get_area_anchor("pmos_well").b
-            ),
-            point.create(
-                inverter:get_area_anchor("right_pmos_welltap_well").l,
-                inverter:get_area_anchor("right_pmos_welltap_well").t
-            )
-        )
-        geometry.rectanglebltr(inverter, generics.other("pimplant"),
-            point.create(
-                inverter:get_area_anchor("pmos_implant").r,
-                inverter:get_area_anchor("pmos_implant").b
-            ),
-            point.create(
-                inverter:get_area_anchor("right_pmos_welltap_implant").r,
-                inverter:get_area_anchor("pmos_implant").t
-            )
-        )
-        if _P.connectpmoswelltap then
-            -- FIXME: currently only support for flipped-well
-            if _P.pmosflippedwell then
-                geometry.polygon(inverter, generics.metal(1), {
-                    point.create(
-                        inverter:get_area_anchor("right_pmos_welltap_boundary").r,
-                        inverter:get_area_anchor("right_pmos_welltap_boundary").b
-                    ),
-                    point.create(
-                        inverter:get_area_anchor("right_pmos_welltap_boundary").r,
-                        inverter:get_area_anchor("vssbar").b
-                    ),
-                    point.create(
-                        inverter:get_area_anchor("vssbar").r,
-                        inverter:get_area_anchor("vssbar").b
-                    ),
-                    point.create(
-                        inverter:get_area_anchor("vssbar").r,
-                        inverter:get_area_anchor("vssbar").t
-                    ),
-                    point.create(
-                        inverter:get_area_anchor("right_pmos_welltap_boundary").l,
-                        inverter:get_area_anchor("vssbar").t
-                    ),
-                    point.create(
-                        inverter:get_area_anchor("right_pmos_welltap_boundary").l,
-                        inverter:get_area_anchor("right_pmos_welltap_boundary").b
-                    ),
-                })
-            end
-        end
     end
 
     inverter:add_area_anchor_bltr("input",
@@ -610,4 +495,5 @@ function layout(inverter, _P)
         ),
         cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).tr
     )
+
 end
