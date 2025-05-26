@@ -152,6 +152,57 @@ function parameters()
     )
 end
 
+function anchors()
+    pcell.add_area_anchor_documentation(
+        "gate%d",
+        "area of nth gate"
+    )
+    pcell.add_area_anchor_documentation(
+        "Gcenterase",
+        "y-coordinates (bottom/top) of the 'center gate contact regions. The x-valus are only dummy values"
+    )
+    pcell.add_area_anchor_documentation(
+        "Glowerbase",
+        "y-coordinates (bottom/top) of the 'lower' gate contact regions. The x-valus are only dummy values"
+    )
+    pcell.add_area_anchor_documentation(
+        "Gupperbase",
+        "y-coordinates (bottom/top) of the 'upper' gate contact regions. The x-valus are only dummy values"
+    )
+    pcell.add_area_anchor_documentation(
+        "PRp",
+        "area of upper/pMOS ('vdd') power rail"
+    )
+    pcell.add_area_anchor_documentation(
+        "PRn",
+        "area of lower/nMOS ('vss') power rail"
+    )
+    pcell.add_area_anchor_documentation(
+        "nmos_active",
+        "area of nMOS active region"
+    )
+    pcell.add_area_anchor_documentation(
+        "pmos_active",
+        "area of pMOS active region"
+    )
+    pcell.add_area_anchor_documentation(
+        "nmos_well",
+        "area of nMOS well region"
+    )
+    pcell.add_area_anchor_documentation(
+        "pmos_well",
+        "area of pMOS well region"
+    )
+    pcell.add_area_anchor_documentation(
+        "nmos_implant",
+        "area of nMOS implant region"
+    )
+    pcell.add_area_anchor_documentation(
+        "pmos_implant",
+        "area of pMOS implant region"
+    )
+end
+
 function check(_P)
     -- check separation
     if not (_P.ignoreseparationchecks or _P.separationautocalc) then
