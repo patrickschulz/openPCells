@@ -302,6 +302,24 @@ function layout(inverter, _P)
     inverter:inherit_area_anchor(cmos, "pmos_well")
     inverter:inherit_area_anchor(cmos, "nmos_active")
     inverter:inherit_area_anchor(cmos, "pmos_active")
+    if _P.drawpmosupperwelltap then
+        inverter:inherit_area_anchor(cmos, "pmosupperwelltap_boundary")
+    end
+    if _P.drawpmosleftwelltap then
+        inverter:inherit_area_anchor(cmos, "pmosleftwelltap_boundary")
+    end
+    if _P.drawpmosrightwelltap then
+        inverter:inherit_area_anchor(cmos, "pmosrightwelltap_boundary")
+    end
+    if _P.drawnmoslowerwelltap then
+        inverter:inherit_area_anchor(cmos, "nmoslowerwelltap_boundary")
+    end
+    if _P.drawnmosleftwelltap then
+        inverter:inherit_area_anchor(cmos, "nmosleftwelltap_boundary")
+    end
+    if _P.drawnmosrightwelltap then
+        inverter:inherit_area_anchor(cmos, "nmosrightwelltap_boundary")
+    end
     for i = 1, _P.numleftdummies + _P.numrightdummies + _P.fingers do
         inverter:inherit_area_anchor(cmos, string.format("G%d", i))
     end
