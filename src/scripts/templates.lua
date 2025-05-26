@@ -61,11 +61,16 @@ local template_lookup = {
     holewidth = 5000,
     holeheight = 5000,
     ringwidth = 200,
-    -- all extensions can also be specified by inner/outer for more control
-    -- for this, use (e.g.) wellouterextension and wellinnerextension
-    wellextension = 50,
-    soiopenextension = 50,
-    implantextension = 50,
+    -- all extensions are specified by inner/outer for more control
+    -- a shortcut is provided by extendall or extendallinner/extendallouter
+    --extendall = 100,
+    wellinnerextension = 100,
+    wellouterextension = 100,
+    soiopeninnerextension = 100,
+    soiopenouterextension = 100,
+    implantextension = 100,
+    implantinnerextension = 100,
+    implantouterextension = 100,
     -- the well can also be drawn with a hole, see the parameter fillwelldrawhole for this
     fillwell = true,
     drawdeepwell = false,
