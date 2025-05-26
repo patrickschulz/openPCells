@@ -24,7 +24,8 @@ function parameters()
         { "fillxspace",                           100 },
         { "fillyspace",                           100 },
         { "fillxextend",                            0 },
-        { "fillyextend",                            0 }
+        { "fillyextend",                            0 },
+        { "alignmentbox_include_halffinger",    false }
     )
 end
 
@@ -129,10 +130,19 @@ function layout(momcap, _P)
         point.create(-_P.rext, 0),
         point.create(_P.fingers * _P.fingerwidth + (_P.fingers - 1) * _P.fingerspace + _P.rext, _P.lrailwidth)
     )
-    momcap:set_alignment_box(
-        point.create(-_P.rext, 0),
-        point.create(_P.fingers * _P.fingerwidth + (_P.fingers - 1) * _P.fingerspace + _P.rext, _P.fingerheight + 2 * _P.fingeroffset + _P.lrailwidth + _P.urailwidth),
-        point.create(-_P.rext, _P.lrailwidth),
-        point.create(_P.fingers * _P.fingerwidth + (_P.fingers - 1) * _P.fingerspace + _P.rext, _P.fingerheight + 2 * _P.fingeroffset + _P.lrailwidth)
-    )
+    if _P.alignmentbox_include_halffinger then
+        momcap:set_alignment_box(
+            point.create(0, 0),
+            point.create(_P.fingers * _P.fingerwidth + (_P.fingers - 1) * _P.fingerspace, _P.fingerheight + 2 * _P.fingeroffset + _P.lrailwidth + _P.urailwidth),
+            point.create(_P.fingerwidth, _P.lrailwidth),
+            point.create(_P.fingers * _P.fingerwidth + (_P.fingers - 1) * _P.fingerspace - _P.fingerwidth, _P.fingerheight + 2 * _P.fingeroffset + _P.lrailwidth)
+        )
+    else
+        momcap:set_alignment_box(
+            point.create(-_P.rext, 0),
+            point.create(_P.fingers * _P.fingerwidth + (_P.fingers - 1) * _P.fingerspace + _P.rext, _P.fingerheight + 2 * _P.fingeroffset + _P.lrailwidth + _P.urailwidth),
+            point.create(-_P.rext, _P.lrailwidth),
+            point.create(_P.fingers * _P.fingerwidth + (_P.fingers - 1) * _P.fingerspace + _P.rext, _P.fingerheight + 2 * _P.fingeroffset + _P.lrailwidth)
+        )
+    end
 end
