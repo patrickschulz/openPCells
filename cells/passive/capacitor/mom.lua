@@ -25,6 +25,14 @@ function parameters()
         { "fillyspace",               100 },
         { "fillxextend",                0 },
         { "fillyextend",                0 }
+function anchors()
+    pcell.add_area_anchor_documentation(
+        "upperrail",
+        "metal area of upper input rail"
+    )
+    pcell.add_area_anchor_documentation(
+        "lowerrail",
+        "metal area of lower input rail"
     )
 end
 
