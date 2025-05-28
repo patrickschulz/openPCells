@@ -10,7 +10,7 @@
 void destroy_placement_layerexclude(void* v)
 {
     struct placement_layerexclude* layerexclude = v;
-    polygon_destroy(layerexclude->excludes);
+    polygon_container_destroy(layerexclude->excludes);
     const_vector_destroy(layerexclude->layers);
     free(layerexclude);
 }
@@ -29,11 +29,11 @@ static int _is_in_targetarea(coordinate_t x, coordinate_t y, coordinate_t width,
            (polygon_is_point_in_simple_polygon(targetarea, x            , y             ) == 1);
 }
 
-static int _is_in_excludes(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct polygon* excludes)
+static int _is_in_excludes(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct polygon_container* excludes)
 {
     return
-        (polygon_is_point_in_polygon(excludes, x, y) == 1) ||
-        polygon_intersects_rectangle(excludes, x - width / 2, y - height / 2, x + width / 2, y + height / 2);
+        (polygon_is_point_in_polygon_container(excludes, x, y) == 1) ||
+        polygon_container_intersects_rectangle(excludes, x - width / 2, y - height / 2, x + width / 2, y + height / 2);
 }
 
 static void _get_minmax(const struct simple_polygon* targetarea, coordinate_t* minx, coordinate_t* miny, coordinate_t* maxx, coordinate_t* maxy)
@@ -74,7 +74,7 @@ struct vector* placement_calculate_grid(
     const struct point* tr,
     coordinate_t xpitch,
     coordinate_t ypitch,
-    const struct polygon* excludes
+    const struct polygon_container* excludes
 )
 {
     struct vector* grid = vector_create(32, vector_destroy);
@@ -92,7 +92,7 @@ struct vector* placement_calculate_grid(
             int* value = malloc(sizeof(*value));
             if(excludes)
             {
-                *value = polygon_is_point_in_polygon(excludes, x, y) != 1;
+                *value = polygon_is_point_in_polygon_container(excludes, x, y) != 1;
             }
             else
             {
@@ -281,7 +281,7 @@ struct vector* placement_calculate_origins(
     ucoordinate_t xpitch, ucoordinate_t ypitch,
     coordinate_t xstartshift, coordinate_t ystartshift,
     const struct simple_polygon* targetarea,
-    const struct polygon* excludes
+    const struct polygon_container* excludes
 )
 {
     coordinate_t minx, maxx, miny, maxy;
@@ -321,7 +321,7 @@ struct vector* placement_calculate_origins_centered(
     ucoordinate_t xpitch, ucoordinate_t ypitch,
     coordinate_t xstartshift, coordinate_t ystartshift,
     const struct simple_polygon* targetarea,
-    const struct polygon* excludes
+    const struct polygon_container* excludes
 )
 {
     coordinate_t minx, maxx, miny, maxy;
@@ -404,7 +404,7 @@ struct vector* placement_place_on_grid(struct object* toplevel, struct object* c
     return children;
 }
 
-struct vector* placement_place_within_boundary(struct object* toplevel, struct object* cell, const char* basename, const struct simple_polygon* targetarea, const struct polygon* excludes)
+struct vector* placement_place_within_boundary(struct object* toplevel, struct object* cell, const char* basename, const struct simple_polygon* targetarea, const struct polygon_container* excludes)
 {
     ucoordinate_t width, height;
     object_width_height_alignmentbox(cell, &width, &height);
@@ -415,7 +415,7 @@ struct vector* placement_place_within_boundary(struct object* toplevel, struct o
     return children;
 }
 
-void placement_place_within_boundary_merge(struct object* toplevel, struct object* cell, const struct simple_polygon* targetarea, const struct polygon* excludes)
+void placement_place_within_boundary_merge(struct object* toplevel, struct object* cell, const struct simple_polygon* targetarea, const struct polygon_container* excludes)
 {
     ucoordinate_t width, height;
     object_width_height_alignmentbox(cell, &width, &height);
@@ -471,7 +471,7 @@ static int _is_in_layerexcludes(coordinate_t x, coordinate_t y, coordinate_t wid
     for(size_t excludeindex = 0; excludeindex < vector_size(layerexcludes); ++excludeindex)
     {
         const struct placement_layerexclude* layerexclude = vector_get_const(layerexcludes, excludeindex);
-        const struct polygon* excludes = layerexclude->excludes;
+        const struct polygon_container* excludes = layerexclude->excludes;
         struct const_vector* layers = layerexclude->layers;
         if(_is_any_of_layers(layers, celllayers))
         {
@@ -615,7 +615,7 @@ static int _check_layer_boundaries(const struct vector* layerexcludes)
     for(size_t excludeindex = 0; excludeindex < vector_size(layerexcludes); ++excludeindex)
     {
         const struct placement_layerexclude* layerexclude = vector_get_const(layerexcludes, excludeindex);
-        const struct polygon* excludes = layerexclude->excludes;
+        const struct polygon_container* excludes = layerexclude->excludes;
         struct const_vector* layers = layerexclude->layers;
         if(!excludes)
         {
@@ -687,7 +687,7 @@ struct vector* placement_place_gridlines(
     coordinate_t size, coordinate_t space,
     const struct point* targetbl,
     const struct point* targettr,
-    const struct polygon* excludes
+    const struct polygon_container* excludes
 )
 {
     coordinate_t x = point_getx(targetbl);
@@ -695,8 +695,8 @@ struct vector* placement_place_gridlines(
     {
         coordinate_t y1 = point_gety(targetbl);
         coordinate_t y2 = point_gety(targettr);
-        struct vector* yleftintersections = polygon_line_intersections(excludes, x, y1, x, y2);
-        struct vector* yrightintersections = polygon_line_intersections(excludes, x + size, y1, x + size, y2);
+        struct vector* yleftintersections = polygon_container_line_intersections(excludes, x, y1, x, y2);
+        struct vector* yrightintersections = polygon_container_line_intersections(excludes, x + size, y1, x + size, y2);
         if((vector_size(yleftintersections) == 0) && (vector_size(yrightintersections) == 0))
         {
             geometry_rectanglebltr(toplevel, layer,
@@ -722,8 +722,8 @@ struct vector* placement_place_gridlines(
                 odd = !odd;
             }
             /*
-            coordinate_t ymin = polygon_get_miny(excludes);
-            coordinate_t ymax = polygon_get_maxy(excludes);
+            coordinate_t ymin = polygon_container_get_miny(excludes);
+            coordinate_t ymax = polygon_container_get_maxy(excludes);
             if(ymin > y1)
             {
                 geometry_rectanglebltr(toplevel, layer,

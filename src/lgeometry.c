@@ -647,7 +647,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
 
     // read target area and excludes
     struct simple_polygon* targetarea = lutil_create_simple_polygon(L, 9);
-    struct polygon* excludes;
+    struct polygon_container* excludes;
     lplacement_create_exclude_vectors(L, &excludes, 10);
 
     // calculate origins
@@ -656,7 +656,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     simple_polygon_destroy(targetarea);
     if(excludes)
     {
-        polygon_destroy(excludes);
+        polygon_container_destroy(excludes);
     }
 
     struct vector_const_iterator* origin_it = vector_const_iterator_create(origins);
@@ -1868,6 +1868,40 @@ static int lgeometry_get_side_path_points(lua_State* L)
     return 1;
 }
 
+static int lgeometry_offset_polygon_points(lua_State* L)
+{
+    lcheck_check_numargs1(L, 2, "geometry.offset_polygon_points");
+    if(!lua_istable(L, 1))
+    {
+        lua_pushstring(L, "geometry.offset_polygon_points: list of polygon points (first argument) is not a table");
+        lua_error(L);
+    }
+    lua_len(L, 1);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    coordinate_t offset = luaL_checkinteger(L, 2);
+
+    struct vector* points = vector_create(len, NULL); // non-owning vector
+    for(unsigned int i = 1; i <= len; ++i)
+    {
+        lua_rawgeti(L, 1, i);
+        struct lpoint* pt = lpoint_checkpoint(L, -1);
+        vector_append(points, (void*)lpoint_get(pt)); // non-const, but vector is non-owning and points are not modified
+        lua_pop(L, 1);
+    }
+    struct vector* newpts = geometry_offset_polygon_points(points, offset);
+    vector_destroy(points);
+    lua_newtable(L);
+    for(unsigned int i = 0; i < vector_size(newpts); ++i)
+    {
+        struct point* pt = vector_get(newpts, i);
+        lpoint_create_internal(L, point_getx(pt), point_gety(pt));
+        lua_rawseti(L, -2, i + 1);
+    }
+    vector_destroy(newpts);
+    return 1;
+}
+
 static int lgeometry_path_points_to_polygon(lua_State* L)
 {
     lcheck_check_numargs2(L, 2, 3, "geometry.path_points_to_polygon");
@@ -2036,6 +2070,7 @@ int open_lgeometry_lib(lua_State* L)
         { "curve",                                      lgeometry_curve                                             },
         { "curve_rasterized",                           lgeometry_curve_rasterized                                  },
         { "get_side_path_points",                       lgeometry_get_side_path_points                              },
+        { "offset_polygon_points",                      lgeometry_offset_polygon_points                             },
         { "path_points_to_polygon",                     lgeometry_path_points_to_polygon                            },
         { NULL,                                         NULL                                                        }
     };

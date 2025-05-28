@@ -1,5 +1,6 @@
 #include "shape.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -377,6 +378,11 @@ void shape_append(struct shape* shape, coordinate_t x, coordinate_t y)
 const struct hashmap* shape_get_main_layerdata(const struct shape* shape)
 {
     return generics_get_first_layer_data(shape->layer);
+}
+
+int shape_is_layer(const struct shape* shape, const struct generics* layer)
+{
+    return shape->layer == layer;
 }
 
 const struct generics* shape_get_layer(const struct shape* shape)
@@ -971,6 +977,48 @@ void shape_curve_add_cubic_bezier_segment(struct shape* shape, const struct poin
         fprintf(stderr, "(%lld, %lld)\n", segment->endpt->x, segment->endpt->y);
     }
     vector_append(curve->segments, segment);
+}
+
+struct simple_polygon* shape_to_polygon(struct shape* shape)
+{
+    switch(shape->type)
+    {
+        case RECTANGLE:
+        {
+            struct rectangle* rectangle = shape->content;
+            struct point* bl = _bl(rectangle);
+            struct point* tr = _tr(rectangle);
+            struct simple_polygon* simple_polygon = simple_polygon_create();
+            simple_polygon_append(simple_polygon, point_create(bl->x, bl->y));
+            simple_polygon_append(simple_polygon, point_create(tr->x, bl->y));
+            simple_polygon_append(simple_polygon, point_create(tr->x, tr->y));
+            simple_polygon_append(simple_polygon, point_create(bl->x, tr->y));
+            return simple_polygon;
+        }
+        case POLYGON:
+        {
+            struct simple_polygon* simple_polygon = simple_polygon_create();
+            struct polygon_shape* polygon = shape->content;
+            for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
+            {
+                simple_polygon_append(simple_polygon, point_copy(vector_get(polygon->points, i)));
+            }
+            return simple_polygon;
+        }
+        case PATH:
+        {
+            struct shape* new = shape_resolve_path(shape);
+            struct simple_polygon* simple_polygon = simple_polygon_create();
+            struct polygon_shape* polygon = new->content;
+            for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
+            {
+                simple_polygon_append(simple_polygon, point_copy(vector_get(polygon->points, i)));
+            }
+            return simple_polygon;
+        }
+    }
+    assert(0);
+    return NULL;
 }
 
 void shape_resolve_path_extensions_inline(struct shape* shape)

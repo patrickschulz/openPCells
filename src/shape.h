@@ -4,8 +4,9 @@
 #include <stddef.h>
 
 #include "point.h"
-#include "transformationmatrix.h"
+#include "polygon.h"
 #include "technology.h"
+#include "transformationmatrix.h"
 
 struct shape;
 typedef int (*line_segment_handler)(const struct point*, void*);
@@ -24,6 +25,7 @@ void shape_append(struct shape* shape, coordinate_t x, coordinate_t y);
 
 const struct hashmap* shape_get_main_layerdata(const struct shape*);
 
+int shape_is_layer(const struct shape* shape, const struct generics* layer);
 const struct generics* shape_get_layer(const struct shape* shape);
 
 // type checking
@@ -59,6 +61,7 @@ void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy);
 void shape_apply_transformation(struct shape* shape, const struct transformationmatrix* trans);
 void shape_apply_inverse_transformation(struct shape* shape, const struct transformationmatrix* trans);
 
+// width/height
 coordinate_t shape_get_width(const struct shape* shape);
 coordinate_t shape_get_height(const struct shape* shape);
 void shape_get_width_height(const struct shape* shape, coordinate_t* width, coordinate_t* height);
@@ -68,6 +71,9 @@ void shape_get_minmax_xy(const struct shape* shape, coordinate_t* minxp, coordin
 void shape_curve_add_line_segment(struct shape* shape, const struct point* pt);
 void shape_curve_add_arc_segment(struct shape* shape, double startangle, double endangle, coordinate_t radius, int clockwise);
 void shape_curve_add_cubic_bezier_segment(struct shape* shape, const struct point* cpt1, const struct point* cpt2, const struct point* endpt);
+
+// conversion to polygon (e.g. for layer boundaries)
+struct simple_polygon* shape_to_polygon(struct shape* shape);
 
 int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y);
 

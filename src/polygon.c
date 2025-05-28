@@ -9,7 +9,7 @@ struct simple_polygon {
     struct vector* points;
 };
 
-struct polygon {
+struct polygon_container {
     struct vector* simple_polygons;
 };
 
@@ -46,29 +46,29 @@ struct simple_polygon* simple_polygon_copy(const struct simple_polygon* old)
     return new;
 }
 
-struct polygon* polygon_create(void)
+struct polygon_container* polygon_container_create(void)
 {
-    struct polygon* polygon = malloc(sizeof(*polygon));
-    polygon->simple_polygons = vector_create(32, simple_polygon_destroy);
-    return polygon;
+    struct polygon_container* polygon_container = malloc(sizeof(*polygon_container));
+    polygon_container->simple_polygons = vector_create(32, simple_polygon_destroy);
+    return polygon_container;
 }
 
-struct polygon* polygon_create_empty(void)
+struct polygon_container* polygon_container_create_empty(void)
 {
-    struct polygon* polygon = malloc(sizeof(*polygon));
-    polygon->simple_polygons = NULL;
-    return polygon;
+    struct polygon_container* polygon_container = malloc(sizeof(*polygon_container));
+    polygon_container->simple_polygons = NULL;
+    return polygon_container;
 }
 
-struct polygon* polygon_copy(const struct polygon* polygon)
+struct polygon_container* polygon_container_copy(const struct polygon_container* polygon_container)
 {
-    struct polygon* new = malloc(sizeof(*new));
-    new->simple_polygons = vector_create(vector_size(polygon->simple_polygons), simple_polygon_destroy);
-    struct vector_const_iterator* it = vector_const_iterator_create(polygon->simple_polygons);
+    struct polygon_container* new = malloc(sizeof(*new));
+    new->simple_polygons = vector_create(vector_size(polygon_container->simple_polygons), simple_polygon_destroy);
+    struct vector_const_iterator* it = vector_const_iterator_create(polygon_container->simple_polygons);
     while(vector_const_iterator_is_valid(it))
     {
         const struct simple_polygon* simple_polygon = vector_const_iterator_get(it);
-        polygon_add(new, simple_polygon_copy(simple_polygon));
+        polygon_container_add(new, simple_polygon_copy(simple_polygon));
         vector_const_iterator_next(it);
     }
     vector_const_iterator_destroy(it);
@@ -82,19 +82,19 @@ void simple_polygon_destroy(void* sp)
     free(simple_polygon);
 }
 
-void polygon_destroy(void* p)
+void polygon_container_destroy(void* p)
 {
-    struct polygon* polygon = p;
-    if(polygon->simple_polygons)
+    struct polygon_container* polygon_container = p;
+    if(polygon_container->simple_polygons)
     {
-        vector_destroy(polygon->simple_polygons);
+        vector_destroy(polygon_container->simple_polygons);
     }
-    free(polygon);
+    free(polygon_container);
 }
 
-void polygon_add(struct polygon* polygon, struct simple_polygon* simple_polygon)
+void polygon_container_add(struct polygon_container* polygon_container, struct simple_polygon* simple_polygon)
 {
-    vector_append(polygon->simple_polygons, simple_polygon);
+    vector_append(polygon_container->simple_polygons, simple_polygon);
 }
 
 int simple_polygon_is_rectangle(const struct simple_polygon* simple_polygon)
@@ -127,9 +127,9 @@ int simple_polygon_is_rectangle(const struct simple_polygon* simple_polygon)
     return 0;
 }
 
-int polygon_is_empty(const struct polygon* polygon)
+int polygon_container_is_empty(const struct polygon_container* polygon_container)
 {
-    return polygon->simple_polygons == NULL;
+    return polygon_container->simple_polygons == NULL;
 }
 
 static int _between(coordinate_t p, coordinate_t a, coordinate_t b)
@@ -180,17 +180,17 @@ POINT_IN_POLYGON_CONTINUE:
     return inside ? 1 : -1;
 }
 
-int polygon_is_point_in_polygon(const struct polygon* polygon, coordinate_t x, coordinate_t y)
+int polygon_is_point_in_polygon_container(const struct polygon_container* polygon_container, coordinate_t x, coordinate_t y)
 {
-    if(polygon_is_empty(polygon))
+    if(polygon_container_is_empty(polygon_container))
     {
         return -1;
     }
     int is_in_polygon = -1;
-    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
-    while(polygon_const_iterator_is_valid(it))
+    struct polygon_container_const_iterator* it = polygon_container_const_iterator_create(polygon_container);
+    while(polygon_container_const_iterator_is_valid(it))
     {
-        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(it);
         int _isp = polygon_is_point_in_simple_polygon(simple_polygon, x, y);
         if(_isp == 1)
         {
@@ -201,9 +201,9 @@ int polygon_is_point_in_polygon(const struct polygon* polygon, coordinate_t x, c
         {
             is_in_polygon = 0;
         }
-        polygon_const_iterator_next(it);
+        polygon_container_const_iterator_next(it);
     }
-    polygon_const_iterator_destroy(it);
+    polygon_container_const_iterator_destroy(it);
     return is_in_polygon;
 }
 
@@ -284,25 +284,25 @@ struct vector* simple_polygon_line_intersections(
     return intersections;
 }
 
-struct vector* polygon_line_intersections(
-    const struct polygon* polygon,
+struct vector* polygon_container_line_intersections(
+    const struct polygon_container* polygon_container,
     coordinate_t blx, coordinate_t bly,
     coordinate_t trx, coordinate_t try
 )
 {
     struct vector* intersections = vector_create(1, point_destroy);
-    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
-    while(polygon_const_iterator_is_valid(it))
+    struct polygon_container_const_iterator* it = polygon_container_const_iterator_create(polygon_container);
+    while(polygon_container_const_iterator_is_valid(it))
     {
-        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(it);
         struct vector* subintersections = simple_polygon_line_intersections(simple_polygon, blx, bly, trx, try);
         while(!vector_empty(subintersections))
         {
             vector_append(intersections, vector_disown_element(subintersections, vector_size(subintersections) - 1));
         }
-        polygon_const_iterator_next(it);
+        polygon_container_const_iterator_next(it);
     }
-    polygon_const_iterator_destroy(it);
+    polygon_container_const_iterator_destroy(it);
     return intersections;
 }
 
@@ -335,26 +335,26 @@ int simple_polygon_intersects_rectangle(
     return 0;
 }
 
-int polygon_intersects_rectangle(
-    const struct polygon* polygon,
+int polygon_container_intersects_rectangle(
+    const struct polygon_container* polygon_container,
     coordinate_t blx, coordinate_t bly,
     coordinate_t trx, coordinate_t try
 )
 {
     int ret = 0;
-    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
-    while(polygon_const_iterator_is_valid(it))
+    struct polygon_container_const_iterator* it = polygon_container_const_iterator_create(polygon_container);
+    while(polygon_container_const_iterator_is_valid(it))
     {
-        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(it);
         if(simple_polygon_intersects_rectangle(simple_polygon, blx, bly, trx, try))
         {
             ret = 1;
             goto POLYGON_INTERSECTS_RECTANGLE_FINISHED;
         }
-        polygon_const_iterator_next(it);
+        polygon_container_const_iterator_next(it);
     }
 POLYGON_INTERSECTS_RECTANGLE_FINISHED:
-    polygon_const_iterator_destroy(it);
+    polygon_container_const_iterator_destroy(it);
     return ret;
 }
 
@@ -378,19 +378,19 @@ coordinate_t simple_polygon_get_minx(const struct simple_polygon* simple_polygon
 }
 
 
-coordinate_t polygon_get_minx(const struct polygon* polygon)
+coordinate_t polygon_container_get_minx(const struct polygon_container* polygon_container)
 {
     coordinate_t minx = COORDINATE_MAX;
-    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
-    while(polygon_const_iterator_is_valid(it))
+    struct polygon_container_const_iterator* it = polygon_container_const_iterator_create(polygon_container);
+    while(polygon_container_const_iterator_is_valid(it))
     {
-        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(it);
         coordinate_t _minx = simple_polygon_get_minx(simple_polygon);
         if(_minx < minx)
         {
             minx = _minx;
         }
-        polygon_const_iterator_next(it);
+        polygon_container_const_iterator_next(it);
     }
     return minx;
 }
@@ -409,19 +409,19 @@ coordinate_t simple_polygon_get_miny(const struct simple_polygon* simple_polygon
     return miny;
 }
 
-coordinate_t polygon_get_miny(const struct polygon* polygon)
+coordinate_t polygon_container_get_miny(const struct polygon_container* polygon_container)
 {
     coordinate_t miny = COORDINATE_MAX;
-    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
-    while(polygon_const_iterator_is_valid(it))
+    struct polygon_container_const_iterator* it = polygon_container_const_iterator_create(polygon_container);
+    while(polygon_container_const_iterator_is_valid(it))
     {
-        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(it);
         coordinate_t _miny = simple_polygon_get_miny(simple_polygon);
         if(_miny < miny)
         {
             miny = _miny;
         }
-        polygon_const_iterator_next(it);
+        polygon_container_const_iterator_next(it);
     }
     return miny;
 }
@@ -441,19 +441,19 @@ coordinate_t simple_polygon_get_maxx(const struct simple_polygon* simple_polygon
 }
 
 
-coordinate_t polygon_get_maxx(const struct polygon* polygon)
+coordinate_t polygon_container_get_maxx(const struct polygon_container* polygon_container)
 {
     coordinate_t maxx = COORDINATE_MIN;
-    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
-    while(polygon_const_iterator_is_valid(it))
+    struct polygon_container_const_iterator* it = polygon_container_const_iterator_create(polygon_container);
+    while(polygon_container_const_iterator_is_valid(it))
     {
-        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(it);
         coordinate_t _maxx = simple_polygon_get_maxx(simple_polygon);
         if(_maxx > maxx)
         {
             maxx = _maxx;
         }
-        polygon_const_iterator_next(it);
+        polygon_container_const_iterator_next(it);
     }
     return maxx;
 }
@@ -472,19 +472,19 @@ coordinate_t simple_polygon_get_maxy(const struct simple_polygon* simple_polygon
     return maxy;
 }
 
-coordinate_t polygon_get_maxy(const struct polygon* polygon)
+coordinate_t polygon_container_get_maxy(const struct polygon_container* polygon_container)
 {
     coordinate_t maxy = COORDINATE_MIN;
-    struct polygon_const_iterator* it = polygon_const_iterator_create(polygon);
-    while(polygon_const_iterator_is_valid(it))
+    struct polygon_container_const_iterator* it = polygon_container_const_iterator_create(polygon_container);
+    while(polygon_container_const_iterator_is_valid(it))
     {
-        const struct simple_polygon* simple_polygon = polygon_const_iterator_get(it);
+        const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(it);
         coordinate_t _maxy = simple_polygon_get_maxy(simple_polygon);
         if(_maxy > maxy)
         {
             maxy = _maxy;
         }
-        polygon_const_iterator_next(it);
+        polygon_container_const_iterator_next(it);
     }
     return maxy;
 }
@@ -553,65 +553,65 @@ void simple_polygon_const_iterator_destroy(struct simple_polygon_const_iterator*
     free(iterator);
 }
 
-struct polygon_iterator {
+struct polygon_container_iterator {
     struct vector_iterator* iterator;
 };
 
-struct polygon_iterator* polygon_iterator_create(struct polygon* polygon)
+struct polygon_container_iterator* polygon_container_iterator_create(struct polygon_container* polygon_container)
 {
-    struct polygon_iterator* it = malloc(sizeof(*it));
-    it->iterator = vector_iterator_create(polygon->simple_polygons);
+    struct polygon_container_iterator* it = malloc(sizeof(*it));
+    it->iterator = vector_iterator_create(polygon_container->simple_polygons);
     return it;
 }
 
-int polygon_iterator_is_valid(struct polygon_iterator* iterator)
+int polygon_container_iterator_is_valid(struct polygon_container_iterator* iterator)
 {
     return vector_iterator_is_valid(iterator->iterator);
 }
 
-struct simple_polygon* polygon_iterator_get(struct polygon_iterator* iterator)
+struct simple_polygon* polygon_container_iterator_get(struct polygon_container_iterator* iterator)
 {
     return vector_iterator_get(iterator->iterator);
 }
 
-void polygon_iterator_next(struct polygon_iterator* iterator)
+void polygon_container_iterator_next(struct polygon_container_iterator* iterator)
 {
     vector_iterator_next(iterator->iterator);
 }
 
-void polygon_iterator_destroy(struct polygon_iterator* iterator)
+void polygon_container_iterator_destroy(struct polygon_container_iterator* iterator)
 {
     vector_iterator_destroy(iterator->iterator);
     free(iterator);
 }
 
-struct polygon_const_iterator {
+struct polygon_container_const_iterator {
     struct vector_const_iterator* iterator;
 };
 
-struct polygon_const_iterator* polygon_const_iterator_create(const struct polygon* polygon)
+struct polygon_container_const_iterator* polygon_container_const_iterator_create(const struct polygon_container* polygon_container)
 {
-    struct polygon_const_iterator* it = malloc(sizeof(*it));
-    it->iterator = vector_const_iterator_create(polygon->simple_polygons);
+    struct polygon_container_const_iterator* it = malloc(sizeof(*it));
+    it->iterator = vector_const_iterator_create(polygon_container->simple_polygons);
     return it;
 }
 
-int polygon_const_iterator_is_valid(struct polygon_const_iterator* iterator)
+int polygon_container_const_iterator_is_valid(struct polygon_container_const_iterator* iterator)
 {
     return vector_const_iterator_is_valid(iterator->iterator);
 }
 
-const struct simple_polygon* polygon_const_iterator_get(struct polygon_const_iterator* iterator)
+const struct simple_polygon* polygon_container_const_iterator_get(struct polygon_container_const_iterator* iterator)
 {
     return vector_const_iterator_get(iterator->iterator);
 }
 
-void polygon_const_iterator_next(struct polygon_const_iterator* iterator)
+void polygon_container_const_iterator_next(struct polygon_container_const_iterator* iterator)
 {
     vector_const_iterator_next(iterator->iterator);
 }
 
-void polygon_const_iterator_destroy(struct polygon_const_iterator* iterator)
+void polygon_container_const_iterator_destroy(struct polygon_container_const_iterator* iterator)
 {
     vector_const_iterator_destroy(iterator->iterator);
     free(iterator);

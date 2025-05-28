@@ -181,6 +181,10 @@ function util.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext, xm
     }
 end
 
+function util.offset_polygon(polygon, offset)
+    return geometry.offset_polygon_points(polygon, offset)
+end
+
 function util.rectangle_intersection(bl1, tr1, bl2, tr2)
     check.set_next_function_name("util.rectangle_intersection")
     check.arg_func(1, "bl1", "point", bl1, point.is_point)

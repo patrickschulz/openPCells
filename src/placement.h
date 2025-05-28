@@ -29,7 +29,7 @@ struct vector* placement_calculate_grid(
     const struct point* tr,
     coordinate_t xpitch,
     coordinate_t ypitch,
-    const struct polygon* excludes
+    const struct polygon_container* excludes
 );
 
 struct vector* placement_place_boundary_grid(
@@ -47,7 +47,7 @@ struct vector* placement_calculate_origins(
     ucoordinate_t xpitch, ucoordinate_t ypitch,
     coordinate_t xstartshift, coordinate_t ystartshift,
     const struct simple_polygon* targetarea,
-    const struct polygon* excludes
+    const struct polygon_container* excludes
 );
 
 struct vector* placement_calculate_origins_centered(
@@ -55,7 +55,7 @@ struct vector* placement_calculate_origins_centered(
     ucoordinate_t xpitch, ucoordinate_t ypitch,
     coordinate_t xstartshift, coordinate_t ystartshift,
     const struct simple_polygon* targetarea,
-    const struct polygon* excludes
+    const struct polygon_container* excludes
 );
 
 struct vector* placement_place_on_grid(
@@ -81,14 +81,14 @@ struct vector* placement_place_within_boundary(
     struct object* cell,
     const char* basename,
     const struct simple_polygon* targetarea,
-    const struct polygon* excludes
+    const struct polygon_container* excludes
 );
 
 void placement_place_within_boundary_merge(
     struct object* toplevel,
     struct object* cell,
     const struct simple_polygon* targetarea,
-    const struct polygon* excludes
+    const struct polygon_container* excludes
 );
 
 struct object* placement_place_within_rectangular_boundary(
@@ -104,7 +104,7 @@ struct placement_celllookup {
 };
 
 struct placement_layerexclude {
-    struct polygon* excludes;
+    struct polygon_container* excludes;
     struct const_vector* layers;
 };
 
@@ -126,7 +126,7 @@ struct vector* placement_place_gridlines(
     coordinate_t size, coordinate_t space,
     const struct point* targetbl,
     const struct point* targettr,
-    const struct polygon* excludes
+    const struct polygon_container* excludes
 );
 
 #endif /* OPC_PLACEMENT_H */

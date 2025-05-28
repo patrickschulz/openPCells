@@ -19,7 +19,7 @@ static void _destroy_placement_celllookup(void* v)
     free(celllookup);
 }
 
-void lplacement_create_exclude_vectors(lua_State* L, struct polygon** excludes, int idx)
+void lplacement_create_exclude_vectors(lua_State* L, struct polygon_container** excludes, int idx)
 {
     *excludes = NULL;
     if(lua_istable(L, idx))
@@ -27,23 +27,23 @@ void lplacement_create_exclude_vectors(lua_State* L, struct polygon** excludes, 
         lua_len(L, idx);
         size_t excludes_len = lua_tointeger(L, -1);
         lua_pop(L, 1);
-        *excludes = polygon_create();
+        *excludes = polygon_container_create();
         for(size_t i = 1; i <= excludes_len; ++i)
         {
             lua_rawgeti(L, idx, i);
             struct simple_polygon* exclude = lutil_create_simple_polygon(L, -1);
-            polygon_add(*excludes, exclude);
+            polygon_container_add(*excludes, exclude);
             lua_pop(L, 1);
         }
     }
 }
 
-static void _cleanup_target_exclude_vector(struct simple_polygon* targetarea, struct polygon* excludes)
+static void _cleanup_target_exclude_vector(struct simple_polygon* targetarea, struct polygon_container* excludes)
 {
     simple_polygon_destroy(targetarea);
     if(excludes)
     {
-        polygon_destroy(excludes);
+        polygon_container_destroy(excludes);
     }
 }
 
@@ -101,12 +101,12 @@ int lplacement_calculate_grid(lua_State* L)
     struct lpoint* tr = lpoint_checkpoint(L, 2);
     coordinate_t xpitch = luaL_checkinteger(L, 3);
     coordinate_t ypitch = luaL_checkinteger(L, 4);
-    struct polygon* excludes;
+    struct polygon_container* excludes;
     lplacement_create_exclude_vectors(L, &excludes, 5);
     struct vector* grid = placement_calculate_grid(lpoint_get(bl), lpoint_get(tr), xpitch, ypitch, excludes);
     if(excludes)
     {
-        polygon_destroy(excludes);
+        polygon_container_destroy(excludes);
     }
     lua_newtable(L);
     for(size_t i = 0; i < vector_size(grid); ++i)
@@ -425,7 +425,7 @@ int lplacement_place_within_boundary(lua_State* L)
     const char* basename = luaL_checkstring(L, 3);
 
     struct simple_polygon* targetarea;
-    struct polygon* excludes;
+    struct polygon_container* excludes;
     targetarea = lutil_create_simple_polygon(L, 4);
     lplacement_create_exclude_vectors(L, &excludes, 5);
 
@@ -460,7 +460,7 @@ int lplacement_place_within_boundary_merge(lua_State* L)
         lua_error(L);
     }
     struct simple_polygon* targetarea;
-    struct polygon* excludes;
+    struct polygon_container* excludes;
     targetarea = lutil_create_simple_polygon(L, 3);
     lplacement_create_exclude_vectors(L, &excludes, 4);
 
@@ -569,12 +569,12 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
             lua_len(L, -1);
             size_t excludes_len = lua_tointeger(L, -1);
             lua_pop(L, 1);
-            layerexclude->excludes = polygon_create();
+            layerexclude->excludes = polygon_container_create();
             for(size_t i = 1; i <= excludes_len; ++i)
             {
                 lua_rawgeti(L, -1, i);
                 struct simple_polygon* exclude = lutil_create_simple_polygon(L, -1);
-                polygon_add(layerexclude->excludes, exclude);
+                polygon_container_add(layerexclude->excludes, exclude);
                 lua_pop(L, 1);
             }
         }
@@ -664,7 +664,7 @@ int lplacement_place_gridlines(lua_State* L)
     coordinate_t size = luaL_checkinteger(L, 3);
     coordinate_t space = luaL_checkinteger(L, 4);
 
-    struct polygon* excludes;
+    struct polygon_container* excludes;
     struct lpoint* targetbl = lpoint_checkpoint(L, 5);
     struct lpoint* targettr = lpoint_checkpoint(L, 6);
     lplacement_create_exclude_vectors(L, &excludes, 7);

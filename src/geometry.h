@@ -193,6 +193,7 @@ void geometry_unequal_ring_pts(
 struct shape* geometry_path_to_polygon(const struct generics* layer, struct vector* points, ucoordinate_t width, int miterjoin);
 
 struct vector* geometry_path_points_to_polygon(struct vector* points, ucoordinate_t width, int miterjoin);
+struct vector* geometry_offset_polygon_points(struct vector* points, ucoordinate_t offset);
 struct vector* geometry_get_side_path_points(struct vector* points, coordinate_t width);
 
 struct vector* geometry_triangulate_polygon(const struct vector* points);

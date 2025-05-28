@@ -384,13 +384,4 @@ function M.collect_gridlines(t, cells, anchorname)
     end
 end
 
-function M.gather_layer_boundaries(cell, layer)
-    return {
-        util.rectangle_to_polygon(
-            point.create(2500, 0),
-            point.create(2700, 2000)
-        )
-    }
-end
-
 return M

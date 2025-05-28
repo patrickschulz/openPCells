@@ -27,8 +27,8 @@ void object_merge_into_with_ports(struct object* cell, const struct object* othe
 void object_foreach_shapes(struct object* cell, void (*func)(struct shape*));
 size_t object_get_shapes_size(const struct object* cell);
 struct shape* object_get_shape(struct object* cell, size_t idx);
-struct shape* object_get_transformed_shape(struct object* cell, size_t idx);
 void object_rasterize_curves(struct object* cell);
+struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics* layer);
 
 // children
 struct object* object_create_handle(struct object* cell, struct object* reference);
@@ -101,7 +101,7 @@ void object_inherit_boundary(struct object* cell, const struct object* othercell
 int object_has_boundary(const struct object* cell);
 struct vector* object_get_boundary(const struct object* cell);
 int object_has_layer_boundary(const struct object* cell, const struct generics* layer);
-struct polygon* object_get_layer_boundary(const struct object* cell, const struct generics* layer);
+struct polygon_container* object_get_layer_boundary(const struct object* cell, const struct generics* layer);
 void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer);
 
 // ports

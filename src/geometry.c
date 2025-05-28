@@ -237,7 +237,7 @@ static void _shift_line_signed(const struct point* pt1, const struct point* pt2,
     (*spt2)->y = pt2->y + yshift;
 }
 
-static struct vector* _get_edge_segments(struct vector* points, ucoordinate_t width, unsigned int grid)
+static struct vector* _get_edge_segments(struct vector* points, ucoordinate_t shift, unsigned int grid)
 {
     size_t numpoints = vector_size(points);
     struct vector* edges = vector_create(4 * (numpoints - 1), point_destroy);
@@ -251,7 +251,7 @@ static struct vector* _get_edge_segments(struct vector* points, ucoordinate_t wi
     {
         struct point* pt1 = vector_get(points, i);
         struct point* pt2 = vector_get(points, i + 1);
-        _shift_line(pt1, pt2, width / 2,
+        _shift_line(pt1, pt2, shift,
             vector_get_reference(edges, 2 * i), vector_get_reference(edges, 2 * i + 1),
             grid
         );
@@ -261,8 +261,8 @@ static struct vector* _get_edge_segments(struct vector* points, ucoordinate_t wi
     {
         struct point* pt1 = vector_get(points, i);
         struct point* pt2 = vector_get(points, i - 1);
-        // the indexing looks funny, but it works out, trust me
-        _shift_line(pt1, pt2, width / 2,
+        // the indexing looks funny, but it works out
+        _shift_line(pt1, pt2, shift,
             vector_get_reference(edges, 2 * (2 * numpoints - 2 - i)),
             vector_get_reference(edges, 2 * (2 * numpoints - 2 - i) + 1),
             grid
@@ -286,6 +286,34 @@ static struct vector* _get_side_edge_segments(struct vector* points, coordinate_
         const struct point* pt1 = vector_get_const(points, i);
         const struct point* pt2 = vector_get_const(points, i + 1);
         _shift_line_signed(pt1, pt2, offset, vector_get_reference(edges, 2 * i), vector_get_reference(edges, 2 * i + 1), grid);
+    }
+    return edges;
+}
+
+// FIXME: there are too many functions calculating path outlines/polygon offsets.
+// These things are basically the same, so this should be simplified
+static struct vector* _get_side_edge_segments2(struct vector* points, coordinate_t offset, unsigned int grid)
+{
+    size_t numpoints = vector_size(points);
+    struct vector* edges = vector_create(2 * numpoints, point_destroy);
+    // start to end
+    for(unsigned int i = 0; i < numpoints; ++i)
+    {
+        const struct point* pt1 = vector_get_const(points, i);
+        const struct point* pt2;
+        if(i == numpoints - 1) // last point is firs point
+        {
+            pt2 = vector_get_const(points, 0);
+        }
+        else
+        {
+            pt2 = vector_get_const(points, i + 1);
+        }
+        struct point* rpt1 = point_create(0, 0);
+        struct point* rpt2 = point_create(0, 0);
+        _shift_line_signed(pt1, pt2, offset, &rpt1, &rpt2, grid);
+        vector_append(edges, rpt1);
+        vector_append(edges, rpt2);
     }
     return edges;
 }
@@ -382,6 +410,35 @@ static struct vector* _get_path_pts(struct vector* edges, int miterjoin)
     return poly;
 }
 
+static struct vector* _get_polygon_pts(struct vector* edges)
+{
+    struct vector* poly = vector_create(1, point_destroy);
+    for(size_t i = 0; i < vector_size(edges) - 1; i += 2)
+    {
+        struct point* e1bgn = vector_get(edges, i + 0);
+        struct point* e1end = vector_get(edges, i + 1);
+        struct point* e2bgn;
+        struct point* e2end;
+        if(i > vector_size(edges) - 3) // first point is also last point
+        {
+            e2bgn = vector_get(edges, 0);
+            e2end = vector_get(edges, 1);
+        }
+        else
+        {
+            e2bgn = vector_get(edges, i + 2);
+            e2end = vector_get(edges, i + 3);
+        }
+        struct point* pt = NULL;
+        _intersection(e1bgn, e1end, e2bgn, e2end, &pt);
+        if(pt)
+        {
+            vector_append(poly, pt);
+        }
+    }
+    return poly;
+}
+
 static struct vector* _get_side_path_pts(struct vector* edges)
 {
     size_t numedges = vector_size(edges);
@@ -458,7 +515,7 @@ struct shape* geometry_path_to_polygon(const struct generics* layer, struct vect
     }
 
     // polygon
-    struct vector* edges = _get_edge_segments(points, width, 1);
+    struct vector* edges = _get_edge_segments(points, width / 2, 1);
     struct vector* poly = _get_path_pts(edges, miterjoin);
     vector_destroy(edges);
     struct shape* S = shape_create_polygon(layer, vector_size(poly));
@@ -480,8 +537,21 @@ struct vector* geometry_path_points_to_polygon(struct vector* points, ucoordinat
 
     // FIXME: handle path extensions
 
-    struct vector* edges = _get_edge_segments(points, width, 1);
+    struct vector* edges = _get_edge_segments(points, width / 2, 1);
     struct vector* poly = _get_path_pts(edges, miterjoin);
+    vector_destroy(edges);
+    return poly;
+}
+
+// FIXME: this works for many cases, but is not error-free
+// high offsets with polygons with acute angles lead to self-intersecting polygons
+// the occurence of this should be checked and fixed
+struct vector* geometry_offset_polygon_points(struct vector* points, ucoordinate_t offset)
+{
+    _make_unique_points(points);
+
+    struct vector* edges = _get_side_edge_segments2(points, offset, 1);
+    struct vector* poly = _get_polygon_pts(edges);
     vector_destroy(edges);
     return poly;
 }
@@ -499,7 +569,7 @@ struct vector* geometry_get_side_path_points(struct vector* points, coordinate_t
 struct vector* _get_any_angle_path_pts(struct vector* pts, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
 {
     (void)allow45;
-    struct vector* edges = _get_edge_segments(pts, width, grid);
+    struct vector* edges = _get_edge_segments(pts, width / 2, grid);
     struct vector* poly = _get_path_pts(edges, miterjoin);
     vector_destroy(edges);
 //    table.insert(pathpts, edges[1]:copy()) -- close path

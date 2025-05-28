@@ -1569,18 +1569,18 @@ static int lobject_get_layer_boundary(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const struct generics* layer = lua_touserdata(L, 2);
-    struct polygon* boundary = object_get_layer_boundary(lobject_get(L, cell), layer);
+    struct polygon_container* boundary = object_get_layer_boundary(lobject_get(L, cell), layer);
     lua_newtable(L);
-    if(polygon_is_empty(boundary))
+    if(polygon_container_is_empty(boundary))
     {
-        polygon_destroy(boundary);
-        return 1; // return empty table
+        polygon_container_destroy(boundary);
+        return 1; /* return empty table */
     }
-    struct polygon_iterator* pit = polygon_iterator_create(boundary);
+    struct polygon_container_iterator* pit = polygon_container_iterator_create(boundary);
     int i = 1;
-    while(polygon_iterator_is_valid(pit))
+    while(polygon_container_iterator_is_valid(pit))
     {
-        struct simple_polygon* single_boundary = polygon_iterator_get(pit);
+        struct simple_polygon* single_boundary = polygon_container_iterator_get(pit);
         struct simple_polygon_iterator* it = simple_polygon_iterator_create(single_boundary);
         lua_newtable(L);
         int j = 1;
@@ -1595,10 +1595,47 @@ static int lobject_get_layer_boundary(lua_State* L)
         simple_polygon_iterator_destroy(it);
         lua_rawseti(L, -2, i);
         ++i;
-        polygon_iterator_next(pit);
+        polygon_container_iterator_next(pit);
     }
-    polygon_iterator_destroy(pit);
-    polygon_destroy(boundary);
+    polygon_container_iterator_destroy(pit);
+    polygon_container_destroy(boundary);
+    return 1;
+}
+
+static int lobject_get_shape_outlines(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const struct generics* layer = lua_touserdata(L, 2);
+    struct polygon_container* outlines = object_get_shape_outlines(lobject_get(L, cell), layer);
+    lua_newtable(L);
+    if(polygon_container_is_empty(outlines))
+    {
+        polygon_container_destroy(outlines);
+        return 1; /* return empty table */
+    }
+    struct polygon_container_iterator* pit = polygon_container_iterator_create(outlines);
+    int i = 1;
+    while(polygon_container_iterator_is_valid(pit))
+    {
+        struct simple_polygon* single_boundary = polygon_container_iterator_get(pit);
+        struct simple_polygon_iterator* it = simple_polygon_iterator_create(single_boundary);
+        lua_newtable(L);
+        int j = 1;
+        while(simple_polygon_iterator_is_valid(it))
+        {
+            const struct point* pt = simple_polygon_iterator_get(it);
+            lpoint_create_internal(L, pt->x, pt->y);
+            lua_rawseti(L, -2, j);
+            simple_polygon_iterator_next(it);
+            ++j;
+        }
+        simple_polygon_iterator_destroy(it);
+        lua_rawseti(L, -2, i);
+        ++i;
+        polygon_container_iterator_next(pit);
+    }
+    polygon_container_iterator_destroy(pit);
+    polygon_container_destroy(outlines);
     return 1;
 }
 
@@ -1722,6 +1759,7 @@ int open_lobject_lib(lua_State* L)
         { "get_boundary",                           lobject_get_boundary                        },
         { "has_layer_boundary",                     lobject_has_layer_boundary                  },
         { "get_layer_boundary",                     lobject_get_layer_boundary                  },
+        { "get_shape_outlines",                     lobject_get_shape_outlines                  },
         { "__gc",                                   lobject_destroy                             },
         { "__tostring",                             lobject_tostring                            },
         { NULL,                                     NULL                                        }
