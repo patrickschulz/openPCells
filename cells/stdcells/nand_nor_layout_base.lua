@@ -13,7 +13,7 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local xpitch = _P.gspace + _P.glength
+    local xpitch = _P.gatespace + _P.gatelength
 
     local gatecontactpos = { }
     for i = 1, 2 * _P.fingers do
@@ -74,27 +74,27 @@ function layout(gate, _P)
         if _P.fingers % 2 == 0 then
             geometry.path(gate, generics.metal(1), 
                 {
-                    harness:get_anchor("G2cc"):translate(-_P.glength / 2, 0),
-                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers - 1)):translate(_P.glength / 2, 0)
+                    harness:get_anchor("G2cc"):translate(-_P.gatelength / 2, 0),
+                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers - 1)):translate(_P.gatelength / 2, 0)
                 }, _P.routingwidth
             )
             geometry.path(gate, generics.metal(1), 
                 {
-                    harness:get_anchor("G1cc"):translate(-_P.glength / 2, 0),
-                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers)):translate(_P.glength / 2, 0)
+                    harness:get_anchor("G1cc"):translate(-_P.gatelength / 2, 0),
+                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers)):translate(_P.gatelength / 2, 0)
                 }, _P.routingwidth
             )
         else
             geometry.path(gate, generics.metal(1), 
                 {
-                    harness:get_anchor("G2cc"):translate(-_P.glength / 2, 0),
-                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers)):translate(_P.glength / 2, 0)
+                    harness:get_anchor("G2cc"):translate(-_P.gatelength / 2, 0),
+                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers)):translate(_P.gatelength / 2, 0)
                 }, _P.routingwidth
             )
             geometry.path(gate, generics.metal(1), 
                 {
-                    harness:get_anchor("G1cc"):translate(-_P.glength / 2, 0),
-                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers - 1)):translate(_P.glength / 2, 0)
+                    harness:get_anchor("G1cc"):translate(-_P.gatelength / 2, 0),
+                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers - 1)):translate(_P.gatelength / 2, 0)
                 }, _P.routingwidth
             )
         end

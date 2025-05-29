@@ -7,7 +7,7 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local xpitch = _P.gspace + _P.glength
+    local xpitch = _P.gatespace + _P.gatelength
 
     local harness = pcell.create_layout("stdcells/harness", "mosfets", {
         gatecontactpos = { "dummy" },

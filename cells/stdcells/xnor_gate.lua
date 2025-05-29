@@ -33,7 +33,7 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local xpitch = _P.gspace + _P.glength
+    local xpitch = _P.gatespace + _P.gatelength
 
     local block = object.create_pseudo()
 
@@ -52,12 +52,12 @@ function layout(gate, _P)
 
     -- gate contact metal blobs (DRC)
     geometry.rectanglebltr(block,generics.metal(1), 
-        harness:get_area_anchor("G2").bl:translate(-_P.glength / 2, -_P.routingwidth / 2), 
-        point.combine_12(harness:get_area_anchor("G2").bl, harness:get_area_anchor("G4").bl):translate(_P.glength / 2, _P.routingwidth / 2)
+        harness:get_area_anchor("G2").bl:translate(-_P.gatelength / 2, -_P.routingwidth / 2), 
+        point.combine_12(harness:get_area_anchor("G2").bl, harness:get_area_anchor("G4").bl):translate(_P.gatelength / 2, _P.routingwidth / 2)
     )
     geometry.rectanglebltr(block, generics.metal(1), 
-        point.combine_12(harness:get_area_anchor("G3").bl, harness:get_area_anchor("G2").bl):translate(-_P.glength / 2, -_P.routingwidth / 2),
-        point.combine_12(harness:get_area_anchor("G3").bl, harness:get_area_anchor("G4").bl):translate( _P.glength / 2,  _P.routingwidth / 2)
+        point.combine_12(harness:get_area_anchor("G3").bl, harness:get_area_anchor("G2").bl):translate(-_P.gatelength / 2, -_P.routingwidth / 2),
+        point.combine_12(harness:get_area_anchor("G3").bl, harness:get_area_anchor("G4").bl):translate( _P.gatelength / 2,  _P.routingwidth / 2)
     )
 
     -- short pmos
@@ -131,7 +131,7 @@ function layout(gate, _P)
     }, _P.sdwidth)
     geometry.path(gate, generics.metal(2), geometry.path_points_yx(
         point.combine_12(invb:get_anchor("O"), inva:get_anchor("I")), {
-            -_P.routingwidth - _P.routingspace,
+            -_P.routingwidth - _P.routingatespace,
             harness:get_area_anchor("G6").bl
         }), _P.sdwidth)
     geometry.path(gate, generics.metal(2), {
@@ -141,25 +141,25 @@ function layout(gate, _P)
 
     -- M1 -> M2 vias
     geometry.viabltr(gate, 1, 2,
-        point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")):translate(-xpitch - _P.routingwidth / 2 - _P.routingspace, -_P.sdwidth / 2),
-        point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")):translate( xpitch + _P.routingwidth / 2 + _P.routingspace,  _P.sdwidth / 2)
+        point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")):translate(-xpitch - _P.routingwidth / 2 - _P.routingatespace, -_P.sdwidth / 2),
+        point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")):translate( xpitch + _P.routingwidth / 2 + _P.routingatespace,  _P.sdwidth / 2)
     )
     geometry.viabltr(gate, 1, 2,
-        inva:get_anchor("I"):translate(-xpitch - _P.routingwidth / 2 - _P.routingspace, -_P.sdwidth / 2),
-        inva:get_anchor("I"):translate( xpitch + _P.routingwidth / 2 + _P.routingspace,  _P.sdwidth / 2)
+        inva:get_anchor("I"):translate(-xpitch - _P.routingwidth / 2 - _P.routingatespace, -_P.sdwidth / 2),
+        inva:get_anchor("I"):translate( xpitch + _P.routingwidth / 2 + _P.routingatespace,  _P.sdwidth / 2)
     )
     geometry.viabltr(gate, 1, 2,
-        invb:get_anchor("I"):translate(-xpitch - _P.routingwidth / 2 - _P.routingspace, -_P.sdwidth / 2),
-        invb:get_anchor("I"):translate( xpitch + _P.routingwidth / 2 + _P.routingspace,  _P.sdwidth / 2)
+        invb:get_anchor("I"):translate(-xpitch - _P.routingwidth / 2 - _P.routingatespace, -_P.sdwidth / 2),
+        invb:get_anchor("I"):translate( xpitch + _P.routingwidth / 2 + _P.routingatespace,  _P.sdwidth / 2)
     )
 
     geometry.viabltr(gate, 1, 2,
-        harness:get_area_anchor("G1").bl:translate(-xpitch - math.max(_P.glength, _P.routingwidth) / 2 - _P.routingspace, -_P.sdwidth / 2),
-        harness:get_area_anchor("G1").bl:translate( xpitch + _P.routingwidth / 2 + _P.routingspace, _P.sdwidth / 2)
+        harness:get_area_anchor("G1").bl:translate(-xpitch - math.max(_P.gatelength, _P.routingwidth) / 2 - _P.routingatespace, -_P.sdwidth / 2),
+        harness:get_area_anchor("G1").bl:translate( xpitch + _P.routingwidth / 2 + _P.routingatespace, _P.sdwidth / 2)
     )
     geometry.viabltr(gate, 1, 2,
-        harness:get_area_anchor("G2").bl:translate(-math.max(_P.glength, _P.routingwidth) / 2, -_P.sdwidth / 2),
-        harness:get_area_anchor("G2").bl:translate( math.max(_P.glength, _P.routingwidth) / 2,  _P.sdwidth / 2)
+        harness:get_area_anchor("G2").bl:translate(-math.max(_P.gatelength, _P.routingwidth) / 2, -_P.sdwidth / 2),
+        harness:get_area_anchor("G2").bl:translate( math.max(_P.gatelength, _P.routingwidth) / 2,  _P.sdwidth / 2)
     )
 
     geometry.viabltr(gate, 1, 2,
@@ -167,12 +167,12 @@ function layout(gate, _P)
         point.combine_12(harness:get_area_anchor("G6").bl, harness:get_area_anchor("G4").bl):translate( _P.routingwidth / 2,  _P.routingwidth / 2)
     )
     geometry.viabltr(gate, 1, 2,
-        harness:get_area_anchor("G5").bl:translate(-2 * xpitch + math.max(_P.glength, _P.routingwidth) / 2 + _P.routingspace, -_P.sdwidth / 2),
-        harness:get_area_anchor("G5").bl:translate( 1 * xpitch - math.max(_P.glength, _P.routingwidth) / 2 - _P.routingspace,  _P.sdwidth / 2)
+        harness:get_area_anchor("G5").bl:translate(-2 * xpitch + math.max(_P.gatelength, _P.routingwidth) / 2 + _P.routingatespace, -_P.sdwidth / 2),
+        harness:get_area_anchor("G5").bl:translate( 1 * xpitch - math.max(_P.gatelength, _P.routingwidth) / 2 - _P.routingatespace,  _P.sdwidth / 2)
     )
     geometry.viabltr(gate, 1, 2,
-        harness:get_area_anchor("G4").bl:translate(-1 * xpitch + math.max(_P.glength, _P.routingwidth) / 2 + _P.routingspace, -_P.sdwidth / 2),
-        harness:get_area_anchor("G4").bl:translate( 2 * xpitch - math.max(_P.glength, _P.routingwidth) / 2 - _P.routingspace,  _P.sdwidth / 2)
+        harness:get_area_anchor("G4").bl:translate(-1 * xpitch + math.max(_P.gatelength, _P.routingwidth) / 2 + _P.routingatespace, -_P.sdwidth / 2),
+        harness:get_area_anchor("G4").bl:translate( 2 * xpitch - math.max(_P.gatelength, _P.routingwidth) / 2 - _P.routingatespace,  _P.sdwidth / 2)
     )
 
     gate:add_port("A", generics.metalport(1), inva:get_anchor("I"))

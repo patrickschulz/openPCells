@@ -1,6 +1,6 @@
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
-    local xpitch = bp.gspace + bp.glength
+    local xpitch = bp.gatespace + bp.gatelength
 
     local gatecontactpos = {
         "upper", "lower", "center"

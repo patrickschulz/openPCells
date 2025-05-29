@@ -24,27 +24,27 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local xpitch = _P.gspace + _P.glength
-    local routingpitch = _P.routingwidth + _P.routingspace
-    local separation = _P.numinnerroutes * _P.routingwidth + (_P.numinnerroutes + 1) * _P.routingspace
+    local xpitch = _P.gatespace + _P.gatelength
+    local routingpitch = _P.routingwidth + _P.routingatespace
+    local separation = _P.numinnerroutes * _P.routingwidth + (_P.numinnerroutes + 1) * _P.routingatespace
     local ppowerspace = _P.pnumtracks * routingpitch + _P.routingwidth / 2 - _P.basepwidth - _P.pwidthoffset - _P.powerwidth / 2
     local npowerspace = _P.nnumtracks * routingpitch + _P.routingwidth / 2 - _P.basenwidth - _P.nwidthoffset - _P.powerwidth / 2
-    local routingshift = (_P.routingwidth + _P.routingspace) * (_P.numinnerroutes % 2 == 0 and 1 or 2)
+    local routingshift = (_P.routingwidth + _P.routingatespace) * (_P.numinnerroutes % 2 == 0 and 1 or 2)
     local cmos = pcell.create_layout("basic/cmos", "cmos", {
         nvthtype = _P.nvthtype,
         pvthtype = _P.pvthtype,
         pmosflippedwell = _P.pmosflippedwell,
         nmosflippedwell = _P.nmosflippedwell,
-        drawpmoswelltap = _P.drawtopbotwelltaps,
-        drawnmoswelltap = _P.drawtopbotwelltaps,
+        drawpmosupperwelltap = _P.drawtopbotwelltaps,
+        drawnmoslowerwelltap = _P.drawtopbotwelltaps,
         nmoswelltapspace = _P.topbotwelltapspace,
         nmoswelltapwidth = _P.topbotwelltapwidth,
         pmoswelltapspace = _P.topbotwelltapspace,
         pmoswelltapwidth = _P.topbotwelltapwidth,
         oxidetype = _P.oxidetype,
         gatemarker = _P.gatemarker,
-        gatelength = _P.glength,
-        gatespace = _P.gspace,
+        gatelength = _P.gatelength,
+        gatespace = _P.gatespace,
         gatecontactpos = _P.gatecontactpos,
         gatenames = _P.gatenames,
         --pgateext = ppowerspace + _P.powerwidth / 2,
@@ -59,7 +59,7 @@ function layout(gate, _P)
         pwidth = _P.basepwidth + _P.pwidthoffset,
         nwidth = _P.basenwidth + _P.nwidthoffset,
         gatestrapwidth = _P.routingwidth,
-        gatestrapspace = _P.routingspace,
+        gatestrapspace = _P.routingatespace,
         sdwidth = _P.sdwidth,
         separation = separation,
         gatecontactsplitshift = routingshift,
@@ -78,8 +78,8 @@ function layout(gate, _P)
     for i = 1, _P.numinnerroutes do
         gate:add_area_anchor_bltr(
             string.format("innertrack%d", i),
-            point.create(0,   _P.basenwidth + _P.nwidthoffset + _P.routingspace + (i - 1) * routingpitch),
-            point.create(100, _P.basenwidth + _P.nwidthoffset + _P.routingspace + (i - 1) * routingpitch + _P.routingwidth)
+            point.create(0,   _P.basenwidth + _P.nwidthoffset + _P.routingatespace + (i - 1) * routingpitch),
+            point.create(100, _P.basenwidth + _P.nwidthoffset + _P.routingatespace + (i - 1) * routingpitch + _P.routingwidth)
         )
     end
     for i = 1, _P.pnumtracks + 1 do -- +1: one virtual lies in the power bar

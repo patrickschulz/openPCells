@@ -8,7 +8,7 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local xpitch = _P.glength + _P.gspace
+    local xpitch = _P.gatelength + _P.gatespace
 
     local subgatename = string.format("stdcells/%s", _P.subgate)
 
@@ -38,8 +38,8 @@ function layout(gate, _P)
 
     -- draw connection
     geometry.rectanglebltr(gate, generics.metal(1),
-        subgateref:get_anchor("O") .. invref:get_anchor("I"):translate(xpitch - _P.sdwidth / 2 - _P.routingspace, 0),
-        invref:get_anchor("I"):translate(xpitch - _P.sdwidth / 2 - _P.routingspace, _P.routingwidth)
+        subgateref:get_anchor("O") .. invref:get_anchor("I"):translate(xpitch - _P.sdwidth / 2 - _P.routingatespace, 0),
+        invref:get_anchor("I"):translate(xpitch - _P.sdwidth / 2 - _P.routingatespace, _P.routingwidth)
     )
 
     gate:inherit_alignment_box(subgateref)

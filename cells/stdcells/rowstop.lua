@@ -1,7 +1,7 @@
 function parameters()
     pcell.add_parameters(
-        { "glengths", { 40, 40, 40, 40, 40 }, { argtype = "strtable" } },
-        { "gspaces", { 90, 90, 90, 90, 90 }, { argtype = "strtable" } },
+        { "gatelengths", { 40, 40, 40, 40, 40 }, { argtype = "strtable" } },
+        { "gatespaces", { 90, 90, 90, 90, 90 }, { argtype = "strtable" } },
         { "splitgates", true }
     )
 end
@@ -10,7 +10,7 @@ function layout(gate, _P)
     local tp = pcell.get_parameters("basic/mosfet")
     local bp = pcell.get_parameters("stdcells/base")
     local gatecontactpos = {}
-    for i = 1, #_P.glengths do
+    for i = 1, #_P.gatelengths do
         gatecontactpos[i] = "unused"
     end
     local harness = pcell.create_layout("stdcells/harness", "harness", {
@@ -21,16 +21,16 @@ function layout(gate, _P)
     gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 
-    local separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingspace
+    local separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingatespace
     local height = bp.pwidth + bp.nwidth + separation + 2 * bp.powerspace + bp.powerwidth + 2 * math.max(tp.cutheight / 2 + bp.gateext, bp.dummycontheight / 2)
-    local numgates = #_P.glengths
-    local startx = gate:get_anchor("right"):getx() - (bp.glength + bp.gspace) / 2
+    local numgates = #_P.gatelengths
+    local startx = gate:get_anchor("right"):getx() - (bp.gatelength + bp.gatespace) / 2
     local correction = 0
     local shift = 0
     for i = 1, numgates do
-        local gl = _P.glengths[i]
+        local gl = _P.gatelengths[i]
         if i > 1 then
-            shift = shift + gl + _P.gspaces[i] - (_P.glengths[i] - _P.glengths[i - 1]) / 2
+            shift = shift + gl + _P.gatespaces[i] - (_P.gatelengths[i] - _P.glengths[i - 1]) / 2
         end
         -- gates
         geometry.rectanglebltr(
@@ -77,7 +77,7 @@ function layout(gate, _P)
     if _P.splitgates then
         geometry.rectanglebltr(
             gate, generics.other("gatecut"),
-            gate:get_anchor("right"):translate(-(bp.glength + bp.gspace), -tp.cutheight / 2),
+            gate:get_anchor("right"):translate(-(bp.gatelength + bp.gatespace), -tp.cutheight / 2),
             gate:get_anchor("right"):translate(0,  tp.cutheight / 2)
         )
     end

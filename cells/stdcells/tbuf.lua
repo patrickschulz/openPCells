@@ -27,22 +27,22 @@ function layout(gate, _P)
         }), _P.routingwidth)
     geometry.path(gate, generics.metal(2), { inv:get_anchor("I"), cinv:get_anchor("EN") }, _P.routingwidth)
     geometry.viabltr(gate, 1, 2, 
-        inv:get_anchor("I"):translate(-_P.glength / 2, -_P.routingwidth / 2),
-        inv:get_anchor("I"):translate( _P.glength / 2,  _P.routingwidth / 2)
+        inv:get_anchor("I"):translate(-_P.gatelength / 2, -_P.routingwidth / 2),
+        inv:get_anchor("I"):translate( _P.gatelength / 2,  _P.routingwidth / 2)
     )
     geometry.viabltr(gate, 1, 2, 
-        cinv:get_anchor("EN"):translate(-_P.glength / 2, -_P.routingwidth / 2),
-        cinv:get_anchor("EN"):translate( _P.glength / 2,  _P.routingwidth / 2)
+        cinv:get_anchor("EN"):translate(-_P.gatelength / 2, -_P.routingwidth / 2),
+        cinv:get_anchor("EN"):translate( _P.gatelength / 2,  _P.routingwidth / 2)
     )
 
     geometry.path(gate, generics.metal(2), { cinv:get_anchor("I"), point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")) }, _P.routingwidth)
     geometry.viabltr(gate, 1, 2, 
-        point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")):translate(-_P.glength / 2, -_P.routingwidth / 2),
-        point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")):translate( _P.glength / 2,  _P.routingwidth / 2)
+        point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")):translate(-_P.gatelength / 2, -_P.routingwidth / 2),
+        point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")):translate( _P.gatelength / 2,  _P.routingwidth / 2)
     )
     geometry.viabltr(gate, 1, 2, 
-        cinv:get_anchor("I"):translate(-_P.glength / 2, -_P.routingwidth / 2),
-        cinv:get_anchor("I"):translate( _P.glength / 2,  _P.routingwidth / 2)
+        cinv:get_anchor("I"):translate(-_P.gatelength / 2, -_P.routingwidth / 2),
+        cinv:get_anchor("I"):translate( _P.gatelength / 2,  _P.routingwidth / 2)
     )
 
     -- ports

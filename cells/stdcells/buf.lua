@@ -18,13 +18,13 @@ function layout(gate, _P)
     local iinv = pcell.create_layout("stdcells/not_gate", "iinv", util.add_options(baseparameters, { 
         fingers = _P.ifingers, 
         shiftinput = _P.shiftinput1, 
-        shiftoutput = _P.glength / 2 + _P.gspace / 2 
+        shiftoutput = _P.gatelength / 2 + _P.gatespace / 2 
     }))
 
     local oinv = pcell.create_layout("stdcells/not_gate", "oinv", util.add_options(baseparameters, { 
         fingers = _P.ofingers, 
         shiftinput = _P.shiftinput2, 
-        shiftoutput = _P.glength / 2 + _P.gspace / 2 
+        shiftoutput = _P.gatelength / 2 + _P.gatespace / 2 
     }))
     oinv:abut_right(iinv)
     gate:merge_into(iinv)

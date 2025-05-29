@@ -6,7 +6,7 @@ end
 
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
-    local xpitch = bp.gspace + bp.glength
+    local xpitch = bp.gatespace + bp.gatelength
 
     local gatecontactpos = {}
     for i = 1, _P.fingers do gatecontactpos[i] = "split" end

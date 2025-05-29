@@ -9,7 +9,7 @@ end
 
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
-    local xpitch = bp.gspace + bp.glength
+    local xpitch = bp.gatespace + bp.gatelength
 
     local gatecontactpos = { }
     for i = 1, 2 * _P.fingers do
@@ -85,14 +85,14 @@ function layout(gate, _P)
     else
         gate:merge_into(geometry.path(generics.metal(1), 
             {
-                harness:get_anchor("G2"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
-                (harness:get_anchor("G1") .. harness:get_anchor("G2")):translate(-xpitch + bp.sdwidth / 2 + bp.routingspace, 0),
+                harness:get_anchor("G2"):translate(xpitch - bp.sdwidth / 2 - bp.routingatespace, 0),
+                (harness:get_anchor("G1") .. harness:get_anchor("G2")):translate(-xpitch + bp.sdwidth / 2 + bp.routingatespace, 0),
             }, bp.routingwidth
         ))
         gate:merge_into(geometry.path(generics.metal(1), 
             {
-                harness:get_anchor("G1"):translate(-xpitch + bp.sdwidth / 2 + bp.routingspace, 0),
-                (harness:get_anchor("G2") .. harness:get_anchor("G1")):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
+                harness:get_anchor("G1"):translate(-xpitch + bp.sdwidth / 2 + bp.routingatespace, 0),
+                (harness:get_anchor("G2") .. harness:get_anchor("G1")):translate(xpitch - bp.sdwidth / 2 - bp.routingatespace, 0),
             }, bp.routingwidth
         ))
     end

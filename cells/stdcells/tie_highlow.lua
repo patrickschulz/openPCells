@@ -7,7 +7,7 @@ function parameters()
 end
 
 function layout(cell, _P)
-    local xpitch = _P.gspace + _P.glength
+    local xpitch = _P.gatespace + _P.gatelength
 
     local gatecontactpos = util.fill_all_with(_P.fingers, "center")
     for i = 1, _P.fingers do gatecontactpos[i] = "center" end
@@ -38,8 +38,8 @@ function layout(cell, _P)
     local invert = _P.high and 1 or -1
     geometry.rectanglebltr(
         cell, generics.metal(1),
-        harness:get_area_anchor(string.format("G%d", 1)).bl:translate(0, invert * (_P.routingwidth + _P.routingspace)),
-        harness:get_area_anchor(string.format("G%d", _P.fingers)).tr:translate(0, invert * (_P.routingwidth + _P.routingspace))
+        harness:get_area_anchor(string.format("G%d", 1)).bl:translate(0, invert * (_P.routingwidth + _P.routingatespace)),
+        harness:get_area_anchor(string.format("G%d", _P.fingers)).tr:translate(0, invert * (_P.routingwidth + _P.routingatespace))
     )
 
     -- connect drains to gate
@@ -63,13 +63,13 @@ function layout(cell, _P)
     for i = 2, _P.fingers, 2 do
         if _P.high then
             geometry.rectanglebltr(cell, generics.metal(1),
-                harness:get_area_anchor(string.format("pSD%d", i)).bl:translate(0, -_P.routingspace),
+                harness:get_area_anchor(string.format("pSD%d", i)).bl:translate(0, -_P.routingatespace),
                 harness:get_area_anchor(string.format("pSD%d", i)).br
             )
         else
             geometry.rectanglebltr(cell, generics.metal(1),
                 harness:get_area_anchor(string.format("nSD%d", i)).tl,
-                harness:get_area_anchor(string.format("nSD%d", i)).tr:translate(0, _P.routingspace)
+                harness:get_area_anchor(string.format("nSD%d", i)).tr:translate(0, _P.routingatespace)
             )
         end
     end

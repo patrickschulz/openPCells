@@ -7,8 +7,8 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local xpitch = _P.gspace + _P.glength
-    local yrpitch = _P.routingwidth + _P.routingspace
+    local xpitch = _P.gatespace + _P.gatelength
+    local yrpitch = _P.routingwidth + _P.routingatespace
 
     local gatecontactpos = {
         "center", "center", "lower", "upper", "center", "dummy"
@@ -59,7 +59,7 @@ function layout(gate, _P)
 
     local anchor = function(str, suffix) return harness:get_anchor(string.format("%s%s", str, suffix or "")) end
 
-    local spacing = _P.sdwidth / 2 + _P.routingspace
+    local spacing = _P.sdwidth / 2 + _P.routingatespace
     local yinvert = _P.clockpolarity == "positive" and 1 or -1
 
     local gateoffset = _P.enable_reset and 1 or 0
@@ -112,17 +112,17 @@ function layout(gate, _P)
         }),
     _P.sdwidth))
     gate:merge_into(geometry.rectanglebltr(generics.via(1, 2), 
-        anchor("G9cc"):translate(-_P.glength / 2, -_P.routingwidth / 2),
-        anchor("G9cc"):translate( _P.glength / 2,  _P.routingwidth / 2)
+        anchor("G9cc"):translate(-_P.gatelength / 2, -_P.routingwidth / 2),
+        anchor("G9cc"):translate( _P.gatelength / 2,  _P.routingwidth / 2)
     ))
     gate:merge_into(geometry.rectanglebltr(generics.via(1, 2), 
-        anchor("G13cc"):translate(-_P.glength / 2, -_P.routingwidth / 2),
-        anchor("G13cc"):translate( _P.glength / 2,  _P.routingwidth / 2)
+        anchor("G13cc"):translate(-_P.gatelength / 2, -_P.routingwidth / 2),
+        anchor("G13cc"):translate( _P.gatelength / 2,  _P.routingwidth / 2)
     ))
     if _P.enable_reset then
         gate:add_port("RST", generics.metalport(1), anchor("G16cc"):translate(-xpitch / 2, 0))
     end
-    gate:add_port("D", generics.metalport(1), anchor("G1cc"):translate(0, yinvert * 2 * (_P.routingwidth + _P.routingspace)))
+    gate:add_port("D", generics.metalport(1), anchor("G1cc"):translate(0, yinvert * 2 * (_P.routingwidth + _P.routingatespace)))
     gate:add_port("CLK", generics.metalport(1), anchor("G1cc"))
     gate:add_port("VDD", generics.metalport(1), anchor("top"))
     gate:add_port("VSS", generics.metalport(1), anchor("bottom"))
