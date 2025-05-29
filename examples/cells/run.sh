@@ -2,4 +2,5 @@
 
 ../../opc --technology opc --export gds --cellscript mosfet.lua --filename mosfet
 ../../opc --technology opc --export gds --cellscript ringoscillator.lua --filename ringoscillator
+../../opc --technology opc --export gds --cellscript current_starved_ringoscillator.lua --filename current_starved_ringoscillator --enable-dprint
 ../../opc --technology opc --export gds --cellscript comparator.lua --filename comparator
