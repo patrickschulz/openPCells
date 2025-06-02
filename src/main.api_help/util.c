@@ -534,6 +534,21 @@
         sizeof(parameters) / sizeof(parameters[0])
     ));
 }
+/* util.offset_polygon(polygon, offset) */
+{
+    struct parameter parameters[] = {
+        { "polygon",    POINTLIST,  NULL, "subject polygon" },
+        { "offset",     INTEGER,    NULL, "offset" },
+    };
+    vector_append(entries, _make_api_entry(
+        "offset_polygon",
+        MODULE_UTIL,
+        "Calculate a new polygon from a given one with all lines shifted by a given offset. This function has potentially many uses, but as of version 0.10.0 it is mostly used for expanding layer boundaries to include mandatory spacing to automatically generated fill structures. Hence, it is only tested for positive offsets. Additionally, for extreme cases (acute angles with large offsets) self-intersecting polygons can occur. This function should fix these, but it currently does not. This is a bug. Submission of proper algorithms to solve this are very welcome.",
+        "local new_polygon = util.offset_polygon(polygon, 100)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
 
 /* util.rectangle_intersection(value, ratio) */
 {
