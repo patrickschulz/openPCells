@@ -187,7 +187,7 @@ end
 ---------------------------------------------------------------------------------
 --                         In-cell layout functions                            --
 ---------------------------------------------------------------------------------
-function placement.create_reference_rows(cellnames, xpitch)
+function placement.create_reference_rows(cellnames, xpitch, commonargs)
     if not cellnames or type(cellnames) ~= "table" then
         moderror("placement.create_reference_rows: table for 'cellnames' (first argument) expected")
     end
@@ -209,7 +209,7 @@ function placement.create_reference_rows(cellnames, xpitch)
                 cellname = entry
             end
             if not references[cellname] then
-                references[cellname] = pcell.create_layout(string.format("stdcells/%s", cellname), cellname, args)
+                references[cellname] = pcell.create_layout(cellname, cellname, util.add_options(commonargs, args))
             end
             names[row][column] = {
                 instance = instance,

@@ -3,21 +3,22 @@ local M = {}
 local function _write_module(rows, routes, numinnerroutes, pnumtracks, nnumtracks)
     local lines = {}
     table.insert(lines, 'function layout(toplevel)')
+    --[[
     table.insert(lines, '    pcell.push_overwrites("stdcells/base", {')
     table.insert(lines, string.format('        pnumtracks = %i,', pnumtracks))
     table.insert(lines, string.format('        nnumtracks = %i,', nnumtracks))
     table.insert(lines, string.format('        numinnerroutes= %i,', numinnerroutes))
     table.insert(lines, string.format('        drawtopbotwelltaps = %s,', 'false'))
     table.insert(lines, '    })')
+    --]]
 
-    table.insert(lines, '    local bp = pcell.get_parameters("stdcells/base")')
     -- placement
     if rows then
         table.insert(lines, '    local cellnames = {')
         for _, row in ipairs(rows) do
             table.insert(lines, '        {')
             for _, column in ipairs(row) do
-                table.insert(lines, string.format('            { instance = "%s", reference = "%s" },',
+                table.insert(lines, string.format('            { instance = "%s", reference = "stdcells/%s" },',
                 column.instance,
                 column.reference
                 ))
@@ -25,8 +26,19 @@ local function _write_module(rows, routes, numinnerroutes, pnumtracks, nnumtrack
             table.insert(lines, '        },')
         end
         table.insert(lines, '    }')
-        table.insert(lines, '    local xpitch = bp.gspace + bp.glength')
-        table.insert(lines, '    local rows = placement.create_reference_rows(cellnames, xpitch)')
+        -- FIXME: remove hard-coded values (values are for opc tech)
+        table.insert(lines, '    local baseopt = {')
+        table.insert(lines, '        sdwidth = 200,')
+        table.insert(lines, '        gatelength = 500,')
+        table.insert(lines, '        gatespace = 320,')
+        table.insert(lines, '        routingwidth = 200,')
+        table.insert(lines, '        routingspace = 200,')
+        table.insert(lines, '        pnumtracks = 3,')
+        table.insert(lines, '        nnumtracks = 3,')
+        table.insert(lines, '        numinnerroutes = 3,')
+        table.insert(lines, '    }')
+        table.insert(lines, '    local xpitch = 820')
+        table.insert(lines, '    local rows = placement.create_reference_rows(cellnames, xpitch, baseopt)')
         table.insert(lines, string.format('    local cells = placement.rowwise(toplevel, rows)'))
     else
         print("no placement information found")
@@ -53,12 +65,12 @@ local function _write_module(rows, routes, numinnerroutes, pnumtracks, nnumtrack
             table.insert(lines, '        },')
         end
         table.insert(lines, '    }')
-        table.insert(lines, '    local width = bp.routingwidth')
-        table.insert(lines, '    local xgrid = bp.gspace + bp.glength')
-        table.insert(lines, '    local ygrid = bp.routingwidth + bp.routingspace')
-        table.insert(lines, '    local pnumtracks = bp.pnumtracks')
-        table.insert(lines, '    local nnumtracks = bp.nnumtracks')
-        table.insert(lines, '    local numinnerroutes = bp.numinnerroutes')
+        table.insert(lines, '    local width = 200 -- routingwidth')
+        table.insert(lines, '    local xgrid = 500 + 320 -- gatelength + gatespace')
+        table.insert(lines, '    local ygrid = 200 + 200 -- routingwidth + routingspace')
+        table.insert(lines, '    local pnumtracks = 3')
+        table.insert(lines, '    local nnumtracks = 3')
+        table.insert(lines, '    local numinnerroutes = 3')
         table.insert(lines, string.format('    routing.route(toplevel, routes, width, numinnerroutes, pnumtracks, nnumtracks, xgrid, ygrid)'))
     else
         print("no routing information found")
