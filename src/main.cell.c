@@ -20,11 +20,6 @@
 
 #include "config.h"
 
-#include "main.functions.h"
-
-#include "modulemanager.h"
-#include "scriptmanager.h"
-
 static struct technology_state* _create_techstate(struct vector* techpaths, const char* techname, const struct const_vector* ignoredlayers)
 {
     struct technology_state* techstate = technology_initialize();
@@ -171,7 +166,6 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     struct const_vector* parameternames = const_vector_adapt_from_pointer_array((void**)ptr);
 
     pcell_list_parameters(pcell_state, techstate, cellname, parametersformat, parameternames);
-LIST_PARAMETERS_DESTROY_PCELL_STATE:
     pcell_destroy_state(pcell_state);
 LIST_PARAMETERS_DESTROY_TECHNOLOGY:
     if(techstate)
@@ -202,7 +196,6 @@ void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* confi
     struct const_vector* parameternames = const_vector_adapt_from_pointer_array((void**)ptr);
 
     pcell_list_anchors(pcell_state, cellname, anchorsformat, parameternames);
-LIST_ANCHORS_DESTROY_PCELL_STATE:
     pcell_destroy_state(pcell_state);
 }
 

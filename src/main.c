@@ -125,6 +125,8 @@ void _print_general_info(void)
     puts("You can find out more about the available command line options by running 'opc -h'.");
 }
 
+#include "modulemanager.h"
+
 int main(int argc, const char* const * argv)
 {
     // no arguments: exit and write a short helpful message if called without any arguments

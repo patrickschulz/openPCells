@@ -13,7 +13,6 @@
 #include "lua_util.h"
 #include "ldir.h"
 #include "lobject.h"
-#include "main.functions.h"
 #include "ldebug.h"
 
 #include "scriptmanager.h"
@@ -297,7 +296,12 @@ struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, 
     lua_pushstring(L, scriptname);
     // cell arguments
     lua_newtable(L);
-    _process_input_arguments(L, cellargs);
+    for(unsigned int i = 0; i < const_vector_size(cellargs); ++i)
+    {
+        const char* str = const_vector_get(cellargs, i);
+        lua_pushstring(L, str);
+        lua_rawseti(L, -2, i + 1);
+    }
     // load cell environment
     if(!_load_cellenv(L, cellenvfilename))
     {
