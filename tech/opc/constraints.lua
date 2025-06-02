@@ -5,6 +5,6 @@ return {
     ["Minimum Gate Width"]     = 500,
     ["Minimum Gate XSpace"]    = 300,
     ["Minimum Gate YSpace"]    = 300,
-    ["Minimum M1 Width"]       = 200,
-    ["Minimum M1 Space"]       = 200,
+    ["Minimum M1 Width"]       = 400,
+    ["Minimum M1 Space"]       = 400,
 }
