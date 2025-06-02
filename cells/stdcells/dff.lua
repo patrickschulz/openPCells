@@ -49,7 +49,7 @@ end
 
 function layout(dff, _P)
     local xpitch = _P.gatespace + _P.gatelength
-    local yrpitch = _P.routingwidth + _P.routingatespace
+    local yrpitch = _P.routingwidth + _P.routingspace
 
     -- define transistor templates
     -- this is used to assign names to gates and source/drain regions
@@ -206,7 +206,7 @@ function layout(dff, _P)
     local glowerbase = dff:get_area_anchor("Glowerbase")
     local gupperbase = dff:get_area_anchor("Gupperbase")
 
-    local spacing = _P.sdwidth / 2 + _P.routingatespace
+    local spacing = _P.sdwidth / 2 + _P.routingspace
 
     -- clock buffer input port landing
     geometry.rectanglebltr(dff, generics.metal(1),
@@ -262,17 +262,17 @@ function layout(dff, _P)
 
     -- D input port landing
     geometry.viabltr(dff, 1, 2,
-        gate("clockbufinput1").bl:translate(-xpitch,           2 * (_P.routingwidth + _P.routingatespace)),
-        gate("clockbufinput1").tl:translate( xpitch - spacing, 2 * (_P.routingwidth + _P.routingatespace))
+        gate("clockbufinput1").bl:translate(-xpitch,           2 * (_P.routingwidth + _P.routingspace)),
+        gate("clockbufinput1").tl:translate( xpitch - spacing, 2 * (_P.routingwidth + _P.routingspace))
     )
     -- cinv D connection
     geometry.viabltr(dff, 1, 2,
         gate("cinvinput").bl:translate_x(-2 * xpitch),
         gate("cinvinput").tl:translate_x( 1 * xpitch - spacing)
     )
-    --[[
+    ---[[
     geometry.rectanglebltr(dff, generics.metal(2),
-        gate("clockbufinput1").bl:translate(-xpitch,           2 * (_P.routingwidth + _P.routingatespace)),
+        gate("clockbufinput1").bl:translate(-xpitch,           2 * (_P.routingwidth + _P.routingspace)),
         gate("cinvinput").tl:translate_x( 1 * xpitch - spacing)
     )
 
@@ -366,7 +366,7 @@ function layout(dff, _P)
     geometry.path(dff, generics.metal(1),
         geometry.path_points_xy(gate("latch1invinput").bl:translate_y(_P.sdwidth / 2), {
             -xpitch,
-            (_P.routingwidth + _P.routingatespace) / (_P.numinnerroutes % 2 == 0 and 2 or 1),
+            (_P.routingwidth + _P.routingspace) / (_P.numinnerroutes % 2 == 0 and 2 or 1),
             sourcedrainright("p", "cinvdummy1").bl:translate_x(_P.sdwidth / 2)
     }), _P.sdwidth)
 
@@ -437,7 +437,7 @@ function layout(dff, _P)
     geometry.path(dff, generics.metal(1),
         geometry.path_points_xy(gate("latch2invinput").bl:translate_y(_P.sdwidth / 2), {
             -xpitch,
-            (_P.routingwidth + _P.routingatespace) / (_P.numinnerroutes % 2 == 0 and 2 or 1),
+            (_P.routingwidth + _P.routingspace) / (_P.numinnerroutes % 2 == 0 and 2 or 1),
             sourcedrainright("p", string.format("tgatedummy%d", _P.tgatelatch2separationdummies)).bl:translate_x(_P.sdwidth / 2)
     }), _P.sdwidth)
 
@@ -514,19 +514,19 @@ function layout(dff, _P)
     -- ports
     dff:add_port("VDD", generics.metalport(1), dff:get_area_anchor("PRp").bl)
     dff:add_port("VSS", generics.metalport(1), dff:get_area_anchor("PRn").bl)
-    dff:add_port("CLK", generics.metalport(1), gate("clockbufinput1").bl)
-    dff:add_port("D", generics.metalport(1), gate("clockbufinput1").bl:translate_y(2 * (_P.routingwidth + _P.routingatespace)))
+    dff:add_port_with_anchor("CLK", generics.metalport(1), gate("clockbufinput1").bl)
+    dff:add_port_with_anchor("D", generics.metalport(1), gate("clockbufinput1").bl:translate_y(2 * (_P.routingwidth + _P.routingspace)))
     if _P.enable_Q then
-        dff:add_port("Q", generics.metalport(1), gate("bufferinput").bl:translate_x(xpitch))
+        dff:add_port_with_anchor("Q", generics.metalport(1), gate("bufferinput").bl:translate_x(xpitch))
     end
     if _P.enable_QN then
-        dff:add_port("QN", generics.metalport(1), gate("outinv2"):translate(xpitch, 0))
+        dff:add_port_with_anchor("QN", generics.metalport(1), gate("outinv2"):translate(xpitch, 0))
     end
     if _P.enable_set then
-        --dff:add_port("SET", generics.metalport(2), point.combine(gate("tgateEN"), gate(22)))
+        dff:add_port_with_anchor("SET", generics.metalport(2), point.combine(gate("tgateEN"), gate(22)))
     end
     if _P.enable_reset then
-        dff:add_port("RST", generics.metalport(2), gate("clockbufinput1").bl)
+        dff:add_port_with_anchor("RST", generics.metalport(2), gate("clockbufinput1").bl)
     end
     --]]
 end

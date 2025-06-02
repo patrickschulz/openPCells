@@ -144,9 +144,9 @@ function layout(gate, _P)
         harness:get_area_anchor("G10").tr
     )
 
-    gate:add_port("A", generics.metalport(1), harness:get_area_anchor("G1").bl)
-    gate:add_port("B", generics.metalport(1), point.combine_12(harness:get_area_anchor("G1").bl, harness:get_area_anchor("G4").bl))
-    gate:add_port("O", generics.metalport(1), harness:get_area_anchor("G10").bl:translate(2 * xpitch, 0))
-    gate:add_port("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
-    gate:add_port("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
+    gate:add_port_with_anchor("A", generics.metalport(1), harness:get_area_anchor("G1").bl)
+    gate:add_port_with_anchor("B", generics.metalport(1), point.combine_12(harness:get_area_anchor("G1").bl, harness:get_area_anchor("G4").bl))
+    gate:add_port_with_anchor("O", generics.metalport(1), harness:get_area_anchor("G10").bl:translate(2 * xpitch, 0))
+    gate:add_port_with_anchor("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
+    gate:add_port_with_anchor("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
 end

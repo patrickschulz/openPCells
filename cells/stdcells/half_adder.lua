@@ -35,8 +35,8 @@ function layout(gate, _P)
         andgate:get_anchor("B"):translate( bp.sdwidth / 2,  bp.sdwidth / 2)
     )
 
-    gate:add_port("A", generics.metalport(1), andgate:get_anchor("A"))
-    gate:add_port("B", generics.metalport(1), andgate:get_anchor("B"))
-    gate:add_port("COUT", generics.metalport(1), andgate:get_anchor("O"))
+    gate:add_port_with_anchor("A", generics.metalport(1), andgate:get_anchor("A"))
+    gate:add_port_with_anchor("B", generics.metalport(1), andgate:get_anchor("B"))
+    gate:add_port_with_anchor("COUT", generics.metalport(1), andgate:get_anchor("O"))
     gate:add_port("S", generics.metalport(1), xorgate:get_anchor("O"))
 end

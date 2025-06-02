@@ -21,7 +21,7 @@ end
 
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base");
-    local separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingatespace
+    local separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingspace
 
     -- isolation dummy
     local isogateref = pcell.create_layout("stdcells/isogate", "isogate")

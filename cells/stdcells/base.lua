@@ -16,7 +16,7 @@ function parameters()
         { "gatespace(Gate Spacing)",                                    technology.get_dimension("Minimum Gate XSpace") },
         { "sdwidth(Source/Drain Metal Width)",                          technology.get_dimension("Minimum M1 Width"), posvals = even() },
         { "routingwidth(Routing Metal Width)",                          technology.get_dimension("Minimum M1 Width") },
-        { "routingatespace(Routing Metal Space)",                          technology.get_dimension("Minimum M1 Space") },
+        { "routingspace(Routing Metal Space)",                          technology.get_dimension("Minimum M1 Space") },
         { "pnumtracks(Number of PMOS Routing Tracks)",                  4 },
         { "nnumtracks(Number of NMOS Routing Tracks)",                  4 },
         { "numinnerroutes(Number of inner M1 routes)",                  3 }, -- the current implementations expects this to be 3 always, so don't change this

@@ -85,14 +85,14 @@ function layout(gate, _P)
     else
         gate:merge_into(geometry.path(generics.metal(1), 
             {
-                harness:get_anchor("G2"):translate(xpitch - bp.sdwidth / 2 - bp.routingatespace, 0),
-                (harness:get_anchor("G1") .. harness:get_anchor("G2")):translate(-xpitch + bp.sdwidth / 2 + bp.routingatespace, 0),
+                harness:get_anchor("G2"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
+                (harness:get_anchor("G1") .. harness:get_anchor("G2")):translate(-xpitch + bp.sdwidth / 2 + bp.routingspace, 0),
             }, bp.routingwidth
         ))
         gate:merge_into(geometry.path(generics.metal(1), 
             {
-                harness:get_anchor("G1"):translate(-xpitch + bp.sdwidth / 2 + bp.routingatespace, 0),
-                (harness:get_anchor("G2") .. harness:get_anchor("G1")):translate(xpitch - bp.sdwidth / 2 - bp.routingatespace, 0),
+                harness:get_anchor("G1"):translate(-xpitch + bp.sdwidth / 2 + bp.routingspace, 0),
+                (harness:get_anchor("G2") .. harness:get_anchor("G1")):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
             }, bp.routingwidth
         ))
     end

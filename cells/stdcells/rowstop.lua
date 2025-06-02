@@ -21,7 +21,7 @@ function layout(gate, _P)
     gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 
-    local separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingatespace
+    local separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingspace
     local height = bp.pwidth + bp.nwidth + separation + 2 * bp.powerspace + bp.powerwidth + 2 * math.max(tp.cutheight / 2 + bp.gateext, bp.dummycontheight / 2)
     local numgates = #_P.gatelengths
     local startx = gate:get_anchor("right"):getx() - (bp.gatelength + bp.gatespace) / 2

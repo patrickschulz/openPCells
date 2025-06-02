@@ -9,14 +9,20 @@ end
 function layout(gate, _P)
     local xpitch = _P.gatespace + _P.gatelength
 
-    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
+    local baseparameters = {}
+    for k, v in pairs(_P) do
+        if pcell.has_parameter("stdcells/harness", k) then
+            baseparameters[k] = v
+        end
+    end
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", util.add_options(baseparameters, {
         gatecontactpos = { "dummy" },
         pcontactpos = { "power", "power" },
         ncontactpos = { "power", "power" },
         pwidthoffset = _P.pwidthoffset,
         nwidthoffset = _P.nwidthoffset,
         drawdummyactivecontacts = false,
-    })
+    }))
     gate:merge_into(harness)
 
     gate:inherit_alignment_box(harness)

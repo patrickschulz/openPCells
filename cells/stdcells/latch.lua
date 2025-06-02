@@ -8,7 +8,7 @@ end
 
 function layout(gate, _P)
     local xpitch = _P.gatespace + _P.gatelength
-    local yrpitch = _P.routingwidth + _P.routingatespace
+    local yrpitch = _P.routingwidth + _P.routingspace
 
     local gatecontactpos = {
         "center", "center", "lower", "upper", "center", "dummy"
@@ -59,7 +59,7 @@ function layout(gate, _P)
 
     local anchor = function(str, suffix) return harness:get_anchor(string.format("%s%s", str, suffix or "")) end
 
-    local spacing = _P.sdwidth / 2 + _P.routingatespace
+    local spacing = _P.sdwidth / 2 + _P.routingspace
     local yinvert = _P.clockpolarity == "positive" and 1 or -1
 
     local gateoffset = _P.enable_reset and 1 or 0
@@ -122,7 +122,7 @@ function layout(gate, _P)
     if _P.enable_reset then
         gate:add_port("RST", generics.metalport(1), anchor("G16cc"):translate(-xpitch / 2, 0))
     end
-    gate:add_port("D", generics.metalport(1), anchor("G1cc"):translate(0, yinvert * 2 * (_P.routingwidth + _P.routingatespace)))
+    gate:add_port("D", generics.metalport(1), anchor("G1cc"):translate(0, yinvert * 2 * (_P.routingwidth + _P.routingspace)))
     gate:add_port("CLK", generics.metalport(1), anchor("G1cc"))
     gate:add_port("VDD", generics.metalport(1), anchor("top"))
     gate:add_port("VSS", generics.metalport(1), anchor("bottom"))

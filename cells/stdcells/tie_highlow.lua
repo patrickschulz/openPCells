@@ -38,8 +38,8 @@ function layout(cell, _P)
     local invert = _P.high and 1 or -1
     geometry.rectanglebltr(
         cell, generics.metal(1),
-        harness:get_area_anchor(string.format("G%d", 1)).bl:translate(0, invert * (_P.routingwidth + _P.routingatespace)),
-        harness:get_area_anchor(string.format("G%d", _P.fingers)).tr:translate(0, invert * (_P.routingwidth + _P.routingatespace))
+        harness:get_area_anchor(string.format("G%d", 1)).bl:translate(0, invert * (_P.routingwidth + _P.routingspace)),
+        harness:get_area_anchor(string.format("G%d", _P.fingers)).tr:translate(0, invert * (_P.routingwidth + _P.routingspace))
     )
 
     -- connect drains to gate
@@ -63,19 +63,19 @@ function layout(cell, _P)
     for i = 2, _P.fingers, 2 do
         if _P.high then
             geometry.rectanglebltr(cell, generics.metal(1),
-                harness:get_area_anchor(string.format("pSD%d", i)).bl:translate(0, -_P.routingatespace),
+                harness:get_area_anchor(string.format("pSD%d", i)).bl:translate(0, -_P.routingspace),
                 harness:get_area_anchor(string.format("pSD%d", i)).br
             )
         else
             geometry.rectanglebltr(cell, generics.metal(1),
                 harness:get_area_anchor(string.format("nSD%d", i)).tl,
-                harness:get_area_anchor(string.format("nSD%d", i)).tr:translate(0, _P.routingatespace)
+                harness:get_area_anchor(string.format("nSD%d", i)).tr:translate(0, _P.routingspace)
             )
         end
     end
 
     -- ports
-    cell:add_port("O", generics.metalport(1), harness:get_area_anchor(string.format("%sSD%d", _P.high and "p" or "n", _P.fingers)).bl:translate(0, (_P.high and 1 or -1) * _P.sdwidth / 2))
+    cell:add_port_with_anchor("O", generics.metalport(1), harness:get_area_anchor(string.format("%sSD%d", _P.high and "p" or "n", _P.fingers)).bl:translate(0, (_P.high and 1 or -1) * _P.sdwidth / 2))
     cell:add_port("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
     cell:add_port("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
 end
