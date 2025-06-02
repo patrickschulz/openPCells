@@ -46,7 +46,9 @@ function parameters()
         { "powerwidth",             3 * technology.get_dimension("Minimum M1 Width") },
         { "powerspace",             3 * technology.get_dimension("Minimum M1 Space") },
         { "connectionwidth",        technology.get_dimension("Minimum M1 Width"), follow = "sdwidth" },
-        { "feedbackmetal",          3 }
+        { "feedbackmetal",          3 },
+        { "pgateext",               0 },
+        { "ngateext",               0 }
     )
 end
 
@@ -71,8 +73,8 @@ function layout(oscillator, _P)
         gatestrapspace = _P.gatestrapspace,
         sdwidth = _P.sdwidth,
         outputwidth = _P.connectionwidth,
-        pgateext = _P.powerspace + _P.powerwidth,
-        ngateext = _P.powerspace + _P.powerwidth,
+        pgateext = _P.pgateext,
+        ngateext = _P.ngateext,
         numleftdummies = _P.invdummies,
         numrightdummies = _P.invdummies,
     }

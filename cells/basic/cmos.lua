@@ -210,7 +210,7 @@ function check(_P)
             return false, string.format("can't fit all gate straps into the separation between nmos and pmos: %d > %d", _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace, _P.separation)
         end
         if (_P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace) ~= _P.separation then
-            return false, string.format("the separation between nmos and pmos must have the exact size to fit %d rows of gate contacts (%d vs. %d)", _P.innergatestraps, _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace, _P.separation)
+            return false, string.format("the separation between nmos and pmos must have the exact size to fit %d rows of gate contacts (%d vs. %d)", _P.innergatestraps, _P.separation, _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace)
         end
     end
     -- check number of gate and source/drain contacts

@@ -83,8 +83,8 @@ function parameters()
         { "nmoscurrentfingers",    2, posvals = even() },
         { "nmosdiodefingers",      4, posvals = even() },
         { "mosdummieseverynth",    1 },
-        { "glength",               technology.get_dimension("Minimum Gate Length") },
-        { "gspace",                technology.get_dimension("Minimum Gate XSpace") },
+        { "gatelength",            technology.get_dimension("Minimum Gate Length") },
+        { "gatespace",             technology.get_dimension("Minimum Gate XSpace") },
         { "pfingerwidth",          2 * technology.get_dimension("Minimum Gate Width") },
         { "nfingerwidth",          2 * technology.get_dimension("Minimum Gate Width") },
         { "pfingercontactwidth",   technology.get_dimension("Minimum Gate Width") },
@@ -102,14 +102,15 @@ function parameters()
 end
 
 function layout(oscillator, _P)
-    local xpitch = _P.glength + _P.gspace
+    local xpitch = _P.gatelength + _P.gatespace
 
     local separation = 3 * _P.gstwidth + 4 * _P.gstspace
 
     local baseopt = {
-        gatelength = _P.glength,
-        gatespace = _P.gspace,
+        gatelength = _P.gatelength,
+        gatespace = _P.gatespace,
         gatestrapwidth = _P.gstwidth,
+        gatestrapspace = _P.gstspace,
         sdwidth = _P.gstwidth,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
@@ -505,7 +506,7 @@ function layout(oscillator, _P)
         buffer:get_area_anchor(string.format("G%d", _P.bufspacers + 1)).tr
     )
     geometry.viabltr(oscillator, 1, 2,
-        inverters[_P.numinv]:get_area_anchor(string.format("G%d", 2 * _P.invfingers - 1)).bl:translate(xpitch + _P.glength + _P.gstwidth / 2, 0),
+        inverters[_P.numinv]:get_area_anchor(string.format("G%d", 2 * _P.invfingers - 1)).bl:translate(xpitch + _P.gatelength + _P.gstwidth / 2, 0),
         buffer:get_area_anchor(string.format("G%d", _P.bufspacers + 1)).tr
     )
     -- FIXME: make bigger (ideally parameterized)
@@ -517,7 +518,7 @@ function layout(oscillator, _P)
 
     -- connect core to buffer
     geometry.rectanglebltr(oscillator, generics.metal(1),
-        inverters[_P.numinv]:get_area_anchor(string.format("G%d", 2 * _P.invfingers - 1)).bl:translate(xpitch + _P.glength + _P.gstwidth / 2, 0),
+        inverters[_P.numinv]:get_area_anchor(string.format("G%d", 2 * _P.invfingers - 1)).bl:translate(xpitch + _P.gatelength + _P.gstwidth / 2, 0),
         buffer:get_area_anchor(string.format("G%d", _P.bufspacers + 1)).tr
     )
 
