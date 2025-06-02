@@ -189,6 +189,9 @@ function util.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext, xm
 end
 
 function util.offset_polygon(polygon, offset)
+    check.set_next_function_name("util.offset_polygon")
+    check.arg(1, "polygon", "table", polygon)
+    check.arg(2, "offset", "number", offset)
     return geometry.offset_polygon_points(polygon, offset)
 end
 
@@ -829,4 +832,3 @@ function util.uniq(t)
     end
     return results
 end
-
