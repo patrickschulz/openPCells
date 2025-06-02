@@ -643,7 +643,7 @@ void main_API_search(const char* name)
 {
     struct vector* entries = _initialize_api_entries();
     struct vector_const_iterator* it = vector_const_iterator_create(entries);
-    unsigned int found = 0;
+    struct const_vector* found_entries = const_vector_create(1);
     while(vector_const_iterator_is_valid(it))
     {
         const struct api_entry* entry = vector_const_iterator_get(it);
@@ -656,7 +656,26 @@ void main_API_search(const char* name)
         }
         if(ffound || mfound)
         {
-            ++found;
+            const_vector_append(found_entries, entry);
+        }
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    if(const_vector_size(found_entries) == 0)
+    {
+        puts("no entries found");
+    }
+    else if(const_vector_size(found_entries) == 1) // only one entry, display API help
+    {
+        const struct api_entry* entry = const_vector_get(found_entries, 0);
+        _print_api_entry(entry);
+    }
+    else // found multiple entries, just list the names
+    {
+        for(size_t i = 0; i < const_vector_size(found_entries); ++i)
+        {
+            const struct api_entry* entry = const_vector_get(found_entries, i);
+            const char* modulename = _stringify_module(entry->module);
             if(modulename)
             {
                 _putstr(modulename);
@@ -670,14 +689,8 @@ void main_API_search(const char* name)
                 putchar('\n');
             }
         }
-        vector_const_iterator_next(it);
     }
-    vector_const_iterator_destroy(it);
     _destroy_api_entries(entries);
-    if(found == 0)
-    {
-        puts("no entries found");
-    }
 }
 
 void main_API_list(void)
