@@ -6,6 +6,13 @@ This module provides a collection of geometry-related helper functions such as:
     - easier insertion of points in arrays
 --]]
 
+-- implementation note:
+-- the global symbol 'util' already exists at this point,
+-- hence the functions are written directly into it.
+-- This is because there is a c-part of this module, that
+-- is loaded before the lua part is.
+-- There, the global table 'util' is created.
+
 function util.min(t)
     check.set_next_function_name("util.min")
     check.arg(1, "t", "table", t)
