@@ -25,6 +25,11 @@ openPCells_extracted.cir
 pfile.lua
 verilogimport
 
+# generated files in example folder
+examples/digital/digital.lua
+examples/*/*.gds
+examples/*/*.sp
+
 # NDA-related
 tech/GF22FDSOI
 tech/cmos22fdsoi
