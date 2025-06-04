@@ -164,6 +164,22 @@ procedure(OPCSubCellEdit()
     ) ; let
 ) ; procedure
 
+procedure(OPCGetSubCellCellParameters(opcgroup)
+    let((value parameterlist)
+        parameterlist = nil
+        foreach(p opcgroup->prop
+            unless(p->name == "opccell"
+                value = case(p->valueType
+                    ("float" lsprintf("%d" p->value * 1000))
+                    (t nil)
+                )
+                parameterlist = cons(list(p->name value parameterlist))
+            )
+        )
+        parameterlist
+    )
+); OPCGetSubCellCellParameters
+
 procedure(OPCSubCellUpdate()
     let(
         (opcgroup)
@@ -180,12 +196,16 @@ procedure(OPCSubCellUpdate()
                             ?xgroupname opcgroup->name
                         )
                     else
-                        OPCUpdateCellCellCallback(
-                            opcgroup->opccell
-                            ?hierarchical nil
-                            ?deleteAll nil
-                            ?origin opcgroup->origin
-                            ?xgroupname opcgroup->name
+                        let(
+                            (parameterlist)
+                            parameterlist = OPCGetSubCellCellParameters(opcgroup)
+                            OPCUpdateCellCellCallback(
+                                opcgroup->opccell
+                                ?hierarchical nil
+                                ?deleteAll nil
+                                ?origin opcgroup->origin
+                                ?xgroupname opcgroup->name
+                            )
                         )
                 )
             else
