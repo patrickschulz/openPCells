@@ -82,7 +82,7 @@ procedure(OPCCellWritePfile(parameterlist)
     )
 ) ; OPCCreateCellInternal
 
-procedure(OPCUpdateCellCellCallback(cellname @key (deleteAll t) (callopc t) (hierarchical t) (origin list(0 0)) (xpath nil) (xgroupname nil))
+procedure(OPCUpdateCellCellCallback(cellname parameterlist @key (deleteAll t) (callopc t) (hierarchical t) (origin list(0 0)) (xpath nil) (xgroupname nil))
     letseq(
         (
             (cv geGetEditCellView())
@@ -96,7 +96,7 @@ procedure(OPCUpdateCellCellCallback(cellname @key (deleteAll t) (callopc t) (hie
             else
                 groupname = OPCGetGroupName()
         )
-        OPCCellWritePfile(list(list("ringwidth" "500")))
+        OPCCellWritePfile(parameterlist)
         OPCArgs = OPCPrepareArgsForCellCreation(
             lsprintf("--cell %s --pfile %s -f %s" cellname OPCSettingsForm->OPCParamFilename->value OPCSettingsForm->OPCCellFilename->value)
             origin
