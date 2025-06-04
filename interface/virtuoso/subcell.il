@@ -201,6 +201,7 @@ procedure(OPCSubCellUpdate()
                             parameterlist = OPCGetSubCellCellParameters(opcgroup)
                             OPCUpdateCellCellCallback(
                                 opcgroup->opccell
+                                parameterlist
                                 ?hierarchical nil
                                 ?deleteAll nil
                                 ?origin opcgroup->origin
