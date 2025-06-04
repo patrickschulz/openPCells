@@ -170,7 +170,7 @@ procedure(OPCGetSubCellCellParameters(opcgroup)
         foreach(p opcgroup->prop
             unless(p->name == "opccell"
                 value = case(p->valueType
-                    ("float" lsprintf("%d" p->value * 1000))
+                    ("float" lsprintf("%d" int(p->value * 1000))) ; convert micro-meter to nano-meter
                     (t nil)
                 )
                 parameterlist = cons(list(p->name value parameterlist))
