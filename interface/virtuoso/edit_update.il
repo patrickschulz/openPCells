@@ -15,7 +15,7 @@ procedure(OPCEditCallback()
     )
 ) ; procedure
 
-procedure(OPCUpdateCallback(@key (deleteAll t) (callopc t) (hierarchical t) (origin list(0 0)) (xpath nil) (xgroupname nil))
+procedure(OPCUpdateCellscriptCallback(@key (deleteAll t) (callopc t) (hierarchical t) (origin list(0 0)) (xpath nil) (xgroupname nil))
     letseq(
         (
             (cv geGetEditCellView())
@@ -38,6 +38,52 @@ procedure(OPCUpdateCallback(@key (deleteAll t) (callopc t) (hierarchical t) (ori
         )
         OPCArgs = OPCPrepareArgsForCellCreation(
             lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value)
+            origin
+            ?groupname groupname
+        )
+        unless(hierarchical
+            OPCArgs = lsprintf("%s --flat" OPCArgs)
+        )
+        OPCCmd = OPCBuildCallCommand(OPCArgs)
+        success = if(callopc
+            then
+                OPCCall(OPCCmd)
+            else
+                t
+        )
+        when(success
+            if(deleteAll
+                then
+                    foreach(shape cv->shapes dbDeleteObject(shape))
+                    foreach(inst cv->instances dbDeleteObject(inst))
+                    foreach(via cv->vias dbDeleteObject(via))
+                else
+                    let(((group dbGetFigGroupByName(cv groupname)))
+                        foreach(obj group->figs dbDeleteObject(obj))
+                    )
+            )
+            load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
+            OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
+        )
+    )
+) ; procedure
+
+procedure(OPCUpdateCellCallback(cellname @key (deleteAll t) (callopc t) (hierarchical t) (origin list(0 0)) (xpath nil) (xgroupname nil))
+    letseq(
+        (
+            (cv geGetEditCellView())
+            (libPath cv->lib->readPath)
+            (libname cv->libName) ; read by generated .il script, don't remove
+            groupname OPCArgs OPCCmd success
+        )
+        if(xgroupname
+            then
+                groupname = xgroupname
+            else
+                groupname = OPCGetGroupName()
+        )
+        OPCArgs = OPCPrepareArgsForCellCreation(
+            lsprintf("--cell %s -f %s" cellname OPCSettingsForm->OPCCellFilename->value)
             origin
             ?groupname groupname
         )

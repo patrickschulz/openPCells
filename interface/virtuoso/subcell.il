@@ -6,9 +6,11 @@ procedure(OPCSubCellGet()
         when(length(selset) == 1 ; only one object selected
             opcgroup = car(selset)
             when(opcgroup->objType == "figGroup" ; selected object is a group
-                when(setof(p opcgroup->prop p->name == "opcpath") ; group is an opc group
+                when(setof(p opcgroup->prop p->name == "opcpath") ; group is an opc group (cellscript)
                     found = t
-                    opcgroup
+                ) ; when has opcpath
+                when(setof(p opcgroup->prop p->name == "opccell") ; group is an opc group (cell)
+                    found = t
                 ) ; when has opcpath
             ) ; when is group
         ) ; when only one object in selection set
@@ -29,36 +31,60 @@ procedure(OPCSubCellGet()
     ) ; let
 ) ; procedure
 
-procedure(OPCSubCellCreate()
+procedure(OPCSubCellCreateScript()
     ; (1) open dialog to get group name/layout path (should they be the same?)
     hiCreateAppForm(
-        ?name 'OPCSubCellCreationForm
+        ?name 'OPCSubCellScriptCreationForm
         ?formTitle "Create OPC Sub-Cell"
         ?buttonLayout 'OKCancel
         ?initialSize t ; size form to fit all fields
         ?fields list(
             hiCreateStringField(
-                ?name 'OPCSubCellName
+                ?name 'OPCSubCellScriptName
                 ?value ""
                 ?prompt "Name of Sub-Cell"
             )
             hiCreateStringField(
-                ?name 'OPCSubCellTemplate
+                ?name 'OPCSubCellScriptTemplate
                 ?value ""
                 ?prompt "Template for Cell Creation"
             )
         )
-        ?callback "OPCSubCellCreateCallback()"
+        ?callback "OPCSubCellScriptCreateCallback()"
     )
-    hiDisplayForm(OPCSubCellCreationForm 100:100)
+    hiDisplayForm(OPCSubCellScriptCreationForm 100:100)
 )
 
-procedure(OPCSubCellCreateCallback()
+procedure(OPCSubCellCreateCell()
+    ; (1) open dialog to get cell name
+    hiCreateAppForm(
+        ?name 'OPCSubCellCellCreationForm
+        ?formTitle "Create OPC Sub-Cell"
+        ?buttonLayout 'OKCancel
+        ?initialSize t ; size form to fit all fields
+        ?fields list(
+            hiCreateStringField(
+                ?name 'OPCSubCellCellName
+                ?value ""
+                ?prompt "Name of Cell"
+            )
+            hiCreateStringField(
+                ?name 'OPCSubCellCellGroupname
+                ?value ""
+                ?prompt "Group Name for Cell Creation"
+            )
+        )
+        ?callback "OPCSubCellCellCreateCallback()"
+    )
+    hiDisplayForm(OPCSubCellCellCreationForm 100:100)
+)
+
+procedure(OPCSubCellScriptCreateCallback()
     let(
         (cv group path label groupname template)
         cv = geGetEditCellView()
-        groupname = OPCSubCellCreationForm->OPCSubCellName->value
-        template = OPCSubCellCreationForm->OPCSubCellTemplate->value
+        groupname = OPCSubCellScripCreationForm->OPCSubCellScriptName->value
+        template = OPCSubCellScriptCreationForm->OPCSubCellScriptTemplate->value
         if(dbGetFigGroupByName(cv groupname)
             then
                 hiDisplayAppDBox(
@@ -96,6 +122,45 @@ procedure(OPCSubCellCreateCallback()
     ; (6) place/move group
 ) ; procedure
 
+procedure(OPCSubCellCellCreateCallback()
+    let(
+        (cv group path label groupname cellname)
+        cv = geGetEditCellView()
+        groupname = OPCSubCellCellCreationForm->OPCSubCellCellGroupname->value
+        cellname = OPCSubCellCellCreationForm->OPCSubCellCellName->value
+        if(dbGetFigGroupByName(cv groupname)
+            then
+                hiDisplayAppDBox(
+                    ?name        'OPCInfoDialog
+                    ?dboxBanner  "openPCells"
+                    ?dboxText    "Tried to create a new sub-cell, but the name for the group is already taken"
+                    ?dialogType   hicWarningDialog
+                    ?dialogStyle 'modeless
+                    ?buttonLayout 'Close
+                )
+                nil
+            else
+                group = dbCreateFigGroup(cv groupname nil 0:0 "R0")
+                dbCreateProp(group "opccell" "string" lsprintf("%s" cellname))
+                label = dbCreateLabel(cv list("OUTLINE" "drawing") 0:0 groupname "centerCenter" "R0" "fixed" 1)
+                dbAddFigToFigGroup(group label)
+                unless(template == ""
+                    let((filename cmd)
+                        cmd = OPCBuildCallCommand(lsprintf("--template %s" template))
+                        filename = lsprintf("%s/%s.lua" path groupname)
+                        OPCCall(cmd ?redirect filename)
+                    ) ; let
+                ) ; unless template == ""
+                t
+        )
+    )
+    ; (2) create group with some dummy shape
+    ; (3) set name of group
+    ; (4) add opcpath property
+    ; (5) call opc and fill group with shapes
+    ; (6) place/move group
+) ; procedure
+
 procedure(OPCSubCellEdit()
     let(
         (opcgroup)
@@ -112,12 +177,23 @@ procedure(OPCSubCellUpdate()
         opcgroup = OPCSubCellGet()
         if(opcgroup
             then
-                OPCUpdateCallback(
-                    ?hierarchical nil
-                    ?deleteAll nil
-                    ?xpath opcgroup->opcpath
-                    ?origin opcgroup->origin
-                    ?xgroupname opcgroup->name
+                if(setof(p opcgroup->prop p->name == "opcpath") ; group is an opc group (cellscript)
+                    then
+                        OPCUpdateCellscriptCallback(
+                            ?hierarchical nil
+                            ?deleteAll nil
+                            ?xpath opcgroup->opcpath
+                            ?origin opcgroup->origin
+                            ?xgroupname opcgroup->name
+                        )
+                    else
+                        OPCUpdateCellCallback(
+                            ?hierarchical nil
+                            ?deleteAll nil
+                            ?xpath opcgroup->opcpath
+                            ?origin opcgroup->origin
+                            ?xgroupname opcgroup->name
+                        )
                 )
             else
                 nil

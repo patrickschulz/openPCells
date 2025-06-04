@@ -65,6 +65,7 @@ procedure(OPCExportCell(filename)
         foreach(shape cv->shapes
             OPCWriteShape(file shape 0 0)
         )
+        ; FIXME: export vias
         foreach(inst cv->instances
             foreach(shape inst->master->shapes
                 OPCWriteShape(file shape xCoord(inst->xy) yCoord(inst->xy))

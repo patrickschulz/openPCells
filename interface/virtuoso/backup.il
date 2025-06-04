@@ -30,7 +30,7 @@ procedure(OPCRestoreCellBackup()
                     filename = lsprintf("%s/%s_%s.lua" path cv->libName cv->cellName)
                     if(isFile(filename)
                         then
-                            OPCUpdateCallbackFlat(filename)
+                            OPCUpdateCellscriptCallback(filename ?hierarchical nil)
                         else
                             hiDisplayAppDBox(
                                 ?name        'OPCInfoDialog

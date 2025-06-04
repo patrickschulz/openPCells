@@ -7,16 +7,20 @@ procedure(OPCCreateLayoutMenu()
 
         ; update design
         edit = hiCreateMenuItem(?name 'OPCEditCellScript ?itemText "Edit Design" ?callback "OPCEditCallback()")
-        updatehierarchical = hiCreateMenuItem(?name 'OPCCellScriptHierarchical ?itemText "Update Design (Hierarchy)" ?callback "OPCUpdateCallback(?hierarchical t)")
-        updateflat = hiCreateMenuItem(?name 'OPCCellScriptFlat ?itemText "Update Design (flat)" ?callback "OPCUpdateCallback(?hierarchical nil)")
-        updatehierarchicalold = hiCreateMenuItem(?name 'OPCCellScriptHierarchicalOld ?itemText "Update Design (Hierarchy, reuse existing file)" ?callback "OPCUpdateCallback(?callopc nil ?hierarchical t)")
-        updateflatold = hiCreateMenuItem(?name 'OPCCellScriptFlatOld ?itemText "Update Design (flat, reuse existing file)" ?callback "OPCUpdateCallback(?callopc nil ?hierarchical nil)")
+        updatehierarchical = hiCreateMenuItem(?name 'OPCCellScriptHierarchical ?itemText "Update Design (Hierarchy)" ?callback "OPCUpdateCellscriptCallback(?hierarchical t)")
+        updateflat = hiCreateMenuItem(?name 'OPCCellScriptFlat ?itemText "Update Design (flat)" ?callback "OPCUpdateCellscriptCallback(?hierarchical nil)")
+        updatehierarchicalold = hiCreateMenuItem(?name 'OPCCellScriptHierarchicalOld ?itemText "Update Design (Hierarchy, reuse existing file)" ?callback "OPCUpdateCellscriptCallback(?callopc nil ?hierarchical t)")
+        updateflatold = hiCreateMenuItem(?name 'OPCCellScriptFlatOld ?itemText "Update Design (flat, reuse existing file)" ?callback "OPCUpdateCellscriptCallback(?callopc nil ?hierarchical nil)")
         remove = hiCreateMenuItem(?name 'OPCCellScriptRemove ?itemText "Delete Design File" ?callback "OPCDeleteDesignFile()")
 
         ; sub cells
-        createsubcell = hiCreateMenuItem(?name 'OPCCreateSubCell ?itemText "Create Sub-Cell" ?callback "OPCSubCellCreate()")
-        editsubcell = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Edit Sub-Cell" ?callback "OPCSubCellEdit()")
+        createsubcellscript = hiCreateMenuItem(?name 'OPCCreateSubCellScript ?itemText "Create Sub-Cell" ?callback "OPCSubCellCreateScript()")
+        createsubcellcell = hiCreateMenuItem(?name 'OPCCreateSubCellCell ?itemText "Create Sub-Cell" ?callback "OPCSubCellCreateCell()")
+        editsubcellscript = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Edit Sub-Cell" ?callback "OPCSubCellEditScript()")
         updatesubcell = hiCreateMenuItem(?name 'OPCSubCellScript ?itemText "Update Sub-Cell" ?callback "OPCSubCellUpdate()")
+
+        ; specific cells
+        guardring = hiCreateMenuItem(?name 'OPCCreateGuardring ?itemText "Create Guardring" ?callback "OPCCreateGuardring()")
 
         ; export gds
         exportgds = hiCreateMenuItem(?name 'OPCCellScriptGDS ?itemText "Update as GDSII" ?callback "OPCUpdateAsGDS()")
@@ -34,7 +38,7 @@ procedure(OPCCreateLayoutMenu()
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
 
         ; assemble main menu
-        itemlist = list(about separator edit updatehierarchical updateflat updatehierarchicalold updateflatold remove separator createsubcell editsubcell updatesubcell separator exportgds separator export separator settings)
+        itemlist = list(about separator edit updatehierarchical updateflat updatehierarchicalold updateflatold remove separator createsubcellscript createsubcellcell editsubcellscript updatesubcell separator exportgds separator export separator settings)
         hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
 )
