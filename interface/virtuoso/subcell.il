@@ -181,9 +181,9 @@ procedure(OPCSubCellUpdate()
                         )
                     else
                         OPCUpdateCellCallback(
+                            opcgroup->opccell
                             ?hierarchical nil
                             ?deleteAll nil
-                            ?xpath opcgroup->opcpath
                             ?origin opcgroup->origin
                             ?xgroupname opcgroup->name
                         )
