@@ -71,10 +71,7 @@ procedure(OPCUpdateCellscriptCallback(@key (deleteAll t) (callopc t) (hierarchic
 procedure(OPCCellWritePfile(parameterlist)
     let(
         (
-            (pfile outfile(OPCSettingsForm->OPCPfileFilename->value))
-            (parametertable makeTable("opcparamtable"))
-            parent name
-            OPCArgs OPCCmd
+            (pfile outfile(OPCSettingsForm->OPCParamFilename->value))
         )
         fprintf(pfile "%s\n" "return {")
         foreach(kvpair parameterlist
@@ -101,7 +98,7 @@ procedure(OPCUpdateCellCellCallback(cellname @key (deleteAll t) (callopc t) (hie
         )
         OPCCellWritePfile(list(list("ringwidth" "500")))
         OPCArgs = OPCPrepareArgsForCellCreation(
-            lsprintf("--cell %s --pfile %s -f %s" cellname OPCSettingsForm->OPCPfileFilename OPCSettingsForm->OPCCellFilename->value)
+            lsprintf("--cell %s --pfile %s -f %s" cellname OPCSettingsForm->OPCParamFilename OPCSettingsForm->OPCCellFilename->value)
             origin
             ?groupname groupname
         )
@@ -128,7 +125,7 @@ procedure(OPCUpdateCellCellCallback(cellname @key (deleteAll t) (callopc t) (hie
             )
             load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
             OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
-            OPCCleanUp(OPCSettingsForm->OPCPfileFilename->value)
+            OPCCleanUp(OPCSettingsForm->OPCParamFilename->value)
         )
     )
 ) ; procedure

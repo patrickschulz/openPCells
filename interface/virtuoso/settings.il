@@ -18,7 +18,7 @@ procedure(OPCCreateSettingsForm()
             hiCreateStringField(
                 ?name 'OPCParamFilename
                 ?value "opc.parameters"
-                ?prompt "File Name for Parameters"
+                ?prompt "File Name for Parameters (pfiles)"
             )
             hiCreateStringField(
                 ?name 'OPCListFilename
