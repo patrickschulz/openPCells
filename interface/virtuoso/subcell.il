@@ -173,7 +173,7 @@ procedure(OPCGetSubCellCellParameters(opcgroup)
                     ("float" lsprintf("%d" int(p->value * 1000))) ; convert micro-meter to nano-meter
                     (t nil)
                 )
-                parameterlist = cons(list(p->name value parameterlist))
+                parameterlist = cons(list(p->name value) parameterlist)
             )
         )
         parameterlist
