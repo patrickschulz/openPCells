@@ -144,13 +144,6 @@ procedure(OPCSubCellCellCreateCallback()
                 dbCreateProp(group "opccell" "string" lsprintf("%s" cellname))
                 label = dbCreateLabel(cv list("OUTLINE" "drawing") 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
-                unless(template == ""
-                    let((filename cmd)
-                        cmd = OPCBuildCallCommand(lsprintf("--template %s" template))
-                        filename = lsprintf("%s/%s.lua" path groupname)
-                        OPCCall(cmd ?redirect filename)
-                    ) ; let
-                ) ; unless template == ""
                 t
         )
     )
