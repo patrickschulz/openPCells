@@ -98,7 +98,7 @@ procedure(OPCUpdateCellCellCallback(cellname @key (deleteAll t) (callopc t) (hie
         )
         OPCCellWritePfile(list(list("ringwidth" "500")))
         OPCArgs = OPCPrepareArgsForCellCreation(
-            lsprintf("--cell %s --pfile %s -f %s" cellname OPCSettingsForm->OPCParamFilename OPCSettingsForm->OPCCellFilename->value)
+            lsprintf("--cell %s --pfile %s -f %s" cellname OPCSettingsForm->OPCParamFilename->value OPCSettingsForm->OPCCellFilename->value)
             origin
             ?groupname groupname
         )
