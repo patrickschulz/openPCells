@@ -180,7 +180,7 @@ procedure(OPCSubCellUpdate()
                             ?xgroupname opcgroup->name
                         )
                     else
-                        OPCUpdateCellCallback(
+                        OPCUpdateCellCellCallback(
                             opcgroup->opccell
                             ?hierarchical nil
                             ?deleteAll nil

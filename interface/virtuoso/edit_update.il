@@ -66,9 +66,26 @@ procedure(OPCUpdateCellscriptCallback(@key (deleteAll t) (callopc t) (hierarchic
             OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
         )
     )
-) ; procedure
+) ; OPCUpdateCellscriptCallback
 
-procedure(OPCUpdateCellCallback(cellname @key (deleteAll t) (callopc t) (hierarchical t) (origin list(0 0)) (xpath nil) (xgroupname nil))
+procedure(OPCCellWritePfile(parameterlist)
+    let(
+        (
+            (pfile outfile(OPCSettingsForm->OPCPfileFilename->value))
+            (parametertable makeTable("opcparamtable"))
+            parent name
+            OPCArgs OPCCmd
+        )
+        fprintf(pfile "%s\n" "return {")
+        foreach(kvpair parameterlist
+            fprintf(pfile "    %s = %s,\n" car(kvpair) cadr(kvpair))
+        )
+        fprintf(pfile "%s\n" "}")
+        close(pfile)
+    )
+) ; OPCCreateCellInternal
+
+procedure(OPCUpdateCellCellCallback(cellname @key (deleteAll t) (callopc t) (hierarchical t) (origin list(0 0)) (xpath nil) (xgroupname nil))
     letseq(
         (
             (cv geGetEditCellView())
@@ -82,8 +99,9 @@ procedure(OPCUpdateCellCallback(cellname @key (deleteAll t) (callopc t) (hierarc
             else
                 groupname = OPCGetGroupName()
         )
+        OPCCellWritePfile(list(list("ringwidth" "500")))
         OPCArgs = OPCPrepareArgsForCellCreation(
-            lsprintf("--cell %s -f %s" cellname OPCSettingsForm->OPCCellFilename->value)
+            lsprintf("--cell %s --pfile %s -f %s" cellname OPCSettingsForm->OPCPfileFilename OPCSettingsForm->OPCCellFilename->value)
             origin
             ?groupname groupname
         )
@@ -110,6 +128,7 @@ procedure(OPCUpdateCellCallback(cellname @key (deleteAll t) (callopc t) (hierarc
             )
             load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
             OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
+            OPCCleanUp(OPCSettingsForm->OPCPfileFilename->value)
         )
     )
 ) ; procedure
