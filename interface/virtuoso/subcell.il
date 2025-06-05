@@ -79,6 +79,20 @@ procedure(OPCSubCellCreateCell()
     hiDisplayForm(OPCSubCellCellCreationForm 100:100)
 )
 
+; call:
+;OPCSubCellCreateBase(cv name list(list(nil 'name "opcpath" 'type "string" 'value "value")))
+; the list(nil ...) is a disembodied property list (dpl)
+procedure(OPCSubCellCreateBase(cv name properties)
+    let((group)
+        group = dbCreateFigGroup(cv name nil 0:0 "R0")
+        foreach(prop properties
+            ; FIXME: check whether getq is correct
+            dbCreateProp(group getq(prop name) getq(prop type) getq(prop value))
+        )
+        group
+    )
+)
+
 procedure(OPCSubCellScriptCreateCallback()
     let(
         (cv group path label groupname template)
@@ -97,12 +111,11 @@ procedure(OPCSubCellScriptCreateCallback()
                 )
                 nil
             else
-                group = dbCreateFigGroup(cv groupname nil 0:0 "R0")
                 path = lsprintf("%s/%s/layout/opcsubgroups" cv->lib->readPath cv->cellName)
                 unless(isDir(path)
                     createDir(path)
                 )
-                dbCreateProp(group "opcpath" "string" lsprintf("%s/%s.lua" path groupname))
+                group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opcpath" 'type "string" 'value lsprintf("%s/%s.lua" path groupname))))
                 label = dbCreateLabel(cv list("OUTLINE" "drawing") 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
                 unless(template == ""
@@ -140,8 +153,7 @@ procedure(OPCSubCellCellCreateCallback()
                 )
                 nil
             else
-                group = dbCreateFigGroup(cv groupname nil 0:0 "R0")
-                dbCreateProp(group "opccell" "string" lsprintf("%s" cellname))
+                group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" cellname))))
                 label = dbCreateLabel(cv list("OUTLINE" "drawing") 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
                 t
