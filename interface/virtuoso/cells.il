@@ -1,5 +1,5 @@
 procedure(OPCCreateGuardring()
-    let((group properties)
+    let((group properties groupname count)
         properties = list(
             list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" "auxiliary/guardring"))
             list(nil 'name "contype" 'type "string" 'value "n")
@@ -24,7 +24,13 @@ procedure(OPCCreateGuardring()
             list(nil 'name "innerimplantpolarity" 'type "string" 'value "p")
             list(nil 'name "innerimplantspace" 'type "float" 'value 0.0)
         )
-        group = OPCSubCellCreateBase(geGetEditCellView() "guardring" properties)
+        count = 1
+        groupname = lsprintf("guardring_%d" count)
+        while(dbGetFigGroupByName(geGetEditCellView() groupname)
+            count = count + 1
+            groupname = lsprintf("guardring_%d" count)
+        )
+        group = OPCSubCellCreateBase(geGetEditCellView() groupname properties)
         OPCSubCellUpdateCell(group)
     )
     /*
