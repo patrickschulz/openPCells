@@ -79,9 +79,6 @@ procedure(OPCSubCellCreateCell()
     hiDisplayForm(OPCSubCellCellCreationForm 100:100)
 )
 
-; call:
-;OPCSubCellCreateBase(cv name list(list(nil 'name "opcpath" 'type "string" 'value "value")))
-; the list(nil ...) is a disembodied property list (dpl)
 procedure(OPCSubCellCreateBase(cv name properties)
     let((group)
         group = dbCreateFigGroup(cv name nil 0:0 "R0")
