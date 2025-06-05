@@ -1,11 +1,11 @@
 procedure(OPCCreateGuardring()
     let((group properties)
         properties = list(
-            list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" cellname))
+            list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" "auxiliary/guardring"))
             list(nil 'name "contype" 'type "string" 'value "n")
             list(nil 'name "ringwidth" 'type "float" 'value 0.2)
         )
-        group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" "auxiliary/guardring"))))
+        group = OPCSubCellCreateBase(cv groupname properties)
         dbAddFigToFigGroup(group label)
         OPCSubCellUpdateCell(group)
     )
