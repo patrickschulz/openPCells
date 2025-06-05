@@ -33,188 +33,278 @@ procedure(OPCCreateGuardring()
         group = OPCSubCellCreateBase(geGetEditCellView() groupname properties)
         OPCSubCellUpdateCell(group)
     )
-    /*
-    hiCreateAppForm(
-        ?name 'OPCCreateGuardringForm
-        ?formTitle "Create Guardring"
-        ?buttonLayout 'OKCancel
-        ?initialSize t ; size form to fit all fields
-        ?fields list(
-            hiCreateStringField(
-                ?name 'OPCGuardringConttype
-                ?value "p"
-                ?prompt "Connection Type"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringTopmetal
-                ?value 1
-                ?prompt "Top Metal"
-            )
-            hiCreateRadioField(
-                ?name 'OPCGuardringDrawmetal
-                ?value "true"
-                ?prompt "Top Metal"
-                ?choices list("true" "false")
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringHolewidth
-                ?value 5000
-                ?prompt "Hole Width"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringHoleheight
-                ?value 5000
-                ?prompt "Hole Height"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringRingwidth
-                ?value 200
-                ?prompt "Hole Height"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringWellextension
-                ?value 50
-                ?prompt "Well Extension"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringWellinnerextension
-                ?value 50
-                ?prompt "Well Inner Extension"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringWellouterextension
-                ?value 50
-                ?prompt "Well Outer Extension"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringDrawsoiopen
-                ?value true
-                ?prompt "Draw SOI Opening"
-            )
-            hiCreateRadioField(
-                ?name 'OPCGuardringFillsoiopen
-                ?value "false"
-                ?prompt "Fill Inner Area with SOI Opening"
-                ?choices list("true" "false")
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringSoiopenextension
-                ?value 50
-                ?prompt "SOI Opening Extension"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringSoiopeninnerextension
-                ?value 50
-                ?prompt "SOI Opening Inner Extension"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringSoiopenouterextension
-                ?value 50
-                ?prompt "SOI Outer Opening Extension"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringImplantextension
-                ?value 50
-                ?prompt "Implant Extension"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringImplantinnerextension
-                ?value 50
-                ?prompt "Implant Inner Extension"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringImplantouterextension
-                ?value 50
-                ?prompt "Implant Outer Extension"
-            )
-            hiCreateRadioField(
-                ?name 'OPCGuardringDrawimplant
-                ?value "true"
-                ?prompt "Draw Implant"
-                ?choices list("true" "false")
-            )
-            hiCreateRadioField(
-                ?name 'OPCGuardringFillinnerimplant
-                ?value "false"
-                ?prompt "Fill Inner Implant"
-                ?choices list("true" "false")
-            )
-            hiCreateStringField(
-                ?name 'OPCGuardringInnerimplantpolarity
-                ?value "p"
-                ?prompt "Inner Implant Polarity"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringInnerimplantspace
-                ?value 0
-                ?prompt "Inner Implant Space"
-            )
-            hiCreateRadioField(
-                ?name 'OPCGuardringFillwell
-                ?value "true"
-                ?prompt "Fill Well"
-                ?choices list("true" "false")
-            )
-            hiCreateRadioField(
-                ?name 'OPCGuardringFillwelldrawhole
-                ?value "false"
-                ?prompt "Draw Hole in Filled Well"
-                ?choices list("true" "false")
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringFillwellholeoffsettop
-                ?value 0
-                ?prompt "Fill Well Hole Offset (Top)"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringFillwellholeoffsetbottom
-                ?value 0
-                ?prompt "Fill Well Hole Offset (Bottom)"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringFillwellholeoffsetleft
-                ?value 0
-                ?prompt "Fill Well Hole Offset (Left)"
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringFillwellholeoffsetright
-                ?value 0
-                ?prompt "Fill Well Hole Offset (Right)"
-            )
-            hiCreateRadioField(
-                ?name 'OPCGuardringDrawdeepwell
-                ?value "false"
-                ?prompt "Draw Deep Well"
-                ?choices list("true" "false")
-            )
-            hiCreateIntField(
-                ?name 'OPCGuardringDeepwelloffset
-                ?value 0
-                ?prompt "Deep Well Offset"
-            )
-            hiCreateRadioField(
-                ?name 'OPCGuardringFit
-                ?value "false"
-                ?prompt "fit"
-                ?choices list("true" "false")
-            )
-            hiCreateRadioField(
-                ?name 'OPCGuardringFailifnotfit
-                ?value "false"
-                ?prompt "failifnotfit"
-                ?choices list("true" "false")
-            )
-            hiCreateStringField(
-                ?name 'OPCGuardringDrawsegments
-                ?value "left right top bottom"
-                ?prompt "Draw Segments"
-            )
-        )
-    )
-    hiDisplayForm(OPCSubCellCreationForm 100:100)
-    */
 )
 
 procedure(OPCCreateMosfet()
-    t
-) ; OPCCreateMosfet
+    let((group properties groupname count)
+        properties = list(
+            list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" "basic/mosfet"))
+            list(nil 'name "channeltype" 'type "string" 'value "nmos")
+            list(nil 'name "flippedwell" 'type "boolean" 'value nil)
+            list(nil 'name "fingers" 'type "float" 'value 1)
+            list(nil 'name "fingerwidth" 'type "float" 'value 0)
+            list(nil 'name "gatelength" 'type "float" 'value 0)
+            list(nil 'name "gatespace" 'type "float" 'value 0)
+            list(nil 'name "drawtopgate" 'type "boolean" 'value false)
+            list(nil 'name "drawtopgatestrap" 'type "boolean" 'value false)
+            list(nil 'name "topgatewidth" 'type "float" 'value 0)
+            list(nil 'name "topgateleftextension" 'type "float" 'value 0)
+            list(nil 'name "topgaterightextension" 'type "float" 'value 0)
+            list(nil 'name "topgatespace" 'type "float" 'value 0)
+            list(nil 'name "topgatemetal" 'type "int" 'value 1)
+            list(nil 'name "drawtopgatevia" 'type "boolean" 'value true)
+            list(nil 'name "topgatecontinuousvia" 'type "boolean" 'value false)
+            list(nil 'name "drawbotgate" 'type "boolean" 'value false)
+            list(nil 'name "drawbotgatestrap" 'type "boolean" 'value false)
+            list(nil 'name "botgatewidth" 'type "float" 'value 0)
+            list(nil 'name "botgateleftextension" 'type "float" 'value 0)
+            list(nil 'name "botgaterightextension" 'type "float" 'value 0)
+            list(nil 'name "botgatespace" 'type "float" 'value 0)
+            list(nil 'name "botgatemetal" 'type "int" 'value 1)
+            list(nil 'name "drawbotgatevia" 'type "boolean" 'value true)
+            /*
+list(nil 'name "drawimplant" 'type "boolean" 'value true)
+list(nil 'name "implantalignwithactive" 'type "boolean" 'value false)
+list(nil 'name "implantalignleftwithactive" 'type "boolean" 'value false)
+list(nil 'name "implantalignrightwithactive" 'type "boolean" 'value false)
+list(nil 'name "implantaligntopwithactive" 'type "boolean" 'value false)
+list(nil 'name "implantalignbottomwithactive" 'type "boolean" 'value false)
+list(nil 'name "oxidetype" 'type "float" 'value 1)
+list(nil 'name "oxidetypealignwithactive" 'type "boolean" 'value false)
+list(nil 'name "oxidetypealignleftwithactive" 'type "boolean" 'value false)
+list(nil 'name "oxidetypealignrightwithactive" 'type "boolean" 'value false)
+list(nil 'name "oxidetypealigntopwithactive" 'type "boolean" 'value false)
+list(nil 'name "oxidetypealignbottomwithactive" 'type "boolean" 'value false)
+list(nil 'name "vthtype" 'type "float" 'value 1)
+list(nil 'name "vthtypealignwithactive" 'type "boolean" 'value false)
+list(nil 'name "vthtypealignleftwithactive" 'type "boolean" 'value false)
+list(nil 'name "vthtypealignrightwithactive" 'type "boolean" 'value false)
+list(nil 'name "vthtypealigntopwithactive" 'type "boolean" 'value false)
+list(nil 'name "vthtypealignbottomwithactive" 'type "boolean" 'value false)
+list(nil 'name "wellalignwithactive" 'type "boolean" 'value false)
+list(nil 'name "wellalignleftwithactive" 'type "boolean" 'value false)
+list(nil 'name "wellalignrightwithactive" 'type "boolean" 'value false)
+list(nil 'name "wellaligntopwithactive" 'type "boolean" 'value false)
+list(nil 'name "wellalignbottomwithactive" 'type "boolean" 'value false)
+list(nil 'name "gatemarker" 'type "float" 'value 1)
+list(nil 'name "mosfetmarker" 'type "float" 'value 1)
+list(nil 'name "mosfetmarkeralignatsourcedrain" 'type "boolean" 'value false)
+list(nil 'name "actext" 'type "float" 'value 0)
+list(nil 'name "sdwidth" 'type "float" 'value 0)
+list(nil 'name "sdviawidth" 'type "float" 'value 0)
+list(nil 'name "sdmetalwidth" 'type "float" 'value 0)
+list(nil 'name "interweavevias" 'type "boolean" 'value false)
+list(nil 'name "alternateinterweaving" 'type "boolean" 'value false)
+list(nil 'name "minviaxspace" 'type "float" 'value 0)
+list(nil 'name "minviayspace" 'type "float" 'value 0)
+list(nil 'name "gtopext" 'type "float" 'value 0)
+list(nil 'name "gbotext" 'type "float" 'value 0)
+list(nil 'name "gtopextadd" 'type "float" 'value 0)
+list(nil 'name "gbotextadd" 'type "float" 'value 0)
+list(nil 'name "gatetopabsoluteheight" 'type "float" 'value 0)
+list(nil 'name "gatebotabsoluteheight" 'type "float" 'value 0)
+list(nil 'name "drawleftstopgate" 'type "boolean" 'value false)
+list(nil 'name "drawrightstopgate" 'type "boolean" 'value false)
+list(nil 'name "endleftwithgate" 'type "boolean" 'value false)
+list(nil 'name "endrightwithgate" 'type "boolean" 'value false)
+list(nil 'name "leftendgatelength" 'type "float" 'value 0)
+list(nil 'name "leftendgatespace" 'type "float" 'value 0)
+list(nil 'name "rightendgatelength" 'type "float" 'value 0)
+list(nil 'name "rightendgatespace" 'type "float" 'value 0)
+list(nil 'name "botgatecontinuousvia" 'type "boolean" 'value false)
+list(nil 'name "drawtopgatecut" 'type "boolean" 'value false)
+list(nil 'name "topgatecutheight" 'type "float" 'value 0)
+list(nil 'name "topgatecutspace" 'type "float" 'value 0)
+list(nil 'name "topgatecutleftext" 'type "float" 'value 0)
+list(nil 'name "topgatecutrightext" 'type "float" 'value 0)
+list(nil 'name "drawbotgatecut" 'type "boolean" 'value false)
+list(nil 'name "botgatecutheight" 'type "float" 'value 0)
+list(nil 'name "botgatecutspace" 'type "float" 'value 0)
+list(nil 'name "botgatecutleftext" 'type "float" 'value 0)
+list(nil 'name "botgatecutrightext" 'type "float" 'value 0)
+list(nil 'name "simulatemissinggatecut" 'type "boolean" 'value false)
+list(nil 'name "drawsourcedrain" 'type "float" 'value both)
+list(nil 'name "excludesourcedraincontacts" 'type "float" 'value  )
+list(nil 'name "sourcesize" 'type "float" 'value 0)
+list(nil 'name "sourceviasize" 'type "float" 'value 0)
+list(nil 'name "drainsize" 'type "float" 'value 0)
+list(nil 'name "drainviasize" 'type "float" 'value 0)
+list(nil 'name "sourcealign" 'type "float" 'value bottom)
+list(nil 'name "sourceviaalign" 'type "float" 'value bottom)
+list(nil 'name "drainalign" 'type "float" 'value top)
+list(nil 'name "drainviaalign" 'type "float" 'value top)
+list(nil 'name "drawsourcevia" 'type "boolean" 'value true)
+list(nil 'name "drawfirstsourcevia" 'type "boolean" 'value true)
+list(nil 'name "drawlastsourcevia" 'type "boolean" 'value true)
+list(nil 'name "connectsource" 'type "boolean" 'value false)
+list(nil 'name "drawsourcestrap" 'type "boolean" 'value false)
+list(nil 'name "drawsourceconnections" 'type "boolean" 'value false)
+list(nil 'name "connectsourceboth" 'type "boolean" 'value false)
+list(nil 'name "connectsourcewidth" 'type "float" 'value 0)
+list(nil 'name "connectsourcespace" 'type "float" 'value 0)
+list(nil 'name "connectsourceleftext" 'type "float" 'value 0)
+list(nil 'name "connectsourcerightext" 'type "float" 'value 0)
+list(nil 'name "connectsourceautooddext" 'type "boolean" 'value false)
+list(nil 'name "connectsourceotherwidth" 'type "float" 'value 0)
+list(nil 'name "connectsourceotherspace" 'type "float" 'value 0)
+list(nil 'name "connectsourceotherleftext" 'type "float" 'value 0)
+list(nil 'name "connectsourceotherrightext" 'type "float" 'value 0)
+list(nil 'name "connectsourceotherautooddext" 'type "boolean" 'value false)
+list(nil 'name "sourcemetal" 'type "float" 'value 1)
+list(nil 'name "sourcestartmetal" 'type "float" 'value 1)
+list(nil 'name "sourceendmetal" 'type "float" 'value 1)
+list(nil 'name "sourceviametal" 'type "float" 'value 1)
+list(nil 'name "connectsourceinline" 'type "boolean" 'value false)
+list(nil 'name "connectsourceinlineoffset" 'type "float" 'value 0)
+list(nil 'name "splitsourcevias" 'type "boolean" 'value false)
+list(nil 'name "flipsourcedrainstraps" 'type "boolean" 'value false)
+list(nil 'name "connectsourceinverse" 'type "boolean" 'value false)
+list(nil 'name "connectdrain" 'type "boolean" 'value false)
+list(nil 'name "drawdrainstrap" 'type "boolean" 'value false)
+list(nil 'name "drawdrainconnections" 'type "boolean" 'value false)
+list(nil 'name "connectdrainboth" 'type "boolean" 'value false)
+list(nil 'name "connectdrainwidth" 'type "float" 'value 0)
+list(nil 'name "connectdrainspace" 'type "float" 'value 0)
+list(nil 'name "connectdrainleftext" 'type "float" 'value 0)
+list(nil 'name "connectdrainrightext" 'type "float" 'value 0)
+list(nil 'name "connectdrainautooddext" 'type "boolean" 'value false)
+list(nil 'name "connectdraininverse" 'type "boolean" 'value false)
+list(nil 'name "connectdrainotherwidth" 'type "float" 'value 0)
+list(nil 'name "connectdrainotherspace" 'type "float" 'value 0)
+list(nil 'name "connectdrainotherleftext" 'type "float" 'value 0)
+list(nil 'name "connectdrainotherrightext" 'type "float" 'value 0)
+list(nil 'name "connectdrainotherautooddext" 'type "boolean" 'value false)
+list(nil 'name "drawdrainvia" 'type "boolean" 'value true)
+list(nil 'name "drawfirstdrainvia" 'type "boolean" 'value true)
+list(nil 'name "drawlastdrainvia" 'type "boolean" 'value true)
+list(nil 'name "drainmetal" 'type "float" 'value 1)
+list(nil 'name "drainstartmetal" 'type "float" 'value 1)
+list(nil 'name "drainendmetal" 'type "float" 'value 1)
+list(nil 'name "drainviametal" 'type "float" 'value 1)
+list(nil 'name "connectdraininline" 'type "boolean" 'value false)
+list(nil 'name "connectdraininlineoffset" 'type "float" 'value 0)
+list(nil 'name "splitdrainvias" 'type "boolean" 'value false)
+list(nil 'name "diodeconnected" 'type "boolean" 'value false)
+list(nil 'name "diodeconnectedreversed" 'type "boolean" 'value false)
+list(nil 'name "drawextrabotstrap" 'type "boolean" 'value false)
+list(nil 'name "extrabotstrapwidth" 'type "float" 'value 0)
+list(nil 'name "extrabotstrapspace" 'type "float" 'value 0)
+list(nil 'name "extrabotstrapmetal" 'type "float" 'value 1)
+list(nil 'name "extrabotstrapleftextension" 'type "float" 'value 0)
+list(nil 'name "extrabotstraprightextension" 'type "float" 'value 0)
+list(nil 'name "extrabotstrapleftalign" 'type "float" 'value 1)
+list(nil 'name "extrabotstraprightalign" 'type "float" 'value 1)
+list(nil 'name "drawextratopstrap" 'type "boolean" 'value false)
+list(nil 'name "extratopstrapwidth" 'type "float" 'value 0)
+list(nil 'name "extratopstrapspace" 'type "float" 'value 0)
+list(nil 'name "extratopstrapmetal" 'type "float" 'value 1)
+list(nil 'name "extratopstrapleftextension" 'type "float" 'value 0)
+list(nil 'name "extratopstraprightextension" 'type "float" 'value 0)
+list(nil 'name "extratopstrapleftalign" 'type "float" 'value 1)
+list(nil 'name "extratopstraprightalign" 'type "float" 'value 1)
+list(nil 'name "shortdevice" 'type "boolean" 'value false)
+list(nil 'name "shortdeviceleftoffset" 'type "float" 'value 0)
+list(nil 'name "shortdevicerightoffset" 'type "float" 'value 0)
+list(nil 'name "shortsourcegate" 'type "boolean" 'value false)
+list(nil 'name "shortdraingate" 'type "boolean" 'value false)
+list(nil 'name "shortlocation" 'type "float" 'value inline)
+list(nil 'name "shortspace" 'type "float" 'value 0)
+list(nil 'name "shortwidth" 'type "float" 'value 0)
+list(nil 'name "drawleftactivedummy" 'type "boolean" 'value false)
+list(nil 'name "leftactivedummywidth" 'type "float" 'value 80)
+list(nil 'name "leftactivedummyspace" 'type "float" 'value 80)
+list(nil 'name "drawrightactivedummy" 'type "boolean" 'value false)
+list(nil 'name "rightactivedummywidth" 'type "float" 'value 80)
+list(nil 'name "rightactivedummyspace" 'type "float" 'value 80)
+list(nil 'name "drawtopactivedummy" 'type "boolean" 'value false)
+list(nil 'name "topactivedummywidth" 'type "float" 'value 80)
+list(nil 'name "topactivedummyspace" 'type "float" 'value 80)
+list(nil 'name "drawbottomactivedummy" 'type "boolean" 'value false)
+list(nil 'name "bottomactivedummywidth" 'type "float" 'value 80)
+list(nil 'name "bottomactivedummyspace" 'type "float" 'value 80)
+list(nil 'name "leftfloatingdummies" 'type "float" 'value 0)
+list(nil 'name "rightfloatingdummies" 'type "float" 'value 0)
+list(nil 'name "drawactive" 'type "boolean" 'value true)
+list(nil 'name "lvsmarker" 'type "float" 'value 1)
+list(nil 'name "lvsmarkerincludeguardring" 'type "boolean" 'value true)
+list(nil 'name "lvsmarkeralignwithactive" 'type "boolean" 'value false)
+list(nil 'name "extendall" 'type "float" 'value 0)
+list(nil 'name "extendalltop" 'type "float" 'value 0)
+list(nil 'name "extendallbottom" 'type "float" 'value 0)
+list(nil 'name "extendallleft" 'type "float" 'value 0)
+list(nil 'name "extendallright" 'type "float" 'value 0)
+list(nil 'name "extendoxidetypetop" 'type "float" 'value 0)
+list(nil 'name "extendoxidetypebottom" 'type "float" 'value 0)
+list(nil 'name "extendoxidetypeleft" 'type "float" 'value 0)
+list(nil 'name "extendoxidetyperight" 'type "float" 'value 0)
+list(nil 'name "extendvthtypetop" 'type "float" 'value 0)
+list(nil 'name "extendvthtypebottom" 'type "float" 'value 0)
+list(nil 'name "extendvthtypeleft" 'type "float" 'value 0)
+list(nil 'name "extendvthtyperight" 'type "float" 'value 0)
+list(nil 'name "extendimplanttop" 'type "float" 'value 0)
+list(nil 'name "extendimplantbottom" 'type "float" 'value 0)
+list(nil 'name "extendimplantleft" 'type "float" 'value 0)
+list(nil 'name "extendimplantright" 'type "float" 'value 0)
+list(nil 'name "extendwelltop" 'type "float" 'value 0)
+list(nil 'name "extendwellbottom" 'type "float" 'value 0)
+list(nil 'name "extendwellleft" 'type "float" 'value 0)
+list(nil 'name "extendwellright" 'type "float" 'value 0)
+list(nil 'name "extendlvsmarkertop" 'type "float" 'value 0)
+list(nil 'name "extendlvsmarkerbottom" 'type "float" 'value 0)
+list(nil 'name "extendlvsmarkerleft" 'type "float" 'value 0)
+list(nil 'name "extendlvsmarkerright" 'type "float" 'value 0)
+list(nil 'name "extendrotationmarkertop" 'type "float" 'value 0)
+list(nil 'name "extendrotationmarkerbottom" 'type "float" 'value 0)
+list(nil 'name "extendrotationmarkerleft" 'type "float" 'value 0)
+list(nil 'name "extendrotationmarkerright" 'type "float" 'value 0)
+list(nil 'name "extendanalogmarkertop" 'type "float" 'value 0)
+list(nil 'name "extendanalogmarkerbottom" 'type "float" 'value 0)
+list(nil 'name "extendanalogmarkerleft" 'type "float" 'value 0)
+list(nil 'name "extendanalogmarkerright" 'type "float" 'value 0)
+list(nil 'name "drawwell" 'type "boolean" 'value true)
+list(nil 'name "drawtopwelltap" 'type "boolean" 'value false)
+list(nil 'name "topwelltapwidth" 'type "float" 'value 0)
+list(nil 'name "topwelltapspace" 'type "float" 'value 0)
+list(nil 'name "topwelltapextendleft" 'type "float" 'value 0)
+list(nil 'name "topwelltapextendright" 'type "float" 'value 0)
+list(nil 'name "drawbotwelltap" 'type "boolean" 'value false)
+list(nil 'name "drawguardring" 'type "boolean" 'value false)
+list(nil 'name "guardringrespectactivedummy" 'type "boolean" 'value false)
+list(nil 'name "guardringwidth" 'type "float" 'value 0)
+list(nil 'name "guardringsep" 'type "float" 'value 0)
+list(nil 'name "guardringleftsep" 'type "float" 'value 0)
+list(nil 'name "guardringrightsep" 'type "float" 'value 0)
+list(nil 'name "guardringtopsep" 'type "float" 'value 0)
+list(nil 'name "guardringbottomsep" 'type "float" 'value 0)
+list(nil 'name "guardringsegments" 'type "float" 'value { left,right,top,bottom })
+list(nil 'name "guardringfillimplant" 'type "boolean" 'value false)
+list(nil 'name "guardringfillwell" 'type "boolean" 'value false)
+list(nil 'name "guardringwellinnerextension" 'type "float" 'value 0)
+list(nil 'name "guardringwellouterextension" 'type "float" 'value 0)
+list(nil 'name "guardringimplantinnerextension" 'type "float" 'value 0)
+list(nil 'name "guardringimplantouterextension" 'type "float" 'value 0)
+list(nil 'name "guardringsoiopeninnerextension" 'type "float" 'value 0)
+list(nil 'name "guardringsoiopenouterextension" 'type "float" 'value 0)
+list(nil 'name "botwelltapwidth" 'type "float" 'value 0)
+list(nil 'name "botwelltapspace" 'type "float" 'value 0)
+list(nil 'name "botwelltapextendleft" 'type "float" 'value 0)
+list(nil 'name "botwelltapextendright" 'type "float" 'value 0)
+list(nil 'name "drawstopgatetopgatecut" 'type "boolean" 'value false)
+list(nil 'name "drawstopgatebotgatecut" 'type "boolean" 'value false)
+list(nil 'name "excludestopgatesfromcutregions" 'type "boolean" 'value true)
+list(nil 'name "leftpolylines" 'type "float" 'value  )
+list(nil 'name "rightpolylines" 'type "float" 'value  )
+list(nil 'name "drawrotationmarker" 'type "boolean" 'value false)
+list(nil 'name "drawanalogmarker" 'type "boolean" 'value false)
+*/
+        )
+        count = 1
+        groupname = lsprintf("mosfet_%d" count)
+        while(dbGetFigGroupByName(geGetEditCellView() groupname)
+            count = count + 1
+            groupname = lsprintf("mosfet_%d" count)
+        )
+        group = OPCSubCellCreateBase(geGetEditCellView() groupname properties)
+        OPCSubCellUpdateCell(group)
+    )
+)
