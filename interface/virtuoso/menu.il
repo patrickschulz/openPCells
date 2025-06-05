@@ -1,17 +1,28 @@
 procedure(OPCCreateLayoutMenu()
-    let( (menu itemlist about separator edit update script export settings subcellmenu cellmenu)
+    let( (menu itemlist about separator export settings designmenu subcellmenu cellmenu)
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
 
         separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
 
-        ; update design
-        edit = hiCreateMenuItem(?name 'OPCEditCellScript ?itemText "Edit Design" ?callback "OPCEditCallback()")
-        updatehierarchical = hiCreateMenuItem(?name 'OPCCellScriptHierarchical ?itemText "Update Design (Hierarchy)" ?callback "OPCUpdateCellscriptCallback(?hierarchical t)")
-        updateflat = hiCreateMenuItem(?name 'OPCCellScriptFlat ?itemText "Update Design (flat)" ?callback "OPCUpdateCellscriptCallback(?hierarchical nil)")
-        updatehierarchicalold = hiCreateMenuItem(?name 'OPCCellScriptHierarchicalOld ?itemText "Update Design (Hierarchy, reuse existing file)" ?callback "OPCUpdateCellscriptCallback(?callopc nil ?hierarchical t)")
-        updateflatold = hiCreateMenuItem(?name 'OPCCellScriptFlatOld ?itemText "Update Design (flat, reuse existing file)" ?callback "OPCUpdateCellscriptCallback(?callopc nil ?hierarchical nil)")
-        remove = hiCreateMenuItem(?name 'OPCCellScriptRemove ?itemText "Delete Design File" ?callback "OPCDeleteDesignFile()")
+        ; design
+        let(
+            (
+                edit
+                updatehierarchical
+                updateflat
+                remove
+                designmenupulldown
+            )
+            edit = hiCreateMenuItem(?name 'OPCEditCellScript ?itemText "Edit Design" ?callback "OPCEditCallback()")
+            updatehierarchical = hiCreateMenuItem(?name 'OPCCellScriptHierarchical ?itemText "Update Design (Hierarchy)" ?callback "OPCUpdateCellscriptCallback(?hierarchical t)")
+            updateflat = hiCreateMenuItem(?name 'OPCCellScriptFlat ?itemText "Update Design (flat)" ?callback "OPCUpdateCellscriptCallback(?hierarchical nil)")
+            ;updatehierarchicalold = hiCreateMenuItem(?name 'OPCCellScriptHierarchicalOld ?itemText "Update Design (Hierarchy, reuse existing file)" ?callback "OPCUpdateCellscriptCallback(?callopc nil ?hierarchical t)")
+            ;updateflatold = hiCreateMenuItem(?name 'OPCCellScriptFlatOld ?itemText "Update Design (flat, reuse existing file)" ?callback "OPCUpdateCellscriptCallback(?callopc nil ?hierarchical nil)")
+            remove = hiCreateMenuItem(?name 'OPCCellScriptRemove ?itemText "Delete Design File" ?callback "OPCDeleteDesignFile()")
+            designmenupulldown = hiCreatePulldownMenu('OPCDesignMenuPulldown "" list(edit updatehierarchical updateflat remove))
+            designmenu = hiCreateSliderMenuItem(?name 'OPCDesignMenu ?itemText "Design" ?subMenu designmenupulldown)
+        )
 
         ; sub cells
         let(
@@ -56,7 +67,7 @@ procedure(OPCCreateLayoutMenu()
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
 
         ; assemble main menu
-        itemlist = list(about separator edit updatehierarchical updateflat updatehierarchicalold updateflatold remove separator subcellmenu separator cellmenu separator exportgds separator export separator settings)
+        itemlist = list(about separator settings separator designmenu separator subcellmenu separator cellmenu separator exportgds separator export)
         hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
 )
@@ -65,6 +76,8 @@ procedure(OPCMenuTrigger(args)
     let((menu)
         menu = OPCCreateLayoutMenu()
         ; check initial editable flag
+        ; FIXME: this was always buggy and now changed with the new menu structure
+        /*
         when(boundp('OPCLayoutMenu)
             if(geGetEditCellView()->mode == "a"
                 then
@@ -79,11 +92,14 @@ procedure(OPCMenuTrigger(args)
                     hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScriptFlatOld->hiMenuItemSym)
             )
         )
+        */
         list(menu)
     )
 )
 
 procedure(OPCModeChangeTrigger(args)
+    ; FIXME: needs update after re-structuring menu
+    /*
     when(boundp('OPCLayoutMenu)
         if(args->action == 'change
             then
@@ -114,6 +130,8 @@ procedure(OPCModeChangeTrigger(args)
                 )
         )
     )
+    */
+    t
 )
 
 ; create a user postinstall trigger that automatically adds the menu
