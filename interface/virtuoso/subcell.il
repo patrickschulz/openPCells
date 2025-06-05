@@ -196,6 +196,7 @@ procedure(OPCGetSubCellCellParameters(opcgroup)
 ); OPCGetSubCellCellParameters
 
 procedure(OPCSubCellUpdateCellScript()
+    t
 )
 
 procedure(OPCSubCellUpdateCell(opcgroup)
