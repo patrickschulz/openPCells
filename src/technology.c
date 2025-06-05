@@ -567,6 +567,27 @@ struct via_definition** technology_get_contact_definitions(struct technology_sta
             break;
         }
     }
+    // check if non-rotated definitions are available
+    if(!viadefs)
+    {
+        const char* found = strstr(region, "rotated");
+        if(found != NULL)
+        {
+            // perform search again, skip last seven characters ('rotated')
+            memset(contactname, 0, len + 1); // reset region identifier
+            snprintf(contactname, len + 1 - 7, "contact%s", region);
+            for(unsigned int i = 0; i < vector_size(techstate->viatable); ++i)
+            {
+                struct viaentry* entry = vector_get(techstate->viatable, i);
+                if(strcmp(entry->name, contactname) == 0)
+                {
+                    viadefs = entry->viadefs;
+                    break;
+                }
+            }
+        }
+    }
+    // no viadefs found
     if(!viadefs)
     {
         printf("could not find contact definitions for '%s'\n", contactname);
