@@ -185,7 +185,7 @@ procedure(OPCGetSubCellCellParameters(opcgroup)
                     ("int" lsprintf("%d" p->value)) ; integers stay integers (e.g. number of fingers)
                     ("float" lsprintf("%d" int(p->value * 1000))) ; convert micro-meter to nano-meter
                     ("boolean" lsprintf("%s" if(p->value == "TRUE" "true" "false")))
-                    ("string" lsprintf("%s" p->value))
+                    ("string" lsprintf("\"%s\"" p->value))
                     (t nil)
                 )
                 parameterlist = cons(list(p->name value) parameterlist)
