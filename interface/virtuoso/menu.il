@@ -32,10 +32,11 @@ procedure(OPCCreateLayoutMenu()
 
         ; specific cells
         let(
-            (guardring mosfet)
+            (mosfet guardring metalgrid)
             mosfet = hiCreateMenuItem(?name 'OPCCreateMosfet ?itemText "Create MOSFET" ?callback "OPCCreateMosfet()")
             guardring = hiCreateMenuItem(?name 'OPCCreateGuardring ?itemText "Create Guardring" ?callback "OPCCreateGuardring()")
-            cellmenupulldown = hiCreatePulldownMenu('OPCCellMenuPulldown "" list(mosfet guardring))
+            metalgrid = hiCreateMenuItem(?name 'OPCCreateMetalgrid ?itemText "Create Metal Grid" ?callback "OPCCreateMetalgrid()")
+            cellmenupulldown = hiCreatePulldownMenu('OPCCellMenuPulldown "" list(mosfet guardring metalgrid))
             cellmenu = hiCreateSliderMenuItem(?name 'OPCCellMenu ?itemText "Cells" ?subMenu cellmenupulldown)
         )
 
