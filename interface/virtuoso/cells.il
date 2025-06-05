@@ -5,7 +5,7 @@ procedure(OPCCreateGuardring()
             list(nil 'name "contype" 'type "string" 'value "n")
             list(nil 'name "ringwidth" 'type "float" 'value 0.2)
         )
-        group = OPCSubCellCreateBase(geGetEditCellView() groupname properties)
+        group = OPCSubCellCreateBase(geGetEditCellView() "guardring" properties)
         OPCSubCellUpdateCell(group)
     )
     /*
