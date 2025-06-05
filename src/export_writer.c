@@ -1193,7 +1193,7 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
 
     if(!has_write_paths || !has_write_polygon || !has_write_cell_reference || !has_write_path_extensions)
     {
-        copy = object_flatten(toplevel, 0); // 0: !flattenports
+        copy = object_copy(toplevel);
         mustdelete = 1;
         if(!has_write_paths)
         {
