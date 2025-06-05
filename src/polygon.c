@@ -56,7 +56,7 @@ struct polygon_container* polygon_container_create(void)
 struct polygon_container* polygon_container_create_empty(void)
 {
     struct polygon_container* polygon_container = malloc(sizeof(*polygon_container));
-    polygon_container->simple_polygons = NULL;
+    polygon_container->simple_polygons = vector_create(8, simple_polygon_destroy);
     return polygon_container;
 }
 
