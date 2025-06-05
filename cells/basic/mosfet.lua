@@ -1289,8 +1289,9 @@ function layout(transistor, _P)
                 local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
                 local bl = point.create(shift, sourceoffset)
                 local tr = point.create(shift + _P.sdwidth, sourceoffset + _P.sourcesize)
+                local debugstr = string.format("source/drain contacts:\n    x parameters: sdwidth (%d)\n    y parameters: sourcesize (%d)", _P.sdwidth, _P.sourcesize)
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
-                    geometry.contactbarebltr(transistor, contacttype, bl, tr)
+                    geometry.contactbarebltr(transistor, contacttype, bl, tr, debugstr)
                     if _P.drawsourcevia and _P.sourceviametal > 1 and
                         not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         for metal = 1, _P.sourceviametal - 1 do
