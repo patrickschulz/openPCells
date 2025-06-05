@@ -185,7 +185,6 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "version"))
     {
         printf("openPCells (opc) %u.%u.%u\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
-        puts("Copyright 2020-2025 Patrick Kurth");
         goto DESTROY_CMDOPTIONS;
     }
     FILE* pfd_f = NULL;
