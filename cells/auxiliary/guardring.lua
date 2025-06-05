@@ -136,7 +136,7 @@ function layout(guardring, _P)
             geometry.contactbarebltr(guardring, "active",
                 point.create(0, holeheight),
                 point.create(holewidth, holeheight + _P.ringwidth),
-                "topcontacts"
+                string.format("top contacts:\n    x parameters: holewidth (%d)\n    y parameters: ringwidth (%d)", holewidth, _P.ringwidth)
             )
         end
         if _P.drawmetal then
@@ -184,7 +184,7 @@ function layout(guardring, _P)
             geometry.contactbarebltr(guardring, "active",
                 point.create(0, -_P.ringwidth),
                 point.create(holewidth, 0),
-                "bottomcontacts"
+                string.format("bottom contacts:\n    x parameters: holewidth (%d)\n    y parameters: ringwidth (%d)", holewidth, _P.ringwidth)
             )
         end
         if _P.drawmetal then
@@ -231,7 +231,7 @@ function layout(guardring, _P)
             geometry.contactbarebltr(guardring, "active",
                 point.create(-_P.ringwidth, 0),
                 point.create(0,  holeheight),
-                "leftcontacts"
+                string.format("left contacts:\n    x parameters: ringwidth (%d)\n    y parameters: holeheight (%d)", _P.ringwidth, holeheight)
             )
         end
         if _P.drawmetal then
@@ -278,7 +278,7 @@ function layout(guardring, _P)
             geometry.contactbarebltr(guardring, "active",
                 point.create(holewidth, 0),
                 point.create(holewidth + _P.ringwidth, holeheight),
-                "rightcontacts"
+                string.format("right contacts:\n    x parameters: ringwidth (%d)\n    y parameters: holeheight (%d)", _P.ringwidth, holeheight)
             )
         end
         if _P.drawmetal then
