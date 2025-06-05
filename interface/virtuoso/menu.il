@@ -1,5 +1,5 @@
 procedure(OPCCreateLayoutMenu()
-    let( (menu itemlist about separator edit update script export settings cellmenu)
+    let( (menu itemlist about separator edit update script export settings subcellmenu cellmenu)
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
 
@@ -14,14 +14,30 @@ procedure(OPCCreateLayoutMenu()
         remove = hiCreateMenuItem(?name 'OPCCellScriptRemove ?itemText "Delete Design File" ?callback "OPCDeleteDesignFile()")
 
         ; sub cells
-        createsubcellscript = hiCreateMenuItem(?name 'OPCCreateSubCellScript ?itemText "Create Sub-Cell (Cell Script)" ?callback "OPCSubCellCreateScript()")
-        createsubcellcell = hiCreateMenuItem(?name 'OPCCreateSubCellCell ?itemText "Create Sub-Cell (Cell)" ?callback "OPCSubCellCreateCell()")
-        editsubcellscript = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Edit Sub-Cell Script" ?callback "OPCSubCellEditScript()")
-        updatesubcell = hiCreateMenuItem(?name 'OPCSubCellScript ?itemText "Update Sub-Cell" ?callback "OPCSubCellUpdate()")
+        let(
+            (
+                createsubcellscript
+                createsubcellcell
+                editsubcellscript
+                updatesubcell
+                subcellmenupulldown
+            )
+            createsubcellscript = hiCreateMenuItem(?name 'OPCCreateSubCellScript ?itemText "Create Sub-Cell (Cell Script)" ?callback "OPCSubCellCreateScript()")
+            createsubcellcell = hiCreateMenuItem(?name 'OPCCreateSubCellCell ?itemText "Create Sub-Cell (Cell)" ?callback "OPCSubCellCreateCell()")
+            editsubcellscript = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Edit Sub-Cell Script" ?callback "OPCSubCellEditScript()")
+            updatesubcell = hiCreateMenuItem(?name 'OPCSubCellScript ?itemText "Update Sub-Cell" ?callback "OPCSubCellUpdate()")
+            subcellmenupulldown = hiCreatePulldownMenu(?name 'OPCSubCellMenuPulldown "" list(createsubcellscript createsubcellcell editsubcellscript updatesubcell))
+            subcellmenu = hiCreateSliderMenuItem(?name 'OPCSubCellMenu ?itemText "Sub-Cells" ?subMenu subcellmenupulldown)
+        )
 
         ; specific cells
-        guardring = hiCreateMenuItem(?name 'OPCCreateGuardring ?itemText "Create Guardring" ?callback "OPCCreateGuardring()")
-        mosfet = hiCreateMenuItem(?name 'OPCCreateMosfet ?itemText "Create MOSFET" ?callback "OPCCreateMosfet()")
+        let(
+            (guardring mosfet)
+            mosfet = hiCreateMenuItem(?name 'OPCCreateMosfet ?itemText "Create MOSFET" ?callback "OPCCreateMosfet()")
+            guardring = hiCreateMenuItem(?name 'OPCCreateGuardring ?itemText "Create Guardring" ?callback "OPCCreateGuardring()")
+            cellmenupulldown = hiCreatePulldownMenu(?name 'OPCCellMenuPulldown "" list(mosfet guardring))
+            cellmenu = hiCreateSliderMenuItem(?name 'OPCCellMenu ?itemText "Cells" ?subMenu cellmenupulldown)
+        )
 
         ; export gds
         exportgds = hiCreateMenuItem(?name 'OPCCellScriptGDS ?itemText "Update as GDSII" ?callback "OPCUpdateAsGDS()")
@@ -39,7 +55,7 @@ procedure(OPCCreateLayoutMenu()
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
 
         ; assemble main menu
-        itemlist = list(about separator edit updatehierarchical updateflat updatehierarchicalold updateflatold remove separator createsubcellscript createsubcellcell editsubcellscript updatesubcell separator mosfet guardring separator exportgds separator export separator settings)
+        itemlist = list(about separator edit updatehierarchical updateflat updatehierarchicalold updateflatold remove separator subcellmenu separator cellmenu separator exportgds separator export separator settings)
         hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
 )
