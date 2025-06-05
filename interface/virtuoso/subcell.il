@@ -97,7 +97,7 @@ procedure(OPCSubCellScriptCreateCallback()
     let(
         (cv group path label groupname template)
         cv = geGetEditCellView()
-        groupname = OPCSubCellScripCreationForm->OPCSubCellScriptName->value
+        groupname = OPCSubCellScriptCreationForm->OPCSubCellScriptName->value
         template = OPCSubCellScriptCreationForm->OPCSubCellScriptTemplate->value
         if(dbGetFigGroupByName(cv groupname)
             then
