@@ -154,7 +154,7 @@ procedure(OPCSubCellCellCreateCallback()
     ; (6) place/move group
 ) ; procedure
 
-procedure(OPCSubCellEdit()
+procedure(OPCSubCellEditScript()
     let(
         (opcgroup)
         opcgroup = OPCSubCellGet()
