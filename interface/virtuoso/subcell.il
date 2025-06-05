@@ -195,6 +195,24 @@ procedure(OPCGetSubCellCellParameters(opcgroup)
     )
 ); OPCGetSubCellCellParameters
 
+procedure(OPCSubCellUpdateCellScript()
+)
+
+procedure(OPCSubCellUpdateCell(opcgroup)
+    let(
+        (parameterlist)
+        parameterlist = OPCGetSubCellCellParameters(opcgroup)
+        OPCUpdateCellCellCallback(
+            opcgroup->opccell
+            parameterlist
+            ?hierarchical nil
+            ?deleteAll nil
+            ?origin opcgroup->origin
+            ?xgroupname opcgroup->name
+        )
+    )
+)
+
 procedure(OPCSubCellUpdate()
     let(
         (opcgroup)
@@ -211,18 +229,7 @@ procedure(OPCSubCellUpdate()
                             ?xgroupname opcgroup->name
                         )
                     else
-                        let(
-                            (parameterlist)
-                            parameterlist = OPCGetSubCellCellParameters(opcgroup)
-                            OPCUpdateCellCellCallback(
-                                opcgroup->opccell
-                                parameterlist
-                                ?hierarchical nil
-                                ?deleteAll nil
-                                ?origin opcgroup->origin
-                                ?xgroupname opcgroup->name
-                            )
-                        )
+                        OPCSubCellUpdateCell(opcgroup)
                 )
             else
                 nil
