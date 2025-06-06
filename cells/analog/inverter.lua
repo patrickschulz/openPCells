@@ -122,6 +122,7 @@ function layout(inverter, _P)
         --table.insert(contactpos, "dummyouterpower")
         table.insert(contactpos, "dummyouter")
     end
+    local hasdummies = (_P.numleftdummies > 0) and (_P.numrightdummies > 0)
 
     local cmos = pcell.create_layout("basic/cmos", "cmos", {
         nvthtype = _P.nvthtype,
@@ -144,8 +145,8 @@ function layout(inverter, _P)
         powerwidth = _P.powerwidth,
         npowerspace = _P.powerspace,
         ppowerspace = _P.powerspace,
-        pgateext = (_P.allgatesequalheight and (_P.powerspace + _P.powerwidth) or 0) + _P.pgateext,
-        ngateext = (_P.allgatesequalheight and (_P.powerspace + _P.powerwidth) or 0) + _P.ngateext,
+        pgateext = ((_P.allgatesequalheight and hasdummies) and (_P.powerspace + _P.powerwidth) or 0) + _P.pgateext,
+        ngateext = ((_P.allgatesequalheight and hasdummies) and (_P.powerspace + _P.powerwidth) or 0) + _P.ngateext,
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
         outputmetal = _P.outputmetal,
