@@ -283,7 +283,7 @@ function placement.digital(parent, rows, width, flipfirst, noflip)
     return placement.rowwise(parent, rows, not flip, flipfirst)
 end
 
-function placement.rowwise(parent, cellsdef, flip, flipfirst)
+function placement.rowwise(parent, cellsdef, flipeverysecondrow, flipfirst)
     local cells = {}
     local references = {}
 
@@ -335,12 +335,12 @@ function placement.rowwise(parent, cellsdef, flip, flipfirst)
     end
 
     -- flip every second row
-    if flip then
+    if flipeverysecondrow then
         local flip = flipfirst
         for row = 1, #cells do
             if flip then
                 for column = 1, #cells[row] do
-                    cells[row][column]:flipx()
+                    cells[row][column]:flipy()
                 end
             end
             flip = not flip
