@@ -685,6 +685,9 @@ function util.ratio_split_even(value, ratio)
     check.set_next_function_name("util.ratio_split_even")
     check.arg(1, "value", "number", value)
     check.arg(2, "ratio", "number", ratio)
+    if value % 2 ~= 0 then
+        moderror(string.format("util.ratio_split_even: value is not even (%d), can't be split into two even values", value))
+    end
     local second = value // (ratio + 1)
     if second % 2 == 1 then
         second = second - 1
