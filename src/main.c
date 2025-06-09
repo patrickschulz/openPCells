@@ -118,9 +118,11 @@ void _print_general_info(void)
     printf("This is the openPCell layout generator (opc), version %u.%u.%u.\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
     puts("Copyright 2020-2025 Patrick Kurth");
     puts("");
-    puts("To generate a layout, you need to pass the technology, the export type and a cellname.");
+    puts("To generate a layout, you need to pass the technology,");
+    puts("the export type and a cellname or the name of a cellscript.");
     puts("Example:");
     puts("         opc --technology opc --export gds --cell stdcells/not_gate");
+    puts("         opc --technology opc --export gds --cellscript script.lua");
     puts("");
     puts("You can find out more about the available command line options by running 'opc -h'.");
 }
