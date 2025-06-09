@@ -20,6 +20,7 @@
 #include "main.cell.h"
 #include "main.functions.h"
 #include "main.gds.h"
+#include "main.tutorial.h"
 #include "main.verilog.h"
 
 static int _load_config(struct hashmap* config)
@@ -225,6 +226,11 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "api-list"))
     {
         main_API_list();
+        goto DESTROY_CMDOPTIONS;
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "generate-tutorial"))
+    {
+        main_generate_tutorial();
         goto DESTROY_CMDOPTIONS;
     }
 

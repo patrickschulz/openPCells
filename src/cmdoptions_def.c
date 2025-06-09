@@ -100,6 +100,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "list-techpaths", NO_ARG, "list tech
 cmdoptions_add_option(cmdoptions, NO_SHORT, "api-help", SINGLE_ARG, "display help about an API function or module");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "api-search", SINGLE_ARG, "search for an API function or module");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "api-list", NO_ARG, "list all available API functions and/or modules");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "generate-tutorial", NO_ARG, "generate a set of script files to demonstrate the usage and features of openPCells");
 
 /* Utility Functions */
 cmdoptions_add_section(cmdoptions, "Utility functions");
