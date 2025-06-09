@@ -34,10 +34,10 @@ int lrectangle_union(lua_State* L)
     {
         lua_newtable(L);
         lua_pushstring(L, "bl");
-        lpoint_create_internal(L, blx, bly);
+        lpoint_create_internal_xy(L, blx, bly);
         lua_rawset(L, -3);
         lua_pushstring(L, "tr");
-        lpoint_create_internal(L, trx, try);
+        lpoint_create_internal_xy(L, trx, try);
         lua_rawset(L, -3);
     }
     return 1;

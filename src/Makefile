@@ -12,7 +12,7 @@ ifeq ($(DEBUGANALYZE), 1)
     CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined $(WARNFLAGS) $(COMMONFLAGS) $(PPFLAGS)
 endif
 
-OBJS:= cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o shape.o skillexport.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
+OBJS:= bltrshape.o cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.tutorial.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o shape.o skillexport.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
 DEBUGOBJS = $(addprefix debug/, $(OBJS))
 RELEASEOBJS = $(addprefix release/, $(OBJS))
 
@@ -134,6 +134,7 @@ clean:
 # * modulemanager.o
 # * scriptmanager.o
 # * main.o
+bltrshape.o: src/bltrshape.c src/bltrshape.h
 cells.o: cells.c pcell.h lua/lua.h lua/luaconf.h \
  object.h hashmap.h polygon.h point.h shape.h \
  transformationmatrix.h technology.h vector.h geometry.h \
@@ -190,10 +191,11 @@ lgeometry.o: lgeometry.c lgeometry.h lua/lua.h \
  point.h shape.h transformationmatrix.h graphics.h \
  lcheck.h lgenerics.h lobject.h lplacement.h lpoint.h \
  lutil.h placement.h
-lobject.o: lobject.c lobject.h lua/lua.h lua/luaconf.h \
- object.h hashmap.h polygon.h point.h shape.h \
- transformationmatrix.h technology.h vector.h \
- lua/lauxlib.h lua/lua.h lpoint.h lcheck.h
+lobject.o: src/lobject.c src/lobject.h src/lua/lua.h src/lua/luaconf.h \
+ src/object.h src/hashmap.h src/polygon.h src/point.h src/shape.h \
+ src/technology.h src/vector.h src/transformationmatrix.h \
+ src/lua/lauxlib.h src/lua/lua.h src/bltrshape.h src/lpoint.h \
+ src/lcheck.h
 lplacement.o: lplacement.c lplacement.h lua/lua.h \
  lua/luaconf.h polygon.h point.h lua/lauxlib.h \
  lua/lua.h lcheck.h lgenerics.h lobject.h object.h \
@@ -264,14 +266,15 @@ main.functions.o: main.functions.c main.functions.h lua/lua.h \
 main.gds.o: main.gds.c main.gds.h cmdoptions.h \
  main.functions.h lua/lua.h lua/luaconf.h gdsparser.h \
  vector.h
+main.tutorial.o: main.tutorial.c main.tutorial.h
 main.verilog.o: main.verilog.c main.verilog.h vector.h \
  lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
  filesystem.h lplacement.h polygon.h point.h \
  lplacer.h lrouter.h lua_util.h modulemanager.h \
  util.h main.functions.h
-object.o: object.c object.h hashmap.h polygon.h \
- point.h shape.h transformationmatrix.h technology.h \
- lua/lua.h lua/luaconf.h vector.h util.h
+object.o: src/object.c src/object.h src/hashmap.h src/polygon.h \
+ src/point.h src/shape.h src/technology.h src/lua/lua.h src/lua/luaconf.h \
+ src/vector.h src/transformationmatrix.h src/bltrshape.h src/util.h
 pcell.o: pcell.c pcell.h lua/lua.h lua/luaconf.h \
  object.h hashmap.h polygon.h point.h shape.h \
  transformationmatrix.h technology.h vector.h \

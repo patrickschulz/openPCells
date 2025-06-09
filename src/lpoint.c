@@ -36,11 +36,20 @@ coordinate_t lpoint_checkcoordinate(lua_State* L, int idx, const char* coordinat
     return d;
 }
 
-struct lpoint* lpoint_create_internal(lua_State* L, coordinate_t x, coordinate_t y)
+struct lpoint* lpoint_create_internal_xy(lua_State* L, coordinate_t x, coordinate_t y)
 {
     struct lpoint* p = lua_newuserdata(L, sizeof(*p));
     luaL_setmetatable(L, LPOINTMETA);
     p->point = point_create(x, y);
+    p->destroy = 1;
+    return p;
+}
+
+struct lpoint* lpoint_create_internal_pt(lua_State* L, const struct point* pt)
+{
+    struct lpoint* p = lua_newuserdata(L, sizeof(*p));
+    luaL_setmetatable(L, LPOINTMETA);
+    p->point = point_copy(pt);
     p->destroy = 1;
     return p;
 }
@@ -68,7 +77,7 @@ int lpoint_create(lua_State* L)
     coordinate_t x = lpoint_checkcoordinate(L, -2, "x");
     coordinate_t y = lpoint_checkcoordinate(L, -1, "y");
     lua_pop(L, 2);
-    lpoint_create_internal(L, x, y);
+    lpoint_create_internal_xy(L, x, y);
     return 1;
 }
 
@@ -162,7 +171,7 @@ static int lpoint_combine_12(lua_State* L)
 {
     struct lpoint* lhs = lpoint_checkpoint(L, 1);
     struct lpoint* rhs = lpoint_checkpoint(L, 2);
-    lpoint_create_internal(L,
+    lpoint_create_internal_xy(L,
         _x(lhs),
         _y(rhs)
     );
@@ -173,7 +182,7 @@ static int lpoint_combine_21(lua_State* L)
 {
     struct lpoint* lhs = lpoint_checkpoint(L, 1);
     struct lpoint* rhs = lpoint_checkpoint(L, 2);
-    lpoint_create_internal(L,
+    lpoint_create_internal_xy(L,
         _x(rhs),
         _y(lhs)
     );
@@ -184,7 +193,7 @@ static int lpoint_combine(lua_State* L)
 {
     struct lpoint* lhs = lpoint_checkpoint(L, 1);
     struct lpoint* rhs = lpoint_checkpoint(L, 2);
-    lpoint_create_internal(L,
+    lpoint_create_internal_xy(L,
         (_x(lhs) + _x(rhs)) / 2,
         (_y(lhs) + _y(rhs)) / 2
     );
@@ -266,7 +275,7 @@ static int lpoint_sub(lua_State* L)
 {
     struct lpoint* lhs = lpoint_checkpoint(L, 1);
     struct lpoint* rhs = lpoint_checkpoint(L, 2);
-    lpoint_create_internal(L,
+    lpoint_create_internal_xy(L,
         point_getx(lpoint_get(lhs)) - point_getx(lpoint_get(rhs)),
         point_gety(lpoint_get(lhs)) - point_gety(lpoint_get(rhs))
     );
@@ -276,7 +285,7 @@ static int lpoint_sub(lua_State* L)
 static int lpoint_unary_minus(lua_State* L)
 {
     struct lpoint* self = lpoint_checkpoint(L, 1);
-    lpoint_create_internal(L,
+    lpoint_create_internal_xy(L,
         -point_getx(lpoint_get(self)),
         -point_gety(lpoint_get(self))
     );
@@ -287,7 +296,7 @@ static int lpoint_concat(lua_State* L)
 {
     struct lpoint* lhs = lpoint_checkpoint(L, 1);
     struct lpoint* rhs = lpoint_checkpoint(L, 2);
-    lpoint_create_internal(L,
+    lpoint_create_internal_xy(L,
         point_getx(lpoint_get(lhs)),
         point_gety(lpoint_get(rhs))
     );

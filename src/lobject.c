@@ -4,6 +4,7 @@
 
 #include "lua/lauxlib.h"
 
+#include "bltrshape.h"
 #include "lpoint.h"
 #include "lcheck.h"
 
@@ -802,6 +803,14 @@ static int lobject_inherit_area_anchor_as(lua_State* L)
     return 0;
 }
 
+static int lobject_inherit_all_anchors(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* other = lobject_check(L, 2);
+    object_inherit_all_anchors(lobject_get(L, cell), lobject_get_const(other));
+    return 0;
+}
+
 static int lobject_inherit_all_anchors_with_prefix(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -884,13 +893,13 @@ static void _get_area_anchor(lua_State* L, const struct object* cell, const char
         lua_newtable(L);
         lua_pushstring(L, base);
         lua_setfield(L, -2, "_name");
-        lpoint_create_internal(L, pts[0].x, pts[0].y);
+        lpoint_create_internal_xy(L, pts[0].x, pts[0].y);
         lua_setfield(L, -2, "bl");
-        lpoint_create_internal(L, pts[1].x, pts[0].y);
+        lpoint_create_internal_xy(L, pts[1].x, pts[0].y);
         lua_setfield(L, -2, "br");
-        lpoint_create_internal(L, pts[1].x, pts[1].y);
+        lpoint_create_internal_xy(L, pts[1].x, pts[1].y);
         lua_setfield(L, -2, "tr");
-        lpoint_create_internal(L, pts[0].x, pts[1].y);
+        lpoint_create_internal_xy(L, pts[0].x, pts[1].y);
         lua_setfield(L, -2, "tl");
         // skalar values
         lua_pushinteger(L, pts[0].x);
@@ -976,13 +985,13 @@ static int lobject_get_array_area_anchor(lua_State* L)
         lua_newtable(L);
         lua_pushstring(L, base);
         lua_setfield(L, -2, "_name");
-        lpoint_create_internal(L, pts[0].x, pts[0].y);
+        lpoint_create_internal_xy(L, pts[0].x, pts[0].y);
         lua_setfield(L, -2, "bl");
-        lpoint_create_internal(L, pts[1].x, pts[0].y);
+        lpoint_create_internal_xy(L, pts[1].x, pts[0].y);
         lua_setfield(L, -2, "br");
-        lpoint_create_internal(L, pts[1].x, pts[1].y);
+        lpoint_create_internal_xy(L, pts[1].x, pts[1].y);
         lua_setfield(L, -2, "tr");
-        lpoint_create_internal(L, pts[0].x, pts[1].y);
+        lpoint_create_internal_xy(L, pts[0].x, pts[1].y);
         lua_setfield(L, -2, "tl");
         // skalar values
         lua_pushinteger(L, pts[0].x);
@@ -1126,7 +1135,7 @@ static int lobject_get_ports(lua_State* L)
         lua_newtable(L);
         lua_pushstring(L, portname);
         lua_setfield(L, -2, "name");
-        lpoint_create_internal(L, portwhere->x, portwhere->y);
+        lpoint_create_internal_xy(L, portwhere->x, portwhere->y);
         lua_setfield(L, -2, "where");
         lua_rawseti(L, -2, i);
         port_iterator_next(it);
@@ -1547,7 +1556,7 @@ static int lobject_get_boundary(lua_State* L)
     while(vector_iterator_is_valid(it))
     {
         const struct point* pt = vector_iterator_get(it);
-        lpoint_create_internal(L, pt->x, pt->y);
+        lpoint_create_internal_xy(L, pt->x, pt->y);
         lua_rawseti(L, -2, i);
         vector_iterator_next(it);
         ++i;
@@ -1587,7 +1596,7 @@ static int lobject_get_layer_boundary(lua_State* L)
         while(simple_polygon_iterator_is_valid(it))
         {
             const struct point* pt = simple_polygon_iterator_get(it);
-            lpoint_create_internal(L, pt->x, pt->y);
+            lpoint_create_internal_xy(L, pt->x, pt->y);
             lua_rawseti(L, -2, j);
             simple_polygon_iterator_next(it);
             ++j;
@@ -1624,7 +1633,7 @@ static int lobject_get_shape_outlines(lua_State* L)
         while(simple_polygon_iterator_is_valid(it))
         {
             const struct point* pt = simple_polygon_iterator_get(it);
-            lpoint_create_internal(L, pt->x, pt->y);
+            lpoint_create_internal_xy(L, pt->x, pt->y);
             lua_rawseti(L, -2, j);
             simple_polygon_iterator_next(it);
             ++j;
@@ -1636,6 +1645,40 @@ static int lobject_get_shape_outlines(lua_State* L)
     }
     polygon_container_iterator_destroy(pit);
     polygon_container_destroy(outlines);
+    return 1;
+}
+
+static int lobject_add_net_shape(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* netname = luaL_checkstring(L, 2);
+    struct lpoint* bl = lpoint_checkpoint(L, 3);
+    struct lpoint* tr = lpoint_checkpoint(L, 4);
+    _check_rectangle_points(L, bl, tr, "object.add_net_shape");
+    object_add_net_shape(lobject_get(L, cell), netname, lpoint_get(bl), lpoint_get(tr));
+    return 0;
+}
+
+static int lobject_get_net_shapes(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* netname = luaL_checkstring(L, 2);
+    struct vector* netshapes = object_get_net_shapes(lobject_get(L, cell), netname);
+    lua_newtable(L);
+    for(size_t i = 0; i < vector_size(netshapes); ++i)
+    {
+        struct bltrshape* pts = vector_get(netshapes, i);
+        lua_newtable(L);
+        /* bl */
+        lpoint_create_internal_pt(L, bltrshape_get_bl(pts));
+        lua_setfield(L, -2, "bl");
+        /* tr */
+        lpoint_create_internal_pt(L, bltrshape_get_tr(pts));
+        lua_setfield(L, -2, "tr");
+        /* add to array */
+        lua_rawseti(L, -2, i + 1);
+    }
+    vector_destroy(netshapes);
     return 1;
 }
 
@@ -1668,6 +1711,7 @@ int open_lobject_lib(lua_State* L)
         { "add_anchor_line_y",                      lobject_add_anchor_line_y                   },
         { "inherit_area_anchor",                    lobject_inherit_area_anchor                 },
         { "inherit_area_anchor_as",                 lobject_inherit_area_anchor_as              },
+        { "inherit_all_anchors",                    lobject_inherit_all_anchors                 },
         { "inherit_all_anchors_with_prefix",        lobject_inherit_all_anchors_with_prefix     },
         { "get_anchor",                             lobject_get_anchor                          },
         { "get_alignment_anchor",                   lobject_get_alignment_anchor                },
@@ -1760,6 +1804,8 @@ int open_lobject_lib(lua_State* L)
         { "has_layer_boundary",                     lobject_has_layer_boundary                  },
         { "get_layer_boundary",                     lobject_get_layer_boundary                  },
         { "get_shape_outlines",                     lobject_get_shape_outlines                  },
+        { "add_net_shape",                          lobject_add_net_shape                       },
+        { "get_net_shapes",                         lobject_get_net_shapes                      },
         { "__gc",                                   lobject_destroy                             },
         { "__tostring",                             lobject_tostring                            },
         { NULL,                                     NULL                                        }

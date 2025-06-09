@@ -46,6 +46,7 @@ int object_inherit_anchor(struct object* cell, const struct object* other, const
 int object_inherit_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname);
 int object_inherit_area_anchor(struct object* cell, const struct object* other, const char* name);
 int object_inherit_area_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname);
+void object_inherit_all_anchors(struct object* cell, const struct object* other);
 void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix);
 struct point* object_get_anchor(const struct object* cell, const char* name);
 struct point* object_get_alignment_anchor(const struct object* cell, const char* name);
@@ -111,6 +112,10 @@ const struct vector* object_get_ports(const struct object* cell);
 
 // labels
 void object_add_label(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint);
+
+// nets
+void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr);
+struct vector* object_get_net_shapes(struct object* cell, const char* netname);
 
 // alignment box and bounding box
 void object_clear_alignment_box(struct object* cell);

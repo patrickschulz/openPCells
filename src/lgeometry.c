@@ -1143,7 +1143,7 @@ static void _path_points(lua_State* L, int xnoty)
     coordinate_t lastx = point_getx(lpoint_get(startpt));
     coordinate_t lasty = point_gety(lpoint_get(startpt));
     lua_newtable(L);
-    lpoint_create_internal(L, lastx, lasty);
+    lpoint_create_internal_xy(L, lastx, lasty);
     lua_rawseti(L, -2, 1);
     size_t idx = 2;
     for(size_t i = 1; i <= len; ++i)
@@ -1156,13 +1156,13 @@ static void _path_points(lua_State* L, int xnoty)
             coordinate_t y = point_gety(lpoint_get(pt));
             if(xnoty)
             {
-                lpoint_create_internal(L, x, lasty);
+                lpoint_create_internal_xy(L, x, lasty);
                 lua_rawseti(L, -3, idx);
                 idx += 1;
             }
             else
             {
-                lpoint_create_internal(L, lastx, y);
+                lpoint_create_internal_xy(L, lastx, y);
                 lua_rawseti(L, -3, idx);
                 idx += 1;
             }
@@ -1183,7 +1183,7 @@ static void _path_points(lua_State* L, int xnoty)
             }
         }
         lua_pop(L, 1);
-        lpoint_create_internal(L, lastx, lasty);
+        lpoint_create_internal_xy(L, lastx, lasty);
         lua_rawseti(L, -2, idx);
         idx += 1;
         xnoty = !xnoty;
@@ -1861,7 +1861,7 @@ static int lgeometry_get_side_path_points(lua_State* L)
     for(unsigned int i = 0; i < vector_size(newpts); ++i)
     {
         struct point* pt = vector_get(newpts, i);
-        lpoint_create_internal(L, point_getx(pt), point_gety(pt));
+        lpoint_create_internal_xy(L, point_getx(pt), point_gety(pt));
         lua_rawseti(L, -2, i + 1);
     }
     vector_destroy(newpts);
@@ -1895,7 +1895,7 @@ static int lgeometry_offset_polygon_points(lua_State* L)
     for(unsigned int i = 0; i < vector_size(newpts); ++i)
     {
         struct point* pt = vector_get(newpts, i);
-        lpoint_create_internal(L, point_getx(pt), point_gety(pt));
+        lpoint_create_internal_xy(L, point_getx(pt), point_gety(pt));
         lua_rawseti(L, -2, i + 1);
     }
     vector_destroy(newpts);
@@ -1949,7 +1949,7 @@ static int lgeometry_path_points_to_polygon(lua_State* L)
     for(unsigned int i = 0; i < vector_size(newpts); ++i)
     {
         struct point* pt = vector_get(newpts, i);
-        lpoint_create_internal(L, point_getx(pt), point_gety(pt));
+        lpoint_create_internal_xy(L, point_getx(pt), point_gety(pt));
         lua_rawseti(L, -2, i + 1);
     }
     vector_destroy(newpts);
@@ -1973,7 +1973,7 @@ static int lcurve_lineto(lua_State* L)
         lua_setfield(L, -2, "type");
         coordinate_t x = lpoint_checkcoordinate(L, 1, "x");
         coordinate_t y = lpoint_checkcoordinate(L, 2, "y");
-        lpoint_create_internal(L, x, y);
+        lpoint_create_internal_xy(L, x, y);
         lua_setfield(L, -2, "pt");
     }
     return 1;

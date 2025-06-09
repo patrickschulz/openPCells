@@ -9,7 +9,8 @@
 
 struct lpoint;
 
-struct lpoint* lpoint_create_internal(lua_State* L, coordinate_t x, coordinate_t y);
+struct lpoint* lpoint_create_internal_xy(lua_State* L, coordinate_t x, coordinate_t y);
+struct lpoint* lpoint_create_internal_pt(lua_State* L, const struct point* pt);
 struct lpoint* lpoint_adapt_point(lua_State* L, struct point* pt);
 struct lpoint* lpoint_takeover_point(lua_State* L, struct point* pt);
 int lpoint_create(lua_State* L);

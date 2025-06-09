@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "bltrshape.h"
 #include "util.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
@@ -127,6 +128,7 @@ struct object {
             coordinate_t* alignmentbox; // NULL or contains eight coordinates: blx, blx, trx, try for both outer (first) and inner (second)
             struct vector* boundary; // a polygon, stores struct point*
             struct hashmap* layer_boundaries; // contains polygons that store struct point*
+            struct hashmap* nets; // stores struct vector*
             size_t childcounter;
         };
     };
@@ -336,6 +338,21 @@ struct object* object_copy(const struct object* cell)
                 hashmap_iterator_next(lbit);
             }
             hashmap_iterator_destroy(lbit);
+        }
+
+        // nets
+        if(cell->nets)
+        {
+            new->nets = hashmap_create();
+            struct hashmap_iterator* netit = hashmap_iterator_create(cell->nets);
+            while(hashmap_iterator_is_valid(netit))
+            {
+                const char* key = hashmap_iterator_key(netit);
+                struct vector* nets = hashmap_iterator_value(netit);
+                hashmap_insert(new->nets, key, vector_copy(nets, bltrshape_copy));
+                hashmap_iterator_next(netit);
+            }
+            hashmap_iterator_destroy(netit);
         }
     }
     return new;
@@ -729,6 +746,11 @@ int object_inherit_anchor_as(struct object* cell, const struct object* other, co
         free(anchor);
     }
     return 1;
+}
+
+void object_inherit_all_anchors(struct object* cell, const struct object* other)
+{
+    object_inherit_all_anchors_with_prefix(cell, other, "");
 }
 
 void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
@@ -1945,6 +1967,40 @@ const struct vector* object_get_labels(const struct object* cell)
 {
     return cell->labels;
 }
+
+void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr)
+{
+    if(!cell->nets)
+    {
+        cell->nets = hashmap_create();
+    }
+    if(!hashmap_exists(cell->nets, netname))
+    {
+        struct vector* v = vector_create(8, bltrshape_destroy);
+        hashmap_insert(cell->nets, netname, v);
+    }
+    struct vector* nets = hashmap_get(cell->nets, netname);
+    struct bltrshape* netarea = bltrshape_create(bl, tr);
+    vector_append(nets, netarea);
+}
+
+struct vector* object_get_net_shapes(struct object* cell, const char* netname)
+{
+    if(!cell->nets)
+    {
+        return NULL;
+    }
+    else if(!hashmap_exists(cell->nets, netname))
+    {
+        return NULL;
+    }
+    else
+    {
+        struct vector* nets = hashmap_get(cell->nets, netname);
+        return vector_copy(nets, bltrshape_copy);
+    }
+}
+
 
 void object_clear_alignment_box(struct object* cell)
 {
