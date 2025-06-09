@@ -229,4 +229,48 @@ function layout(cell, _P)
         rows = rows,
     })
     cell:merge_into(mosfets)
+    cell:inherit_all_anchors(mosfets, "")
+
+    local powertargets = {}
+    for i = 1, #_P.rowdef do
+        local fet = _P.rowdef[i]
+        local gate = (i % 2 == 1) and "top" or "bot"
+        -- source/drain
+        table.insert(powertargets, {
+            bl = cell:get_area_anchor_fmt("%s_leftdummy_sourcestrap", fet).bl,
+            tr = cell:get_area_anchor_fmt("%s_rightdummy_sourcestrap", fet).tr
+        })
+        -- left/right dummy gates
+        table.insert(powertargets, {
+            bl = point.create(
+                cell:get_area_anchor_fmt("%s_leftdummy_gate1", fet).l,
+                cell:get_area_anchor_fmt("%s_leftdummy_%sgatestrap", fet, gate).b
+            ),
+            tr = point.create(
+                cell:get_area_anchor_fmt("%s_leftdummy_gate2", fet).r,
+                cell:get_area_anchor_fmt("%s_leftdummy_%sgatestrap", fet, gate).t
+            )
+        })
+        table.insert(powertargets, {
+            bl = point.create(
+                cell:get_area_anchor_fmt("%s_rightdummy_gate-2", fet).l,
+                cell:get_area_anchor_fmt("%s_rightdummy_%sgatestrap", fet, gate).b
+            ),
+            tr = point.create(
+                cell:get_area_anchor_fmt("%s_rightdummy_gate-1", fet).r,
+                cell:get_area_anchor_fmt("%s_rightdummy_%sgatestrap", fet, gate).t
+            )
+        })
+    end
+    table.insert(powertargets, {
+        bl = cell:get_area_anchor("topdummyrow_topgatestrap").bl,
+        tr = cell:get_area_anchor("topdummyrow_topgatestrap").tr,
+    })
+    table.insert(powertargets, {
+        bl = cell:get_area_anchor("bottomdummyrow_botgatestrap").bl,
+        tr = cell:get_area_anchor("bottomdummyrow_botgatestrap").tr,
+    })
+    for _, pt in ipairs(powertargets) do
+        cell:add_net_shape("power", pt.bl, pt.tr)
+    end
 end
