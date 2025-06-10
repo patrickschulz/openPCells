@@ -20,7 +20,6 @@ function parameters()
         { "connectdummiestomain", false },
         { "dummygates", 3 },
         { "gatecutheight", 0 },
-        { "botgatecutspace", 250 },
         { "drawleftrightstopgates", false },
         { "endgatelength", 0 },
         { "extendall",                                                                                  0 },
