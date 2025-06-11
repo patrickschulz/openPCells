@@ -16,3 +16,13 @@ procedure(OPCAboutCallback()
         hiDisplayForm(OPCAboutForm 100:100)
     )
 ) ; procedure
+
+procedure(OPCEditConfigFile()
+    let(
+        (
+            path
+        )
+        path = lsprintf("/home/%s/.opcconfig.lua" getShellEnvVar("USER"))
+        OPCOpenEditor(path)
+    )
+) ; procedure

@@ -1,5 +1,5 @@
 procedure(OPCCreateLayoutMenu()
-    let( (menu itemlist about separator export settings designmenu subcellmenu cellmenu)
+    let( (menu itemlist about separator export settings editconfig designmenu subcellmenu cellmenu)
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
 
@@ -65,9 +65,10 @@ procedure(OPCCreateLayoutMenu()
 
         ; settings
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
+        editconfig = hiCreateMenuItem(?name 'OPCEditConfig ?itemText "Edit Configgile" ?callback "OPCEditConfigFile()")
 
         ; assemble main menu
-        itemlist = list(about separator settings separator designmenu separator subcellmenu separator cellmenu separator exportgds separator export)
+        itemlist = list(about separator settings editconfig separator designmenu separator subcellmenu separator cellmenu separator exportgds separator export)
         hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
 )
@@ -140,3 +141,5 @@ foreach(layoutTier list("maskLayoutL" "maskLayoutXL" "maskLayoutEXL" "maskLayout
         deRegUserTriggers(layoutTier nil 'OPCMenuTrigger 'OPCModeChangeTrigger)
     )
 )
+
+; vim: nowrap
