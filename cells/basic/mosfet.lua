@@ -486,6 +486,9 @@ function check(_P)
     if _P.rightendgatelength % 2 ~= 0 then
         return false, "rightendgatelength must be even"
     end
+    if _P.diodeconnected and not (_P.drawtopgate or _P.drawbotgate) then
+        return false, "if the device is diode-connected, the top or bottom gate strap needs to be present"
+    end
     if _P.shortdevice then
         if
             (_P.shortdeviceleftoffset > 0 or _P.shortdevicerightoffset > 0) and

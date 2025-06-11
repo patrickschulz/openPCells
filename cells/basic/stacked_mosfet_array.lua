@@ -42,7 +42,7 @@ function check(_P)
     for rownum, row in ipairs(_P.rows) do
         for devicenum, device in ipairs(row.devices) do
             if not _P.autoskip and (device.fingers <= 0 and not device.skip) then
-                return false, string.format("device %d in row %d (\"%s\") has zero or negative amount of fingers (%d)", devicenum, rownum, device.name, device.fingers)
+                return false, string.format("device %d in row %d (\"%s\") has zero or negative amount of fingers (%d). If this is intensional, set 'autoskip' to true", devicenum, rownum, device.name, device.fingers)
             end
         end
     end
@@ -69,7 +69,7 @@ function check(_P)
         local fingersperrow = rowfingers[1]
         for i = 2, #rowfingers do
             if fingersperrow ~= rowfingers[i] then
-                return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers). If this is on purpose, set 'unequalgatelengths' to true", fingersperrow, i, rowfingers[i])
+                return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers). If this is intentional, set 'unequalgatelengths' to true", fingersperrow, i, rowfingers[i])
             end
         end
     end
