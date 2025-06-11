@@ -1665,20 +1665,23 @@ static int lobject_get_net_shapes(lua_State* L)
     const char* netname = luaL_checkstring(L, 2);
     struct vector* netshapes = object_get_net_shapes(lobject_get(L, cell), netname);
     lua_newtable(L);
-    for(size_t i = 0; i < vector_size(netshapes); ++i)
+    if(netshapes)
     {
-        struct bltrshape* pts = vector_get(netshapes, i);
-        lua_newtable(L);
-        /* bl */
-        lpoint_create_internal_pt(L, bltrshape_get_bl(pts));
-        lua_setfield(L, -2, "bl");
-        /* tr */
-        lpoint_create_internal_pt(L, bltrshape_get_tr(pts));
-        lua_setfield(L, -2, "tr");
-        /* add to array */
-        lua_rawseti(L, -2, i + 1);
+        for(size_t i = 0; i < vector_size(netshapes); ++i)
+        {
+            struct bltrshape* pts = vector_get(netshapes, i);
+            lua_newtable(L);
+            /* bl */
+            lpoint_create_internal_pt(L, bltrshape_get_bl(pts));
+            lua_setfield(L, -2, "bl");
+            /* tr */
+            lpoint_create_internal_pt(L, bltrshape_get_tr(pts));
+            lua_setfield(L, -2, "tr");
+            /* add to array */
+            lua_rawseti(L, -2, i + 1);
+        }
+        vector_destroy(netshapes);
     }
-    vector_destroy(netshapes);
     return 1;
 }
 
