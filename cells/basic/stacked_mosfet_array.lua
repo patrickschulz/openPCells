@@ -1,6 +1,7 @@
 function parameters()
     pcell.add_parameters(
         { "rows", {} },
+        { "centermosfets", false },
         { "splitgates", true },
         { "splitimplant", true, follow = "splitgates" },
         { "splitoxidetype", true, follow = "splitgates" },
@@ -19,42 +20,68 @@ end
 
 function check(_P)
     local rowfingers = {}
+    -- check that rows are present
     if #_P.rows == 0 then
         return false, "the row definition does not define any rows"
     end
+    -- check that every row defines devices
     for rownum, row in ipairs(_P.rows) do
-        local f = 0
         if not row.devices or #row.devices == 0 then
             return false, string.format("row %d does not define any devices", rownum)
         end
+    end
+    -- check that every device specifies the number of fingers
+    for rownum, row in ipairs(_P.rows) do
         for devicenum, device in ipairs(row.devices) do
             if not device.fingers then
                 return false, string.format("device %d in row %d (\"%s\") has no finger specification", devicenum, rownum, device.name)
             end
+        end
+    end
+    -- check that no device has zero or negative number of fingers (zero is allowed with autoskip set to true)
+    for rownum, row in ipairs(_P.rows) do
+        for devicenum, device in ipairs(row.devices) do
             if not _P.autoskip and (device.fingers <= 0 and not device.skip) then
                 return false, string.format("device %d in row %d (\"%s\") has zero or negative amount of fingers (%d)", devicenum, rownum, device.name, device.fingers)
             end
+        end
+    end
+    -- check that all devices have an integer number of fingers
+    -- (typically happens when the number of fingers is a result of an expression in a calling layout cell)
+    for rownum, row in ipairs(_P.rows) do
+        for devicenum, device in ipairs(row.devices) do
             if not math.tointeger(device.fingers) then
                 return false, string.format("device %d in row %d (\"%s\") has a non-integer number of fingers (%f)", devicenum, rownum, device.name, device.fingers)
             end
+        end
+    end
+    -- collect number of fingers per row
+    for rownum, row in ipairs(_P.rows) do
+        local f = 0
+        for devicenum, device in ipairs(row.devices) do
             f = f + device.fingers
         end
         rowfingers[rownum] = f
     end
+    -- check that all rows have the same number of fingers
+    -- with unequalgatelengths this check is not performed
     if not _P.unequalgatelengths then
         local fingersperrow = rowfingers[1]
         for i = 2, #rowfingers do
             if fingersperrow ~= rowfingers[i] then
-                return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers)", fingersperrow, i, rowfingers[i])
+                return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers). If this is on purpose, set 'unequalgatelengths' to true", fingersperrow, i, rowfingers[i])
             end
         end
     end
-
-    local names = {}
+    -- check that every device explicitely defines the channeltype
     for rownum, row in ipairs(_P.rows) do
         if not row.channeltype then
             return false, string.format("row %d does not have a channeltype", rownum)
         end
+    end
+    -- check that every device has a name and that it is unique (the names are used for creating anchors)
+    local names = {}
+    for rownum, row in ipairs(_P.rows) do
         for devicenum, device in ipairs(row.devices) do
             if not device.name then
                 return false, string.format("device %d in row %d does not have a name", devicenum, rownum)
@@ -86,6 +113,7 @@ local function _select_parameter(name, devparam, rowparam, cellparam)
     end
 end
 
+-- convenience function that implements x = switch and a or b
 local function _select_switch(switch, a, b)
     if switch then
         return a
@@ -95,13 +123,12 @@ local function _select_switch(switch, a, b)
 end
 
 function layout(cell, _P)
-    local lastpoint = point.create(0, 0)
-    local lastmosfet = nil
+    -- create mosfets (but don't place them)
+    local mosfetrows = {}
     for rownum, row in ipairs(_P.rows) do
-        local activebl, activetr
-        local wellbl, welltr
-        local implantbl, implanttr
+        local mosfetrow = {}
         for devnum, device in ipairs(row.devices) do
+            -- create mosfet
             if not (device.skip or (device.fingers <= 0)) then
                 local status, mosfet = xpcall(pcell.create_layout, fulltraceback, "basic/mosfet", device.name, {
                     channeltype = row.channeltype,
@@ -318,38 +345,98 @@ function layout(cell, _P)
                 if not status then -- call failed, but show detailed error here
                     cellerror(string.format("could not create device %d in row %d (\"%s\"): %s", devnum, rownum, device.name, mosfet))
                 end
-                if not lastmosfet then -- first mosfet in row
-                    if _P.alignmosfetsatactive then
-                        mosfet:move_point(mosfet:get_area_anchor("active").bl, lastpoint)
-                        lastpoint = mosfet:get_area_anchor("active").tl
-                    else
-                        mosfet:move_point(mosfet:get_area_anchor("sourcedrainactiveleft").bl, lastpoint)
-                        lastpoint = mosfet:get_area_anchor("sourcedrainactiveleft").tl
-                    end
-                    mosfet:translate_x(row.shift or 0)
-                else
-                    mosfet:align_area_anchor("sourcedrainactiveleft", lastmosfet, "sourcedrainactiveright")
-                end
-                lastmosfet = mosfet
-                cell:merge_into(mosfet)
-                cell:inherit_alignment_box(mosfet)
-                cell:inherit_all_anchors_with_prefix(mosfet, device.name .. "_")
-                if not activebl then
-                    activebl = mosfet:get_area_anchor("active").bl
-                    wellbl = mosfet:get_area_anchor("well").bl
-                    implantbl = mosfet:get_area_anchor("implant").bl
-                end
-                activetr = mosfet:get_area_anchor("active").tr
-                welltr = mosfet:get_area_anchor("well").tr
-                implanttr = mosfet:get_area_anchor("implant").tr
+                table.insert(mosfetrow, { mosfet = mosfet, name = device.name }) -- save for late positioning
+            end -- if not device.skip
+        end -- for-loop for row devices
+        table.insert(mosfetrows, { mosfets = mosfetrow, shift = row.shift })
+    end -- for-loop across rows
+
+    -- place all devices in one row (only x-position relatively within one row)
+    for rownum = 1, #mosfetrows do
+        local mosfetrow = mosfetrows[rownum].mosfets
+        for fetnum = 2, #mosfetrow do
+            local lastmosfet = mosfetrow[fetnum - 1].mosfet
+            local mosfet = mosfetrow[fetnum].mosfet
+            mosfet:align_area_anchor("sourcedrainactiveleft", lastmosfet, "sourcedrainactiveright")
+        end -- for-loop across row devices
+    end -- for-loop across rows
+
+    -- place all device rows (x- and y-position)
+    for rownum = 2, #mosfetrows do
+        local lastmosfetrow = mosfetrows[rownum - 1].mosfets
+        local mosfetrow = mosfetrows[rownum].mosfets
+        local extrayshift = mosfetrows[rownum].shift or 0
+        -- determine x- and y-shift for the entire row
+        local xshift = 0
+        if _P.centermosfets then
+                local xcenter1 = point.xaverage(
+                    lastmosfetrow[1].mosfet:get_area_anchor("active").bl,
+                    lastmosfetrow[#lastmosfetrow].mosfet:get_area_anchor("active").tr
+                )
+                local xcenter2 = point.xaverage(
+                    mosfetrow[1].mosfet:get_area_anchor("active").bl,
+                    mosfetrow[#mosfetrow].mosfet:get_area_anchor("active").tr
+                )
+                xshift = xcenter1 - xcenter2
+        else
+            if _P.alignmosfetsatactive then
+                xshift = point.xdistance(
+                    lastmosfetrow[1].mosfet:get_area_anchor("active").bl,
+                    mosfetrow[1].mosfet:get_area_anchor("active").bl
+                )
+            else
+                xshift = point.xdistance(
+                    lastmosfetrow[1].mosfet:get_area_anchor("sourcedrainactiveleft").bl,
+                    mosfetrow[1].mosfet:get_area_anchor("sourcedrainactiveleft").bl
+                )
             end
         end
+        local yshift = point.ydistance(
+            lastmosfetrow[1].mosfet:get_area_anchor("active").tl,
+            mosfetrow[1].mosfet:get_area_anchor("active").bl
+        )
+        -- position the entire row
+        for fetnum = 1, #mosfetrow do
+            local mosfet = mosfetrow[fetnum].mosfet
+            mosfet:translate(xshift, _P.separation + yshift + extrayshift)
+        end -- for-loop across row devices
+    end -- for-loop across rows
+
+    -- merge mosfets into main cell
+    for rownum = 1, #mosfetrows do
+        local mosfetrow = mosfetrows[rownum].mosfets
+        for fetnum = 1, #mosfetrow do
+            local mosfet = mosfetrow[fetnum].mosfet
+            cell:merge_into(mosfet)
+        end
+    end
+
+    -- inherit anchors and alignmentboxes
+    for rownum = 1, #mosfetrows do
+        local mosfetrow = mosfetrows[rownum].mosfets
+        for fetnum = 1, #mosfetrow do
+            local mosfet = mosfetrow[fetnum].mosfet
+            local name = mosfetrow[fetnum].name
+            cell:inherit_alignment_box(mosfet)
+            cell:inherit_all_anchors_with_prefix(mosfet, name .. "_")
+        end
+    end
+
+    -- derive/inherit anchors
+    for rownum = 1, #mosfetrows do
+        local mosfetrow = mosfetrows[rownum].mosfets
+        local activebl = mosfetrow[1].mosfet:get_area_anchor("active").bl
+        local activetr = mosfetrow[#mosfetrow].mosfet:get_area_anchor("active").bl
+        local wellbl = mosfetrow[1].mosfet:get_area_anchor("well").bl
+        local welltr = mosfetrow[#mosfetrow].mosfet:get_area_anchor("well").bl
+        local implantbl = mosfetrow[1].mosfet:get_area_anchor("implant").bl
+        local implanttr = mosfetrow[#mosfetrow].mosfet:get_area_anchor("implant").bl
         cell:add_area_anchor_bltr(string.format("active_%d", rownum), activebl, activetr)
         cell:add_area_anchor_bltr(string.format("well_%d", rownum), wellbl, welltr)
         cell:add_area_anchor_bltr(string.format("implant_%d", rownum), implantbl, implanttr)
-        lastpoint:translate_y(_P.separation)
-        lastmosfet = nil
-    end
+    end -- for-loop across rows
+
+    -- add anchors encompassing all active regions/implants/wells for guardring placement
     cell:add_area_anchor_bltr("active_all",
         cell:get_area_anchor_fmt("active_%d", 1).bl,
         cell:get_area_anchor_fmt("active_%d", #_P.rows).tr
