@@ -175,6 +175,8 @@ void object_apply_other_transformation(struct object* cell, const struct transfo
 int object_is_proxy(const struct object* cell);
 int object_is_pseudo(const struct object* cell);
 int object_has_shapes(const struct object* cell);
+int object_has_layer_flat(const struct object* cell, const struct generics* layer);
+int object_has_layer(const struct object* cell, const struct generics* layer);
 int object_has_children(const struct object* cell);
 int object_has_ports(const struct object* cell);
 int object_is_empty(const struct object* cell);

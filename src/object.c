@@ -2584,6 +2584,58 @@ int object_has_shapes(const struct object* cell)
     return cell->shapes ? !vector_empty(cell->shapes) : 0;
 }
 
+int object_has_layer_flat(const struct object* cell, const struct generics* layer)
+{
+    const struct object* obj = cell;
+    if(cell->isproxy)
+    {
+        obj = cell->reference;
+    }
+    if(obj->shapes)
+    {
+        struct vector_iterator* it = vector_iterator_create(obj->shapes);
+        while(vector_iterator_is_valid(it))
+        {
+            struct shape* shape = vector_iterator_get(it);
+            if(shape_is_layer(shape, layer))
+            {
+                return 1;
+            }
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+    }
+    return 0;
+}
+
+int object_has_layer(const struct object* cell, const struct generics* layer)
+{
+    const struct object* obj = cell;
+    if(cell->isproxy)
+    {
+        obj = cell->reference;
+    }
+    if(object_has_layer_flat(obj, layer))
+    {
+        return 1;
+    }
+    if(obj->children)
+    {
+        struct vector_iterator* it = vector_iterator_create(obj->children);
+        while(vector_iterator_is_valid(it))
+        {
+            struct object* object = vector_iterator_get(it);
+            if(object_has_layer(object, layer))
+            {
+                return 1;
+            }
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+    }
+    return 0;
+}
+
 int object_has_children(const struct object* cell)
 {
     return cell->children ? !vector_empty(cell->children) : 0;
