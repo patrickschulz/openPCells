@@ -559,7 +559,7 @@ local function _tconcat(t, sep)
     return table.concat(result, sep)
 end
 
-local function _collect_parameters(cell, ptype, parent, str)
+local function _collect_parameters(cell, str)
     for _, entry in ipairs(cell.parameters.values) do
         local val = entry.value
         if type(val) == "table" and not val.isgenerictechparameter then
@@ -571,13 +571,10 @@ local function _collect_parameters(cell, ptype, parent, str)
         else
             val = tostring(val)
         end
-        local ptype = ptype
         table.insert(str, {
-            parent = parent,
             name = entry.name,
             display = entry.display,
             value = val,
-            ptype = ptype,
             argtype = tostring(entry.argtype),
             info = entry.info,
             readonly = entry.readonly,
@@ -638,7 +635,7 @@ function pcell.parameters(cellname, cellargs, generictech)
     local cell = _get_cell(state, cellname)
     --local parameters = _get_parameters(state, cellname, cellargs, true) -- cellname needs to be passed twice
     local str = {}
-    _collect_parameters(cell, "N", cellname, str)
+    _collect_parameters(cell, str)
     
     -- FIXME: implement parameter collection from layout functions
     -- execute the 'layout' function without creating any layouts to collect all used parameters
