@@ -125,4 +125,8 @@ function M.write_polygon(layer, pts)
     -- FIXME
 end
 
+function M.write_port(name, layer, where, sizehint)
+    -- FIXME
+end
+
 return M
