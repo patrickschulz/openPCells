@@ -295,7 +295,7 @@ function layout(cmos, _P)
             fingerwidth = _P.pwidth,
             gbotext = _P.overwriteinnergateextensions and _P.innerpgateext or separation / 2,
             gtopext = _P.pgateext,
-            topgatecutspace = -_P.powerwidth / 2,
+            topgatecutspace = _P.ppowerspace + _P.powerwidth / 2 - _P.cutheight / 2,
             drawtopactivedummy = _P.drawactivedummy,
             topactivedummywidth = _P.activedummywidth,
             topactivedummyspace = _P.activedummyspace,
@@ -339,7 +339,7 @@ function layout(cmos, _P)
             fingerwidth = _P.nwidth,
             gtopext = _P.overwriteinnergateextensions and _P.innerngateext or separation / 2,
             gbotext = _P.ngateext,
-            botgatecutspace = _P.powerwidth / 2,
+            botgatecutspace = _P.npowerspace + _P.powerwidth / 2 - _P.cutheight / 2,
             drawbotgatecut = false,
             drawbottomactivedummy = _P.drawactivedummy,
             bottomactivedummywidth = _P.activedummywidth,
@@ -563,6 +563,15 @@ function layout(cmos, _P)
                 -- do nothing
             else
                 moderror(string.format("unknown gate contact position: [%d] = '%s'", i, _P.gatecontactpos[i]))
+            end
+            if _P.drawoutergatecut then -- only draw outer gate cut for inner active gates
+                if _P.gatecontactpos[i] == "center" or
+                   _P.gatecontactpos[i] == "split" or
+                    string.match(_P.gatecontactpos[i], "upper") or
+                    string.match(_P.gatecontactpos[i], "lower") then
+                    nopt_current.drawbotgatecut = true
+                    popt_current.drawtopgatecut = true
+                end
             end
             nopt_current.topgatespace = ngatey
             nopt_current.botgatespace = ngatey
