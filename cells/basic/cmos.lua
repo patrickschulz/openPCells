@@ -22,6 +22,9 @@ function parameters()
         { "powerwidth(Power Rail Metal Width)",                                     technology.get_dimension("Minimum M1 Width") },
         { "npowerspace(NMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), posvals = positive() },
         { "ppowerspace(PMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), posvals = positive() },
+        { "powerrailleftrightextension(Power Rail Left/Right Extension)",           0 },
+        { "powerrailleftextension(Power Rail Left Extension)",                      0, follow = "powerrailleftrightextension" },
+        { "powerrailrightextension(Power Rail Right Extension)",                    0, follow = "powerrailleftrightextension" },
         { "pgateext(pMOS Gate Extension)",                                          0 },
         { "ngateext(nMOS Gate Extension)",                                          0 },
         { "overwriteinnergateextensions",                                           false },
@@ -807,13 +810,13 @@ function layout(cmos, _P)
     if _P.drawrails then
         cmos:add_area_anchor_bltr(
             "PRp",
-            leftpdrainarea.tl:copy():translate(0, _P.ppowerspace),
-            rightpdrainarea.tr:copy():translate(0, _P.ppowerspace + _P.powerwidth)
+            leftpdrainarea.tl:copy():translate(-_P.powerrailleftextension, _P.ppowerspace),
+            rightpdrainarea.tr:copy():translate(_P.powerrailrightextension, _P.ppowerspace + _P.powerwidth)
         )
         cmos:add_area_anchor_bltr(
             "PRn",
-            leftndrainarea.bl:copy():translate(0, -_P.npowerspace - _P.powerwidth),
-            rightndrainarea.br:copy():translate(0, -_P.npowerspace)
+            leftndrainarea.bl:copy():translate(-_P.powerrailleftextension, -_P.npowerspace - _P.powerwidth),
+            rightndrainarea.br:copy():translate(_P.powerrailrightextension, -_P.npowerspace)
         )
         geometry.rectanglebltr(cmos,
             generics.metal(1), 
