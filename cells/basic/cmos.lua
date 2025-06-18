@@ -79,12 +79,36 @@ function parameters()
         { "nmoswelltapspace(nMOS Well Tap Space)",                                  technology.get_dimension("Minimum M1 Space") },
         { "nmoswelltapwidth(nMOS Well Tap Width)",                                  technology.get_dimension("Minimum M1 Width") },
         { "nmoswelltapextension(nMOS Well Tap Extension)",                          0 },
+        { "nmoswelltapimplantleftextension",                                        0 },
+        { "nmoswelltapimplantrightextension",                                       0 },
+        { "nmoswelltapimplanttopextension",                                         0 },
+        { "nmoswelltapimplantbottomextension",                                      0 },
+        { "nmoswelltapsoiopenleftextension",                                        0 },
+        { "nmoswelltapsoiopenrightextension",                                       0 },
+        { "nmoswelltapsoiopentopextension",                                         0 },
+        { "nmoswelltapsoiopenbottomextension",                                      0 },
+        { "nmoswelltapwellleftextension",                                           0 },
+        { "nmoswelltapwellrightextension",                                          0 },
+        { "nmoswelltapwelltopextension",                                            0 },
+        { "nmoswelltapwellbottomextension",                                         0 },
         { "drawpmosupperwelltap(Draw pMOS Upper Well Tap)",                         false },
         { "drawpmosleftwelltap(Draw pMOS Left Well Tap)",                           false },
         { "drawpmosrightwelltap(Draw pMOS Right Well Tap)",                         false },
         { "pmoswelltapspace(pMOS Well Tap Space)",                                  technology.get_dimension("Minimum M1 Space") },
         { "pmoswelltapwidth(pMOS Well Tap Width)",                                  technology.get_dimension("Minimum M1 Width") },
         { "pmoswelltapextension(pMOS Well Tap Extension)",                          0 },
+        { "pmoswelltapimplantleftextension",                                        0 },
+        { "pmoswelltapimplantrightextension",                                       0 },
+        { "pmoswelltapimplanttopextension",                                         0 },
+        { "pmoswelltapimplantbottomextension",                                      0 },
+        { "pmoswelltapsoiopenleftextension",                                        0 },
+        { "pmoswelltapsoiopenrightextension",                                       0 },
+        { "pmoswelltapsoiopentopextension",                                         0 },
+        { "pmoswelltapsoiopenbottomextension",                                      0 },
+        { "pmoswelltapwellleftextension",                                           0 },
+        { "pmoswelltapwellrightextension",                                          0 },
+        { "pmoswelltapwelltopextension",                                            0 },
+        { "pmoswelltapwellbottomextension",                                         0 },
         { "welltapcontinuouscontact(Well Tap Draw Continuous Contacts)",            true },
         { "drawactivedummy",                                                        false },
         { "activedummywidth",                                                       0 },
@@ -861,20 +885,56 @@ function layout(cmos, _P)
     )
 
     -- well taps (can't use the mosfet pcell well taps, as only single fingers are instantiated)
+    local pmoswelltap_opt = {
+        extendimplantleft = _P.pmoswelltapimplantleftextension,
+        extendimplantright = _P.pmoswelltapimplantrightextension,
+        extendimplanttop = _P.pmoswelltapimplanttopextension,
+        extendimplantbottom = _P.pmoswelltapimplantbottomextension,
+        extendsoiopenleft = _P.pmoswelltapsoiopenleftextension,
+        extendsoiopenright = _P.pmoswelltapsoiopenrightextension,
+        extendsoiopentop = _P.pmoswelltapsoiopentopextension,
+        extendsoiopenbottom = _P.pmoswelltapsoiopenbottomextension,
+        extendwellleft = _P.pmoswelltapwellleftextension,
+        extendwellright = _P.pmoswelltapwellrightextension,
+        extendwelltop = _P.pmoswelltapwelltopextension,
+        extendwellbottom = _P.pmoswelltapwellbottomextension,
+        ycontinuous = false,
+    }
+    local nmoswelltap_opt = {
+        extendimplantleft = _P.nmoswelltapimplantleftextension,
+        extendimplantright = _P.nmoswelltapimplantrightextension,
+        extendimplanttop = _P.nmoswelltapimplanttopextension,
+        extendimplantbottom = _P.nmoswelltapimplantbottomextension,
+        extendsoiopenleft = _P.nmoswelltapsoiopenleftextension,
+        extendsoiopenright = _P.nmoswelltapsoiopenrightextension,
+        extendsoiopentop = _P.nmoswelltapsoiopentopextension,
+        extendsoiopenbottom = _P.nmoswelltapsoiopenbottomextension,
+        extendwellleft = _P.nmoswelltapwellleftextension,
+        extendwellright = _P.nmoswelltapwellrightextension,
+        extendwelltop = _P.nmoswelltapwelltopextension,
+        extendwellbottom = _P.nmoswelltapwellbottomextension,
+        ycontinuous = false,
+    }
     if _P.drawpmosupperwelltap then
         local welltapwidth = rightpdrainarea.tr:getx() - leftpdrainarea.tl:getx()
-        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", {
+        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(pmoswelltap_opt, {
             contype = _P.pmosflippedwell and "p" or "n",
             width = welltapwidth + _P.pmoswelltapextension,
             height = _P.pmoswelltapwidth,
-            xcontinuous = _P.welltapcontinuouscontact
-        })
+            xcontinuous = _P.welltapcontinuouscontact,
+        }))
         welltap:move_point(welltap:get_area_anchor("boundary").bl, leftpdrainarea.tl)
         welltap:translate_x(-_P.pmoswelltapextension / 2)
         welltap:translate_y(_P.ppowerspace + _P.powerwidth + _P.pmoswelltapspace)
         cmos:merge_into(welltap)
         geometry.rectanglebltr(cmos, generics.other(_P.pmosflippedwell and "pwell" or "nwell"),
-            leftnmoswell.tl,
+            point.create(
+                math.max(
+                    leftnmoswell.tl:getx(),
+                    welltap:get_area_anchor("well").l
+                ),
+                leftnmoswell.tl:gety()
+            ),
             point.create(
                 math.max(
                     rightpmoswell.tr:getx(),
@@ -887,12 +947,12 @@ function layout(cmos, _P)
     end
     if _P.drawpmosleftwelltap then
         local welltapwidth = leftpdrainarea.tl:gety() - leftpdrainarea.bl:gety()
-        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", {
+        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(pmoswelltap_opt, {
             contype = _P.pmosflippedwell and "p" or "n",
             width = _P.pmoswelltapwidth,
             height = welltapwidth + _P.pmoswelltapextension,
             xcontinuous = _P.welltapcontinuouscontact
-        })
+        }))
         welltap:move_point(welltap:get_area_anchor("boundary").br, leftpdrainarea.bl)
         welltap:translate_x(-_P.pmoswelltapspace)
         cmos:merge_into(welltap)
@@ -907,12 +967,12 @@ function layout(cmos, _P)
     end
     if _P.drawpmosrightwelltap then
         local welltapwidth = rightpdrainarea.tr:gety() - rightpdrainarea.br:gety()
-        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", {
+        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(pmoswelltap_opt, {
             contype = _P.pmosflippedwell and "p" or "n",
             width = _P.pmoswelltapwidth,
             height = welltapwidth + _P.pmoswelltapextension,
             xcontinuous = _P.welltapcontinuouscontact
-        })
+        }))
         welltap:move_point(welltap:get_area_anchor("boundary").bl, rightpdrainarea.br)
         welltap:translate_x(_P.pmoswelltapspace)
         cmos:merge_into(welltap)
@@ -927,12 +987,12 @@ function layout(cmos, _P)
     end
     if _P.drawnmoslowerwelltap then
         local welltapwidth = rightndrainarea.br:getx() - leftpdrainarea.bl:getx()
-        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", {
+        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(nmoswelltap_opt, {
             contype = _P.nmosflippedwell and "n" or "p",
             width = welltapwidth + _P.nmoswelltapextension,
             height = _P.nmoswelltapwidth,
             xcontinuous = _P.welltapcontinuouscontact
-        })
+        }))
         welltap:move_point(welltap:get_area_anchor("boundary").tl, leftndrainarea.bl)
         welltap:translate_x(-_P.nmoswelltapextension / 2)
         welltap:translate_y(-_P.npowerspace - _P.powerwidth - _P.nmoswelltapspace)
@@ -951,12 +1011,12 @@ function layout(cmos, _P)
     end
     if _P.drawnmosleftwelltap then
         local welltapwidth = leftndrainarea.tl:gety() - leftndrainarea.bl:gety()
-        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", {
+        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(nmoswelltap_opt, {
             contype = _P.nmosflippedwell and "p" or "n",
             width = _P.nmoswelltapwidth,
             height = welltapwidth + _P.nmoswelltapextension,
             xcontinuous = _P.welltapcontinuouscontact
-        })
+        }))
         welltap:move_point(welltap:get_area_anchor("boundary").tr, leftndrainarea.tl)
         welltap:translate_x(-_P.nmoswelltapspace)
         cmos:merge_into(welltap)
@@ -971,12 +1031,12 @@ function layout(cmos, _P)
     end
     if _P.drawnmosrightwelltap then
         local welltapwidth = rightndrainarea.tr:gety() - rightndrainarea.br:gety()
-        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", {
+        local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(nmoswelltap_opt, {
             contype = _P.nmosflippedwell and "n" or "p",
             width = _P.nmoswelltapwidth,
             height = welltapwidth + _P.nmoswelltapextension,
             xcontinuous = _P.welltapcontinuouscontact
-        })
+        }))
         welltap:move_point(welltap:get_area_anchor("boundary").tl, rightndrainarea.tr)
         welltap:translate_x(_P.nmoswelltapspace)
         cmos:merge_into(welltap)
