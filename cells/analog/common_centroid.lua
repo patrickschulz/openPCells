@@ -100,7 +100,9 @@ function layout(cell, _P)
                                --                                         CAABBC   -> 3
                                --                                         CAABBC   -> 3
                                --                                         ABBBBA   -> 2)
-    local numdevices = 0 -- total number of devices (e.g. ABBA -> 2)
+    local numdevices = 0 -- total number of devices (e.g. ABBA
+                         --                               CCDD
+                         --                                    -> 4)
     for i, rowpattern in ipairs(_P.pattern) do
         local rowdevices = {}
         for _, device in ipairs(rowpattern) do
