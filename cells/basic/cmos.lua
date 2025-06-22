@@ -115,6 +115,7 @@ function parameters()
         { "activedummyspace",                                                       0 },
         { "drawleftstopgate",                                                       false },
         { "drawrightstopgate",                                                      false },
+        { "excludestopgatesfromcutregions",                                         false },
         { "endleftwithgate",                                                        false, follow = "drawleftstopgate" },
         { "leftendgatelength",                                                      0, follow = "gatelength" },
         { "leftendgatespace",                                                       0, follow = "gatespace" },
@@ -312,6 +313,7 @@ function layout(cmos, _P)
             extendrotationmarkerright = _P.extendrotationmarkerright,
             extendanalogmarkerleft = _P.extendanalogmarkerleft,
             extendanalogmarkerright = _P.extendanalogmarkerright,
+            excludestopgatesfromcutregions = _P.excludestopgatesfromcutregions,
         }
 
         -- pmos
