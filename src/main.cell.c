@@ -124,7 +124,7 @@ void main_list_cells_cellpaths(struct cmdoptions* cmdoptions, struct hashmap* co
     pcell_destroy_state(pcell_state);
 }
 
-void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* config)
+void main_list_cell_parameters(const char* cellname, const char* parametersformat, const char** parameternames_ptr, struct cmdoptions* cmdoptions, struct hashmap* config)
 {
     // techstate
     struct vector* techpaths = hashmap_get(config, "techpaths");
@@ -155,15 +155,7 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     }
     _prepare_cellpaths(pcell_state, cmdoptions, config);
 
-    // cellname
-    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters");
-
-    // parameter format
-    const char* parametersformat = cmdoptions_get_argument_long(cmdoptions, "parameters-format");
-
-    // parameter names
-    const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
-    struct const_vector* parameternames = const_vector_adapt_from_pointer_array((void**)ptr);
+    struct const_vector* parameternames = const_vector_adapt_from_pointer_array((void**)parameternames_ptr);
 
     pcell_list_parameters(pcell_state, techstate, cellname, parametersformat, parameternames);
     pcell_destroy_state(pcell_state);

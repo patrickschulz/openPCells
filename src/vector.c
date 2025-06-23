@@ -285,11 +285,14 @@ struct const_vector* const_vector_create(size_t capacity)
 struct const_vector* const_vector_adapt_from_pointer_array(void** ptrarray)
 {
     struct const_vector* vector = const_vector_create(8);
-    void** ptr = ptrarray;
-    while(*ptr)
+    if(ptrarray)
     {
-        const_vector_append(vector, *ptr);
-        ++ptr;
+        void** ptr = ptrarray;
+        while(*ptr)
+        {
+            const_vector_append(vector, *ptr);
+            ++ptr;
+        }
     }
     return vector;
 }

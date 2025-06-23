@@ -199,6 +199,18 @@ int main(int argc, const char* const * argv)
         dup2(pfd, STDERR_FILENO);
     }
 
+    // load config
+    struct hashmap* config = hashmap_create();
+    if(!cmdoptions_was_provided_long(cmdoptions, "no-user-config"))
+    {
+        if(!_load_config(config))
+        {
+            puts("error while loading user config");
+            returnvalue = 1;
+            goto DESTROY_CONFIG;
+        }
+    }
+
     /* templates */
     if(cmdoptions_was_provided_long(cmdoptions, "template"))
     {
@@ -207,6 +219,36 @@ int main(int argc, const char* const * argv)
         lua_pushstring(L, template_name);
         lua_setglobal(L, "template");
         script_call_templates(L);
+        const char* content = lua_tostring(L, -1);
+        if(!content)
+        {
+            printf("template '%s' not found\n", template_name);
+        }
+        else
+        {
+            printf("%s\n", content);
+        }
+        lua_close(L);
+        goto DESTROY_CMDOPTIONS;
+    }
+
+    /* templates (auto) */
+    if(cmdoptions_was_provided_long(cmdoptions, "template-auto"))
+    {
+        const char* template_name = cmdoptions_get_argument_long(cmdoptions, "template-auto");
+        lua_State* L = util_create_basic_lua_state();
+        lua_pushstring(L, template_name);
+        lua_setglobal(L, "template");
+        script_call_templates(L);
+        const char* content = lua_tostring(L, -1);
+        if(!content)
+        {
+            main_list_cell_parameters(template_name, NULL, NULL, cmdoptions, config);
+        }
+        else
+        {
+            printf("%s\n", content);
+        }
         lua_close(L);
         goto DESTROY_CMDOPTIONS;
     }
@@ -241,18 +283,6 @@ int main(int argc, const char* const * argv)
         const struct const_vector* args = const_vector_adapt_from_pointer_array((void**)ptr);
         main_verilog_import(scriptname, args);
         goto DESTROY_CMDOPTIONS;
-    }
-
-    // load config
-    struct hashmap* config = hashmap_create();
-    if(!cmdoptions_was_provided_long(cmdoptions, "no-user-config"))
-    {
-        if(!_load_config(config))
-        {
-            puts("error while loading user config");
-            returnvalue = 1;
-            goto DESTROY_CONFIG;
-        }
     }
 
     // FIXME
@@ -349,7 +379,13 @@ int main(int argc, const char* const * argv)
     // cell parameters
     if(cmdoptions_was_provided_long(cmdoptions, "parameters"))
     {
-        main_list_cell_parameters(cmdoptions, config);
+        // cell name
+        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters");
+        // parameter format
+        const char* parametersformat = cmdoptions_get_argument_long(cmdoptions, "parameters-format");
+        // parameter names
+        const char** parameternames = cmdoptions_get_positional_parameters(cmdoptions);
+        main_list_cell_parameters(cellname, parametersformat, parameternames, cmdoptions, config);
         goto DESTROY_CONFIG;
     }
 

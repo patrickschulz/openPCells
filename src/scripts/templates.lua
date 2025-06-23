@@ -313,9 +313,4 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
 
 }
 
-if not template_lookup[template] then
-    print(string.format("template '%s' not found", template))
-else
-    print(template_lookup[template])
-end
-
+return template_lookup[template]
