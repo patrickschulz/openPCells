@@ -186,6 +186,7 @@ function layout(inverter, _P)
         dummycontshift = _P.dummycontshift,
         drawleftstopgate = _P.drawleftstopgate,
         drawrightstopgate = _P.drawrightstopgate,
+        excludestopgatesfromcutregions = _P.excludestopgatesfromcutregions,
         leftpolylines = _P.leftpolylines,
         rightpolylines = _P.rightpolylines,
         drawanalogmarker = _P.drawanalogmarker,
