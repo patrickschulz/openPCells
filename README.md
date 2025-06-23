@@ -13,6 +13,8 @@ In order to generate actual layouts for existing technology nodes, a *technology
 This translation is controlled by the technology layermap, which is fairly simple to write and can be built iteratively (it only has to include what
 the actual generated cells require).
 Within opc a few examplary technology files are already provided, for more information on writing technology mappings see the documentation about [technology files](./doc/techfiles.pdf).
+Additionally, there are two utilities that help with generating new technology files:
+A simple template file in `tech/template/layermap.lua` and the techfile assistant, which interactively generates the files (`--techfile-assistant`).
 
 Next to technology translation, the generated layouts are *exported* to a specific output format.
 The export types that are currently provided are: GDSII, OASIS, SKILL (for use in cadence virtuoso), magic, TikZ (LaTeX, for easy drawing of layouts) and SVG.

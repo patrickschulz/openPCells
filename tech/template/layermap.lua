@@ -4,9 +4,9 @@
 -- If any mappings are missing you will receive an error during runtime
 
 -- For every generic layer, mappings for the layer and the purpose must be given
--- For the support of different interfaces, a number (for GDS) and a name (for virtuoso) must be given, this may change in the future
--- Some generic layers are mapped to nothing, for example a standard p-bulk process has no pwell. You have to explicitly state that
--- the mapping is not needed, otherwise it would look like a missing mapping (see below)
+-- For the support of different export types, every export type needs and entry for every layer.
+-- Some generic layers are mapped to nothing, for example a standard p-bulk process has no pwell.
+-- You have to explicitly state that by setting it to empty ('{}')
 
 -- Example for a standard triple-well p-bulk process
 --
@@ -50,45 +50,63 @@
 --             |      \            /               \                 /         |
 --             |       *----------*                 *---------------*          |       p-sub (no layer)
 --             |                                                               |
---             \                                                               /-----------------------------------------------------------
---              \                       n-well                                /                         deep n-well                       |
---               *-----------------------------------------------------------*-------------------------------------------------------------
---
+--             \                                                               /------------------------------------------------------------*
+--              \                       n-well                                /                                                             |
+--               *-----------------------------------------------------------*                                                              *
+--                                                                           |                          deep n-well                         |
+--                                                                           |                                                              |
+--                                                                           *--------------------------------------------------------------*
+--                                                                                   
+--                                                                                   
 --                                                                            p-bulk
+--                                                                                   
+--                                                                                   
+--=====================================================================================================================================================
 return {
     -- every entry has the following form:
     -- {
     --  layer = {
-    --      number = xx, -- GDS layer (number)
-    --      name,  = ss, -- layer name (string)
+    --      name = <name>, -- layer name (string, optional)
+    --      export1 = {
+    --          <export-related data>
+    --      },
+    --      export2 = {
+    --          <export-related data>
+    --      },
     --  },
-    --  purpose = {
-    --      number = xx, -- GDS datatype (number)
-    --      name,  = ss, -- purpose name (string)
-    --  }
     -- }
-    vthtype1    = { layer = { number = 42, name = "rvt"         }, purpose = { number = 0, name = "drawing" } },
-    vthtype2    = { layer = { number = 43, name = "lvt"         }, purpose = { number = 0, name = "drawing" } },
-    oxthick1    = "UNUSED",
-    oxthick2    = { layer = { number = 44, name = "io"          }, purpose = { number = 0, name = "drawing" } },
-    nwell       = { layer = { number = 16, name = "nwell"       }, purpose = { number = 0, name = "drawing" } },
-    pwell       = "UNUSED",
-    deepnwell   = { layer = { number = 17, name = "deepnwell"   }, purpose = { number = 0, name = "drawing" } },
-    deeppwell   = "UNUSED",
-    active      = { layer = { number =  1, name = "active"      }, purpose = { number = 0, name = "drawing" } },
-    pimpl       = { layer = { number =  2, name = "pimpl"       }, purpose = { number = 0, name = "drawing" } },
-    nimpl       = { layer = { number =  3, name = "nimpl"       }, purpose = { number = 0, name = "drawing" } },
-    soiopen     = { layer = { number =  4, name = "soiopen"     }, purpose = { number = 0, name = "drawing" } },
-    gate        = { layer = { number =  5, name = "gate"        }, purpose = { number = 0, name = "drawing" } },
-    gatecut     = { layer = { number =  6, name = "gatecut"     }, purpose = { number = 0, name = "drawing" } },
-    wellcont    = { layer = { number =  7, name = "wellcont"    }, purpose = { number = 0, name = "drawing" } },
-    gatecont    = { layer = { number =  8, name = "gatecont"    }, purpose = { number = 0, name = "drawing" } },
-    M1          = { layer = { number =  9, name = "M1"          }, purpose = { number = 0, name = "drawing" } },
-    viaM1M2     = { layer = { number = 10, name = "viaM1M2"     }, purpose = { number = 0, name = "drawing" } },
-    M2          = { layer = { number = 11, name = "M2"          }, purpose = { number = 0, name = "drawing" } },
-    viaM2M3     = { layer = { number = 12, name = "viaM1M2"     }, purpose = { number = 0, name = "drawing" } },
-    M3          = { layer = { number = 13, name = "M2"          }, purpose = { number = 0, name = "drawing" } },
-    firstmetal  = { layer = { number =  9, name = "M1"          }, purpose = { number = 0, name = "drawing" } },
-    lastmetal   = { layer = { number = 11, name = "M2"          }, purpose = { number = 0, name = "drawing" } },
-    outermetal  = { layer = { number = 13, name = "M3"          }, purpose = { number = 0, name = "drawing" } },
+    -- for instance, the GDS export requires a datatype and a purpose, the SKILL export requires similar data, but as strings:
+    -- gds = {
+    --    layer = 42,
+    --    purpose = 0,
+    -- }
+    -- SKILL = {
+    --    layer = "somelayer",
+    --    purpose = "drawing",
+    -- }
+    -- the vthtypes in this 'technology node' map to the same layer
+    -- this shall demonstrate how the internal mapping can be modified to fit the layer handling of different nodes
+    vthtypen1   = { gds = { layer = 42, number = 0, }, SKILL = { name = "rvt", purpose = "drawing" } },
+    vthtypen2   = { gds = { layer = 43, number = 0, }, SKILL = { name = "lvt", purpose = "drawing" } },
+    vthtypep1   = { gds = { layer = 42, number = 0, }, SKILL = { name = "rvt", purpose = "drawing" } },
+    vthtypep2   = { gds = { layer = 43, number = 0, }, SKILL = { name = "lvt", purpose = "drawing" } },
+    oxide1      = {}, -- unused
+    oxide2      = { gds = { layer = 44, number = 0, }, SKILL = { name = "io", purpose = "drawing" } },
+    nwell       = { gds = { layer = 16, number = 0, }, SKILL = { name = "nwell", purpose = "drawing" } },
+    pwell       = {}, -- unused
+    deepnwell   = { gds = { layer = 17, number = 0, }, SKILL = { name = "deepnwell", purpose = "drawing" } },
+    deeppwell   = {}, -- unused
+    active      = { gds = { layer =  1, number = 0, }, SKILL = { name = "active", purpose = "drawing" } },
+    pimplant    = { gds = { layer =  2, number = 0, }, SKILL = { name = "pimpl", purpose = "drawing" } },
+    nimplant    = { gds = { layer =  3, number = 0, }, SKILL = { name = "nimpl", purpose = "drawing" } },
+    soiopen     = { gds = { layer =  4, number = 0, }, SKILL = { name = "soiopen", purpose = "drawing" } },
+    gate        = { gds = { layer =  5, number = 0, }, SKILL = { name = "gate", purpose = "drawing" } },
+    gatecut     = {}, -- unused
+    wellcont    = { gds = { layer =  7, number = 0, }, SKILL = { name = "wellcont", purpose = "drawing" } },
+    gatecont    = { gds = { layer =  8, number = 0, }, SKILL = { name = "gatecont", purpose = "drawing" } },
+    M1          = { gds = { layer =  9, number = 0, }, SKILL = { name = "M1", purpose = "drawing" } },
+    viacutM1M2  = { gds = { layer = 10, number = 0, }, SKILL = { name = "viaM1M2", purpose = "drawing" } },
+    M2          = { gds = { layer = 11, number = 0, }, SKILL = { name = "M2", purpose = "drawing" } },
+    viacutM2M3  = { gds = { layer = 12, number = 0, }, SKILL = { name = "viaM1M2", purpose = "drawing" } },
+    M3          = { gds = { layer = 13, number = 0, }, SKILL = { name = "M2", purpose = "drawing" } },
 }
