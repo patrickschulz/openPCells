@@ -201,7 +201,7 @@
         { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
         { "name",   STRING,  NULL, "name of the anchor" },
         { "bl",     POINT,   NULL, "bottom-left point of the rectangular area" },
-        { "tr",     POINT,   NULL, "bottom-left point of the rectangular area" }
+        { "tr",     POINT,   NULL, "top-right point of the rectangular area" }
     };
     vector_append(entries, _make_api_entry(
         "add_area_anchor_bltr",
@@ -1037,6 +1037,53 @@
         MODULE_OBJECT,
         "Retrieve the layer boundary of an object. If the cell has no layer boundaries at all, an empty table is returned. Otherwise, if the layer boundary for the specified layer does not exist, the bounding box of the cell is returned. If the layer boundary exists, it is returned. For this case, object.set_empty_layer_boundary() is useful.",
         "local layerboundary = cell:get_layer_boundary(generics.metal(1))",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.get_shape_outlines */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,     NULL, "object to get the shape outlines from" },
+        { "layer",  GENERICS,   NULL, "layer" }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_shape_outlines",
+        MODULE_OBJECT,
+        "return a table which contains polygon outlines of all shapes on a given layer. Useful for instance for automatic filling",
+        "local outlines = cell:get_shape_outlines()",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.add_net_shape */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "object to get the shape outlines from" },
+        { "netname",    STRING,     NULL, "net name of added shape" },
+        { "bl",         POINT,      NULL, "bottom-left point of the rectangular area" },
+        { "tr",         POINT,      NULL, "top-right point of the rectangular area" }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_net_shape",
+        MODULE_OBJECT,
+        "mark a rectangular area in a cell with a certain net. This can be used for automatic via placement from power grids, for instance.",
+        "cell:add_net_shape(\"vdd\", cell:get_area_anchor(\"sourcestrap\").bl, cell:get_area_anchor(\"sourcestra\").tr)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.get_net_shapes */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "object to get the shape outlines from" },
+        { "netname",    STRING,     NULL, "net name of added shape" }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_net_shapes",
+        MODULE_OBJECT,
+        "return a table which contains polygon outlines of all shapes on a given net. Useful for instance for automatic placement of via from a power grid",
+        "cell:get_net_shapes(\"vdd\")",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
