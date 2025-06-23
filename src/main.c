@@ -243,7 +243,9 @@ int main(int argc, const char* const * argv)
         const char* content = lua_tostring(L, -1);
         if(!content)
         {
-            main_list_cell_parameters(template_name, NULL, NULL, cmdoptions, config);
+            printf("local cell = pcell.create_layout(\"%s\", \"_cell\", {\n", template_name);
+            main_list_cell_parameters(template_name, "    %n = %v,", NULL, cmdoptions, config);
+            puts("})");
         }
         else
         {
