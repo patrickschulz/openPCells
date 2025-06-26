@@ -30,3 +30,13 @@ void lcheck_check_numargs3(lua_State* L, int numargs1, int numargs2, int numargs
     }
 }
 
+void lcheck_check_numargs_range(lua_State* L, int minargs, int maxargs, const char* funcname)
+{
+    int top = lua_gettop(L);
+    if(top < minargs || top > maxargs)
+    {
+        lua_pushfstring(L, "%s: expected between %d and %d arguments, got %d", funcname, minargs, maxargs, top);
+        lua_error(L);
+    }
+}
+

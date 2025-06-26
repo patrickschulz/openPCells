@@ -566,7 +566,7 @@
         "check_viabltr",
         MODULE_GEOMETRY,
         "Check whether a via can be created. This is essentially a dry-run of geometry.viabltr(). It is useful for cells that (for instance) place vias on the intersections of vertical and horizontal powerlines with non-matching pitch. Here it can occur that a via is built only on a partial overlap, making the creation fail. As this does not actually create a via, a cell as target is not present as function parameter. The properties table is the same as for geometry.viabltr()",
-        "geometry.check_viabltr(1, 3, point.create(-100, -20), point.create(100, 4))",
+        "geometry.check_viabltr(1, 3, point.create(-100, -20), point.create(100, 20))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -587,7 +587,7 @@
         "viabltr",
         MODULE_GEOMETRY,
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. Special properties can be passed to the via generation function: 'xcontinuous' (create vias that can be abutted in x-direction, boolean), 'ycontinuous' (create vias that can be abutted in y-direction, boolean), 'minxspace' (minimum x space), 'minyspace' (minimum y space), 'equal_pitch' (use equal spacing in both x- and y-direction, boolean) and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. This is useful to solve DRC issues. Numeric parameter)",
-        "geometry.viabltr(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+        "geometry.viabltr(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -608,7 +608,7 @@
         "viabarebltr",
         MODULE_GEOMETRY,
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function is like viabltr, but no metals are drawn",
-        "geometry.viabarebltr(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+        "geometry.viabarebltr(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -629,7 +629,7 @@
         "viabltr_xcontinuous",
         MODULE_GEOMETRY,
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in x-direction. For this, the space between cuts and the surroundings are equalized",
-        "geometry.viabltr_xcontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+        "geometry.viabltr_xcontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -650,7 +650,7 @@
         "viabltr_ycontinuous",
         MODULE_GEOMETRY,
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in y-direction. For this, the space between cuts and the surroundings are equalized",
-        "geometry.viabltr_ycontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+        "geometry.viabltr_ycontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -671,7 +671,7 @@
         "viabltr_continuous",
         MODULE_GEOMETRY,
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in both x- and y-direction. For this, the space between cuts and the surroundings are equalized",
-        "geometry.viabltr_continuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+        "geometry.viabltr_continuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -692,7 +692,7 @@
         "viabarebltr_xcontinuous",
         MODULE_GEOMETRY,
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in x-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_xcontinuous, but no metals are drawn",
-        "geometry.viabltr_xcontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+        "geometry.viabltr_xcontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -713,7 +713,7 @@
         "viabarebltr_ycontinuous",
         MODULE_GEOMETRY,
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in y-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_ycontinuous, but no metals are drawn",
-        "geometry.viabltr_ycontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+        "geometry.viabltr_ycontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -734,7 +734,27 @@
         "viabarebltr_continuous",
         MODULE_GEOMETRY,
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in both x- and y-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_continuous, but no metals are drawn",
-        "geometry.viabltr_continuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+        "geometry.viabltr_continuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.viabltrov */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl",             POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "tr",             POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+    };
+    vector_append(entries, _make_api_entry(
+        "viabltrov",
+        MODULE_GEOMETRY,
+        "Create vias (only single transition) defined by the overlap of two rectangular areas. This allows for vias in highly constrained regions, but it is more restrictive that geometry.viabltr family. The first and last metals need to be consecutive, it can only generate a single transition via (e.g. from metal 3 to metal 4) and it does not support any of the additional parameters (e.g. xcontinuous). While two arguments for the metals are technically not needed, the second metal argument is kept for compatibility reasons with geometry.viabltr",
+        "geometry.viabltrov(cell,\n    1, 2,\n    point.create(-20, -100),\n    point.create(20, 100)\n    point.create(-100, -20)\n    point.create(100, 20)\n)\n-- throws an error:\ngeometry.viabltrov(cell,\n    1, 3,\n    point.create(-20, -100),\n    point.create(20, 100)\n    point.create(-100, -20)\n    point.create(100, 20)\n)\n",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));

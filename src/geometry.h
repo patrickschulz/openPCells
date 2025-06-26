@@ -124,6 +124,15 @@ int geometry_viabltr(
     const char* debugstring
 );
 
+int geometry_viabltrov(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    const char* debugstring
+);
+
 int geometry_viabarebltr(
     struct object* cell,
     struct technology_state* techstate,

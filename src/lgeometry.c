@@ -1346,9 +1346,40 @@ static int lgeometry_viabltr(lua_State* L)
     return 0;
 }
 
+static int lgeometry_viabltrov(lua_State* L)
+{
+    lcheck_check_numargs2(L, 7, 8, "geometry.viabltrov");
+    struct lobject* cell = lobject_check(L, 1);
+    int metal1 = luaL_checkinteger(L, 2);
+    int metal2 = luaL_checkinteger(L, 3);
+    struct lpoint* bl1 = lpoint_checkpoint(L, 4);
+    struct lpoint* tr1 = lpoint_checkpoint(L, 5);
+    struct lpoint* bl2 = lpoint_checkpoint(L, 6);
+    struct lpoint* tr2 = lpoint_checkpoint(L, 7);
+    const char* debugstring = lua_tostring(L, 8);
+    _check_rectangle_points(L, bl1, tr1, "geometry.viabltrov");
+    _check_rectangle_points(L, bl2, tr2, "geometry.viabltrov");
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_viabltrov(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl1), lpoint_get(tr1), lpoint_get(bl2), lpoint_get(tr2), debugstring);
+    if(!res)
+    {
+        lua_pushfstring(L, "geometry.viabltrov: could not fit via from metal %d to metal %d. Areas: (%d, %d)/(%d, %d) and (%d, %d)/(%d, %d)",
+            metal1, metal2,
+            lpoint_get(bl1)->x, lpoint_get(bl1)->y,
+            lpoint_get(tr1)->x, lpoint_get(tr1)->y,
+            lpoint_get(bl2)->x, lpoint_get(bl2)->y,
+            lpoint_get(tr2)->x, lpoint_get(tr2)->y
+        );
+        lua_error(L);
+    }
+    return 0;
+}
+
 static int lgeometry_viabarebltr(lua_State* L)
 {
-    lcheck_check_numargs2(L, 5, 6, "geometry.viabarebltr");
+    lcheck_check_numargs2(L, 6, 7, "geometry.viabarebltr");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -1377,7 +1408,7 @@ static int lgeometry_viabarebltr(lua_State* L)
 
 static int lgeometry_viapoints(lua_State* L)
 {
-    lcheck_check_numargs2(L, 5, 6, "geometry.viapoints");
+    lcheck_check_numargs2(L, 6, 7, "geometry.viapoints");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -1405,7 +1436,7 @@ static int lgeometry_viapoints(lua_State* L)
 
 static int lgeometry_viabltr_xcontinuous(lua_State* L)
 {
-    lcheck_check_numargs2(L, 5, 6, "geometry.viabltr_xcontinuous");
+    lcheck_check_numargs2(L, 6, 7, "geometry.viabltr_xcontinuous");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -1434,7 +1465,7 @@ static int lgeometry_viabltr_xcontinuous(lua_State* L)
 
 static int lgeometry_viabltr_ycontinuous(lua_State* L)
 {
-    lcheck_check_numargs2(L, 5, 6, "geometry.viabltr_ycontinuous");
+    lcheck_check_numargs2(L, 6, 7, "geometry.viabltr_ycontinuous");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -1463,7 +1494,7 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
 
 static int lgeometry_viabltr_continuous(lua_State* L)
 {
-    lcheck_check_numargs2(L, 5, 6, "geometry.viabltr_continuous");
+    lcheck_check_numargs2(L, 6, 7, "geometry.viabltr_continuous");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -2053,6 +2084,7 @@ int open_lgeometry_lib(lua_State* L)
         { "check_viabltr",                              lgeometry_check_viabltr                                     },
         { "calculate_viabltr",                          lgeometry_calculate_viabltr                                 },
         { "viabltr",                                    lgeometry_viabltr                                           },
+        { "viabltrov",                                  lgeometry_viabltrov                                         },
         { "viabarebltr",                                lgeometry_viabarebltr                                       },
         { "viapoints",                                  lgeometry_viapoints                                         },
         { "viabltr_xcontinuous",                        lgeometry_viabltr_xcontinuous                               },
