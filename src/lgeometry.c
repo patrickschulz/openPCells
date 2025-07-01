@@ -1319,7 +1319,7 @@ static int lgeometry_calculate_viabltr(lua_State* L)
 
 static int lgeometry_viabltr(lua_State* L)
 {
-    lcheck_check_numargs2(L, 5, 6, "geometry.viabltr");
+    lcheck_check_numargs_range(L, 5, 7, "geometry.viabltr");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -1379,7 +1379,7 @@ static int lgeometry_viabltrov(lua_State* L)
 
 static int lgeometry_viabarebltr(lua_State* L)
 {
-    lcheck_check_numargs2(L, 6, 7, "geometry.viabarebltr");
+    lcheck_check_numargs_range(L, 5, 7, "geometry.viabarebltr");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -1408,7 +1408,7 @@ static int lgeometry_viabarebltr(lua_State* L)
 
 static int lgeometry_viapoints(lua_State* L)
 {
-    lcheck_check_numargs2(L, 6, 7, "geometry.viapoints");
+    lcheck_check_numargs_range(L, 5, 7, "geometry.viapoints");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -1436,7 +1436,7 @@ static int lgeometry_viapoints(lua_State* L)
 
 static int lgeometry_viabltr_xcontinuous(lua_State* L)
 {
-    lcheck_check_numargs2(L, 6, 7, "geometry.viabltr_xcontinuous");
+    lcheck_check_numargs_range(L, 5, 7, "geometry.viabltr_xcontinuous");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -1465,7 +1465,7 @@ static int lgeometry_viabltr_xcontinuous(lua_State* L)
 
 static int lgeometry_viabltr_ycontinuous(lua_State* L)
 {
-    lcheck_check_numargs2(L, 6, 7, "geometry.viabltr_ycontinuous");
+    lcheck_check_numargs_range(L, 5, 7, "geometry.viabltr_ycontinuous");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -1494,7 +1494,7 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
 
 static int lgeometry_viabltr_continuous(lua_State* L)
 {
-    lcheck_check_numargs2(L, 6, 7, "geometry.viabltr_continuous");
+    lcheck_check_numargs_range(L, 5, 7, "geometry.viabltr_continuous");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
