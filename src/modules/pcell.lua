@@ -175,6 +175,9 @@ local function _get_cell(state, cellname, nocallparams)
 end
 
 local function _add_parameter_internal(cell, name, value, argtype, posvals, info, follow, readonly)
+    if value == nil then
+        error(string.format("pcell.add_parameter ('%s'): the value can't be nil", name))
+    end
     argtype = argtype or type(value)
     cell.parameters:add(name, value, argtype, posvals, info, follow, readonly)
 end
@@ -216,6 +219,9 @@ local function _get_parameters(state, cellname, cellargs)
     -- (3) handle followers
     local followers = cell.parameters:get_followers()
     local ordered = {}
+    -- this loop runs as long as there are unhandled followers
+    -- in case of cycles, this will never stop, hence
+    -- FIXME: check for follower loops
     repeat
         for name, target in pairs(followers) do
             if not followers[target] then
