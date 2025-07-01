@@ -21,12 +21,11 @@ function M.place_bus(cell, layer, pathpoints, numbits, width, space)
     end
 end
 
-function M.place_powerlines(cell, bl, tr, layer, width, space, powername)
+function M.place_powervlines(cell, bl, tr, layer, width, space, powershapes)
     local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(
         bl, tr,
         width, space
     )
-    local vddtargets = cell:get_net_shapes("power")
     for i = 1, numlines do
         local plbl = point.create(
             bl:getx() + offset + (i - 1) * (width + space),
@@ -36,11 +35,11 @@ function M.place_powerlines(cell, bl, tr, layer, width, space, powername)
             bl:getx() + offset + (i - 1) * (width + space) + width,
             bl:gety() + height
         )
-        geometry.rectanglebltr(cell, layer, plbl, pltr)
-        for _, target in ipairs(vddtargets) do
+        geometry.rectanglebltr(cell, generics.metal(layer), plbl, pltr)
+        for _, target in ipairs(powershapes) do
             local r = util.rectangle_intersection(plbl, pltr, target.bl, target.tr)
             if r then
-                geometry.viabltr(cell, 1, 4,
+                geometry.viabltr(cell, layer - 1, layer,
                     point.create(plbl:getx(), target.bl:gety()),
                     point.create(pltr:getx(), target.tr:gety())
                 )
