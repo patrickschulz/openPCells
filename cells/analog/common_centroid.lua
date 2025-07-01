@@ -13,6 +13,7 @@ function parameters()
         { "interconnectmetal", 4 },
         { "outputmetal", 3 },
         { "sourcemetal", 5 },
+        { "sourcenet", "" }, -- FIXME: this should be nil, but due to how parameters are handled internally, this is currently not supported
         { "sdwidth", 70 },
         { "fingers", 4 },
         { "viaoffset", 1000 },
@@ -835,6 +836,23 @@ function layout(cell, _P)
             geometry.rectanglebltr(cell, generics.metal(1),
                 cell:get_area_anchor_fmt("outerrightdummy_%d_sourcedrain-1", 1).tl,
                 cell:get_area_anchor_fmt("outerrightdummy_%d_sourcedrain-1", numrows).br
+            )
+        end
+    end
+
+    -- add nets to shapes
+    if _P.sourcenet ~= "" then
+        for rownum = 1, numrows do
+            local fets = _get_devices(function(entry) return entry.row == rownum end)
+            local leftfet = fets[1]
+            local rightfet = fets[numinstancesperrow]
+            cell:add_net_shape(_P.sourcenet,
+                cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", leftfet.device, leftfet.row, leftfet.index).bl,
+                cell:get_area_anchor_fmt("M_%d_%d_%d_sourcestrap", rightfet.device, rightfet.row, rightfet.index).tl
+            )
+            cell:add_net_shape(_P.sourcenet,
+                cell:get_area_anchor_fmt("M_%d_%d_%d_othersourcestrap", leftfet.device, leftfet.row, leftfet.index).br,
+                cell:get_area_anchor_fmt("M_%d_%d_%d_othersourcestrap", rightfet.device, rightfet.row, rightfet.index).tl
             )
         end
     end
