@@ -426,11 +426,11 @@ function layout(cell, _P)
     for rownum = 1, #mosfetrows do
         local mosfetrow = mosfetrows[rownum].mosfets
         local activebl = mosfetrow[1].mosfet:get_area_anchor("active").bl
-        local activetr = mosfetrow[#mosfetrow].mosfet:get_area_anchor("active").bl
+        local activetr = mosfetrow[#mosfetrow].mosfet:get_area_anchor("active").tr
         local wellbl = mosfetrow[1].mosfet:get_area_anchor("well").bl
-        local welltr = mosfetrow[#mosfetrow].mosfet:get_area_anchor("well").bl
+        local welltr = mosfetrow[#mosfetrow].mosfet:get_area_anchor("well").tr
         local implantbl = mosfetrow[1].mosfet:get_area_anchor("implant").bl
-        local implanttr = mosfetrow[#mosfetrow].mosfet:get_area_anchor("implant").bl
+        local implanttr = mosfetrow[#mosfetrow].mosfet:get_area_anchor("implant").tr
         cell:add_area_anchor_bltr(string.format("active_%d", rownum), activebl, activetr)
         cell:add_area_anchor_bltr(string.format("well_%d", rownum), wellbl, welltr)
         cell:add_area_anchor_bltr(string.format("implant_%d", rownum), implantbl, implanttr)
