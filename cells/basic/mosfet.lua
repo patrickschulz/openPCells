@@ -1184,7 +1184,9 @@ function layout(transistor, _P)
             if _P.topgatecontinuousvia then
                 geometry.viabltr_xcontinuous(transistor, 1, _P.topgatemetal, bl, tr)
             else
-                geometry.viabltr(transistor, 1, _P.topgatemetal, bl, tr)
+                geometry.viabltr(transistor, 1, _P.topgatemetal, bl, tr,
+                    string.format("top gate strap via:\n    x parameters:\n        gatelength (%d)\n        (fingers - 1) * (gatelength + gatespace) (%d)\n        topgateleftextension (%d)\n        topgaterightextension (%d)\n    y parameters:\n        topgatewidth (%d)", _P.gatelength, (_P.fingers - 1) * gatepitch, _P.topgateleftextension, _P.topgaterightextension, _P.topgatewidth)
+                )
             end
         end
     end
@@ -1212,7 +1214,9 @@ function layout(transistor, _P)
             if _P.botgatecontinuousvia then
                 geometry.viabltr_xcontinuous(transistor, 1, _P.botgatemetal, bl, tr)
             else
-                geometry.viabltr(transistor, 1, _P.botgatemetal, bl, tr)
+                geometry.viabltr(transistor, 1, _P.botgatemetal, bl, tr,
+                    string.format("bot gate strap via:\n    x parameters:\n        gatelength (%d)\n        fingers * (gatelength + gatespace) (%d)\n        botgateleftextension (%d)\n        botgaterightextension (%d)\n    y parameters:\n        botgatewidth (%d)", _P.gatelength, _P.fingers * gatepitch, _P.botgateleftextension, _P.botgaterightextension, _P.botgatewidth)
+                )
             end
         end
     end
@@ -1330,7 +1334,11 @@ function layout(transistor, _P)
                                 if metal < _P.sourceviametal - 1 then
                                     geometry.viabarebltr(transistor, metal, metal + 1,
                                         point.create(shift - sdviashift, sourceviaoffset),
-                                        point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize)
+                                        point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize),
+                                        string.format(
+                                            "source via:\n    x parameters: sdviawidth (%d)\n    y parameters: sourceviasize (%d)",
+                                            _P.sdviawidth, _P.sourceviasize
+                                        )
                                     )
                                 else
                                     if _P.splitsourcevias then
@@ -1345,7 +1353,11 @@ function layout(transistor, _P)
                                     else
                                         geometry.viabarebltr(transistor, _P.sourceviametal - 1, _P.sourceviametal,
                                             point.create(shift - sdviashift, sourceviaoffset),
-                                            point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize)
+                                            point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize),
+                                            string.format(
+                                                "source via:\n    x parameters: sdviawidth (%d)\n    y parameters: sourceviasize (%d)",
+                                                _P.sdviawidth, _P.sourceviasize
+                                            )
                                         )
                                     end
                                 end
@@ -1383,7 +1395,13 @@ function layout(transistor, _P)
                 local bl = point.create(shift, drainoffset)
                 local tr = point.create(shift + _P.sdwidth, drainoffset + _P.drainsize)
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
-                    geometry.contactbarebltr(transistor, contacttype, bl, tr)
+                    geometry.contactbarebltr(
+                        transistor, contacttype, bl, tr,
+                        string.format(
+                            "drain contact:\n    x parameters: sdwidth (%d)\n    y parameters: drainsize (%d)",
+                            _P.sdwidth, _P.drainsize
+                        )
+                    )
                     if _P.drawdrainvia and _P.drainviametal > 1 and
                         not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         for metal = 1, _P.drainviametal - 1 do
@@ -1419,7 +1437,11 @@ function layout(transistor, _P)
                                 if metal < _P.drainviametal - 1 then
                                     geometry.viabarebltr(transistor, metal, metal + 1,
                                         point.create(shift - sdviashift, drainviaoffset),
-                                        point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
+                                        point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize),
+                                        string.format(
+                                            "drain via:\n    x parameters: sdviawidth (%d)\n    y parameters: drainviasize (%d)",
+                                            _P.sdviawidth, _P.drainviasize
+                                        )
                                     )
                                 else
                                     if _P.splitdrainvias then
@@ -1434,7 +1456,11 @@ function layout(transistor, _P)
                                     else
                                         geometry.viabarebltr(transistor, _P.drainviametal - 1, _P.drainviametal,
                                             point.create(shift - sdviashift, drainviaoffset),
-                                            point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
+                                            point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize),
+                                            string.format(
+                                                "drain via:\n    x parameters: sdviawidth (%d)\n    y parameters: drainviasize (%d)",
+                                                _P.sdviawidth, _P.drainviasize
+                                            )
                                         )
                                     end
                                 end
