@@ -12,6 +12,9 @@ typedef unsigned long long int ucoordinate_t;
 #define UCOORDINATE_MIN 0
 #define coordinate_abs llabs
 
+#define COORD_MIN(c1, c2) (c1 > c2 ? c2 : c1)
+#define COORD_MAX(c1, c2) (c1 > c2 ? c1 : c2)
+
 struct point {
     coordinate_t x;
     coordinate_t y;

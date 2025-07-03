@@ -1347,7 +1347,11 @@ static int lgeometry_viabltr(lua_State* L)
     int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
-        lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
+        coordinate_t blx = point_getx(lpoint_get(bl));
+        coordinate_t bly = point_gety(lpoint_get(bl));
+        coordinate_t trx = point_getx(lpoint_get(tr));
+        coordinate_t try = point_gety(lpoint_get(tr));
+        lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: %d x %d", metal1, metal2, trx - blx, try - bly);
         lua_error(L);
     }
     return 0;
@@ -1421,7 +1425,11 @@ static int lgeometry_viabarebltr(lua_State* L)
     int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
-        lua_pushfstring(L, "geometry.viabarebltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
+        coordinate_t blx = point_getx(lpoint_get(bl));
+        coordinate_t bly = point_gety(lpoint_get(bl));
+        coordinate_t trx = point_getx(lpoint_get(tr));
+        coordinate_t try = point_gety(lpoint_get(tr));
+        lua_pushfstring(L, "geometry.viabarebltr: could not fit via from metal %d to metal %d. Area: %d x %d", metal1, metal2, trx - blx, try - bly);
         lua_error(L);
     }
     return 0;
@@ -1456,7 +1464,15 @@ static int lgeometry_viapoints(lua_State* L)
     int res = geometry_viapoints(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(pt1), lpoint_get(pt2), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
-        lua_pushfstring(L, "geometry.viapoints: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(pt1)->x, lpoint_get(pt1)->y, lpoint_get(pt2)->x, lpoint_get(pt2)->y);
+        coordinate_t x1 = point_getx(lpoint_get(pt1));
+        coordinate_t y1 = point_gety(lpoint_get(pt1));
+        coordinate_t x2 = point_getx(lpoint_get(pt2));
+        coordinate_t y2 = point_gety(lpoint_get(pt2));
+        coordinate_t blx = COORD_MIN(x1, x2);
+        coordinate_t bly = COORD_MAX(y1, y2);
+        coordinate_t trx = COORD_MIN(x1, x2);
+        coordinate_t try = COORD_MAX(y1, y2);
+        lua_pushfstring(L, "geometry.viapoints: could not fit via from metal %d to metal %d. Area: %d x %d", metal1, metal2, trx - blx, try - bly);
         lua_error(L);
     }
     return 0;
@@ -1492,7 +1508,11 @@ static int lgeometry_viabltr_xcontinuous(lua_State* L)
     int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
-        lua_pushfstring(L, "geometry.viabltr_xcontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
+        coordinate_t blx = point_getx(lpoint_get(bl));
+        coordinate_t bly = point_gety(lpoint_get(bl));
+        coordinate_t trx = point_getx(lpoint_get(tr));
+        coordinate_t try = point_gety(lpoint_get(tr));
+        lua_pushfstring(L, "geometry.viabltr_xcontinuous: could not fit via from metal %d to metal %d. Area: %d x %d", metal1, metal2, trx - blx, try - bly);
         lua_error(L);
     }
     return 0;
@@ -1528,7 +1548,11 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
     int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
-        lua_pushfstring(L, "geometry.viabltr_ycontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
+        coordinate_t blx = point_getx(lpoint_get(bl));
+        coordinate_t bly = point_gety(lpoint_get(bl));
+        coordinate_t trx = point_getx(lpoint_get(tr));
+        coordinate_t try = point_gety(lpoint_get(tr));
+        lua_pushfstring(L, "geometry.viabltr_ycontinuous: could not fit via from metal %d to metal %d. Area: %d x %d", metal1, metal2, trx - blx, try - bly);
         lua_error(L);
     }
     return 0;
@@ -1564,7 +1588,11 @@ static int lgeometry_viabltr_continuous(lua_State* L)
     int res = geometry_viabltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
-        lua_pushfstring(L, "geometry.viabltr_continuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
+        coordinate_t blx = point_getx(lpoint_get(bl));
+        coordinate_t bly = point_gety(lpoint_get(bl));
+        coordinate_t trx = point_getx(lpoint_get(tr));
+        coordinate_t try = point_gety(lpoint_get(tr));
+        lua_pushfstring(L, "geometry.viabltr_continuous: could not fit via from metal %d to metal %d. Area: %d x %d", metal1, metal2, trx - blx, try - bly);
         lua_error(L);
     }
     return 0;
@@ -1599,7 +1627,11 @@ static int lgeometry_viabarebltr_xcontinuous(lua_State* L)
     int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
-        lua_pushfstring(L, "geometry.viabltr_xcontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
+        coordinate_t blx = point_getx(lpoint_get(bl));
+        coordinate_t bly = point_gety(lpoint_get(bl));
+        coordinate_t trx = point_getx(lpoint_get(tr));
+        coordinate_t try = point_gety(lpoint_get(tr));
+        lua_pushfstring(L, "geometry.viabarebltr_xcontinuous: could not fit via from metal %d to metal %d. Area: %d x %d", metal1, metal2, trx - blx, try - bly);
         lua_error(L);
     }
     return 0;
@@ -1634,7 +1666,11 @@ static int lgeometry_viabarebltr_ycontinuous(lua_State* L)
     int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
-        lua_pushfstring(L, "geometry.viabltr_ycontinuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
+        coordinate_t blx = point_getx(lpoint_get(bl));
+        coordinate_t bly = point_gety(lpoint_get(bl));
+        coordinate_t trx = point_getx(lpoint_get(tr));
+        coordinate_t try = point_gety(lpoint_get(tr));
+        lua_pushfstring(L, "geometry.viabarebltr_ycontinuous: could not fit via from metal %d to metal %d. Area: %d x %d", metal1, metal2, trx - blx, try - bly);
         lua_error(L);
     }
     return 0;
@@ -1669,7 +1705,11 @@ static int lgeometry_viabarebltr_continuous(lua_State* L)
     int res = geometry_viabarebltr(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, debugstring);
     if(!res)
     {
-        lua_pushfstring(L, "geometry.viabltr_continuous: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
+        coordinate_t blx = point_getx(lpoint_get(bl));
+        coordinate_t bly = point_gety(lpoint_get(bl));
+        coordinate_t trx = point_getx(lpoint_get(tr));
+        coordinate_t try = point_gety(lpoint_get(tr));
+        lua_pushfstring(L, "geometry.viabarebltr_continuous: could not fit via from metal %d to metal %d. Area: %d x %d", metal1, metal2, trx - blx, try - bly);
         lua_error(L);
     }
     return 0;
@@ -1757,7 +1797,11 @@ static int lgeometry_contactbarebltr(lua_State* L)
     );
     if(!res)
     {
-        lua_pushfstring(L, "geometry.contactbarebltr: could not fit contact from %s to metal 1. Area: (%d, %d) and (%d, %d)", region, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
+        coordinate_t blx = point_getx(lpoint_get(bl));
+        coordinate_t bly = point_gety(lpoint_get(bl));
+        coordinate_t trx = point_getx(lpoint_get(tr));
+        coordinate_t try = point_gety(lpoint_get(tr));
+        lua_pushfstring(L, "geometry.contactbarebltr: could not fit contact from %s to metal 1. Area: %d x %d", region, trx - blx, try - bly);
         lua_error(L);
     }
     return 0;
