@@ -1326,6 +1326,13 @@ static int lgeometry_viabltr(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     const char* debugstring = lua_tostring(L, 6);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.viabltr called without debug string");
+        lua_error(L);
+    }
+#endif
     _check_rectangle_points(L, bl, tr, "geometry.viabltr");
     int xcont = 0;
     int ycont = 0;
@@ -1357,6 +1364,13 @@ static int lgeometry_viabltrov(lua_State* L)
     struct lpoint* bl2 = lpoint_checkpoint(L, 6);
     struct lpoint* tr2 = lpoint_checkpoint(L, 7);
     const char* debugstring = lua_tostring(L, 8);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.viabltrov called without debug string");
+        lua_error(L);
+    }
+#endif
     _check_rectangle_points(L, bl1, tr1, "geometry.viabltrov");
     _check_rectangle_points(L, bl2, tr2, "geometry.viabltrov");
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
@@ -1386,6 +1400,13 @@ static int lgeometry_viabarebltr(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     const char* debugstring = lua_tostring(L, 6);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.viabarebltr called without debug string");
+        lua_error(L);
+    }
+#endif
     _check_rectangle_points(L, bl, tr, "geometry.viabarebltr");
     int xcont = 0;
     int ycont = 0;
@@ -1415,6 +1436,13 @@ static int lgeometry_viapoints(lua_State* L)
     struct lpoint* pt1 = lpoint_checkpoint(L, 4);
     struct lpoint* pt2 = lpoint_checkpoint(L, 5);
     const char* debugstring = lua_tostring(L, 6);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.viapoints called without debug string");
+        lua_error(L);
+    }
+#endif
     int xcont = 0;
     int ycont = 0;
     coordinate_t minxspace = 0;
@@ -1443,6 +1471,13 @@ static int lgeometry_viabltr_xcontinuous(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     const char* debugstring = lua_tostring(L, 6);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.viabltr_xcontinuous called without debug string");
+        lua_error(L);
+    }
+#endif
     _check_rectangle_points(L, bl, tr, "geometry.viabltr_xcontinuous");
     int xcont = 1;
     int ycont = 0;
@@ -1472,6 +1507,13 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     const char* debugstring = lua_tostring(L, 6);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.viabltr_ycontinuous called without debug string");
+        lua_error(L);
+    }
+#endif
     _check_rectangle_points(L, bl, tr, "geometry.viabltr_ycontinuous");
     int xcont = 0;
     int ycont = 1;
@@ -1501,6 +1543,13 @@ static int lgeometry_viabltr_continuous(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     const char* debugstring = lua_tostring(L, 6);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.viabltr_continuous called without debug string");
+        lua_error(L);
+    }
+#endif
     _check_rectangle_points(L, bl, tr, "geometry.viabltr_continuous");
     int xcont = 1;
     int ycont = 1;
@@ -1530,6 +1579,13 @@ static int lgeometry_viabarebltr_xcontinuous(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     const char* debugstring = lua_tostring(L, 6);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.viabarebltr_xcontinuous called without debug string");
+        lua_error(L);
+    }
+#endif
     _check_rectangle_points(L, bl, tr, "geometry.viabarebltr_xcontinuous");
     int xcont = 1;
     int ycont = 0;
@@ -1558,6 +1614,13 @@ static int lgeometry_viabarebltr_ycontinuous(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     const char* debugstring = lua_tostring(L, 6);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.viabarebltr_ycontinuous called without debug string");
+        lua_error(L);
+    }
+#endif
     _check_rectangle_points(L, bl, tr, "geometry.viabarebltr_ycontinuous");
     int xcont = 0;
     int ycont = 1;
@@ -1586,6 +1649,13 @@ static int lgeometry_viabarebltr_continuous(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     const char* debugstring = lua_tostring(L, 6);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.viabarebltr_continuous called without debug string");
+        lua_error(L);
+    }
+#endif
     _check_rectangle_points(L, bl, tr, "geometry.viabarebltr_continuous");
     int xcont = 1;
     int ycont = 1;
@@ -1613,6 +1683,13 @@ static int lgeometry_contactbltr(lua_State* L)
     struct lpoint* tr = lpoint_checkpoint(L, 4);
     _check_rectangle_points(L, bl, tr, "geometry.contactbltr");
     const char* debugstring = lua_tostring(L, 5);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.contactbltr called without debug string");
+        lua_error(L);
+    }
+#endif
     int xcont = 0;
     int ycont = 0;
     coordinate_t minxspace = 0;
@@ -1651,6 +1728,13 @@ static int lgeometry_contactbarebltr(lua_State* L)
     struct lpoint* tr = lpoint_checkpoint(L, 4);
     _check_rectangle_points(L, bl, tr, "geometry.contactbarebltr");
     const char* debugstring = lua_tostring(L, 5);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.contactbarebltr called without debug string");
+        lua_error(L);
+    }
+#endif
     int xcont = 0;
     int ycont = 0;
     coordinate_t minxspace = 0;

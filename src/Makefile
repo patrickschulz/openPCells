@@ -13,14 +13,18 @@ ifeq ($(DEBUGANALYZE), 1)
 endif
 
 OBJS:= bltrshape.o cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.tutorial.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o shape.o skillexport.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
-DEBUGOBJS = $(addprefix debug/, $(OBJS))
 RELEASEOBJS = $(addprefix release/, $(OBJS))
+LINTOBJS = $(addprefix lint/, $(OBJS))
+DEBUGOBJS = $(addprefix debug/, $(OBJS))
 
 .PHONY: default
 default: $(PROGNAME) $(PROGNAME)-debug
 
 $(PROGNAME): release/$(PROGNAME)
 	cp release/$(PROGNAME) $(PROGNAME)
+
+$(PROGNAME)-lint: lint/$(PROGNAME)
+	cp lint/$(PROGNAME) $(PROGNAME)-lint
 
 $(PROGNAME)-debug: debug/$(PROGNAME)
 	cp debug/$(PROGNAME) $(PROGNAME)-debug
@@ -33,6 +37,15 @@ release/$(PROGNAME): release cmdoptions_def.c version.h main.c lua/liblua.a modu
 
 release/%.o: %.c
 	$(CC) -c $(CFLAGS) -O3 -o $@ $<
+
+lint:
+	mkdir -p lint
+
+lint/$(PROGNAME): lint cmdoptions_def.c version.h main.c lua/liblua.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(LINTOBJS)
+	$(CC) $(CFLAGS) -DOPC_LINT -O3 -o lint/$(PROGNAME) main.c $(LINTOBJS) modulemanager.c scriptmanager.c lua/liblua.a -lm -ldl
+
+lint/%.o: %.c
+	$(CC) -c $(CFLAGS) -DOPC_LINT -O3 -o $@ $<
 
 debug:
 	mkdir -p debug
@@ -117,7 +130,7 @@ create_latex_API_doc: create_latex_API_doc.c main.api_help.c main.api_help.h vec
 
 .PHONY: clean
 clean:
-	rm -rf release debug
+	rm -rf release lint debug
 	rm -f $(PROGNAME)
 	rm -f lua/liblua.a $(LUA_CORE_O) $(LUA_LIB_O)
 	rm -f embed_compiled_lua_file

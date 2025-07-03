@@ -1,6 +1,7 @@
 # main programs and generated code files
 Makefile
 opc
+opc-lint
 opc-debug
 !tech/opc
 src/embed_compiled_lua_file
@@ -12,8 +13,9 @@ src/scriptmanager.c
 src/scriptmanager.h
 src/generate_manpage
 src/tags
-src/debug
 src/release
+src/lint
+src/debug
 opc.1
 
 # generated layouts and helpers
@@ -59,6 +61,7 @@ src/lua/liblua.a
 
 # development information
 devinfo
+wip
 
 # test code
 srctodo

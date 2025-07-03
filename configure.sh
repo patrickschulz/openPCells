@@ -110,6 +110,10 @@ opc: \$(DEPENDENCIES)
 	@\$(MAKE) -C src opc
 	@mv src/opc .
 
+opc-lint: \$(DEPENDENCIES)
+	@\$(MAKE) -C src opc-lint
+	@mv src/opc-lint .
+
 opc-debug: \$(DEPENDENCIES)
 	@\$(MAKE) -C src opc-debug
 	@mv src/opc-debug .
