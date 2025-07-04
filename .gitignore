@@ -62,6 +62,7 @@ src/lua/liblua.a
 # development information
 devinfo
 wip
+version1.0
 
 # test code
 srctodo
