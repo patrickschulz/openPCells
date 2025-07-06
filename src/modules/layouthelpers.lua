@@ -48,6 +48,63 @@ function M.place_powervlines(cell, bl, tr, layer, width, space, powershapes)
     end
 end
 
+function M.place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth, hspace, plusshapes, minusshapes)
+    local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(
+        bl, tr,
+        vwidth, vspace
+    )
+    local pluslines = {}
+    local minuslines = {}
+    for i = 1, numlines do
+        local plbl = point.create(
+            bl:getx() + offset + (i - 1) * (width + space),
+            bl:gety()
+        )
+        local pltr = point.create(
+            bl:getx() + offset + (i - 1) * (width + space) + width,
+            bl:gety() + height
+        )
+        geometry.rectanglebltr(cell, generics.metal(vlayer), plbl, pltr)
+        local powershapes = i % 2 == 1 and plusshapes or minusshapes
+        local inserttarget = i % 2 == 1 and pluslines or minuslines
+        table.insert(inserttarget, { bl = plbl, tr = pltr })
+        for _, target in ipairs(powershapes) do
+            local r = util.rectangle_intersection(plbl, pltr, target.bl, target.tr)
+            if r then
+                geometry.viabltr(cell, vlayer - 1, vlayer,
+                    point.create(plbl:getx(), target.bl:gety()),
+                    point.create(pltr:getx(), target.tr:gety())
+                )
+            end
+        end
+    end
+    local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(
+        bl, tr,
+        hwidth, hspace
+    )
+    for i = 1, numlines do
+        local plbl = point.create(
+            bl:getx(),
+            bl:gety() + offset + (i - 1) * (height + space)
+        )
+        local pltr = point.create(
+            bl:getx() + width,
+            bl:gety() + offset + (i - 1) * (height + space) + height
+        )
+        geometry.rectanglebltr(cell, generics.metal(hlayer), plbl, pltr)
+        local powerlines = i % 2 == 1 and pluslines or minuslines
+        for _, target in ipairs(powerlines) do
+            local r = util.rectangle_intersection(plbl, pltr, target.bl, target.tr)
+            if r then
+                geometry.viabltr(cell, hlayer - 1, hlayer,
+                    point.create(target.bl:getx(), plbl:gety()),
+                    point.create(target.tr:getx(), pltr:gety())
+                )
+            end
+        end
+    end
+end
+
 function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring")
     check.arg_func(1, "cell", "object", cell, object.is_object)
