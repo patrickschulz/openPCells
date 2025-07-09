@@ -19,9 +19,10 @@ function parameters()
         { "gatestrapwidth(Gate Strap Metal Width)",                                 technology.get_dimension("Minimum M1 Width") },
         { "gatestrapspace(Gate Strap Metal Space)",                                 technology.get_dimension("Minimum M1 Space") },
         { "gatecontactsplitshift(Gate Contact Split Shift)",                        technology.get_dimension("Minimum M1 Width") + technology.get_dimension("Minimum M1 Space") },
-        { "powerwidth(Power Rail Metal Width)",                                     technology.get_dimension("Minimum M1 Width") },
-        { "npowerspace(NMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), posvals = positive() },
-        { "ppowerspace(PMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), posvals = positive() },
+        { "powerwidth(Power Rail Width)",                                           technology.get_dimension("Minimum M1 Width"), posvals = positive() },
+        { "powerspace(Power Rail Space)",                                           technology.get_dimension("Minimum M1 Width"),  },
+        { "npowerspace(NMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), follow = "powerspace" },
+        { "ppowerspace(PMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), follow = "powerspace" },
         { "powerrailleftrightextension(Power Rail Left/Right Extension)",           0 },
         { "powerrailleftextension(Power Rail Left Extension)",                      0, follow = "powerrailleftrightextension" },
         { "powerrailrightextension(Power Rail Right Extension)",                    0, follow = "powerrailleftrightextension" },
@@ -115,7 +116,7 @@ function parameters()
         { "activedummyspace",                                                       0 },
         { "drawleftstopgate",                                                       false },
         { "drawrightstopgate",                                                      false },
-        { "excludestopgatesfromcutregions",                                         false },
+        { "excludestopgatesfromcutregions",                                         true },
         { "endleftwithgate",                                                        false, follow = "drawleftstopgate" },
         { "leftendgatelength",                                                      0, follow = "gatelength" },
         { "leftendgatespace",                                                       0, follow = "gatespace" },
@@ -246,7 +247,7 @@ function check(_P)
         return false, "the number of the source/drain contacts must be equal for nmos and pmos"
     end
     if (#_P.gatecontactpos + 1) ~= #_P.ncontactpos then
-        return false, string.format("the number of the source/drain contacts must match the gate contacts + 1 (%d vs. %d)", _P.ncontactpos, #_P.gatecontactpos + 1)
+        return false, string.format("the number of the source/drain contacts must match the gate contacts + 1 (%d vs. %d)", #_P.ncontactpos, #_P.gatecontactpos + 1)
     end
     -- check if gate cut width and gatelength match
     if (_P.gatelength % 2) ~= (_P.cutwidth % 2) then
@@ -637,7 +638,7 @@ function layout(cmos, _P)
             elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "unused" then
                 excludeleftncontact = true
             else
-                moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nshould be one of 'power', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i, _P.ncontactpos[i]))
+                moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nmust be one of 'power', 'fullpower', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i, _P.ncontactpos[i]))
             end
             -- extra handling for last source/drain contact
             if i == fingers then
@@ -662,7 +663,7 @@ function layout(cmos, _P)
                 elseif not _P.ncontactpos[i + 1] or _P.ncontactpos[i + 1] == "unused" then
                     excluderightncontact = true
                 else
-                    moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nshould be one of 'power', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i + 1, _P.ncontactpos[i]))
+                    moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nmust be one of 'power', 'fullpower', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i + 1, _P.ncontactpos[i]))
                 end
             end
             nopt_current.excludesourcedraincontacts = {}
@@ -695,7 +696,7 @@ function layout(cmos, _P)
             elseif not _P.pcontactpos[i] or _P.pcontactpos[i] == "unused" then
                 excludeleftpcontact = true
             else
-                moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nshould be one of 'power', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i, _P.pcontactpos[i]))
+                moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nmust be one of 'power', 'fullpower', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i, _P.pcontactpos[i]))
             end
             -- extra handling for last source/drain contact
             if i == fingers then
@@ -720,7 +721,7 @@ function layout(cmos, _P)
                 elseif not _P.pcontactpos[i + 1] or _P.pcontactpos[i + 1] == "unused" then
                     excluderightpcontact = true
                 else
-                    moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nshould be one of 'power', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i + 1, _P.pcontactpos[i]))
+                    moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'\nmust be one of 'power', 'fullpower', 'outer', 'inner', 'dummyouterpower', 'dummyinner', 'full' or 'unused'", i + 1, _P.pcontactpos[i]))
                 end
             end
             popt_current.excludesourcedraincontacts = {}
