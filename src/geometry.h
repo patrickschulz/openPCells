@@ -41,6 +41,12 @@ void geometry_rectanglepoints(
     const struct point* bl, const struct point* tr
 );
 
+void geometry_rectangleareaanchor(
+    struct object* cell,
+    const struct generics* layer,
+    const char* anchor
+);
+
 void geometry_rectanglearray(
     struct object* cell,
     const struct generics* layer,

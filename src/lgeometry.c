@@ -65,6 +65,16 @@ static int lgeometry_rectanglepoints(lua_State* L)
     return 0;
 }
 
+static int lgeometry_rectangleareaanchor(lua_State* L)
+{
+    lcheck_check_numargs1(L, 3, "geometry.rectangleareaanchor");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = generics_check_generics(L, 2);
+    const char* anchor = luaL_checkstring(L, 3);
+    geometry_rectangleareaanchor(lobject_get_full(L, cell), layer, anchor);
+    return 0;
+}
+
 static int lgeometry_rectanglearray(lua_State* L)
 {
     lcheck_check_numargs1(L, 10, "geometry.rectanglearray");
@@ -2176,6 +2186,7 @@ int open_lgeometry_lib(lua_State* L)
         { "rectanglebltr",                              lgeometry_rectanglebltr                                     },
         { "rectangleblwh",                              lgeometry_rectangleblwh                                     },
         { "rectanglepoints",                            lgeometry_rectanglepoints                                   },
+        { "rectangleareaanchor",                        lgeometry_rectangleareaanchor                               },
         { "rectanglearray",                             lgeometry_rectanglearray                                    },
         { "slotted_rectangle",                          lgeometry_slotted_rectangle                                 },
         { "rectanglepath",                              lgeometry_rectanglepath                                     },
