@@ -62,6 +62,23 @@
     ));
 }
 
+/* pcell.add_area_anchor_documentation */
+{
+    struct parameter parameters[] = {
+        { "name",           STRING, NULL, "anchor name" },
+        { "description",    STRING, NULL, "description of the anchor's function" },
+        { "condition",      STRING, NULL, "optional condition under which the anchor is present" }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_area_anchor_documentation",
+        MODULE_PCELL,
+        "add documentation of an area anchor of a pcell. This function is called in the 'anchor' function of a pcell definition. The anchors defined here are available via 'opc --anchors'.",
+        "pcell.add_area_anchor_documentation(\n    \"someanchor\",\n    \"anchor of some region\",\n    \"someflag == true\"\n)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* pcell.create_layout */
 {
     struct parameter parameters[] = {
