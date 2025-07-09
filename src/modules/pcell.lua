@@ -289,6 +289,14 @@ local function _add_area_anchor_documentation(state, cellname, name, info, condi
     }
 end
 
+local function _add_anchor_line_documentation(state, cellname, name, info, conditions)
+    local cell = _get_cell(state, cellname)
+    cell.anchors[name] = {
+        info = info,
+        conditions = conditions
+    }
+end
+
 local function _resolve_cellname(state, cellname)
     local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
     if libpart == "." then -- relative library
@@ -349,6 +357,7 @@ function state.create_cellenv(state, cellname, ovrenv)
             add_parameters                  = bindstatecell(_add_parameters),
             inherit_parameters              = bindstatecell(_inherit_parameters),
             add_area_anchor_documentation   = bindstatecell(_add_area_anchor_documentation),
+            add_anchor_line_documentation   = bindstatecell(_add_anchor_line_documentation),
             -- the following functions don't not need cell binding as they are called for other cells
             create_layout                   = pcell.create_layout,
             create_layout_env               = pcell.create_layout_env,
