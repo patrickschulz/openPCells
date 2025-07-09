@@ -161,6 +161,8 @@ void object_array_rotate_90_left(struct object* cell);
 void object_array_rotate_90_right(struct object* cell);
 void object_flipx(struct object* cell);
 void object_flipy(struct object* cell);
+int object_move_x(struct object* cell, coordinate_t source, coordinate_t target);
+int object_move_y(struct object* cell, coordinate_t source, coordinate_t target);
 int object_move_point(struct object* cell, const struct point* source, const struct point* target);
 int object_move_point_to_origin(struct object* cell, const struct point* target);
 int object_move_point_to_origin_xy(struct object* cell, coordinate_t x, coordinate_t y);

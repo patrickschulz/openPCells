@@ -352,6 +352,26 @@ static int lobject_flipy(lua_State* L)
     return 1;
 }
 
+static int lobject_move_x(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    coordinate_t source = lpoint_checkcoordinate(L, 2, "source");
+    coordinate_t target = lpoint_checkcoordinate(L, 3, "target");
+    object_move_x(lobject_get(L, cell), source, target);
+    lua_rotate(L, 1, 2);
+    return 1;
+}
+
+static int lobject_move_y(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    coordinate_t source = lpoint_checkcoordinate(L, 2, "source");
+    coordinate_t target = lpoint_checkcoordinate(L, 3, "target");
+    object_move_y(lobject_get(L, cell), source, target);
+    lua_rotate(L, 1, 2);
+    return 1;
+}
+
 static int lobject_move_point(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1764,6 +1784,8 @@ int open_lobject_lib(lua_State* L)
         { "array_rotate_90_right",                  lobject_array_rotate_90_right               },
         { "flipx",                                  lobject_flipx                               },
         { "flipy",                                  lobject_flipy                               },
+        { "move_x",                                 lobject_move_x                              },
+        { "move_y",                                 lobject_move_y                              },
         { "move_point",                             lobject_move_point                          },
         { "move_point_x",                           lobject_move_point_x                        },
         { "move_point_y",                           lobject_move_point_y                        },

@@ -2255,6 +2255,18 @@ void object_apply_other_transformation(struct object* cell, const struct transfo
     transformationmatrix_chain_inline(cell->trans, trans);
 }
 
+int object_move_x(struct object* cell, coordinate_t source, coordinate_t target)
+{
+    object_translate(cell, target - source, 0);
+    return 1;
+}
+
+int object_move_y(struct object* cell, coordinate_t source, coordinate_t target)
+{
+    object_translate(cell, 0, target - source);
+    return 1;
+}
+
 int object_move_point(struct object* cell, const struct point* source, const struct point* target)
 {
     object_translate(cell, target->x - source->x, target->y - source->y);
