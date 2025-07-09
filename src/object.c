@@ -260,6 +260,23 @@ struct object* object_copy(const struct object* cell)
             hashmap_const_iterator_destroy(it);
         }
 
+        // anchor lines
+        if(cell->anchorlines)
+        {
+            new->anchorlines = hashmap_create();
+            struct hashmap_const_iterator* it = hashmap_const_iterator_create(cell->anchorlines);
+            while(hashmap_const_iterator_is_valid(it))
+            {
+                const char* key = hashmap_const_iterator_key(it);
+                const coordinate_t* c = hashmap_const_iterator_value(it);
+                coordinate_t* cc = malloc(sizeof(*cc));
+                *cc = *c;
+                hashmap_insert(new->anchorlines, key, cc);
+                hashmap_const_iterator_next(it);
+            }
+            hashmap_const_iterator_destroy(it);
+        }
+
         // children
         if(cell->children)
         {
