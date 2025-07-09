@@ -247,6 +247,38 @@
     );
 }
 
+/* object.add_anchor_line_x */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,  NULL, "object to which an anchor line should be added" },
+        { "name",   STRING,  NULL, "name of the anchor line" },
+        { "x",      INTEGER, NULL, "x-coordinate of the anchor line" }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_anchor_line_x",
+        MODULE_OBJECT,
+        "Add an anchor line to a cell (given its x-coordinate)",
+        "cell:add_anchor_line_x(\"xbase\", 40)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.add_anchor_line_y */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,  NULL, "object to which an anchor line should be added" },
+        { "name",   STRING,  NULL, "name of the anchor line" },
+        { "y",      INTEGER, NULL, "y-coordinate of the anchor line" }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_anchor_line_y",
+        MODULE_OBJECT,
+        "Add an anchor line to a cell (given its y-coordinate)",
+        "cell:add_anchor_line_y(\"ybase\", 40)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
 /* object.add_bus_port */
 {
     struct parameter parameters[] = {
