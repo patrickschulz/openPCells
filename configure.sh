@@ -140,7 +140,7 @@ doc:
 .PHONY: clean
 clean:
 	@\$(MAKE) -C src clean
-	rm -f opc opc-debug
+	rm -f opc opc-lint opc-debug
 	rm -f opc.1
 
 .PHONY: cleanall
