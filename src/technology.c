@@ -1013,6 +1013,21 @@ static const struct generics* _get_or_create_layer(struct technology_state* tech
     }
 }
 
+char* technology_get_configfile_path(struct technology_state* techstate, const char* techname)
+{
+    return _get_tech_filename(techstate, techname, "config");
+}
+
+char* technology_get_layermap_path(struct technology_state* techstate, const char* techname)
+{
+    return _get_tech_filename(techstate, techname, "layermap");
+}
+
+char* technology_get_viatable_path(struct technology_state* techstate, const char* techname)
+{
+    return _get_tech_filename(techstate, techname, "vias");
+}
+
 const struct generics* generics_create_metal(struct technology_state* techstate, int num)
 {
     num = technology_resolve_metal(techstate, num);

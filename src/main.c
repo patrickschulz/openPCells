@@ -219,6 +219,62 @@ int main(int argc, const char* const * argv)
         }
     }
 
+    /* check technology */
+    if(cmdoptions_was_provided_long(cmdoptions, "check-technology"))
+    {
+        struct vector* techpaths = hashmap_get(config, "techpaths");
+        vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
+        if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
+        {
+            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
+            while(*arg)
+            {
+                vector_append(techpaths, util_strdup(*arg));
+                ++arg;
+            }
+        }
+        const char* techname = cmdoptions_get_argument_long(cmdoptions, "check-technology");
+        struct technology_state* techstate = main_create_techstate(techpaths, techname, NULL);
+        lua_State* L = util_create_basic_lua_state();
+        // load config file
+        const char* configfile = technology_get_configfile_path(techstate, techname);
+        int ret = luaL_dofile(L, configfile);
+        if(ret != LUA_OK)
+        {
+            const char* msg = lua_tostring(L, -1);
+            fprintf(stderr, "error while loading configfile:\n  %s\n", msg);
+            lua_close(L);
+            return 0;
+        }
+        lua_setglobal(L, "config");
+        // load layer map
+        const char* layermap = technology_get_layermap_path(techstate, techname);
+        ret = luaL_dofile(L, layermap);
+        if(ret != LUA_OK)
+        {
+            const char* msg = lua_tostring(L, -1);
+            fprintf(stderr, "error while loading layermap:\n  %s\n", msg);
+            lua_close(L);
+            return 0;
+        }
+        lua_setglobal(L, "layermap");
+        // load via table
+        const char* viatable = technology_get_viatable_path(techstate, techname);
+        ret = luaL_dofile(L, viatable);
+        if(ret != LUA_OK)
+        {
+            const char* msg = lua_tostring(L, -1);
+            fprintf(stderr, "error while loading viatable:\n  %s\n", msg);
+            lua_close(L);
+            return 0;
+        }
+        lua_setglobal(L, "viatable");
+        // call check script
+        script_call_check_technology(L);
+        lua_close(L);
+        goto DESTROY_CONFIG;
+    }
+
     /* templates */
     if(cmdoptions_was_provided_long(cmdoptions, "template"))
     {
