@@ -15,7 +15,7 @@ procedure(OPCAboutCallback()
         )
         hiDisplayForm(OPCAboutForm 100:100)
     )
-) ; procedure
+) ; OPCAboutCallback
 
 procedure(OPCEditConfigFile()
     let(
@@ -25,4 +25,35 @@ procedure(OPCEditConfigFile()
         path = lsprintf("/home/%s/.opcconfig.lua" getShellEnvVar("USER"))
         OPCOpenEditor(path)
     )
-) ; procedure
+) ; OPCEditConfigFile
+
+procedure(OPCShowTextFile(path)
+    let((file line lines str item form)
+        ; read file
+        file = infile(path)
+        while(gets(nextline file)
+            lines = cons(line lines)
+        )
+        str = apply('strcal reverse(lines))
+        close(file)
+        item = hiCreateMLTextField(
+            ?editable nil
+            ?defValue str
+        )
+        form = hiCreateAppForm(
+            ?name gensym('OPCShowTextFile)
+            ?fields list(item)
+        )
+        hiDisplayForm(form)
+    )
+) ; OPCShowTextFile
+
+procedure(OPCViewLogFile()
+    let(
+        (
+            path
+        )
+        path = lsprintf("%s" OPCSettingsForm->OPCStdoutFileName->value)
+        OPCShowTextFile(path)
+    )
+) ; OPCViewLogFile

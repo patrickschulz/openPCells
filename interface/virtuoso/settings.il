@@ -38,6 +38,11 @@ procedure(OPCCreateSettingsForm()
                 ?prompt "Enable Cell Debug Print (dprint)"
             )
             hiCreateStringField(
+                ?name 'OPCStdoutFileName
+                ?value "openPCells.stdout"
+                ?prompt "File Name for standard output"
+            )
+            hiCreateStringField(
                 ?name 'OPCDprintFilename
                 ?value "openPCells.dprint"
                 ?prompt "File Name for Debug Print (dprint)"

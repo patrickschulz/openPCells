@@ -1,9 +1,9 @@
 procedure(OPCCreateLayoutMenu()
-    let( (menu itemlist about separator export settings editconfig designmenu subcellmenu cellmenu)
+    let( (menu itemlist about SEP export settings editconfig viewlog designmenu subcellmenu cellmenu)
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
 
-        separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
+        SEP = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
 
         ; design
         let(
@@ -66,9 +66,24 @@ procedure(OPCCreateLayoutMenu()
         ; settings
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
         editconfig = hiCreateMenuItem(?name 'OPCEditConfig ?itemText "Edit Configgile" ?callback "OPCEditConfigFile()")
+        viewlog = hiCreateMenuItem(?name 'OPCViewLogFile ?itemText "View Logfile" ?callback "OPCViewLogFile()")
 
         ; assemble main menu
-        itemlist = list(about separator settings editconfig separator designmenu separator subcellmenu separator cellmenu separator exportgds separator export)
+        itemlist = list(
+            about
+            SEP
+            settings editconfig viewlog
+            SEP
+            designmenu
+            SEP
+            subcellmenu
+            SEP
+            cellmenu
+            SEP
+            exportgds
+            SEP
+            export
+        )
         hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
 )

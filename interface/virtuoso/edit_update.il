@@ -47,7 +47,7 @@ procedure(OPCUpdateCellscriptCallback(@key (deleteAll t) (callopc t) (hierarchic
         OPCCmd = OPCBuildCallCommand(OPCArgs)
         success = if(callopc
             then
-                OPCCall(OPCCmd)
+                OPCCall(OPCCmd ?redirect OPCSettingsForm->OPCStdoutFileName->value)
             else
                 t
         )
@@ -108,7 +108,7 @@ procedure(OPCUpdateCellCellCallback(cellname parameterlist @key (deleteAll t) (c
         OPCCmd = OPCBuildCallCommand(OPCArgs)
         success = if(callopc
             then
-                OPCCall(OPCCmd)
+                OPCCall(OPCCmd ?redirect OPCSettingsForm->OPCStdoutFileName->value)
             else
                 t
         )
@@ -151,7 +151,7 @@ procedure(OPCUpdateAsGDS()
         )
         */
         OPCCmd = OPCBuildCallCommand(OPCArgs)
-        OPCCall(OPCCmd)
+        OPCCall(OPCCmd ?redirect OPCSettingsForm->OPCStdoutFileName->value)
     )
 ) ; procedure
 
