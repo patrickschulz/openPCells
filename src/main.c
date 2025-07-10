@@ -190,12 +190,20 @@ int main(int argc, const char* const * argv)
         printf("openPCells (opc) %u.%u.%u\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
         goto DESTROY_CMDOPTIONS;
     }
-    FILE* pfd_f = NULL;
+    FILE* fstdout = NULL;
+    if(cmdoptions_was_provided_long(cmdoptions, "stdout-to"))
+    {
+        const char* stdoutto = cmdoptions_get_argument_long(cmdoptions, "stdout-to");
+        fstdout = fopen(stdoutto, "w");
+        int pfd = fileno(fstdout);
+        dup2(pfd, STDOUT_FILENO);
+    }
+    FILE* fstderr = NULL;
     if(cmdoptions_was_provided_long(cmdoptions, "stderr-to"))
     {
         const char* stderrto = cmdoptions_get_argument_long(cmdoptions, "stderr-to");
-        pfd_f = fopen(stderrto, "w");
-        int pfd = fileno(pfd_f);
+        fstderr = fopen(stderrto, "w");
+        int pfd = fileno(fstderr);
         dup2(pfd, STDERR_FILENO);
     }
 
@@ -424,9 +432,13 @@ int main(int argc, const char* const * argv)
     fputs("no cell given\n", stderr);
     returnvalue = 1;
 
-    if(pfd_f)
+    if(fstdout)
     {
-        fclose(pfd_f);
+        fclose(fstdout);
+    }
+    if(fstderr)
+    {
+        fclose(fstderr);
     }
 
     // clean up states

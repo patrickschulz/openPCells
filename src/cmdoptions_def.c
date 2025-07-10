@@ -123,6 +123,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "noexport", NO_ARG, "disable all exp
 cmdoptions_add_option(cmdoptions, NO_SHORT, "dryrun", NO_ARG, "perform all calculations, but don't actually write any files. This is useful for profiling, where the program should run normally but should not produce any output");
 cmdoptions_add_option(cmdoptions, 'v', "version", NO_ARG, "display version");
 cmdoptions_add_option(cmdoptions, 'h', "help", NO_ARG, "display help");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "stdout-to", SINGLE_ARG, "redirect standard output to the given file (will be overwritten)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "stderr-to", SINGLE_ARG, "redirect standard error to the given file (will be overwritten)");
 
 // vim: nowrap
