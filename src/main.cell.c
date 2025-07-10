@@ -12,27 +12,13 @@
 #include "geometry.h"
 #include "hashmap.h"
 #include "info.h"
+#include "main.functions.h"
 #include "pcell.h"
 #include "postprocess.h"
 #include "technology.h"
 #include "util_cmodule.h"
 #include "util.h"
-
 #include "config.h"
-
-static struct technology_state* _create_techstate(struct vector* techpaths, const char* techname, const struct const_vector* ignoredlayers)
-{
-    struct technology_state* techstate = technology_initialize();
-    for(unsigned int i = 0; i < vector_size(techpaths); ++i)
-    {
-        technology_add_techpath(techstate, vector_get(techpaths, i));
-    }
-    if(!technology_load(techstate, techname, ignoredlayers))
-    {
-        return NULL;
-    }
-    return techstate;
-}
 
 static int _parse_point(const char* arg, int* xptr, int* yptr)
 {
@@ -143,7 +129,7 @@ void main_list_cell_parameters(const char* cellname, const char* parametersforma
     struct technology_state* techstate = NULL;
     if(techname)
     {
-        techstate = _create_techstate(techpaths, techname, ignoredlayers);
+        techstate = main_create_techstate(techpaths, techname, ignoredlayers);
     }
 
     // pcell state
@@ -481,7 +467,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     }
     struct const_vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
     const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
-    struct technology_state* techstate = _create_techstate(techpaths, techname, ignoredlayers);
+    struct technology_state* techstate = main_create_techstate(techpaths, techname, ignoredlayers);
     if(!techstate)
     {
         retval = 0;
@@ -502,6 +488,10 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     if(cmdoptions_was_provided_long(cmdoptions, "ignore-missing-layers"))
     {
         technology_ignore_missing_layers(techstate);
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "ignore-missing-exports"))
+    {
+        technology_ignore_missing_exports(techstate);
     }
 
     // pcell state

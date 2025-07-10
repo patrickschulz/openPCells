@@ -43,6 +43,7 @@ struct technology_state {
     int create_via_arrays;
     int ignore_premapped;
     int ignore_missing_layers;
+    int ignore_missing_exports;
 
     struct hashmap* layermap;
     struct vector* extra_layers; // stores struct generics*, extra premapped layers
@@ -171,6 +172,10 @@ static struct generics* _create_empty_layer(const char* name)
 
 static void _destroy_entry(void* entryv)
 {
+    if(!entryv) // NULL entries are allowed due to --ignore-missing-export
+    {
+        return;
+    }
     struct generics_entry* entry = entryv;
     free(entry->exportname);
     hashmap_destroy(entry->data, tagged_value_destroy);
@@ -680,7 +685,7 @@ int technology_multiple_patterning_number(const struct technology_state* techsta
     return number;
 }
 
-static int _resolve_layer(struct generics* layer, const char* exportname)
+static int _resolve_layer(struct generics* layer, const char* exportname, int ignoremissing)
 {
     int found = 0;
     if(!generics_is_empty(layer)) // empty layers are ignored
@@ -693,18 +698,31 @@ static int _resolve_layer(struct generics* layer, const char* exportname)
             {
                 found = 1;
                 idx = k;
+                break;
             }
         }
-        if(!found)
+        if(found)
         {
-            printf("no layer data for export type '%s' found (layer: %s, number of entries: %zd)\n", exportname, layer->name, vector_size(layer->entries));
-            return 0;
+            // swap data
+            // for mapped entries, only the first entry is used, but it is easier to keep the data here
+            // and let _destroy_generics free all data, regardless if a layer is premapped or mapped
+            vector_swap(layer->entries, 0, idx);
         }
-
-        // swap data
-        // for mapped entries, only the first entry is used, but it is easier to keep the data here
-        // and let _destroy_generics free all data, regardless if a layer is premapped or mapped
-        vector_swap(layer->entries, 0, idx);
+        else
+        {
+            if(ignoremissing)
+            {
+                // insert NULL to represent a missing, but allowed layer
+                // subsequent use of this layer needs to check for NULL and act accordingly
+                vector_prepend(layer->entries, NULL);
+            }
+            else
+            {
+                printf("no layer data for export type '%s' found (layer: %s, number of entries: %zd)\n",
+                    exportname, layer->name, vector_size(layer->entries));
+                return 0;
+            }
+        }
     }
     return 1;
 }
@@ -716,7 +734,7 @@ int technology_resolve_premapped_layers(struct technology_state* techstate, cons
     while(hashmap_iterator_is_valid(it))
     {
         struct generics* layer = hashmap_iterator_value(it);
-        if(!_resolve_layer(layer, exportname))
+        if(!_resolve_layer(layer, exportname, techstate->ignore_missing_exports))
         {
             hashmap_iterator_destroy(it);
             return 0;
@@ -729,7 +747,7 @@ int technology_resolve_premapped_layers(struct technology_state* techstate, cons
     for(unsigned int i = 0; i < vector_size(techstate->extra_layers); ++i)
     {
         struct generics* layer = vector_get(techstate->extra_layers, i);
-        if(!_resolve_layer(layer, exportname))
+        if(!_resolve_layer(layer, exportname, techstate->ignore_missing_exports))
         {
             return 0;
         }
@@ -778,6 +796,7 @@ struct technology_state* technology_initialize(void)
     techstate->extra_layers = vector_create(1024, _destroy_layer);
     techstate->empty_layer = _create_empty_layer("_EMPTY_");
     techstate->ignore_missing_layers = 0;
+    techstate->ignore_missing_exports = 0;
     return techstate;
 }
 
@@ -829,6 +848,11 @@ int technology_is_ignore_premapped_layers(const struct technology_state* techsta
 void technology_ignore_missing_layers(struct technology_state* techstate)
 {
     techstate->ignore_missing_layers = 1;
+}
+
+void technology_ignore_missing_exports(struct technology_state* techstate)
+{
+    techstate->ignore_missing_exports = 1;
 }
 
 static int ltechnology_get_dimension(lua_State* L)
@@ -1188,6 +1212,10 @@ int generics_is_layer_name(const struct generics* layer, const char* layername)
 const struct hashmap* generics_get_first_layer_data(const struct generics* layer)
 {
     const struct generics_entry* entry = vector_get_const(layer->entries, 0);
+    if(!entry)
+    {
+        return NULL;
+    }
     return entry->data;
 }
 

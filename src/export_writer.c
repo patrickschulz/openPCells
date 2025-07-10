@@ -430,6 +430,12 @@ static int _write_child(struct export_writer* writer, const struct object* child
 static int _write_cell_shape_rectangle(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+    // NULL layerdata is allowed and enable in the technology module
+    // the export module ignores these shapes, as they are considered approved, not errorneous
+    if(!layerdata)
+    {
+        return 1;
+    }
     struct point bl;
     struct point tr;
     shape_get_transformed_rectangle_points(shape, trans, &bl, &tr);
@@ -477,6 +483,12 @@ static int _write_polygon(struct export_writer* writer, const struct hashmap* la
 static int _write_cell_shape_polygon(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+    // NULL layerdata is allowed and enable in the technology module
+    // the export module ignores these shapes, as they are considered approved, not errorneous
+    if(!layerdata)
+    {
+        return 1;
+    }
     struct vector* points = vector_create(128, point_destroy);
     shape_get_transformed_polygon_points(shape, trans, points);
     int ret = _write_polygon(writer, layerdata, points);
@@ -487,6 +499,12 @@ static int _write_cell_shape_polygon(struct export_writer* writer, const struct 
 static int _write_cell_shape_triangulated_polygon(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+    // NULL layerdata is allowed and enable in the technology module
+    // the export module ignores these shapes, as they are considered approved, not errorneous
+    if(!layerdata)
+    {
+        return 1;
+    }
     struct vector* points = vector_create(128, point_destroy);
     shape_get_transformed_polygon_points(shape, trans, points);
     int ret = 1;
@@ -533,6 +551,12 @@ WRITE_CELL_SHAPE_TRIANGULATED_POLYGON_CLEANUP:
 static int _write_cell_shape_path(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+    // NULL layerdata is allowed and enable in the technology module
+    // the export module ignores these shapes, as they are considered approved, not errorneous
+    if(!layerdata)
+    {
+        return 1;
+    }
     struct vector* points = vector_create(128, point_destroy);
     int ret = 1;
     if(_has_write_path(writer))
@@ -629,6 +653,12 @@ static int _cubic_bezier_segment(const struct point* cpt1, const struct point* c
 static int _write_cell_shape_curve(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+    // NULL layerdata is allowed and enable in the technology module
+    // the export module ignores these shapes, as they are considered approved, not errorneous
+    if(!layerdata)
+    {
+        return 1;
+    }
     if(_has_curve_support(writer))
     {
         struct point origin;
