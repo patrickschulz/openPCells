@@ -399,6 +399,12 @@ void object_destroy(void* cellv)
             hashmap_destroy(cell->anchors, _anchor_destroy);
         }
 
+        // anchor lines
+        if(cell->anchorlines)
+        {
+            hashmap_destroy(cell->anchorlines, free);
+        }
+
         // ports
         if(cell->ports)
         {
