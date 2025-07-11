@@ -174,13 +174,15 @@ int main(int argc, const char* const * argv)
     cmdoptions_append_help_message(cmdoptions, "   create a cell from a foreign collection:    opc --cellpath /path/to/collection --technology TECH --export gds --cell other/somecell");
     cmdoptions_append_help_message(cmdoptions, "   create a cell by using a cellscript:        opc --technology TECH --export gds --cellscript celldef.lua");
     cmdoptions_append_help_message(cmdoptions, "   read a GDS stream file and create cells:    opc --read-GDS stream.gds");
+    cmdoptions_append_help_message(cmdoptions, "");
+    cmdoptions_append_help_message(cmdoptions, "For more information on a specific command-line option you can also pass this to --help, e.g. opc --help --read-gds");
 
     if(!cmdoptions_parse(cmdoptions, argc, argv))
     {
         returnvalue = 1;
         goto DESTROY_CMDOPTIONS;
     }
-    if(cmdoptions_was_provided_long(cmdoptions, "help"))
+    if(cmdoptions_help_passed(cmdoptions))
     {
         cmdoptions_help(cmdoptions);
         goto DESTROY_CMDOPTIONS;

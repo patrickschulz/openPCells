@@ -1,5 +1,6 @@
 #include "cmdoptions.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -49,9 +50,10 @@ struct cmdoptions {
     char* posthelpmsg;
     int force_narrow_mode;
     int valid;
+    int help_passed;
 };
 
-struct cmdoptions* cmdoptions_create(void)
+struct cmdoptions* cmdoptions_create_no_help(void)
 {
     struct cmdoptions* options = malloc(sizeof(*options));
     struct mode* basemode = malloc(sizeof(*basemode));
@@ -65,13 +67,22 @@ struct cmdoptions* cmdoptions_create(void)
     options->size = 1;
     options->capacity = 1;
     options->positional_parameters = malloc(sizeof(*options->positional_parameters));;
-    *options->positional_parameters = NULL;
+    *options->positional_parameters = NULL; /* sentinel */
     options->prehelpmsg = malloc(1);
     options->prehelpmsg[0] = 0;
     options->posthelpmsg = malloc(1);
     options->posthelpmsg[0] = 0;
     options->force_narrow_mode = 0;
     options->valid = 1;
+    options->help_passed = 0;
+    return options;
+}
+
+static int _add_option_checked(struct cmdoptions* options, char short_identifier, const char* long_identifier, int numargs, const char* help);
+struct cmdoptions* cmdoptions_create(void)
+{
+    struct cmdoptions* options = cmdoptions_create_no_help();
+    _add_option_checked(options, 'h', "help", NO_ARG, "display help");
     return options;
 }
 
@@ -158,7 +169,7 @@ int cmdoptions_is_valid(const struct cmdoptions* options)
     return options->valid;
 }
 
-int cmdoptions_all_options_checked(const struct cmdoptions* options)
+int cmdoptions_assert_all_options_checked(const struct cmdoptions* options)
 {
     size_t i;
     size_t j;
@@ -176,6 +187,14 @@ int cmdoptions_all_options_checked(const struct cmdoptions* options)
                 option = entry->value;
                 if(!option->was_checked)
                 {
+                    if(option->long_identifier)
+                    {
+                        fprintf(stderr, "option '--%s' was no checked\n", option->long_identifier);
+                    }
+                    else
+                    {
+                        fprintf(stderr, "option '-%c' was no checked\n", option->short_identifier);
+                    }
                     return 0;
                 }
             }
@@ -381,6 +400,24 @@ int cmdoptions_add_alias(struct cmdoptions* options, const char* long_aliased_id
     return 1;
 }
 
+static int _add_option_checked(struct cmdoptions* options, char short_identifier, const char* long_identifier, int numargs, const char* help)
+{
+    struct entry* entry = _create_option(short_identifier, long_identifier, numargs, help);
+    struct option* option = entry->value;
+    option->was_checked = 1;
+    if(!entry)
+    {
+        return 0;
+    }
+    struct mode* basemode = _get_basemode(options);
+    if(!_add_entry(basemode, entry))
+    {
+        _destroy_entry(entry);
+        return 0;
+    }
+    return 1;
+}
+
 int cmdoptions_add_option(struct cmdoptions* options, char short_identifier, const char* long_identifier, int numargs, const char* help)
 {
     struct entry* entry = _create_option(short_identifier, long_identifier, numargs, help);
@@ -527,7 +564,10 @@ static void _put_line(unsigned int textwidth, unsigned int* linewidth, const cha
     {
         *linewidth = 0;
         putchar('\n');
-        _print_sep(leftmargin - 1);
+        if(leftmargin > 0)
+        {
+            _print_sep(leftmargin - 1);
+        }
     }
     *linewidth += (wptr - *ch);
     while(*ch < wptr)
@@ -633,7 +673,33 @@ static void _print_help_entry(const struct entry* entry, unsigned int startskip,
     }
 }
 
-void cmdoptions_help(const struct cmdoptions* options)
+size_t _number_of_passed_options(const struct cmdoptions* options)
+{
+    size_t count = 0;
+    struct mode* mode;
+    size_t m;
+    size_t i;
+    for(m = 0; m < options->size; ++m)
+    {
+        mode = options->modes[m];
+        for(i = 0; i < mode->entries_size; ++i)
+        {
+            const struct entry* entry = mode->entries[i];
+            if(entry->what == OPTION)
+            {
+                struct option* option = entry->value;
+                if(option->was_provided)
+                {
+                    ++count;
+                }
+            }
+        }
+    }
+    return count;
+}
+
+static int _no_positional_parameters(const struct cmdoptions* options);
+int cmdoptions_help(const struct cmdoptions* options)
 {
     /* FIXME: include modes */
     unsigned int displaywidth = 80;
@@ -648,6 +714,7 @@ void cmdoptions_help(const struct cmdoptions* options)
     unsigned int textwidth;
     size_t m;
     const struct mode* mode;
+    const char** pospar;
 
     displaywidth = _get_screen_width();
 
@@ -658,33 +725,95 @@ void cmdoptions_help(const struct cmdoptions* options)
     offset = narrow ? 2 * startskip : optwidth + startskip + helpsep;
     textwidth = displaywidth - offset - leftmargin - rightmargin;
 
-    puts(options->prehelpmsg);
-    puts("list of command line options:\n");
-    if(options->size > 1)
+    if(!_no_positional_parameters(options)) /* additional options are present, only print those */
     {
-        printf("%s:\n", "generic options");
+        mode = _get_const_basemode(options);
+        pospar = cmdoptions_get_positional_parameters(options);
+        while(*pospar)
+        {
+            int printed = 0;
+            for(i = 0; i < mode->entries_size; ++i)
+            {
+                const struct entry* entry = mode->entries[i];
+                if(entry->what == OPTION)
+                {
+                    struct option* option = entry->value;
+                    if((*pospar)[1] == 0) /* single character */
+                    {
+                        if(**pospar == option->short_identifier)
+                        {
+                            printed = 1;
+                            _print_help_entry(entry, startskip, leftmargin, textwidth, optwidth, helpsep, narrow);
+                        }
+                    }
+                    else if(((*pospar)[0] == '-') && ((*pospar)[1] != 0) && ((*pospar)[2] == 0)) /* single character with dash */
+                    {
+                        if((*pospar)[1] == option->short_identifier)
+                        {
+                            printed = 1;
+                            _print_help_entry(entry, startskip, leftmargin, textwidth, optwidth, helpsep, narrow);
+                        }
+                    }
+                    else /* multi-character */
+                    {
+                        char* identifier = malloc(strlen(*pospar) + 1);
+                        if(((*pospar)[0] == '-') && (*pospar)[1] == '-') /* starts with two dashes */
+                        {
+                            strcpy(identifier, *pospar + 2);
+                        }
+                        else
+                        {
+                            strcpy(identifier, *pospar);
+                        }
+                        if(strcmp(identifier, option->long_identifier) == 0)
+                        {
+                            printed = 1;
+                            _print_help_entry(entry, startskip, leftmargin, textwidth, optwidth, helpsep, narrow);
+                        }
+                        free(identifier);
+                    }
+                }
+            }
+            if(!printed)
+            {
+                fprintf(stderr, "help: option '%s' not found\n", *pospar);
+                return 0;
+            }
+            ++pospar;
+        }
+        /* FIXME: also enable for modes, although cmdline syntax is unclear */
     }
-    mode = _get_const_basemode(options);
-    for(i = 0; i < mode->entries_size; ++i)
+    else /* no additional options, print all */
     {
-        const struct entry* entry = mode->entries[i];
-        _print_help_entry(entry, startskip, leftmargin, textwidth, optwidth, helpsep, narrow);
-    }
-    putchar('\n');
-
-    for(m = 1; m < options->size; ++m)
-    {
-        mode = options->modes[m];
-        printf("%s:\n", mode->identifier);
+        puts(options->prehelpmsg);
+        puts("list of command line options:\n");
+        if(options->size > 1)
+        {
+            printf("%s:\n", "generic options");
+        }
+        mode = _get_const_basemode(options);
         for(i = 0; i < mode->entries_size; ++i)
         {
             const struct entry* entry = mode->entries[i];
             _print_help_entry(entry, startskip, leftmargin, textwidth, optwidth, helpsep, narrow);
         }
         putchar('\n');
+
+        for(m = 1; m < options->size; ++m)
+        {
+            mode = options->modes[m];
+            printf("%s:\n", mode->identifier);
+            for(i = 0; i < mode->entries_size; ++i)
+            {
+                const struct entry* entry = mode->entries[i];
+                _print_help_entry(entry, startskip, leftmargin, textwidth, optwidth, helpsep, narrow);
+            }
+            putchar('\n');
+        }
+        fputs(options->posthelpmsg, stdout);
+        fputc('\n', stdout);
     }
-    fputs(options->posthelpmsg, stdout);
-    fputc('\n', stdout);
+    return 1;
 }
 
 static void _print_with_correct_escape_sequences(const char* str)
@@ -840,7 +969,7 @@ static const struct option* _get_const_option(const struct mode* mode, char shor
     return NULL;
 }
 
-const char** cmdoptions_get_positional_parameters(struct cmdoptions* options)
+const char** cmdoptions_get_positional_parameters(const struct cmdoptions* options)
 {
     return (const char**) options->positional_parameters;
 }
@@ -855,6 +984,11 @@ static int _no_positional_parameters(const struct cmdoptions* options)
         ++p;
     }
     return count == 0;
+}
+
+int cmdoptions_help_passed(struct cmdoptions* options)
+{
+    return options->help_passed;
 }
 
 int cmdoptions_empty(const struct cmdoptions* options)
@@ -1046,15 +1180,23 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
     {
         const char* arg = argv[i];
         if(!endofoptions && arg[0] == '-' && arg[1] == 0) /* single dash (-) */
-        ; /* FIXME: handle single dash */
-        /*
         {
-            Note: don't forget to remove the above semicolon when adding this if clause
+            /* FIXME: handle single dash */
         }
-        */
         else if(!endofoptions && arg[0] == '-' && arg[1] == '-' && arg[2] == 0) /* end of options (--) */
         {
             endofoptions = 1;
+        }
+        /* special help mode (-h/--help as *first* argument) */
+        else if(!endofoptions &&
+            (
+                (arg[0] == '-' && arg[1] == 'h') ||
+                (arg[0] == '-' && arg[1] == '-' && arg[2] == 'h' && arg[3] == 'e' && arg[4] == 'l' && arg[5] == 'p')
+            ) /* yes, it's ugly, but simple */
+        )
+        {
+            endofoptions = 1; /* causes all subsequent parameters to be parsed as positional parameters */
+            options->help_passed = 1;
         }
         else if(!endofoptions && i == 1 && arg[0] != '-') /* mode */
         {
@@ -1084,7 +1226,6 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                     if(option->was_provided && !(option->numargs & MULTI_ARGS))
                     {
                         printf("option '%s' is only allowed once\n", longopt);
-                        return 0;
                     }
                     if(!_store_argument(option, &i, argc, argv))
                     {

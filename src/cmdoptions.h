@@ -20,7 +20,7 @@ void cmdoptions_disable_narrow_mode(struct cmdoptions* options);
 void cmdoptions_destroy(struct cmdoptions* options);
 void cmdoptions_exit(struct cmdoptions* options, int exitcode);
 int cmdoptions_is_valid(const struct cmdoptions* options);
-int cmdoptions_all_options_checked(const struct cmdoptions* options);
+int cmdoptions_assert_all_options_checked(const struct cmdoptions* options);
 
 /* parsing */
 int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * argv);
@@ -39,10 +39,11 @@ void cmdoptions_prepend_help_message(struct cmdoptions* options, const char* msg
 void cmdoptions_append_help_message(struct cmdoptions* options, const char* msg);
 
 /* help display */
-void cmdoptions_help(const struct cmdoptions* options);
+int cmdoptions_help(const struct cmdoptions* options);
 void cmdoptions_export_manpage(const struct cmdoptions* options);
 
 /* query option info */
+int cmdoptions_help_passed(struct cmdoptions* options);
 int cmdoptions_empty(const struct cmdoptions* options);
 int cmdoptions_no_args_given(const struct cmdoptions* options);
 int cmdoptions_mode_no_args_given(const struct cmdoptions* options, const char* modename);
@@ -56,7 +57,7 @@ const void* cmdoptions_get_argument_short(struct cmdoptions* options, char short
 const void* cmdoptions_mode_get_argument_short(struct cmdoptions* options, const char* modename, char short_identifier);
 const void* cmdoptions_get_argument_long(struct cmdoptions* options, const char* long_identifier);
 const void* cmdoptions_mode_get_argument_long(struct cmdoptions* options, const char* modename, const char* long_identifier);
-const char** cmdoptions_get_positional_parameters(struct cmdoptions* options);
+const char** cmdoptions_get_positional_parameters(const struct cmdoptions* options);
 
 #endif /* OPC_CMDOPTS_H */
 
