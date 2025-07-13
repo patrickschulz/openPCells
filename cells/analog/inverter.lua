@@ -47,7 +47,7 @@ function parameters()
         { "outputisinside",                             false },
         { "drawleftstopgate",                           false },
         { "drawrightstopgate",                          false },
-        { "excludestopgatesfromcutregions",             false },
+        { "excludestopgatesfromcutregions",             true },
         { "leftpolylines",                              {} },
         { "rightpolylines",                             {} },
         { "drawanalogmarker",                           false, },
