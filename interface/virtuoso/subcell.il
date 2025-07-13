@@ -49,6 +49,12 @@ procedure(OPCSubCellCreateScript()
                 ?value ""
                 ?prompt "Template for Cell Creation"
             )
+            hiCreateRadioField(
+                ?name 'OPCSubCellScriptAutoTemplate
+                ?value "true"
+                ?choices '("true" "false")
+                ?prompt "Template for Cell Creation"
+            )
         )
         ?callback "OPCSubCellScriptCreateCallback()"
     )
@@ -117,7 +123,12 @@ procedure(OPCSubCellScriptCreateCallback()
                 dbAddFigToFigGroup(group label)
                 unless(template == ""
                     let((filename cmd)
-                        cmd = OPCBuildCallCommand(lsprintf("--template %s" template))
+                        if(OPCSubCellCellCreationForm->OPCSubCellScriptAutoTemplate->value == "true"
+                            then
+                                cmd = OPCBuildCallCommand(lsprintf("--template-auto %s" template))
+                            else
+                                cmd = OPCBuildCallCommand(lsprintf("--template %s" template))
+                        )
                         filename = lsprintf("%s/%s.lua" path groupname)
                         OPCCall(cmd ?redirect filename)
                     ) ; let
