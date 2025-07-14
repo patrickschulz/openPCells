@@ -32,22 +32,22 @@ function layout(gate, _P)
 
     -- draw connection
     local ishift = _P.ifingers % 2 == 0 and 0 or 1
-    geometry.path(gate, generics.metal(1), 
-        geometry.path_points_yx(iinv:get_anchor("O"), {
-        oinv:get_anchor("I"),
-    }), _P.sdwidth)
+    geometry.rectanglebltr(gate, generics.metal(1), 
+        iinv:get_area_anchor("O").br,
+        oinv:get_area_anchor("I").tl
+    )
 
     gate:inherit_alignment_box(iinv)
     gate:inherit_alignment_box(oinv)
 
     -- anchors
-    gate:add_anchor("in", iinv:get_anchor("I"))
-    gate:add_anchor("iout", iinv:get_anchor("O"))
-    gate:add_anchor("bout", oinv:get_anchor("O"))
+    gate:inherit_area_anchor(iinv, "I")
+    gate:inherit_area_anchor(iinv, "O")
+    gate:inherit_area_anchor(oinv, "O")
 
     -- ports
-    gate:add_port("I", generics.metalport(1), iinv:get_anchor("I"))
-    gate:add_port("O", generics.metalport(1), oinv:get_anchor("O"))
-    gate:add_port("VDD", generics.metalport(1), oinv:get_anchor("VDD"))
-    gate:add_port("VSS", generics.metalport(1), oinv:get_anchor("VSS"))
+    gate:add_port("I", generics.metalport(1), iinv:get_area_anchor("I").bl)
+    gate:add_port("O", generics.metalport(1), oinv:get_area_anchor("O").bl)
+    gate:add_port("VDD", generics.metalport(1), oinv:get_area_anchor("VDD").bl)
+    gate:add_port("VSS", generics.metalport(1), oinv:get_area_anchor("VSS").bl)
 end

@@ -67,13 +67,26 @@ function layout(gate, _P)
 
     -- ports
     if _P.swapoddcorrectiongate then
-        gate:add_port_with_anchor("I", generics.metalport(1), harness:get_area_anchor("G2").bl)
+        gate:add_area_anchor_bltr("I",
+            harness:get_area_anchor("G2").bl,
+            harness:get_area_anchor("G2").tr
+        )
     else
-        gate:add_port_with_anchor("I", generics.metalport(1), harness:get_area_anchor("G1").bl)
+        gate:add_area_anchor_bltr("I",
+            harness:get_area_anchor("G1").bl,
+            harness:get_area_anchor("G1").tr
+        )
     end
-    --if _P.connectoutput then
-        gate:add_port_with_anchor("O", generics.metalport(1), harness:get_area_anchor(string.format("G%d", _P.fingers)).bl:translate(xpitch + _P.shiftoutput, 0))
-    --end
-    gate:add_port_with_anchor("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
-    gate:add_port_with_anchor("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
+    gate:add_port("I", generics.metalport(1), gate:get_area_anchor("I").bl)
+    gate:add_area_anchor_bltr("O",
+        harness:get_area_anchor(string.format("G%d", _P.fingers)).bl:translate_x(xpitch + _P.shiftoutput),
+        harness:get_area_anchor(string.format("G%d", _P.fingers)).tl:translate_x(xpitch + _P.shiftoutput)
+    )
+    if _P.connectoutput then
+        gate:add_port("O", generics.metalport(1), gate:get_area_anchor("O").bl)
+    end
+    gate:inherit_area_anchor_as(harness, "PRp", "VDD")
+    gate:inherit_area_anchor_as(harness, "PRn", "VSS")
+    gate:add_port("VDD", generics.metalport(1), gate:get_area_anchor("VDD").bl)
+    gate:add_port("VSS", generics.metalport(1), gate:get_area_anchor("VSS").bl)
 end
