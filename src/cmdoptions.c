@@ -765,7 +765,7 @@ int cmdoptions_help(const struct cmdoptions* options)
                         {
                             strcpy(identifier, *pospar);
                         }
-                        if(strcmp(identifier, option->long_identifier) == 0)
+                        if(strstr(option->long_identifier, identifier)) /* (partial) match */
                         {
                             printed = 1;
                             _print_help_entry(entry, startskip, leftmargin, textwidth, optwidth, helpsep, narrow);
