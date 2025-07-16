@@ -209,6 +209,16 @@ int main(int argc, const char* const * argv)
         dup2(pfd, STDERR_FILENO);
     }
 
+    // execute lua script
+    if(cmdoptions_was_provided_long(cmdoptions, "execute-lua-script"))
+    {
+        lua_State* L = util_create_basic_lua_state();
+        const char* filename = cmdoptions_get_argument_long(cmdoptions, "execute-lua-script");
+        main_call_lua_program(L, filename);
+        lua_close(L);
+        goto DESTROY_CMDOPTIONS;
+    }
+
     // load config
     struct hashmap* config = hashmap_create();
     if(!cmdoptions_was_provided_long(cmdoptions, "no-user-config"))

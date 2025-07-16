@@ -111,6 +111,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data-raw", NO_ARG, "also p
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-hierarchy", SINGLE_ARG, "show cell hierarchy in a GDS stream file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-definitions", SINGLE_ARG, "show cell definitions in a GDS stream file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-depth", SINGLE_ARG, "maximum depth for gds traversal (affects --show-gds-hierarchy)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "execute-lua-script", SINGLE_ARG, "execute a lua script, as if called with regular lua");
 
 /* Diagnostic Functions */
 cmdoptions_add_section(cmdoptions, "Diagnostic functions");
