@@ -98,8 +98,8 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "list-all", NO_ARG, "list all availa
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-no-directories", NO_ARG, "don't list parent directories when listing available cells");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-cellpaths", NO_ARG, "list cell search paths");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-techpaths", NO_ARG, "list technology search paths");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "api-help", SINGLE_ARG, "display help about an API function or module");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "api-search", SINGLE_ARG, "search for an API function or module");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "api-help", SINGLE_ARG, "display help about an API function or module. It only displays full matches (with or without the module name), so for instance rectanglebltr will show a result whereas rectangleb will not. Use --api-search if the name is entirely known");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "api-search", SINGLE_ARG, "search for an API function or module. If only one match is found it shows the same output as --api-help");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "api-list", NO_ARG, "list all available API functions and/or modules");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "generate-tutorial", NO_ARG, "generate a set of script files to demonstrate the usage and features of openPCells");
 
