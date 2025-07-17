@@ -356,21 +356,39 @@ function layout(inverter, _P)
     inverter:inherit_area_anchor(cmos, "pmos_active")
     if _P.drawpmosupperwelltap then
         inverter:inherit_area_anchor(cmos, "pmosupperwelltap_boundary")
+        inverter:inherit_area_anchor(cmos, "pmosupperwelltap_well")
+        inverter:inherit_area_anchor(cmos, "pmosupperwelltap_implant")
+        inverter:inherit_area_anchor(cmos, "pmosupperwelltap_soiopen")
     end
     if _P.drawpmosleftwelltap then
         inverter:inherit_area_anchor(cmos, "pmosleftwelltap_boundary")
+        inverter:inherit_area_anchor(cmos, "pmosleftwelltap_well")
+        inverter:inherit_area_anchor(cmos, "pmosleftwelltap_implant")
+        inverter:inherit_area_anchor(cmos, "pmosleftwelltap_soiopen")
     end
     if _P.drawpmosrightwelltap then
         inverter:inherit_area_anchor(cmos, "pmosrightwelltap_boundary")
+        inverter:inherit_area_anchor(cmos, "pmosrightwelltap_well")
+        inverter:inherit_area_anchor(cmos, "pmosrightwelltap_implant")
+        inverter:inherit_area_anchor(cmos, "pmosrightwelltap_soiopen")
     end
     if _P.drawnmoslowerwelltap then
         inverter:inherit_area_anchor(cmos, "nmoslowerwelltap_boundary")
+        inverter:inherit_area_anchor(cmos, "nmoslowerwelltap_well")
+        inverter:inherit_area_anchor(cmos, "nmoslowerwelltap_implant")
+        inverter:inherit_area_anchor(cmos, "nmoslowerwelltap_soiopen")
     end
     if _P.drawnmosleftwelltap then
         inverter:inherit_area_anchor(cmos, "nmosleftwelltap_boundary")
+        inverter:inherit_area_anchor(cmos, "nmosleftwelltap_well")
+        inverter:inherit_area_anchor(cmos, "nmosleftwelltap_implant")
+        inverter:inherit_area_anchor(cmos, "nmosleftwelltap_soiopen")
     end
     if _P.drawnmosrightwelltap then
         inverter:inherit_area_anchor(cmos, "nmosrightwelltap_boundary")
+        inverter:inherit_area_anchor(cmos, "nmosrightwelltap_well")
+        inverter:inherit_area_anchor(cmos, "nmosrightwelltap_implant")
+        inverter:inherit_area_anchor(cmos, "nmosrightwelltap_soiopen")
     end
     for i = 1, _P.numleftdummies + _P.numrightdummies + _P.fingers do
         inverter:inherit_area_anchor(cmos, string.format("G%d", i))

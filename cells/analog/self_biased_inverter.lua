@@ -166,21 +166,28 @@ function layout(sbinv, _P)
         extendwellbottom = _P.extendwellbottom,
         extendwellleft = _P.extendwellleft,
         extendwellright = _P.extendwellright,
-        drawleftnmoswelltap = _P.drawleftnmoswelltap,
-        drawrightnmoswelltap = _P.drawrightnmoswelltap,
+        drawnmosleftwelltap = _P.drawleftnmoswelltap,
+        drawnmosrightwelltap = _P.drawrightnmoswelltap,
         connectnmoswelltap = _P.connectnmoswelltap,
         nmoswelltapwidth = _P.nmoswelltapwidth,
-        nmoswelltapshrink = _P.nmoswelltapshrink,
-        nmoswelltapshift = _P.nmoswelltapshift,
-        nmoswelltapwellextension = _P.nmoswelltapwellextension,
-        drawleftpmoswelltap = _P.drawleftpmoswelltap,
-        drawrightpmoswelltap = _P.drawrightpmoswelltap,
+        nmoswelltapspace = _P.nmoswelltapshift,
+        nmoswelltapwellleftextension = _P.nmoswelltapwellextension,
+        nmoswelltapwellrightextension = _P.nmoswelltapwellextension,
+        nmoswelltapwelltopextension = _P.nmoswelltapwellextension,
+        nmoswelltapwellbottomextension = _P.nmoswelltapwellextension,
+        drawpmosleftwelltap = _P.drawleftpmoswelltap,
+        drawpmosrightwelltap = _P.drawrightpmoswelltap,
         connectpmoswelltap = _P.connectpmoswelltap,
         pmoswelltapwidth = _P.pmoswelltapwidth,
-        pmoswelltapshrink = _P.pmoswelltapshrink,
-        pmoswelltapshift = _P.pmoswelltapshift,
-        pmoswelltapwellextension = _P.pmoswelltapwellextension,
-        pmoswelltapsoiopenextension = _P.pmoswelltapsoiopenextension,
+        pmoswelltapspace = _P.pmoswelltapshift,
+        pmoswelltapwellleftextension = _P.pmoswelltapwellextension,
+        pmoswelltapwellrightextension = _P.pmoswelltapwellextension,
+        pmoswelltapwelltopextension = _P.pmoswelltapwellextension,
+        pmoswelltapwellbottomextension = _P.pmoswelltapwellextension,
+        pmoswelltapsoiopenleftextension = _P.pmoswelltapsoiopenextension,
+        pmoswelltapsoiopenrightextension = _P.pmoswelltapsoiopenextension,
+        pmoswelltapsoiopentopextension = _P.pmoswelltapsoiopenextension,
+        pmoswelltapsoiopenbottomextension = _P.pmoswelltapsoiopenextension,
     })
     sbinv:merge_into(inverter)
 
@@ -658,19 +665,27 @@ function layout(sbinv, _P)
     sbinv:inherit_area_anchor(inverter, "nmos_active")
     sbinv:inherit_area_anchor(inverter, "pmos_active")
     if _P.drawleftnmoswelltap then
-        sbinv:inherit_area_anchor(inverter, "left_nmos_welltap_well")
-        sbinv:inherit_area_anchor(inverter, "left_nmos_welltap_implant")
+        sbinv:inherit_area_anchor(inverter, "nmosleftwelltap_boundary")
+        sbinv:inherit_area_anchor(inverter, "nmosleftwelltap_well")
+        sbinv:inherit_area_anchor(inverter, "nmosleftwelltap_implant")
+        sbinv:inherit_area_anchor(inverter, "nmosleftwelltap_soiopen")
     end
     if _P.drawrightnmoswelltap then
-        sbinv:inherit_area_anchor(inverter, "right_nmos_welltap_well")
-        sbinv:inherit_area_anchor(inverter, "right_nmos_welltap_implant")
+        sbinv:inherit_area_anchor(inverter, "nmosrightwelltap_boundary")
+        sbinv:inherit_area_anchor(inverter, "nmosrightwelltap_well")
+        sbinv:inherit_area_anchor(inverter, "nmosrightwelltap_implant")
+        sbinv:inherit_area_anchor(inverter, "nmosrightwelltap_soiopen")
     end
     if _P.drawleftpmoswelltap then
-        sbinv:inherit_area_anchor(inverter, "left_pmos_welltap_well")
-        sbinv:inherit_area_anchor(inverter, "left_pmos_welltap_implant")
+        sbinv:inherit_area_anchor(inverter, "pmosleftwelltap_boundary")
+        sbinv:inherit_area_anchor(inverter, "pmosleftwelltap_well")
+        sbinv:inherit_area_anchor(inverter, "pmosleftwelltap_implant")
+        sbinv:inherit_area_anchor(inverter, "pmosleftwelltap_soiopen")
     end
     if _P.drawrightpmoswelltap then
-        sbinv:inherit_area_anchor(inverter, "right_pmos_welltap_well")
-        sbinv:inherit_area_anchor(inverter, "right_pmos_welltap_implant")
+        sbinv:inherit_area_anchor(inverter, "pmosrightwelltap_boundary")
+        sbinv:inherit_area_anchor(inverter, "pmosrightwelltap_well")
+        sbinv:inherit_area_anchor(inverter, "pmosrightwelltap_implant")
+        sbinv:inherit_area_anchor(inverter, "pmosrightwelltap_soiopen")
     end
 end

@@ -947,6 +947,9 @@ function layout(cmos, _P)
             )
         )
         cmos:inherit_area_anchor_as(welltap, "boundary", "pmosupperwelltap_boundary")
+        cmos:inherit_area_anchor_as(welltap, "well", "pmosupperwelltap_well")
+        cmos:inherit_area_anchor_as(welltap, "implant", "pmosupperwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "soiopen", "pmosupperwelltap_soiopen")
     end
     if _P.drawpmosleftwelltap then
         local welltapwidth = leftpdrainarea.tl:gety() - leftpdrainarea.bl:gety()
@@ -967,6 +970,9 @@ function layout(cmos, _P)
             leftpmoswell.tl
         )
         cmos:inherit_area_anchor_as(welltap, "boundary", "pmosleftwelltap_boundary")
+        cmos:inherit_area_anchor_as(welltap, "well", "pmosleftwelltap_well")
+        cmos:inherit_area_anchor_as(welltap, "implant", "pmosleftwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "soiopen", "pmosleftwelltap_soiopen")
     end
     if _P.drawpmosrightwelltap then
         local welltapwidth = rightpdrainarea.tr:gety() - rightpdrainarea.br:gety()
@@ -987,6 +993,9 @@ function layout(cmos, _P)
             )
         )
         cmos:inherit_area_anchor_as(welltap, "boundary", "pmosrightwelltap_boundary")
+        cmos:inherit_area_anchor_as(welltap, "well", "pmosrightwelltap_well")
+        cmos:inherit_area_anchor_as(welltap, "implant", "pmosrightwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "soiopen", "pmosrightwelltap_soiopen")
     end
     if _P.drawnmoslowerwelltap then
         local welltapwidth = rightndrainarea.br:getx() - leftpdrainarea.bl:getx()
@@ -1011,6 +1020,9 @@ function layout(cmos, _P)
             rightnmoswell.br
         )
         cmos:inherit_area_anchor_as(welltap, "boundary", "nmoslowerwelltap_boundary")
+        cmos:inherit_area_anchor_as(welltap, "well", "nmoslowerwelltap_well")
+        cmos:inherit_area_anchor_as(welltap, "implant", "nmoslowerwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "soiopen", "nmoslowerwelltap_soiopen")
     end
     if _P.drawnmosleftwelltap then
         local welltapwidth = leftndrainarea.tl:gety() - leftndrainarea.bl:gety()
@@ -1031,6 +1043,9 @@ function layout(cmos, _P)
             leftnmoswell.tl
         )
         cmos:inherit_area_anchor_as(welltap, "boundary", "nmosleftwelltap_boundary")
+        cmos:inherit_area_anchor_as(welltap, "well", "nmosleftwelltap_well")
+        cmos:inherit_area_anchor_as(welltap, "implant", "nmosleftwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "soiopen", "nmosleftwelltap_soiopen")
     end
     if _P.drawnmosrightwelltap then
         local welltapwidth = rightndrainarea.tr:gety() - rightndrainarea.br:gety()
@@ -1051,6 +1066,9 @@ function layout(cmos, _P)
             )
         )
         cmos:inherit_area_anchor_as(welltap, "boundary", "nmosrightwelltap_boundary")
+        cmos:inherit_area_anchor_as(welltap, "well", "nmosrightwelltap_well")
+        cmos:inherit_area_anchor_as(welltap, "implant", "nmosrightwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "soiopen", "nmosrightwelltap_soiopen")
     end
 
     if _P.drawoutergatecut and _P.drawgatecuteverywhere then
