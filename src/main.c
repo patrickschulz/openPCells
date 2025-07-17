@@ -1,3 +1,12 @@
+/*
+ *  openPCells - main.c
+ *  This file is the entry point into the program execution.
+ *  int main() is defined here.
+ *  Some general functionality is directly addressed in this file,
+ *  other, more complex tasks (such as layout generation) are handled
+ *  in other files (main.XXX.c, e.g. main.cell.c)
+ */
+
 #include <fcntl.h> // open()
 #include <sys/stat.h> // S_IRUSR etc.
 #include <stdio.h>
