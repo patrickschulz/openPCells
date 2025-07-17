@@ -1,3 +1,5 @@
+#include <fcntl.h> // open()
+#include <sys/stat.h> // S_IRUSR etc.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -192,21 +194,29 @@ int main(int argc, const char* const * argv)
         printf("openPCells (opc) %u.%u.%u\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
         goto DESTROY_CMDOPTIONS;
     }
-    FILE* fstdout = NULL;
+    int stdoutp = 0;
     if(cmdoptions_was_provided_long(cmdoptions, "stdout-to"))
     {
         const char* stdoutto = cmdoptions_get_argument_long(cmdoptions, "stdout-to");
-        fstdout = fopen(stdoutto, "w");
-        int pfd = fileno(fstdout);
-        dup2(pfd, STDOUT_FILENO);
+        stdoutp = open(stdoutto, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+        if(stdoutp == -1)
+        {
+            perror("could not create file descriptor for stdout redirection");
+            goto DESTROY_CMDOPTIONS;
+        }
+        dup2(stdoutp, STDOUT_FILENO);
     }
-    FILE* fstderr = NULL;
+    int stderrp = 0;
     if(cmdoptions_was_provided_long(cmdoptions, "stderr-to"))
     {
         const char* stderrto = cmdoptions_get_argument_long(cmdoptions, "stderr-to");
-        fstderr = fopen(stderrto, "w");
-        int pfd = fileno(fstderr);
-        dup2(pfd, STDERR_FILENO);
+        stderrp = open(stderrto, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+        if(stderrp == -1)
+        {
+            perror("could not create file descriptor for stderr redirection");
+            goto DESTROY_CMDOPTIONS;
+        }
+        dup2(stderrp, STDERR_FILENO);
     }
 
     // execute lua script
@@ -500,13 +510,13 @@ int main(int argc, const char* const * argv)
     fputs("no cell given\n", stderr);
     returnvalue = 1;
 
-    if(fstdout)
+    if(stdoutp)
     {
-        fclose(fstdout);
+        close(stdoutp);
     }
-    if(fstderr)
+    if(stderrp)
     {
-        fclose(fstderr);
+        close(stderrp);
     }
 
     // clean up states
