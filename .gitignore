@@ -5,6 +5,8 @@ opc-lint
 opc-debug
 !tech/opc
 src/embed_compiled_lua_file
+src/embed_compiled_lua_file_debug
+src/embed_compiled_lua_file_release
 src/create_latex_API_doc
 src/config.h
 src/modulemanager.c
@@ -47,7 +49,9 @@ tags
 src/lua/lua
 src/lua/luac
 src/lua/*.o
-src/lua/liblua.a
+src/liblua_release.a
+src/liblua_lint.a
+src/liblua_debug.a
 
 # tex auxiliary files
 *.aux
