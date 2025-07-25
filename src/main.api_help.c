@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "terminal_colors.h"
+#include "print.h"
 #include "util.h"
 #include "vector.h"
 
@@ -109,7 +110,7 @@ static const char* _stringify_module(enum module module)
         case MODULE_LAYOUTHELPERS:
             return "layouthelpers";
     }
-    return NULL; // make the compiler happy
+    return NULL; // make the compiler happy, the 'default' case looks wrong
 }
 
 static int _pstrlen(const char* str)
@@ -136,85 +137,9 @@ static int _pstrlen(const char* str)
     return len;
 }
 
-static const char* _get_color(const char* identifier, size_t len)
-{
-    static const char* identifiers[] = {
-        "RESET",
-        "OBJECT",
-        "INTEGER",
-        "NUMBER",
-        "GENERICS",
-        "STRING"
-    };
-    static const char* escape_sequences[] = {
-        "\033[0m",
-        API_HELP_TYPE_OBJECT,
-        API_HELP_TYPE_INTEGER,
-        API_HELP_TYPE_NUMBER,
-        API_HELP_TYPE_GENERICS,
-        API_HELP_TYPE_STRING
-    };
-    for(size_t i = 0; i < sizeof(identifiers) / sizeof(identifiers[0]); ++i)
-    {
-        if(strncmp(identifier, identifiers[i], len) == 0)
-        {
-            return escape_sequences[i];
-            break;
-        }
-    }
-    return NULL;
-}
-
-static void _append_to_string(char** str, size_t* length, size_t* capacity, char ch)
-{
-    if(*length == *capacity - 1)
-    {
-        *capacity *= 2;
-        char* tmp = realloc(*str, *capacity);
-        *str = tmp;
-    }
-    *(*str + *length) = ch;
-    ++(*length);
-}
-
-// FIXME: is this even really used any more?
-static char* _resolve_color_commands(const char* str)
-{
-    size_t capacity = 32;
-    size_t length = 0;
-    char* resolved = malloc(capacity);
-    const char* sptr = str;
-    while(*sptr)
-    {
-        if(*sptr == '$')
-        {
-            const char* cptr = sptr;
-            do {
-                ++sptr;
-            } while(*sptr != '$');
-            const char* sequence = _get_color(cptr + 1, sptr - cptr - 1);
-            if(sequence)
-            {
-                while(*sequence)
-                {
-                    _append_to_string(&resolved, &length, &capacity, *sequence);
-                    ++sequence;
-                }
-            }
-            ++sptr;
-        }
-        _append_to_string(&resolved, &length, &capacity, *sptr);
-        ++sptr;
-    }
-    _append_to_string(&resolved, &length, &capacity, 0);
-    return resolved;
-}
-
 static void _putstr(const char* str)
 {
-    char* resolved = _resolve_color_commands(str);
-    fputs(resolved, stdout);
-    free(resolved);
+    fputs(str, stdout);
 }
 
 static void _print_escaped_string(const char* str, int width)
@@ -361,8 +286,12 @@ static void _print_parameter(const struct parameter* parameter, int namewidth, i
     // text
     putchar(':');
     putchar(' ');
-    _putstr(parameter->text);
-    putchar('\n');
+    // numeric values:
+    //      4:  initial indentation
+    //      3:  ' ()' for type and gap
+    //      1:  ':'
+    //      1:  gap after ':'
+    print_wrapped_paragraph(parameter->text, 0, namewidth + typewidth + 4 + 3 + 1 + 1); // 0: auto-width mode
 }
 
 static void _print_parameters(const struct vector* parameters)
@@ -478,50 +407,6 @@ static void _print_with_newlines_and_offset(const char* str, unsigned int offset
 }
 */
 
-/* copied from cmdoptions.c */
-static void _print_sep(unsigned int num)
-{
-    unsigned int i;
-    for(i = 0; i < num; ++i)
-    {
-        putchar(' ');
-    }
-}
-
-static void _put_line(unsigned int textwidth, unsigned int* linewidth, const char** ch, const char* wptr, unsigned int leftmargin)
-{
-    if(*linewidth + wptr - *ch > textwidth)
-    {
-        *linewidth = 0;
-        putchar('\n');
-        if(leftmargin > 0)
-        {
-            _print_sep(leftmargin - 1);
-        }
-    }
-    *linewidth += (wptr - *ch);
-    while(*ch < wptr)
-    {
-        putchar(**ch);
-        ++(*ch);
-    }
-}
-
-static void _print_wrapped_paragraph(const char* text, unsigned int textwidth, unsigned int leftmargin)
-{
-    const char* ch = text;
-    const char* wptr = ch;
-    unsigned int linewidth = 0;
-    while(*wptr)
-    {
-        if(*wptr == ' ')
-        {
-            _put_line(textwidth, &linewidth, &ch, wptr, leftmargin);
-        }
-        ++wptr;
-    }
-    _put_line(textwidth, &linewidth, &ch, wptr, leftmargin);
-}
 /* ***** */
 
 static void _print_api_entry(const struct api_entry* entry)
@@ -559,8 +444,7 @@ static void _print_api_entry(const struct api_entry* entry)
     
     // function info
     putchar('\n');
-    //_putstr(entry->info);
-    _print_wrapped_paragraph(entry->info, 100, 0);
+    print_wrapped_paragraph(entry->info, 0, 0); // 0, 0: auto-width mode, zero left margin
     putchar('\n');
     putchar('\n');
 

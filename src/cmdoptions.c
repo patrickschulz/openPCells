@@ -5,13 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef CMDOPTIONS_ENABLE_TERM_WIDTH
-#include <sys/ioctl.h>
-#include <err.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <termios.h>
-#endif
+#include "print.h"
 
 struct option {
     char short_identifier;
@@ -529,26 +523,6 @@ void cmdoptions_append_help_message(struct cmdoptions* options, const char* msg)
     options->posthelpmsg = str;
 }
 
-static int _get_screen_width(void)
-{
-#ifdef CMDOPTIONS_ENABLE_TERM_WIDTH
-    struct winsize ws;
-    int fd;
-
-    fd = open("/dev/tty", O_RDWR);
-    if(fd < 0 || ioctl(fd, TIOCGWINSZ, &ws) < 0)
-    {
-        return 80; /* fall back to 80 in case of errors */
-    }
-
-    close(fd);
-
-    return ws.ws_col;
-#else
-    return 80;
-#endif
-}
-
 static void _print_sep(unsigned int num)
 {
     unsigned int i;
@@ -556,41 +530,6 @@ static void _print_sep(unsigned int num)
     {
         putchar(' ');
     }
-}
-
-static void _put_line(unsigned int textwidth, unsigned int* linewidth, const char** ch, const char* wptr, unsigned int leftmargin)
-{
-    if(*linewidth + wptr - *ch > textwidth)
-    {
-        *linewidth = 0;
-        putchar('\n');
-        if(leftmargin > 0)
-        {
-            _print_sep(leftmargin - 1);
-        }
-    }
-    *linewidth += (wptr - *ch);
-    while(*ch < wptr)
-    {
-        putchar(**ch);
-        ++(*ch);
-    }
-}
-
-static void _print_wrapped_paragraph(const char* text, unsigned int textwidth, unsigned int leftmargin)
-{
-    const char* ch = text;
-    const char* wptr = ch;
-    unsigned int linewidth = 0;
-    while(*wptr)
-    {
-        if(*wptr == ' ')
-        {
-            _put_line(textwidth, &linewidth, &ch, wptr, leftmargin);
-        }
-        ++wptr;
-    }
-    _put_line(textwidth, &linewidth, &ch, wptr, leftmargin);
 }
 
 #define _MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -668,8 +607,7 @@ static void _print_help_entry(const struct entry* entry, unsigned int startskip,
             _print_sep(helpsep + count);
         }
         leftmargin = narrow ? 2 * startskip : startskip + optwidth + helpsep;
-        _print_wrapped_paragraph(option->help, textwidth, leftmargin);
-        putchar('\n');
+        print_wrapped_paragraph(option->help, textwidth, leftmargin);
     }
 }
 
@@ -716,7 +654,7 @@ int cmdoptions_help(const struct cmdoptions* options)
     const struct mode* mode;
     const char** pospar;
 
-    displaywidth = _get_screen_width();
+    displaywidth = print_get_screen_width();
 
     _find_max_opt_width(options, &optwidth);
 
