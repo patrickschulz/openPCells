@@ -12,7 +12,7 @@ ifeq ($(DEBUGANALYZE), 1)
     CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined $(WARNFLAGS) $(COMMONFLAGS) $(PPFLAGS)
 endif
 
-OBJS:= bltrshape.o cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.tutorial.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o shape.o skillexport.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
+OBJS:= bltrshape.o cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.tutorial.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o print.o shape.o skillexport.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
 RELEASEOBJS = $(addprefix release/, $(OBJS))
 LINTOBJS = $(addprefix lint/, $(OBJS))
 DEBUGOBJS = $(addprefix debug/, $(OBJS))
@@ -306,6 +306,7 @@ postprocess.o: postprocess.c postprocess.h object.h \
  hashmap.h polygon.h point.h shape.h \
  transformationmatrix.h technology.h lua/lua.h \
  lua/luaconf.h vector.h union.h
+print.o: src/print.c
 shape.o: shape.c shape.h point.h transformationmatrix.h \
  technology.h lua/lua.h lua/luaconf.h vector.h \
  hashmap.h math.h graphics.h geometry.h object.h \
