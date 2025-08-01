@@ -34,9 +34,10 @@ procedure(OPCShowTextFile(path)
         while(gets(nextline file)
             lines = cons(line lines)
         )
-        str = apply('strcat reverse(lines))
+        str = buildString(reverse(lines) "\n")
         close(file)
         item = hiCreateMLTextField(
+            ?name gensym('OPCShowTextFileField)
             ?editable nil
             ?defValue str
         )
