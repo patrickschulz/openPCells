@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "terminal_colors.h"
+#include "terminal.h"
 #include "print.h"
 #include "util.h"
 #include "vector.h"
