@@ -151,11 +151,17 @@ EOF
 
 # create config.h
 cat > src/config.h << EOF
-/* This file is auto-generated. Do not edit it. */
+/*
+ * This file is auto-generated.
+ * Do not edit it.
+ * If it needs to be adapted, call configure.sh with the right switches.
+ */
 #ifndef OPC_CONFIG_H
 #define OPC_CONFIG_H
+
 #define OPC_CELL_PATH "${CELL_PATH}"
 #define OPC_TECH_PATH "${TECH_PATH}"
 #define OPC_EXPORT_PATH "${EXPORT_PATH}"
+
 #endif /* OPC_CONFIG_H */
 EOF
