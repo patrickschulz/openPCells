@@ -2,7 +2,7 @@ PROGNAME=opc
 
 CC=gcc
 
-PPFLAGS=-DLUA_USE_LINUX -DCMDOPTIONS_ENABLE_TERM_WIDTH
+PPFLAGS=-DLUA_USE_LINUX -DTERMOGRAPHY_ENABLE_TERM_WIDTH
 #WARNFLAGS=-Wall -Wextra -Wstrict-prototypes -Werror=strict-prototypes -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Wno-analyzer-deref-before-check -Werror=discarded-qualifiers
 WARNFLAGS=-Wall -Wextra
 COMMONFLAGS=-pthread
