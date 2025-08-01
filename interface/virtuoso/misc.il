@@ -34,15 +34,20 @@ procedure(OPCShowTextFile(path)
         while(gets(nextline file)
             lines = cons(line lines)
         )
-        str = buildString(reverse(lines) "\n")
         close(file)
+        if(car(lines)
+            then
+                str = buildString(reverse(lines) "\n")
+            else
+                str = ""
+        )
         item = hiCreateMLTextField(
             ?name gensym('OPCShowTextFileField)
             ?editable nil
             ?defValue str
         )
         form = hiCreateAppForm(
-            ?name gensym('OPCShowTextFile)
+            ?name gensym('OPCShowTextFileForm)
             ?fields list(item)
         )
         hiDisplayForm(form)
