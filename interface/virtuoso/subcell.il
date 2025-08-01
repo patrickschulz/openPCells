@@ -119,7 +119,7 @@ procedure(OPCSubCellScriptCreateCallback()
                     createDir(path)
                 )
                 group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opcpath" 'type "string" 'value lsprintf("%s/%s.lua" path groupname))))
-                label = dbCreateLabel(cv list("OUTLINE" "drawing") 0:0 groupname "centerCenter" "R0" "fixed" 1)
+                label = dbCreateLabel(cv OPCGetInfoLayer() 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
                 unless(template == ""
                     let((filename cmd)
@@ -162,7 +162,7 @@ procedure(OPCSubCellCellCreateCallback()
                 nil
             else
                 group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" cellname))))
-                label = dbCreateLabel(cv list("OUTLINE" "drawing") 0:0 groupname "centerCenter" "R0" "fixed" 1)
+                label = dbCreateLabel(cv OPCGetInfoLayer() 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
                 t
         )

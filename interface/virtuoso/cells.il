@@ -302,7 +302,7 @@ list(nil 'name "drawanalogmarker" 'type "boolean" 'value nil)
         group = OPCSubCellCreateBase(geGetEditCellView() groupname properties)
         success = OPCSubCellUpdateCell(group)
         unless(success
-            label = dbCreateLabel(geGetEditCellView() list("OUTLINE" "drawing") 0:0 groupname "centerCenter" "R0" "fixed" 1)
+            label = dbCreateLabel(geGetEditCellView() OPCGetInfoLayer() 0:0 groupname "centerCenter" "R0" "fixed" 1)
             dbAddFigToFigGroup(group label)
         )
     )

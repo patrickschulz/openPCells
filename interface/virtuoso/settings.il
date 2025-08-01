@@ -6,6 +6,16 @@ procedure(OPCCreateSettingsForm()
         ?initialSize t ; size form to fit all fields
         ?fields list(
             hiCreateStringField(
+                ?name 'OPCSettingsInfoLayer
+                ?value "text"
+                ?prompt "Layer for Info Layer"
+            )
+            hiCreateStringField(
+                ?name 'OPCSettingsInfoLayerPurpose
+                ?value "drawing"
+                ?prompt "Purpose for Info Layer"
+            )
+            hiCreateStringField(
                 ?name 'OPCCellEnvironmentFile
                 ?value ""
                 ?prompt "File Name for Cell Environment"

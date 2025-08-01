@@ -57,3 +57,7 @@ procedure(OPCViewLogFile()
         OPCShowTextFile(path)
     )
 ) ; OPCViewLogFile
+
+procedure(OPCGetInfoLayer()
+    list(OPCSettingsForm->OPCSettingsInfoLayer->value OPCSettingsForm->OPCSettingsInfoLayerPurpose->value)
+) ; OPCGetInfoLayer
