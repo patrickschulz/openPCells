@@ -31,7 +31,7 @@ procedure(OPCShowTextFile(path)
     let((file line lines str item form)
         ; read file
         file = infile(path)
-        while(gets(nextline file)
+        while(gets(line file)
             lines = cons(line lines)
         )
         close(file)
