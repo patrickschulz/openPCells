@@ -525,7 +525,8 @@ void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
                 putchar(' ');
                 putchar(' ');
             }
-            printf("%s\n", element->name);
+            puts(element->name);
+            putchar('\n');
         }
         vector_iterator_next(it);
     }
@@ -584,6 +585,62 @@ int gdsparser_show_cell_definitions(const char* filename)
     return 1;
 }
 
+static void _print_pos_int16(FILE* file, int16_t num)
+{
+    if(num > 9)
+    {
+        _print_pos_int16(file, num / 10);
+    }
+    fputc((num % 10) + '0', file);
+}
+
+static void _print_int16(FILE* file, int16_t num)
+{
+    if(num < 0)
+    {
+        fputc('-', file);
+        num *= -1;
+    }
+    if(num > 9)
+    {
+        _print_pos_int16(file, num / 10);
+    }
+    fputc((num % 10) + '0', file);
+}
+
+static void _print_pos_int32(FILE* file, int32_t num)
+{
+    if(num > 9)
+    {
+        _print_pos_int32(file, num / 10);
+    }
+    fputc((num % 10) + '0', file);
+}
+
+static void _print_int32(FILE* file, int32_t num)
+{
+    if(num < 0)
+    {
+        fputc('-', file);
+        num *= -1;
+    }
+    if(num > 9)
+    {
+        _print_pos_int32(file, num / 10);
+    }
+    fputc((num % 10) + '0', file);
+}
+
+static void _print_byte_hex_with_prefix(FILE* file, uint8_t num)
+{
+    static char lut[] = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+    };
+    fputs("0x", file);
+    fputc(lut[(num & 0xf0) >> 4], file);
+    fputc(lut[(num & 0x0f) >> 0], file);
+}
+
 int gdsparser_show_records(const char* filename, int raw)
 {
     struct stream* stream = NULL;
@@ -612,7 +669,11 @@ int gdsparser_show_records(const char* filename, int raw)
         {
             putchar(' ');
         }
-        printf("%s (%d)", recordnames[record->recordtype], record->length);
+        fputs(recordnames[record->recordtype], stdout);
+        putchar(' ');
+        putchar('(');
+        _print_pos_int16(stdout, record->length);
+        putchar(')');
 
         // print data
         if(record->length > 4)
@@ -627,7 +688,8 @@ int gdsparser_show_records(const char* filename, int raw)
                     for(int i = 0; i < (record->length - 4) / 2; ++i)
                     {
                         int16_t num = pdata[i];
-                        printf("%d ", num);
+                        _print_int16(stdout, num);
+                        fputc(' ', stdout);
                     }
                     free(pdata);
                     break;
@@ -638,7 +700,8 @@ int gdsparser_show_records(const char* filename, int raw)
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
                         int32_t num = pdata[i];
-                        printf("%d ", num);
+                        _print_int32(stdout, num);
+                        fputc(' ', stdout);
                     }
                     free(pdata);
                     break;
@@ -704,7 +767,7 @@ int gdsparser_show_records(const char* filename, int raw)
             putchar('(');
             for(int i = 0; i < record->length - 4; ++i)
             {
-                printf("0x%02x", record->data[i]);
+                _print_byte_hex_with_prefix(stdout, record->data[i]);
                 if(i < record->length - 5)
                 {
                     putchar(' ');
@@ -731,43 +794,6 @@ int gdsparser_show_records(const char* filename, int raw)
     }
     _destroy_stream(stream);
     return 1;
-}
-
-static void _print_int16(FILE* file, int16_t num)
-{
-    if(num < 0)
-    {
-        fputc('-', file);
-        num *= -1;
-    }
-    if(num > 9)
-    {
-        _print_int16(file, num / 10);
-    }
-    fputc((num % 10) + '0', file);
-}
-
-static void _print_pos_int32(FILE* file, int32_t num)
-{
-    if(num > 9)
-    {
-        _print_pos_int32(file, num / 10);
-    }
-    fputc((num % 10) + '0', file);
-}
-
-static void _print_int32(FILE* file, int32_t num)
-{
-    if(num < 0)
-    {
-        fputc('-', file);
-        num *= -1;
-    }
-    if(num > 9)
-    {
-        _print_pos_int32(file, num / 10);
-    }
-    fputc((num % 10) + '0', file);
 }
 
 #define MAX2(a, b) ((a) > (b) ? (a) : (b))
