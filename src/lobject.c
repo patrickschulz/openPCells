@@ -419,13 +419,26 @@ static int lobject_ ##what (lua_State* L) \
         } \
         lua_error(L); \
     } \
-    struct lobject* other = lobject_check(L, 2); \
-    if(!object_has_alignmentbox(lobject_get_const(other))) \
+    if(lua_type(L, 2) == LUA_TTABLE) \
     { \
-        lua_pushstring(L, "object." #what ": second object does not have an alignment box"); \
-        lua_error(L); \
+        lua_getfield(L, 2, "bl"); \
+        struct lpoint* bl = lpoint_checkpoint(L, -1); \
+        lua_pop(L, 1); \
+        lua_getfield(L, 2, "tr"); \
+        struct lpoint* tr = lpoint_checkpoint(L, -1); \
+        lua_pop(L, 1); \
+        object_ ## what ## _bltr (lobject_get(L, cell), lpoint_get(bl), lpoint_get(tr)); \
     } \
-    object_ ##what (lobject_get(L, cell), lobject_get_const(other)); \
+    else \
+    { \
+        struct lobject* other = lobject_check(L, 2); \
+        if(!object_has_alignmentbox(lobject_get_const(other))) \
+        { \
+            lua_pushstring(L, "object." #what ": second object does not have an alignment box"); \
+            lua_error(L); \
+        } \
+        object_ ##what (lobject_get(L, cell), lobject_get_const(other)); \
+    } \
     return 1; \
 }
 
@@ -437,6 +450,8 @@ _gen_fun_abut_align(align_left)
 _gen_fun_abut_align(align_right)
 _gen_fun_abut_align(align_top)
 _gen_fun_abut_align(align_bottom)
+_gen_fun_abut_align(align_center_x)
+_gen_fun_abut_align(align_center_y)
 
 #define _gen_fun_align_origin(what) \
 static int lobject_ ##what (lua_State* L) \
@@ -1801,6 +1816,8 @@ int open_lobject_lib(lua_State* L)
         { "align_right",                            lobject_align_right                         },
         { "align_top",                              lobject_align_top                           },
         { "align_bottom",                           lobject_align_bottom                        },
+        { "align_center_x",                         lobject_align_center_x                      },
+        { "align_center_y",                         lobject_align_center_y                      },
         { "align_left_origin",                      lobject_align_left_origin                   },
         { "align_right_origin",                     lobject_align_right_origin                  },
         { "align_top_origin",                       lobject_align_top_origin                    },

@@ -1414,6 +1414,146 @@ int object_align_bottom(struct object* cell, const struct object* other)
     return 1;
 }
 
+int object_align_center_x(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t x1l = _alignmentbox_get_outerblx(alb1);
+    coordinate_t x1r = _alignmentbox_get_outertrx(alb1);
+    coordinate_t x2l = _alignmentbox_get_outerblx(alb2);
+    coordinate_t x2r = _alignmentbox_get_outertrx(alb2);
+    object_translate(cell, (x2r - x2l - x1r + x1l) / 2, 0);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_align_center_y(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t y1l = _alignmentbox_get_outerbly(alb1);
+    coordinate_t y1r = _alignmentbox_get_outertry(alb1);
+    coordinate_t y2l = _alignmentbox_get_outerbly(alb2);
+    coordinate_t y2r = _alignmentbox_get_outertry(alb2);
+    object_translate(cell, 0, (y2r - y2l - y1r + y1l) / 2);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_abut_right_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)bl;
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t x1 = _alignmentbox_get_outerblx(alb1);
+    coordinate_t x2 = point_getx(tr);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    return 1;
+}
+
+int object_abut_left_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)tr;
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t x1 = _alignmentbox_get_outertrx(alb1);
+    coordinate_t x2 = point_getx(bl);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    return 1;
+}
+
+int object_abut_top_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)bl;
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t y1 = _alignmentbox_get_outerbly(alb1);
+    coordinate_t y2 = point_gety(tr);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    return 1;
+}
+
+int object_abut_bottom_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)tr;
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t y1 = _alignmentbox_get_outertry(alb1);
+    coordinate_t y2 = point_gety(bl);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    return 1;
+}
+
+int object_align_right_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)bl;
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t x1 = _alignmentbox_get_outertrx(alb1);
+    coordinate_t x2 = point_getx(tr);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    return 1;
+}
+
+int object_align_left_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)tr;
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t x1 = _alignmentbox_get_outerblx(alb1);
+    coordinate_t x2 = point_getx(bl);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    return 1;
+}
+
+int object_align_top_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)bl;
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t y1 = _alignmentbox_get_outertry(alb1);
+    coordinate_t y2 = point_gety(tr);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    return 1;
+}
+
+int object_align_bottom_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)tr;
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t y1 = _alignmentbox_get_outerbly(alb1);
+    coordinate_t y2 = point_gety(bl);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    return 1;
+}
+
+int object_align_center_x_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t x1l = _alignmentbox_get_outerblx(alb1);
+    coordinate_t x1r = _alignmentbox_get_outertrx(alb1);
+    coordinate_t x2l = point_getx(bl);
+    coordinate_t x2r = point_getx(tr);
+    object_translate(cell, (x2r - x2l - x1r + x1l) / 2, 0);
+    free(alb1);
+    return 1;
+}
+
+int object_align_center_y_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t y1l = _alignmentbox_get_outerbly(alb1);
+    coordinate_t y1r = _alignmentbox_get_outertry(alb1);
+    coordinate_t y2l = point_gety(bl);
+    coordinate_t y2r = point_gety(tr);
+    object_translate(cell, 0, (y2r - y2l - y1r + y1l) / 2);
+    free(alb1);
+    return 1;
+}
+
 int object_align_right_origin(struct object* cell)
 {
     coordinate_t* alb1 = _get_transformed_alignment_box(cell);

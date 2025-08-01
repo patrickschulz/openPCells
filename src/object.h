@@ -74,10 +74,24 @@ int object_align_right(struct object* cell, const struct object* other);
 int object_align_left(struct object* cell, const struct object* other);
 int object_align_top(struct object* cell, const struct object* other);
 int object_align_bottom(struct object* cell, const struct object* other);
+int object_align_center_x(struct object* cell, const struct object* other);
+int object_align_center_y(struct object* cell, const struct object* other);
 int object_align_right_origin(struct object* cell);
 int object_align_left_origin(struct object* cell);
 int object_align_top_origin(struct object* cell);
 int object_align_bottom_origin(struct object* cell);
+
+// abutment and alignment (bltr versions for alignment groups)
+int object_abut_right_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_abut_left_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_abut_top_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_abut_bottom_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_align_right_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_align_left_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_align_top_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_align_bottom_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_align_center_x_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_align_center_y_bltr(struct object* cell, const struct point* bl, const struct point* tr);
 
 // anchor alignment
 int object_abut_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);

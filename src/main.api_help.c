@@ -22,7 +22,7 @@
 #define API_HELP_TYPE_GENERICS  COLOR_BOLD COLOR_RGB(0, 80, 200)
 #define API_HELP_TYPE_POINT     COLOR_BOLD COLOR_RGB(255, 128, 0)
 
-static int _is_func(const char* tocheck, const char* func, const char* module)
+static int _is_func_exact(const char* tocheck, const char* func, const char* module)
 {
     if(module)
     {
@@ -36,6 +36,31 @@ static int _is_func(const char* tocheck, const char* func, const char* module)
     {
         return (strcmp(tocheck, func) == 0);
     }
+}
+
+static int _is_func_match(const char* tocheck, const char* func, const char* module)
+{
+    /*
+    if(module)
+    {
+        char* fullname = malloc(strlen(func) + strlen(module) + 1 + 1); // extra +1: '.'
+        sprintf(fullname, "%s.%s", module, func);
+        int match = (strstr(tocheck, func) != NULL) || (strstr(tocheck, fullname) != NULL);
+        free(fullname);
+        return match;
+    }
+    else
+    {
+        return (strstr(tocheck, func) != NULL);
+    }
+    */
+    const char* ffound = strstr(func, tocheck);
+    const char* mfound = NULL;
+    if(module)
+    {
+        mfound = strstr(module, tocheck);
+    }
+    return ffound || mfound;
 }
 
 struct parameter {
@@ -60,6 +85,7 @@ struct parameter {
 
 enum module {
     MODULE_NONE,
+    MODULE_ALIGNMENTGROUP,
     MODULE_OBJECT,
     MODULE_GEOMETRY,
     MODULE_POINT,
@@ -87,6 +113,8 @@ static const char* _stringify_module(enum module module)
     {
         case MODULE_NONE:
             return NULL;
+        case MODULE_ALIGNMENTGROUP:
+            return "alignmentgroup";
         case MODULE_OBJECT:
             return "object";
         case MODULE_GEOMETRY:
@@ -310,13 +338,13 @@ static void _print_parameters(const struct vector* parameters)
     }
     vector_const_iterator_destroy(it);
 
+    terminal_set_bold();
+    terminal_set_color_RGB(255, 0, 185);
+    _putstr("Parameters:");
+    terminal_reset_color();
+    putchar('\n');
     if(vector_size(parameters) > 0)
     {
-        terminal_set_bold();
-        terminal_set_color_RGB(255, 0, 185);
-        _putstr("Parameters:");
-        terminal_reset_color();
-        putchar('\n');
         it = vector_const_iterator_create(parameters);
         while(vector_const_iterator_is_valid(it))
         {
@@ -325,6 +353,11 @@ static void _print_parameters(const struct vector* parameters)
             vector_const_iterator_next(it);
         }
         vector_const_iterator_destroy(it);
+    }
+    else
+    {
+        _putstr("    none");
+        putchar('\n');
     }
 }
 
@@ -471,6 +504,7 @@ static struct vector* _initialize_api_entries(void)
     /* initialize entries */
     struct vector* entries = vector_create(32, _destroy_api_entry);
 
+#include "main.api_help/alignmentgroup.c"
 #include "main.api_help/aux.c"
 #include "main.api_help/curve.c"
 #include "main.api_help/generics.c"
@@ -506,7 +540,7 @@ void main_API_help(const char* funcname)
     while(vector_const_iterator_is_valid(it))
     {
         const struct api_entry* entry = vector_const_iterator_get(it);
-        if(_is_func(funcname, entry->funcname, _stringify_module(entry->module)))
+        if(_is_func_exact(funcname, entry->funcname, _stringify_module(entry->module)))
         {
             _print_api_entry(entry);
             found = 1;
@@ -531,14 +565,7 @@ void main_API_search(const char* name)
     while(vector_const_iterator_is_valid(it))
     {
         const struct api_entry* entry = vector_const_iterator_get(it);
-        const char* ffound = strstr(entry->funcname, name);
-        const char* mfound = NULL;
-        const char* modulename = _stringify_module(entry->module);
-        if(modulename)
-        {
-            mfound = strstr(modulename, name);
-        }
-        if(ffound || mfound)
+        if(_is_func_match(name, entry->funcname, _stringify_module(entry->module)))
         {
             const_vector_append(found_entries, entry);
         }

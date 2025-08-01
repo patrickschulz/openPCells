@@ -100,6 +100,7 @@ static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, st
     }
 
     // load main modules
+    module_load_alignmentgroup(L);
     module_load_aux(L);
     module_load_check(L);
     module_load_globals(L);
