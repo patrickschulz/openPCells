@@ -2,9 +2,15 @@
 
 #include <stdio.h>
 
-void terminal_set_color_RGB(unsigned char R, unsigned char G, unsigned char B)
+void terminal_set_foreground_color_RGB(unsigned char R, unsigned char G, unsigned char B)
 {
     const char* str = TERMINAL_CSI "38;2;%hhu;%hhu;%hhu" TERMINAL_COLOR_END;
+    fprintf(stdout, str, R, G, B);
+}
+
+void terminal_set_background_color_RGB(unsigned char R, unsigned char G, unsigned char B)
+{
+    const char* str = TERMINAL_CSI "48;2;%hhu;%hhu;%hhu" TERMINAL_COLOR_END;
     fprintf(stdout, str, R, G, B);
 }
 

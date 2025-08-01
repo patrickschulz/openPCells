@@ -339,7 +339,7 @@ static void _print_parameters(const struct vector* parameters)
     vector_const_iterator_destroy(it);
 
     terminal_set_bold();
-    terminal_set_color_RGB(255, 0, 185);
+    terminal_set_foreground_color_RGB(255, 0, 185);
     _putstr("Parameters:");
     terminal_reset_color();
     putchar('\n');
@@ -447,7 +447,7 @@ static void _print_api_entry(const struct api_entry* entry)
     // function name
     putchar('\n');
     terminal_set_bold();
-    terminal_set_color_RGB(255, 0, 185);
+    terminal_set_foreground_color_RGB(255, 0, 185);
     _putstr("Syntax: ");
     terminal_reset_color();
     if(entry->module != MODULE_NONE)
@@ -488,7 +488,7 @@ static void _print_api_entry(const struct api_entry* entry)
 
     // function example
     terminal_set_bold();
-    terminal_set_color_RGB(255, 0, 185);
+    terminal_set_foreground_color_RGB(255, 0, 185);
     _putstr("Example: ");
     terminal_reset_color();
     putchar('\n');
@@ -737,7 +737,7 @@ static void _create_latex_entry(const struct api_entry* entry, const char** last
 
     //// function example
     //terminal_set_bold();
-    //terminal_set_color_RGB(255, 0, 185);
+    //terminal_set_foreground_color_RGB(255, 0, 185);
     //_putstr("Example: ");
     //terminal_reset_color();
     //putchar('\n');

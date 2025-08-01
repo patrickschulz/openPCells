@@ -372,6 +372,11 @@ int main(int argc, const char* const * argv)
         main_generate_tutorial();
         goto DESTROY_CMDOPTIONS;
     }
+    if(cmdoptions_was_provided_long(cmdoptions, "tutorial"))
+    {
+        main_tutorial();
+        goto DESTROY_CMDOPTIONS;
+    }
 
     if(cmdoptions_was_provided_long(cmdoptions, "import-verilog"))
     {

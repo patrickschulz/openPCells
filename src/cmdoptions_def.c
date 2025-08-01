@@ -102,6 +102,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "api-help", SINGLE_ARG, "display hel
 cmdoptions_add_option(cmdoptions, NO_SHORT, "api-search", SINGLE_ARG, "search for an API function or module. If only one match is found it shows the same output as --api-help");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "api-list", NO_ARG, "list all available API functions and/or modules");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "generate-tutorial", NO_ARG, "generate a set of script files to demonstrate the usage and features of openPCells");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "tutorial", NO_ARG, "print out an interactive tutorial that shows the basic flow");
 
 /* Utility Functions */
 cmdoptions_add_section(cmdoptions, "Utility functions");
