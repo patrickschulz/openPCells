@@ -53,7 +53,7 @@ procedure(OPCSubCellCreateScript()
                 ?name 'OPCSubCellScriptAutoTemplate
                 ?value "true"
                 ?choices '("true" "false")
-                ?prompt "Template for Cell Creation"
+                ?prompt "Use Automatic Template"
             )
         )
         ?callback "OPCSubCellScriptCreateCallback()"
