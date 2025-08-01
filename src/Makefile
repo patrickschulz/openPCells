@@ -89,25 +89,27 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	@echo '#include "modulemanager.h"' > modulemanager.c
 	@echo '#include <stddef.h>' >> modulemanager.c
 	@echo '#include "main.functions.h"' >> modulemanager.c
-	./embed_compiled_lua_file --module modules/aux.lua module_load aux modulemanager.c
-	./embed_compiled_lua_file --module modules/check.lua module_load check modulemanager.c
-	./embed_compiled_lua_file --module modules/generator.lua module_load generator modulemanager.c
-	./embed_compiled_lua_file --module modules/globals.lua module_load globals modulemanager.c
-	./embed_compiled_lua_file --module modules/graphics.lua module_load graphics modulemanager.c
-	./embed_compiled_lua_file --module modules/layouthelpers.lua module_load layouthelpers modulemanager.c
-	./embed_compiled_lua_file --module modules/load.lua module_load load modulemanager.c
-	./embed_compiled_lua_file --module modules/pcell.lua module_load pcell modulemanager.c
-	./embed_compiled_lua_file --module modules/placement.lua module_load placement modulemanager.c
-	./embed_compiled_lua_file --module modules/routing.lua module_load routing modulemanager.c
-	./embed_compiled_lua_file --module modules/stack.lua module_load stack modulemanager.c
-	./embed_compiled_lua_file --module modules/util.lua module_load util modulemanager.c
-	./embed_compiled_lua_file --module modules/verilog.lua module_load verilog modulemanager.c
-	./embed_compiled_lua_file --module modules/verilogprocessor.lua module_load verilogprocessor modulemanager.c
+	./embed_compiled_lua_file_release --module modules/alignmentgroup.lua module_load alignmentgroup modulemanager.c
+	./embed_compiled_lua_file_release --module modules/aux.lua module_load aux modulemanager.c
+	./embed_compiled_lua_file_release --module modules/check.lua module_load check modulemanager.c
+	./embed_compiled_lua_file_release --module modules/generator.lua module_load generator modulemanager.c
+	./embed_compiled_lua_file_release --module modules/globals.lua module_load globals modulemanager.c
+	./embed_compiled_lua_file_release --module modules/graphics.lua module_load graphics modulemanager.c
+	./embed_compiled_lua_file_release --module modules/layouthelpers.lua module_load layouthelpers modulemanager.c
+	./embed_compiled_lua_file_release --module modules/load.lua module_load load modulemanager.c
+	./embed_compiled_lua_file_release --module modules/pcell.lua module_load pcell modulemanager.c
+	./embed_compiled_lua_file_release --module modules/placement.lua module_load placement modulemanager.c
+	./embed_compiled_lua_file_release --module modules/routing.lua module_load routing modulemanager.c
+	./embed_compiled_lua_file_release --module modules/stack.lua module_load stack modulemanager.c
+	./embed_compiled_lua_file_release --module modules/util.lua module_load util modulemanager.c
+	./embed_compiled_lua_file_release --module modules/verilog.lua module_load verilog modulemanager.c
+	./embed_compiled_lua_file_release --module modules/verilogprocessor.lua module_load verilogprocessor modulemanager.c
 
 modulemanager.h: modules/*.lua
 	@echo '#ifndef OPC_MODULEMANAGER_H' > modulemanager.h
 	@echo '#define OPC_MODULEMANAGER_H' >> modulemanager.h
 	@echo '#include "lua/lua.h"' >> modulemanager.h
+	@echo 'int module_load_alignmentgroup(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_aux(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_check(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_generator(lua_State* L);' >> modulemanager.h
