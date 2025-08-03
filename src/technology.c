@@ -10,7 +10,6 @@
 #include "vector.h"
 #include "tagged_value.h"
 #include "util.h"
-#include "ldebug.h"
 
 struct generics_entry {
     char* exportname;
@@ -924,8 +923,8 @@ static int ltechnology_get_optional_dimension(lua_State* L)
 
 static int ltechnology_has_layer(lua_State* L)
 {
-    struct generics* layer = lua_touserdata(L, 1);
-    lua_pushboolean(L, !generics_is_empty(layer));
+    int result = lua_pcall(L, 1, 1, 0);
+    lua_pushboolean(L, result == LUA_OK);
     return 1;
 }
 

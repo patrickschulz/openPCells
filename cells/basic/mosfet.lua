@@ -521,7 +521,7 @@ function layout(transistor, _P)
         gateaddbottom = _P.gatebotabsoluteheight
     end
 
-    local hasgatecut = not _P.simulatemissinggatecut and technology.has_layer(generics.other("gatecut"))
+    local hasgatecut = not _P.simulatemissinggatecut and technology.has_layer(generics.other, "gatecut")
 
     -- active
     if _P.drawactive then
