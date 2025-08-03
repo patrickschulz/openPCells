@@ -130,20 +130,48 @@ static void _code(const char* text)
     _write_with_color(text, 0, 0, 0, 200, 200, 200);
 }
 
-static void _codenl(const char* text)
-{
-    _code(text);
-    fputc('\n', stdout);
-}
-
 static void _hcode(const char* text)
 {
     _write_with_color(text, 0, 0, 0, 255, 200, 200);
 }
 
-static void _hcodenl(const char* text)
+static void _codech(char ch)
+{
+    char str[2] = { ch, 0 };
+    _write_with_color(str, 0, 0, 0, 200, 200, 200);
+}
+
+static void _hcodech(char ch)
+{
+    char str[2] = { ch, 0 };
+    _write_with_color(str, 0, 0, 0, 255, 200, 200);
+}
+
+static void _codenl(const char* text, unsigned int width)
+{
+    _code(text);
+    if(width > 0)
+    {
+        int difference = width - strlen(text);
+        for(int i = 0; i < difference; ++i)
+        {
+            _codech(' ');
+        }
+    }
+    fputc('\n', stdout);
+}
+
+static void _hcodenl(const char* text, unsigned int width)
 {
     _hcode(text);
+    if(width > 0)
+    {
+        int difference = width - strlen(text);
+        for(int i = 0; i < difference; ++i)
+        {
+            _hcodech(' ');
+        }
+    }
     fputc('\n', stdout);
 }
 
@@ -249,11 +277,11 @@ static void _basic_introduction(void)
     _putsnl("new/important content will be shown with a red-ish background.");
     _putsnl("Line numbers will be shown as well, so an example could look like this:");
     _putnl();
-    _codenl(" | 1 a line of code");
-    _codenl(" | 2 another line");
-    _hcodenl(" | 3 a highlighted line");
-    _codenl(" | 4 more");
-    _codenl(" | 5 lines");
+    _codenl(" | 1 a line of code", 23);
+    _codenl(" | 2 another line", 23);
+    _hcodenl(" | 3 a highlighted line", 23);
+    _codenl(" | 4 more", 23);
+    _codenl(" | 5 lines", 23);
     _wait_chunk_reset();
 }
 
@@ -286,7 +314,7 @@ static void _simple_example(void)
     _putsnl("There is a function that does this, which expects a name of the layout cell.");
     _putsnl("The name can be chosen arbitrary, here we use 'toplevel':");
     _putnl();
-    _hcodenl(" | 1 local cell = object.create(\"toplevel\")");
+    _hcodenl(" | 1 local cell = object.create(\"toplevel\")", 0);
     _putnl();
     _putsnl("In lua, variables are global per default, so to create a local instance");
     _putsnl("we use the keyword 'local'. The line above creates a local variable 'cell'");
@@ -320,26 +348,47 @@ static void _simple_example(void)
     _putsnl(" module offers various functions for different layer types (e.g. front end of line, back end of line).");
     _putsnl("In this case, we want a metal and there is a function with exactly that name.");
     _putsnl("Hence, our cell script example now looks like this:");
-    _codenl(" | 1 local cell = object.create(\"toplevel\")");
-    _hcodenl(" | 2 geometry.rectanglebltr(cell, generics.metal(1),");
-    _hcodenl(" | 3     point.create(0, 0),");
-    _hcodenl(" | 4     point.create(100, 100)");
-    _hcodenl(" | 5 )");
+    _codenl(" | 1 local cell = object.create(\"toplevel\")", 52);
+    _hcodenl(" | 2 geometry.rectanglebltr(cell, generics.metal(1),", 52);
+    _hcodenl(" | 3     point.create(0, 0),", 52);
+    _hcodenl(" | 4     point.create(100, 100)", 52);
+    _hcodenl(" | 5 )", 52);
     _wait_chunk_reset();
     _putsnl("Now we created a layout object with a rectangle in it.");
     _putsnl("The last thing remaining is to actually generate and export it.");
     _putsnl("As cell scripts can contain many different objects, openPCells identifies");
     _putsnl("the to-be-exported object by the return value of the script:");
     _putsnl("The returned object is exported, hence our full example is:");
-    _codenl(" | 1 local cell = object.create(\"toplevel\")");
-    _codenl(" | 2 geometry.rectanglebltr(cell, generics.metal(1),");
-    _codenl(" | 3     point.create(0, 0),");
-    _codenl(" | 4     point.create(100, 100)");
-    _codenl(" | 5 )");
-    _hcodenl(" | 6 return cell");
+    _codenl(" | 1 local cell = object.create(\"toplevel\")", 52);
+    _codenl(" | 2 geometry.rectanglebltr(cell, generics.metal(1),", 52);
+    _codenl(" | 3     point.create(0, 0),", 52);
+    _codenl(" | 4     point.create(100, 100)", 52);
+    _codenl(" | 5 )", 52);
+    _hcodenl(" | 6 return cell", 52);
     _putsnl("This cell script can now be called by openPCells with the");
     _putsnl("following command ('$' indicates that this is within a shell):");
-    _codenl(" $ opc --technology opc --export gds --cellscript cellscript.lua");
+    _codenl(" $ opc --technology opc --export gds --cellscript cellscript.lua", 80);
+    _wait_chunk();
+    _putnl();
+    _putsnl("This call generates a GDS file with one cell called 'toplevel' in the");
+    _putsnl("GDS library 'opclib' (default). The cell contains a BOUNDARY with four points");
+    _putsnl("with the layer data (8, 0) -- because that is defined by the 'opc' techology.");
+    _wait_chunk();
+    _putnl();
+    _putsnl("The text representation of this GDS file looks like this:");
+    _codenl("      HEADER (6) -> data: 258", 80);
+    _codenl("      BGNLIB (28) -> data: 2025 8 4 9 54 18 2025 8 4 9 54 18", 80);
+    _codenl("     LIBNAME (10) -> data: opclib", 80);
+    _codenl("       UNITS (20) -> data: 0.001 1e-09", 80);
+    _codenl("      BGNSTR (28) -> data: 2025 8 4 9 54 18 2025 8 4 9 54 18", 80);
+    _codenl("     STRNAME (12) -> data: toplevel", 80);
+    _codenl("    BOUNDARY (4)", 80);
+    _codenl("       LAYER (6) -> data: 8", 80);
+    _codenl("    DATATYPE (6) -> data: 0", 80);
+    _codenl("          XY (44) -> data: 0 0 100 0 100 100 0 100 0 0", 80);
+    _codenl("       ENDEL (4)", 80);
+    _codenl("      ENDSTR (4)", 80);
+    _codenl("      ENDLIB (4)", 80);
     _wait_chunk_reset();
     _putsnl("This concludes the basic introduction.");
     _putsnl("For further information, go through the tutorial about the geometry module,");
@@ -348,6 +397,7 @@ static void _simple_example(void)
     _putsnl("If you have to set up technology files yourself then you should check out");
     _putsnl("the tutorial about technology files.");
     _putsnl("If you need a non-standard export file type, the export tutorial will help you.");
+    _wait_chunk_reset();
 }
 
 static void _ctrc_handler(int sig)
@@ -366,9 +416,13 @@ void main_tutorial(void)
     {
         _table_of_contents();
         _putnl();
-        fputs("Press a number key (1 - 8) to select a topic: ", stdout);
+        fputs("Press a number key (1 - 8) to select a topic or quit with 'q': ", stdout);
         int answer = _read_key();
         if(answer == EOF)
+        {
+            break;
+        }
+        if(answer == 'q')
         {
             break;
         }
