@@ -126,8 +126,7 @@ int geometry_viabltr(
     coordinate_t minxspace, coordinate_t minyspace,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass,
-    const char* debugstring
+    coordinate_t widthclass
 );
 
 int geometry_viabltrov(
@@ -135,8 +134,7 @@ int geometry_viabltrov(
     struct technology_state* techstate,
     int metal1, int metal2,
     const struct point* bl1, const struct point* tr1,
-    const struct point* bl2, const struct point* tr2,
-    const char* debugstring
+    const struct point* bl2, const struct point* tr2
 );
 
 int geometry_viabarebltr(
@@ -147,8 +145,7 @@ int geometry_viabarebltr(
     coordinate_t minxspace, coordinate_t minyspace,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass,
-    const char* debugstring
+    coordinate_t widthclass
 );
 
 int geometry_viapoints(
@@ -159,8 +156,7 @@ int geometry_viapoints(
     coordinate_t minxspace, coordinate_t minyspace,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass,
-    const char* debugstring
+    coordinate_t widthclass
 );
 
 int geometry_contactbltr(
@@ -170,8 +166,7 @@ int geometry_contactbltr(
     const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass,
-    const char* debugstring
+    coordinate_t widthclass
 );
 
 int geometry_contactbarebltr(
@@ -181,8 +176,7 @@ int geometry_contactbarebltr(
     const struct point* bl, const struct point* tr,
     int xcont, int ycont,
     int equal_pitch,
-    coordinate_t widthclass,
-    const char* debugstring
+    coordinate_t widthclass
 );
 
 void geometry_cross(struct object* cell, const struct generics* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize);
