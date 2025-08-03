@@ -123,7 +123,7 @@ procedure(OPCSubCellScriptCreateCallback()
                 dbAddFigToFigGroup(group label)
                 unless(template == ""
                     let((filename cmd)
-                        if(OPCSubCellCellCreationForm->OPCSubCellScriptAutoTemplate->value == "true"
+                        if(OPCSubCellScriptCreationForm->OPCSubCellScriptAutoTemplate->value == "true"
                             then
                                 cmd = OPCBuildCallCommand(lsprintf("--template-auto %s" template))
                             else
