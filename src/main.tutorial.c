@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h> /* mkdir */
-#include <time.h> /* nanosleep */
 
 #include "print.h"
 #include "terminal.h"
@@ -176,14 +175,6 @@ static void _wait_chunk_reset(void)
     terminal_clear_screen();
 }
 
-static void _sleep(void)
-{
-    struct timespec spec;
-    spec.tv_sec = 0;
-    spec.tv_nsec = 500000000;
-    nanosleep(&spec, NULL);
-}
-
 static void _table_of_contents(void)
 {
     _putsnl("Table of contents:");
@@ -226,8 +217,6 @@ static void _basic_introduction(void)
     _putsnl("You can directly try that now.");
     _wait_chunk();
     _putsnl("Good.");
-    _sleep();
-    _putsnl("(Proceed.)");
     /*
     _putnl();
     _putsnl("The main function of opc is to generate layouts, for which there are two ways: cells and cell scripts.");
