@@ -1,9 +1,11 @@
 #include "main.tutorial.h"
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h> /* mkdir */
+#include <time.h> /* nanosleep */
 
 #include "print.h"
 #include "terminal.h"
@@ -100,6 +102,7 @@ void main_generate_tutorial(void)
 
 static int _read_key()
 {
+    terminal_cursor_visibility(1);
     int ch;
     int saved = 0;
     while(1)
@@ -111,6 +114,7 @@ static int _read_key()
         }
         saved = ch;
     }
+    terminal_cursor_visibility(0);
     return saved;
 }
 
@@ -155,42 +159,225 @@ static void _putsnl(const char* text)
     fputc('\n', stdout);
 }
 
-void main_tutorial(void)
+static void _putnl(void)
+{
+    putchar('\n');
+}
+
+static void _wait_chunk(void)
+{
+    getchar();
+    terminal_cursor_line_up(1);
+}
+
+static void _wait_chunk_reset(void)
+{
+    _wait_chunk();
+    terminal_clear_screen();
+}
+
+static void _sleep(void)
+{
+    struct timespec spec;
+    spec.tv_sec = 0;
+    spec.tv_nsec = 500000000;
+    nanosleep(&spec, NULL);
+}
+
+static void _table_of_contents(void)
+{
+    _putsnl("Table of contents:");
+    _putsnl("  1: Basic Introduction (Read First)");
+    _putsnl("  2: Simple Example");
+    _putsnl("  3: Layer Stack Model");
+    _putsnl("  4: Geometry Module");
+    _putsnl("  5: Layers: Generics Module");
+    _putsnl("  6: Cell Hierarchies");
+    _putsnl("  7: Technology Files");
+    _putsnl("  8: Export Creation");
+}
+
+static void _introduction(void)
 {
     terminal_clear_screen();
-    puts("**************************************************");
-    puts("*                 openPCells                     *");
-    puts("*             IC Layout Generator                *");
-    puts("**************************************************");
-    putchar('\n');
-    puts("openPCells (opc) is an IC layer generator for analog and digital integrated layouts");
-    puts("This tutorial will show the basic flow, key API functions and general recommendations");
-    putchar('\n');
-    puts("The main function of opc is to generate layouts, for which there are two ways: cells and cell scripts.");
-    putchar('\n');
-    puts("Cells (or parametric cells, pcells) define layouts in a restricted way by defining certain functions.");
-    puts("They support parameters, offer alignment anchors and boxes, can perform input parameter checks and other things.");
-    puts("While they can be directly created as the top-most cell level, in general they are instantiated by other cells.");
-    putchar('\n');
-    puts("Cell scripts on the other hand are simply scripts that directly create layouts without any additional support for internal checks, parameters etc.");
-    putchar('\n');
-    puts("In general, cells are good for sub-blocks that are used in other layouts whereas cell scripts are good as entry points for layout generation.");
-    putchar('\n');
-    puts("Press any key to advance");
-    getchar();
+    _putsnl("***************************************************************************************************");
+    _putsnl("*                                   openPCells                                                    *");
+    _putsnl("*                               IC Layout Generator                                               *");
+    _putsnl("***************************************************************************************************");
+    _putnl();
+    _putsnl("This is a collection of tutorials for showing most of the important features of openPCells.");
+    _putnl();
+}
+
+static void _setup(void)
+{
+    terminal_cursor_visibility(0);
     terminal_clear_screen();
-    puts("This tutorial tries to show most of the important features of opc, hence the content will be rich.");
-    puts("Therefore, a specific topic can be chosen from the following table of contents:");
-    puts("  1: Basic Introduction");
-    puts("  2: Layer Stack Model");
-    puts("  3: Geometry Module");
-    puts("  4: Cell Creation");
-    puts("  5: Cell Hierarchies");
-    puts("  6: Technology Files");
-    int found = 0;
-    while(!found)
+}
+
+static void _basic_introduction(void)
+{
+    _putsnl("openPCells (opc) is an IC layer generator for analog and digital integrated layouts");
+    _putsnl("This tutorial will show the basic flow, key API functions and general recommendations");
+    _putnl();
+    _putsnl("The content of the tutorial is displayed in pages/chunks.");
+    _putsnl("If you are finished with reading a part, just hit 'Enter' to advance.");
+    _putnl();
+    _putsnl("You can directly try that now.");
+    _wait_chunk();
+    _putsnl("Good.");
+    _sleep();
+    _putsnl("(Proceed.)");
+    /*
+    _putnl();
+    _putsnl("The main function of opc is to generate layouts, for which there are two ways: cells and cell scripts.");
+    _putnl();
+    _putsnl("Cells (or parametric cells, pcells) define layouts in a restricted way by defining certain functions.");
+    _putsnl("They support parameters, offer alignment anchors and boxes, can perform input parameter checks and other things.");
+    _putsnl("While they can be directly created as the top-most cell level, in general they are instantiated by other cells.");
+    _putnl();
+    _putsnl("Cell scripts on the other hand are simply scripts that directly create layouts without any additional support for internal checks, parameters etc.");
+    _putnl();
+    _putsnl("In general, cells are good for sub-blocks that are used in other layouts whereas cell scripts are good as entry points for layout generation.");
+    _putnl();
+    */
+    _wait_chunk_reset();
+    _putsnl("A general note about openPCells:");
+    _putsnl("It is designed to speed up/reduce repetitive work of an experienced layout engineer.");
+    _putsnl("While this might change in the future, there are currently no real automation features.");
+    _putsnl("Creating layouts with openPCells might sometimes be faster than with traditional methods,");
+    _putsnl("but in other cases it will not.");
+    _putnl();
+    _putsnl("OpenPCells will help with fast layout iteration *after* a base layout is established,");
+    _putsnl("but it requires sufficient knowledge about the layout process in general.");
+    _putnl();
+    terminal_set_foreground_color_RGB(255, 0, 0);
+    _putsnl("It is not a suitable tool for beginners in integrated circuits layouts");
+    terminal_reset_color();
+    _wait_chunk_reset();
+    _putsnl("As openPCells is text-based, code examples will be shown.");
+    _putsnl("They will be highlighted by a grey background and");
+    _putsnl("new/important content will be shown with a red-ish background.");
+    _putsnl("Line numbers will be shown as well, so an example could look like this:");
+    _putnl();
+    _codenl(" | 1 a line of code");
+    _codenl(" | 2 another line");
+    _hcodenl(" | 3 a highlighted line");
+    _codenl(" | 4 more");
+    _codenl(" | 5 lines");
+    _wait_chunk_reset();
+}
+
+static void _simple_example(void)
+{
+    terminal_clear_screen();
+    _putsnl("The basic introduction will use cell scripts to demonstrate the usage of opc.");
+    _putsnl("For this, the best way to follow this tutorial is to have an editor and a second");
+    _putsnl("terminal ready for editing cell scripts and calling opc.");
+    _wait_chunk_reset();
+    _putsnl("The user front-end of openPCells is accesible in lua, a lightweight programming language.");
+    _putsnl("This means that cell definitions and cell scripts are also written in lua,");
+    _putsnl("and that layout descriptions have fully functional programming constructs available.");
+    _wait_chunk_reset();
+    _putsnl("For this tutorial it is not important to know lua.");
+    _putsnl("The basic concepts should be clear to anyone who was some understanding of programming");
+    _putsnl("in a procedural language. If any more complext topics arise, they will be explained.");
+    _wait_chunk_reset();
+    _putsnl("We will start with a simple example: a rectangle on the lowest metal layer.");
+    _wait_chunk();
+    _putnl();
+    _putsnl("A rectangle is a shape and shape are parts of layouts. But what is the layout itself?");
+    _putsnl("In openPCells, layout entities are represented by so-called objects.");
+    _putsnl("An object behaves like similar concepts from layout editors and formats,");
+    _putsnl("it can contain shapes and references to other layout objects and it can also be instantiated.");
+    _putsnl("It is the encapsulation of layout-related concepts.");
+    _wait_chunk();
+    _putnl();
+    _putsnl("Hence, the first thing to do is to create a layout object.");
+    _putsnl("There is a function that does this, which expects a name of the layout cell.");
+    _putsnl("The name can be chosen arbitrary, here we use 'toplevel':");
+    _putnl();
+    _hcodenl(" | 1 local cell = object.create(\"toplevel\")");
+    _putnl();
+    _putsnl("In lua, variables are global per default, so to create a local instance");
+    _putsnl("we use the keyword 'local'. The line above creates a local variable 'cell'");
+    _putsnl("in which we store the result of a function call.");
+    _putsnl("The function is stored in a so-called table (a collection of things)");
+    _putsnl("whose elements can be accessed with the dot operator (.).");
+    _putsnl("Besides a few exceptions, all API functions are organized as modules");
+    _putsnl("in tables to group their functionality. The 'object' module is one of them.");
+    _putnl();
+    _putsnl("");
+    _wait_chunk_reset();
+    _putsnl("Next, we create the shape.");
+    _wait_chunk();
+    _putnl();
+    _puts("This is done with the function ");
+    _code("rectanglebltr");
+    _puts(" from the ");
+    _code("geometry");
+    _putsnl(" module.");
+    _putsnl("This function expects an object to create the shape in, a layer for the shape");
+    _putsnl("and the bottom-left (bl) and top-right (tr) corner points.");
+    _wait_chunk();
+    _putnl();
+    _putsnl("The object is created, points can be chosen by us, but what do we give as a layer?");
+    _putsnl("For this, openPCells offers a generic layer system that expresses the layer intent");
+    _putsnl("without caring about the exact layer names, GDS numbers etc.");
+    _putsnl("The generic layer is translated into a technology-specific layer for export, but this");
+    _putsnl("is not relevant for cell creation.");
+    _puts("The ");
+    _code("generics");
+    _putsnl(" module offers various functions for different layer types (e.g. front end of line, back end of line).");
+    _putsnl("In this case, we want a metal and there is a function with exactly that name.");
+    _putsnl("Hence, our cell script example now looks like this:");
+    _codenl(" | 1 local cell = object.create(\"toplevel\")");
+    _hcodenl(" | 2 geometry.rectanglebltr(cell, generics.metal(1),");
+    _hcodenl(" | 3     point.create(0, 0),");
+    _hcodenl(" | 4     point.create(100, 100)");
+    _hcodenl(" | 5 )");
+    _wait_chunk_reset();
+    _putsnl("Now we created a layout object with a rectangle in it.");
+    _putsnl("The last thing remaining is to actually generate and export it.");
+    _putsnl("As cell scripts can contain many different objects, openPCells identifies");
+    _putsnl("the to-be-exported object by the return value of the script:");
+    _putsnl("The returned object is exported, hence our full example is:");
+    _codenl(" | 1 local cell = object.create(\"toplevel\")");
+    _codenl(" | 2 geometry.rectanglebltr(cell, generics.metal(1),");
+    _codenl(" | 3     point.create(0, 0),");
+    _codenl(" | 4     point.create(100, 100)");
+    _codenl(" | 5 )");
+    _hcodenl(" | 6 return cell");
+    _putsnl("This cell script can now be called by openPCells with the");
+    _putsnl("following command ('$' indicates that this is within a shell):");
+    _codenl(" $ opc --technology opc --export gds --cellscript cellscript.lua");
+    _wait_chunk_reset();
+    _putsnl("This concludes the basic introduction.");
+    _putsnl("For further information, go through the tutorial about the geometry module,");
+    _putsnl("cell hierarchies. These will explain many important concepts already");
+    _putsnl("to get you started writing your own cells.");
+    _putsnl("If you have to set up technology files yourself then you should check out");
+    _putsnl("the tutorial about technology files.");
+    _putsnl("If you need a non-standard export file type, the export tutorial will help you.");
+}
+
+static void _ctrc_handler(int sig)
+{
+    (void)sig;
+    terminal_reset_all();
+    exit(0);
+}
+
+void main_tutorial(void)
+{
+    signal(SIGINT, _ctrc_handler);
+    _introduction();
+    int run = 1;
+    while(run)
     {
-        fputs("Press a number key (1 - 6) to select a topic: ", stdout);
+        _table_of_contents();
+        _putnl();
+        fputs("Press a number key (1 - 8) to select a topic: ", stdout);
         int answer = _read_key();
         if(answer == EOF)
         {
@@ -199,87 +386,43 @@ void main_tutorial(void)
         switch(answer)
         {
             case '1':
-                terminal_clear_screen();
-                _putsnl("The basic introduction will use cell scripts to demonstrate the usage of opc.");
-                _putsnl("For this, the best way to follow this tutorial is to have an editor and a second");
-                _putsnl("terminal ready for editing cell scripts and calling opc.");
-                putchar('\n');
-                _putsnl("This content is displayed in pages/chunks. If you are finished with reading this part,");
-                _putsnl("just hit 'Enter' to advance.");
-                getchar();
-                terminal_clear_screen();
-                putchar('\n');
-                _putsnl("We will start with a simple example: a rectangle on the lowest metal layer.");
-                _putsnl("A rectangle is a shape and shape are parts of layouts. But what is the layout?");
-                _putsnl("In openPCells, layout entities are represented by so-called objects.");
-                _putsnl("An object behaves like similar concepts from layout editors and formats,");
-                _putsnl("it can contain shapes and references to other layout objects and it can also be instantiated.");
-                _putsnl("It is the encapsulation of layout-related concepts.");
-                _putsnl("Hence, the first thing to do is to create a layout object:");
-                putchar('\n');
-                _hcode(" | 1 local cell = object.create(\"toplevel\")");
-                getchar();
-                terminal_clear_screen();
-                _putsnl("Next, we create the shape.");
-                _puts("This is done with the function ");
-                _code("rectanglebltr");
-                _puts(" from the ");
-                _code("geometry");
-                _putsnl(" module.");
-                _putsnl("This function expects an object to create the shape in, a layer for the shape");
-                _putsnl("and the bottom-left (bl) and top-right (tr) corner points.");
-                _putsnl("The object is created, points can be chosen by us, but what do we give as a layer?");
-                _putsnl("For this, openPCells offers a generic layer system that expresses the layer intent");
-                _putsnl("without caring about the exact layer names, GDS numbers etc.");
-                _putsnl("The generic layer is translated into a technology-specific layer for export, but this");
-                _putsnl("is not relevant for cell creation.");
-                _puts("The ");
-                _code("generics");
-                _putsnl(" module offers various functions for different layer types (e.g. front end of line, back end of line).");
-                _putsnl("In this case, we want a metal and there is a function with exactly that name.");
-                _putsnl("Hence, our cell script example now looks like this:");
-                _codenl(" | 1 local cell = object.create(\"toplevel\")");
-                _hcodenl(" | 2 geometry.rectanglebltr(cell, generics.metal(1),");
-                _hcodenl(" | 3     point.create(0, 0),");
-                _hcodenl(" | 4     point.create(100, 100)");
-                _hcodenl(" | 5 )");
-                getchar();
-                terminal_clear_screen();
-                _putsnl("Now we created a layout object with a rectangle in it.");
-                _putsnl("The last thing remaining is to actually generate and export it.");
-                _putsnl("As cell scripts can contain many different objects, openPCells identifies");
-                _putsnl("the to-be-exported object by the return value of the script:");
-                _putsnl("The returned object is exported, hence our full example is:");
-                _codenl(" | 1 local cell = object.create(\"toplevel\")");
-                _codenl(" | 2 geometry.rectanglebltr(cell, generics.metal(1),");
-                _codenl(" | 3     point.create(0, 0),");
-                _codenl(" | 4     point.create(100, 100)");
-                _codenl(" | 5 )");
-                _hcodenl(" | 6 return cell");
-                _putsnl("This cell script can now be called by openPCells with the");
-                _putsnl("following command ('$' indicates that this is within a shell):");
-                _codenl(" $ opc --technology opc --export gds --cellscript cellscript.lua");
-                found = 1;
+                _setup();
+                _basic_introduction();
+                run = 1;
                 break;
             case '2':
-                puts("Geometry Module");
-                found = 1;
+                _setup();
+                _simple_example();
+                run = 1;
                 break;
             case '3':
-                puts("Cell Creation");
-                found = 1;
+                _putsnl("Geometry Module");
+                run = 0;
                 break;
             case '4':
-                puts("Cell Hierarchies");
-                found = 1;
+                _putsnl("Layers: Generics Module");
+                run = 0;
                 break;
             case '5':
-                puts("Technology Files");
-                found = 1;
+                _putsnl("Layers: Generics Module");
+                run = 0;
+                break;
+            case '6':
+                _putsnl("Cell Hierarchies");
+                run = 0;
+                break;
+            case '7':
+                _putsnl("Technology Files");
+                run = 0;
+                break;
+            case '8':
+                _putsnl("Export Creation");
+                run = 0;
                 break;
             default:
-                found = 0;
+                run = 1;
                 break;
         }
     }
+    terminal_cursor_visibility(1);
 }
