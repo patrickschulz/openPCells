@@ -266,6 +266,11 @@ int main(int argc, const char* const * argv)
         }
         const char* techname = cmdoptions_get_argument_long(cmdoptions, "check-technology");
         struct technology_state* techstate = main_create_techstate(techpaths, techname, NULL);
+        if(!techstate)
+        {
+            fputs("could not initialize technology state\n", stderr);
+            return 0;
+        }
         lua_State* L = util_create_basic_lua_state();
         // load config file
         const char* configfile = technology_get_configfile_path(techstate, techname);

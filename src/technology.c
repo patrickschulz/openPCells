@@ -351,7 +351,8 @@ int technology_load_viadefinitions(struct technology_state* techstate, const cha
     int ret = luaL_dofile(L, name);
     if(ret != LUA_OK)
     {
-        puts("error while loading via definitions");
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "error while loading via definitions: %s\n", msg);
         lua_close(L);
         return 0;
     }
@@ -374,7 +375,8 @@ int technology_load_config(struct technology_state* techstate, const char* name)
     int ret = luaL_dofile(L, name);
     if(ret != LUA_OK)
     {
-        puts("error while loading config");
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "error while loading config file: %s\n", msg);
         lua_close(L);
         return 0;
     }
@@ -463,7 +465,11 @@ int technology_load(struct technology_state* techstate, const char* techname, co
         free(vianame);
         return 0;
     }
-    technology_load_viadefinitions(techstate, vianame);
+    ret = technology_load_viadefinitions(techstate, vianame);
+    if(!ret)
+    {
+        return 0;
+    }
     free(vianame);
 
     char* configname = _get_tech_filename(techstate, techname, "config");

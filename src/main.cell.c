@@ -130,6 +130,11 @@ void main_list_cell_parameters(const char* cellname, const char* parametersforma
     if(techname)
     {
         techstate = main_create_techstate(techpaths, techname, ignoredlayers);
+        if(!techstate)
+        {
+            fputs("could not initialize technology state\n", stderr);
+            return;
+        }
     }
 
     // pcell state
@@ -470,6 +475,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     struct technology_state* techstate = main_create_techstate(techpaths, techname, ignoredlayers);
     if(!techstate)
     {
+        fputs("could not initialize technology state\n", stderr);
         retval = 0;
         goto EXIT;
     }
