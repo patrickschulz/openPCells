@@ -22,5 +22,6 @@ function meta.add(self, cell)
     self.bl = point.create(blx, bly)
     self.tr = point.create(trx, try)
 end
+M.add = meta.add
 
 return M
