@@ -415,6 +415,7 @@ function util.intersection(s1, s2, c1, c2)
     return nil, pt
 end
 
+--[[
 function util.intersection_ab(P, Q)
     check.set_next_function_name("util.intersection_ab")
     check.arg(1, "P", "table", P)
@@ -503,6 +504,7 @@ function util.intersection_ab(P, Q)
         return point.create((1 - a) * P1x + a * P2x, (1 - a) * P1y + a * P2y)
     end
 end
+--]]
 
 function util.range(lower, upper, incr)
     check.set_next_function_name("util.range")
