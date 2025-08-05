@@ -229,3 +229,49 @@
     ));
 }
 
+/* layouthelpers.place_powergrid */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place guardring in" },
+        { "bl",             POINT,      NULL, "bottom-left boundary corner" },
+        { "tr",             POINT,      NULL, "top-right boundary corner" },
+        { "vlayer",         INTEGER,    NULL, "metal layer (number) for vertical lines" },
+        { "hlayer",         INTEGER,    NULL, "metal layer (number) for horizontal lines" },
+        { "vwidth",         INTEGER,    NULL, "width of vertical lines" },
+        { "vspace",         INTEGER,    NULL, "space of vertical lines" },
+        { "hwidth",         INTEGER,    NULL, "width of horizontal lines" },
+        { "hspace",         INTEGER,    NULL, "space of horizontal lines" },
+        { "plusshapes",     TABLE,      NULL, "target shapes for 'plus' net via creation. Table containing tables with 'bl' and 'tr' items" },
+        { "minusshapes",    TABLE,      NULL, "target shapes for 'minus' net via creation. Table containing tables with 'bl' and 'tr' items " }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_powergrid",
+        MODULE_LAYOUTHELPERS,
+        "Create a power grid with vertical and horizontal lines that connect to given target shapes. The power grid lays out alternating lines for the 'plus' net and the 'minus' net (e.g., VDD and VSS). Target shapes for both these nets are given in the form of tables containing { bl = ..., tr = ... } pairs.",
+        "local vddshapes = { { bl = point(2000, 0), tr = point.create(8000, 200) } }\nlocal vssshapes = { { bl = point.create(2000, 800), tr = point.create(8000, 1000) } }\nlayouthelpers.place_powergrid(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    5, 6, -- metal layers\n    400, 800,-- vertical width/space\n     400, 800,-- horizontal width/space\n    vddshapes, vssshapes)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* layouthelpers.place_powervlines */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place guardring in" },
+        { "bl",             POINT,      NULL, "bottom-left boundary corner" },
+        { "tr",             POINT,      NULL, "top-right boundary corner" },
+        { "layer",          INTEGER,    NULL, "metal layer (number) for power lines" },
+        { "width",          INTEGER,    NULL, "width of power lines" },
+        { "space",          INTEGER,    NULL, "space of power lines" },
+        { "powershapes",    TABLE,      NULL, "target shapes for via creation. Table containing tables with 'bl' and 'tr' items" },
+    };
+    vector_append(entries, _make_api_entry(
+        "place_powervlines",
+        MODULE_LAYOUTHELPERS,
+        "Create power lines with vertical lines that connect to given target shapes. Target shapes for the power net are given in the form of tables containing { bl = ..., tr = ... } pairs.",
+        "local powershapes = { { bl = point(2000, 0), tr = point.create(8000, 200) } }\nlayouthelpers.place_powervlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    5, -- metal layer\n    400, 800,-- width/space\n    powershapes)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+

@@ -353,6 +353,23 @@
     );
 }
 
+/* object.add_label */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,   NULL, "object to which a port should be added" },
+        { "name",   STRING,   NULL, "name of the port" },
+        { "layer",  GENERICS, NULL, "layer of the port" },
+        { "where",  POINT,    NULL, "location of the port" }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_label",
+        MODULE_OBJECT,
+        "add a label to a cell. Works like add_anchor, but additionally a layer is expected. This is different from add_port in that it expresses intent for labels that are not connectivity-related (as opposed to ports)",
+        "cell:add_label(\"0.8\", generics.other(\"M1voltagelabelhigh\"), point.create(100, 0))",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
 /* object.add_port */
 {
     struct parameter parameters[] = {
@@ -663,6 +680,36 @@
         MODULE_OBJECT,
         "translate the cell so that its alignment box is aligned to the top of the alignment box of the specified target cell. This only changes the y coordinate",
         "cell:align_top(othercell)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.align_center_x */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to be aligned" },
+        { "targetcell",     OBJECT,     NULL, "alignment target cell" },
+    };
+    vector_append(entries, _make_api_entry(
+        "align_center_x",
+        MODULE_OBJECT,
+        "translate the cell so that its alignment box is centered (in x) to the alignment box of the specified target cell. This only changes the x coordinate",
+        "cell:align_center_x(othercell)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.align_center_y */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to be aligned" },
+        { "targetcell",     OBJECT,     NULL, "alignment target cell" },
+    };
+    vector_append(entries, _make_api_entry(
+        "align_center_y",
+        MODULE_OBJECT,
+        "translate the cell so that its alignment boy is centered (in y) to the alignment boy of the specified target cell. This only changes the y coordinate",
+        "cell:align_center_y(othercell)",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
@@ -980,6 +1027,21 @@
     );
 }
 
+/* object.get_area_anchor_fmt */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT, NULL, "object to get an anchor from" },
+        { "anchorname", STRING, NULL, "name of the anchor" }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_area_anchor_fmt",
+        MODULE_OBJECT,
+        "Like object.get_array_anchor, but call string.format on the input arguments",
+        "cell:get_area_anchor_fmt(\"sourcedrain%d\", 1)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
 /* object.get_area_anchor_height */
 {
     struct parameter parameters[] = {
@@ -1260,6 +1322,22 @@
     );
 }
 
+/* object.inherit_all_anchors */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT, NULL, "cell to add the anchor to" },
+        { "othercell",  OBJECT, NULL, "cell to inherit the anchor from" },
+        { "anchorname", STRING, NULL, "anchor name of the to-be-inherited anchor" }
+    };
+    vector_append(entries, _make_api_entry(
+        "inherit_all_anchors",
+        MODULE_OBJECT,
+        "inherit all anchors (regular and area) from another cell.",
+        "cell:inherit_all_anchors(someothercell)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
 /* object.inherit_boundary */
 {
     struct parameter parameters[] = {
@@ -1271,6 +1349,22 @@
         MODULE_OBJECT,
         "inherit the boundary from another cell.",
         "cell:inherit_boundary(someothercell)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.inherit_layer_boundary */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "cell to add the boundary to" },
+        { "othercell",  OBJECT,     NULL, "cell to inherit the boundary from" },
+        { "layer",      GENERICS,   NULL, "layer" }
+    };
+    vector_append(entries, _make_api_entry(
+        "inherit_layer_boundary",
+        MODULE_OBJECT,
+        "inherit all layer boundaries from another cell for the given layer.",
+        "cell:inherit_layer_boundary(someothercell, generics.metal(1))",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
@@ -1402,6 +1496,38 @@
     );
 }
 
+/* object.move_x */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "cell to be moved" },
+        { "xsource",    INTEGER,    NULL, "x source coordinate" },
+        { "xtarget",    INTEGER,    NULL, "x target coordinate" },
+    };
+    vector_append(entries, _make_api_entry(
+        "move_x",
+        MODULE_OBJECT,
+        "move the cell so that the given x-coordinates are equal (move the difference between these coordinates)",
+        "cell:move_x(cell:get_area_anchor(\"someanchor\").l, 0)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.move_y */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "cell to be moved" },
+        { "ysource",    INTEGER,    NULL, "y source coordinate" },
+        { "ytarget",    INTEGER,    NULL, "y target coordinate" },
+    };
+    vector_append(entries, _make_api_entry(
+        "move_y",
+        MODULE_OBJECT,
+        "move the cell so that the given y-coordinates are equal (move the difference between these coordinates)",
+        "cell:move_y(cell:get_area_anchor(\"someanchor\").l, 0)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
 /* object.rasterize_curves */
 {
     struct parameter parameters[] = {
@@ -1454,6 +1580,34 @@
         MODULE_OBJECT,
         "rotate the entire object 90 degrees clockwise with respect to the origin",
         "cell:rotate_90_right()",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.array_rotate_90_left*/
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,     NULL, "cell to be rotated" },
+    };
+    vector_append(entries, _make_api_entry(
+        "array_rotate_90_left",
+        MODULE_OBJECT,
+        "rotate the entire object array 90 degrees counter-clockwise with respect to the origin",
+        "cell:array_rotate_90_left()",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.array_rotate_90_right */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,     NULL, "cell to be rotated" },
+    };
+    vector_append(entries, _make_api_entry(
+        "rotate_90_right",
+        MODULE_OBJECT,
+        "rotate the entire object array 90 degrees clockwise with respect to the origin",
+        "cell:array_rotate_90_right()",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
@@ -1578,5 +1732,65 @@
         "local width, height = cell:width_height_alignmentbox()",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
+}
+
+/* object.get_name */
+{
+    struct parameter parameters[] = {
+        { "cell", OBJECT, NULL, "cell" }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_name",
+        MODULE_OBJECT,
+        "return the name of the given object",
+        "local name = cell:get_name()",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.set_name */
+{
+    struct parameter parameters[] = {
+        { "cell", OBJECT, NULL, "cell" },
+        { "name", STRING, NULL, "new name" }
+    };
+    vector_append(entries, _make_api_entry(
+        "set_name",
+        MODULE_OBJECT,
+        "set the name of the given object",
+        "cell:set_name(\"newname\")",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.is_object */
+{
+    struct parameter parameters[] = {
+        { "cell", ANY, NULL, "parameter to be type-checked" }
+    };
+    vector_append(entries, _make_api_entry(
+        "is_object",
+        MODULE_OBJECT,
+        "check that a given parameter is an object (with the metatable forn objects). Useful for overloaded functions",
+        "if object.is_object(cell) then\n    -- actions for object\nelse    -- actions for other types\nend",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* object.has_layer */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,     NULL, "cell" },
+        { "layer",  GENERICS,   NULL, "layer" }
+    };
+    vector_append(entries, _make_api_entry(
+        "has_layer",
+        MODULE_OBJECT,
+        "check whether an object contains a given layer. This function is recursive and checks all hierarchy levels of the cell",
+        "if cell:has_layer(generics.metal(1)) then ...",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
 }
 

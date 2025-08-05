@@ -86,17 +86,19 @@ struct parameter {
 enum module {
     MODULE_NONE,
     MODULE_ALIGNMENTGROUP,
-    MODULE_OBJECT,
-    MODULE_GEOMETRY,
-    MODULE_POINT,
-    MODULE_TECHNOLOGY,
-    MODULE_GENERICS,
-    MODULE_PCELL,
-    MODULE_UTIL,
-    MODULE_PLACEMENT,
-    MODULE_ROUTING,
+    MODULE_AUX,
     MODULE_CURVE,
-    MODULE_LAYOUTHELPERS
+    MODULE_GENERICS,
+    MODULE_GEOMETRY,
+    MODULE_GRAPHICS,
+    MODULE_LAYOUTHELPERS,
+    MODULE_OBJECT,
+    MODULE_PCELL,
+    MODULE_PLACEMENT,
+    MODULE_POINT,
+    MODULE_ROUTING,
+    MODULE_TECHNOLOGY,
+    MODULE_UTIL
 };
 
 struct api_entry {
@@ -111,32 +113,21 @@ static const char* _stringify_module(enum module module)
 {
     switch(module)
     {
-        case MODULE_NONE:
-            return NULL;
-        case MODULE_ALIGNMENTGROUP:
-            return "alignmentgroup";
-        case MODULE_OBJECT:
-            return "object";
-        case MODULE_GEOMETRY:
-            return "geometry";
-        case MODULE_TECHNOLOGY:
-            return "technology";
-        case MODULE_PCELL:
-            return "pcell";
-        case MODULE_GENERICS:
-            return "generics";
-        case MODULE_CURVE:
-            return "curve";
-        case MODULE_ROUTING:
-            return "routing";
-        case MODULE_PLACEMENT:
-            return "placement";
-        case MODULE_POINT:
-            return "point";
-        case MODULE_UTIL:
-            return "util";
-        case MODULE_LAYOUTHELPERS:
-            return "layouthelpers";
+        case MODULE_NONE:               return NULL;
+        case MODULE_ALIGNMENTGROUP:     return "alignmentgroup";
+        case MODULE_AUX:                return "aux";
+        case MODULE_CURVE:              return "curve";
+        case MODULE_GENERICS:           return "generics";
+        case MODULE_GEOMETRY:           return "geometry";
+        case MODULE_GRAPHICS:           return "graphics";
+        case MODULE_LAYOUTHELPERS:      return "layouthelpers";
+        case MODULE_OBJECT:             return "object";
+        case MODULE_PCELL:              return "pcell";
+        case MODULE_PLACEMENT:          return "placement";
+        case MODULE_POINT:              return "point";
+        case MODULE_ROUTING:            return "routing";
+        case MODULE_TECHNOLOGY:         return "technology";
+        case MODULE_UTIL:               return "util";
     }
     return NULL; // make the compiler happy, the 'default' case looks wrong
 }

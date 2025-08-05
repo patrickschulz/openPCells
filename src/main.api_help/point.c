@@ -361,3 +361,18 @@
     ));
 }
 
+/* point.is_point */
+{
+    struct parameter parameters[] = {
+        { "pt", ANY, NULL, "parameter to be type-checked" }
+    };
+    vector_append(entries, _make_api_entry(
+        "is_point",
+        MODULE_POINT,
+        "check that a given parameter is a point (with the metatable for points). Useful for overloaded functions",
+        "if point.is_point(pt) then\n    -- actions for points\nelse    -- actions for (e.g.) numbers\nend",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+

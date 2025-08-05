@@ -53,6 +53,23 @@
     ));
 }
 
+/* geometry.rectangleareaanchor */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,     NULL,   "Object in which the rectangle is created" },
+        { "layer",  GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+        { "anchor", STRING,     NULL,   "name of an area anchor in the given cell" }
+    };
+    vector_append(entries, _make_api_entry(
+        "rectangleareaanchor",
+        MODULE_GEOMETRY,
+        "Create a rectangular shape on an area anchor of the given cell.",
+        "geometry.rectangleareaanchor(cell, generics.metal(1), \"someanchor\")",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* geometry.rectanglepath */
 {
     struct parameter parameters[] = {
@@ -136,6 +153,26 @@
         MODULE_GEOMETRY,
         "Fill a rectangular area with vertical lines with a given ratio between width and spacing",
         "geometry.rectanglevlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 8, 1)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.rectanglevlines_numlines_width */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
+        { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+        { "pt1",        POINT,      NULL,   "First corner point of the target area" },
+        { "pt2",        POINT,      NULL,   "Second corner point of the target area" },
+        { "numlines",   INTEGER,    NULL,   "Number of lines that should be generated" },
+        { "width",      INTEGER,    NULL,   "Width of lines to be generated" }
+    };
+    vector_append(entries, _make_api_entry(
+        "rectanglevlines_width_space",
+        MODULE_GEOMETRY,
+        "Fill a rectangular area with a certain number of vertical lines with the given width. The spacing is calculated automatically.",
+        "geometry.rectanglevlines_numlines_width(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 4, 20)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -373,7 +410,7 @@
         "path_manhatten",
         MODULE_GEOMETRY,
         "Create a manhatten path shape with the given points and width in cell. This only allows vertical or horizontal movements",
-        "geometry.path(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 50))",
+        "geometry.path_manhatten(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 50))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -398,6 +435,25 @@
     ));
 }
 
+/* geometry.path_2x_polygon */
+{
+    struct parameter parameters[] = {
+        { "cell",     OBJECT,   NULL,   "Object in which the path is created" },
+        { "layer",    GENERICS, NULL,   "Layer of the generated rectangular shape" },
+        { "ptstart",  POINT,    NULL,   "Start point of the path" },
+        { "ptend",    POINT,    NULL,   "End point of the path" },
+        { "width",    INTEGER,  NULL,   "width of the path. Must be even" }
+    };
+    vector_append(entries, _make_api_entry(
+        "path_2x_polygon",
+        MODULE_GEOMETRY,
+        "Like geometry.path_2x, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
+        "geometry.path_2x_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* geometry.path_2y */
 {
     struct parameter parameters[] = {
@@ -412,6 +468,25 @@
         MODULE_GEOMETRY,
         "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction (similar to an capital greek gamma)",
         "geometry.path_2y(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.path_2y_polygon */
+{
+    struct parameter parameters[] = {
+        { "cell",     OBJECT,   NULL,   "Object in which the path is created" },
+        { "layer",    GENERICS, NULL,   "Layer of the generated rectangular shape" },
+        { "ptstart",  POINT,    NULL,   "Start point of the path" },
+        { "ptend",    POINT,    NULL,   "End point of the path" },
+        { "width",    INTEGER,  NULL,   "width of the path. Must be even" }
+    };
+    vector_append(entries, _make_api_entry(
+        "path_2y_polygon",
+        MODULE_GEOMETRY,
+        "Like geometry.path_2y, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
+        "geometry.path_2y_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -438,6 +513,69 @@
     ));
 }
 
+/* geometry.path_3x_polygon */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,   NULL,   "Object in which the path is created" },
+        { "layer",      GENERICS, NULL,   "Layer of the generated rectangular shape" },
+        { "ptstart",    POINT,    NULL,   "Start point of the path" },
+        { "ptend",      POINT,    NULL,   "End point of the path" },
+        { "width",      INTEGER,  NULL,   "width of the path. Must be even" },
+        { "position",   NUMBER,   NULL,   "position factor (a number between 0 and 1)" },
+        { "extension",  TABLE,    NULL,   "optional table argument containing the start/end extensions" }
+    };
+    vector_append(entries, _make_api_entry(
+        "path_3x_polygon",
+        MODULE_GEOMETRY,
+        "Like geometry.path_3x, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
+        "geometry.path_3x_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.path_3x_diagonal */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,   NULL,   "Object in which the path is created" },
+        { "layer",      GENERICS, NULL,   "Layer of the generated rectangular shape" },
+        { "ptstart",    POINT,    NULL,   "Start point of the path" },
+        { "ptend",      POINT,    NULL,   "End point of the path" },
+        { "width",      INTEGER,  NULL,   "width of the path. Must be even" },
+        { "position",   NUMBER,   NULL,   "position factor (a number between 0 and 1)" },
+        { "extension",  TABLE,    NULL,   "optional table argument containing the start/end extensions" }
+    };
+    vector_append(entries, _make_api_entry(
+        "path_3x_diagonal",
+        MODULE_GEOMETRY,
+        "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in x-direction. Different from path_3x the middle segment is diagonal. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
+        "geometry.path_3x_diagonal(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.path_3x_diagonal_polygon */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,   NULL,   "Object in which the path is created" },
+        { "layer",      GENERICS, NULL,   "Layer of the generated rectangular shape" },
+        { "ptstart",    POINT,    NULL,   "Start point of the path" },
+        { "ptend",      POINT,    NULL,   "End point of the path" },
+        { "width",      INTEGER,  NULL,   "width of the path. Must be even" },
+        { "position",   NUMBER,   NULL,   "position factor (a number between 0 and 1)" },
+        { "extension",  TABLE,    NULL,   "optional table argument containing the start/end extensions" }
+    };
+    vector_append(entries, _make_api_entry(
+        "path_3x_diagonal_polygon",
+        MODULE_GEOMETRY,
+        "Like geometry.path_3x_diagonal_polygon, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
+        "geometry.path_3x_diagonal_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* geometry.path_3y */
 {
     struct parameter parameters[] = {
@@ -454,6 +592,69 @@
         MODULE_GEOMETRY,
         "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction. Different from path_2x this make a bend in the middle between the start and the end point. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
         "geometry.path_3y(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.path_3y_polygon */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,   NULL,   "Object in which the path is created" },
+        { "layer",      GENERICS, NULL,   "Layer of the generated rectangular shape" },
+        { "ptstart",    POINT,    NULL,   "Start point of the path" },
+        { "ptend",      POINT,    NULL,   "End point of the path" },
+        { "width",      INTEGER,  NULL,   "width of the path. Must be even" },
+        { "position",   NUMBER,   NULL,   "position factor (a number between 0 and 1)" },
+        { "extension",  TABLE,    NULL,   "optional table argument containing the start/end extensions" }
+    };
+    vector_append(entries, _make_api_entry(
+        "path_3_polygon",
+        MODULE_GEOMETRY,
+        "Like geometry.path_3y, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
+        "geometry.path_3y_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.path_3y_diagonal */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,   NULL,   "Object in which the path is created" },
+        { "layer",      GENERICS, NULL,   "Layer of the generated rectangular shape" },
+        { "ptstart",    POINT,    NULL,   "Start point of the path" },
+        { "ptend",      POINT,    NULL,   "End point of the path" },
+        { "width",      INTEGER,  NULL,   "width of the path. Must be even" },
+        { "position",   NUMBER,   NULL,   "position factor (a number between 0 and 1)" },
+        { "extension",  TABLE,    NULL,   "optional table argument containing the start/end extensions" }
+    };
+    vector_append(entries, _make_api_entry(
+        "path_3y_diagonal",
+        MODULE_GEOMETRY,
+        "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction. Different from path_3y the middle segment is diagonal. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
+        "geometry.path_3y_diagonal(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.path_3y_diagonal_polygon */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,   NULL,   "Object in which the path is created" },
+        { "layer",      GENERICS, NULL,   "Layer of the generated rectangular shape" },
+        { "ptstart",    POINT,    NULL,   "Start point of the path" },
+        { "ptend",      POINT,    NULL,   "End point of the path" },
+        { "width",      INTEGER,  NULL,   "width of the path. Must be even" },
+        { "position",   NUMBER,   NULL,   "position factor (a number between 0 and 1)" },
+        { "extension",  TABLE,    NULL,   "optional table argument containing the start/end extensions" }
+    };
+    vector_append(entries, _make_api_entry(
+        "path_3y_diagonal_polygon",
+        MODULE_GEOMETRY,
+        "Like geometry.path_3y_diagonal, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
+        "geometry.path_3y_diagonal_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -572,6 +773,25 @@
     ));
 }
 
+/* geometry.calculate_viabltr */
+{
+    struct parameter parameters[] = {
+        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "properties", TABLE,      NULL,   "optional properties table" }
+    };
+    vector_append(entries, _make_api_entry(
+        "calculate_viabltr",
+        MODULE_GEOMETRY,
+        "Calculates possible via arrayzation in an area and returns a table with the results. Internally, the same functions as for direct creation of vias is used, so the same results can be obtained. The table contains tables with the following items (one per solution): \"layer\" (the via cut layer), \"width\" and \"height\" of the to-be-drawn cuts, \"xrep\" and \"yrep\" (repetition in x and y of the cuts), \"xspace\" and \"yspace\" (spacing of the contacts), and \"xoffset\" and \"yoffset\" (x/y offset with regard to array placement, for instance for geometry.rectanglearray)",
+        "local via = geometry.calculate_viabltr(1, 3, point.create(-100, -20), point.create(100, 20))",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* geometry.viabltr */
 {
     struct parameter parameters[] = {
@@ -588,6 +808,27 @@
         MODULE_GEOMETRY,
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. Special properties can be passed to the via generation function: 'xcontinuous' (create vias that can be abutted in x-direction, boolean), 'ycontinuous' (create vias that can be abutted in y-direction, boolean), 'minxspace' (minimum x space), 'minyspace' (minimum y space), 'equal_pitch' (use equal spacing in both x- and y-direction, boolean) and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. This is useful to solve DRC issues. Numeric parameter)",
         "geometry.viabltr(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.viapoints */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "pt1",            POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+        { "pt2",            POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: xcontinuous (make cut array continuous in x), ycontinuous (make cut array continuous in y), minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), equal_pitch (make the cut pitch equal in x- and y-direction), widthclass (create cut array for a region of a different width than the given target area)" }
+    };
+    vector_append(entries, _make_api_entry(
+        "viapoints",
+        MODULE_GEOMETRY,
+        "Create vias (single or stack) in a rectangular area with the given corner points in cell. Similar to geometry.rectanglepoints, the order o the points does not matter, any corner points of the rectangle can be given. Special properties can be passed to the via generation function: 'xcontinuous' (create vias that can be abutted in x-direction, boolean), 'ycontinuous' (create vias that can be abutted in y-direction, boolean), 'minxspace' (minimum x space), 'minyspace' (minimum y space), 'equal_pitch' (use equal spacing in both x- and y-direction, boolean) and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. This is useful to solve DRC issues. Numeric parameter)",
+        "geometry.viapoints(cell, 1, 3, point.create(100, 20), point.create(-100, -20))",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -939,6 +1180,22 @@
 }
 
 /* geometry.path_points_to_polygon */
+{
+    struct parameter parameters[] = {
+        { "pts",    POINTLIST,  NULL,   "List of points that make up the path" },
+        { "width",  INTEGER,    NULL,   "Width of the path" }
+    };
+    vector_append(entries, _make_api_entry(
+        "path_points_to_polygon",
+        MODULE_GEOMETRY,
+        "Get the edge points of a path given by the center points and the width. This function does not create any shapes. The result of this function can be put into geometry.polygon to create the path shape.",
+        "geometry.path_points_to_polygon({ point.create(0, 0), point.create(1000, 0) }, 50)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* geometry.path_2x_polygon */
 {
     struct parameter parameters[] = {
         { "pts",    POINTLIST,  NULL,   "List of points that make up the path" },

@@ -1,3 +1,19 @@
+/* util.check_grid(t) */
+{
+    struct parameter parameters[] = {
+        { "grid",   INTEGER, NULL, "grid" },
+        { "...",    VARARGS, NULL, "one or more numbers" }
+    };
+    vector_append(entries, _make_api_entry(
+        "check_grid",
+        MODULE_UTIL,
+        "check that all given numbers are on integer multiples of the given grid. This function calls assert, so aborts the entire program if the assertation fails",
+        "util.check_grid(100, 100, 800, 42, 10000) -- will fail",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* util.min(t) */
 {
     struct parameter parameters[] = {
@@ -247,7 +263,7 @@
     ));
 }
 
-/* util.make_insert_xy(pts, idx) */
+/* util.make_insert_xy */
 {
     struct parameter parameters[] = {
         { "pts",    POINTLIST,  NULL,   "point array" },
@@ -437,7 +453,23 @@
         "clone_shallow",
         MODULE_UTIL,
         "create a shallow copy of a table. This function creates a copy of the given table, where all first-level values are copied. If those values are tables, they reference the same table as the original object.",
-        "local new = util.clone(t)",
+        "local new = util.clone_shallow(t)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.clone_shallow_predicate(t) */
+{
+    struct parameter parameters[] = {
+        { "table",      TABLE,      NULL, "table" },
+        { "predicate",  FUNCTION,   NULL, "predicate function" },
+    };
+    vector_append(entries, _make_api_entry(
+        "clone_shallow_predicate",
+        MODULE_UTIL,
+        "create a shallow copy of a table. This function creates a copy of the given table, where all first-level values are copied. If those values are tables, they reference the same table as the original object. This function only copies items where the given predicate function (called with the key and the value of the item) returns true.",
+        "local new = util.clone_shallow_predicate(t, function(k, v) if string.match(v, \"vdd.+\") end)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -469,7 +501,24 @@
         "ratio_split_even",
         MODULE_UTIL,
         "create two values that sum up to the input value and have the specified ratio. The values are adjusted so that both of them are even, possibly changing the ratio slightly. The input value must be even",
-        "local pitch = 100\nlocal width, space = util.ratio_split_even(pitch, 2) -- results in 68 and 32, the actual ratio then is 2.125",
+        "local pitch = 1000\nlocal width, space = util.ratio_split_even(pitch, 2) -- results in 668 and 332, the actual ratio then is 2.012",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.ratio_split_multiple_of(value, ratio) */
+{
+    struct parameter parameters[] = {
+        { "value",      INTEGER,    NULL, "value for division" },
+        { "ratio",      NUMBER,     NULL, "target ratio of the two result values" },
+        { "multiple",   NUMBER,     NULL, "multiple target" },
+    };
+    vector_append(entries, _make_api_entry(
+        "ratio_split_multiple_of",
+        MODULE_UTIL,
+        "create two values that sum up to the input value and have the specified ratio. The values are adjusted so that both of them are multiples of the given value ('multiple'), possibly changing the ratio slightly. The input value must be divisable by 'multiple'. This function called with multiple == 2 behaves exactly like ratio_split_even",
+        "local pitch = 1000\nlocal width, space = util.ratio_split_even(pitch, 2, 20) -- results in 680 and 320, the actual ratio then is 2.125",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -781,6 +830,21 @@
     ));
 }
 
+/* util.sum(t) */
+{
+    struct parameter parameters[] = {
+        { "t", TABLE, NULL, "table as array" }
+    };
+    vector_append(entries, _make_api_entry(
+        "sum",
+        MODULE_UTIL,
+        "calculate the sum of all items of an numeric array",
+        "local sum = util.sum({ 1, 2, 3 }) -- 6",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* util.uniq(t) */
 {
     struct parameter parameters[] = {
@@ -796,12 +860,38 @@
     ));
 }
 
-/*
-    FIXME:
-	util.check_grid
-	util.check_string
-	util.intersection
-	util.intersection_ab
-	util.sum
-    util.make_multiple
-*/
+/* util.intersection(t) */
+{
+    struct parameter parameters[] = {
+        { "s1", POINT, NULL, "start point of line 1" },
+        { "s2", POINT, NULL, "end point of line 1" },
+        { "t1", POINT, NULL, "start point of line 2" },
+        { "t2", POINT, NULL, "end point of line 2" }
+    };
+    vector_append(entries, _make_api_entry(
+        "intersection",
+        MODULE_UTIL,
+        "calculate the intersection point of two lines. If the intersection is found, it is returned. If the lines are parallel, nil is returned. If the lines are not parallel but don't intersect (because they are not infinite), their virtual intersection point is returned after nil (as second return value)",
+        "local ptreal, ptvirtual = util.intersection(spt1, spt2, tpt1, tpt2)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* util.rectangle_union(t) */
+{
+    struct parameter parameters[] = {
+        { "bl1", POINT, NULL, "bottom-left corner of rectangle 1" },
+        { "tr1", POINT, NULL, "top-right corner of rectangle 1" },
+        { "bl1", POINT, NULL, "bottom-left corner of rectangle 2" },
+        { "tr2", POINT, NULL, "top-right corner of rectangle 2" }
+    };
+    vector_append(entries, _make_api_entry(
+        "rectangle_union",
+        MODULE_UTIL,
+        "calculate the rectangle union of two rectangles. This only return a non-nil result if the union of the two rectangles is still a true rectangle. The calculated union is return as a table with 'bl' and 'tr' entries",
+        "local union = util.rectangle_union(bl1, tr1, bl2, tr2)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}

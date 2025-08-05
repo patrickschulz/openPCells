@@ -13,6 +13,21 @@
     ));
 }
 
+/* technology.get_optional_dimension */
+{
+    struct parameter parameters[] = {
+        { "property", STRING, NULL, "technology property name" }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_optional_dimension",
+        MODULE_TECHNOLOGY,
+        "Like get_dimension, but this function does not raise an error if the dimension was not found but simply return 0.",
+        "function parameters()\n    pcell.add_parameters({ {\"width\", technology.get_optional_dimension(\"Minimum M1 Width\") } })\nend",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* technology.has_layer */
 {
     struct parameter parameters[] = {
@@ -38,6 +53,21 @@
         MODULE_TECHNOLOGY,
         "Check if the chosen metal layer (represented by the metal index) supports multiple patterning",
         "local metallayer\nif technology.has_multiple_patterning(1) then\n    metallayer = generics.mptmetal(1, 1)\nelse\n    metallayer = generics.metal(1)\nend",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* technology.has_metal */
+{
+    struct parameter parameters[] = {
+        { "metalnumber", INTEGER, NULL, "metal index" }
+    };
+    vector_append(entries, _make_api_entry(
+        "has_metal",
+        MODULE_TECHNOLOGY,
+        "Check if the given metal layer is within the range of available metal layers. Negative numbers are resolved as in generics.metal.",
+        "if technology.has_metal(1) then ...",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
@@ -73,3 +103,16 @@
     ));
 }
 
+/* technology.list_techpaths */
+{
+    struct parameter parameters[] = {
+    };
+    vector_append(entries, _make_api_entry(
+        "list_techpaths",
+        MODULE_TECHNOLOGY,
+        "list the current technology paths",
+        "technology.list_techpaths()",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
