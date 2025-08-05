@@ -846,7 +846,7 @@ static int lgeometry_path_3x_diagonal(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext, width);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     coordinate_t diff = coordinate_abs(point_gety(lpoint_get(ptstart)) - point_gety(lpoint_get(ptend)));
     if(point_getx(lpoint_get(ptstart)) < point_getx(lpoint_get(ptend)))
@@ -885,7 +885,7 @@ static int lgeometry_path_3x_diagonal_polygon(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext, width);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     coordinate_t diff = coordinate_abs(point_gety(lpoint_get(ptstart)) - point_gety(lpoint_get(ptend)));
     if(point_getx(lpoint_get(ptstart)) < point_getx(lpoint_get(ptend)))
@@ -924,7 +924,7 @@ static int lgeometry_path_3y(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext, width);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     struct point* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
     struct point* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
@@ -952,7 +952,7 @@ static int lgeometry_path_3y_polygon(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext, width);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     struct point* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
     struct point* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
@@ -980,7 +980,7 @@ static int lgeometry_path_3y_diagonal(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext, width);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     coordinate_t diff = coordinate_abs(point_getx(lpoint_get(ptstart)) - point_getx(lpoint_get(ptend)));
     if(point_gety(lpoint_get(ptstart)) < point_gety(lpoint_get(ptend)))
@@ -1019,7 +1019,7 @@ static int lgeometry_path_3y_diagonal_polygon(lua_State* L)
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext, width);
+    _get_path_extension(L, 7, &bgnext, &endext, width);
 
     coordinate_t diff = coordinate_abs(point_getx(lpoint_get(ptstart)) - point_getx(lpoint_get(ptend)));
     if(point_gety(lpoint_get(ptstart)) < point_gety(lpoint_get(ptend)))
