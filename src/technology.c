@@ -915,6 +915,10 @@ static int ltechnology_get_optional_dimension(lua_State* L)
             lua_pushinteger(L, value);
             return 1;
         }
+        else
+        {
+            lua_pushinteger(L, 0);
+        }
     }
     // return default value if property was not found
     lua_pushvalue(L, 2);
