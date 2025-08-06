@@ -1037,6 +1037,11 @@ char* technology_get_viatable_path(struct technology_state* techstate, const cha
     return _get_tech_filename(techstate, techname, "vias");
 }
 
+char* technology_get_constraints_path(struct technology_state* techstate, const char* techname)
+{
+    return _get_tech_filename(techstate, techname, "constraints");
+}
+
 const struct generics* generics_create_metal(struct technology_state* techstate, int num)
 {
     num = technology_resolve_metal(techstate, num);

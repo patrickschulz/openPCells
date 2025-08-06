@@ -61,6 +61,7 @@ int technology_resolve_premapped_layers(struct technology_state* techstate, cons
 char* technology_get_configfile_path(struct technology_state* techstate, const char* techname);
 char* technology_get_layermap_path(struct technology_state* techstate, const char* techname);
 char* technology_get_viatable_path(struct technology_state* techstate, const char* techname);
+char* technology_get_constraints_path(struct technology_state* techstate, const char* techname);
 
 // layer creation interface
 const struct generics* generics_create_metal(struct technology_state* techstate, int num);
