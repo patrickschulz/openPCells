@@ -1441,7 +1441,7 @@ int object_align_center_x(struct object* cell, const struct object* other)
     coordinate_t x1r = _alignmentbox_get_outertrx(alb1);
     coordinate_t x2l = _alignmentbox_get_outerblx(alb2);
     coordinate_t x2r = _alignmentbox_get_outertrx(alb2);
-    object_translate(cell, (x2r - x2l - x1r + x1l) / 2, 0);
+    object_translate(cell, (x2l + x2r - x1l - x1r) / 2, 0);
     free(alb1);
     free(alb2);
     return 1;
@@ -1455,7 +1455,7 @@ int object_align_center_y(struct object* cell, const struct object* other)
     coordinate_t y1r = _alignmentbox_get_outertry(alb1);
     coordinate_t y2l = _alignmentbox_get_outerbly(alb2);
     coordinate_t y2r = _alignmentbox_get_outertry(alb2);
-    object_translate(cell, 0, (y2r - y2l - y1r + y1l) / 2);
+    object_translate(cell, 0, (y2l + y2r - y1l - y1r) / 2);
     free(alb1);
     free(alb2);
     return 1;
