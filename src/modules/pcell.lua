@@ -95,7 +95,7 @@ function parammeta.get(self, name)
 end
 
 function parammeta.get_followers(self)
-    return aux.clone_shallow(self.followers)
+    return self.followers
 end
 -- end of parameter module
 
@@ -217,7 +217,8 @@ local function _get_parameters(state, cellname, cellargs)
     end
 
     -- (3) handle followers
-    local followers = cell.parameters:get_followers()
+    -- copy table as it is modified
+    local followers = aux.clone_shallow(cell.parameters:get_followers())
     local ordered = {}
     -- this loop runs as long as there are unhandled followers
     -- in case of cycles, this will never stop, hence
@@ -231,7 +232,10 @@ local function _get_parameters(state, cellname, cellargs)
         end
     until not next(followers)
     for _, entry in ipairs(ordered) do
-        if not explicit[entry.name] then -- don't overwrite explicitly-given parameters
+        if
+            not explicit[entry.name] -- don't overwrite explicitly-given parameters
+            and explicit[entry.target] -- only follow explicitly-given parameters
+        then
             P[entry.name] = P[entry.target]
         end
     end
@@ -257,12 +261,23 @@ local function _set_property(state, cellname, property, value)
     cell.properties[property] = value
 end
 
+local function _check_parameter(parameter)
+    for k in pairs(parameter) do
+        if not ((k == 1) or (k == 2)) then -- skip name and value
+            if not util.any_of(k, { "argtype", "posvals", "info", "follow", "readonly" }) then
+                error(string.format("parameter check: parameter definition has extra unknown key: '%s'", k))
+            end
+        end
+    end
+end
+
 local function _add_parameter(state, cellname, name, value, opt)
     if not name then
         error("pcell.add_parameter: no parameter name given")
     end
     opt = opt or {}
     local cell = _get_cell(state, cellname)
+    _check_parameter(opt)
     _add_parameter_internal(cell, name, value, opt.argtype, opt.posvals, opt.info, opt.follow, opt.readonly)
 end
 
@@ -273,6 +288,7 @@ local function _add_parameters(state, cellname, ...)
         if not name then
             error(string.format("pcell.add_parameters: no parameter name given (entry %d)", i))
         end
+        _check_parameter(parameter)
         _add_parameter_internal(
             cell,
             name, value,
@@ -651,7 +667,7 @@ function pcell.parameters(cellname, cellargs, generictech)
     --local parameters = _get_parameters(state, cellname, cellargs, true) -- cellname needs to be passed twice
     local str = {}
     _collect_parameters(cell, str)
-    
+
     -- FIXME: implement parameter collection from layout functions
     -- execute the 'layout' function without creating any layouts to collect all used parameters
     -- this is required in order to get the actual transparent parameters of subcells
