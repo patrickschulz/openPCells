@@ -442,6 +442,28 @@ static int lobject_ ##what (lua_State* L) \
     return 1; \
 }
 
+#define _gen_fun_place(what) \
+static int lobject_ ##what (lua_State* L) \
+{ \
+    struct lobject* cell = lobject_check(L, 1); \
+    if(lua_type(L, 2) == LUA_TTABLE) \
+    { \
+        lua_getfield(L, 2, "bl"); \
+        struct lpoint* bl = lpoint_checkpoint(L, -1); \
+        lua_pop(L, 1); \
+        lua_getfield(L, 2, "tr"); \
+        struct lpoint* tr = lpoint_checkpoint(L, -1); \
+        lua_pop(L, 1); \
+        object_ ## what ## _bltr (lobject_get(L, cell), lpoint_get(bl), lpoint_get(tr)); \
+    } \
+    else \
+    { \
+        struct lobject* other = lobject_check(L, 2); \
+        object_ ##what (lobject_get(L, cell), lobject_get_const(other)); \
+    } \
+    return 1; \
+}
+
 _gen_fun_abut_align(abut_left)
 _gen_fun_abut_align(abut_right)
 _gen_fun_abut_align(abut_top)
@@ -452,6 +474,10 @@ _gen_fun_abut_align(align_top)
 _gen_fun_abut_align(align_bottom)
 _gen_fun_abut_align(align_center_x)
 _gen_fun_abut_align(align_center_y)
+_gen_fun_place(place_left)
+_gen_fun_place(place_right)
+_gen_fun_place(place_top)
+_gen_fun_place(place_bottom)
 
 #define _gen_fun_align_origin(what) \
 static int lobject_ ##what (lua_State* L) \
@@ -474,6 +500,14 @@ static int lobject_ ##what (lua_State* L) \
     return 1; \
 }
 
+#define _gen_fun_place_origin(what) \
+static int lobject_ ##what (lua_State* L) \
+{ \
+    struct lobject* cell = lobject_check(L, 1); \
+    object_ ##what (lobject_get(L, cell)); \
+    return 1; \
+}
+
 _gen_fun_align_origin(abut_left_origin)
 _gen_fun_align_origin(abut_right_origin)
 _gen_fun_align_origin(abut_top_origin)
@@ -482,6 +516,10 @@ _gen_fun_align_origin(align_left_origin)
 _gen_fun_align_origin(align_right_origin)
 _gen_fun_align_origin(align_top_origin)
 _gen_fun_align_origin(align_bottom_origin)
+_gen_fun_place_origin(place_left_origin)
+_gen_fun_place_origin(place_right_origin)
+_gen_fun_place_origin(place_top_origin)
+_gen_fun_place_origin(place_bottom_origin)
 
 #define _gen_fun_abut_align_area_anchor(what) \
 static int lobject_ ##what (lua_State* L) \
@@ -1812,6 +1850,14 @@ int open_lobject_lib(lua_State* L)
         { "abut_right_origin",                      lobject_abut_right_origin                   },
         { "abut_top_origin",                        lobject_abut_top_origin                     },
         { "abut_bottom_origin",                     lobject_abut_bottom_origin                  },
+        { "place_left",                             lobject_place_left                          },
+        { "place_right",                            lobject_place_right                         },
+        { "place_top",                              lobject_place_top                           },
+        { "place_bottom",                           lobject_place_bottom                        },
+        { "place_left_origin",                      lobject_place_left_origin                   },
+        { "place_right_origin",                     lobject_place_right_origin                  },
+        { "place_top_origin",                       lobject_place_top_origin                    },
+        { "place_bottom_origin",                    lobject_place_bottom_origin                 },
         { "align_left",                             lobject_align_left                          },
         { "align_right",                            lobject_align_right                         },
         { "align_top",                              lobject_align_top                           },

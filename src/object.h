@@ -70,6 +70,14 @@ int object_abut_right_origin(struct object* cell);
 int object_abut_left_origin(struct object* cell);
 int object_abut_top_origin(struct object* cell);
 int object_abut_bottom_origin(struct object* cell);
+int object_place_right(struct object* cell, const struct object* other);
+int object_place_left(struct object* cell, const struct object* other);
+int object_place_top(struct object* cell, const struct object* other);
+int object_place_bottom(struct object* cell, const struct object* other);
+int object_place_right_origin(struct object* cell);
+int object_place_left_origin(struct object* cell);
+int object_place_top_origin(struct object* cell);
+int object_place_bottom_origin(struct object* cell);
 int object_align_right(struct object* cell, const struct object* other);
 int object_align_left(struct object* cell, const struct object* other);
 int object_align_top(struct object* cell, const struct object* other);
@@ -92,6 +100,10 @@ int object_align_top_bltr(struct object* cell, const struct point* bl, const str
 int object_align_bottom_bltr(struct object* cell, const struct point* bl, const struct point* tr);
 int object_align_center_x_bltr(struct object* cell, const struct point* bl, const struct point* tr);
 int object_align_center_y_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_place_right_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_place_left_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_place_top_bltr(struct object* cell, const struct point* bl, const struct point* tr);
+int object_place_bottom_bltr(struct object* cell, const struct point* bl, const struct point* tr);
 
 // anchor alignment
 int object_abut_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
@@ -155,7 +167,11 @@ int object_get_alignment_box_corners(
     coordinate_t* outerblx, coordinate_t* outerbly, coordinate_t* outertrx, coordinate_t* outertry,
     coordinate_t* innerblx, coordinate_t* innerbly, coordinate_t* innertrx, coordinate_t* innertry
 );
-void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp, const struct transformationmatrix* extratrans);
+void object_get_minmax_xy(
+    const struct object* cell,
+    coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp,
+    const struct transformationmatrix* extratrans
+);
 void object_width_height_alignmentbox(const struct object* cell, ucoordinate_t* width, ucoordinate_t* height);
 
 // transformations

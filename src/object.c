@@ -923,6 +923,11 @@ static void _fix_alignmentbox_order(coordinate_t* alignmentbox)
 #define _alignmentbox_get_innertrx(b) b[6]
 #define _alignmentbox_get_innertry(b) b[7]
 
+#define _boundingbox_get_blx(b) b[0]
+#define _boundingbox_get_bly(b) b[1]
+#define _boundingbox_get_trx(b) b[2]
+#define _boundingbox_get_try(b) b[3]
+
 static coordinate_t* _get_transformed_alignment_box(const struct object* cell)
 {
     struct transformationmatrix* trans1 = cell->trans;
@@ -959,6 +964,20 @@ static coordinate_t* _get_transformed_alignment_box(const struct object* cell)
         _alignmentbox_get_outertry(alignmentbox) += (cell->yrep - 1) * cell->ypitch;
     }
     return alignmentbox;
+}
+
+static coordinate_t* _get_transformed_bounding_box(const struct object* cell)
+{
+    struct transformationmatrix* trans2 = NULL;
+    const struct object* obj = cell;
+    if(cell->isproxy)
+    {
+        obj = cell->reference;
+        trans2 = obj->trans;
+    }
+    coordinate_t* boundingbox = calloc(4, sizeof(coordinate_t));
+    object_get_minmax_xy(obj, boundingbox + 0, boundingbox + 1, boundingbox + 2, boundingbox + 3, trans2);
+    return boundingbox;
 }
 
 struct point* object_get_anchor(const struct object* cell, const char* name)
@@ -1441,6 +1460,136 @@ int object_align_center_y(struct object* cell, const struct object* other)
     free(alb2);
     return 1;
 }
+
+// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+int object_place_right(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t* alb2 = _get_transformed_bounding_box(other);
+    coordinate_t x1 = _boundingbox_get_blx(alb1);
+    coordinate_t x2 = _boundingbox_get_trx(alb2);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_place_left(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t* alb2 = _get_transformed_bounding_box(other);
+    coordinate_t x1 = _boundingbox_get_trx(alb1);
+    coordinate_t x2 = _boundingbox_get_blx(alb2);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_place_top(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t* alb2 = _get_transformed_bounding_box(other);
+    coordinate_t y1 = _boundingbox_get_bly(alb1);
+    coordinate_t y2 = _boundingbox_get_try(alb2);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_place_bottom(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t* alb2 = _get_transformed_bounding_box(other);
+    coordinate_t y1 = _boundingbox_get_try(alb1);
+    coordinate_t y2 = _boundingbox_get_bly(alb2);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_place_right_origin(struct object* cell)
+{
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t x1 = _boundingbox_get_blx(alb1);
+    object_translate(cell, 0 - x1, 0);
+    free(alb1);
+    return 1;
+}
+
+int object_place_left_origin(struct object* cell)
+{
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t x1 = _boundingbox_get_trx(alb1);
+    object_translate(cell, 0 - x1, 0);
+    free(alb1);
+    return 1;
+}
+
+int object_place_top_origin(struct object* cell)
+{
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t y1 = _boundingbox_get_bly(alb1);
+    object_translate(cell, 0, 0 - y1);
+    free(alb1);
+    return 1;
+}
+
+int object_place_bottom_origin(struct object* cell)
+{
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t y1 = _boundingbox_get_try(alb1);
+    object_translate(cell, 0, 0 - y1);
+    free(alb1);
+    return 1;
+}
+
+int object_place_right_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)bl;
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t x1 = _boundingbox_get_blx(alb1);
+    coordinate_t x2 = point_getx(tr);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    return 1;
+}
+
+int object_place_left_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)tr;
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t x1 = _boundingbox_get_trx(alb1);
+    coordinate_t x2 = point_getx(bl);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    return 1;
+}
+
+int object_place_top_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)bl;
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t y1 = _boundingbox_get_bly(alb1);
+    coordinate_t y2 = point_gety(tr);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    return 1;
+}
+
+int object_place_bottom_bltr(struct object* cell, const struct point* bl, const struct point* tr)
+{
+    (void)tr;
+    coordinate_t* alb1 = _get_transformed_bounding_box(cell);
+    coordinate_t y1 = _boundingbox_get_try(alb1);
+    coordinate_t y2 = point_gety(bl);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    return 1;
+}
+// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 int object_abut_right_bltr(struct object* cell, const struct point* bl, const struct point* tr)
 {
@@ -2483,6 +2632,7 @@ static void _fix_minmax_order(coordinate_t *minx, coordinate_t* miny, coordinate
 
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp, const struct transformationmatrix* extratrans)
 {
+    // FIXME: arrays?
     coordinate_t minx = COORDINATE_MAX;
     coordinate_t maxx = COORDINATE_MIN;
     coordinate_t miny = COORDINATE_MAX;

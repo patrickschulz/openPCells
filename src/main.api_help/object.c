@@ -195,6 +195,136 @@
     );
 }
 
+/* object.place_bottom_origin */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to be placed" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_bottom_origin",
+        MODULE_OBJECT,
+        "translate the cell so that its alignment box (outer boundary) is placed-bottom to the origin. This only changes the y coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "cell:place_bottom_origin()",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.place_bottom */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to be placed" },
+        { "targetcell",     OBJECT,     NULL, "placement target cell" },
+    };
+    vector_append(entries, _make_api_entry(
+        "place_bottom",
+        MODULE_OBJECT,
+        "translate the cell so that its alignment box is placed to the bottom of the alignment box of the specified target cell. This only changes the y coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "cell:place_bottom(othercell)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.place_left_origin */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to be placed" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_left_origin",
+        MODULE_OBJECT,
+        "translate the cell so that its alignment box (outer boundary) is placed-left to the origin. This only changes the x coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "cell:place_left_origin()",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.place_left */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to be placed" },
+        { "targetcell",     OBJECT,     NULL, "placement target cell" },
+    };
+    vector_append(entries, _make_api_entry(
+        "place_left",
+        MODULE_OBJECT,
+        "translate the cell so that its alignment box is placed to the left of the alignment box of the specified target cell. This only changes the y coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "cell:place_left(othercell)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+/* object.place_right_origin */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to be placed" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_right_origin",
+        MODULE_OBJECT,
+        "translate the cell so that its alignment box (outer boundary) is placed-right to the origin. This only changes the x coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "cell:place_right_origin()",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.place_right */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to be placed" },
+        { "targetcell",     OBJECT,     NULL, "placment target cell" },
+    };
+    vector_append(entries, _make_api_entry(
+        "place_right",
+        MODULE_OBJECT,
+        "translate the cell so that its alignment box is placed to the right of the alignment box of the specified target cell. This only changes the y coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "cell:place_right(othercell)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.place_top_origin */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to be placed" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_top_origin",
+        MODULE_OBJECT,
+        "translate the cell so that its alignment box (outer boundary) is placed-top to the origin. This only changes the x coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "cell:place_top_origin()",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
+/* object.place_top */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to be placed" },
+        { "targetcell",     OBJECT,     NULL, "placement target cell" },
+    };
+    vector_append(entries, _make_api_entry(
+        "place_top",
+        MODULE_OBJECT,
+        "translate the cell so that its alignment box is placed to the top of the alignment box of the specified target cell. This only changes the y coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "cell:place_top(othercell)",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+/* object.add_anchor */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT, NULL, "object to which an anchor should be added" },
+        { "name",   STRING, NULL, "name of the anchor" },
+        { "where",  POINT,  NULL, "location of the anchor" }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_anchor",
+        MODULE_OBJECT,
+        "add an anchor to an object",
+        "cell:add_anchor(\"output\", point.create(200, -20))",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
 /* object.add_area_anchor_bltr */
 {
     struct parameter parameters[] = {
