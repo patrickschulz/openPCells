@@ -237,6 +237,8 @@ local function _get_parameters(state, cellname, cellargs)
             and explicit[entry.target] -- only follow explicitly-given parameters
         then
             P[entry.name] = P[entry.target]
+            -- make followed parameter explicit in case other parameters follow this one
+            explicit[entry.name] = true
         end
     end
 
