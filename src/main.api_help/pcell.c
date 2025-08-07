@@ -24,7 +24,7 @@
     vector_append(entries, _make_api_entry(
         "add_parameter",
         MODULE_PCELL,
-        "add a parameter to a pcell definition. Must be called in parameters(). The parameter options table can contain the following fields: 'argtype': (type of the parameter, usually deduced from the default value), 'posvals': possible parameter values, see functions 'even', 'odd', 'interval', 'positive', 'negative' and 'set'; 'follow': copy the values from the followed parameter to this one if not explicitly specified; 'readonly': make parameter readonly",
+        "add a parameter to a pcell definition. Must be called in parameters(). The parameter options table can contain the following fields: 'argtype': (type of the parameter, usually deduced from the default value), 'posvals': possible parameter values, see functions 'even', 'odd', 'interval', 'positive', 'negative' and 'set'; 'follow': copy the values from the followed parameter to this one if not explicitly specified and if the followed parameter was given explicitly; 'readonly': make parameter readonly",
         "function parameters()\n    pcell.add_parameter(\"fingers\", 2, { posvals = even() })\nend",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
