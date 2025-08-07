@@ -141,6 +141,8 @@ void _print_general_info(void)
     puts("         opc --technology opc --export gds --cellscript script.lua");
     puts("");
     puts("You can find out more about the available command line options by running 'opc -h'.");
+    puts("");
+    puts("A tutorial showing the usage of opc can be accessed by 'opc --tutorial'.");
 }
 
 int main(int argc, const char* const * argv)
@@ -182,11 +184,16 @@ int main(int argc, const char* const * argv)
     // Help Footer
     cmdoptions_append_help_message(cmdoptions, "");
     cmdoptions_append_help_message(cmdoptions, "Most common usage examples:");
-    cmdoptions_append_help_message(cmdoptions, "   get cell parameter information:             opc --cell stdcells/dff --parameters");
-    cmdoptions_append_help_message(cmdoptions, "   create a cell:                              opc --technology TECH --export gds --cell stdcells/dff");
-    cmdoptions_append_help_message(cmdoptions, "   create a cell from a foreign collection:    opc --cellpath /path/to/collection --technology TECH --export gds --cell other/somecell");
-    cmdoptions_append_help_message(cmdoptions, "   create a cell by using a cellscript:        opc --technology TECH --export gds --cellscript celldef.lua");
-    cmdoptions_append_help_message(cmdoptions, "   read a GDS stream file and create cells:    opc --read-GDS stream.gds");
+    cmdoptions_append_help_message(cmdoptions, "    get cell parameter information:");
+    cmdoptions_append_help_message(cmdoptions, "        opc --cell stdcells/dff --parameters");
+    cmdoptions_append_help_message(cmdoptions, "    create a cell:");
+    cmdoptions_append_help_message(cmdoptions, "        opc --technology TECH --export gds --cell stdcells/dff");
+    cmdoptions_append_help_message(cmdoptions, "    create a cell from a foreign collection:");
+    cmdoptions_append_help_message(cmdoptions, "        opc --cellpath /path/to/collection --technology TECH --export gds --cell other/somecell");
+    cmdoptions_append_help_message(cmdoptions, "    create a cell by using a cellscript:");
+    cmdoptions_append_help_message(cmdoptions, "        opc --technology TECH --export gds --cellscript celldef.lua");
+    cmdoptions_append_help_message(cmdoptions, "    read a GDS stream file and create cells:");
+    cmdoptions_append_help_message(cmdoptions, "        opc --read-GDS stream.gds");
     cmdoptions_append_help_message(cmdoptions, "");
     cmdoptions_append_help_message(cmdoptions, "For more information on a specific command-line option you can also pass this to --help, e.g. opc --help --read-gds");
 
