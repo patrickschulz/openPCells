@@ -274,6 +274,79 @@ function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xsp
     end
 end
 
+function M.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, anchorprefix1, anchorprefix2, options)
+    check.set_next_function_name("layouthelpers.place_double_guardring")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg_func(2, "bl", "point", bl, point.is_point)
+    check.arg_func(3, "tr", "point", tr, point.is_point)
+    check.arg(4, "xspace", "number", xspace)
+    check.arg(5, "yspace", "number", yspace)
+    check.arg(6, "innercontype", "string", innercontype)
+    check.arg_optional(7, "anchorprefix1", "string", anchorprefix1)
+    check.arg_optional(8, "anchorprefix2", "string", anchorprefix2)
+    check.arg(9, "options", "table", options)
+    check.reset_function_name()
+    if not options.ringwidth then
+        error("layouthelpers.place_double_guardring: options table must contain 'ringwidth'")
+    end
+    local guardring1 = pcell.create_layout(
+        "auxiliary/guardring",
+        "_guardring",
+        util.add_options(options or {}, {
+            contype = innercontype,
+            holewidth = point.xdistance_abs(bl, tr) + 2 * xspace,
+            holeheight = point.ydistance_abs(bl, tr) + 2 * yspace,
+            wellouterextension = xspace / 2,
+            soiopenouterextension = xspace / 2,
+            implantouterextension = xspace / 2,
+            fillwell = true,
+        })
+    )
+    guardring1:move_point(guardring1:get_area_anchor("innerboundary").bl, bl)
+    guardring1:translate(-xspace, -yspace)
+    cell:merge_into(guardring1)
+    cell:inherit_alignment_box(guardring1)
+    if anchorprefix1 then
+        cell:inherit_area_anchor_as(guardring1, "outerboundary", string.format("%souterboundary", anchorprefix1))
+        cell:inherit_area_anchor_as(guardring1, "innerboundary", string.format("%sinnerboundary", anchorprefix1))
+        cell:inherit_area_anchor_as(guardring1, "outerwell", string.format("%souterwell", anchorprefix1))
+        cell:inherit_area_anchor_as(guardring1, "innerwell", string.format("%sinnerwell", anchorprefix1))
+        cell:inherit_area_anchor_as(guardring1, "outerimplant", string.format("%souterimplant", anchorprefix1))
+        cell:inherit_area_anchor_as(guardring1, "innerimplant", string.format("%sinnerimplant", anchorprefix1))
+        cell:inherit_area_anchor_as(guardring1, "outersoiopen", string.format("%soutersoiopen", anchorprefix1))
+        cell:inherit_area_anchor_as(guardring1, "innersoiopen", string.format("%sinnersoiopen", anchorprefix1))
+    end
+    local guardring2 = pcell.create_layout(
+        "auxiliary/guardring",
+        "_guardring",
+        util.add_options(options or {}, {
+            contype = innercontype == "n" and "p" or "n",
+            holewidth = point.xdistance_abs(bl, tr) + 4 * xspace + 2 * options.ringwidth,
+            holeheight = point.ydistance_abs(bl, tr) + 4 * yspace + 2 * options.ringwidth,
+            wellinnerextension = xspace / 2,
+            soiopeninnerextension = xspace / 2,
+            implantinnerextension = xspace / 2,
+            fillwell = false,
+            drawdeepwell = true,
+            deepwelloffset = options.deepwelloffset
+        })
+    )
+    guardring2:move_point(guardring2:get_area_anchor("innerboundary").bl, bl)
+    guardring2:translate(-2 * xspace - options.ringwidth, -2 * yspace - options.ringwidth)
+    cell:merge_into(guardring2)
+    cell:inherit_alignment_box(guardring2)
+    if anchorprefix2 then
+        cell:inherit_area_anchor_as(guardring2, "outerboundary", string.format("%souterboundary", anchorprefix2))
+        cell:inherit_area_anchor_as(guardring2, "innerboundary", string.format("%sinnerboundary", anchorprefix2))
+        cell:inherit_area_anchor_as(guardring2, "outerwell", string.format("%souterwell", anchorprefix2))
+        cell:inherit_area_anchor_as(guardring2, "innerwell", string.format("%sinnerwell", anchorprefix2))
+        cell:inherit_area_anchor_as(guardring2, "outerimplant", string.format("%souterimplant", anchorprefix2))
+        cell:inherit_area_anchor_as(guardring2, "innerimplant", string.format("%sinnerimplant", anchorprefix2))
+        cell:inherit_area_anchor_as(guardring2, "outersoiopen", string.format("%soutersoiopen", anchorprefix2))
+        cell:inherit_area_anchor_as(guardring2, "innersoiopen", string.format("%sinnersoiopen", anchorprefix2))
+    end
+end
+
 function M.place_welltap(cell, bl, tr, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_welltap")
     check.arg_func(1, "cell", "object", cell, object.is_object)

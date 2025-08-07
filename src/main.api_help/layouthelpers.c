@@ -135,6 +135,29 @@
     ));
 }
 
+/* layouthelpers.place_double_guardring */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place guardring in" },
+        { "bl",             POINT,      NULL, "bottom-left boundary corner" },
+        { "tr",             POINT,      NULL, "top-right boundary corner" },
+        { "xspace",         INTEGER,    NULL, "space in x-direction between boundary and guardring" },
+        { "yspace",         INTEGER,    NULL, "space in y-direction between boundary and guardring" },
+        { "innercontype",   STRING,     NULL, "contact type of inner guardring, the outer one has the opposite polarity" },
+        { "anchorprefix1",  STRING,     NULL, "anchor prefix for inherited anchors for inner guardring (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
+        { "anchorprefix2",  STRING,     NULL, "anchor prefix for inherited anchors for outer guardring (cell inherits the 'innerboundary' and 'outerboundary' area anchors). If this is nil, no anchors are inherited" },
+        { "options",        TABLE,      NULL, "placement options, this table needs to contain at least 'ringwidth'" }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_double_guardring",
+        MODULE_LAYOUTHELPERS,
+        "place a guardring in a cell with a defined boundary and spacing",
+"layouthelpers.place_double_guardring(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    \"p\",\n    \"innerguardring_\", \"outerguardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n    }\n)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
 /* layouthelpers.place_welltap */
 {
     struct parameter parameters[] = {
