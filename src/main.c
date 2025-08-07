@@ -32,8 +32,8 @@
 #include "main.cell.h"
 #include "main.functions.h"
 #include "main.gds.h"
+#include "main.import.h"
 #include "main.tutorial.h"
-#include "main.verilog.h"
 
 #include "_scriptmanager.h"
 #include "_modulemanager.h"
@@ -409,12 +409,12 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CMDOPTIONS;
     }
 
-    if(cmdoptions_was_provided_long(cmdoptions, "import-verilog"))
+    if(cmdoptions_was_provided_long(cmdoptions, "import"))
     {
-        const char* scriptname = cmdoptions_get_argument_long(cmdoptions, "import-verilog");
+        const char* scriptname = cmdoptions_get_argument_long(cmdoptions, "import");
         const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
         const struct const_vector* args = const_vector_adapt_from_pointer_array((void**)ptr);
-        main_verilog_import(scriptname, args);
+        main_import_script(scriptname, args);
         goto DESTROY_CMDOPTIONS;
     }
 

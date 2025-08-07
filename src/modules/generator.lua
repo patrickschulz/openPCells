@@ -105,4 +105,33 @@ function M.digital(file, rows, routes, numinnerroutes, pnumtracks, nnumtracks)
     file:write(table.concat(lines, '\n'))
 end
 
+function M.analog(file, devices, nets)
+    local lines = {}
+    -- start cellscript
+    table.insert(lines, "local cell = object.create(\"cell\")")
+    -- device creation
+    for _, device in ipairs(devices) do
+        local paramt = {}
+        for k, v in pairs(device.parameters) do
+            table.insert(paramt, string.format("%s = %s", k, v))
+        end
+        local fmt = "local %s = pcell.create_layout(\"basic/mosfet\", \"_%s\", {%s})"
+        table.insert(lines, string.format(fmt, device.name, device.name, table.concat(paramt, ", ")))
+    end
+    -- placement
+    for i, device in ipairs(devices) do
+        if i ~= 1 then
+            table.insert(lines, string.format("%s:place_top(%s)", device.name, devices[i - 1].name))
+            table.insert(lines, string.format("%s:align_center_x(%s)", device.name, devices[i - 1].name))
+        end
+    end
+    -- merging
+    for _, device in ipairs(devices) do
+        table.insert(lines, string.format("cell:merge_into(%s)", device.name))
+    end
+    -- end cellscript
+    table.insert(lines, "return cell")
+    file:write(table.concat(lines, '\n'))
+end
+
 return M

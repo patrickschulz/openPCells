@@ -12,7 +12,7 @@ ifeq ($(DEBUGANALYZE), 1)
     CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined $(WARNFLAGS) $(COMMONFLAGS) $(PPFLAGS)
 endif
 
-OBJS:= bltrshape.o cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lterminal.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.tutorial.o main.verilog.o object.o pcell.o placement.o point.o polygon.o postprocess.o print.o shape.o skillexport.o tagged_value.o technology.o terminal.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
+OBJS:= bltrshape.o buffer.o cdl_parser.o cdl_tokenlist.o cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o limport.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lterminal.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.tutorial.o main.import.o object.o pcell.o placement.o point.o polygon.o postprocess.o print.o shape.o skillexport.o string.o tagged_value.o technology.o terminal.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
 RELEASEOBJS = $(addprefix release/, $(OBJS))
 LINTOBJS = $(addprefix lint/, $(OBJS))
 DEBUGOBJS = $(addprefix debug/, $(OBJS))
@@ -169,6 +169,11 @@ clean:
 # * _scriptmanager.o
 # * main.o
 bltrshape.o: src/bltrshape.c src/bltrshape.h src/point.h
+buffer.o: src/buffer.c src/buffer.h
+cdl_parser.o: src/cdl_parser.c src/cdl_parser.h src/buffer.h src/string.h \
+ src/cdl_tokenlist.h src/vector.h
+cdl_tokenlist.o: src/cdl_tokenlist.c src/cdl_tokenlist.h src/string.h \
+ src/vector.h
 cells.o: src/cells.c src/pcell.h src/lua/lua.h src/lua/luaconf.h \
  src/object.h src/hashmap.h src/polygon.h src/point.h src/shape.h \
  src/technology.h src/vector.h src/transformationmatrix.h src/geometry.h \
@@ -224,6 +229,8 @@ lgeometry.o: src/lgeometry.c src/lgeometry.h src/lua/lua.h \
  src/point.h src/shape.h src/transformationmatrix.h src/graphics.h \
  src/lcheck.h src/lgenerics.h src/lobject.h src/lplacement.h src/lpoint.h \
  src/lutil.h src/placement.h
+limport.o: src/limport.c src/limport.h src/lua/lua.h src/lua/luaconf.h \
+ src/lua/lauxlib.h src/lua/lua.h import.h
 lobject.o: src/lobject.c src/lobject.h src/lua/lua.h src/lua/luaconf.h \
  src/object.h src/hashmap.h src/polygon.h src/point.h src/shape.h \
  src/technology.h src/vector.h src/transformationmatrix.h \
@@ -337,6 +344,9 @@ skillexport.o: src/skillexport.c src/skillexport.h src/export_common.h \
  src/object.h src/hashmap.h src/polygon.h src/point.h src/shape.h \
  src/technology.h src/lua/lua.h src/lua/luaconf.h src/vector.h \
  src/transformationmatrix.h src/tagged_value.h src/util.h
+spectre_parser.o: src/spectre_parser.c parser.h src/buffer.h device.h \
+ src/string.h tokenlist.h src/vector.h
+spectre_tokenlist.o: src/spectre_tokenlist.c tokenlist.h src/vector.h
 string.o: src/string.c src/string.h
 tagged_value.o: src/tagged_value.c src/tagged_value.h src/util.h
 technology.o: src/technology.c src/technology.h src/lua/lua.h \
