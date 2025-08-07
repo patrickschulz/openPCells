@@ -22,6 +22,7 @@
 #include "cmdoptions.h"
 #include "filesystem.h"
 #include "hashmap.h"
+#include "lterminal.h"
 #include "lua_util.h"
 #include "pcell.h"
 #include "util.h"
@@ -273,8 +274,11 @@ int main(int argc, const char* const * argv)
             return 0;
         }
         lua_State* L = util_create_basic_lua_state();
+        open_lterminal_lib(L);
         // load config file
         const char* configfile = technology_get_configfile_path(techstate, techname);
+        lua_pushstring(L, configfile);
+        lua_setglobal(L, "config_path");
         int ret = luaL_dofile(L, configfile);
         if(ret != LUA_OK)
         {
@@ -286,6 +290,8 @@ int main(int argc, const char* const * argv)
         lua_setglobal(L, "config");
         // load layer map
         const char* layermap = technology_get_layermap_path(techstate, techname);
+        lua_pushstring(L, layermap);
+        lua_setglobal(L, "layermap_path");
         ret = luaL_dofile(L, layermap);
         if(ret != LUA_OK)
         {
@@ -297,6 +303,8 @@ int main(int argc, const char* const * argv)
         lua_setglobal(L, "layermap");
         // load via table
         const char* viatable = technology_get_viatable_path(techstate, techname);
+        lua_pushstring(L, viatable);
+        lua_setglobal(L, "viatable_path");
         ret = luaL_dofile(L, viatable);
         if(ret != LUA_OK)
         {
@@ -306,6 +314,23 @@ int main(int argc, const char* const * argv)
             return 0;
         }
         lua_setglobal(L, "viatable");
+        // load constraints
+        const char* constraints = technology_get_constraints_path(techstate, techname);
+        lua_pushstring(L, constraints);
+        lua_setglobal(L, "constraints_path");
+        ret = luaL_dofile(L, constraints);
+        if(ret != LUA_OK)
+        {
+            const char* msg = lua_tostring(L, -1);
+            fprintf(stderr, "error while loading constraints:\n  %s\n", msg);
+            lua_close(L);
+            return 0;
+        }
+        lua_setglobal(L, "constraints");
+        // ignore export type errors?
+        int ignore_export_errors = cmdoptions_was_provided_long(cmdoptions, "check-technology-ignore-export");
+        lua_pushboolean(L, ignore_export_errors);
+        lua_setglobal(L, "ignore_export_errors");
         // call check script
         script_call_check_technology(L);
         lua_close(L);
