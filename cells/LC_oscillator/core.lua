@@ -8,6 +8,7 @@ function parameters()
         { "connector_extension", 0 },
         { "place_currentmirror", false },
         { "place_fixed_capacitor", true },
+        { "place_CDAC", true },
         { "ccp_gatelength", 0 },
         { "ccp_gatespace", 0 },
         { "ccp_gatestrapwidth", 0 },
@@ -268,11 +269,28 @@ function layout(core, _P)
     varbank:abut_bottom(ccp)
 
     -- CDAC
-    local cdacref = pcell.create_layout("./cdac", "cdac", {
-
-    })
-    local cdac = core:add_child(cdacref, "cdac")
-    cdac:abut_bottom(varbank)
+    local cdac
+    if _P.place_CDAC then
+        local cdacref = pcell.create_layout("./cdac", "cdac", {
+            numcells = 127,
+            switchfingerwidth = 100,
+            gatelength = 20,
+            gatespace = 84,
+            sdviaextension = 100,
+            innerfingers = 1,
+            fingerwidth = 50,
+            fingerspace = 50,
+            fingerlength = 8000,
+            firstmetal = 4,
+            lastmetal = 7,
+            railwidth = 60,
+            capspace = 300,
+            vsslinewidth = 60,
+            vsslinespace = 200,
+        })
+        cdac = core:add_child(cdacref, "cdac")
+        cdac:abut_bottom(varbank)
+    end
 
     -- fixed capacitor
     local fixed_capacitor
