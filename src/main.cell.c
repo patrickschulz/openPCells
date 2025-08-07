@@ -18,7 +18,7 @@
 #include "technology.h"
 #include "util_cmodule.h"
 #include "util.h"
-#include "config.h"
+#include "_config.h"
 
 static int _parse_point(const char* arg, int* xptr, int* yptr)
 {

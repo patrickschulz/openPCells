@@ -15,8 +15,8 @@
 #include "lobject.h"
 #include "ldebug.h"
 
-#include "scriptmanager.h"
-#include "modulemanager.h"
+#include "_scriptmanager.h"
+#include "_modulemanager.h"
 
 struct pcell_state {
     struct vector* cellpaths;

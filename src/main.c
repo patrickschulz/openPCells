@@ -17,13 +17,13 @@
 #include "lua/lua.h"
 #include "lua/lauxlib.h"
 
+#include "_config.h"
+
 #include "cmdoptions.h"
-#include "config.h"
 #include "filesystem.h"
 #include "hashmap.h"
 #include "lua_util.h"
 #include "pcell.h"
-#include "scriptmanager.h"
 #include "util.h"
 #include "version.h"
 
@@ -33,6 +33,9 @@
 #include "main.gds.h"
 #include "main.tutorial.h"
 #include "main.verilog.h"
+
+#include "_scriptmanager.h"
+#include "_modulemanager.h"
 
 static int _load_config(struct hashmap* config)
 {
@@ -138,8 +141,6 @@ void _print_general_info(void)
     puts("");
     puts("You can find out more about the available command line options by running 'opc -h'.");
 }
-
-#include "modulemanager.h"
 
 int main(int argc, const char* const * argv)
 {

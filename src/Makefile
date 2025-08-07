@@ -33,8 +33,8 @@ release:
 	mkdir -p release
 	mkdir -p release/lua
 
-release/$(PROGNAME): release cmdoptions_def.c version.h main.c liblua_release.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(RELEASEOBJS)
-	$(CC) $(CFLAGS) -O3 -o release/$(PROGNAME) main.c $(RELEASEOBJS) modulemanager.c scriptmanager.c liblua_release.a -lm -ldl
+release/$(PROGNAME): release cmdoptions_def.c version.h main.c liblua_release.a _modulemanager.h _modulemanager.c _scriptmanager.h _scriptmanager.c $(RELEASEOBJS)
+	$(CC) $(CFLAGS) -O3 -o release/$(PROGNAME) main.c $(RELEASEOBJS) _modulemanager.c _scriptmanager.c liblua_release.a -lm -ldl
 
 release/%.o: %.c
 	$(CC) -c $(CFLAGS) -O3 -o $@ $<
@@ -43,8 +43,8 @@ lint:
 	mkdir -p lint
 	mkdir -p lint/lua
 
-lint/$(PROGNAME): lint cmdoptions_def.c version.h main.c liblua_lint.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(LINTOBJS)
-	$(CC) $(CFLAGS) -DOPC_LINT -O3 -o lint/$(PROGNAME) main.c $(LINTOBJS) modulemanager.c scriptmanager.c liblua_lint.a -lm -ldl
+lint/$(PROGNAME): lint cmdoptions_def.c version.h main.c liblua_lint.a _modulemanager.h _modulemanager.c _scriptmanager.h _scriptmanager.c $(LINTOBJS)
+	$(CC) $(CFLAGS) -DOPC_LINT -O3 -o lint/$(PROGNAME) main.c $(LINTOBJS) _modulemanager.c _scriptmanager.c liblua_lint.a -lm -ldl
 
 lint/%.o: %.c
 	$(CC) -c $(CFLAGS) -DOPC_LINT -O3 -o $@ $<
@@ -53,8 +53,8 @@ debug:
 	mkdir -p debug
 	mkdir -p debug/lua
 
-debug/$(PROGNAME): debug cmdoptions_def.c version.h main.c liblua_debug.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(DEBUGOBJS)
-	$(CC) $(CFLAGS) -O0 -g -o debug/$(PROGNAME) main.c $(DEBUGOBJS) modulemanager.c scriptmanager.c liblua_debug.a -lm -ldl
+debug/$(PROGNAME): debug cmdoptions_def.c version.h main.c liblua_debug.a _modulemanager.h _modulemanager.c _scriptmanager.h _scriptmanager.c $(DEBUGOBJS)
+	$(CC) $(CFLAGS) -O0 -g -o debug/$(PROGNAME) main.c $(DEBUGOBJS) _modulemanager.c _scriptmanager.c liblua_debug.a -lm -ldl
 
 debug/%.o: %.c
 	$(CC) -c $(CFLAGS) -O0 -g -o $@ $<
@@ -65,78 +65,78 @@ opc.1: cmdoptions_def.c generate_manpage
 generate_manpage: cmdoptions.h cmdoptions.c generate_manpage.c
 	$(CC) $(CFLAGS) generate_manpage.c cmdoptions.c vector.c util.c -o generate_manpage
 
-scriptmanager.c: embed_compiled_lua_file_release scripts/*.lua
-	@echo '#include "scriptmanager.h"' > scriptmanager.c
-	@echo '#include <stddef.h>' >> scriptmanager.c
-	@echo '#include "main.functions.h"' >> scriptmanager.c
-	./embed_compiled_lua_file_release --script scripts/list_cells.lua script_call list_cells scriptmanager.c
-	./embed_compiled_lua_file_release --script scripts/assistant.lua script_call assistant scriptmanager.c
-	./embed_compiled_lua_file_release --script scripts/list_parameters.lua script_call list_parameters scriptmanager.c
-	./embed_compiled_lua_file_release --script scripts/list_anchors.lua script_call list_anchors scriptmanager.c
-	./embed_compiled_lua_file_release --script scripts/templates.lua script_call templates scriptmanager.c
-	./embed_compiled_lua_file_release --script scripts/check_technology.lua script_call check_technology scriptmanager.c
+_scriptmanager.c: _embed_compiled_lua_file_release scripts/*.lua
+	@echo '#include "_scriptmanager.h"' > _scriptmanager.c
+	@echo '#include <stddef.h>' >> _scriptmanager.c
+	@echo '#include "main.functions.h"' >> _scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/list_cells.lua script_call list_cells _scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/assistant.lua script_call assistant _scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/list_parameters.lua script_call list_parameters _scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/list_anchors.lua script_call list_anchors _scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/templates.lua script_call templates _scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/check_technology.lua script_call check_technology _scriptmanager.c
 
-scriptmanager.h:
-	@echo '#ifndef OPC_SCRIPTMANAGER_H' > scriptmanager.h
-	@echo '#define OPC_SCRIPTMANAGER_H' >> scriptmanager.h
-	@echo '#include "lua/lua.h"' >> scriptmanager.h
-	@echo 'int script_call_list_cells(lua_State* L);' >> scriptmanager.h
-	@echo 'int script_call_assistant(lua_State* L);' >> scriptmanager.h
-	@echo 'int script_call_list_parameters(lua_State* L);' >> scriptmanager.h
-	@echo 'int script_call_list_anchors(lua_State* L);' >> scriptmanager.h
-	@echo 'int script_call_templates(lua_State* L);' >> scriptmanager.h
-	@echo 'int script_call_check_technology(lua_State* L);' >> scriptmanager.h
-	@echo '#endif // OPC_SCRIPTMANAGER_H' >> scriptmanager.h
+_scriptmanager.h:
+	@echo '#ifndef OPC_SCRIPTMANAGER_H' > _scriptmanager.h
+	@echo '#define OPC_SCRIPTMANAGER_H' >> _scriptmanager.h
+	@echo '#include "lua/lua.h"' >> _scriptmanager.h
+	@echo 'int script_call_list_cells(lua_State* L);' >> _scriptmanager.h
+	@echo 'int script_call_assistant(lua_State* L);' >> _scriptmanager.h
+	@echo 'int script_call_list_parameters(lua_State* L);' >> _scriptmanager.h
+	@echo 'int script_call_list_anchors(lua_State* L);' >> _scriptmanager.h
+	@echo 'int script_call_templates(lua_State* L);' >> _scriptmanager.h
+	@echo 'int script_call_check_technology(lua_State* L);' >> _scriptmanager.h
+	@echo '#endif // OPC_SCRIPTMANAGER_H' >> _scriptmanager.h
 
-modulemanager.c: embed_compiled_lua_file_release modules/*.lua
-	@echo '#include "modulemanager.h"' > modulemanager.c
-	@echo '#include <stddef.h>' >> modulemanager.c
-	@echo '#include "main.functions.h"' >> modulemanager.c
-	./embed_compiled_lua_file_release --module modules/alignmentgroup.lua module_load alignmentgroup modulemanager.c
-	./embed_compiled_lua_file_release --module modules/aux.lua module_load aux modulemanager.c
-	./embed_compiled_lua_file_release --module modules/check.lua module_load check modulemanager.c
-	./embed_compiled_lua_file_release --module modules/generator.lua module_load generator modulemanager.c
-	./embed_compiled_lua_file_release --module modules/globals.lua module_load globals modulemanager.c
-	./embed_compiled_lua_file_release --module modules/graphics.lua module_load graphics modulemanager.c
-	./embed_compiled_lua_file_release --module modules/layouthelpers.lua module_load layouthelpers modulemanager.c
-	./embed_compiled_lua_file_release --module modules/load.lua module_load load modulemanager.c
-	./embed_compiled_lua_file_release --module modules/pcell.lua module_load pcell modulemanager.c
-	./embed_compiled_lua_file_release --module modules/placement.lua module_load placement modulemanager.c
-	./embed_compiled_lua_file_release --module modules/routing.lua module_load routing modulemanager.c
-	./embed_compiled_lua_file_release --module modules/stack.lua module_load stack modulemanager.c
-	./embed_compiled_lua_file_release --module modules/util.lua module_load util modulemanager.c
-	./embed_compiled_lua_file_release --module modules/verilog.lua module_load verilog modulemanager.c
-	./embed_compiled_lua_file_release --module modules/verilogprocessor.lua module_load verilogprocessor modulemanager.c
+_modulemanager.c: _embed_compiled_lua_file_release modules/*.lua
+	@echo '#include "_modulemanager.h"' > _modulemanager.c
+	@echo '#include <stddef.h>' >> _modulemanager.c
+	@echo '#include "main.functions.h"' >> _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/alignmentgroup.lua module_load alignmentgroup _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/aux.lua module_load aux _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/check.lua module_load check _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/generator.lua module_load generator _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/globals.lua module_load globals _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/graphics.lua module_load graphics _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/layouthelpers.lua module_load layouthelpers _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/load.lua module_load load _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/pcell.lua module_load pcell _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/placement.lua module_load placement _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/routing.lua module_load routing _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/stack.lua module_load stack _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/util.lua module_load util _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/verilog.lua module_load verilog _modulemanager.c
+	./_embed_compiled_lua_file_release --module modules/verilogprocessor.lua module_load verilogprocessor _modulemanager.c
 
-modulemanager.h: modules/*.lua
-	@echo '#ifndef OPC_MODULEMANAGER_H' > modulemanager.h
-	@echo '#define OPC_MODULEMANAGER_H' >> modulemanager.h
-	@echo '#include "lua/lua.h"' >> modulemanager.h
-	@echo 'int module_load_alignmentgroup(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_aux(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_check(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_generator(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_globals(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_graphics(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_layouthelpers(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_load(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_pcell(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_placement(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_routing(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_stack(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_util(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_verilog(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_verilogprocessor(lua_State* L);' >> modulemanager.h
-	@echo '#endif // OPC_MODULEMANAGER_H' >> modulemanager.h
+_modulemanager.h: modules/*.lua
+	@echo '#ifndef OPC_MODULEMANAGER_H' > _modulemanager.h
+	@echo '#define OPC_MODULEMANAGER_H' >> _modulemanager.h
+	@echo '#include "lua/lua.h"' >> _modulemanager.h
+	@echo 'int module_load_alignmentgroup(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_aux(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_check(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_generator(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_globals(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_graphics(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_layouthelpers(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_load(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_pcell(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_placement(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_routing(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_stack(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_util(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_verilog(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_verilogprocessor(lua_State* L);' >> _modulemanager.h
+	@echo '#endif // OPC_MODULEMANAGER_H' >> _modulemanager.h
 
-embed_compiled_lua_file_release: embed_compiled_lua_file.c liblua_release.a
-	$(CC) $(CFLAGS) embed_compiled_lua_file.c liblua_release.a -o embed_compiled_lua_file_release -lm
+_embed_compiled_lua_file_release: embed_compiled_lua_file.c liblua_release.a
+	$(CC) $(CFLAGS) embed_compiled_lua_file.c liblua_release.a -o _embed_compiled_lua_file_release -lm
 
-embed_compiled_lua_file_lint: embed_compiled_lua_file.c liblua_lint.a
-	$(CC) $(CFLAGS) embed_compiled_lua_file.c liblua_lint.a -o embed_compiled_lua_file_lint -lm
+_embed_compiled_lua_file_lint: embed_compiled_lua_file.c liblua_lint.a
+	$(CC) $(CFLAGS) embed_compiled_lua_file.c liblua_lint.a -o _embed_compiled_lua_file_lint -lm
 
-embed_compiled_lua_file_debug: embed_compiled_lua_file.c liblua_debug.a
-	$(CC) $(CFLAGS) embed_compiled_lua_file.c liblua_debug.a -o embed_compiled_lua_file_debug -lm
+_embed_compiled_lua_file_debug: embed_compiled_lua_file.c liblua_debug.a
+	$(CC) $(CFLAGS) embed_compiled_lua_file.c liblua_debug.a -o _embed_compiled_lua_file_debug -lm
 
 create_latex_API_doc: create_latex_API_doc.c main.api_help.c main.api_help.h vector.c vector.h util.c util.h terminal.c terminal.h
 	$(CC) $(CFLAGS) create_latex_API_doc.c main.api_help.c vector.c util.c terminal.c -o create_latex_API_doc
@@ -150,23 +150,23 @@ clean:
 	rm -f liblua_release.a $(LUA_CORE_RELEASEOBJS) $(LUA_LIB_RELEASEOBJS)
 	rm -f liblua_lint.a $(LUA_CORE_LINTOBJS) $(LUA_LIB_LINTOBJS)
 	rm -f liblua_debug.a $(LUA_CORE_DEBUGOBJS) $(LUA_LIB_DEBUGOBJS)
-	rm -f embed_compiled_lua_file_release
-	rm -f embed_compiled_lua_file_lint
-	rm -f embed_compiled_lua_file_debug
+	rm -f _embed_compiled_lua_file_release
+	rm -f _embed_compiled_lua_file_lint
+	rm -f _embed_compiled_lua_file_debug
 	rm -f generate_manpage
 	rm -f create_latex_API_doc
-	rm -f modulemanager.h modulemanager.c
-	rm -f scriptmanager.h scriptmanager.c
-	rm -f scriptmanager.h scriptmanager.c
+	rm -f _modulemanager.h _modulemanager.c
+	rm -f _scriptmanager.h _scriptmanager.c
+	rm -f _scriptmanager.h _scriptmanager.c
 
 #############################################################
 # generated by gcc -MM -MG *.c
 # the following files are removed manually:
 # * create_latex_API_doc.o
-# * embed_compiled_lua_file.o
+# * _embed_compiled_lua_file.o
 # * generate_manpage.o
-# * modulemanager.o
-# * scriptmanager.o
+# * _modulemanager.o
+# * _scriptmanager.o
 # * main.o
 bltrshape.o: src/bltrshape.c src/bltrshape.h src/point.h
 cells.o: src/cells.c src/pcell.h src/lua/lua.h src/lua/luaconf.h \
@@ -288,7 +288,7 @@ main.cell.o: src/main.cell.c src/main.cell.h src/hashmap.h \
  src/technology.h src/lua/lua.h src/vector.h src/transformationmatrix.h \
  src/filesystem.h src/gdsparser.h src/geometry.h src/info.h \
  src/main.functions.h src/pcell.h src/postprocess.h src/util_cmodule.h \
- src/util.h src/config.h
+ src/util.h src/_config.h
 main.functions.o: src/main.functions.c src/main.functions.h src/lua/lua.h \
  src/lua/luaconf.h src/technology.h src/vector.h src/hashmap.h \
  src/lua/lauxlib.h src/lua/lua.h src/lua_util.h src/filesystem.h \
@@ -303,7 +303,7 @@ main.import.o: src/main.import.c src/main.import.h src/vector.h \
  src/lua/lua.h src/lua/luaconf.h src/lua/lauxlib.h src/lua/lua.h \
  src/cdl_parser.h src/filesystem.h src/lplacement.h src/polygon.h \
  src/point.h src/lplacer.h src/lrouter.h src/lua_util.h \
- src/main.functions.h src/technology.h src/hashmap.h src/modulemanager.h \
+ src/main.functions.h src/technology.h src/hashmap.h src/_modulemanager.h \
  src/util_cmodule.h src/util.h
 main.tutorial.o: src/main.tutorial.c src/main.tutorial.h src/print.h \
  src/terminal.h
@@ -315,7 +315,7 @@ pcell.o: src/pcell.c src/pcell.h src/lua/lua.h src/lua/luaconf.h \
  src/technology.h src/vector.h src/transformationmatrix.h \
  src/lua/lauxlib.h src/lua/lua.h src/cells.h src/main.functions.h \
  src/util.h src/lua_util.h src/ldir.h src/lobject.h src/ldebug.h \
- src/scriptmanager.h src/modulemanager.h
+ src/_scriptmanager.h src/_modulemanager.h
 placement.o: src/placement.c src/placement.h src/object.h src/hashmap.h \
  src/polygon.h src/point.h src/shape.h src/technology.h src/lua/lua.h \
  src/lua/luaconf.h src/vector.h src/transformationmatrix.h src/geometry.h \

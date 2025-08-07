@@ -101,7 +101,7 @@ done
 
 # create Makefile
 cat > Makefile << EOF
-DEPENDENCIES := src/config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c
+DEPENDENCIES := src/_config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c
 
 .PHONY: default
 default: opc
@@ -145,12 +145,12 @@ clean:
 
 .PHONY: cleanall
 cleanall: clean
-	rm -f src/config.h
+	rm -f src/_config.h
 	rm -f Makefile
 EOF
 
 # create config.h
-cat > src/config.h << EOF
+cat > src/_config.h << EOF
 /*
  * This file is auto-generated.
  * Do not edit it.
