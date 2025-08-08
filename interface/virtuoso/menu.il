@@ -151,7 +151,7 @@ procedure(OPCModeChangeTrigger(args)
 )
 
 ; create a user postinstall trigger that automatically adds the menu
-foreach(layoutTier list("maskLayoutL" "maskLayoutXL" "maskLayoutEXL" "maskLayoutGXL")
+foreach(layoutTier list("layout" "maskLayout" "maskLayoutL" "maskLayoutXL" "maskLayoutEXL" "maskLayoutGXL" "maskLayoutEAD")
     when(member(layoutTier deGetAllViewTypes())
         deRegUserTriggers(layoutTier nil 'OPCMenuTrigger 'OPCModeChangeTrigger)
     )
