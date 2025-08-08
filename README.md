@@ -129,7 +129,7 @@ This uses gcc as compiler, if you have any specific needs, the compiler can be a
 
 Please note that if you don't 'install' opc (by copying it into the proper location), you should use `--all-load-paths-local`.
 This configures the load paths so that opc can be called with the absolute path (or an alias). If you don't plan to install opc properly, you should
-use the second shown build method ('Building and installing locally').
+use the third shown build method ('Building and installing locally').
 
 # Integration in EDA Tools
 OpenPCells can be integrated quite simply in EDA tools that provide an API for adding menus, calling external programs and reading files.
