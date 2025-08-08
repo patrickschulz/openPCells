@@ -452,7 +452,7 @@ struct CDL_tokenlist* _tokenize(const char* filename, const char** message)
         printf("%s\n", context);
         free(context);
         return NULL;
-restart:
+restart: ; // empty statement for older gcc versions
     }
     close_buffer(buffer);
     CDL_token_add(CDL_tokenlist, ENDOFLINE, NULL, util_strdup("virtual extra end-of-line"));
