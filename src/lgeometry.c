@@ -1895,7 +1895,7 @@ static int lgeometry_contactbarebltr(lua_State* L)
         coordinate_t try = point_gety(lpoint_get(tr));
         if(debugstring)
         {
-            lua_pushfstring(L, "geometry.contactbarebltr: could not fit contact from %s to metal 1. Area: %d x %d\ndebug info:", region, trx - blx, try - bly, debugstring);
+            lua_pushfstring(L, "geometry.contactbarebltr: could not fit contact from %s to metal 1. Area: %d x %d\ndebug info: %s", region, trx - blx, try - bly, debugstring);
         }
         else
         {
