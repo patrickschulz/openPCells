@@ -1,6 +1,6 @@
 function parameters()
     pcell.add_parameters(
-        { "contype",                                       "p" },
+        { "contype",                                       "p", posvals = set("p", "n", "none") },
         { "topmetal",                                       1 },
         { "drawmetal",                                      true },
         { "holewidth",                                      5000, posvals = positive() },
@@ -158,11 +158,13 @@ function layout(guardring, _P)
             point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth)
         )
         -- implant
-        if _P.drawimplant then
-            geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-                point.create(-_P.ringwidth - _P.implantouterextension, holeheight - _P.implantinnerextension),
-                point.create(holewidth + _P.ringwidth + _P.implantouterextension, holeheight + _P.ringwidth + _P.implantouterextension)
-            )
+        if _P.contype ~= "none" then
+            if _P.drawimplant then
+                geometry.rectanglebltr(guardring, generics.implant(_P.contype),
+                    point.create(-_P.ringwidth - _P.implantouterextension, holeheight - _P.implantinnerextension),
+                    point.create(holewidth + _P.ringwidth + _P.implantouterextension, holeheight + _P.ringwidth + _P.implantouterextension)
+                )
+            end
         end
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.other("soiopen"),
@@ -205,11 +207,13 @@ function layout(guardring, _P)
             point.create(-_P.ringwidth, -_P.ringwidth),
             point.create(holewidth + _P.ringwidth, 0)
         )
-        if _P.drawimplant then
-            geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-                point.create(-_P.ringwidth - _P.implantouterextension, -_P.implantouterextension - _P.ringwidth),
-                point.create(holewidth + _P.ringwidth + _P.implantouterextension, _P.implantinnerextension)
-            )
+        if _P.contype ~= "none" then
+            if _P.drawimplant then
+                geometry.rectanglebltr(guardring, generics.implant(_P.contype),
+                    point.create(-_P.ringwidth - _P.implantouterextension, -_P.implantouterextension - _P.ringwidth),
+                    point.create(holewidth + _P.ringwidth + _P.implantouterextension, _P.implantinnerextension)
+                )
+            end
         end
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.other("soiopen"),
@@ -252,11 +256,13 @@ function layout(guardring, _P)
             point.create(-_P.ringwidth, -_P.ringwidth),
             point.create(0,  holeheight + _P.ringwidth)
         )
-        if _P.drawimplant then
-            geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-                point.create(-_P.implantouterextension - _P.ringwidth, -_P.implantouterextension - _P.ringwidth),
-                point.create(_P.implantinnerextension, holeheight + _P.implantouterextension + _P.ringwidth)
-            )
+        if _P.contype ~= "none" then
+            if _P.drawimplant then
+                geometry.rectanglebltr(guardring, generics.implant(_P.contype),
+                    point.create(-_P.implantouterextension - _P.ringwidth, -_P.implantouterextension - _P.ringwidth),
+                    point.create(_P.implantinnerextension, holeheight + _P.implantouterextension + _P.ringwidth)
+                )
+            end
         end
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.other("soiopen"),
@@ -299,11 +305,13 @@ function layout(guardring, _P)
             point.create(holewidth, -_P.ringwidth),
             point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth)
         )
-        if _P.drawimplant then
-            geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-                point.create(holewidth - _P.implantinnerextension, -_P.implantouterextension - _P.ringwidth),
-                point.create(holewidth + _P.implantouterextension + _P.ringwidth, holeheight + _P.implantouterextension + _P.ringwidth)
-            )
+        if _P.contype ~= "none" then
+            if _P.drawimplant then
+                geometry.rectanglebltr(guardring, generics.implant(_P.contype),
+                    point.create(holewidth - _P.implantinnerextension, -_P.implantouterextension - _P.ringwidth),
+                    point.create(holewidth + _P.implantouterextension + _P.ringwidth, holeheight + _P.implantouterextension + _P.ringwidth)
+                )
+            end
         end
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.other("soiopen"),
@@ -318,27 +326,29 @@ function layout(guardring, _P)
     end
 
     -- well
-    if _P.fillwell then
-        if _P.fillwelldrawhole then
+    if _P.contype ~= "none" then
+        if _P.fillwell then
+            if _P.fillwelldrawhole then
+                geometry.unequal_ring_pts(guardring, generics.other(string.format("%swell", _P.contype)),
+                    point.create(-_P.ringwidth - _P.wellouterextension, -_P.ringwidth - _P.wellouterextension),
+                    point.create(holewidth + _P.ringwidth + _P.wellouterextension, holeheight + _P.ringwidth + _P.wellouterextension),
+                    point.create(_P.fillwellholeoffsetleft, _P.fillwellholeoffsetbottom),
+                    point.create(holewidth - _P.fillwellholeoffsetright, holeheight - _P.fillwellholeoffsettop)
+                )
+            else
+                geometry.rectanglebltr(guardring, generics.other(string.format("%swell", _P.contype)),
+                    point.create(-_P.ringwidth - _P.wellouterextension, -_P.ringwidth - _P.wellouterextension),
+                    point.create(holewidth + _P.ringwidth + _P.wellouterextension, holeheight + _P.ringwidth + _P.wellouterextension)
+                )
+            end
+        else
             geometry.unequal_ring_pts(guardring, generics.other(string.format("%swell", _P.contype)),
                 point.create(-_P.ringwidth - _P.wellouterextension, -_P.ringwidth - _P.wellouterextension),
                 point.create(holewidth + _P.ringwidth + _P.wellouterextension, holeheight + _P.ringwidth + _P.wellouterextension),
-                point.create(_P.fillwellholeoffsetleft, _P.fillwellholeoffsetbottom),
-                point.create(holewidth - _P.fillwellholeoffsetright, holeheight - _P.fillwellholeoffsettop)
-            )
-        else
-            geometry.rectanglebltr(guardring, generics.other(string.format("%swell", _P.contype)),
-                point.create(-_P.ringwidth - _P.wellouterextension, -_P.ringwidth - _P.wellouterextension),
-                point.create(holewidth + _P.ringwidth + _P.wellouterextension, holeheight + _P.ringwidth + _P.wellouterextension)
+                point.create(_P.wellinnerextension, _P.wellinnerextension),
+                point.create(holewidth - _P.wellinnerextension, holeheight - _P.wellinnerextension)
             )
         end
-    else
-        geometry.unequal_ring_pts(guardring, generics.other(string.format("%swell", _P.contype)),
-            point.create(-_P.ringwidth - _P.wellouterextension, -_P.ringwidth - _P.wellouterextension),
-            point.create(holewidth + _P.ringwidth + _P.wellouterextension, holeheight + _P.ringwidth + _P.wellouterextension),
-            point.create(_P.wellinnerextension, _P.wellinnerextension),
-            point.create(holewidth - _P.wellinnerextension, holeheight - _P.wellinnerextension)
-        )
     end
     guardring:add_area_anchor_bltr("outerwell",
         point.create(-_P.ringwidth - _P.wellouterextension, -_P.ringwidth - _P.wellouterextension),
@@ -349,11 +359,13 @@ function layout(guardring, _P)
         point.create(holewidth - _P.wellinnerextension, holeheight - _P.wellinnerextension)
     )
     -- draw deep n/p-well
-    if _P.drawdeepwell then
-        geometry.rectanglebltr(guardring, generics.other(string.format("deep%swell", _P.contype)),
-            point.create(-_P.ringwidth - _P.wellouterextension + _P.deepwelloffset, -_P.ringwidth - _P.wellouterextension + _P.deepwelloffset),
-            point.create(holewidth + _P.ringwidth + _P.wellouterextension - _P.deepwelloffset, holeheight + _P.ringwidth + _P.wellouterextension - _P.deepwelloffset)
-        )
+    if _P.contype ~= "none" then
+        if _P.drawdeepwell then
+            geometry.rectanglebltr(guardring, generics.other(string.format("deep%swell", _P.contype)),
+                point.create(-_P.ringwidth - _P.wellouterextension + _P.deepwelloffset, -_P.ringwidth - _P.wellouterextension + _P.deepwelloffset),
+                point.create(holewidth + _P.ringwidth + _P.wellouterextension - _P.deepwelloffset, holeheight + _P.ringwidth + _P.wellouterextension - _P.deepwelloffset)
+            )
+        end
     end
     guardring:add_area_anchor_bltr("outerdeepwell",
         point.create(-_P.ringwidth - _P.wellouterextension + _P.deepwelloffset, -_P.ringwidth - _P.wellouterextension + _P.deepwelloffset),
