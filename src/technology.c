@@ -895,6 +895,51 @@ static int ltechnology_get_dimension(lua_State* L)
     return 1;
 }
 
+static int ltechnology_get_dimension_max(lua_State* L)
+{
+    int n = lua_gettop(L);
+    int found = 0;
+    int value = INT_MIN;
+    for(int i = 1; i <= n; ++i)
+    {
+        const char* dimension = lua_tostring(L, i);
+        lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+        struct technology_state* techstate = lua_touserdata(L, -1);
+        lua_pop(L, 1); // pop techstate
+        if(!techstate)
+        {
+            lua_pushinteger(L, 0);
+            return 1;
+        }
+        else
+        {
+            if(hashmap_exists(techstate->constraints, dimension))
+            {
+                struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
+                int newval = tagged_value_get_integer(v);
+                if(newval > value)
+                {
+                    value = newval;
+                }
+                found = 1;
+            }
+        }
+    }
+    if(found)
+    {
+        lua_pushinteger(L, value);
+        return 1;
+    }
+    // FIXME: this looks ugly for multiple arguments
+    lua_concat(L, n);
+    lua_pushstring(L, "technology.get_dimension_max: '");
+    lua_rotate(L, -2, 1);
+    lua_pushstring(L, "' not found");
+    lua_concat(L, 3);
+    lua_error(L);
+    return 1;
+}
+
 static int ltechnology_get_optional_dimension(lua_State* L)
 {
     const char* dimension = lua_tostring(L, 1);
@@ -983,6 +1028,7 @@ int open_ltechnology_lib(lua_State* L)
     {
         { "list_techpaths",                 ltechnology_list_techpaths              },
         { "get_dimension",                  ltechnology_get_dimension               },
+        { "get_dimension_max",              ltechnology_get_dimension_max           },
         { "get_optional_dimension",         ltechnology_get_optional_dimension      },
         { "has_metal",                      ltechnology_has_metal                   },
         { "has_layer",                      ltechnology_has_layer                   },
