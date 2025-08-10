@@ -38,7 +38,7 @@ procedure(OPCUpdateCellscriptCallback(@key (deleteAll t) (callopc t) (hierarchic
         )
         OPCArgs = OPCPrepareArgsForCellCreation(
             lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value)
-            origin
+            ?useOrigin nil
             ?groupname groupname
         )
         unless(hierarchical

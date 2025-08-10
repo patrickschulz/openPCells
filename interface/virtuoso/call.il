@@ -15,16 +15,26 @@ procedure(OPCGetGroupName(@key (newgroup nil))
     )
 )
 
-procedure(OPCPrepareArgsForCellCreation(args origin @key (groupname nil) (exporttype "SKILL"))
+procedure(OPCPrepareArgsForCellCreation(args origin @key (useOrigin t) (groupname nil) (exporttype "SKILL"))
     ; virtuoso chokes on loading files with malformed shapes, hence these are ignored
     ; furthermore, the SKILL export currently does not properly handle path extensions
     ; therefore, path extensions are being resolved by opc
-    OPCArgs = lsprintf(
-        "--technology %s --export %s --origin '(%d, %d)' --ignore-malformed-shapes --resolve-path-extensions %s -X '-L %f'"
-        OPCTech exporttype 
-        fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
-        args
-        OPCSettingsForm->OPCSettingsLabelSize->value
+    if(useOrigin
+        then
+            OPCArgs = lsprintf(
+                "--technology %s --export %s --origin '(%d, %d)' --ignore-malformed-shapes --resolve-path-extensions %s -X '-L %f'"
+                OPCTech exporttype 
+                fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
+                args
+                OPCSettingsForm->OPCSettingsLabelSize->value
+            )
+        else
+            OPCArgs = lsprintf(
+                "--technology %s --export %s --ignore-malformed-shapes --resolve-path-extensions %s -X '-L %f'"
+                OPCTech exporttype 
+                args
+                OPCSettingsForm->OPCSettingsLabelSize->value
+            )
     )
     when(groupname
         OPCArgs = lsprintf("%s -X '-g -n %s'" OPCArgs groupname)
