@@ -74,6 +74,16 @@ procedure(OPCViewDPrintFile()
     )
 ) ; OPCViewLogFile
 
+procedure(OPCViewOutputFile()
+    let(
+        (
+            path
+        )
+        path = lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value)
+        OPCShowTextFile(path)
+    )
+) ; OPCViewLogFile
+
 procedure(OPCGetInfoLayer()
     list(OPCSettingsForm->OPCSettingsInfoLayer->value OPCSettingsForm->OPCSettingsInfoLayerPurpose->value)
 ) ; OPCGetInfoLayer
