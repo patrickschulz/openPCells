@@ -67,12 +67,13 @@ procedure(OPCCreateLayoutMenu()
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
         editconfig = hiCreateMenuItem(?name 'OPCEditConfig ?itemText "Edit Configgile" ?callback "OPCEditConfigFile()")
         viewlog = hiCreateMenuItem(?name 'OPCViewLogFile ?itemText "View Logfile" ?callback "OPCViewLogFile()")
+        viewdprint = hiCreateMenuItem(?name 'OPCViewDPrintFile ?itemText "View Debug Print File" ?callback "OPCViewDPrintFile()")
 
         ; assemble main menu
         itemlist = list(
             about
             SEP
-            settings editconfig viewlog
+            settings editconfig viewlog viewdprint
             SEP
             designmenu
             SEP
