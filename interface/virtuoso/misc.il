@@ -37,7 +37,7 @@ procedure(OPCShowTextFile(path)
         close(file)
         if(car(lines)
             then
-                str = buildString(reverse(lines) "\n")
+                str = buildString(reverse(lines) "")
             else
                 str = ""
         )
