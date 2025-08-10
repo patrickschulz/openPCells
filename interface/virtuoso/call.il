@@ -20,7 +20,7 @@ procedure(OPCPrepareArgsForCellCreation(args origin @key (groupname nil) (export
     ; furthermore, the SKILL export currently does not properly handle path extensions
     ; therefore, path extensions are being resolved by opc
     OPCArgs = lsprintf(
-        "--technology %s --export %s --ignore-malformed-shapes --resolve-path-extensions %s -X '-L %f'"
+        "--technology %s --export %s --origin '(%d, %d)' --ignore-malformed-shapes --resolve-path-extensions %s -X '-L %f'"
         OPCTech exporttype 
         fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
         args
