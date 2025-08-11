@@ -15,7 +15,7 @@ procedure(OPCEditCallback()
     )
 ) ; procedure
 
-procedure(OPCUpdateCellscriptCallback(@key (deleteAll t) (callopc t) (hierarchical t) (origin list(0 0)) (xpath nil) (xgroupname nil))
+procedure(OPCUpdateCellscriptCallback(@key (deleteAll t) (callopc t) (hierarchical t) (origin list(0 0)) (useOrigin nil) (xpath nil) (xgroupname nil))
     letseq(
         (
             (cv geGetEditCellView())
@@ -39,7 +39,7 @@ procedure(OPCUpdateCellscriptCallback(@key (deleteAll t) (callopc t) (hierarchic
         OPCArgs = OPCPrepareArgsForCellCreation(
             lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value)
             list(0 0) ; dummy origin, not used
-            ?useOrigin nil
+            ?useOrigin useOrigin
             ?groupname groupname
         )
         unless(hierarchical

@@ -235,6 +235,7 @@ procedure(OPCSubCellUpdate()
                             ?deleteAll nil
                             ?xpath opcgroup->opcpath
                             ?origin opcgroup->origin
+                            ?useOrigin t
                             ?xgroupname opcgroup->name
                         )
                     else
