@@ -685,6 +685,50 @@ static int lgeometry_rectanglelines_horizontal_height_space_settings(lua_State* 
     return 5;
 }
 
+static int lgeometry_rectanglelines_horizontal_numlines_height_settings(lua_State* L)
+{
+    lcheck_check_numargs1(L, 4, "geometry.rectanglehlines_numlines_height_settings");
+    struct lpoint* pt1 = lpoint_checkpoint(L, 1);
+    struct lpoint* pt2 = lpoint_checkpoint(L, 2);
+    int numlines = luaL_checkinteger(L, 3);
+    coordinate_t heighttarget = luaL_checkinteger(L, 4);
+
+    if(numlines <= 0)
+    {
+        lua_pushfstring(L, "geometry.rectanglehlines_numlines_height_settings: number of lines must be greater than zero (got %d)", numlines);
+        lua_error(L);
+    }
+
+    const struct point* bl = lpoint_get(pt1);
+    const struct point* tr = lpoint_get(pt2);
+
+    ucoordinate_t totalheight = point_ydifference(tr, bl);
+    // ensure that the height and the space of the lines is even
+    unsigned int correction = 0;
+    /*
+    while(totalheight % ((ucoordinate_t)(numlines * 4 * (ratio + 1))) != 0)
+    {
+        --totalheight;
+        ++correction;
+    }
+    */
+
+    ucoordinate_t width = point_xdifference(tr, bl);
+    ucoordinate_t pitch = totalheight / numlines;
+    ucoordinate_t height = heighttarget;
+    ucoordinate_t space = pitch - height;
+
+    coordinate_t offset = (correction + space) / 2;
+
+    lua_pushinteger(L, width);
+    lua_pushinteger(L, height);
+    lua_pushinteger(L, space);
+    lua_pushinteger(L, offset);
+    lua_pushinteger(L, numlines);
+
+    return 5;
+}
+
 static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
 {
     lcheck_check_numargs2(L, 9, 10, "geometry.rectangle_fill_in_boundary");
@@ -2316,68 +2360,69 @@ int open_lgeometry_lib(lua_State* L)
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
-        { "rectanglebltr",                              lgeometry_rectanglebltr                                     },
-        { "rectangleblwh",                              lgeometry_rectangleblwh                                     },
-        { "rectanglepoints",                            lgeometry_rectanglepoints                                   },
-        { "rectangleareaanchor",                        lgeometry_rectangleareaanchor                               },
-        { "rectanglearray",                             lgeometry_rectanglearray                                    },
-        { "slotted_rectangle",                          lgeometry_slotted_rectangle                                 },
-        { "rectanglepath",                              lgeometry_rectanglepath                                     },
-        { "rectanglevlines",                            lgeometry_rectanglelines_vertical                           },
-        { "rectanglevlines_width_space",                lgeometry_rectanglelines_vertical_width_space               },
-        { "rectanglevlines_numlines_width",             lgeometry_rectanglelines_vertical_numlines_width            },
-        { "rectanglevlines_settings",                   lgeometry_rectanglelines_vertical_settings                  },
-        { "rectanglevlines_width_space_settings",       lgeometry_rectanglelines_vertical_width_space_settings      },
-        { "rectanglevlines_numlines_width_settings",    lgeometry_rectanglelines_vertical_numlines_width_settings   },
-        { "rectanglehlines",                            lgeometry_rectanglelines_horizontal                         },
-        { "rectanglehlines_height_space",               lgeometry_rectanglelines_horizontal_height_space            },
-        { "rectanglehlines_settings",                   lgeometry_rectanglelines_horizontal_settings                },
-        { "rectanglehlines_height_space_settings",      lgeometry_rectanglelines_horizontal_height_space_settings   },
-        { "rectangle_fill_in_boundary",                 lgeometry_rectangle_fill_in_boundary                        },
-        { "polygon",                                    lgeometry_polygon                                           },
-        { "path",                                       lgeometry_path                                              },
-        { "path_manhatten",                             lgeometry_path_manhatten                                    },
-        { "path_2x",                                    lgeometry_path_2x                                           },
-        { "path_2x_polygon",                            lgeometry_path_2x_polygon                                   },
-        { "path_2y",                                    lgeometry_path_2y                                           },
-        { "path_2y_polygon",                            lgeometry_path_2y_polygon                                   },
-        { "path_3x",                                    lgeometry_path_3x                                           },
-        { "path_3x_polygon",                            lgeometry_path_3x_polygon                                   },
-        { "path_3x_diagonal",                           lgeometry_path_3x_diagonal                                  },
-        { "path_3x_diagonal_polygon",                   lgeometry_path_3x_diagonal_polygon                          },
-        { "path_3y",                                    lgeometry_path_3y                                           },
-        { "path_3y_polygon",                            lgeometry_path_3y_polygon                                   },
-        { "path_3y_diagonal",                           lgeometry_path_3y_diagonal                                  },
-        { "path_3y_diagonal_polygon",                   lgeometry_path_3y_diagonal_polygon                          },
-        { "path_cshape",                                lgeometry_path_cshape                                       },
-        { "path_ushape",                                lgeometry_path_ushape                                       },
-        { "path_polygon",                               lgeometry_path_polygon                                      },
-        { "path_points_xy",                             lgeometry_path_points_xy                                    },
-        { "path_points_yx",                             lgeometry_path_points_yx                                    },
-        { "check_viabltr",                              lgeometry_check_viabltr                                     },
-        { "calculate_viabltr",                          lgeometry_calculate_viabltr                                 },
-        { "viabltr",                                    lgeometry_viabltr                                           },
-        { "viabltrov",                                  lgeometry_viabltrov                                         },
-        { "viabarebltr",                                lgeometry_viabarebltr                                       },
-        { "viapoints",                                  lgeometry_viapoints                                         },
-        { "viabltr_xcontinuous",                        lgeometry_viabltr_xcontinuous                               },
-        { "viabltr_ycontinuous",                        lgeometry_viabltr_ycontinuous                               },
-        { "viabltr_continuous",                         lgeometry_viabltr_continuous                                },
-        { "viabarebltr_xcontinuous",                    lgeometry_viabarebltr_xcontinuous                           },
-        { "viabarebltr_ycontinuous",                    lgeometry_viabarebltr_ycontinuous                           },
-        { "viabarebltr_continuous",                     lgeometry_viabarebltr_continuous                            },
-        { "contactbltr",                                lgeometry_contactbltr                                       },
-        { "contactbarebltr",                            lgeometry_contactbarebltr                                   },
-        { "cross",                                      lgeometry_cross                                             },
-        { "ring",                                       lgeometry_ring                                              },
-        { "unequal_ring",                               lgeometry_unequal_ring                                      },
-        { "unequal_ring_pts",                           lgeometry_unequal_ring_pts                                  },
-        { "curve",                                      lgeometry_curve                                             },
-        { "curve_rasterized",                           lgeometry_curve_rasterized                                  },
-        { "get_side_path_points",                       lgeometry_get_side_path_points                              },
-        { "offset_polygon_points",                      lgeometry_offset_polygon_points                             },
-        { "path_points_to_polygon",                     lgeometry_path_points_to_polygon                            },
-        { NULL,                                         NULL                                                        }
+        { "rectanglebltr",                              lgeometry_rectanglebltr                                         },
+        { "rectangleblwh",                              lgeometry_rectangleblwh                                         },
+        { "rectanglepoints",                            lgeometry_rectanglepoints                                       },
+        { "rectangleareaanchor",                        lgeometry_rectangleareaanchor                                   },
+        { "rectanglearray",                             lgeometry_rectanglearray                                        },
+        { "slotted_rectangle",                          lgeometry_slotted_rectangle                                     },
+        { "rectanglepath",                              lgeometry_rectanglepath                                         },
+        { "rectanglevlines",                            lgeometry_rectanglelines_vertical                               },
+        { "rectanglevlines_width_space",                lgeometry_rectanglelines_vertical_width_space                   },
+        { "rectanglevlines_numlines_width",             lgeometry_rectanglelines_vertical_numlines_width                },
+        { "rectanglevlines_settings",                   lgeometry_rectanglelines_vertical_settings                      },
+        { "rectanglevlines_width_space_settings",       lgeometry_rectanglelines_vertical_width_space_settings          },
+        { "rectanglevlines_numlines_width_settings",    lgeometry_rectanglelines_vertical_numlines_width_settings       },
+        { "rectanglehlines",                            lgeometry_rectanglelines_horizontal                             },
+        { "rectanglehlines_height_space",               lgeometry_rectanglelines_horizontal_height_space                },
+        { "rectanglehlines_settings",                   lgeometry_rectanglelines_horizontal_settings                    },
+        { "rectanglehlines_height_space_settings",      lgeometry_rectanglelines_horizontal_height_space_settings       },
+        { "rectanglehlines_numlines_height_settings",   lgeometry_rectanglelines_horizontal_numlines_height_settings    },
+        { "rectangle_fill_in_boundary",                 lgeometry_rectangle_fill_in_boundary                            },
+        { "polygon",                                    lgeometry_polygon                                               },
+        { "path",                                       lgeometry_path                                                  },
+        { "path_manhatten",                             lgeometry_path_manhatten                                        },
+        { "path_2x",                                    lgeometry_path_2x                                               },
+        { "path_2x_polygon",                            lgeometry_path_2x_polygon                                       },
+        { "path_2y",                                    lgeometry_path_2y                                               },
+        { "path_2y_polygon",                            lgeometry_path_2y_polygon                                       },
+        { "path_3x",                                    lgeometry_path_3x                                               },
+        { "path_3x_polygon",                            lgeometry_path_3x_polygon                                       },
+        { "path_3x_diagonal",                           lgeometry_path_3x_diagonal                                      },
+        { "path_3x_diagonal_polygon",                   lgeometry_path_3x_diagonal_polygon                              },
+        { "path_3y",                                    lgeometry_path_3y                                               },
+        { "path_3y_polygon",                            lgeometry_path_3y_polygon                                       },
+        { "path_3y_diagonal",                           lgeometry_path_3y_diagonal                                      },
+        { "path_3y_diagonal_polygon",                   lgeometry_path_3y_diagonal_polygon                              },
+        { "path_cshape",                                lgeometry_path_cshape                                           },
+        { "path_ushape",                                lgeometry_path_ushape                                           },
+        { "path_polygon",                               lgeometry_path_polygon                                          },
+        { "path_points_xy",                             lgeometry_path_points_xy                                        },
+        { "path_points_yx",                             lgeometry_path_points_yx                                        },
+        { "check_viabltr",                              lgeometry_check_viabltr                                         },
+        { "calculate_viabltr",                          lgeometry_calculate_viabltr                                     },
+        { "viabltr",                                    lgeometry_viabltr                                               },
+        { "viabltrov",                                  lgeometry_viabltrov                                             },
+        { "viabarebltr",                                lgeometry_viabarebltr                                           },
+        { "viapoints",                                  lgeometry_viapoints                                             },
+        { "viabltr_xcontinuous",                        lgeometry_viabltr_xcontinuous                                   },
+        { "viabltr_ycontinuous",                        lgeometry_viabltr_ycontinuous                                   },
+        { "viabltr_continuous",                         lgeometry_viabltr_continuous                                    },
+        { "viabarebltr_xcontinuous",                    lgeometry_viabarebltr_xcontinuous                               },
+        { "viabarebltr_ycontinuous",                    lgeometry_viabarebltr_ycontinuous                               },
+        { "viabarebltr_continuous",                     lgeometry_viabarebltr_continuous                                },
+        { "contactbltr",                                lgeometry_contactbltr                                           },
+        { "contactbarebltr",                            lgeometry_contactbarebltr                                       },
+        { "cross",                                      lgeometry_cross                                                 },
+        { "ring",                                       lgeometry_ring                                                  },
+        { "unequal_ring",                               lgeometry_unequal_ring                                          },
+        { "unequal_ring_pts",                           lgeometry_unequal_ring_pts                                      },
+        { "curve",                                      lgeometry_curve                                                 },
+        { "curve_rasterized",                           lgeometry_curve_rasterized                                      },
+        { "get_side_path_points",                       lgeometry_get_side_path_points                                  },
+        { "offset_polygon_points",                      lgeometry_offset_polygon_points                                 },
+        { "path_points_to_polygon",                     lgeometry_path_points_to_polygon                                },
+        { NULL,                                         NULL                                                            }
     };
     luaL_setfuncs(L, modfuncs, 0);
 

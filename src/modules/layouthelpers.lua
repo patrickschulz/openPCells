@@ -111,6 +111,9 @@ function M.place_vlines(cell, bl, tr, layer, width, netnames, numsets)
         bl, tr,
         numnets * numsets, width
     )
+    if space < 0 then
+        error("layouthelpers.place_vlines: the given lines constraints yield a negative line spacing. Increase the area size, or decrease the number of lines and/or the line width")
+    end
     local netshapes = {}
     for i = 1, numlines do
         local plbl = point.create(
@@ -120,6 +123,32 @@ function M.place_vlines(cell, bl, tr, layer, width, netnames, numsets)
         local pltr = point.create(
             bl:getx() + offset + (i - 1) * (width + space) + width,
             bl:gety() + height
+        )
+        geometry.rectanglebltr(cell, layer, plbl, pltr)
+        local netname = netnames[((i - 1) % numnets) + 1]
+        table.insert(netshapes, { net = netname, bl = plbl, tr = pltr })
+    end
+    return netshapes
+end
+
+function M.place_hlines(cell, bl, tr, layer, height, netnames, numsets)
+    local numnets = #netnames
+    local width, height, space, offset, numlines = geometry.rectanglehlines_numlines_height_settings(
+        bl, tr,
+        numnets * numsets, height
+    )
+    if space < 0 then
+        error("layouthelpers.place_hlines: the given lines constraints yield a negative line spacing. Increase the area size, or decrease the number of lines and/or the line height")
+    end
+    local netshapes = {}
+    for i = 1, numlines do
+        local plbl = point.create(
+            bl:getx(),
+            bl:gety() + offset + (i - 1) * (height + space)
+        )
+        local pltr = point.create(
+            bl:getx() + width,
+            bl:gety() + offset + (i - 1) * (height + space) + height
         )
         geometry.rectanglebltr(cell, layer, plbl, pltr)
         local netname = netnames[((i - 1) % numnets) + 1]
