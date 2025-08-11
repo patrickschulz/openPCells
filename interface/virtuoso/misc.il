@@ -28,6 +28,10 @@ procedure(OPCEditConfigFile()
 ) ; OPCEditConfigFile
 
 procedure(OPCShowTextFile(path)
+    view(path)
+    /*
+    old code. perhaps I will use it, so I'll keep it for now
+    the 'view()' approach is much simpler
     let((file line lines str item form)
         ; read file
         file = infile(path)
@@ -52,6 +56,7 @@ procedure(OPCShowTextFile(path)
         )
         hiDisplayForm(form)
     )
+    */
 ) ; OPCShowTextFile
 
 procedure(OPCViewLogFile()
