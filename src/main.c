@@ -516,6 +516,19 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CONFIG;
     }
 
+    // cell parameters (only names)
+    if(cmdoptions_was_provided_long(cmdoptions, "parameters-name"))
+    {
+        // cell name
+        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters-name");
+        // parameter format
+        const char* parametersformat = "%n";
+        // parameter names
+        const char** parameternames = cmdoptions_get_positional_parameters(cmdoptions);
+        main_list_cell_parameters(cellname, parametersformat, parameternames, cmdoptions, config);
+        goto DESTROY_CONFIG;
+    }
+
     // cell parameters
     if(cmdoptions_was_provided_long(cmdoptions, "parameters"))
     {
