@@ -280,7 +280,7 @@
 /* layouthelpers.place_powervlines */
 {
     struct parameter parameters[] = {
-        { "cell",           OBJECT,     NULL, "cell to place guardring in" },
+        { "cell",           OBJECT,     NULL, "cell to place power lines in" },
         { "bl",             POINT,      NULL, "bottom-left boundary corner" },
         { "tr",             POINT,      NULL, "top-right boundary corner" },
         { "layer",          INTEGER,    NULL, "metal layer (number) for power lines" },
@@ -293,6 +293,47 @@
         MODULE_LAYOUTHELPERS,
         "Create power lines with vertical lines that connect to given target shapes. Target shapes for the power net are given in the form of tables containing { bl = ..., tr = ... } pairs.",
         "local powershapes = { { bl = point(2000, 0), tr = point.create(8000, 200) } }\nlayouthelpers.place_powervlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    5, -- metal layer\n    400, 800,-- width/space\n    powershapes)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* layouthelpers.place_vlines */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place lines in" },
+        { "bl",             POINT,      NULL, "bottom-left boundary corner" },
+        { "tr",             POINT,      NULL, "top-right boundary corner" },
+        { "layer",          GENERICS,   NULL, "metal layer for lines" },
+        { "width",          INTEGER,    NULL, "width of lines" },
+        { "netnames",       TABLE,      NULL, "table with netnames (one line per set and net)" },
+        { "numsets",        INTEGER,    NULL, "number of line sets to place (one line per set and net)" },
+    };
+    vector_append(entries, _make_api_entry(
+        "place_vlines",
+        MODULE_LAYOUTHELPERS,
+        "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr> }",
+        "local netshapes = layouthelpers.place_vlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, -- width\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names \n    4 -- number of sets)",
+        parameters,
+        sizeof(parameters) / sizeof(parameters[0])
+    ));
+}
+
+/* layouthelpers.place_vias */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place lines in" },
+        { "metal1",         INTEGER,    NULL, "lowest/highest metal" },
+        { "metal2",         INTEGER,    NULL, "highest/lowest metal" },
+        { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr> }" },
+        { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr> }" },
+        { "netfilter",      INTEGER,    NULL, "optional table containing nets that should be connected. If not given, all matching nets are conneted" },
+    };
+    vector_append(entries, _make_api_entry(
+        "place_vias",
+        MODULE_LAYOUTHELPERS,
+        "Create vias in a cell connecting net shapes on different metal layers.",
+        "layouthelpers.place_vias(cell,\n    1, 4, -- metal layers\n    netshapes1, netshapes2, -- netshapes\n    { \"VSS\" \"BIAS\" }, -- net filter)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
     ));
