@@ -1297,6 +1297,22 @@
     );
 }
 
+/* object.mark_area_anchor_as_net */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "object to get the shape outlines from" },
+        { "anchor",     STRING,     NULL, "identifier of an area anchor" },
+        { "netname",    STRING,     NULL, "net name of added shape" }
+    };
+    vector_append(entries, _make_api_entry(
+        "mark_area_anchor_as_net",
+        MODULE_OBJECT,
+        "mark an area anchor in a cell with a certain net. This can be used for automatic via placement from power grids, for instance. This function is similar to add_net_shape, but simpler (and less flexible) to use.",
+        "cell:mark_area_anchor_as_net(\"sourcestrap\", \"vdd\")",
+        parameters, sizeof(parameters) / sizeof(parameters[0]))
+    );
+}
+
 /* object.get_net_shapes */
 {
     struct parameter parameters[] = {
@@ -1306,7 +1322,7 @@
     vector_append(entries, _make_api_entry(
         "get_net_shapes",
         MODULE_OBJECT,
-        "return a table which contains polygon outlines of all shapes on a given net. Useful for instance for automatic placement of via from a power grid",
+        "return a table which contains rectangular netshape entries of all shapes on a given net. Useful for instance for automatic placement of via from a power grid. The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }",
         "cell:get_net_shapes(\"vdd\")",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );

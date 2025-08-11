@@ -1741,6 +1741,17 @@ static int lobject_add_net_shape(lua_State* L)
     return 0;
 }
 
+static int lobject_mark_area_anchor_as_net(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* anchorname = luaL_checkstring(L, 2);
+    const char* netname = luaL_checkstring(L, 3);
+    struct point* pts = object_get_area_anchor(lobject_get(L, cell), anchorname);
+    object_add_net_shape(lobject_get(L, cell), netname, pts + 0, pts + 1);
+    free(pts);
+    return 0;
+}
+
 static int lobject_get_net_shapes(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1753,6 +1764,9 @@ static int lobject_get_net_shapes(lua_State* L)
         {
             struct bltrshape* pts = vector_get(netshapes, i);
             lua_newtable(L);
+            /* net */
+            lua_pushstring(L, netname);
+            lua_setfield(L, -2, "net");
             /* bl */
             lpoint_create_internal_pt(L, bltrshape_get_bl(pts));
             lua_setfield(L, -2, "bl");
@@ -1903,6 +1917,7 @@ int open_lobject_lib(lua_State* L)
         { "get_layer_boundary",                     lobject_get_layer_boundary                  },
         { "get_shape_outlines",                     lobject_get_shape_outlines                  },
         { "add_net_shape",                          lobject_add_net_shape                       },
+        { "mark_area_anchor_as_net",                lobject_mark_area_anchor_as_net             },
         { "get_net_shapes",                         lobject_get_net_shapes                      },
         { "__gc",                                   lobject_destroy                             },
         { "__tostring",                             lobject_tostring                            },
