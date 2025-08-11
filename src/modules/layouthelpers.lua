@@ -128,7 +128,7 @@ function M.place_vlines(cell, bl, tr, layer, width, netnames, numsets)
     return netshapes
 end
 
-function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter)
+function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, allowfail)
     for i1 = 1, #netshapes1 do
         local connect = true
         if netfilter then
@@ -144,11 +144,13 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter)
                         netshapes2[i2].bl, netshapes2[i2].tr
                     )
                     if r then
-                        geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
-                        --geometry.viabltr(cell, metal1, metal2,
-                        --    point.create(netshapes1[i1].bl, netshapes1[i1].tr),
-                        --    point.create(netshapes2[i2].bl, netshapes2[i2].tr)
-                        --)
+                        if allowfail then
+                            if geometry.check_viabltr(metal1, metal2, r.bl, r.tr) then
+                                geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
+                            end
+                        else
+                            geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
+                        end
                     end
                 end
             end
