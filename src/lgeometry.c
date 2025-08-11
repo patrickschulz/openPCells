@@ -481,6 +481,50 @@ static int lgeometry_rectanglelines_vertical_width_space_settings(lua_State* L)
     return 5;
 }
 
+static int lgeometry_rectanglelines_vertical_numlines_width_settings(lua_State* L)
+{
+    lcheck_check_numargs1(L, 4, "geometry.rectanglevlines_numlines_width_settings");
+    struct lpoint* pt1 = lpoint_checkpoint(L, 1);
+    struct lpoint* pt2 = lpoint_checkpoint(L, 2);
+    int numlines = luaL_checkinteger(L, 3);
+    coordinate_t widthtarget = luaL_checkinteger(L, 4);
+
+    if(numlines <= 0)
+    {
+        lua_pushfstring(L, "geometry.rectanglevlines_numlines_width_settings: number of lines must be greater than zero (got %d)", numlines);
+        lua_error(L);
+    }
+
+    const struct point* bl = lpoint_get(pt1);
+    const struct point* tr = lpoint_get(pt2);
+
+    ucoordinate_t totalwidth = point_xdifference(tr, bl);
+    // ensure that the width and the space of the lines is even
+    unsigned int correction = 0;
+    /*
+    while(totalwidth % ((ucoordinate_t)(numlines * 4 * (ratio + 1))) != 0)
+    {
+        --totalwidth;
+        ++correction;
+    }
+    */
+
+    ucoordinate_t height = point_ydifference(tr, bl);
+    ucoordinate_t pitch = totalwidth / numlines;
+    ucoordinate_t width = widthtarget;
+    ucoordinate_t space = pitch - width;
+
+    coordinate_t offset = (correction + space) / 2;
+
+    lua_pushinteger(L, width);
+    lua_pushinteger(L, height);
+    lua_pushinteger(L, space);
+    lua_pushinteger(L, offset);
+    lua_pushinteger(L, numlines);
+
+    return 5;
+}
+
 static int lgeometry_rectanglelines_horizontal(lua_State* L)
 {
     lcheck_check_numargs1(L, 6, "geometry.rectanglehlines");
@@ -2284,6 +2328,7 @@ int open_lgeometry_lib(lua_State* L)
         { "rectanglevlines_numlines_width",             lgeometry_rectanglelines_vertical_numlines_width            },
         { "rectanglevlines_settings",                   lgeometry_rectanglelines_vertical_settings                  },
         { "rectanglevlines_width_space_settings",       lgeometry_rectanglelines_vertical_width_space_settings      },
+        { "rectanglevlines_numlines_width_settings",    lgeometry_rectanglelines_vertical_numlines_width_settings   },
         { "rectanglehlines",                            lgeometry_rectanglelines_horizontal                         },
         { "rectanglehlines_height_space",               lgeometry_rectanglelines_horizontal_height_space            },
         { "rectanglehlines_settings",                   lgeometry_rectanglelines_horizontal_settings                },

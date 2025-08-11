@@ -105,6 +105,57 @@ function M.place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth,
     end
 end
 
+function M.place_vlines(cell, bl, tr, layer, width, netnames, numsets)
+    local numnets = #netnames
+    local width, height, space, offset, numlines = geometry.rectanglevlines_numlines_width_settings(
+        bl, tr,
+        numnets * numsets, width
+    )
+    local netshapes = {}
+    for i = 1, numlines do
+        local plbl = point.create(
+            bl:getx() + offset + (i - 1) * (width + space),
+            bl:gety()
+        )
+        local pltr = point.create(
+            bl:getx() + offset + (i - 1) * (width + space) + width,
+            bl:gety() + height
+        )
+        geometry.rectanglebltr(cell, layer, plbl, pltr)
+        local netname = netnames[((i - 1) % numnets) + 1]
+        table.insert(netshapes, { net = netname, bl = plbl, tr = pltr })
+    end
+    return netshapes
+end
+
+function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter)
+    for i1 = 1, #netshapes1 do
+        local connect = true
+        if netfilter then
+            if not util.any_of(netshapes1[i1].net, netfilter) then
+                connect = false
+            end
+        end
+        if connect then
+            for i2 = 1, #netshapes2 do
+                if netshapes1[i1].net == netshapes2[i2].net then
+                    local r = util.rectangle_intersection(
+                        netshapes1[i1].bl, netshapes1[i1].tr,
+                        netshapes2[i2].bl, netshapes2[i2].tr
+                    )
+                    if r then
+                        geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
+                        --geometry.viabltr(cell, metal1, metal2,
+                        --    point.create(netshapes1[i1].bl, netshapes1[i1].tr),
+                        --    point.create(netshapes2[i2].bl, netshapes2[i2].tr)
+                        --)
+                    end
+                end
+            end
+        end
+    end
+end
+
 function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring")
     check.arg_func(1, "cell", "object", cell, object.is_object)
