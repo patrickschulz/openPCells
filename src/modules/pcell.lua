@@ -387,6 +387,7 @@ function state.create_cellenv(state, cellname, ovrenv)
             get_dimension = technology.get_dimension,
             get_dimension_max = technology.get_dimension_max,
             get_optional_dimension = technology.get_optional_dimension,
+            get_option = technology.get_option,
             has_layer = technology.has_layer,
             has_metal = technology.has_metal,
             resolve_metal = technology.resolve_metal,

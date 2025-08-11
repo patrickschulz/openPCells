@@ -32,6 +32,7 @@ function parameters()
         { "fingerwidth(Finger Width)",                                                                       technology.get_dimension("Minimum Gate Width"), argtype = "integer", info = "gate finger width. The total width of the device is fingerwidth * finger" },
         { "gatelength(Gate Length)",                                                                    technology.get_dimension("Minimum Gate Length"), argtype = "integer", info = "drawn gate length (channel length)" },
         { "gatespace(Gate Spacing)",                                                                    technology.get_dimension("Minimum Gate XSpace"), argtype = "integer", info = "gate space between the polysilicon lines" },
+        { "allow_poly_connections",                                                                     technology.get_option("Allow Poly Routing") },
         { "actext(Active Extension)",                                                                   0, info = "left/right active extension. This is added to the calculated width of the active regions, dependent on the number of gates, the finger widths, gate spacing and left/right dummy devices" },
         { "sdwidth(Source/Drain Contact Width)",                                                        technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "width of the source/drain contact regions. Currently, all metals are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future." }, -- FIXME: rename
         { "sdviawidth(Source/Drain Metal Width for Vias)",                                              technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth", info  = "width of the source/drain via regions. Currently, all vias are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future. This parameter follows 'sdwidth'." },
@@ -448,16 +449,16 @@ end
 
 function check(_P)
     if (_P.gatespace % 2) ~= (_P.sdwidth % 2) then
-        return false, "gatespace and sdwidth must both be even or odd"
+        return false, string.format("gatespace and sdwidth must both be even or odd (%d vs. %d)", _P.gatespace, _P.sdwidth)
     end
     if (_P.sdmetalwidth % 2) ~= (_P.sdwidth % 2) then
-        return false, string.format("sdmetalwidth and sdwidth must both be even or odd (%d vs %d)", _P.sdmetalwidth, _P.sdwidth)
+        return false, string.format("sdmetalwidth and sdwidth must both be even or odd (%d vs. %d)", _P.sdmetalwidth, _P.sdwidth)
     end
     if _P.sdviawidth < _P.sdwidth then
-        return false, "sdviawidth must not be smaller than sdwidth"
+        return false, string.format("sdviawidth must not be smaller than sdwidth (%d vs. %d)", _P.sdviawidth, _P.sdwidth)
     end
     if _P.sdmetalwidth < _P.sdviawidth then
-        return false, "sdmetalwidth must not be smaller than sdviawidth"
+        return false, string.format("sdmetalwidth must not be smaller than sdviawidth (%d vs. %d)", _P.sdmetalwidth, _P.sdviawidth)
     end
     if _P.sourcesize < 0 then
         return false, string.format("sourcesize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.sourcesize, _P.fingerwidth)
@@ -472,19 +473,19 @@ function check(_P)
         return false, string.format("drainviasize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.drainviasize, _P.fingerwidth)
     end
     if _P.shortdevice and ((_P.sourcesize % 2) ~= (_P.sdwidth % 2)) then
-        return false, "gatespace and sdwidth must both be even or odd when shortdevice is true"
+        return false, string.format("sourcesize and sdwidth must both be even or odd when shortdevice is true (%d vs. %d)", _P.sourcesize, _P.sdwidth)
     end
     if not (not _P.endleftwithgate or (_P.gatelength % 2 == 0)) then
-        return false, "gatelength must be even when endleftwithgate is true"
+        return false, string.format("gatelength must be even when endleftwithgate is true (gatelength: %d)", _P.gatelength)
     end
     if not (not _P.endrightwithgate or (_P.gatelength % 2 == 0)) then
-        return false, "gatelength must be even when endrightwithgate is true"
+        return false, string.format("gatelength must be even when endrightwithgate is true (gatelength: %d)", _P.gatelength)
     end
     if _P.leftendgatelength % 2 ~= 0 then
-        return false, "leftendgatelength must be even"
+        return false, string.format("leftendgatelength must be even (%d)", _P.leftendgatelength)
     end
     if _P.rightendgatelength % 2 ~= 0 then
-        return false, "rightendgatelength must be even"
+        return false, string.format("rightendgatelength must be even", _P.rightendgatelength)
     end
     if _P.diodeconnected and not (_P.drawtopgate or _P.drawbotgate) then
         return false, "if the device is diode-connected, the top or bottom gate strap needs to be present"
@@ -493,7 +494,7 @@ function check(_P)
         if
             (_P.shortdeviceleftoffset > 0 or _P.shortdevicerightoffset > 0) and
             (_P.fingers - _P.shortdevicerightoffset - _P.shortdeviceleftoffset <= 0) then
-            return false, "the sum of left/right short offsets can't be equal to or larger than the number of fingers"
+            return false, string.format("the sum of left/right short offsets (%d/%d) can't be equal to or larger than the number of fingers (%d)", _P.shortdeviceleftoffset, _P.shortdevicerightoffset, _P.fingers)
         end
     end
     if _P.shortsourcegate and (not (_P.drawtopgate and _P.drawtopgatestrap) and not (_P.drawbotgate and _P.drawbotgatestrap)) then
@@ -525,7 +526,7 @@ function layout(transistor, _P)
 
     -- active
     if _P.drawactive then
-        geometry.rectanglebltr(transistor, generics.other("active"),
+        geometry.rectanglebltr(transistor, generics.active(),
             point.create(-leftactauxext, 0),
             point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth)
         )
@@ -540,7 +541,7 @@ function layout(transistor, _P)
                 point.create(-leftactauxext - _P.leftactivedummyspace - _P.leftactivedummywidth, 0),
                 point.create(-leftactauxext - _P.leftactivedummyspace, _P.fingerwidth)
             )
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            geometry.rectanglebltr(transistor, generics.active(),
                 transistor:get_area_anchor("leftactivedummy").bl,
                 transistor:get_area_anchor("leftactivedummy").tr
             )
@@ -550,7 +551,7 @@ function layout(transistor, _P)
                 point.create(activewidth + leftactext + rightactext + rightactauxext + _P.rightactivedummyspace, 0),
                 point.create(activewidth + leftactext + rightactext + rightactauxext + _P.rightactivedummyspace + _P.rightactivedummywidth, _P.fingerwidth)
             )
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            geometry.rectanglebltr(transistor, generics.active(),
                 transistor:get_area_anchor("rightactivedummy").bl,
                 transistor:get_area_anchor("rightactivedummy").tr
             )
@@ -560,7 +561,7 @@ function layout(transistor, _P)
                 point.create(-leftactauxext, _P.fingerwidth + _P.topactivedummyspace),
                 point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth + _P.topactivedummyspace + _P.topactivedummywidth)
             )
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            geometry.rectanglebltr(transistor, generics.active(),
                 transistor:get_area_anchor("topactivedummy").bl,
                 transistor:get_area_anchor("topactivedummy").tr
             )
@@ -570,7 +571,7 @@ function layout(transistor, _P)
                 point.create(-leftactauxext, -_P.bottomactivedummyspace - _P.bottomactivedummywidth),
                 point.create(activewidth + leftactext + rightactext + rightactauxext, -_P.bottomactivedummyspace)
             )
-            geometry.rectanglebltr(transistor, generics.other("active"),
+            geometry.rectanglebltr(transistor, generics.active(),
                 transistor:get_area_anchor("bottomactivedummy").bl,
                 transistor:get_area_anchor("bottomactivedummy").tr
             )
@@ -625,7 +626,7 @@ function layout(transistor, _P)
     -- main gates
     for i = 1, _P.fingers do
         geometry.rectanglebltr(transistor,
-            generics.other("gate"),
+            generics.gate(),
             point.create(gateblx + (i - 1) * gatepitch, gatebly),
             point.create(gatetrx + (i - 1) * gatepitch, gatetry)
         )
@@ -669,7 +670,7 @@ function layout(transistor, _P)
             point.create(gatetrx - _P.leftfloatingdummies * gatepitch - _P.gatelength - _P.leftendgatespace, gatetry)
         )
         geometry.rectanglebltr(transistor,
-            generics.other("gate"),
+            generics.gate(),
             transistor:get_area_anchor("endleftgate").bl,
             transistor:get_area_anchor("endleftgate").tr
         )
@@ -681,7 +682,7 @@ function layout(transistor, _P)
             point.create(gatetrx + _P.rightfloatingdummies * gatepitch - _P.gatespace + _P.rightendgatespace - _P.gatelength + _P.rightendgatelength + _P.fingers * gatepitch, gatetry)
         )
         geometry.rectanglebltr(transistor,
-            generics.other("gate"),
+            generics.gate(),
             transistor:get_area_anchor("endrightgate").bl,
             transistor:get_area_anchor("endrightgate").tr
         )
@@ -716,7 +717,7 @@ function layout(transistor, _P)
             cellerror("basic/mosfet: leftpolyline entry does not have a 'space' field")
         end
         geometry.rectanglebltr(transistor,
-            generics.other("gate"),
+            generics.gate(),
             point.create(leftpolyoffset - polyline.space - polyline.length, gatebly),
             point.create(leftpolyoffset - polyline.space, gatetry)
         )
@@ -743,7 +744,7 @@ function layout(transistor, _P)
             cellerror("basic/mosfet: rightpolyline entry does not have a 'space' field")
         end
         geometry.rectanglebltr(transistor,
-            generics.other("gate"),
+            generics.gate(),
             point.create(rightpolyoffset + polyline.space, gatebly),
             point.create(rightpolyoffset + polyline.space + polyline.length, gatetry)
         )
@@ -862,7 +863,7 @@ function layout(transistor, _P)
     -- floating dummy gates
     for i = 1, _P.leftfloatingdummies do
         geometry.rectanglebltr(transistor,
-            generics.other("gate"),
+            generics.gate(),
             point.create(gateblx - i * gatepitch, gatebly),
             point.create(gatetrx - i * gatepitch, gatetry)
         )
@@ -874,7 +875,7 @@ function layout(transistor, _P)
     end
     for i = 1, _P.rightfloatingdummies do
         geometry.rectanglebltr(transistor,
-            generics.other("gate"),
+            generics.gate(),
             point.create(gateblx + (_P.fingers + i - 1) * gatepitch, gatebly),
             point.create(gatetrx + (_P.fingers + i - 1) * gatepitch, gatetry)
         )
@@ -1161,18 +1162,34 @@ function layout(transistor, _P)
     -- gate contacts
     local gatecontacttype = _P.drawrotationmarker and "gaterotated" or "gate"
     if _P.drawtopgate then
-        for i = 1, _P.fingers do
+        if _P.allow_poly_connections then
             local contactfun = _P.drawtopgatestrap and geometry.contactbarebltr or geometry.contactbltr
             contactfun(transistor,
                 gatecontacttype,
-                point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
-                point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth),
-                string.format("top gate contact:\n    x parameters: gatelength (%d)\n    y parameters: topgatewidth (%d)", _P.gatelength, _P.topgatewidth)
+                point.create(gateblx + (1 - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
+                point.create(gatetrx + (_P.fingers - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth),
+                string.format(
+                    "top gate contact:\n    x parameters: gatelength (%d)\n    y parameters: topgatewidth (%d)",
+                    _P.gatelength, _P.topgatewidth
+                )
             )
-            transistor:add_area_anchor_bltr(string.format("topgate%d", i),
-                point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
-                point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth)
-            )
+        else
+            for i = 1, _P.fingers do
+                local contactfun = _P.drawtopgatestrap and geometry.contactbarebltr or geometry.contactbltr
+                contactfun(transistor,
+                    gatecontacttype,
+                    point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
+                    point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth),
+                    string.format(
+                        "top gate contact:\n    x parameters: gatelength (%d)\n    y parameters: topgatewidth (%d)",
+                        _P.gatelength, _P.topgatewidth
+                    )
+                )
+                transistor:add_area_anchor_bltr(string.format("topgate%d", i),
+                    point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
+                    point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth)
+                )
+            end
         end
     end
     if _P.fingers > 0 and _P.drawtopgatestrap then
@@ -1180,29 +1197,45 @@ function layout(transistor, _P)
         local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.topgaterightextension, _P.fingerwidth + _P.topgatespace + _P.topgatewidth)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
+        if _P.allow_poly_connections then
+            geometry.rectanglebltr(transistor, generics.gate(), bl, tr)
+        end
         if _P.drawtopgatevia and _P.topgatemetal > 1 then
             if _P.topgatecontinuousvia then
                 geometry.viabltr_xcontinuous(transistor, 1, _P.topgatemetal, bl, tr)
             else
                 geometry.viabltr(transistor, 1, _P.topgatemetal, bl, tr,
-                    string.format("top gate strap via:\n    x parameters:\n        gatelength (%d)\n        (fingers - 1) * (gatelength + gatespace) (%d)\n        topgateleftextension (%d)\n        topgaterightextension (%d)\n    y parameters:\n        topgatewidth (%d)", _P.gatelength, (_P.fingers - 1) * gatepitch, _P.topgateleftextension, _P.topgaterightextension, _P.topgatewidth)
+                    string.format(
+                        "top gate strap via:\n    x parameters:\n        gatelength (%d)\n        (fingers - 1) * (gatelength + gatespace) (%d)\n        topgateleftextension (%d)\n        topgaterightextension (%d)\n    y parameters:\n        topgatewidth (%d)",
+                        _P.gatelength, (_P.fingers - 1) * gatepitch, _P.topgateleftextension, _P.topgaterightextension, _P.topgatewidth
+                    )
                 )
             end
         end
     end
     if _P.drawbotgate then
-        for i = 1, _P.fingers do
+        if _P.allow_poly_connections then
             local contactfun = _P.drawbotgatestrap and geometry.contactbarebltr or geometry.contactbltr
             contactfun(transistor,
                 gatecontacttype,
-                point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
-                point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace),
+                point.create(gateblx + (1 - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
+                point.create(gatetrx + (_P.fingers - 1) * gatepitch, -_P.botgatespace),
                 string.format("bot gate contact:\n    x parameters: gatelength (%d)\n    y parameters: botgatewidth (%d)", _P.gatelength, _P.botgatewidth)
             )
-            transistor:add_area_anchor_bltr(string.format("botgate%d", i),
-                point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
-                point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace)
-            )
+        else
+            for i = 1, _P.fingers do
+                local contactfun = _P.drawbotgatestrap and geometry.contactbarebltr or geometry.contactbltr
+                contactfun(transistor,
+                    gatecontacttype,
+                    point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
+                    point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace),
+                    string.format("bot gate contact:\n    x parameters: gatelength (%d)\n    y parameters: botgatewidth (%d)", _P.gatelength, _P.botgatewidth)
+                )
+                transistor:add_area_anchor_bltr(string.format("botgate%d", i),
+                    point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
+                    point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace)
+                )
+            end
         end
     end
     if _P.fingers > 0 and _P.drawbotgatestrap then
@@ -1210,6 +1243,9 @@ function layout(transistor, _P)
         local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.botgaterightextension, -_P.botgatespace)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
+        if _P.allow_poly_connections then
+            geometry.rectanglebltr(transistor, generics.gate(), bl, tr)
+        end
         if _P.drawbotgatevia and _P.botgatemetal > 1 then
             if _P.botgatecontinuousvia then
                 geometry.viabltr_xcontinuous(transistor, 1, _P.botgatemetal, bl, tr)

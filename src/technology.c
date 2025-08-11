@@ -24,6 +24,7 @@ struct generics {
 struct technology_config {
     unsigned int metals;
     unsigned int grid;
+    int allow_poly_routing;
     struct vector* multiple_patterning_metals;
 };
 
@@ -368,7 +369,7 @@ int technology_load_viadefinitions(struct technology_state* techstate, const cha
     return 1;
 }
 
-int technology_load_config(struct technology_state* techstate, const char* name)
+int technology_load_config(struct technology_state* techstate, const char* name, const char** errmsg)
 {
     lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, name);
@@ -382,6 +383,12 @@ int technology_load_config(struct technology_state* techstate, const char* name)
 
     // number of metals
     lua_getfield(L, -1, "metals");
+    if(lua_isnil(L, -1))
+    {
+        *errmsg = "technology configuration file does not contain the number of metals ('metals' entry)";
+        lua_close(L);
+        return 0;
+    }
     techstate->config->metals = lua_tointeger(L, -1);
     lua_pop(L, 1); // pop metals
 
@@ -398,7 +405,8 @@ int technology_load_config(struct technology_state* techstate, const char* name)
             lua_rawgeti(L, -1, i);
             if(!lua_istable(L, -1))
             {
-                puts("error while loading technology config: multiple_patterning is not a table");
+                *errmsg = "error while loading technology config: multiple_patterning is not a table";
+                lua_close(L);
                 return 0;
             }
             struct mpentry* entry = malloc(sizeof(*entry));
@@ -413,6 +421,18 @@ int technology_load_config(struct technology_state* techstate, const char* name)
         }
     }
     lua_pop(L, 1); // pop multiple_patterning
+
+    // allow poly routing
+    lua_getfield(L, -1, "allow_poly_routing");
+    if(lua_isnil(L, -1))
+    {
+        *errmsg = "technology configuration file does not contain info about poly routing ('allow_poly_routing' entry)";
+        lua_close(L);
+        return 0;
+    }
+    techstate->config->allow_poly_routing = lua_toboolean(L, -1);
+    lua_pop(L, 1); // pop allow_poly_routing
+
     lua_close(L);
     return 1;
 }
@@ -443,6 +463,7 @@ int technology_load_constraints(struct technology_state* techstate, const char* 
 int technology_load(struct technology_state* techstate, const char* techname, const struct const_vector* ignoredlayers)
 {
     char* layermapname = _get_tech_filename(techstate, techname, "layermap");
+    const char* errmsg;
     if(!layermapname)
     {
         printf("technology: no techfile for technology '%s' found\n", techname);
@@ -478,13 +499,14 @@ int technology_load(struct technology_state* techstate, const char* techname, co
         free(configname);
         return 0;
     }
-    ret = technology_load_config(techstate, configname);
-    free(configname);
+    ret = technology_load_config(techstate, configname, &errmsg);
     if(!ret)
     {
-        puts("technology: errrors while loading technology config file");
+        fprintf(stderr, "technology: errrors while loading technology config file ('%s'):\n%s\n", configname, errmsg);
+        free(configname);
         return 0;
     }
+    free(configname);
 
     char* constraintsname = _get_tech_filename(techstate, techname, "constraints");
     if(!constraintsname)
@@ -792,6 +814,7 @@ struct technology_state* technology_initialize(void)
     techstate->layertable = vector_create(32, _destroy_layer);
     techstate->viatable = vector_create(32, _destroy_viaentry);
     techstate->config = malloc(sizeof(*techstate->config));
+    memset(techstate->config, 0, sizeof(*techstate->config));
     techstate->constraints = hashmap_create();
     techstate->techpaths = vector_create(32, free);
     techstate->create_fallback_vias = 0;
@@ -970,6 +993,37 @@ static int ltechnology_get_optional_dimension(lua_State* L)
     return 1;
 }
 
+static int ltechnology_get_option(lua_State* L)
+{
+    const char* option = lua_tostring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+    else
+    {
+        int found = 0;
+        int value;
+        if(strcmp(option, "Allow Poly Routing") == 0)
+        {
+            value = techstate->config->allow_poly_routing;
+            found = 1;
+        }
+        if(!found)
+        {
+            lua_pushfstring(L, "technology.get_option: tried to look up '%s', but this option was not found", option);
+            lua_error(L);
+            return 0; // this is not reached, but keeps the compiler happy
+        }
+        lua_pushboolean(L, value);
+        return 1;
+    }
+}
+
 static int ltechnology_has_layer(lua_State* L)
 {
     int result = lua_pcall(L, 1, 1, 0);
@@ -1030,6 +1084,7 @@ int open_ltechnology_lib(lua_State* L)
         { "get_dimension",                  ltechnology_get_dimension               },
         { "get_dimension_max",              ltechnology_get_dimension_max           },
         { "get_optional_dimension",         ltechnology_get_optional_dimension      },
+        { "get_option",                     ltechnology_get_option                  },
         { "has_metal",                      ltechnology_has_metal                   },
         { "has_layer",                      ltechnology_has_layer                   },
         { "resolve_metal",                  ltechnology_resolve_metal               },
