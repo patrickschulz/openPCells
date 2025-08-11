@@ -90,7 +90,11 @@ function layout(resistor, _P)
                 local yshift = (y - 1) * (_P.length + _P.contactheight + 2 * _P.extension)
                 geometry.contactbltr(resistor, "poly",
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
+                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight),
+                    string.format(
+                        "resistor contact:\n    x parameters: width (%d)\n    y parameters: contactheight (%d)",
+                        _P.width, _P.contactheight
+                    )
                 )
                 resistor:add_area_anchor_bltr(string.format("contact_%d_%d", x, y),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
