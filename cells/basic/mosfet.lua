@@ -33,6 +33,20 @@ function parameters()
         { "gatelength(Gate Length)",                                                                    technology.get_dimension("Minimum Gate Length"), argtype = "integer", info = "drawn gate length (channel length)" },
         { "gatespace(Gate Spacing)",                                                                    technology.get_dimension("Minimum Gate XSpace"), argtype = "integer", info = "gate space between the polysilicon lines" },
         { "allow_poly_connections",                                                                     technology.get_option("Allow Poly Routing") },
+        { "topgatepolyextension",                                                                       0 },
+        { "topgatepolyleftrightextension",                                                              0, follow = "topgatepolyextension" },
+        { "topgatepolyleftextension",                                                                   0, follow = "topgatepolyleftrightextension" },
+        { "topgatepolyrightextension",                                                                  0, follow = "topgatepolyleftrightextension" },
+        { "topgatepolytopbottomextension",                                                              0, follow = "topgatepolyextension" },
+        { "topgatepolytopextension",                                                                    0, follow = "topgatepolytopbottomextension" },
+        { "topgatepolybottomextension",                                                                 0, follow = "topgatepolytopbottomextension" },
+        { "botgatepolyextension",                                                                       0 },
+        { "botgatepolyleftrightextension",                                                              0, follow = "botgatepolyextension" },
+        { "botgatepolyleftextension",                                                                   0, follow = "botgatepolyleftrightextension" },
+        { "botgatepolyrightextension",                                                                  0, follow = "botgatepolyleftrightextension" },
+        { "botgatepolytopbottomextension",                                                              0, follow = "botgatepolyextension" },
+        { "botgatepolytopextension",                                                                    0, follow = "botgatepolytopbottomextension" },
+        { "botgatepolybottomextension",                                                                 0, follow = "botgatepolytopbottomextension" },
         { "actext(Active Extension)",                                                                   0, info = "left/right active extension. This is added to the calculated width of the active regions, dependent on the number of gates, the finger widths, gate spacing and left/right dummy devices" },
         { "sdwidth(Source/Drain Contact Width)",                                                        technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "width of the source/drain contact regions. Currently, all metals are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future." }, -- FIXME: rename
         { "sdviawidth(Source/Drain Metal Width for Vias)",                                              technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth", info  = "width of the source/drain via regions. Currently, all vias are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future. This parameter follows 'sdwidth'." },
@@ -1198,7 +1212,10 @@ function layout(transistor, _P)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
         if _P.allow_poly_connections then
-            geometry.rectanglebltr(transistor, generics.gate(), bl, point.create(tr:getx(), gatetry))
+            geometry.rectanglebltr(transistor, generics.gate(),
+                point.create(bl:getx() - _P.topgatepolyleftextension, bl:gety() - _P.topgatepolybottomextension),
+                point.create(tr:getx() + _P.topgatepolyrightextension, gatetry + _P.topgatepolytopextension)
+            )
         end
         if _P.drawtopgatevia and _P.topgatemetal > 1 then
             if _P.topgatecontinuousvia then
@@ -1244,7 +1261,10 @@ function layout(transistor, _P)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
         if _P.allow_poly_connections then
-            geometry.rectanglebltr(transistor, generics.gate(), point.create(bl:getx(), gatebly), tr)
+            geometry.rectanglebltr(transistor, generics.gate(),
+                point.create(bl:getx() - _P.botgatepolyleftextension, gatebly - _P.botgatepolybottomextension),
+                point.create(tr:getx() + _P.botgatepolyrightextension, tr:gety() + _P.botgatepolytopextension)
+            )
         end
         if _P.drawbotgatevia and _P.botgatemetal > 1 then
             if _P.botgatecontinuousvia then
