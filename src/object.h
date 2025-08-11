@@ -141,7 +141,7 @@ void object_add_label(struct object* cell, const char* name, const struct generi
 
 // nets
 void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr);
-struct vector* object_get_net_shapes(struct object* cell, const char* netname);
+struct vector* object_get_net_shapes(const struct object* cell, const char* netname);
 
 // alignment box and bounding box
 void object_clear_alignment_box(struct object* cell);

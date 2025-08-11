@@ -2296,7 +2296,7 @@ void object_add_net_shape(struct object* cell, const char* netname, const struct
     vector_append(nets, netarea);
 }
 
-struct vector* object_get_net_shapes(struct object* cell, const char* netname)
+struct vector* object_get_net_shapes(const struct object* cell, const char* netname)
 {
     if(!cell->nets)
     {

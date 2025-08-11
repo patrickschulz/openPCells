@@ -1756,7 +1756,7 @@ static int lobject_get_net_shapes(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* netname = luaL_checkstring(L, 2);
-    struct vector* netshapes = object_get_net_shapes(lobject_get(L, cell), netname);
+    struct vector* netshapes = object_get_net_shapes(lobject_get_const(cell), netname);
     lua_newtable(L);
     if(netshapes)
     {
