@@ -1198,7 +1198,7 @@ function layout(transistor, _P)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
         if _P.allow_poly_connections then
-            geometry.rectanglebltr(transistor, generics.gate(), bl, tr)
+            geometry.rectanglebltr(transistor, generics.gate(), bl, point.create(tr:getx(), gatetry))
         end
         if _P.drawtopgatevia and _P.topgatemetal > 1 then
             if _P.topgatecontinuousvia then
@@ -1244,7 +1244,7 @@ function layout(transistor, _P)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
         if _P.allow_poly_connections then
-            geometry.rectanglebltr(transistor, generics.gate(), bl, tr)
+            geometry.rectanglebltr(transistor, generics.gate(), point.create(bl:getx(), gatebly), tr)
         end
         if _P.drawbotgatevia and _P.botgatemetal > 1 then
             if _P.botgatecontinuousvia then
