@@ -1745,14 +1745,16 @@
 /* object.set_alignment_box */
 {
     struct parameter parameters[] = {
-        { "cell",   OBJECT, NULL, "cell to add the alignment box to" },
-        { "bl",     POINT,  NULL, "bottom-left corner of alignment box" },
-        { "tr",     POINT,  NULL, "top-right corner of alignment box" }
+        { "cell",       OBJECT, NULL, "cell to add the alignment box to" },
+        { "outerbl",    POINT,  NULL, "outer bottom-left corner of alignment box" },
+        { "outertr",    POINT,  NULL, "outer top-right corner of alignment box" },
+        { "innerbl",    POINT,  NULL, "inner bottom-left corner of alignment box (optional)" },
+        { "innertr",    POINT,  NULL, "inner top-right corner of alignment box (optional)" }
     };
     vector_append(entries, _make_api_entry(
         "set_alignment_box",
         MODULE_OBJECT,
-        "set the alignment box of an object. Overwrites any previous existing alignment boxes",
+        "set the alignment box of an object. Overwrites any previous existing alignment boxes. This function can either be called with three or five arguments. In the first case the alignment box is determined by only two corner points. With four corner points, a more sophisticated alignment box is established, which allows the alignment of cells with odd dimensions. Often this is not needed. The more advanced library cells use this mode, but 2 points suffice in many cases.",
         "cell:set_alignment_box(point.create(-100, -100), point.create(100, 100))",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
