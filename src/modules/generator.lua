@@ -105,11 +105,22 @@ function M.digital(file, rows, routes, numinnerroutes, pnumtracks, nnumtracks)
     file:write(table.concat(lines, '\n'))
 end
 
-function M.analog(file, devices, nets)
+local function _section(lines, what)
+    table.insert(lines, string.format("-- %s", what))
+end
+
+local function _newline(lines)
+    table.insert(lines, "")
+end
+
+function M.analog(file, devices, nets, placement)
     local lines = {}
     -- start cellscript
+    _section(lines, "top-level cell")
     table.insert(lines, "local cell = object.create(\"cell\")")
     -- device creation
+    _newline(lines)
+    _section(lines, "devices")
     for _, device in ipairs(devices) do
         local paramt = {}
         for k, v in pairs(device.parameters) do
@@ -119,17 +130,28 @@ function M.analog(file, devices, nets)
         table.insert(lines, string.format(fmt, device.name, device.name, table.concat(paramt, ", ")))
     end
     -- placement
-    for i, device in ipairs(devices) do
-        if i ~= 1 then
-            table.insert(lines, string.format("%s:place_top(%s)", device.name, devices[i - 1].name))
-            table.insert(lines, string.format("%s:align_center_x(%s)", device.name, devices[i - 1].name))
+    _newline(lines)
+    _section(lines, "placement")
+    for _, entry in ipairs(placement) do
+        if entry.what == "abut" then
+        elseif entry.what == "group" then
+        else
+            error(string.format("generator.analog: placement entry has unknown 'what' type: '%s'", entry.what))
         end
+        table.insert(lines, string.format("%s:place_top(%s)", device.name, devices[i - 1].name))
+        table.insert(lines, string.format("%s:align_center_x(%s)", device.name, devices[i - 1].name))
     end
     -- merging
+    _newline(lines)
+    _section(lines, "merging")
     for _, device in ipairs(devices) do
         table.insert(lines, string.format("cell:merge_into(%s)", device.name))
     end
+    _newline(lines)
+    _section(lines, "routing")
     -- end cellscript
+    _newline(lines)
+    _section(lines, "final return")
     table.insert(lines, "return cell")
     file:write(table.concat(lines, '\n'))
 end
