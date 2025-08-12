@@ -269,7 +269,7 @@ local function _write_layermapfile(file, state)
                 file:writeline(string.format("gds = { layer = %d, purpose = %d },", entry.gds.layer, entry.gds.purpose))
             end
             if entry.SKILL then
-                file:writeline(string.format("SKILL = { layer = %s, purpose = %s },", entry.SKILL.layer, entry.SKILL.purpose))
+                file:writeline(string.format("SKILL = { layer = \"%s\", purpose = %s },", entry.SKILL.layer, entry.SKILL.purpose))
             end
             file:decrease_indent()
             file:writeline("}")
@@ -328,7 +328,6 @@ local function _check_yesno(answer)
         answer == "n" or
         answer == "no"
 end
-
 
 local function _yesnobase(state, defaultyes, prompt)
     local answer
@@ -529,9 +528,13 @@ end
 if not state.ignore_SOI then
     state.is_SOI = noyes(state, "Is this process a silicon-on-insulator (SOI) process?")
     if state.is_SOI then
+        state.contact_wells_in_handle_wafer = noyes(state, "SOI processes have a handle wafer under the buried oxide (BOX). Those this handle wafer need to be contacted for regular wells transistors reside in?")
+        state.handle_wafer_access = noyes(state, "Additionally, for special purpose there still might be a way to contact the handle wafer. Does this technology node provide such access?")
+    end
+    if state.is_SOI and (state.contact_wells_in_handle_wafer or state.handle_wafer_access) then
         ask_layer(
             state,
-            "soiopen", 
+            "soiopen",
             "SOI processes have a layer to cut the oxide between both silicon sheets.",
             options
         )
@@ -556,7 +559,7 @@ if state.substrate_dopand == "p-substrate" then
     if not has_layer(state, "nwell") then
         ask_layer(
             state,
-            "nwell", 
+            "nwell",
             "The n-well layer is used to form n-doped areas",
             options
         )
@@ -565,7 +568,7 @@ else
     if not has_layer(state, "pwell") then
         ask_layer(
             state,
-            "pwell", 
+            "pwell",
             "The p-well layer is used to form p-doped areas",
             options
         )
@@ -577,7 +580,7 @@ if state.has_triple_well then
         if not has_layer(state, "deepnwell") then
             ask_layer(
                 state,
-                "deepnwell", 
+                "deepnwell",
                 "The deep-n-well layer is used to form isolated p-wells",
                 options
             )
@@ -586,7 +589,7 @@ if state.has_triple_well then
         if not has_layer(state, "deeppwell") then
             ask_layer(
                 state,
-                "deeppwell", 
+                "deeppwell",
                 "The deep-p-wells layer is used to form isolated n-wells",
                 options
             )
@@ -609,20 +612,20 @@ if not state.ignore_FEOL_method then
     if state.FEOL_method == "active_plus_implant" then
         ask_layer(
             state,
-            "active", 
+            "active",
             "Let's talk about the active layer.",
             options
         )
         ask_layer(
             state,
-            "nimplant", 
-            "Let's talk about the n-plus implant marking layer.",
+            "pimplant",
+            "Let's talk about the p-plus implant marking layer.",
             options
         )
         ask_layer(
             state,
-            "pimplant", 
-            "Let's talk about the p-plus implant marking layer.",
+            "nimplant",
+            "Let's talk about the n-plus implant marking layer.",
             options
         )
     elseif state.FEOL_method == "dedicated_active" then
@@ -636,8 +639,8 @@ end
 if not has_layer(state, "gate") then
     ask_layer(
         state,
-        "gate", 
-        "Let's talk about the gate layer",
+        "gate",
+        "Let's talk about the gate layer (e.g. polysilicon)",
         options
     )
 end
@@ -648,7 +651,7 @@ if not state.ignore_gatecut then
     if state.has_gatecut then
         ask_layer(
             state,
-            "gatecut", 
+            "gatecut",
             "Let's talk about the gate cut layer",
             options
         )
@@ -671,6 +674,15 @@ if not state.nummetals then
             state,
             string.format("M%d", i),
             string.format("Metal %d", i),
+            options
+        )
+    end
+    print("Now let's capture the via layers")
+    for i = 1, state.nummetals - 1 do
+        ask_layer(
+            state,
+            string.format("viacutM%dM%d", i, i + 1),
+            string.format("Via %d (between metal %d and %d)", i, i, i + 1),
             options
         )
     end

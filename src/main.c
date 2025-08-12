@@ -29,6 +29,7 @@
 #include "version.h"
 
 #include "main.api_help.h"
+#include "main.assistant.h"
 #include "main.cell.h"
 #include "main.functions.h"
 #include "main.gds.h"
@@ -480,10 +481,13 @@ int main(int argc, const char* const * argv)
     // technology file generation assistant
     if(cmdoptions_was_provided_long(cmdoptions, "techfile-assistant"))
     {
-        lua_State* L = util_create_basic_lua_state();
-        open_lfilesystem_lib(L);
-        script_call_assistant(L);
-        lua_close(L);
+        main_techfile_assistant();
+        goto DESTROY_CONFIG;
+    }
+
+    // get technology dimension
+    if(cmdoptions_was_provided_long(cmdoptions, "get-dimension"))
+    {
         goto DESTROY_CONFIG;
     }
 

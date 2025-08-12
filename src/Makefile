@@ -12,7 +12,7 @@ ifeq ($(DEBUGANALYZE), 1)
     CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined $(WARNFLAGS) $(COMMONFLAGS) $(PPFLAGS)
 endif
 
-OBJS:= bltrshape.o buffer.o cdl_parser.o cdl_tokenlist.o cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o limport.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lterminal.o lua_util.o lutil.o main.api_help.o main.cell.o main.functions.o main.gds.o main.tutorial.o main.import.o object.o pcell.o placement.o point.o polygon.o postprocess.o print.o shape.o skillexport.o string.o tagged_value.o technology.o terminal.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
+OBJS:= bltrshape.o buffer.o cdl_parser.o cdl_tokenlist.o cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o limport.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lterminal.o lua_util.o lutil.o main.api_help.o main.assistant.o main.cell.o main.functions.o main.gds.o main.tutorial.o main.import.o object.o pcell.o placement.o point.o polygon.o postprocess.o print.o shape.o skillexport.o string.o tagged_value.o technology.o terminal.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
 RELEASEOBJS = $(addprefix release/, $(OBJS))
 LINTOBJS = $(addprefix lint/, $(OBJS))
 DEBUGOBJS = $(addprefix debug/, $(OBJS))
@@ -291,6 +291,8 @@ main.api_help.o: src/main.api_help.c src/main.api_help.h \
  src/main.api_help/placer.c src/main.api_help/point.c \
  src/main.api_help/router.c src/main.api_help/routing.c \
  src/main.api_help/technology.c src/main.api_help/util.c
+main.assistant.o: src/main.assistant.c src/lua_util.h src/lua/lua.h \
+ src/lua/luaconf.h
 main.cell.o: src/main.cell.c src/main.cell.h src/hashmap.h \
  src/cmdoptions.h src/lua/lauxlib.h src/lua/luaconf.h src/lua/lua.h \
  src/export.h src/object.h src/polygon.h src/point.h src/shape.h \
