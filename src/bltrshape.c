@@ -30,12 +30,12 @@ void* bltrshape_copy(const void* v)
     return bltrshape_create(bltrshape->bl, bltrshape->tr);
 }
 
-const struct point* bltrshape_get_bl(const struct bltrshape* bltrshape)
+struct point* bltrshape_get_bl(const struct bltrshape* bltrshape)
 {
     return bltrshape->bl;
 }
 
-const struct point* bltrshape_get_tr(const struct bltrshape* bltrshape)
+struct point* bltrshape_get_tr(const struct bltrshape* bltrshape)
 {
     return bltrshape->tr;
 }
