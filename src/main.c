@@ -25,6 +25,7 @@
 #include "lterminal.h"
 #include "lua_util.h"
 #include "pcell.h"
+#include "tagged_value.h"
 #include "util.h"
 #include "version.h"
 
@@ -488,6 +489,34 @@ int main(int argc, const char* const * argv)
     // get technology dimension
     if(cmdoptions_was_provided_long(cmdoptions, "get-dimension"))
     {
+        if(!cmdoptions_was_provided_long(cmdoptions, "technology"))
+        {
+            fputs("no technology given\n", stderr);
+            goto DESTROY_CONFIG;
+        }
+        const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
+        struct vector* techpaths = hashmap_get(config, "techpaths");
+        vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
+        if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
+        {
+            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
+            while(*arg)
+            {
+                vector_append(techpaths, util_strdup(*arg));
+                ++arg;
+            }
+        }
+        struct technology_state* techstate = main_create_techstate(techpaths, techname, NULL);
+        if(!techstate)
+        {
+            fputs("could not initialize technology state\n", stderr);
+            return 0;
+        }
+        const char* dimension = cmdoptions_get_argument_long(cmdoptions, "get-dimension");
+        struct tagged_value* v = technology_get_dimension(techstate, dimension);
+        tagged_value_print(v);
+        putchar('\n');
+        tagged_value_destroy(v);
         goto DESTROY_CONFIG;
     }
 

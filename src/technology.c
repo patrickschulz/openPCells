@@ -883,6 +883,19 @@ void technology_ignore_missing_exports(struct technology_state* techstate)
     techstate->ignore_missing_exports = 1;
 }
 
+struct tagged_value* technology_get_dimension(const struct technology_state* techstate, const char* dimension)
+{
+    if(hashmap_exists(techstate->constraints, dimension))
+    {
+        const struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
+        return tagged_value_copy(v);
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
 static int ltechnology_get_dimension(lua_State* L)
 {
     int n = lua_gettop(L);

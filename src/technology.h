@@ -62,6 +62,7 @@ char* technology_get_configfile_path(struct technology_state* techstate, const c
 char* technology_get_layermap_path(struct technology_state* techstate, const char* techname);
 char* technology_get_viatable_path(struct technology_state* techstate, const char* techname);
 char* technology_get_constraints_path(struct technology_state* techstate, const char* techname);
+struct tagged_value* technology_get_dimension(const struct technology_state* techstate, const char* dimension);
 
 // layer creation interface
 const struct generics* generics_create_metal(struct technology_state* techstate, int num);

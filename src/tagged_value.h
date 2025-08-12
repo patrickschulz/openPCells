@@ -3,11 +3,14 @@
 
 struct tagged_value;
 
+struct tagged_value* tagged_value_copy(const struct tagged_value* v);
 struct tagged_value* tagged_value_create_integer(int value);
 struct tagged_value* tagged_value_create_number(double value);
 struct tagged_value* tagged_value_create_string(const char* value);
 struct tagged_value* tagged_value_create_boolean(int value);
 void tagged_value_destroy(void*);
+
+void tagged_value_print(const struct tagged_value* v);
 
 int tagged_value_is_integer(const struct tagged_value* value);
 int tagged_value_is_number(const struct tagged_value* value);

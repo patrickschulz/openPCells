@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "util.h"
 
@@ -24,6 +25,28 @@ struct tagged_value* _create(enum tag tag)
 {
     struct tagged_value* value = malloc(sizeof(*value));
     value->tag = tag;
+    return value;
+}
+
+struct tagged_value* tagged_value_copy(const struct tagged_value* v)
+{
+    struct tagged_value* value = malloc(sizeof(*value));
+    value->tag = v->tag;
+    switch(v->tag)
+    {
+        case INTEGER:
+            value->i = v->i;
+            break;
+        case NUMBER:
+            value->d = v->d;
+            break;
+        case STRING:
+            value->str = util_strdup(v->str);
+            break;
+        case BOOLEAN:
+            value->i = v->i;
+            break;
+    }
     return value;
 }
 
@@ -63,6 +86,25 @@ void tagged_value_destroy(void* vp)
         free(v->str);
     }
     free(vp);
+}
+
+void tagged_value_print(const struct tagged_value* v)
+{
+    switch(v->tag)
+    {
+        case INTEGER:
+            printf("%d", v->i);
+            break;
+        case NUMBER:
+            printf("%g", v->d);
+            break;
+        case STRING:
+            printf("%s", v->str);
+            break;
+        case BOOLEAN:
+            printf("%s", v->i ? "true" : "false");
+            break;
+    }
 }
 
 int tagged_value_is_integer(const struct tagged_value* value)
