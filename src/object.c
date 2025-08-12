@@ -874,6 +874,20 @@ int object_add_anchor_line_y(struct object* cell, const char* name, coordinate_t
     return 1;
 }
 
+static void _transform_to_local_coordinates_xy(const struct object* cell, coordinate_t* x, coordinate_t* y)
+{
+    if(object_is_proxy(cell))
+    {
+        transformationmatrix_apply_inverse_transformation_xy(cell->reference->trans, x, y);
+    }
+    transformationmatrix_apply_inverse_transformation_xy(cell->trans, x, y);
+}
+
+static void _transform_to_local_coordinates(const struct object* cell, struct point* pt)
+{
+    _transform_to_local_coordinates_xy(cell, &pt->x, &pt->y);
+}
+
 static void _transform_to_global_coordinates_xy(const struct object* cell, coordinate_t* x, coordinate_t* y)
 {
     if(object_is_proxy(cell))
@@ -2297,23 +2311,62 @@ void object_add_net_shape(struct object* cell, const char* netname, const struct
     }
     struct vector* nets = hashmap_get(cell->nets, netname);
     struct bltrshape* netarea = bltrshape_create(bl, tr);
+    _transform_to_local_coordinates(cell, bltrshape_get_bl(netarea));
+    _transform_to_local_coordinates(cell, bltrshape_get_tr(netarea));
     vector_append(nets, netarea);
 }
 
 struct vector* object_get_net_shapes(const struct object* cell, const char* netname)
 {
-    if(!cell->nets)
+    const struct object* obj = cell;
+    if(object_is_proxy(cell))
+    {
+        obj = cell->reference;
+    }
+    if(!obj->nets)
     {
         return NULL;
     }
-    else if(!hashmap_exists(cell->nets, netname))
+    else if(!hashmap_exists(obj->nets, netname))
     {
         return NULL;
     }
     else
     {
-        struct vector* nets = hashmap_get(cell->nets, netname);
-        return vector_copy(nets, bltrshape_copy);
+        if(object_is_child_array(cell))
+        {
+            const struct vector* nets = hashmap_get(obj->nets, netname);
+            struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
+            for(unsigned int i = 0; i < vector_size(nets); ++i)
+            {
+                for(unsigned int xindex = 0; xindex < cell->xrep; ++xindex)
+                {
+                    for(unsigned int yindex = 0; yindex < cell->yrep; ++yindex)
+                    {
+                        struct bltrshape* bltrshape = bltrshape_copy(vector_get_const(nets, i));
+                        _transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
+                        point_translate(bltrshape_get_bl(bltrshape), cell->xpitch * xindex, cell->ypitch * yindex);
+                        _transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
+                        point_translate(bltrshape_get_tr(bltrshape), cell->xpitch * xindex, cell->ypitch * yindex);
+                        vector_append(new, bltrshape);
+                    }
+                }
+            }
+            return new;
+        }
+        else
+        {
+            const struct vector* nets = hashmap_get(obj->nets, netname);
+            struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
+            for(unsigned int i = 0; i < vector_size(nets); ++i)
+            {
+                struct bltrshape* bltrshape = bltrshape_copy(vector_get_const(nets, i));
+                _transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
+                _transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
+                vector_append(new, bltrshape);
+            }
+            return new;
+        }
     }
 }
 
