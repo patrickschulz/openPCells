@@ -641,7 +641,7 @@ static int lobject_add_child_array(lua_State* L)
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* child = lobject_check(L, 2);
     const char* name = NULL;
-    if(lua_gettop(L) == 3) // explicit name
+    if(!lua_isnil(L, 3)) // explicit name
     {
         name = luaL_checkstring(L, 3);
     }
