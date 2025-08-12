@@ -1,4 +1,3 @@
-
 /*
     FIXME:
 	placer.place_classic

@@ -96,6 +96,7 @@ enum module {
     MODULE_PCELL,
     MODULE_PLACEMENT,
     MODULE_POINT,
+    MODULE_POSTPROCESS,
     MODULE_ROUTING,
     MODULE_TECHNOLOGY,
     MODULE_UTIL
@@ -125,6 +126,7 @@ static const char* _stringify_module(enum module module)
         case MODULE_PCELL:              return "pcell";
         case MODULE_PLACEMENT:          return "placement";
         case MODULE_POINT:              return "point";
+        case MODULE_POSTPROCESS:        return "postprocess";
         case MODULE_ROUTING:            return "routing";
         case MODULE_TECHNOLOGY:         return "technology";
         case MODULE_UTIL:               return "util";
@@ -508,6 +510,7 @@ static struct vector* _initialize_api_entries(void)
 #include "main.api_help/placement.c"
 #include "main.api_help/placer.c"
 #include "main.api_help/point.c"
+#include "main.api_help/postprocess.c"
 #include "main.api_help/router.c"
 #include "main.api_help/routing.c"
 #include "main.api_help/technology.c"

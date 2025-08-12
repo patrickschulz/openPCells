@@ -131,7 +131,6 @@
     ));
 }
 
-
 /* pcell.create_layout_env_in_object */
 {
     struct parameter parameters[] = {
@@ -152,14 +151,8 @@
 
 /*
     FIXME:
-	pcell.add_cell
-	pcell.append_cellpath
-	pcell.check
-	pcell.constraints
-	pcell.create_layout_from_script
-	pcell.enable_debug
-	pcell.enable_dprint
-	pcell.evaluate_parameters
-	pcell.get_cell_filename
-	pcell.parameters
+    pcell.append_cellpath
+    pcell.get_cell_filename
+    pcell.has_parameter
+    pcell.parameters
 */
