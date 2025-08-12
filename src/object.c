@@ -738,7 +738,7 @@ int object_inherit_area_anchor(struct object* cell, const struct object* other, 
 
 int object_inherit_area_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname)
 {
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         return 0;
     }
@@ -758,7 +758,7 @@ int object_inherit_anchor(struct object* cell, const struct object* other, const
 
 int object_inherit_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname)
 {
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         return 0;
     }
@@ -779,7 +779,7 @@ void object_inherit_all_anchors(struct object* cell, const struct object* other)
 void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
 {
     const struct object* obj = other;
-    if(other->isproxy)
+    if(object_is_proxy(other))
     {
         obj = other->reference;
     }
@@ -810,7 +810,7 @@ void object_inherit_all_anchors_with_prefix(struct object* cell, const struct ob
 static struct point* _get_regular_anchor(const struct object* cell, const char* name)
 {
     const struct object* obj = cell;
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         obj = cell->reference;
     }
@@ -933,7 +933,7 @@ static coordinate_t* _get_transformed_alignment_box(const struct object* cell)
     struct transformationmatrix* trans1 = cell->trans;
     struct transformationmatrix* trans2 = NULL;
     const struct object* obj = cell;
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         obj = cell->reference;
         trans2 = obj->trans;
@@ -970,7 +970,7 @@ static coordinate_t* _get_transformed_bounding_box(const struct object* cell)
 {
     struct transformationmatrix* trans2 = NULL;
     const struct object* obj = cell;
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         obj = cell->reference;
         trans2 = obj->trans;
@@ -1048,7 +1048,7 @@ struct point* object_get_alignment_anchor(const struct object* cell, const char*
 struct point* object_get_area_anchor(const struct object* cell, const char* base)
 {
     const struct object* obj = cell;
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         obj = cell->reference;
     }
@@ -1179,7 +1179,7 @@ struct point* object_get_array_area_anchor(const struct object* cell, int xindex
 coordinate_t* object_get_anchor_line_x(const struct object* cell, const char* name)
 {
     const struct object* obj = cell;
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         obj = cell->reference;
     }
@@ -1200,7 +1200,7 @@ coordinate_t* object_get_anchor_line_x(const struct object* cell, const char* na
 coordinate_t* object_get_anchor_line_y(const struct object* cell, const char* name)
 {
     const struct object* obj = cell;
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         obj = cell->reference;
     }
@@ -1258,7 +1258,7 @@ const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
 {
     struct hashmap* anchors = hashmap_create();
     const struct object* obj = cell;
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         obj = cell->reference;
     }
@@ -1958,7 +1958,7 @@ void object_inherit_boundary(struct object* cell, const struct object* othercell
 {
     cell->boundary = vector_create(4, point_destroy);
     struct vector_const_iterator* it;
-    if(othercell->isproxy)
+    if(object_is_proxy(othercell))
     {
         it = vector_const_iterator_create(othercell->reference->boundary);
     }
@@ -1996,7 +1996,7 @@ void object_inherit_layer_boundary(struct object* cell, const struct object* oth
 
 int object_has_boundary(const struct object* cell)
 {
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         return cell->reference->boundary ? 1 : 0;
     }
@@ -2009,7 +2009,7 @@ int object_has_boundary(const struct object* cell)
 struct vector* object_get_boundary(const struct object* cell)
 {
     struct vector* boundary = vector_create(4, point_destroy);
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         struct vector* cellboundary = cell->reference->boundary;
         if(cellboundary)
@@ -2069,7 +2069,7 @@ struct vector* object_get_boundary(const struct object* cell)
 
 int object_has_layer_boundary(const struct object* cell, const struct generics* layer)
 {
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         if(cell->reference->layer_boundaries)
         {
@@ -2095,7 +2095,7 @@ int object_has_layer_boundary(const struct object* cell, const struct generics* 
 
 struct polygon_container* object_get_layer_boundary(const struct object* cell, const struct generics* layer)
 {
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         if(!cell->reference->layer_boundaries)
         {
@@ -2282,6 +2282,10 @@ const struct vector* object_get_labels(const struct object* cell)
 
 void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr)
 {
+    if(object_is_proxy(cell)) // can't add nets to proxy objects
+    {
+        return;
+    }
     if(!cell->nets)
     {
         cell->nets = hashmap_create();
@@ -2429,7 +2433,7 @@ static void _alignment_box_include_xy(struct object* cell, coordinate_t x, coord
 
 void object_alignment_box_include_point(struct object* cell, const struct point* pt)
 {
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         return;
     }
@@ -2449,7 +2453,7 @@ void object_alignment_box_include_point(struct object* cell, const struct point*
 
 void object_alignment_box_include_x(struct object* cell, coordinate_t x)
 {
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         return;
     }
@@ -2466,7 +2470,7 @@ void object_alignment_box_include_x(struct object* cell, coordinate_t x)
 
 void object_alignment_box_include_y(struct object* cell, coordinate_t y)
 {
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         return;
     }
@@ -2801,7 +2805,7 @@ const struct transformationmatrix* object_get_array_transformation_matrix(const 
 static void _get_transformation_correction(const struct object* cell, coordinate_t* cx, coordinate_t* cy)
 {
     const struct object* obj = cell;
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         obj = cell->reference;
     }
@@ -2834,7 +2838,7 @@ static void _flipx(struct object* cell, int ischild)
     {
         object_translate(cell, cx, 0);
     }
-    if(!cell->isproxy)
+    if(!object_is_proxy(cell))
     {
         if(cell->children)
         {
@@ -2860,7 +2864,7 @@ static void _flipy(struct object* cell, int ischild)
     {
         object_translate(cell, 0, cy);
     }
-    if(!cell->isproxy)
+    if(!object_is_proxy(cell))
     {
         if(cell->children)
         {
@@ -2912,7 +2916,7 @@ int object_has_shapes(const struct object* cell)
 int object_has_layer_flat(const struct object* cell, const struct generics* layer)
 {
     const struct object* obj = cell;
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         obj = cell->reference;
     }
@@ -2936,7 +2940,7 @@ int object_has_layer_flat(const struct object* cell, const struct generics* laye
 int object_has_layer(const struct object* cell, const struct generics* layer)
 {
     const struct object* obj = cell;
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         obj = cell->reference;
     }
@@ -2988,7 +2992,7 @@ int object_is_child_array(const struct object* cell)
 
 int object_has_anchor(const struct object* cell, const char* anchorname)
 {
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         if(!cell->reference->anchors)
         {
@@ -3024,7 +3028,7 @@ int object_has_anchor(const struct object* cell, const char* anchorname)
 
 int object_has_area_anchor(const struct object* cell, const char* anchorname)
 {
-    if(cell->isproxy)
+    if(object_is_proxy(cell))
     {
         if(!cell->reference->anchors)
         {
