@@ -1749,6 +1749,19 @@ static int lobject_mark_area_anchor_as_net(lua_State* L)
     const char* netname = luaL_checkstring(L, 3);
     const struct generics* layer = lua_touserdata(L, 4);
     struct point* pts = object_get_area_anchor(lobject_get(L, cell), anchorname);
+    if(!object_has_area_anchor(lobject_get(L, cell), anchorname))
+    {
+        const char* name = object_get_name(lobject_get(L, cell));
+        if(name)
+        {
+            lua_pushfstring(L, "object.mark_area_anchor_as_net: first object ('%s') does not have an anchor '%s'", name, anchorname);
+        }
+        else
+        {
+            lua_pushfstring(L, "object.mark_area_anchor_as_net: first object does not have an anchor '%s'", anchorname);
+        }
+        lua_error(L);
+    }
     object_add_net_shape(lobject_get(L, cell), netname, pts + 0, pts + 1, layer);
     free(pts);
     return 0;
