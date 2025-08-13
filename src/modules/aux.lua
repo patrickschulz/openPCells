@@ -101,13 +101,13 @@ end
 
 -- code credit: https://stackoverflow.com/a/43582076/3197530
 -- gsplit: iterate over substrings in a string separated by a pattern
--- 
+--
 -- Parameters:
 -- text (string)    - the string to iterate over
 -- pattern (string) - the separator pattern
 -- plain (boolean)  - if true (or truthy), pattern is interpreted as a plain
 --                    string, not a Lua pattern
--- 
+--
 -- Returns: iterator
 --
 -- Usage:
@@ -141,13 +141,13 @@ function aux.strgsplit(text, pattern, plain)
 end
 
 -- split: split a string into substrings separated by a pattern.
--- 
+--
 -- Parameters:
 -- text (string)    - the string to iterate over
 -- pattern (string) - the separator pattern
 -- plain (boolean)  - if true (or truthy), pattern is interpreted as a plain
 --                    string, not a Lua pattern
--- 
+--
 -- Returns: table (a sequence table containing the substrings)
 function aux.strsplit(text, pattern, plain)
     local ret = {}
@@ -157,21 +157,19 @@ function aux.strsplit(text, pattern, plain)
     return ret
 end
 
-function aux.tprint(tbl, indent)                                                   
-    -- Print contents of tbl, with indentation.                                   
-    -- indent sets the initial level of indentation.                                 
+function aux.tprint(tbl, indent)
+    -- Print contents of tbl, with indentation.
+    -- indent sets the initial level of indentation.
     indent = indent or 0
-    for k, v in pairs(tbl) do                                                     
-        local formatting = string.rep("  ", indent) .. k .. ": "                             
-        if type(v) == "table" then                                                  
-            print(formatting)                                                         
-            aux.tprint(v, indent+1)                                                       
-        elseif type(v) == 'boolean' then                                            
-            print(formatting .. tostring(v))                                          
-        else                                                                        
-            print(formatting .. v)                                                    
-        end                                                                         
-    end                                                                           
+    for k, v in pairs(tbl) do
+        local formatting = string.rep("  ", indent) .. k .. ": "
+        if type(v) == "table" then
+            print(formatting)
+            aux.tprint(v, indent+1)
+        else
+            print(formatting .. tostring(v))
+        end
+    end
 end
 
 function aux.pop_top_directory(path)
