@@ -98,7 +98,7 @@ procedure(OPCSubCellCreateBase(cv name properties)
 
 procedure(OPCSubCellScriptCreateCallback()
     let(
-        (cv group path label groupname template)
+        (cv group path filename label groupname template)
         cv = geGetEditCellView()
         groupname = OPCSubCellScriptCreationForm->OPCSubCellScriptName->value
         template = OPCSubCellScriptCreationForm->OPCSubCellScriptTemplate->value
@@ -118,19 +118,19 @@ procedure(OPCSubCellScriptCreateCallback()
                 unless(isDir(path)
                     createDir(path)
                 )
-                OPCOpenEditor(path)
-                group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opcpath" 'type "string" 'value lsprintf("%s/%s.lua" path groupname))))
+                filename = lsprintf("%s/%s.lua" path groupname)
+                OPCOpenEditor(lsprintf(filename)
+                group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opcpath" 'type "string" 'value filename)))
                 label = dbCreateLabel(cv OPCGetInfoLayer() 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
                 unless(template == ""
-                    let((filename cmd)
+                    let((cmd)
                         if(OPCSubCellScriptCreationForm->OPCSubCellScriptAutoTemplate->value == "true"
                             then
                                 cmd = OPCBuildCallCommand(lsprintf("--template-auto %s" template))
                             else
                                 cmd = OPCBuildCallCommand(lsprintf("--template %s" template))
                         )
-                        filename = lsprintf("%s/%s.lua" path groupname)
                         OPCCall(cmd ?redirect filename)
                     ) ; let
                 ) ; unless template == ""
