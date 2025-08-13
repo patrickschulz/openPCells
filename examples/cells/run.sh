@@ -6,3 +6,4 @@
 ../../opc --technology opc --export gds --cellscript current_starved_ringoscillator.lua --filename current_starved_ringoscillator --enable-dprint
 ../../opc --technology opc --export gds --cellscript comparator.lua --filename comparator
 ../../opc --technology opc --export gds --cellscript LC_oscillator.lua --filename LC_oscillator --enable-fallback-vias
+../../opc --technology opc --export gds --cellscript ldmos.lua --filename ldmos
