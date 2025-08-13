@@ -26,7 +26,9 @@ function parameters()
         { "conntype", "parallel", posvals = set("none", "parallel", "series") },
         { "invertseriesconnections", false },
         { "drawrotationmarker", false },
-        { "resistortype", 1 }
+        { "resistortype", 1 },
+        { "plusmetal", 1 },
+        { "minusmetal", 1 }
     )
 end
 
@@ -283,6 +285,18 @@ function layout(resistor, _P)
         resistor:add_area_anchor_bltr("minus",
             resistor:get_area_anchor(string.format("contact_%d_%d", 1, 1)).bl,
             resistor:get_area_anchor(string.format("contact_%d_%d", 1, 1)).tr
+        )
+    end
+    if _P.plusmetal > 1 then
+        geometry.viabltr(resistor, 1, _P.plusmetal,
+            resistor:get_area_anchor("plus").bl,
+            resistor:get_area_anchor("plus").tr
+        )
+    end
+    if _P.minusmetal > 1 then
+        geometry.viabltr(resistor, 1, _P.minusmetal,
+            resistor:get_area_anchor("minus").bl,
+            resistor:get_area_anchor("minus").tr
         )
     end
 end
