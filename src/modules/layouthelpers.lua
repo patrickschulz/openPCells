@@ -1,5 +1,25 @@
 local M = {}
 
+function M.connect_area_anchor(cell, layer, width, anchor1, anchor2)
+    local x1l, y1b = anchor1.bl:unwrap()
+    local x1r, y1t = anchor1.tr:unwrap()
+    local x2l, y2b = anchor2.bl:unwrap()
+    local x2r, y2t = anchor2.tr:unwrap()
+    if y2b > y1t then
+        geometry.path_3y(cell, layer,
+            point.create(0.5 * (x1l + x1r), y1t),
+            point.create(0.5 * (x2l + x2r), y2b),
+            width, 0.5
+        )
+    elseif y1b > y2t then
+        geometry.path_3y(cell, layer,
+            point.create(0.5 * (x2l + x2r), y2t),
+            point.create(0.5 * (x1l + x1r), y1b),
+            width, 0.5
+        )
+    end
+end
+
 function M.via_area_anchor_multiple(cell, startmetal, endmetal, fmt, startindex, endindex, increment)
     local f = string.gsub(fmt, "%%", "%%d")
     startindex = startindex or 1
