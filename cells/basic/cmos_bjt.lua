@@ -70,9 +70,13 @@ function layout(bjt, _P)
     if _P.emitter_via_height > 0 then
         emitter_via_height = _P.emitter_via_height
     end
-    geometry.viabltr(bjt, 1, _P.emittermetal,
+    bjt:add_area_anchor_bltr("emittervia",
         point.create(0, (_P.emitterheight - emitter_via_height) / 2),
         point.create(_P.emitterwidth, (_P.emitterheight + emitter_via_height) / 2)
+    )
+    geometry.viabltr(bjt, 1, _P.emittermetal,
+        bjt:get_area_anchor("emittervia").bl,
+        bjt:get_area_anchor("emittervia").tr
     )
     bjt:add_area_anchor_bltr("emitter",
         point.create(0, 0),
