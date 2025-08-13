@@ -126,7 +126,7 @@ function M.place_vlines(cell, bl, tr, layer, width, netnames, numsets)
         )
         geometry.rectanglebltr(cell, layer, plbl, pltr)
         local netname = netnames[((i - 1) % numnets) + 1]
-        table.insert(netshapes, { net = netname, bl = plbl, tr = pltr })
+        table.insert(netshapes, { net = netname, bl = plbl, tr = pltr, layer = layer })
     end
     return netshapes
 end
@@ -152,7 +152,7 @@ function M.place_hlines(cell, bl, tr, layer, height, netnames, numsets)
         )
         geometry.rectanglebltr(cell, layer, plbl, pltr)
         local netname = netnames[((i - 1) % numnets) + 1]
-        table.insert(netshapes, { net = netname, bl = plbl, tr = pltr })
+        table.insert(netshapes, { net = netname, bl = plbl, tr = pltr, layer = layer })
     end
     return netshapes
 end

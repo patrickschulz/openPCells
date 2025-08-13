@@ -2294,7 +2294,7 @@ const struct vector* object_get_labels(const struct object* cell)
     return cell->labels;
 }
 
-void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr)
+void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer)
 {
     if(object_is_proxy(cell)) // can't add nets to proxy objects
     {
@@ -2310,13 +2310,13 @@ void object_add_net_shape(struct object* cell, const char* netname, const struct
         hashmap_insert(cell->nets, netname, v);
     }
     struct vector* nets = hashmap_get(cell->nets, netname);
-    struct bltrshape* netarea = bltrshape_create(bl, tr);
+    struct bltrshape* netarea = bltrshape_create(bl, tr, layer);
     _transform_to_local_coordinates(cell, bltrshape_get_bl(netarea));
     _transform_to_local_coordinates(cell, bltrshape_get_tr(netarea));
     vector_append(nets, netarea);
 }
 
-struct vector* object_get_net_shapes(const struct object* cell, const char* netname)
+struct vector* object_get_net_shapes(const struct object* cell, const char* netname, const struct generics* layer)
 {
     const struct object* obj = cell;
     if(object_is_proxy(cell))
@@ -2339,16 +2339,25 @@ struct vector* object_get_net_shapes(const struct object* cell, const char* netn
             struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
             for(unsigned int i = 0; i < vector_size(nets); ++i)
             {
+                const struct bltrshape* s = vector_get_const(nets, i);
                 for(unsigned int xindex = 0; xindex < cell->xrep; ++xindex)
                 {
                     for(unsigned int yindex = 0; yindex < cell->yrep; ++yindex)
                     {
-                        struct bltrshape* bltrshape = bltrshape_copy(vector_get_const(nets, i));
-                        _transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
-                        point_translate(bltrshape_get_bl(bltrshape), cell->xpitch * xindex, cell->ypitch * yindex);
-                        _transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
-                        point_translate(bltrshape_get_tr(bltrshape), cell->xpitch * xindex, cell->ypitch * yindex);
-                        vector_append(new, bltrshape);
+                        int include = 1;
+                        if(layer && !bltrshape_is_layer(s, layer))
+                        {
+                            include = 0;
+                        }
+                        if(include)
+                        {
+                            struct bltrshape* bltrshape = bltrshape_copy(s);
+                            _transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
+                            point_translate(bltrshape_get_bl(bltrshape), cell->xpitch * xindex, cell->ypitch * yindex);
+                            _transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
+                            point_translate(bltrshape_get_tr(bltrshape), cell->xpitch * xindex, cell->ypitch * yindex);
+                            vector_append(new, bltrshape);
+                        }
                     }
                 }
             }
@@ -2360,14 +2369,61 @@ struct vector* object_get_net_shapes(const struct object* cell, const char* netn
             struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
             for(unsigned int i = 0; i < vector_size(nets); ++i)
             {
-                struct bltrshape* bltrshape = bltrshape_copy(vector_get_const(nets, i));
-                _transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
-                _transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
-                vector_append(new, bltrshape);
+                const struct bltrshape* s = vector_get_const(nets, i);
+                int include = 1;
+                if(layer && !bltrshape_is_layer(s, layer))
+                {
+                    include = 0;
+                }
+                if(include)
+                {
+                    struct bltrshape* bltrshape = bltrshape_copy(s);
+                    _transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
+                    _transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
+                    vector_append(new, bltrshape);
+                }
             }
             return new;
         }
     }
+}
+
+struct vector* object_get_array_net_shapes(const struct object* cell, int xindex, int yindex, const char* netname, const struct generics* layer)
+{
+    if(!object_is_child_array(cell))
+    {
+        return NULL;
+    }
+    const struct object* obj = cell->reference;
+    if(!obj->nets)
+    {
+        return NULL;
+    }
+    else if(!hashmap_exists(obj->nets, netname))
+    {
+        return NULL;
+    }
+    const struct vector* nets = hashmap_get(obj->nets, netname);
+    struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
+    for(unsigned int i = 0; i < vector_size(nets); ++i)
+    {
+        const struct bltrshape* s = vector_get_const(nets, i);
+        int include = 1;
+        if(layer && !bltrshape_is_layer(s, layer))
+        {
+            include = 0;
+        }
+        if(include)
+        {
+            struct bltrshape* bltrshape = bltrshape_copy(s);
+            _transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
+            point_translate(bltrshape_get_bl(bltrshape), cell->xpitch * (xindex - 1), cell->ypitch * (yindex - 1));
+            _transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
+            point_translate(bltrshape_get_tr(bltrshape), cell->xpitch * (xindex - 1), cell->ypitch * (yindex - 1));
+            vector_append(new, bltrshape);
+        }
+    }
+    return new;
 }
 
 

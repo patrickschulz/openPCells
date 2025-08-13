@@ -140,8 +140,9 @@ const struct vector* object_get_ports(const struct object* cell);
 void object_add_label(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint);
 
 // nets
-void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr);
-struct vector* object_get_net_shapes(const struct object* cell, const char* netname);
+void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer);
+struct vector* object_get_net_shapes(const struct object* cell, const char* netname, const struct generics* layer);
+struct vector* object_get_array_net_shapes(const struct object* cell, int xindex, int yindex, const char* netname, const struct generics* layer);
 
 // alignment box and bounding box
 void object_clear_alignment_box(struct object* cell);

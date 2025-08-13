@@ -1736,8 +1736,9 @@ static int lobject_add_net_shape(lua_State* L)
     const char* netname = luaL_checkstring(L, 2);
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
+    const struct generics* layer = lua_touserdata(L, 5);
     _check_rectangle_points(L, bl, tr, "object.add_net_shape");
-    object_add_net_shape(lobject_get(L, cell), netname, lpoint_get(bl), lpoint_get(tr));
+    object_add_net_shape(lobject_get(L, cell), netname, lpoint_get(bl), lpoint_get(tr), layer);
     return 0;
 }
 
@@ -1746,35 +1747,66 @@ static int lobject_mark_area_anchor_as_net(lua_State* L)
     struct lobject* cell = lobject_check(L, 1);
     const char* anchorname = luaL_checkstring(L, 2);
     const char* netname = luaL_checkstring(L, 3);
+    const struct generics* layer = lua_touserdata(L, 4);
     struct point* pts = object_get_area_anchor(lobject_get(L, cell), anchorname);
-    object_add_net_shape(lobject_get(L, cell), netname, pts + 0, pts + 1);
+    object_add_net_shape(lobject_get(L, cell), netname, pts + 0, pts + 1, layer);
     free(pts);
     return 0;
+}
+
+static void _fill_netshape_table(lua_State* L, const char* netname, struct bltrshape* netshape, int i)
+{
+    lua_newtable(L);
+    /* net */
+    lua_pushstring(L, netname);
+    lua_setfield(L, -2, "net");
+    /* net */
+    lua_pushlightuserdata(L, (void*) bltrshape_get_layer(netshape));
+    lua_setfield(L, -2, "layer");
+    /* bl */
+    lpoint_create_internal_pt(L, bltrshape_get_bl(netshape));
+    lua_setfield(L, -2, "bl");
+    /* tr */
+    lpoint_create_internal_pt(L, bltrshape_get_tr(netshape));
+    lua_setfield(L, -2, "tr");
+    /* add to array */
+    lua_rawseti(L, -2, i + 1);
 }
 
 static int lobject_get_net_shapes(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* netname = luaL_checkstring(L, 2);
-    struct vector* netshapes = object_get_net_shapes(lobject_get_const(cell), netname);
+    const struct generics* layer = lua_touserdata(L, 3);
+    struct vector* netshapes = object_get_net_shapes(lobject_get_const(cell), netname, layer);
     lua_newtable(L);
     if(netshapes)
     {
         for(size_t i = 0; i < vector_size(netshapes); ++i)
         {
-            struct bltrshape* pts = vector_get(netshapes, i);
-            lua_newtable(L);
-            /* net */
-            lua_pushstring(L, netname);
-            lua_setfield(L, -2, "net");
-            /* bl */
-            lpoint_create_internal_pt(L, bltrshape_get_bl(pts));
-            lua_setfield(L, -2, "bl");
-            /* tr */
-            lpoint_create_internal_pt(L, bltrshape_get_tr(pts));
-            lua_setfield(L, -2, "tr");
-            /* add to array */
-            lua_rawseti(L, -2, i + 1);
+            struct bltrshape* netshape = vector_get(netshapes, i);
+            _fill_netshape_table(L, netname, netshape, i);
+        }
+        vector_destroy(netshapes);
+    }
+    return 1;
+}
+
+static int lobject_get_array_net_shapes(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    int xindex = luaL_checkinteger(L, 2);
+    int yindex = luaL_checkinteger(L, 3);
+    const char* netname = luaL_checkstring(L, 4);
+    const struct generics* layer = lua_touserdata(L, 5);
+    struct vector* netshapes = object_get_array_net_shapes(lobject_get_const(cell), xindex, yindex, netname, layer);
+    lua_newtable(L);
+    if(netshapes)
+    {
+        for(size_t i = 0; i < vector_size(netshapes); ++i)
+        {
+            struct bltrshape* netshape = vector_get(netshapes, i);
+            _fill_netshape_table(L, netname, netshape, i);
         }
         vector_destroy(netshapes);
     }
@@ -1919,6 +1951,7 @@ int open_lobject_lib(lua_State* L)
         { "add_net_shape",                          lobject_add_net_shape                       },
         { "mark_area_anchor_as_net",                lobject_mark_area_anchor_as_net             },
         { "get_net_shapes",                         lobject_get_net_shapes                      },
+        { "get_array_net_shapes",                   lobject_get_array_net_shapes                },
         { "__gc",                                   lobject_destroy                             },
         { "__tostring",                             lobject_tostring                            },
         { NULL,                                     NULL                                        }

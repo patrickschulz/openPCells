@@ -5,13 +5,15 @@
 struct bltrshape {
     struct point* bl;
     struct point* tr;
+    const struct generics* layer;
 };
 
-struct bltrshape* bltrshape_create(const struct point* bl, const struct point* tr)
+struct bltrshape* bltrshape_create(const struct point* bl, const struct point* tr, const struct generics* layer)
 {
     struct bltrshape* bltrshape = malloc(sizeof(*bltrshape));
     bltrshape->bl = point_copy(bl);
     bltrshape->tr = point_copy(tr);
+    bltrshape->layer = layer;
     return bltrshape;
 }
 
@@ -27,7 +29,7 @@ void bltrshape_destroy(void* v)
 void* bltrshape_copy(const void* v)
 {
     const struct bltrshape* bltrshape = v;
-    return bltrshape_create(bltrshape->bl, bltrshape->tr);
+    return bltrshape_create(bltrshape->bl, bltrshape->tr, bltrshape->layer);
 }
 
 struct point* bltrshape_get_bl(const struct bltrshape* bltrshape)
@@ -38,4 +40,14 @@ struct point* bltrshape_get_bl(const struct bltrshape* bltrshape)
 struct point* bltrshape_get_tr(const struct bltrshape* bltrshape)
 {
     return bltrshape->tr;
+}
+
+const struct generics* bltrshape_get_layer(const struct bltrshape* bltrshape)
+{
+    return bltrshape->layer;
+}
+
+int bltrshape_is_layer(const struct bltrshape* bltrshape, const struct generics* layer)
+{
+    return bltrshape->layer == layer;
 }
