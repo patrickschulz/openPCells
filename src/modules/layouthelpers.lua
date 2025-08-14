@@ -207,6 +207,26 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, a
     end
 end
 
+function M.place_unequal_net_vias(cell, metal1, metal2, netshapes1, netshapes2, allowfail)
+    for i1 = 1, #netshapes1 do
+        for i2 = 1, #netshapes2 do
+            local r = util.rectangle_intersection(
+                netshapes1[i1].bl, netshapes1[i1].tr,
+                netshapes2[i2].bl, netshapes2[i2].tr
+            )
+            if r then
+                if allowfail then
+                    if geometry.check_viabltr(metal1, metal2, r.bl, r.tr) then
+                        geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
+                    end
+                else
+                    geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
+                end
+            end
+        end
+    end
+end
+
 function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring")
     check.arg_func(1, "cell", "object", cell, object.is_object)
