@@ -14,7 +14,7 @@ function parameters()
         { "outputmetal", 3 },
         { "sourcemetal", 5 },
         { "sourcenet", "" }, -- FIXME: this should be nil, but due to how parameters are handled internally, this is currently not supported
-        { "sdwidth", technology.get_dimension("Minimum M1 Width") },
+        { "sdwidth", technology.get_dimension("Minimum Source/Drain Contact Region Size") },
         { "fingers", 2 },
         { "viaoffset", 1000 },
         { "gatestrapwidth", technology.get_dimension("Minimum Gate Contact Region Size") },
