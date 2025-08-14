@@ -1286,13 +1286,14 @@
         { "cell",       OBJECT,     NULL, "object to get the shape outlines from" },
         { "netname",    STRING,     NULL, "net name of added shape" },
         { "bl",         POINT,      NULL, "bottom-left point of the rectangular area" },
-        { "tr",         POINT,      NULL, "top-right point of the rectangular area" }
+        { "tr",         POINT,      NULL, "top-right point of the rectangular area" },
+        { "layer",      GENERICS,   NULL, "layer of the given net shape" }
     };
     vector_append(entries, _make_api_entry(
         "add_net_shape",
         MODULE_OBJECT,
         "mark a rectangular area in a cell with a certain net. This can be used for automatic via placement from power grids, for instance.",
-        "cell:add_net_shape(\"vdd\", cell:get_area_anchor(\"sourcestrap\").bl, cell:get_area_anchor(\"sourcestra\").tr)",
+        "cell:add_net_shape(\"vdd\", cell:get_area_anchor(\"sourcestrap\").bl, cell:get_area_anchor(\"sourcestra\").tr, generics.metal(2))",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
@@ -1302,13 +1303,14 @@
     struct parameter parameters[] = {
         { "cell",       OBJECT,     NULL, "object to get the shape outlines from" },
         { "anchor",     STRING,     NULL, "identifier of an area anchor" },
-        { "netname",    STRING,     NULL, "net name of added shape" }
+        { "netname",    STRING,     NULL, "net name of added shape" },
+        { "layer",      GENERICS,   NULL, "layer of the given net shape" }
     };
     vector_append(entries, _make_api_entry(
         "mark_area_anchor_as_net",
         MODULE_OBJECT,
         "mark an area anchor in a cell with a certain net. This can be used for automatic via placement from power grids, for instance. This function is similar to add_net_shape, but simpler (and less flexible) to use.",
-        "cell:mark_area_anchor_as_net(\"sourcestrap\", \"vdd\")",
+        "cell:mark_area_anchor_as_net(\"sourcestrap\", \"vdd\", generics.metal(2))",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
@@ -1317,13 +1319,14 @@
 {
     struct parameter parameters[] = {
         { "cell",       OBJECT,     NULL, "object to get the shape outlines from" },
-        { "netname",    STRING,     NULL, "net name of added shape" }
+        { "netname",    STRING,     NULL, "net name of added shape" },
+        { "layer",      GENERICS,   NULL, "optional layer filter" }
     };
     vector_append(entries, _make_api_entry(
         "get_net_shapes",
         MODULE_OBJECT,
-        "return a table which contains rectangular netshape entries of all shapes on a given net. Useful for instance for automatic placement of via from a power grid. The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }",
-        "cell:get_net_shapes(\"vdd\")",
+        "return a table which contains rectangular netshape entries of all shapes on a given net. Useful for instance for automatic placement of via from a power grid. The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }. If the 'layer' parameter is non-nil, only shapes on the given layer are returned.",
+        "cell:get_net_shapes(\"vdd\")\ncell:get_net_shapes(\"vss\", generics.metal(4))",
         parameters, sizeof(parameters) / sizeof(parameters[0]))
     );
 }
