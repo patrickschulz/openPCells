@@ -2,6 +2,7 @@ function parameters()
     pcell.add_parameters(
         { "rows", {} },
         { "centermosfets", false },
+        { "sharediffusion", true },
         { "splitgates", true },
         { "splitimplant", true, follow = "splitgates" },
         { "splitoxidetype", true, follow = "splitgates" },
@@ -10,9 +11,11 @@ function parameters()
         { "splitlvsmarker", true, follow = "splitgates" },
         { "splitrotationmarker", true, follow = "splitgates" },
         { "splitanalogmarker", true, follow = "splitgates" },
-        { "alignmosfetsatactive", false },
+        { "xalignmosfetsatactive", false },
+        { "yalignmosfetsatactive", false },
         { "sdwidth", technology.get_dimension("Minimum M1 Width") },
-        { "separation", 0 },
+        { "xseparation", 0 },
+        { "yseparation", 0 },
         { "autoskip", false },
         { "unequalgatelengths", false }
     )
@@ -153,8 +156,8 @@ function layout(cell, _P)
                     alternateinterweaving = _select_parameter("alternateinterweaving", device, row),
                     minviaxspace = _select_parameter("minviaxspace", device, row),
                     minviayspace = _select_parameter("minviayspace", device, row),
-                    gtopext = _select_switch(((rownum == #_P.rows) or _P.splitgates), _select_parameter("gtopext", device, row), _P.separation / 2),
-                    gbotext = _select_switch(((rownum == 1) or _P.splitgates), _select_parameter("gbotext", device, row), _P.separation / 2), 
+                    gtopext = _select_switch(((rownum == #_P.rows) or _P.splitgates), _select_parameter("gtopext", device, row), _P.yseparation / 2),
+                    gbotext = _select_switch(((rownum == 1) or _P.splitgates), _select_parameter("gbotext", device, row), _P.yseparation / 2), 
                     gtopextadd = _select_parameter("gtopextadd", device, row),
                     gbotextadd = _select_parameter("gbotextadd", device, row),
                     gatetopabsoluteheight = _select_parameter("gatetopabsoluteheight", device, row),
@@ -285,36 +288,36 @@ function layout(cell, _P)
                     drawactive = _select_parameter("drawactive", device, row),
                     lvsmarker = _select_parameter("lvsmarker", device, row),
                     lvsmarkeralignwithactive = not _P.splitlvsmarker or _select_parameter("lvsmarkeralignwithactive", device, row),
-                    extendalltop = _select_switch(((rownum == #_P.rows) or _P.splitgates), _select_parameter("extendalltop", device, row), _P.separation / 2),
-                    extendallbottom = _select_switch(((rownum == 1) or _P.splitgates), _select_parameter("extendallbottom", device, row), _P.separation / 2),
+                    extendalltop = _select_switch(((rownum == #_P.rows) or _P.splitgates), _select_parameter("extendalltop", device, row), _P.yseparation / 2),
+                    extendallbottom = _select_switch(((rownum == 1) or _P.splitgates), _select_parameter("extendallbottom", device, row), _P.yseparation / 2),
                     extendallleft = _select_parameter("extendallleft", device, row),
                     extendallright = _select_parameter("extendallright", device, row),
-                    extendoxidetypetop = _select_switch(((rownum == #_P.rows) or _P.splitoxidetype), _select_parameter("extendoxidetypetop", device, row), _P.separation / 2),
-                    extendoxidetypebottom = _select_switch(((rownum == 1) or _P.splitoxidetype), _select_parameter("extendoxidetypebottom", device, row), _P.separation / 2),
+                    extendoxidetypetop = _select_switch(((rownum == #_P.rows) or _P.splitoxidetype), _select_parameter("extendoxidetypetop", device, row), _P.yseparation / 2),
+                    extendoxidetypebottom = _select_switch(((rownum == 1) or _P.splitoxidetype), _select_parameter("extendoxidetypebottom", device, row), _P.yseparation / 2),
                     extendoxidetypeleft = _select_parameter("extendoxidetypeleft", device, row),
                     extendoxidetyperight = _select_parameter("extendoxidetyperight", device, row),
-                    extendvthtypetop = _select_switch(((rownum == #_P.rows) or _P.splitvthtype), _select_parameter("extendvthtypetop", device, row), _P.separation / 2),
-                    extendvthtypebottom = _select_switch(((rownum == 1) or _P.splitvthtype), _select_parameter("extendvthtypebottom", device, row), _P.separation / 2),
+                    extendvthtypetop = _select_switch(((rownum == #_P.rows) or _P.splitvthtype), _select_parameter("extendvthtypetop", device, row), _P.yseparation / 2),
+                    extendvthtypebottom = _select_switch(((rownum == 1) or _P.splitvthtype), _select_parameter("extendvthtypebottom", device, row), _P.yseparation / 2),
                     extendvthtypeleft = _select_parameter("extendvthtypeleft", device, row),
                     extendvthtyperight = _select_parameter("extendvthtyperight", device, row),
-                    extendimplanttop = _select_switch(((rownum == #_P.rows) or _P.splitimplant), _select_parameter("extendimplanttop", device, row), _P.separation / 2),
-                    extendimplantbottom = _select_switch(((rownum == 1) or _P.splitimplant), _select_parameter("extendimplantbottom", device, row), _P.separation / 2),
+                    extendimplanttop = _select_switch(((rownum == #_P.rows) or _P.splitimplant), _select_parameter("extendimplanttop", device, row), _P.yseparation / 2),
+                    extendimplantbottom = _select_switch(((rownum == 1) or _P.splitimplant), _select_parameter("extendimplantbottom", device, row), _P.yseparation / 2),
                     extendimplantleft = _select_parameter("extendimplantleft", device, row),
                     extendimplantright = _select_parameter("extendimplantright", device, row),
-                    extendwelltop = _select_switch(((rownum == #_P.rows) or _P.splitwell), _select_parameter("extendwelltop", device, row), _P.separation / 2),
-                    extendwellbottom = _select_switch(((rownum == 1) or _P.splitwell), _select_parameter("extendwellbottom", device, row), _P.separation / 2),
+                    extendwelltop = _select_switch(((rownum == #_P.rows) or _P.splitwell), _select_parameter("extendwelltop", device, row), _P.yseparation / 2),
+                    extendwellbottom = _select_switch(((rownum == 1) or _P.splitwell), _select_parameter("extendwellbottom", device, row), _P.yseparation / 2),
                     extendwellleft = _select_parameter("extendwellleft", device, row),
                     extendwellright = _select_parameter("extendwellright", device, row),
-                    extendlvsmarkertop = _select_switch(((rownum == #_P.rows) or _P.splitlvsmarker), _select_parameter("extendlvsmarkertop", device, row), _P.separation / 2),
-                    extendlvsmarkerbottom = _select_switch(((rownum == 1) or _P.splitlvsmarker), _select_parameter("extendlvsmarkerbottom", device, row), _P.separation / 2),
+                    extendlvsmarkertop = _select_switch(((rownum == #_P.rows) or _P.splitlvsmarker), _select_parameter("extendlvsmarkertop", device, row), _P.yseparation / 2),
+                    extendlvsmarkerbottom = _select_switch(((rownum == 1) or _P.splitlvsmarker), _select_parameter("extendlvsmarkerbottom", device, row), _P.yseparation / 2),
                     extendlvsmarkerleft = _select_parameter("extendlvsmarkerleft", device, row),
                     extendlvsmarkerright = _select_parameter("extendlvsmarkerright", device, row),
-                    extendrotationmarkertop = _select_switch(((rownum == #_P.rows) or _P.splitrotationmarker), _select_parameter("extendrotationmarkertop", device, row), _P.separation / 2),
-                    extendrotationmarkerbottom = _select_switch(((rownum == 1) or _P.splitrotationmarker), _select_parameter("extendrotationmarkerbottom", device, row), _P.separation / 2),
+                    extendrotationmarkertop = _select_switch(((rownum == #_P.rows) or _P.splitrotationmarker), _select_parameter("extendrotationmarkertop", device, row), _P.yseparation / 2),
+                    extendrotationmarkerbottom = _select_switch(((rownum == 1) or _P.splitrotationmarker), _select_parameter("extendrotationmarkerbottom", device, row), _P.yseparation / 2),
                     extendrotationmarkerleft = _select_parameter("extendrotationmarkerleft", device, row),
                     extendrotationmarkerright = _select_parameter("extendrotationmarkerright", device, row),
-                    extendanalogmarkertop = _select_switch(((rownum == #_P.rows) or _P.splitanalogmarker), _select_parameter("extendanalogmarkertop", device, row), _P.separation / 2),
-                    extendanalogmarkerbottom = _select_switch(((rownum == 1) or _P.splitanalogmarker), _select_parameter("extendanalogmarkerbottom", device, row), _P.separation / 2),
+                    extendanalogmarkertop = _select_switch(((rownum == #_P.rows) or _P.splitanalogmarker), _select_parameter("extendanalogmarkertop", device, row), _P.yseparation / 2),
+                    extendanalogmarkerbottom = _select_switch(((rownum == 1) or _P.splitanalogmarker), _select_parameter("extendanalogmarkerbottom", device, row), _P.yseparation / 2),
                     extendanalogmarkerleft = _select_parameter("extendanalogmarkerleft", device, row),
                     extendanalogmarkerright = _select_parameter("extendanalogmarkerright", device, row),
                     drawwell = _select_parameter("drawwell", device, row),
@@ -357,7 +360,8 @@ function layout(cell, _P)
         for fetnum = 2, #mosfetrow do
             local lastmosfet = mosfetrow[fetnum - 1].mosfet
             local mosfet = mosfetrow[fetnum].mosfet
-            mosfet:align_area_anchor("sourcedrainactiveleft", lastmosfet, "sourcedrainactiveright")
+            mosfet:abut_right(lastmosfet)
+            mosfet:translate_x(_P.xseparation)
         end -- for-loop across row devices
     end -- for-loop across rows
 
@@ -379,26 +383,34 @@ function layout(cell, _P)
                 )
                 xshift = xcenter1 - xcenter2
         else
-            if _P.alignmosfetsatactive then
+            if _P.xalignmosfetsatactive then
                 xshift = point.xdistance(
                     lastmosfetrow[1].mosfet:get_area_anchor("active").bl,
                     mosfetrow[1].mosfet:get_area_anchor("active").bl
                 )
             else
                 xshift = point.xdistance(
-                    lastmosfetrow[1].mosfet:get_area_anchor("sourcedrainactiveleft").bl,
-                    mosfetrow[1].mosfet:get_area_anchor("sourcedrainactiveleft").bl
+                    lastmosfetrow[1].mosfet:get_alignment_anchor("outerbl"),
+                    mosfetrow[1].mosfet:get_alignment_anchor("outerbl")
                 )
             end
         end
-        local yshift = point.ydistance(
-            lastmosfetrow[1].mosfet:get_area_anchor("active").tl,
-            mosfetrow[1].mosfet:get_area_anchor("active").bl
-        )
+        local yshift = 0
+        if _P.yalignmosfetsatactive then
+            yshift = point.ydistance(
+                lastmosfetrow[1].mosfet:get_area_anchor("active").tl,
+                mosfetrow[1].mosfet:get_area_anchor("active").bl
+            )
+        else
+            yshift = point.ydistance(
+                lastmosfetrow[1].mosfet:get_alignment_anchor("innertl"),
+                mosfetrow[1].mosfet:get_alignment_anchor("outerbl")
+            )
+        end
         -- position the entire row
         for fetnum = 1, #mosfetrow do
             local mosfet = mosfetrow[fetnum].mosfet
-            mosfet:translate(xshift, _P.separation + yshift + extrayshift)
+            mosfet:translate(xshift, _P.yseparation + yshift + extrayshift)
         end -- for-loop across row devices
     end -- for-loop across rows
 
