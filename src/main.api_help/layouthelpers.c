@@ -328,11 +328,12 @@
         { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr> }" },
         { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr> }" },
         { "netfilter",      INTEGER,    NULL, "optional table containing nets that should be connected. If not given, all matching nets are conneted" },
+        { "allowfail",      BOOLEAN,    NULL, "allow failing vias. If not given, all vias area created, if the overlap is too small an error is raised" }
     };
     vector_append(entries, _make_api_entry(
         "place_vias",
         MODULE_LAYOUTHELPERS,
-        "Create vias in a cell connecting net shapes on different metal layers.",
+        "Create vias in a cell connecting net shapes on different metal layers. This function creates vias between the given layers. If not net filter is given, all netshapes with matching nets are connected. If a table array with string items is given, only shapes on nets in that array are connected. 'allowfail' makes the function non-failing: when there are small overlaps without a legal via arrayzation, the function raises an error per default (as internall geometry.viabltr is used). With 'allowfail' == true the legality of the overlap for via generation is checked first and skipped if it would fial.",
         "layouthelpers.place_vias(cell,\n    1, 4, -- metal layers\n    netshapes1, netshapes2, -- netshapes\n    { \"VSS\" \"BIAS\" }, -- net filter)",
         parameters,
         sizeof(parameters) / sizeof(parameters[0])
