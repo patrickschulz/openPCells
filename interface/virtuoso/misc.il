@@ -92,3 +92,34 @@ procedure(OPCViewOutputFile()
 procedure(OPCGetInfoLayer()
     list(OPCSettingsForm->OPCSettingsInfoLayer->value OPCSettingsForm->OPCSettingsInfoLayerPurpose->value)
 ) ; OPCGetInfoLayer
+
+procedure(OPCGetSelSetOrigin(selset)
+	let((x0 y0)
+		x0 = car(sort(mapcar(lambda( (bBox) xCoord(car(bBox))) selset~>bBox) 'lessp))
+		y0 = car(sort(mapcar(lambda( (bBox) yCoord(car(bBox))) selset~>bBox) 'lessp))
+		list(x0 y0)
+	)
+)
+
+; this function is written for selection sets but only one group is passed
+; I kept the 'list(group)' construct everywhere, perhaps this might be expanded at some point
+procedure(OPCMoveGroup(group)
+	let((origin dragInfo cv)
+		origin = OPCGetSelSetOrigin(list(group))
+		dragInfo = geHiDragFig(hiGetCurrentWindow() 0 "origin" "destination" "Move" list(group) nil origin)
+		when(dragInfo
+			cv = geGetEditCellView()
+			destructuringBind(
+				(
+					(firstCV (firstX firstY))
+					(secondCV (secondX secondY))
+				)
+				dragInfo
+				transform = list(list(secondX - firstX secondY - firstY) "R0" 1)
+				foreach(obj list(group)
+					dbMoveFig(obj cv transform)
+				)
+			)
+		)
+	)
+)

@@ -98,7 +98,7 @@ procedure(OPCSubCellCreateBase(cv name properties)
 
 procedure(OPCSubCellScriptCreateCallback()
     let(
-        (cv group path filename label groupname template)
+        (cv group path filename label rect groupname template)
         cv = geGetEditCellView()
         groupname = OPCSubCellScriptCreationForm->OPCSubCellScriptName->value
         template = OPCSubCellScriptCreationForm->OPCSubCellScriptTemplate->value
@@ -123,6 +123,8 @@ procedure(OPCSubCellScriptCreateCallback()
                 group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opcpath" 'type "string" 'value filename)))
                 label = dbCreateLabel(cv OPCGetInfoLayer() 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
+                rect = dbCreateRect(cv OPCGetInfoLayer() list(-0.5:-0.5 0.5:0.5))
+                dbAddFigToFigGroup(group rect)
                 unless(template == ""
                     let((cmd)
                         if(OPCSubCellScriptCreationForm->OPCSubCellScriptAutoTemplate->value == "true"
@@ -134,6 +136,7 @@ procedure(OPCSubCellScriptCreateCallback()
                         OPCCall(cmd ?redirect filename)
                     ) ; let
                 ) ; unless template == ""
+                OPCMoveGroup(group)
                 t
         )
     )
