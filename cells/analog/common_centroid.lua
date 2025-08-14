@@ -17,7 +17,7 @@ function parameters()
         { "sdwidth", technology.get_dimension("Minimum M1 Width") },
         { "fingers", 2 },
         { "viaoffset", 1000 },
-        { "gatestrapwidth", technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapwidth", technology.get_dimension("Minimum Gate Contact Region Size") },
         { "gatestrapspace", technology.get_dimension("Minimum M1 Width") },
         { "gatestrapleftext", 0 },
         { "gatestraprightext", 0 },
