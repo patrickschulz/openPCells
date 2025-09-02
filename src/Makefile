@@ -66,27 +66,29 @@ generate_manpage: cmdoptions.h cmdoptions.c generate_manpage.c
 	$(CC) $(CFLAGS) generate_manpage.c cmdoptions.c vector.c util.c -o generate_manpage
 
 _scriptmanager.c: _embed_compiled_lua_file_release scripts/*.lua
-	@echo '#include "_scriptmanager.h"' > _scriptmanager.c
-	@echo '#include <stddef.h>' >> _scriptmanager.c
-	@echo '#include "main.functions.h"' >> _scriptmanager.c
-	./_embed_compiled_lua_file_release --script scripts/list_cells.lua script_call list_cells _scriptmanager.c
-	./_embed_compiled_lua_file_release --script scripts/assistant.lua script_call assistant _scriptmanager.c
-	./_embed_compiled_lua_file_release --script scripts/list_parameters.lua script_call list_parameters _scriptmanager.c
-	./_embed_compiled_lua_file_release --script scripts/list_anchors.lua script_call list_anchors _scriptmanager.c
-	./_embed_compiled_lua_file_release --script scripts/templates.lua script_call templates _scriptmanager.c
-	./_embed_compiled_lua_file_release --script scripts/check_technology.lua script_call check_technology _scriptmanager.c
+	@echo '#include "_scriptmanager.h"' > __scriptmanager.c
+	@echo '#include <stddef.h>' >> __scriptmanager.c
+	@echo '#include "main.functions.h"' >> __scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/list_cells.lua script_call list_cells __scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/assistant.lua script_call assistant __scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/list_parameters.lua script_call list_parameters __scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/list_anchors.lua script_call list_anchors __scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/templates.lua script_call templates __scriptmanager.c
+	./_embed_compiled_lua_file_release --script scripts/check_technology.lua script_call check_technology __scriptmanager.c
+	@mv __scriptmanager.c _scriptmanager.c
 
 _scriptmanager.h:
-	@echo '#ifndef OPC_SCRIPTMANAGER_H' > _scriptmanager.h
-	@echo '#define OPC_SCRIPTMANAGER_H' >> _scriptmanager.h
-	@echo '#include "lua/lua.h"' >> _scriptmanager.h
-	@echo 'int script_call_list_cells(lua_State* L);' >> _scriptmanager.h
-	@echo 'int script_call_assistant(lua_State* L);' >> _scriptmanager.h
-	@echo 'int script_call_list_parameters(lua_State* L);' >> _scriptmanager.h
-	@echo 'int script_call_list_anchors(lua_State* L);' >> _scriptmanager.h
-	@echo 'int script_call_templates(lua_State* L);' >> _scriptmanager.h
-	@echo 'int script_call_check_technology(lua_State* L);' >> _scriptmanager.h
-	@echo '#endif // OPC_SCRIPTMANAGER_H' >> _scriptmanager.h
+	@echo '#ifndef OPC_SCRIPTMANAGER_H' > __scriptmanager.h
+	@echo '#define OPC_SCRIPTMANAGER_H' >> __scriptmanager.h
+	@echo '#include "lua/lua.h"' >> __scriptmanager.h
+	@echo 'int script_call_list_cells(lua_State* L);' >> __scriptmanager.h
+	@echo 'int script_call_assistant(lua_State* L);' >> __scriptmanager.h
+	@echo 'int script_call_list_parameters(lua_State* L);' >> __scriptmanager.h
+	@echo 'int script_call_list_anchors(lua_State* L);' >> __scriptmanager.h
+	@echo 'int script_call_templates(lua_State* L);' >> __scriptmanager.h
+	@echo 'int script_call_check_technology(lua_State* L);' >> __scriptmanager.h
+	@echo '#endif // OPC_SCRIPTMANAGER_H' >> __scriptmanager.h
+	@mv __scriptmanager.h _scriptmanager.h
 
 _modulemanager.c: _embed_compiled_lua_file_release modules/*.lua
 	@echo '#include "_modulemanager.h"' > _modulemanager.c
