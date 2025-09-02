@@ -29,6 +29,9 @@ openPCells_extracted.cir
 pfile.lua
 verilogimport
 
+# development utils on my main machine
+devutils
+
 # generated files in example folder
 examples/digital/digital.lua
 examples/*/*.gds
