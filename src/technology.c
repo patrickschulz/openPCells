@@ -13,7 +13,7 @@
 
 struct generics_entry {
     char* exportname;
-    struct hashmap* data;
+    struct hashmap* data; // stores tagged_value*
 };
 
 struct generics {
