@@ -99,7 +99,7 @@ void main_generate_tutorial(void)
     _write_01_momcap();
 }
 
-static int _read_key()
+static int _read_key(void)
 {
     terminal_cursor_visibility(1);
     int ch;

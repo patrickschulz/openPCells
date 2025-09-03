@@ -1,5 +1,6 @@
 #include "union.h"
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -36,6 +37,8 @@ static enum order rect_order(coordinate_t bl1, coordinate_t tr1, coordinate_t bl
 
 struct shape* rectangle_shape_union(struct shape* rect1, struct shape* rect2)
 {
+    assert(shape_is_rectangle(rect1));
+    assert(shape_is_rectangle(rect2));
     const struct point *bl1;
     const struct point *tr1;
     shape_get_rectangle_points(rect1, &bl1, &tr1);

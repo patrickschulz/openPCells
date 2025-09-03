@@ -131,7 +131,7 @@ static int _load_config(struct hashmap* config)
     return ret == LUA_OK;
 }
 
-void _print_general_info(void)
+static void _print_general_info(void)
 {
     printf("This is the openPCell layout generator (opc), version %u.%u.%u.\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
     puts("Copyright 2020-2025 Patrick Kurth");
