@@ -456,8 +456,12 @@ static void _triangulate_polygons(struct object* toplevel, struct cmdoptions* cm
     }
 }
 
-int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* config, int iscellscript)
+int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* config, int iscellscript, int verbose)
 {
+    if(verbose)
+    {
+        puts("setting up...");
+    }
     int retval = 1;
     struct vector* techpaths = hashmap_get(config, "techpaths");
     vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
@@ -564,6 +568,10 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 
     const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
     const char* name = cmdoptions_get_argument_long(cmdoptions, "cellname");
+    if(verbose)
+    {
+        puts("creating layout...");
+    }
     struct object* toplevel = NULL;
     if(iscellscript)
     {
@@ -581,117 +589,119 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         }
     }
     const_vector_destroy(cellargs);
-    if(toplevel)
-    {
-        _move_origin(toplevel, cmdoptions);
-        _translate(toplevel, cmdoptions);
-        _scale(toplevel, cmdoptions);
-
-        // draw alignmentbox(es)
-        _draw_alignmentboxes(toplevel, cmdoptions, techstate);
-
-        // draw achors
-        _draw_anchors(toplevel, cmdoptions, techstate);
-
-        // flatten cell
-        if(cmdoptions_was_provided_long(cmdoptions, "flat"))
-        {
-            int flattenports = cmdoptions_was_provided_long(cmdoptions, "flattenports");
-            object_flatten_inline(toplevel, flattenports);
-        }
-
-        // post-processing
-        _merge_rectangles(toplevel, cmdoptions, techstate);
-
-        // resolve paths
-        _resolve_paths(toplevel, cmdoptions);
-
-        // resolve path extensions
-        _resolve_path_extensions(toplevel, cmdoptions);
-
-        // curve rasterization
-        _raster_curves(toplevel, cmdoptions);
-
-        // polygon triangulation
-        _triangulate_polygons(toplevel, cmdoptions);
-
-        // export cell
-        if(cmdoptions_was_provided_long(cmdoptions, "export"))
-        {
-            struct export_state* export_state = export_create_state();
-
-            // add export search paths. FIXME: add --exportpath cmd option
-            export_add_searchpath(export_state, OPC_EXPORT_PATH "/export");
-
-            // basename
-            export_set_basename(export_state, cmdoptions_get_argument_long(cmdoptions, "filename"));
-
-            // export options
-            export_set_export_options(export_state, cmdoptions_get_argument_long(cmdoptions, "export-options"));
-
-            // expand namecontexts
-            export_set_namecontext_expansion(export_state, !cmdoptions_was_provided_long(cmdoptions, "no-expand-namecontexts"));
-
-            // don't write ports
-            if(cmdoptions_was_provided_long(cmdoptions, "disable-ports"))
-            {
-                export_disable_ports(export_state);
-            }
-
-            // don't export malformed shapes
-            if(cmdoptions_was_provided_long(cmdoptions, "ignore-malformed-shapes"))
-            {
-                export_disable_malformed_shapes(export_state);
-            }
-
-            // write children ports
-            export_set_write_children_ports(export_state, cmdoptions_was_provided_long(cmdoptions, "write-children-ports"));
-
-            // bus delimiters
-            const char* delimiters = cmdoptions_get_argument_long(cmdoptions, "bus-delimiters");
-            if(delimiters && delimiters[0] && delimiters[1])
-            {
-                export_set_bus_delimiters(export_state, delimiters[0], delimiters[1]);
-            }
-            else
-            {
-                export_set_bus_delimiters(export_state, '<', '>');
-            }
-
-            const char* const * exportnames = cmdoptions_get_argument_long(cmdoptions, "export");
-            while(*exportnames)
-            {
-                export_set_exportname(export_state, *exportnames);
-                if(!technology_resolve_premapped_layers(techstate, export_get_layername(export_state)))
-                {
-                    retval = 0;
-                    goto DESTROY_OBJECT;
-                }
-                int export_result = export_write_toplevel(
-                    toplevel,
-                    export_state
-                );
-                if(!export_result)
-                {
-                    export_destroy_state(export_state);
-                    retval = 0;
-                    goto DESTROY_OBJECT;
-                }
-                ++exportnames;
-            }
-            export_destroy_state(export_state);
-        }
-        else
-        {
-            retval = 0;
-            puts("no export type given");
-        }
-    }
-    else
+    if(!toplevel)
     {
         fputs("errors while creating cell\n", stderr);
         retval = 0;
         goto DESTROY_OBJECT;
+    }
+
+    if(verbose)
+    {
+        puts("post-processing...");
+    }
+
+    _move_origin(toplevel, cmdoptions);
+    _translate(toplevel, cmdoptions);
+    _scale(toplevel, cmdoptions);
+
+    // draw alignmentbox(es)
+    _draw_alignmentboxes(toplevel, cmdoptions, techstate);
+
+    // draw achors
+    _draw_anchors(toplevel, cmdoptions, techstate);
+
+    // flatten cell
+    if(cmdoptions_was_provided_long(cmdoptions, "flat"))
+    {
+        int flattenports = cmdoptions_was_provided_long(cmdoptions, "flattenports");
+        object_flatten_inline(toplevel, flattenports);
+    }
+
+    // post-processing
+    _merge_rectangles(toplevel, cmdoptions, techstate);
+
+    // resolve paths
+    _resolve_paths(toplevel, cmdoptions);
+
+    // resolve path extensions
+    _resolve_path_extensions(toplevel, cmdoptions);
+
+    // curve rasterization
+    _raster_curves(toplevel, cmdoptions);
+
+    // polygon triangulation
+    _triangulate_polygons(toplevel, cmdoptions);
+
+    // export cell
+    if(verbose)
+    {
+        puts("exporting layout...");
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "export"))
+    {
+        struct export_state* export_state = export_create_state();
+
+        // add export search paths. FIXME: add --exportpath cmd option
+        export_add_searchpath(export_state, OPC_EXPORT_PATH "/export");
+
+        // basename
+        export_set_basename(export_state, cmdoptions_get_argument_long(cmdoptions, "filename"));
+
+        // export options
+        export_set_export_options(export_state, cmdoptions_get_argument_long(cmdoptions, "export-options"));
+
+        // expand namecontexts
+        export_set_namecontext_expansion(export_state, !cmdoptions_was_provided_long(cmdoptions, "no-expand-namecontexts"));
+
+        // don't write ports
+        if(cmdoptions_was_provided_long(cmdoptions, "disable-ports"))
+        {
+            export_disable_ports(export_state);
+        }
+
+        // don't export malformed shapes
+        if(cmdoptions_was_provided_long(cmdoptions, "ignore-malformed-shapes"))
+        {
+            export_disable_malformed_shapes(export_state);
+        }
+
+        // write children ports
+        export_set_write_children_ports(export_state, cmdoptions_was_provided_long(cmdoptions, "write-children-ports"));
+
+        // bus delimiters
+        const char* delimiters = cmdoptions_get_argument_long(cmdoptions, "bus-delimiters");
+        if(delimiters && delimiters[0] && delimiters[1])
+        {
+            export_set_bus_delimiters(export_state, delimiters[0], delimiters[1]);
+        }
+        else
+        {
+            export_set_bus_delimiters(export_state, '<', '>');
+        }
+
+        const char* const * exportnames = cmdoptions_get_argument_long(cmdoptions, "export");
+        while(*exportnames)
+        {
+            export_set_exportname(export_state, *exportnames);
+            if(!technology_resolve_premapped_layers(techstate, export_get_layername(export_state)))
+            {
+                retval = 0;
+                goto DESTROY_OBJECT;
+            }
+            int export_result = export_write_toplevel(
+                toplevel,
+                export_state
+            );
+            if(!export_result)
+            {
+                export_destroy_state(export_state);
+                retval = 0;
+                goto DESTROY_OBJECT;
+            }
+            ++exportnames;
+        }
+        export_destroy_state(export_state);
     }
 
     // cell info

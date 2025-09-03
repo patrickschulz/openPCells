@@ -596,7 +596,8 @@ int main(int argc, const char* const * argv)
             fputs("no export given\n", stderr);
             goto DESTROY_CONFIG;
         }
-        int ret = main_create_and_export_cell(cmdoptions, config, create_cell_script); // 0: regular cell, 1: cellscript
+        int verbose = cmdoptions_was_provided_long(cmdoptions, "verbose");
+        int ret = main_create_and_export_cell(cmdoptions, config, create_cell_script, verbose); // 0: regular cell, 1: cellscript
         if(!ret)
         {
             returnvalue = 1;

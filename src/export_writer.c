@@ -429,6 +429,7 @@ static int _write_child(struct export_writer* writer, const struct object* child
 
 static int _write_cell_shape_rectangle(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
+    assert(shape_is_rectangle(shape));
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
     // NULL layerdata is allowed and enable in the technology module
     // the export module ignores these shapes, as they are considered approved, not errorneous
@@ -482,6 +483,7 @@ static int _write_polygon(struct export_writer* writer, const struct hashmap* la
 
 static int _write_cell_shape_polygon(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
+    assert(shape_is_polygon(shape));
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
     // NULL layerdata is allowed and enable in the technology module
     // the export module ignores these shapes, as they are considered approved, not errorneous
@@ -498,6 +500,7 @@ static int _write_cell_shape_polygon(struct export_writer* writer, const struct 
 
 static int _write_cell_shape_triangulated_polygon(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
+    assert(shape_is_triangulated_polygon(shape));
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
     // NULL layerdata is allowed and enable in the technology module
     // the export module ignores these shapes, as they are considered approved, not errorneous
@@ -562,6 +565,8 @@ static int _write_cell_shape_path(struct export_writer* writer, const struct sha
     if(_has_write_path(writer))
     {
         shape_get_transformed_path_points(shape, trans, points);
+        assert(shape_is_path(shape)); // this assert should be at the top of the function,
+                                      // but it did not silence the warning about possibly-uninitialized width (gcc 15.2)
         ucoordinate_t width;
         shape_get_path_width(shape, &width);
         coordinate_t extension[2];
