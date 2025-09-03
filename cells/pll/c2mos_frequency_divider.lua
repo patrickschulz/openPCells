@@ -854,7 +854,7 @@ function layout(divider, _P)
         string.format("%s_latch", divider:get_name()),
         {
             sdwidth = _P.sdwidth,
-            separation = _P.separation,
+            yseparation = _P.separation,
             rows = rowdefinition,
             splitgates = false,
         }
@@ -1527,7 +1527,7 @@ function layout(divider, _P)
         string.format("%s_buffer", divider:get_name()),
         {
             sdwidth = _P.sdwidth,
-            separation = _P.separation,
+            yseparation = _P.separation,
             rows = bufrowdefinition,
             splitgates = false,
         }
