@@ -6,13 +6,15 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "_config.h"
+#include "main.functions.h"
 #include "print.h"
 #include "string.h"
 #include "strprint.h"
+#include "tagged_value.h"
 #include "technology.h"
 #include "terminal.h"
 #include "util.h"
-#include "tagged_value.h"
 
 #define SIDE_PANEL_WIDTH 40
 #define PROMPT_LINE_OFFSET 0
@@ -60,7 +62,7 @@ enum mode {
 struct state {
     enum mode mode;
     // generic info
-    char* libname;
+    char* techname;
     int ask_layer_name;
     int ask_gds;
     int ask_skill;
@@ -358,7 +360,7 @@ static void _draw_side_panel(struct state* state)
         _draw_panel_section(startpos, state->columns, ycurrent, 3, "General Information");
         ++ycurrent;
         terminal_cursor_set_position(ycurrent, startpos + 3);
-        _write_tech_entry_string("Library Name", state->libname);
+        _write_tech_entry_string("Library Name", state->techname);
         ++ycurrent;
         terminal_cursor_set_position(ycurrent, startpos + 3);
         _write_tech_entry_boolean("Ask Layer Name", state->ask_layer_name);
@@ -718,7 +720,7 @@ static void _read_metal_stack(struct state* state)
     }
 }
 
-void main_techfile_assistant(void)
+void main_techfile_assistant(const struct hashmap* config)
 {
     // set up
     struct state state = { 0 };
@@ -770,8 +772,15 @@ void main_techfile_assistant(void)
     // general
     state.mode = GENERAL;
     _draw_all(&state);
-    state.libname = _draw_main_text_single_prompt_string(&state, "What is the name of the technology library?", "", "Technology Name");
-    state.techstate = technology_initialize(state.libname);
+    state.techname = _draw_main_text_single_prompt_string(&state, "What is the name of the technology library?", "", "Technology Name");
+    state.techstate = technology_initialize(state.techname);
+    if(technology_exists(state.techname))
+    {
+        const struct vector* techpaths = hashmap_get_const(config, "techpaths");
+        // FIXME: loading an erroneous technology state modifies data, this might not be desirable?
+        state.techstate = main_create_techstate(techpaths, state.techname, NULL); // NULL: ignored layers
+        // FIXME: notify in case of errors
+    }
     _draw_all(&state);
     state.ask_layer_name = _draw_main_text_single_prompt_boolean(&state, "Should the assistant ask for layer names (useful for debugging)?", "yes", "Layer Info");
     _draw_all(&state);

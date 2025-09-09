@@ -55,6 +55,11 @@ void technology_add_techpath(struct technology_state* techstate, const char* pat
     vector_append(techstate->techpaths, util_strdup(path));
 }
 
+int technology_exists(const char* name)
+{
+    return 0;
+}
+
 static int ltechnology_list_techpaths(lua_State* L)
 {
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");

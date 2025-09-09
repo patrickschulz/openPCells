@@ -40,7 +40,7 @@
 #include "_scriptmanager.h"
 #include "_modulemanager.h"
 
-static int _load_config(struct hashmap* config)
+static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions)
 {
     /* prepare config */
     struct vector* techpaths = vector_create(8, free);
@@ -52,82 +52,100 @@ static int _load_config(struct hashmap* config)
     struct vector* ignoredlayers = vector_create(8, free);
     hashmap_insert(config, "ignoredlayers", ignoredlayers);
 
-    const char* home = getenv("HOME");
-    size_t len = strlen(home) + strlen("/.opcconfig.lua");
-    char* filename = malloc(len + 1);
-    snprintf(filename, len + 1, "%s/.opcconfig.lua", home);
-    if(!filesystem_exists(filename))
+    // set/load technology search paths
+    vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
+    if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {
+        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
+        while(*arg)
+        {
+            vector_append(techpaths, util_strdup(*arg));
+            ++arg;
+        }
+    }
+
+    int no_user_config = cmdoptions_was_provided_long(cmdoptions, "no-user-config");
+    int ret = LUA_OK;
+
+    if(!no_user_config)
+    {
+        const char* home = getenv("HOME");
+        size_t len = strlen(home) + strlen("/.opcconfig.lua");
+        char* filename = malloc(len + 1);
+        snprintf(filename, len + 1, "%s/.opcconfig.lua", home);
+        if(!filesystem_exists(filename))
+        {
+            free(filename);
+            return 1; /* non-existing user config is not an error */
+        }
+        lua_State* L = util_create_basic_lua_state();
+        ret = luaL_dofile(L, filename);
         free(filename);
-        return 1; /* non-existing user config is not an error */
+        if(ret == LUA_OK)
+        {
+            /* techpaths */
+            techpaths = hashmap_get(config, "techpaths");
+            lua_getfield(L, -1, "techpaths");
+            if(!lua_isnil(L, -1))
+            {
+                lua_pushnil(L);
+                while(lua_next(L, -2) != 0)
+                {
+                    const char* path = lua_tostring(L, -1);
+                    vector_append(techpaths, util_strdup(path));
+                    lua_pop(L, 1);
+                }
+            }
+            lua_pop(L, 1); // pop techpaths table (or nil)
+            // remove entry
+            lua_pushnil(L);
+            lua_setfield(L, -2, "techpaths");
+
+            // cellpaths
+            techpaths = hashmap_get(config, "prepend_cellpaths");
+            lua_getfield(L, -1, "prepend_cellpaths");
+            if(!lua_isnil(L, -1))
+            {
+                lua_pushnil(L);
+                while(lua_next(L, -2) != 0)
+                {
+                    const char* path = lua_tostring(L, -1);
+                    vector_append(prepend_cellpaths, util_strdup(path));
+                    lua_pop(L, 1);
+                }
+            }
+            lua_pop(L, 1); // pop prepend_cellpaths table (or nil)
+            // remove entry
+            lua_pushnil(L);
+            lua_setfield(L, -2, "prepend_cellpaths");
+
+            append_cellpaths = hashmap_get(config, "append_cellpaths");
+            lua_getfield(L, -1, "append_cellpaths");
+            if(!lua_isnil(L, -1))
+            {
+                lua_pushnil(L);
+                while(lua_next(L, -2) != 0)
+                {
+                    const char* path = lua_tostring(L, -1);
+                    vector_append(append_cellpaths, util_strdup(path));
+                    lua_pop(L, 1);
+                }
+            }
+            lua_pop(L, 1); // pop append_cellpaths table (or nil)
+            // remove entry
+            lua_pushnil(L);
+            lua_setfield(L, -2, "append_cellpaths");
+
+            lua_pushnil(L);
+            while(lua_next(L, -2) != 0)
+            {
+                printf("unknown config entry '%s'\n", lua_tostring(L, -2));
+                lua_pop(L, 1);
+                ret = LUA_ERRRUN;
+            }
+        }
+        lua_close(L);
     }
-    lua_State* L = util_create_basic_lua_state();
-    int ret = luaL_dofile(L, filename);
-    free(filename);
-    if(ret == LUA_OK)
-    {
-        /* techpaths */
-        techpaths = hashmap_get(config, "techpaths");
-        lua_getfield(L, -1, "techpaths");
-        if(!lua_isnil(L, -1))
-        {
-            lua_pushnil(L);
-            while(lua_next(L, -2) != 0)
-            {
-                const char* path = lua_tostring(L, -1);
-                vector_append(techpaths, util_strdup(path));
-                lua_pop(L, 1);
-            }
-        }
-        lua_pop(L, 1); // pop techpaths table (or nil)
-        // remove entry
-        lua_pushnil(L);
-        lua_setfield(L, -2, "techpaths");
-
-        // cellpaths
-        techpaths = hashmap_get(config, "prepend_cellpaths");
-        lua_getfield(L, -1, "prepend_cellpaths");
-        if(!lua_isnil(L, -1))
-        {
-            lua_pushnil(L);
-            while(lua_next(L, -2) != 0)
-            {
-                const char* path = lua_tostring(L, -1);
-                vector_append(prepend_cellpaths, util_strdup(path));
-                lua_pop(L, 1);
-            }
-        }
-        lua_pop(L, 1); // pop prepend_cellpaths table (or nil)
-        // remove entry
-        lua_pushnil(L);
-        lua_setfield(L, -2, "prepend_cellpaths");
-
-        append_cellpaths = hashmap_get(config, "append_cellpaths");
-        lua_getfield(L, -1, "append_cellpaths");
-        if(!lua_isnil(L, -1))
-        {
-            lua_pushnil(L);
-            while(lua_next(L, -2) != 0)
-            {
-                const char* path = lua_tostring(L, -1);
-                vector_append(append_cellpaths, util_strdup(path));
-                lua_pop(L, 1);
-            }
-        }
-        lua_pop(L, 1); // pop append_cellpaths table (or nil)
-        // remove entry
-        lua_pushnil(L);
-        lua_setfield(L, -2, "append_cellpaths");
-
-        lua_pushnil(L);
-        while(lua_next(L, -2) != 0)
-        {
-            printf("unknown config entry '%s'\n", lua_tostring(L, -2));
-            lua_pop(L, 1);
-            ret = LUA_ERRRUN;
-        }
-    }
-    lua_close(L);
     return ret == LUA_OK;
 }
 
@@ -251,30 +269,17 @@ int main(int argc, const char* const * argv)
 
     // load config
     struct hashmap* config = hashmap_create(NULL);
-    if(!cmdoptions_was_provided_long(cmdoptions, "no-user-config"))
+    if(!_load_config(config, cmdoptions))
     {
-        if(!_load_config(config))
-        {
-            puts("error while loading user config");
-            returnvalue = 1;
-            goto DESTROY_CONFIG;
-        }
+        puts("error while loading user config");
+        returnvalue = 1;
+        goto DESTROY_CONFIG;
     }
 
     /* check technology */
     if(cmdoptions_was_provided_long(cmdoptions, "check-technology"))
     {
-        struct vector* techpaths = hashmap_get(config, "techpaths");
-        vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
-        if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
-        {
-            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
-            while(*arg)
-            {
-                vector_append(techpaths, util_strdup(*arg));
-                ++arg;
-            }
-        }
+        const struct vector* techpaths = hashmap_get_const(config, "techpaths");
         const char* techname = cmdoptions_get_argument_long(cmdoptions, "check-technology");
         struct technology_state* techstate = main_create_techstate(techpaths, techname, NULL);
         if(!techstate)
@@ -482,7 +487,7 @@ int main(int argc, const char* const * argv)
     // technology file generation assistant
     if(cmdoptions_was_provided_long(cmdoptions, "techfile-assistant"))
     {
-        main_techfile_assistant();
+        main_techfile_assistant(config);
         goto DESTROY_CONFIG;
     }
 
@@ -495,17 +500,7 @@ int main(int argc, const char* const * argv)
             goto DESTROY_CONFIG;
         }
         const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
-        struct vector* techpaths = hashmap_get(config, "techpaths");
-        vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
-        if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
-        {
-            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
-            while(*arg)
-            {
-                vector_append(techpaths, util_strdup(*arg));
-                ++arg;
-            }
-        }
+        const struct vector* techpaths = hashmap_get_const(config, "techpaths");
         struct technology_state* techstate = main_create_techstate(techpaths, techname, NULL);
         if(!techstate)
         {
@@ -532,10 +527,10 @@ int main(int argc, const char* const * argv)
         }
         if(hashmap_exists(config, "techpaths"))
         {
-            struct vector* techpaths = hashmap_get(config, "techpaths");
+            const struct vector* techpaths = hashmap_get_const(config, "techpaths");
             for(unsigned int i = 0; i < vector_size(techpaths); ++i)
             {
-                printf("%s\n", (const char*)vector_get(techpaths, i));
+                printf("%s\n", (const char*)vector_get_const(techpaths, i));
             }
         }
         goto DESTROY_CONFIG;

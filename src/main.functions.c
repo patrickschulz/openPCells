@@ -118,12 +118,12 @@ int main_load_module(lua_State* L, const unsigned char* data, size_t len, const 
     return LUA_OK;
 }
 
-struct technology_state* main_create_techstate(struct vector* techpaths, const char* techname, const struct const_vector* ignoredlayers)
+struct technology_state* main_create_techstate(const struct vector* techpaths, const char* techname, const struct const_vector* ignoredlayers)
 {
     struct technology_state* techstate = technology_initialize(techname);
     for(unsigned int i = 0; i < vector_size(techpaths); ++i)
     {
-        technology_add_techpath(techstate, vector_get(techpaths, i));
+        technology_add_techpath(techstate, vector_get_const(techpaths, i));
     }
     if(!technology_load(techstate, ignoredlayers))
     {
