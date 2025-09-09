@@ -605,6 +605,9 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CONFIG;
     }
 
+    // should not trigger
+    cmdoptions_assert_all_options_checked(cmdoptions);
+
     // should not reach here
     fputs("no cell given\n", stderr);
     returnvalue = 1;
