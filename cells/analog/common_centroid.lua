@@ -59,7 +59,10 @@ function parameters()
         { "extendalltop", 0 },
         { "extendallbottom", 0 },
         { "extendallleft", 0 },
-        { "extendallright", 0 }
+        { "extendallright", 0 },
+        { "drawguardring", false },
+        { "guardringxsep", 0 },
+        { "guardringysep", 0 }
     )
 end
 
@@ -86,7 +89,7 @@ function check(_P)
     if _P.connectdummygatestoactive and not _P.equalgatenets then
         return false, "if dummy gates are connected to active gates, all gates have to be on the same net (equalnets == true)"
     end
-    if not _P.connectdummygatestoactive and _P.connectgatesonbothsides then
+    if not _P.connectdummygatestoactive and _P.connectgatesonbothsides and (_P.innerdummies > 0 or _P.outerdummies > 0) then
         return false, "if gates are connected on both sides, dummy gates must be connected to the active gates"
     end
     return true
@@ -125,9 +128,9 @@ function layout(cell, _P)
     local maxnumgatelines = _P.equalgatenets and 1 or maxnumdevicesperdoublerow
     local gateline_space_occupation = 2 * _P.gatestrapspace + 2 * _P.gatestrapwidth + (maxnumgatelines + 1) * _P.gatelinespace + maxnumgatelines * _P.gatelinewidth
     local interconnectline_space_occupation = 2 * _P.sourcedrainstrapspace + 2 * _P.sourcedrainstrapwidth + (maxnumdevicesperdoublerow + 1) * _P.interconnectlinespace + maxnumdevicesperdoublerow * _P.interconnectlinewidth
-    local separation = math.max(interconnectline_space_occupation, gateline_space_occupation)
-    local gateline_offset = (separation - gateline_space_occupation) / 2
-    local interconnectline_offset = separation - interconnectline_space_occupation
+    local yseparation = enable(not _P.drawguardring, math.max(interconnectline_space_occupation, gateline_space_occupation))
+    local gateline_offset = (yseparation - gateline_space_occupation) / 2
+    local interconnectline_offset = yseparation - interconnectline_space_occupation
     local rowoptions = {
         channeltype = _P.channeltype,
         oxidetype = _P.oxidetype,
@@ -137,8 +140,8 @@ function layout(cell, _P)
         gatespace = _P.gatespace,
         width = _P.fingerwidth,
         sdwidth = _P.sdwidth,
-        gtopext = _P.gatestrapsincenter and (separation + _P.gatestrapwidth) / 2 or _P.gatestrapspace + _P.gatestrapwidth,
-        gbotext = _P.gatestrapsincenter and (separation + _P.gatestrapwidth) / 2 or _P.gatestrapspace + _P.gatestrapwidth,
+        gtopext = _P.gatestrapsincenter and (yseparation + _P.gatestrapwidth) / 2 or _P.gatestrapspace + _P.gatestrapwidth,
+        gbotext = _P.gatestrapsincenter and (yseparation + _P.gatestrapwidth) / 2 or _P.gatestrapspace + _P.gatestrapwidth,
         topgateleftextension = _P.gatestrapleftext,
         botgateleftextension = _P.gatestrapleftext,
         topgaterightextension = _P.gatestraprightext,
@@ -147,14 +150,19 @@ function layout(cell, _P)
         extendallbottom = _P.extendallbottom,
         extendallleft = _P.extendallleft,
         extendallright = _P.extendallright,
+        drawguardring = _P.drawguardring,
+        guardringleftsep = _P.guardringxsep,
+        guardringrightsep = _P.guardringxsep,
+        guardringtopsep = _P.guardringysep,
+        guardringbottomsep = _P.guardringysep,
     }
 
     local fetoptions = {
         fingers = _P.fingers,
         topgatewidth = _P.gatestrapwidth,
-        topgatespace = _P.gatestrapsincenter and (separation - _P.gatestrapwidth) / 2 or _P.gatestrapspace,
+        topgatespace = _P.gatestrapsincenter and (yseparation - _P.gatestrapwidth) / 2 or _P.gatestrapspace,
         botgatewidth = _P.gatestrapwidth,
-        botgatespace = _P.gatestrapsincenter and (separation - _P.gatestrapwidth) / 2 or _P.gatestrapspace,
+        botgatespace = _P.gatestrapsincenter and (yseparation - _P.gatestrapwidth) / 2 or _P.gatestrapspace,
         drainmetal = _P.drainmetal,
         sourcemetal = _P.sourcemetal,
         connectsource = true,
@@ -168,7 +176,7 @@ function layout(cell, _P)
 
     local dummyoptions = {
         shortwidth = _P.gatestrapwidth,
-        shortspace = _P.gatestrapsincenter and (separation - _P.gatestrapwidth) / 2 or _P.gatestrapspace,
+        shortspace = _P.gatestrapsincenter and (yseparation - _P.gatestrapwidth) / 2 or _P.gatestrapspace,
         connectsource = _P.connectdummysources,
         connectsourceboth = _P.connectdummysources,
         connectsourcewidth = _P.sourcedrainstrapwidth,
@@ -178,9 +186,9 @@ function layout(cell, _P)
         connectdrainwidth = _P.sourcedrainstrapwidth,
         connectdrainspace = _P.sourcedrainstrapspace,
         topgatewidth = _P.gatestrapwidth,
-        topgatespace = _P.gatestrapsincenter and (separation - _P.gatestrapwidth) / 2 or _P.gatestrapspace,
+        topgatespace = _P.gatestrapsincenter and (yseparation - _P.gatestrapwidth) / 2 or _P.gatestrapspace,
         botgatewidth = _P.gatestrapwidth,
-        botgatespace = _P.gatestrapsincenter and (separation - _P.gatestrapwidth) / 2 or _P.gatestrapspace,
+        botgatespace = _P.gatestrapsincenter and (yseparation - _P.gatestrapwidth) / 2 or _P.gatestrapspace,
     }
 
     local namelookup = {}
@@ -293,7 +301,7 @@ function layout(cell, _P)
 
     local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
         rows = rows,
-        separation = separation,
+        yseparation = yseparation,
         autoskip = true,
         splitgates = not _P.shortgates
     })
