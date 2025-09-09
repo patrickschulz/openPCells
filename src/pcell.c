@@ -24,6 +24,7 @@ struct pcell_state {
     FILE* dprint_target;
     int enable_dprint;
     int enable_debug;
+    int verbose;
 };
 
 /*
@@ -46,6 +47,7 @@ struct pcell_state* pcell_initialize_state(void)
     pcell_state->dprint_target = NULL;
     pcell_state->enable_dprint = 0;
     pcell_state->enable_debug = 0;
+    pcell_state->verbose = 0;
     return pcell_state;
 }
 
@@ -78,6 +80,11 @@ void pcell_set_dprint_target(struct pcell_state* pcell_state, const char* filena
 void pcell_enable_dprint(struct pcell_state* pcell_state)
 {
     pcell_state->enable_dprint = 1;
+}
+
+void pcell_set_verbose(struct pcell_state* pcell_state)
+{
+    pcell_state->verbose = 1;
 }
 
 // lua bridge
@@ -124,6 +131,19 @@ static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, st
         fputs("could not initialize pcell state\n", stderr);
         lua_close(L);
         return NULL;
+    }
+
+    if(pcell_state->verbose)
+    {
+        lua_getglobal(L, "pcell");
+        lua_getfield(L, -1, "set_verbose");
+        retval = main_lua_pcall(L, 0, 0);
+        if(retval != LUA_OK)
+        {
+            fputs("error while calling pcell.set_verbose()", stderr);
+            lua_close(L);
+            return NULL;
+        }
     }
     return L;
 }

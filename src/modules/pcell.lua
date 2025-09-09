@@ -109,9 +109,9 @@ local function _load_cell(state, cellname, env)
         error(string.format("could not open cell file '%s'", filename))
     end
     local chunkname = string.format("@cell '%s'", cellname)
-    --if verbose then
-    --    print(string.format("pcell: loading cell definition in %s", filename))
-    --end
+    if state.verbose then
+        print(string.format("pcell: loading cell definition in %s", filename))
+    end
     _generic_load(
         reader, chunkname,
         string.format("syntax error in cell '%s'", cellname),
@@ -334,6 +334,7 @@ local state = {
     loadedcells = {},
     cellrefs = {},
     debug = false,
+    verbose = false,
     internal_state = nil
 }
 
@@ -442,7 +443,14 @@ function pcell.enable_debug(d)
     state.debug = d
 end
 
+function pcell.set_verbose()
+    state.verbose = true
+end
+
 local function _create_layout_internal(state, obj, cellname, cellargs, env)
+    if state.verbose then
+        print(string.format("creating layout cell '%s'", cellname))
+    end
     local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
     if not libpart then
         error(string.format("pcell.create_layout: malformed cellname. Expected library/cell, got '%s'", cellname))

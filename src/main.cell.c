@@ -511,6 +511,10 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         retval = 0;
         goto DESTROY_TECHNOLOGY;
     }
+    if(verbose)
+    {
+        pcell_set_verbose(pcell_state);
+    }
     _prepare_cellpaths(pcell_state, cmdoptions, config);
     const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
     struct const_vector* cellargs = const_vector_adapt_from_pointer_array((void**)ptr);
