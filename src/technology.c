@@ -483,7 +483,7 @@ int technology_load(struct technology_state* techstate, const struct const_vecto
         free(constraintsname);
         return 0;
     }
-    technology_load_constraints(techstate, constraintsname);
+    _load_constraints(techstate, constraintsname);
     free(constraintsname);
 
     return 1;
