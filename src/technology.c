@@ -66,45 +66,28 @@ static char* _get_tech_filename(const struct vector* techpaths, const char* name
     return NULL;
 }
 
+int technology_has_techfile(const struct vector* techpaths, const char* name, const char* what)
+{
+    char* filename = _get_tech_filename(techpaths, name, what);
+    int has = filename != NULL;
+    free(filename);
+    return has;
+}
+
 int technology_exists(const struct vector* techpaths, const char* name)
 {
-    char* layermapname = _get_tech_filename(techpaths, name, "layermap");
-    if(!layermapname)
-    {
-        printf("technology: no techfile for technology '%s' found\n", name);
-        free(layermapname);
-        return 0;
-    }
-    free(layermapname);
+    return technology_has_techfile(techpaths, name, "config") ||
+           technology_has_techfile(techpaths, name, "layermap") ||
+           technology_has_techfile(techpaths, name, "vias") ||
+           technology_has_techfile(techpaths, name, "constraints");
+}
 
-    char* vianame = _get_tech_filename(techpaths, name, "vias");
-    if(!vianame)
-    {
-        printf("technology: no via definitions for technology '%s' found", name);
-        free(vianame);
-        return 0;
-    }
-    free(vianame);
-
-    char* configname = _get_tech_filename(techpaths, name, "config");
-    if(!configname)
-    {
-        printf("technology: no config file for technology '%s' found", name);
-        free(configname);
-        return 0;
-    }
-    free(configname);
-
-    char* constraintsname = _get_tech_filename(techpaths, name, "constraints");
-    if(!constraintsname)
-    {
-        printf("technology: no constraints file for technology '%s' found", name);
-        free(constraintsname);
-        return 0;
-    }
-    free(constraintsname);
-
-    return 1;
+int technology_fully_defined(const struct vector* techpaths, const char* name)
+{
+    return technology_has_techfile(techpaths, name, "config") &&
+           technology_has_techfile(techpaths, name, "layermap") &&
+           technology_has_techfile(techpaths, name, "vias") &&
+           technology_has_techfile(techpaths, name, "constraints");
 }
 
 struct viaentry {
