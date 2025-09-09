@@ -3,14 +3,13 @@ PROGNAME=opc
 CC=gcc
 
 PPFLAGS=-DLUA_USE_LINUX -DTERMOGRAPHY_ENABLE_TERM_WIDTH
-#WARNFLAGS=-Wall -Wextra -Wstrict-prototypes -Werror=strict-prototypes -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Wno-analyzer-deref-before-check -Werror=discarded-qualifiers
 WARNFLAGS=-Wall -Wextra
+#WARNFLAGS=-Wall -Wextra -Wstrict-prototypes -Werror=strict-prototypes -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Wno-analyzer-deref-before-check -Werror=discarded-qualifiers
 COMMONFLAGS=-pthread
-
-CFLAGS=-std=c99 $(WARNFLAGS) $(COMMONFLAGS) $(PPFLAGS)
-ifeq ($(DEBUGANALYZE), 1)
-    CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined $(WARNFLAGS) $(COMMONFLAGS) $(PPFLAGS)
-endif
+OPTFLAGS=-O3
+#OPTFLAGS=-O3 -flto -fwhole-program
+#ANALYZEFLAGS= -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined
+CFLAGS=-std=c99 $(WARNFLAGS) $(COMMONFLAGS) $(PPFLAGS) $(ANALYZEFLAGS)
 
 OBJS:= bltrshape.o buffer.o cdl_parser.o cdl_tokenlist.o cells.o cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o limport.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lterminal.o lua_util.o lutil.o main.api_help.o main.assistant.o main.cell.o main.functions.o main.gds.o main.tutorial.o main.import.o object.o pcell.o placement.o point.o polygon.o postprocess.o print.o shape.o skillexport.o string.o strprint.o tagged_value.o technology.o terminal.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
 RELEASEOBJS = $(addprefix release/, $(OBJS))
@@ -34,20 +33,20 @@ release:
 	mkdir -p release/lua
 
 release/$(PROGNAME): release cmdoptions_def.c version.h main.c liblua_release.a _modulemanager.h _modulemanager.c _scriptmanager.h _scriptmanager.c $(RELEASEOBJS)
-	$(CC) $(CFLAGS) -O3 -o release/$(PROGNAME) main.c $(RELEASEOBJS) _modulemanager.c _scriptmanager.c liblua_release.a -lm -ldl
+	$(CC) $(CFLAGS) $(OPTFLAGS) -o release/$(PROGNAME) main.c $(RELEASEOBJS) _modulemanager.c _scriptmanager.c liblua_release.a -lm -ldl
 
 release/%.o: %.c
-	$(CC) -c $(CFLAGS) -O3 -o $@ $<
+	$(CC) -c $(CFLAGS) $(OPTFLAGS) -o $@ $<
 
 lint:
 	mkdir -p lint
 	mkdir -p lint/lua
 
 lint/$(PROGNAME): lint cmdoptions_def.c version.h main.c liblua_lint.a _modulemanager.h _modulemanager.c _scriptmanager.h _scriptmanager.c $(LINTOBJS)
-	$(CC) $(CFLAGS) -DOPC_LINT -O3 -o lint/$(PROGNAME) main.c $(LINTOBJS) _modulemanager.c _scriptmanager.c liblua_lint.a -lm -ldl
+	$(CC) $(CFLAGS) $(OPTFLAGS) -DOPC_LINT -o lint/$(PROGNAME) main.c $(LINTOBJS) _modulemanager.c _scriptmanager.c liblua_lint.a -lm -ldl
 
 lint/%.o: %.c
-	$(CC) -c $(CFLAGS) -DOPC_LINT -O3 -o $@ $<
+	$(CC) -c $(CFLAGS) $(OPTFLAGS) -DOPC_LINT -o $@ $<
 
 debug:
 	mkdir -p debug
