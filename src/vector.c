@@ -20,6 +20,10 @@ static void _resize_data(struct vector* vector, size_t capacity)
 struct vector* vector_create(size_t capacity, void (*destructor)(void*))
 {
     struct vector* vector = malloc(sizeof(*vector));
+    if(!vector)
+    {
+        return NULL;
+    }
     vector->elements = NULL;
     vector->size = 0;
     vector->capacity = capacity;
@@ -49,6 +53,10 @@ void vector_destroy(void* v)
 struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*))
 {
     struct vector* new = vector_create(vector->capacity, vector->destructor);
+    if(!new)
+    {
+        return NULL;
+    }
     for(size_t i = 0; i < vector->size; ++i)
     {
         new->elements[i] = copy(vector->elements[i]);
@@ -166,6 +174,10 @@ struct vector_iterator
 struct vector_iterator* vector_iterator_create(struct vector* vector)
 {
     struct vector_iterator* it = malloc(sizeof(*it));
+    if(!it)
+    {
+        return NULL;
+    }
     it->vector = vector;
     it->index = 0;
     return it;
@@ -200,6 +212,10 @@ struct vector_const_iterator
 struct vector_const_iterator* vector_const_iterator_create(const struct vector* vector)
 {
     struct vector_const_iterator* it = malloc(sizeof(*it));
+    if(!it)
+    {
+        return NULL;
+    }
     it->vector = vector;
     it->index = 0;
     return it;
@@ -276,6 +292,10 @@ static void _const_resize_data(struct const_vector* const_vector, size_t capacit
 struct const_vector* const_vector_create(size_t capacity)
 {
     struct const_vector* const_vector = malloc(sizeof(*const_vector));
+    if(!const_vector)
+    {
+        return NULL;
+    }
     const_vector->elements = NULL;
     const_vector->size = 0;
     _const_resize_data(const_vector, capacity);
@@ -373,6 +393,10 @@ struct const_vector_iterator
 struct const_vector_iterator* const_vector_iterator_create(const struct const_vector* vector)
 {
     struct const_vector_iterator* it = malloc(sizeof(*it));
+    if(!it)
+    {
+        return NULL;
+    }
     it->vector = vector;
     it->index = 0;
     return it;
