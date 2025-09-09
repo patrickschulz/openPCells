@@ -34,6 +34,7 @@ struct mpentry { // entry for multiple patterning
 };
 
 struct technology_state {
+    char* name;
     struct vector* layertable; // stores struct generics*
     struct vector* viatable; // stores struct viaentry*
     struct technology_config* config;
@@ -460,46 +461,46 @@ int technology_load_constraints(struct technology_state* techstate, const char* 
     return 0;
 }
 
-int technology_load(struct technology_state* techstate, const char* techname, const struct const_vector* ignoredlayers)
+int technology_load(struct technology_state* techstate, const struct const_vector* ignoredlayers)
 {
-    char* layermapname = _get_tech_filename(techstate, techname, "layermap");
+    char* layermapname = _get_tech_filename(techstate, techstate->name, "layermap");
     const char* errmsg;
     if(!layermapname)
     {
-        printf("technology: no techfile for technology '%s' found\n", techname);
+        printf("technology: no techfile for technology '%s' found\n", techstate->name);
         free(layermapname);
         return 0;
     }
     int ret;
-    ret = technology_load_layermap(techstate, layermapname, ignoredlayers);
+    ret = _load_layermap(techstate, layermapname, ignoredlayers);
     free(layermapname);
     if(!ret)
     {
         return 0;
     }
 
-    char* vianame = _get_tech_filename(techstate, techname, "vias");
+    char* vianame = _get_tech_filename(techstate, techstate->name, "vias");
     if(!vianame)
     {
-        printf("technology: no via definitions for technology '%s' found", techname);
+        printf("technology: no via definitions for technology '%s' found", techstate->name);
         free(vianame);
         return 0;
     }
-    ret = technology_load_viadefinitions(techstate, vianame);
+    ret = _load_viadefinitions(techstate, vianame);
     if(!ret)
     {
         return 0;
     }
     free(vianame);
 
-    char* configname = _get_tech_filename(techstate, techname, "config");
+    char* configname = _get_tech_filename(techstate, techstate->name, "config");
     if(!configname)
     {
-        printf("technology: no config file for technology '%s' found", techname);
+        printf("technology: no config file for technology '%s' found", techstate->name);
         free(configname);
         return 0;
     }
-    ret = technology_load_config(techstate, configname, &errmsg);
+    ret = _load_config(techstate, configname, &errmsg);
     if(!ret)
     {
         fprintf(stderr, "technology: errrors while loading technology config file ('%s'):\n%s\n", configname, errmsg);
@@ -508,10 +509,10 @@ int technology_load(struct technology_state* techstate, const char* techname, co
     }
     free(configname);
 
-    char* constraintsname = _get_tech_filename(techstate, techname, "constraints");
+    char* constraintsname = _get_tech_filename(techstate, techstate->name, "constraints");
     if(!constraintsname)
     {
-        printf("technology: no constraints file for technology '%s' found", techname);
+        printf("technology: no constraints file for technology '%s' found", techstate->name);
         free(constraintsname);
         return 0;
     }
@@ -808,9 +809,10 @@ static void _destroy_viaentry(void* viav)
     free(entry);
 }
 
-struct technology_state* technology_initialize(void)
+struct technology_state* technology_initialize(const char* name)
 {
     struct technology_state* techstate = malloc(sizeof(*techstate));
+    techstate->name = util_strdup(name);
     techstate->layertable = vector_create(32, _destroy_layer);
     techstate->viatable = vector_create(32, _destroy_viaentry);
     techstate->config = malloc(sizeof(*techstate->config));
@@ -830,6 +832,7 @@ struct technology_state* technology_initialize(void)
 
 void technology_destroy(struct technology_state* techstate)
 {
+    free(techstate->name);
     vector_destroy(techstate->layertable);
     vector_destroy(techstate->viatable);
 
@@ -1136,19 +1139,24 @@ static const struct generics* _get_or_create_layer(struct technology_state* tech
     }
 }
 
-char* technology_get_configfile_path(struct technology_state* techstate, const char* techname)
+char* technology_get_configfile_path(struct technology_state* techstate)
 {
-    return _get_tech_filename(techstate, techname, "config");
+    return _get_tech_filename(techstate, techstate->name, "config");
 }
 
-char* technology_get_layermap_path(struct technology_state* techstate, const char* techname)
+char* technology_get_layermap_path(struct technology_state* techstate)
 {
-    return _get_tech_filename(techstate, techname, "layermap");
+    return _get_tech_filename(techstate, techstate->name, "layermap");
 }
 
-char* technology_get_viatable_path(struct technology_state* techstate, const char* techname)
+char* technology_get_viatable_path(struct technology_state* techstate)
 {
-    return _get_tech_filename(techstate, techname, "vias");
+    return _get_tech_filename(techstate, techstate->name, "vias");
+}
+
+char* technology_get_constraints_path(struct technology_state* techstate)
+{
+    return _get_tech_filename(techstate, techstate->name, "constraints");
 }
 
 char* technology_get_constraints_path(struct technology_state* techstate, const char* techname)

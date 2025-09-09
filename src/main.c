@@ -285,7 +285,7 @@ int main(int argc, const char* const * argv)
         lua_State* L = util_create_basic_lua_state();
         open_lterminal_lib(L);
         // load config file
-        const char* configfile = technology_get_configfile_path(techstate, techname);
+        const char* configfile = technology_get_configfile_path(techstate);
         lua_pushstring(L, configfile);
         lua_setglobal(L, "config_path");
         int ret = luaL_dofile(L, configfile);
@@ -298,7 +298,7 @@ int main(int argc, const char* const * argv)
         }
         lua_setglobal(L, "config");
         // load layer map
-        const char* layermap = technology_get_layermap_path(techstate, techname);
+        const char* layermap = technology_get_layermap_path(techstate);
         lua_pushstring(L, layermap);
         lua_setglobal(L, "layermap_path");
         ret = luaL_dofile(L, layermap);
@@ -311,7 +311,7 @@ int main(int argc, const char* const * argv)
         }
         lua_setglobal(L, "layermap");
         // load via table
-        const char* viatable = technology_get_viatable_path(techstate, techname);
+        const char* viatable = technology_get_viatable_path(techstate);
         lua_pushstring(L, viatable);
         lua_setglobal(L, "viatable_path");
         ret = luaL_dofile(L, viatable);
@@ -324,7 +324,7 @@ int main(int argc, const char* const * argv)
         }
         lua_setglobal(L, "viatable");
         // load constraints
-        const char* constraints = technology_get_constraints_path(techstate, techname);
+        const char* constraints = technology_get_constraints_path(techstate);
         lua_pushstring(L, constraints);
         lua_setglobal(L, "constraints_path");
         ret = luaL_dofile(L, constraints);
