@@ -231,7 +231,7 @@ static struct generics* _make_layer_from_lua(const char* layername, lua_State* L
     return layer;
 }
 
-int technology_load_layermap(struct technology_state* techstate, const char* name, const struct const_vector* ignoredlayers)
+static int _load_layermap(struct technology_state* techstate, const char* name, const struct const_vector* ignoredlayers)
 {
     lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, name);
@@ -346,7 +346,7 @@ static void _insert_via(struct technology_state* techstate, char* vianame, struc
     vector_append(techstate->viatable, entry);
 }
 
-int technology_load_viadefinitions(struct technology_state* techstate, const char* name)
+static int _load_viadefinitions(struct technology_state* techstate, const char* name)
 {
     lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, name);
@@ -370,7 +370,7 @@ int technology_load_viadefinitions(struct technology_state* techstate, const cha
     return 1;
 }
 
-int technology_load_config(struct technology_state* techstate, const char* name, const char** errmsg)
+static int _load_config(struct technology_state* techstate, const char* name, const char** errmsg)
 {
     lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, name);
@@ -438,7 +438,7 @@ int technology_load_config(struct technology_state* techstate, const char* name,
     return 1;
 }
 
-int technology_load_constraints(struct technology_state* techstate, const char* name)
+static int _load_constraints(struct technology_state* techstate, const char* name)
 {
     lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, name);
