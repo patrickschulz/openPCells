@@ -277,6 +277,7 @@ static int _find_key_value(const char* str, char** key, char** value)
     return 1;
 }
 
+/*
 static void _process_input_arguments(lua_State* L, struct const_vector* cellargs)
 {
     for(unsigned int i = 0; i < const_vector_size(cellargs); ++i)
@@ -306,6 +307,7 @@ static void _process_input_arguments(lua_State* L, struct const_vector* cellargs
         }
     }
 }
+*/
 
 struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* toplevelname, struct const_vector* cellargs, const char *cellenvfilename)
 {
