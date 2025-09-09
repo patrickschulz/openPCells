@@ -41,30 +41,32 @@ void technology_ignore_missing_exports(struct technology_state* techstate);
 struct generics* technology_get_layer(struct technology_state* state, const char* layername);
 int technology_resolve_metal(const struct technology_state* state, int metalnum);
 int technology_has_multiple_patterning(const struct technology_state* state, int metalnum);
+
+// vias
 struct via_definition** technology_get_via_definitions(struct technology_state* state, int metal1, int metal2);
 struct via_definition* technology_get_via_fallback(struct technology_state* state, int metal1, int metal2);
 struct via_definition** technology_get_contact_definitions(struct technology_state* state, const char* region);
 struct via_definition* technology_get_contact_fallback(struct technology_state* state, const char* region);
-
-struct generics* technology_make_layer(const char* layername, lua_State* L);
 
 int open_ltechnology_lib(lua_State* L);
 
 int generics_is_empty(const struct generics* layer);
 int generics_is_layer_name(const struct generics* layer, const char* layername);
 const struct hashmap* generics_get_first_layer_data(const struct generics* layer);
+const struct hashmap* generics_get_layer_data(const struct generics* layer, const char* identifier);
 
 void technology_insert_extra_layer(struct technology_state* techstate, struct generics* layer);
 int technology_resolve_premapped_layers(struct technology_state* techstate, const char* exportname);
 
 // info functions
-char* technology_get_configfile_path(struct technology_state* techstate, const char* techname);
-char* technology_get_layermap_path(struct technology_state* techstate, const char* techname);
-char* technology_get_viatable_path(struct technology_state* techstate, const char* techname);
-char* technology_get_constraints_path(struct technology_state* techstate, const char* techname);
+char* technology_get_configfile_path(struct technology_state* techstate);
+char* technology_get_layermap_path(struct technology_state* techstate);
+char* technology_get_viatable_path(struct technology_state* techstate);
+char* technology_get_constraints_path(struct technology_state* techstate);
 struct tagged_value* technology_get_dimension(const struct technology_state* techstate, const char* dimension);
 
 // layer creation interface
+struct generics* generics_create_empty_layer(const char* name);
 const struct generics* generics_create_metal(struct technology_state* techstate, int num);
 const struct generics* generics_create_mptmetal(struct technology_state* techstate, int num, int mask);
 const struct generics* generics_create_metalport(struct technology_state* techstate, int num);
