@@ -357,6 +357,10 @@ static void _print_parameters(const struct vector* parameters)
 static struct parameter* _copy_parameter(const struct parameter* param)
 {
     struct parameter* new = malloc(sizeof(*new));
+    if(!new)
+    {
+        return NULL;
+    }
     new->name = util_strdup(param->name);
     new->type = param->type;
     if(param->default_value)
@@ -392,6 +396,10 @@ static struct api_entry* _make_api_entry(
 )
 {
     struct api_entry* entry = malloc(sizeof(*entry));
+    if(!entry)
+    {
+        return NULL;
+    }
     entry->funcname = util_strdup(funcname);
     entry->module = module;
     entry->info = util_strdup(info);
