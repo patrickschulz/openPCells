@@ -145,7 +145,11 @@ static int _load_pfiles(struct pcell_state* pcell_state, lua_State* L)
     for(unsigned int i = 0; i < const_vector_size(pcell_state->pfilenames); ++i)
     {
         const char* pfilename = const_vector_get(pcell_state->pfilenames, i);
-        _read_table_from_file(L, pfilename); // don't stop on error
+        int ret = _read_table_from_file(L, pfilename); // don't stop on error
+        if(!ret)
+        {
+            return 0;
+        }
         lua_pushnil(L);
         while(lua_next(L, -2) != 0)
         {
