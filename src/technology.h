@@ -31,6 +31,18 @@ void technology_destroy(struct technology_state* state);
 void technology_add_techpath(struct technology_state* techstate, const char* path);
 int technology_load(struct technology_state* techstate, const struct const_vector* ignoredlayers);
 void technology_write_definition_files(const struct technology_state* techstate, const char* basepath);
+
+// technology state modification API
+// not used by the main program, only the technology file assistant uses this
+// this is because the internal state might be messed up by this interface, so
+// it should not be used
+unsigned int technology_get_num_metals(const struct technology_state* techstate);
+void technology_set_num_metals(struct technology_state* techstate, unsigned int nummetals);
+struct generics* technology_add_empty_layer(struct technology_state* techstate, const char* layername);
+void generics_set_layer_export_integer(struct generics* layer, const char* exportname, const char* key, int value);
+void generics_set_layer_export_string(struct generics* layer, const char* exportname, const char* key, const char* value);
+
+// technology translation flags/options
 void technology_enable_fallback_vias(struct technology_state* techstate);
 void technology_disable_via_arrayzation(struct technology_state* techstate);
 int technology_is_create_via_arrays(const struct technology_state* techstate);

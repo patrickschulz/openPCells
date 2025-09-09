@@ -66,34 +66,63 @@ void terminal_cursor_visibility(int visible)
 
 void terminal_set_reverse_color(void)
 {
-    const char* str = TERMINAL_CSI "7" TERMINAL_COLOR_END;
+    const char* str = TERMINAL_CSI "7" TERMINAL_CSI_END;
+    fputs(str, stdout);
+    fflush(stdout);
+}
+
+void terminal_set_non_reverse_color(void)
+{
+    const char* str = TERMINAL_CSI "27" TERMINAL_CSI_END;
     fputs(str, stdout);
     fflush(stdout);
 }
 
 void terminal_set_foreground_color_RGB(unsigned char R, unsigned char G, unsigned char B)
 {
-    const char* str = TERMINAL_CSI "38;2;%hhu;%hhu;%hhu" TERMINAL_COLOR_END;
+    const char* str = TERMINAL_CSI "38;2;%hhu;%hhu;%hhu" TERMINAL_CSI_END;
     fprintf(stdout, str, R, G, B);
     fflush(stdout);
 }
 
 void terminal_set_background_color_RGB(unsigned char R, unsigned char G, unsigned char B)
 {
-    const char* str = TERMINAL_CSI "48;2;%hhu;%hhu;%hhu" TERMINAL_COLOR_END;
+    const char* str = TERMINAL_CSI "48;2;%hhu;%hhu;%hhu" TERMINAL_CSI_END;
     fprintf(stdout, str, R, G, B);
     fflush(stdout);
 }
 
 void terminal_set_bold(void)
 {
-    const char* str = TERMINAL_CSI "1m";
+    const char* str = TERMINAL_CSI "1" TERMINAL_CSI_END;
+    _puts(str);
+}
+
+void terminal_set_half_bright(void)
+{
+    const char* str = TERMINAL_CSI "2" TERMINAL_CSI_END;
+    _puts(str);
+}
+
+void terminal_reset_bold(void)
+{
+    const char* str = TERMINAL_CSI "22" TERMINAL_CSI_END;
     _puts(str);
 }
 
 void terminal_reset_color(void)
 {
     _puts(COLOR_NORMAL);
+}
+
+void terminal_reset_foreground_color(void)
+{
+    _puts(FOREGROUND_COLOR_NORMAL);
+}
+
+void terminal_reset_background_color(void)
+{
+    _puts(BACKGROUND_COLOR_NORMAL);
 }
 
 void terminal_reset_all(void)

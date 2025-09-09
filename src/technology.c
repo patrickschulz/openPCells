@@ -4,12 +4,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
-#include "util.h"
+#include "filesystem.h"
 #include "lua_util.h"
-#include "vector.h"
 #include "tagged_value.h"
 #include "util.h"
+#include "util.h"
+#include "vector.h"
 
 struct generics_entry {
     char* exportname;
@@ -117,6 +120,24 @@ static struct generics_entry* _create_entry(const char* name)
     struct generics_entry* entry = malloc(sizeof(*entry));
     entry->exportname = util_strdup(name);
     entry->data = hashmap_create(tagged_value_destroy);
+    return entry;
+}
+
+static struct generics_entry* _get_export_entry(const struct generics* layer, const char* exportname)
+{
+    struct vector_iterator* it = vector_iterator_create(layer->entries);
+    struct generics_entry* entry = NULL;
+    while(vector_iterator_is_valid(it))
+    {
+        struct generics_entry* e = vector_iterator_get(it);
+        if(strcmp(e->exportname, exportname) == 0)
+        {
+            entry = e;
+            break;
+        }
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
     return entry;
 }
 
@@ -343,8 +364,9 @@ static int _load_config(struct technology_state* techstate, const char* name, co
     int ret = luaL_dofile(L, name);
     if(ret != LUA_OK)
     {
-        const char* msg = lua_tostring(L, -1);
-        fprintf(stderr, "error while loading config file: %s\n", msg);
+        //const char* msg = lua_tostring(L, -1);
+        //fprintf(stderr, "error while loading config file: %s\n", msg);
+        *errmsg = "error while loading technology configuration file";
         lua_close(L);
         return 0;
     }
@@ -487,6 +509,143 @@ int technology_load(struct technology_state* techstate, const struct const_vecto
     free(constraintsname);
 
     return 1;
+}
+
+static char* _make_path(const char* p1, const char* p2)
+{
+    char* path = malloc(strlen(p1) + strlen(p2) + 1 + 1); // additional +1: '/'
+    sprintf(path, "%s/%s", p1, p2);
+    return path;
+}
+
+static void _write_config(const struct technology_state* techstate, const char* basepath)
+{
+    char* path = _make_path(basepath, "config.lua");
+    FILE* file = fopen(path, "w");
+    fputs("return {\n", file);
+    fprintf(file, "    metals = %u,\n", techstate->config->metals);
+    fprintf(file, "    grid = %u,\n", techstate->config->grid);
+    fprintf(file, "    allow_poly_routing = %s,\n", techstate->config->allow_poly_routing ? "true" : "false");
+    fputs("}\n", file);
+    fclose(file);
+    free(path);
+}
+
+static void _write_layer_export(FILE* file, const struct generics_entry* entry)
+{
+    fprintf(file, "        %s = {", entry->exportname);
+    struct hashmap_iterator* it = hashmap_iterator_create(entry->data);
+    while(hashmap_iterator_is_valid(it))
+    {
+        fputc(' ', file);
+        const char* key = hashmap_iterator_key(it);
+        struct tagged_value* value = hashmap_iterator_value(it);
+        if(tagged_value_is_integer(value))
+        {
+            int number = tagged_value_get_integer(value);
+            fprintf(file, "%s = %d,", key, number);
+        }
+        else if(tagged_value_is_number(value))
+        {
+            double number = tagged_value_get_integer(value);
+            fprintf(file, "%s = %f,", key, number);
+        }
+        else if(tagged_value_is_string(value))
+        {
+            const char* str = tagged_value_get_const_string(value);
+            fprintf(file, "%s = \"%s\",", key, str);
+        }
+        else // boolean
+        {
+            int b = tagged_value_get_boolean(value);
+            fprintf(file, "%s = %s,", key, b ? "true" : "false");
+        }
+        hashmap_iterator_next(it);
+    }
+    hashmap_iterator_destroy(it);
+    fputs(" },\n", file);
+}
+
+static void _write_layer(FILE* file, const struct generics* layer)
+{
+    fprintf(file, "    %s = {\n", layer->name);
+    struct vector_iterator* it = vector_iterator_create(layer->entries);
+    while(vector_iterator_is_valid(it))
+    {
+        struct generics_entry* entry = vector_iterator_get(it);
+        _write_layer_export(file, entry);
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+    fputs("    },\n", file);
+}
+
+static void _write_layermap(const struct technology_state* techstate, const char* basepath)
+{
+    char* path = _make_path(basepath, "layermap.lua");
+    FILE* file = fopen(path, "w");
+    fputs("return {\n", file);
+    struct vector_iterator* it = vector_iterator_create(techstate->layertable);
+    while(vector_iterator_is_valid(it))
+    {
+        const struct generics* layer = vector_iterator_get(it);
+        _write_layer(file, layer);
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+    fputs("}\n", file);
+    fclose(file);
+    free(path);
+}
+
+void technology_write_definition_files(const struct technology_state* techstate, const char* basepath)
+{
+    char* path = _make_path(basepath, techstate->name);
+    filesystem_mkdir(path);
+    _write_config(techstate, path);
+    _write_layermap(techstate, path);
+    free(path);
+}
+
+unsigned int technology_get_num_metals(const struct technology_state* techstate)
+{
+    return techstate->config->metals;
+}
+
+void technology_set_num_metals(struct technology_state* techstate, unsigned int nummetals)
+{
+    techstate->config->metals = nummetals;
+}
+
+struct generics* technology_add_empty_layer(struct technology_state* techstate, const char* layername)
+{
+    struct generics* layer = generics_create_empty_layer(layername);
+    vector_append(techstate->layertable, layer);
+    return layer;
+}
+
+void generics_set_layer_export_integer(struct generics* layer, const char* exportname, const char* key, int value)
+{
+    struct generics_entry* entry = _get_export_entry(layer, exportname);
+    if(!entry)
+    {
+        entry = _create_entry(exportname);
+        vector_append(layer->entries, entry);
+    }
+    struct tagged_value* v = tagged_value_create_integer(value);
+    hashmap_insert(entry->data, key, v);
+}
+
+void generics_set_layer_export_string(struct generics* layer, const char* exportname, const char* key, const char* value)
+{
+    struct generics_entry* entry = _get_export_entry(layer, exportname);
+    if(!entry)
+    {
+        entry = _create_entry(exportname);
+        vector_append(layer->entries, entry);
+    }
+    struct tagged_value* v = tagged_value_create_string(value);
+    hashmap_insert(entry->data, key, v);
 }
 
 struct generics* technology_get_layer(struct technology_state* techstate, const char* layername)
@@ -1343,6 +1502,16 @@ const struct hashmap* generics_get_first_layer_data(const struct generics* layer
         return NULL;
     }
     return entry->data;
+}
+
+const struct hashmap* generics_get_layer_data(const struct generics* layer, const char* identifier)
+{
+    struct generics_entry* entry = _get_export_entry(layer, identifier);
+    if(entry)
+    {
+        return entry->data;
+    }
+    return NULL;
 }
 
 // layer iterator
