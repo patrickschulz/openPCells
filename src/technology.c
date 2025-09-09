@@ -159,18 +159,6 @@ static void _insert_lpp_pairs(lua_State* L, struct hashmap* map, const char* lay
     hashmap_insert(map, "name", vname);
 }
 
-static struct generics* _create_empty_layer(const char* name)
-{
-    struct generics* layer = malloc(sizeof(*layer));
-    if(!layer)
-    {
-        return 0;
-    }
-    memset(layer, 0, sizeof(*layer));
-    layer->name = util_strdup(name);
-    return layer;
-}
-
 static void _destroy_entry(void* entryv)
 {
     if(!entryv) // NULL entries are allowed due to --ignore-missing-export
@@ -183,37 +171,16 @@ static void _destroy_entry(void* entryv)
     free(entry);
 }
 
-static struct generics* _create_premapped_layer(const char* name, size_t size)
-{
-    struct generics* layer = _create_empty_layer(name);
-    if(!layer)
-    {
-        return NULL;
-    }
-    layer->entries = vector_create(size, _destroy_entry);
-    return layer;
-}
-
-
 static struct generics* _make_layer_from_lua(const char* layername, lua_State* L)
 {
     struct generics* layer;
     if(lua_isnil(L, -1))
     {
-        layer = _create_empty_layer(layername);
+        layer = generics_create_empty_layer(layername);
     }
     else
     {
-        // count entries
-        size_t num = 0;
-        lua_pushnil(L);
-        while(lua_next(L, -2) != 0)
-        {
-            lua_pop(L, 1); // pop value, keep key for next iteration
-            num += 1;
-        }
-
-        layer = _create_premapped_layer(layername, num);
+        layer = generics_create_empty_layer(layername);
         if(!layer)
         {
             return NULL;
@@ -256,7 +223,7 @@ static int _load_layermap(struct technology_state* techstate, const char* name, 
         else
         {
             // create dummy layer (as if {} was given in the layermap file)
-            struct generics* layer = _create_premapped_layer(layername, 0);
+            struct generics* layer = generics_create_empty_layer(layername);
             vector_append(techstate->layertable, layer);
         }
         lua_pop(L, 1); // pop value, keep key for next iteration
@@ -824,7 +791,7 @@ struct technology_state* technology_initialize(const char* name)
     techstate->ignore_premapped = 0;
     techstate->layermap = hashmap_create(NULL);
     techstate->extra_layers = vector_create(1024, _destroy_layer);
-    techstate->empty_layer = _create_empty_layer("_EMPTY_");
+    techstate->empty_layer = generics_create_empty_layer("_EMPTY_");
     techstate->ignore_missing_layers = 0;
     techstate->ignore_missing_exports = 0;
     return techstate;
@@ -1159,9 +1126,17 @@ char* technology_get_constraints_path(struct technology_state* techstate)
     return _get_tech_filename(techstate, techstate->name, "constraints");
 }
 
-char* technology_get_constraints_path(struct technology_state* techstate, const char* techname)
+struct generics* generics_create_empty_layer(const char* name)
 {
-    return _get_tech_filename(techstate, techname, "constraints");
+    struct generics* layer = malloc(sizeof(*layer));
+    if(!layer)
+    {
+        return 0;
+    }
+    memset(layer, 0, sizeof(*layer));
+    layer->name = util_strdup(name);
+    layer->entries = vector_create(1, _destroy_entry);
+    return layer;
 }
 
 const struct generics* generics_create_metal(struct technology_state* techstate, int num)
