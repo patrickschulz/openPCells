@@ -4,15 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 #include "filesystem.h"
 #include "lua_util.h"
 #include "tagged_value.h"
 #include "util.h"
-#include "util.h"
-#include "vector.h"
 
 struct generics_entry {
     char* exportname;
