@@ -20,16 +20,16 @@ struct generics {
     struct vector* entries; // stores struct generics_entry*
 };
 
+struct mpentry { // entry for multiple patterning
+    int metal;
+    int number;
+};
+
 struct technology_config {
     unsigned int metals;
     unsigned int grid;
     int allow_poly_routing;
-    struct vector* multiple_patterning_metals;
-};
-
-struct mpentry { // entry for multiple patterning
-    int metal;
-    int number;
+    struct vector* multiple_patterning_metals; // stores struct mpentry*
 };
 
 struct technology_state {
@@ -38,7 +38,6 @@ struct technology_state {
     struct vector* viatable; // stores struct viaentry*
     struct technology_config* config;
     struct hashmap* constraints;
-    struct vector* techpaths; // stores strings
     int create_fallback_vias;
     int create_via_arrays;
     int ignore_premapped;
@@ -50,40 +49,11 @@ struct technology_state {
     struct generics* empty_layer; // store one empty layer which is reused by all ignored layers
 };
 
-void technology_add_techpath(struct technology_state* techstate, const char* path)
+static char* _get_tech_filename(const struct vector* techpaths, const char* name, const char* what)
 {
-    vector_append(techstate->techpaths, util_strdup(path));
-}
-
-int technology_exists(const char* name)
-{
-    return 0;
-}
-
-static int ltechnology_list_techpaths(lua_State* L)
-{
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    for(unsigned int i = 0; i < vector_size(techstate->techpaths); ++i)
+    for(unsigned int i = 0; i < vector_size(techpaths); ++i)
     {
-        const char* path = vector_get(techstate->techpaths, i);
-        puts(path);
-    }
-    return 0;
-}
-
-struct viaentry {
-    char* name;
-    struct via_definition** viadefs;
-    struct via_definition* fallback;
-};
-
-static char* _get_tech_filename(struct technology_state* techstate, const char* name, const char* what)
-{
-    for(unsigned int i = 0; i < vector_size(techstate->techpaths); ++i)
-    {
-        const char* path = vector_get(techstate->techpaths, i);
+        const char* path = vector_get_const(techpaths, i);
         size_t len = strlen(path) + strlen(name) + strlen(what) + 6; // + 6: '/' + '/' + ".lua"
         char* filename = malloc(len + 1);
         snprintf(filename, len + 1, "%s/%s/%s.lua", path, name, what);
@@ -95,6 +65,53 @@ static char* _get_tech_filename(struct technology_state* techstate, const char* 
     }
     return NULL;
 }
+
+int technology_exists(const struct vector* techpaths, const char* name)
+{
+    char* layermapname = _get_tech_filename(techpaths, name, "layermap");
+    if(!layermapname)
+    {
+        printf("technology: no techfile for technology '%s' found\n", name);
+        free(layermapname);
+        return 0;
+    }
+    free(layermapname);
+
+    char* vianame = _get_tech_filename(techpaths, name, "vias");
+    if(!vianame)
+    {
+        printf("technology: no via definitions for technology '%s' found", name);
+        free(vianame);
+        return 0;
+    }
+    free(vianame);
+
+    char* configname = _get_tech_filename(techpaths, name, "config");
+    if(!configname)
+    {
+        printf("technology: no config file for technology '%s' found", name);
+        free(configname);
+        return 0;
+    }
+    free(configname);
+
+    char* constraintsname = _get_tech_filename(techpaths, name, "constraints");
+    if(!constraintsname)
+    {
+        printf("technology: no constraints file for technology '%s' found", name);
+        free(constraintsname);
+        return 0;
+    }
+    free(constraintsname);
+
+    return 1;
+}
+
+struct viaentry {
+    char* name;
+    struct via_definition** viadefs;
+    struct via_definition* fallback;
+};
 
 static int _is_ignored_layer(const char* layername, const struct const_vector* ignoredlayers)
 {
@@ -451,9 +468,9 @@ static int _load_constraints(struct technology_state* techstate, const char* nam
     return 0;
 }
 
-int technology_load(struct technology_state* techstate, const struct const_vector* ignoredlayers)
+int technology_load(const struct vector* techpaths, struct technology_state* techstate, const struct const_vector* ignoredlayers)
 {
-    char* layermapname = _get_tech_filename(techstate, techstate->name, "layermap");
+    char* layermapname = _get_tech_filename(techpaths, techstate->name, "layermap");
     const char* errmsg;
     if(!layermapname)
     {
@@ -469,7 +486,7 @@ int technology_load(struct technology_state* techstate, const struct const_vecto
         return 0;
     }
 
-    char* vianame = _get_tech_filename(techstate, techstate->name, "vias");
+    char* vianame = _get_tech_filename(techpaths, techstate->name, "vias");
     if(!vianame)
     {
         printf("technology: no via definitions for technology '%s' found", techstate->name);
@@ -483,7 +500,7 @@ int technology_load(struct technology_state* techstate, const struct const_vecto
     }
     free(vianame);
 
-    char* configname = _get_tech_filename(techstate, techstate->name, "config");
+    char* configname = _get_tech_filename(techpaths, techstate->name, "config");
     if(!configname)
     {
         printf("technology: no config file for technology '%s' found", techstate->name);
@@ -499,7 +516,7 @@ int technology_load(struct technology_state* techstate, const struct const_vecto
     }
     free(configname);
 
-    char* constraintsname = _get_tech_filename(techstate, techstate->name, "constraints");
+    char* constraintsname = _get_tech_filename(techpaths, techstate->name, "constraints");
     if(!constraintsname)
     {
         printf("technology: no constraints file for technology '%s' found", techstate->name);
@@ -945,7 +962,6 @@ struct technology_state* technology_initialize(const char* name)
     techstate->config = malloc(sizeof(*techstate->config));
     memset(techstate->config, 0, sizeof(*techstate->config));
     techstate->constraints = hashmap_create(tagged_value_destroy);
-    techstate->techpaths = vector_create(32, free);
     techstate->create_fallback_vias = 0;
     techstate->create_via_arrays = 1;
     techstate->ignore_premapped = 0;
@@ -967,8 +983,6 @@ void technology_destroy(struct technology_state* techstate)
     free(techstate->config);
 
     hashmap_destroy(techstate->constraints);
-
-    vector_destroy(techstate->techpaths);
 
     hashmap_destroy(techstate->layermap);
     vector_destroy(techstate->extra_layers); // (externally) premapped layers are owned by the layer map
@@ -1223,7 +1237,6 @@ int open_ltechnology_lib(lua_State* L)
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
-        { "list_techpaths",                 ltechnology_list_techpaths              },
         { "get_dimension",                  ltechnology_get_dimension               },
         { "get_dimension_max",              ltechnology_get_dimension_max           },
         { "get_optional_dimension",         ltechnology_get_optional_dimension      },
@@ -1266,24 +1279,24 @@ static const struct generics* _get_or_create_layer(struct technology_state* tech
     }
 }
 
-char* technology_get_configfile_path(struct technology_state* techstate)
+char* technology_get_configfile_path(const struct vector* techpaths, const char* techname)
 {
-    return _get_tech_filename(techstate, techstate->name, "config");
+    return _get_tech_filename(techpaths, techname, "config");
 }
 
-char* technology_get_layermap_path(struct technology_state* techstate)
+char* technology_get_layermap_path(const struct vector* techpaths, const char* techname)
 {
-    return _get_tech_filename(techstate, techstate->name, "layermap");
+    return _get_tech_filename(techpaths, techname, "layermap");
 }
 
-char* technology_get_viatable_path(struct technology_state* techstate)
+char* technology_get_viatable_path(const struct vector* techpaths, const char* techname)
 {
-    return _get_tech_filename(techstate, techstate->name, "vias");
+    return _get_tech_filename(techpaths, techname, "vias");
 }
 
-char* technology_get_constraints_path(struct technology_state* techstate)
+char* technology_get_constraints_path(const struct vector* techpaths, const char* techname)
 {
-    return _get_tech_filename(techstate, techstate->name, "constraints");
+    return _get_tech_filename(techpaths, techname, "constraints");
 }
 
 struct generics* generics_create_empty_layer(const char* name)

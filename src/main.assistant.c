@@ -774,9 +774,9 @@ void main_techfile_assistant(const struct hashmap* config)
     _draw_all(&state);
     state.techname = _draw_main_text_single_prompt_string(&state, "What is the name of the technology library?", "", "Technology Name");
     state.techstate = technology_initialize(state.techname);
-    if(technology_exists(state.techname))
+    const struct vector* techpaths = hashmap_get_const(config, "techpaths");
+    if(technology_exists(techpaths, state.techname))
     {
-        const struct vector* techpaths = hashmap_get_const(config, "techpaths");
         // FIXME: loading an erroneous technology state modifies data, this might not be desirable?
         state.techstate = main_create_techstate(techpaths, state.techname, NULL); // NULL: ignored layers
         // FIXME: notify in case of errors

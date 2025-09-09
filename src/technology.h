@@ -28,9 +28,8 @@ struct via_definition { // FIXME: this is in the header file because the geometr
 struct technology_state* technology_initialize(const char* name);
 void technology_destroy(struct technology_state* state);
 
-void technology_add_techpath(struct technology_state* techstate, const char* path);
-int technology_exists(const char* name);
-int technology_load(struct technology_state* techstate, const struct const_vector* ignoredlayers);
+int technology_exists(const struct vector* techpaths, const char* name);
+int technology_load(const struct vector* techpaths, struct technology_state* techstate, const struct const_vector* ignoredlayers);
 void technology_write_definition_files(const struct technology_state* techstate, const char* basepath);
 
 // technology state modification API
@@ -72,10 +71,10 @@ void technology_insert_extra_layer(struct technology_state* techstate, struct ge
 int technology_resolve_premapped_layers(struct technology_state* techstate, const char* exportname);
 
 // info functions
-char* technology_get_configfile_path(struct technology_state* techstate);
-char* technology_get_layermap_path(struct technology_state* techstate);
-char* technology_get_viatable_path(struct technology_state* techstate);
-char* technology_get_constraints_path(struct technology_state* techstate);
+char* technology_get_configfile_path(const struct vector* techpaths, const char* techname);
+char* technology_get_layermap_path(const struct vector* techpaths, const char* techname);
+char* technology_get_viatable_path(const struct vector* techpaths, const char* techname);
+char* technology_get_constraints_path(const struct vector* techpaths, const char* techname);
 struct tagged_value* technology_get_dimension(const struct technology_state* techstate, const char* dimension);
 
 // layer creation interface
