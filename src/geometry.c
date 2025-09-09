@@ -1250,7 +1250,7 @@ struct vector* geometry_calculate_viabltr(
     coordinate_t widthclass
 )
 {
-    struct vector* result = vector_create(1, NULL);
+    struct vector* result = vector_create(1, free);
     _calculate_viabltr(techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, widthclass, result);
     return result;
 }
