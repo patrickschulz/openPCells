@@ -16,6 +16,7 @@ struct hashmap {
     struct hashmap_entry* entries;
     size_t size;
     size_t capacity;
+    void (*destructor)(void*);
 };
 
 static uint32_t _hash(const char* key)
@@ -76,26 +77,27 @@ static void _resize(struct hashmap* map)
     }
 }
 
-struct hashmap* hashmap_create(void)
+struct hashmap* hashmap_create(void (*destructor)(void*))
 {
     struct hashmap* map = malloc(sizeof(*map));
     map->size = 0;
     map->capacity = 32; // must be power of two!
     map->entries = NULL;
+    map->destructor = destructor;
     _resize(map);
     return map;
 }
 
-void hashmap_destroy(struct hashmap* map, void (*destructor)(void*))
+void hashmap_destroy(struct hashmap* map)
 {
     for(size_t i = 0; i < map->capacity; ++i)
     {
         if((map->entries + i)->key)
         {
             free((map->entries + i)->key);
-            if(destructor)
+            if(map->destructor)
             {
-                destructor((map->entries + i)->value);
+                map->destructor((map->entries + i)->value);
             }
         }
     }
@@ -113,9 +115,14 @@ void hashmap_insert(struct hashmap* map, const char* key, void* value)
     if(!entry->key) // entry does not exist
     {
         entry->key = util_strdup(key);
+        entry->value = value;
+        map->size += 1;
     }
-    entry->value = value;
-    map->size += 1;
+    else // replace old value
+    {
+        map->destructor(entry->value);
+        entry->value = value;
+    }
 }
 
 int hashmap_exists(const struct hashmap* map, const char* key)

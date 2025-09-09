@@ -115,7 +115,7 @@ static struct generics_entry* _create_entry(const char* name)
 {
     struct generics_entry* entry = malloc(sizeof(*entry));
     entry->exportname = util_strdup(name);
-    entry->data = hashmap_create();
+    entry->data = hashmap_create(tagged_value_destroy);
     return entry;
 }
 
@@ -178,7 +178,7 @@ static void _destroy_entry(void* entryv)
     }
     struct generics_entry* entry = entryv;
     free(entry->exportname);
-    hashmap_destroy(entry->data, tagged_value_destroy);
+    hashmap_destroy(entry->data);
     free(entry);
 }
 
@@ -815,12 +815,12 @@ struct technology_state* technology_initialize(void)
     techstate->viatable = vector_create(32, _destroy_viaentry);
     techstate->config = malloc(sizeof(*techstate->config));
     memset(techstate->config, 0, sizeof(*techstate->config));
-    techstate->constraints = hashmap_create();
+    techstate->constraints = hashmap_create(tagged_value_destroy);
     techstate->techpaths = vector_create(32, free);
     techstate->create_fallback_vias = 0;
     techstate->create_via_arrays = 1;
     techstate->ignore_premapped = 0;
-    techstate->layermap = hashmap_create();
+    techstate->layermap = hashmap_create(NULL);
     techstate->extra_layers = vector_create(1024, _destroy_layer);
     techstate->empty_layer = _create_empty_layer("_EMPTY_");
     techstate->ignore_missing_layers = 0;
@@ -836,11 +836,11 @@ void technology_destroy(struct technology_state* techstate)
     vector_destroy(techstate->config->multiple_patterning_metals);
     free(techstate->config);
 
-    hashmap_destroy(techstate->constraints, tagged_value_destroy);
+    hashmap_destroy(techstate->constraints);
 
     vector_destroy(techstate->techpaths);
 
-    hashmap_destroy(techstate->layermap, NULL);
+    hashmap_destroy(techstate->layermap);
     vector_destroy(techstate->extra_layers); // (externally) premapped layers are owned by the layer map
 
     _destroy_layer(techstate->empty_layer);

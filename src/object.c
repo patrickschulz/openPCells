@@ -248,7 +248,7 @@ struct object* object_copy(const struct object* cell)
         // anchors
         if(cell->anchors)
         {
-            new->anchors = hashmap_create();
+            new->anchors = hashmap_create(_anchor_destroy);
             struct hashmap_const_iterator* it = hashmap_const_iterator_create(cell->anchors);
             while(hashmap_const_iterator_is_valid(it))
             {
@@ -263,7 +263,7 @@ struct object* object_copy(const struct object* cell)
         // anchor lines
         if(cell->anchorlines)
         {
-            new->anchorlines = hashmap_create();
+            new->anchorlines = hashmap_create(free);
             struct hashmap_const_iterator* it = hashmap_const_iterator_create(cell->anchorlines);
             while(hashmap_const_iterator_is_valid(it))
             {
@@ -345,7 +345,7 @@ struct object* object_copy(const struct object* cell)
         // layer boundaries
         if(cell->layer_boundaries)
         {
-            new->layer_boundaries = hashmap_create();
+            new->layer_boundaries = hashmap_create(polygon_container_destroy);
             struct hashmap_iterator* lbit = hashmap_iterator_create(cell->layer_boundaries);
             while(hashmap_iterator_is_valid(lbit))
             {
@@ -360,7 +360,7 @@ struct object* object_copy(const struct object* cell)
         // nets
         if(cell->nets)
         {
-            new->nets = hashmap_create();
+            new->nets = hashmap_create(vector_destroy);
             struct hashmap_iterator* netit = hashmap_iterator_create(cell->nets);
             while(hashmap_iterator_is_valid(netit))
             {
@@ -396,13 +396,13 @@ void object_destroy(void* cellv)
         // anchors
         if(cell->anchors)
         {
-            hashmap_destroy(cell->anchors, _anchor_destroy);
+            hashmap_destroy(cell->anchors);
         }
 
         // anchor lines
         if(cell->anchorlines)
         {
-            hashmap_destroy(cell->anchorlines, free);
+            hashmap_destroy(cell->anchorlines);
         }
 
         // ports
@@ -432,7 +432,7 @@ void object_destroy(void* cellv)
         // layer boundaries
         if(cell->layer_boundaries)
         {
-            hashmap_destroy(cell->layer_boundaries, polygon_container_destroy);
+            hashmap_destroy(cell->layer_boundaries);
         }
     }
     else // isproxy
@@ -591,6 +591,8 @@ void object_merge_into(struct object* cell, const struct object* other)
             object_apply_other_transformation(newchild, child->trans);
             // FIXME: transformation
         }
+        const_vector_destroy(used_cell_references);
+        vector_destroy(new_cell_references);
     }
     if(other->labels)
     {
@@ -675,7 +677,7 @@ static int _add_anchor(struct object* cell, const char* name, struct anchor* anc
 {
     if(!cell->anchors)
     {
-        cell->anchors = hashmap_create();
+        cell->anchors = hashmap_create(_anchor_destroy);
     }
     if(hashmap_exists(cell->anchors, name))
     {
@@ -836,7 +838,7 @@ int object_add_anchor_line_x(struct object* cell, const char* name, coordinate_t
 {
     if(!cell->anchorlines)
     {
-        cell->anchorlines = hashmap_create();
+        cell->anchorlines = hashmap_create(free);
     }
     if(hashmap_exists(cell->anchorlines, name))
     {
@@ -857,7 +859,7 @@ int object_add_anchor_line_y(struct object* cell, const char* name, coordinate_t
 {
     if(!cell->anchorlines)
     {
-        cell->anchorlines = hashmap_create();
+        cell->anchorlines = hashmap_create(free);
     }
     if(hashmap_exists(cell->anchorlines, name))
     {
@@ -1270,7 +1272,7 @@ struct point* object_get_alignmentbox_anchor_innertr(const struct object* cell)
 
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
 {
-    struct hashmap* anchors = hashmap_create();
+    struct hashmap* anchors = hashmap_create(_anchor_destroy);
     const struct object* obj = cell;
     if(object_is_proxy(cell))
     {
@@ -1932,7 +1934,7 @@ void object_set_empty_layer_boundary(struct object* cell, const struct generics*
 {
     if(!cell->layer_boundaries)
     {
-        cell->layer_boundaries = hashmap_create();
+        cell->layer_boundaries = hashmap_create(polygon_container_destroy);
     }
     if(hashmap_exists(cell->layer_boundaries, (const char*)layer))
     {
@@ -1947,7 +1949,7 @@ void object_add_layer_boundary(struct object* cell, const struct generics* layer
 {
     if(!cell->layer_boundaries)
     {
-        cell->layer_boundaries = hashmap_create();
+        cell->layer_boundaries = hashmap_create(polygon_container_destroy);
     }
     if(!hashmap_exists(cell->layer_boundaries, (const char*)layer))
     {
@@ -2302,7 +2304,7 @@ void object_add_net_shape(struct object* cell, const char* netname, const struct
     }
     if(!cell->nets)
     {
-        cell->nets = hashmap_create();
+        cell->nets = hashmap_create(vector_destroy);
     }
     if(!hashmap_exists(cell->nets, netname))
     {

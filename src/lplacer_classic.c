@@ -137,7 +137,7 @@ static struct block* _initialize(lua_State* L, struct floorplan* floorplan, stru
     lua_pop(L, 1);
     block->num_nets = num_nets;
     block->nets = calloc(block->num_nets, sizeof(struct net));
-    struct hashmap* netmap = hashmap_create();
+    struct hashmap* netmap = hashmap_create(NULL);
     for(size_t i = 1; i <= num_nets; ++i)
     {
         lua_geti(L, 2, i);
@@ -156,7 +156,7 @@ static struct block* _initialize(lua_State* L, struct floorplan* floorplan, stru
         placer_initialize_base_cell(L, base, i, netmap);
         lua_pop(L, 1); // pop instance
     }
-    hashmap_destroy(netmap, NULL);
+    hashmap_destroy(netmap);
 
     // shuffle cells
     for (unsigned int i = num_cells - 1; i > 0; i--)

@@ -2,8 +2,8 @@
 #define OPC_HASHMAP_H
 
 struct hashmap;
-struct hashmap* hashmap_create(void);
-void hashmap_destroy(struct hashmap* map, void (*destructor)(void*));
+struct hashmap* hashmap_create(void (*destructor)(void*));
+void hashmap_destroy(struct hashmap* map);
 void hashmap_insert(struct hashmap* map, const char* key, void* value);
 int hashmap_exists(const struct hashmap* map, const char* key);
 void* hashmap_get(struct hashmap* map, const char* key);

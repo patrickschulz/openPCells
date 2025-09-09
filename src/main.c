@@ -250,7 +250,7 @@ int main(int argc, const char* const * argv)
     }
 
     // load config
-    struct hashmap* config = hashmap_create();
+    struct hashmap* config = hashmap_create(NULL);
     if(!cmdoptions_was_provided_long(cmdoptions, "no-user-config"))
     {
         if(!_load_config(config))
@@ -630,7 +630,7 @@ DESTROY_CONFIG: ;
         struct vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
         vector_destroy(ignoredlayers);
     }
-    hashmap_destroy(config, NULL);
+    hashmap_destroy(config);
 DESTROY_CMDOPTIONS:
     cmdoptions_destroy(cmdoptions);
     return returnvalue;

@@ -828,7 +828,7 @@ static void _read_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
     // read start
     _start_subcircuit(CDL_tokenlist);
     // read content
-    struct hashmap* nets = hashmap_create();
+    struct hashmap* nets = hashmap_create(NULL); // FIXME: destructor
     while(!_is_directive(CDL_tokenlist, "ENDS"))
     {
         if(CDL_token_expect(CDL_tokenlist, IDENTIFIER)) // instantiation
