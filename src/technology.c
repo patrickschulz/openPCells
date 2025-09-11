@@ -1023,6 +1023,11 @@ struct tagged_value* technology_get_dimension(const struct technology_state* tec
     }
 }
 
+unsigned int technology_get_number_of_layers(const struct technology_state* techstate)
+{
+    return vector_size(techstate->layertable);
+}
+
 static int ltechnology_get_dimension(lua_State* L)
 {
     int n = lua_gettop(L);

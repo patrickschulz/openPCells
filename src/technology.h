@@ -76,6 +76,7 @@ char* technology_get_layermap_path(const struct vector* techpaths, const char* t
 char* technology_get_viatable_path(const struct vector* techpaths, const char* techname);
 char* technology_get_constraints_path(const struct vector* techpaths, const char* techname);
 struct tagged_value* technology_get_dimension(const struct technology_state* techstate, const char* dimension);
+unsigned int technology_get_number_of_layers(const struct technology_state* techstate);
 
 // layer creation interface
 struct generics* generics_create_empty_layer(const char* name);

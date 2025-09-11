@@ -720,6 +720,36 @@ static void _read_metal_stack(struct state* state)
     }
 }
 
+static void _show_current_state(struct state* state)
+{
+    // container for lines
+    struct vector* vlines = vector_create(8, NULL); // memory is freed for the primitive char* array
+
+    struct string* str; // string for assembly of lines
+
+    // number of layers
+    unsigned int numlayer = technology_get_number_of_layers(state->techstate);
+    str = string_create();
+    string_add_string(str, " * number of layers: ");
+    strprint_integer(str, numlayer);
+    vector_append(vlines, string_dissolve(str));
+
+    // number of metal layers
+    unsigned int nummetals = technology_get_num_metals(state->techstate);
+    str = string_create();
+    string_add_string(str, " * number of metals: ");
+    strprint_integer(str, nummetals);
+    vector_append(vlines, string_dissolve(str));
+
+    // add sentinel for char* array
+    vector_append(vlines, NULL);
+
+    // print lines
+    char** lines = vector_disown_content(vlines);
+    _draw_main_text(state, (const char* const*) lines, "Current Technology State");
+    free(lines);
+}
+
 void main_techfile_assistant(const struct hashmap* config)
 {
     // set up
@@ -775,18 +805,28 @@ void main_techfile_assistant(const struct hashmap* config)
     state.techname = _draw_main_text_single_prompt_string(&state, "What is the name of the technology library?", "", "Technology Name");
     state.techstate = technology_initialize(state.techname);
     const struct vector* techpaths = hashmap_get_const(config, "techpaths");
+    int loaded = 0;
     if(technology_exists(techpaths, state.techname))
     {
-        // FIXME: loading an erroneous technology state modifies data, this might not be desirable?
-        state.techstate = main_create_techstate(techpaths, state.techname, NULL); // NULL: ignored layers
-        // FIXME: notify in case of errors
+        _draw_all(&state);
+        int load = _draw_main_text_single_prompt_boolean(&state, "This technology definition already exists. Do you want to load it for editing?", "yes", "Technology Loading");
+        if(load)
+        {
+            // FIXME: loading an erroneous technology state modifies data, this might not be desirable?
+            state.techstate = main_create_techstate(techpaths, state.techname, NULL); // NULL: ignored layers, not needed
+            // FIXME: notify in case of errors
+            loaded = 1;
+        }
     }
-    _draw_all(&state);
-    state.ask_layer_name = _draw_main_text_single_prompt_boolean(&state, "Should the assistant ask for layer names (useful for debugging)?", "yes", "Layer Info");
-    _draw_all(&state);
-    state.ask_gds = _draw_main_text_single_prompt_boolean(&state, "Should the assistant ask for GDS layer data (required for GDS export)?", "yes", "Layer Info");
-    _draw_all(&state);
-    state.ask_skill = _draw_main_text_single_prompt_boolean(&state, "Should the assistant ask for SKILL layer data (required for SKILL/virtuoso export)?", "yes", "Layer Info");
+    if(!loaded)
+    {
+        _draw_all(&state);
+        state.ask_layer_name = _draw_main_text_single_prompt_boolean(&state, "Should the assistant ask for layer names (useful for debugging)?", "yes", "Layer Info");
+        _draw_all(&state);
+        state.ask_gds = _draw_main_text_single_prompt_boolean(&state, "Should the assistant ask for GDS layer data (required for GDS export)?", "yes", "Layer Info");
+        _draw_all(&state);
+        state.ask_skill = _draw_main_text_single_prompt_boolean(&state, "Should the assistant ask for SKILL layer data (required for SKILL/virtuoso export)?", "yes", "Layer Info");
+    }
     
     // main loop (random order)
     int run = 1;
@@ -797,9 +837,11 @@ void main_techfile_assistant(const struct hashmap* config)
             "Please select one of the options below to configure the technology node.",
             "The panel on the right indicates which definitions/configurations are lacking.",
             "",
-            " 1) Front-End-of-Line Configuration",
-            " 2) Well Configuration",
-            " 3) Metal Stack",
+            " 1) Edit Assistant Configuration",
+            " 2) View Current Technology State",
+            " 3) Front-End-of-Line Configuration",
+            " 4) Well Configuration",
+            " 5) Metal Stack",
             " 0) Quit",
             NULL
         };
@@ -811,11 +853,18 @@ void main_techfile_assistant(const struct hashmap* config)
             case 0:
                 run = 0;
                 break;
-            case 1:
+            case 1: // assistant configuration
                 break;
-            case 2:
+            case 2: // view current technology state
+                _draw_all(&state);
+                _show_current_state(&state);
+                _wait_for_enter(&state);
                 break;
-            case 3:
+            case 3: // FEOL
+                break;
+            case 4: // wells
+                break;
+            case 5: // metals
                 _read_metal_stack(&state);
                 break;
         }
