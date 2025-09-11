@@ -14,7 +14,7 @@ procedure(OPCWriteRectangle(file layer purpose bBox)
 	let(
 		(
 		)
-        fprintf(file "geometry.rectanglebltr(cell, %s, point.create(%d, %d), point.create(%d, %d))\n", 
+        fprintf(file "geometry.rectanglebltr(cell, %s, point.create(%d, %d), point.create(%d, %d))\n",
             OPCFormatLayer(layer purpose) xCoord(car(bBox)) yCoord(car(bBox)) xCoord(cadr(bBox)) yCoord(cadr(bBox))
         )
 	)
