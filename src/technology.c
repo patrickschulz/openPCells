@@ -44,7 +44,10 @@ struct technology_state {
     int ignore_missing_layers;
     int ignore_missing_exports;
 
-    struct hashmap* layermap;
+    struct hashmap* layermap; // this hashmap stores the actually used layers in an opc call.
+                              // FIXME: it is highly questionable that this is of any use,
+                              //        as the layertable (a vector) does probably never store more than
+                              //        around 100 layers (often less).
     struct vector* extra_layers; // stores struct generics*, extra premapped layers
     struct generics* empty_layer; // store one empty layer which is reused by all ignored layers
 };
