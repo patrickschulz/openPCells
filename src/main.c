@@ -40,7 +40,7 @@
 #include "_scriptmanager.h"
 #include "_modulemanager.h"
 
-static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions)
+static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions, char** msg)
 {
     /* prepare config */
     struct vector* techpaths = vector_create(8, free);
@@ -143,6 +143,10 @@ static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions)
                 lua_pop(L, 1);
                 ret = LUA_ERRRUN;
             }
+        }
+        else
+        {
+            *msg = util_strdup(lua_tostring(L, -1));
         }
         lua_close(L);
     }
@@ -269,9 +273,11 @@ int main(int argc, const char* const * argv)
 
     // load config
     struct hashmap* config = hashmap_create(NULL);
-    if(!_load_config(config, cmdoptions))
+    char* configerror = NULL;
+    if(!_load_config(config, cmdoptions, &configerror))
     {
-        puts("error while loading user config");
+        fprintf(stderr, "error while loading user config: %s\n", configerror);
+        free(configerror);
         returnvalue = 1;
         goto DESTROY_CONFIG;
     }
