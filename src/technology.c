@@ -152,6 +152,9 @@ static void _insert_lpp_pairs(lua_State* L, struct hashmap* map, const char* lay
     {
         struct tagged_value* value = NULL;
         // check first of number is an integer
+        // this extra step is taken because in lua
+        // integers and floats are not disitnguished by type.
+        // Hence, lua_type(L, -1) will report LUA_TNUMBER for both integers and doubles.
         int success;
         int num = lua_tointegerx(L, -1, &success);
         if(success)
