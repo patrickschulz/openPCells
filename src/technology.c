@@ -201,18 +201,13 @@ static void _destroy_entry(void* entryv)
 
 static struct generics* _make_layer_from_lua(const char* layername, lua_State* L)
 {
-    struct generics* layer;
-    if(lua_isnil(L, -1))
+    struct generics* layer = generics_create_empty_layer(layername);
+    if(!layer)
     {
-        layer = generics_create_empty_layer(layername);
+        return NULL;
     }
-    else
+    if(!lua_isnil(L, -1))
     {
-        layer = generics_create_empty_layer(layername);
-        if(!layer)
-        {
-            return NULL;
-        }
         lua_pushnil(L);
         while (lua_next(L, -2) != 0)
         {
