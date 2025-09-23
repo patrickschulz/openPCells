@@ -878,6 +878,30 @@ static int _get_integer(struct state* state, const char* prompt)
     return number;
 }
 
+static int _get_character(struct state* state, const char* prompt)
+{
+    _set_position(state, state->yend, 1);
+    int endpos = state->xend - SIDE_PANEL_WIDTH - SIDE_PANEL_GAP - 2;
+    for(int i = 1; i <= endpos; ++i)
+    {
+        _write(state, " ");
+    }
+    char* p = util_strdup(prompt);
+    const char* str;
+    while(1)
+    {
+        str = _get_string(state, p);
+        free(p);
+        p = util_strdup(str);
+        if(strlen(str) == 1) // only one character
+        {
+            break;
+        }
+        _draw_status(state, "given answer must be a only one character");
+    }
+    return str[0];
+}
+
 static int _draw_main_text_single_prompt_integer(struct state* state, const char* text, const char* prompt, const char* section)
 {
     _draw_main_text_single(state, text, section);
@@ -1092,7 +1116,6 @@ static void _ask_layer(struct state* state, const char* layername, const char* p
         const char* const lines[] = {
             info, NULL
         };
-        _clear_main_area(state);
         _draw_main_text(state, lines, title);
         _write_to_display(state);
         _wait_for_enter(state);
@@ -1133,7 +1156,6 @@ static void _ask_layer_set(struct state* state, struct layerset** layerset, cons
 {
     if(commoninfo)
     {
-        _clear_main_area(state);
         const char* const lines[] = {
             commoninfo, NULL
         };
@@ -1364,6 +1386,77 @@ static void _read_metal_stack(struct state* state)
     vector_destroy(metals);
 }
 
+static int _ask_via_definition_property(struct state* state, const char* what, unsigned int vianum)
+{
+    struct string* str = string_create();
+    string_add_string(str, "What is the ");
+    string_add_string(str, what);
+    string_add_string(str, " of the via cut for the transition from metal ");
+    strprint_integer(str, vianum);
+    string_add_string(str, " to metal ");
+    strprint_integer(str, vianum + 1);
+    string_add_character(str, '?');
+    char* info = string_dissolve(str);
+    str = string_create();
+    string_add_string(str, "Via Definition: Metal ");
+    strprint_integer(str, vianum);
+    string_add_string(str, "-> Metal ");
+    strprint_integer(str, vianum + 1);
+    char* title = string_dissolve(str);
+    _draw_main_text_single(state, info, title);
+    int dimension = _get_integer(state, "");
+    return dimension;
+}
+
+static void _ask_via_definition(struct state* state, unsigned int vianum)
+{
+
+    int width = _ask_via_definition_property(state, "width", vianum);
+    int height = _ask_via_definition_property(state, "height", vianum);
+    int xspace = _ask_via_definition_property(state, "x-space", vianum);
+    int yspace = _ask_via_definition_property(state, "y-space", vianum);
+    int xenclosure = _ask_via_definition_property(state, "x-enclosure", vianum);
+    int yenclosure = _ask_via_definition_property(state, "y-enclosure", vianum);
+
+    /*
+    _draw_main_text_single(state, "What is the width of the via cut for the transition from metal 1 to metal 2?", "Via Definition: Metal 1 -> Metal 2");
+    int width = _get_integer(state, "");
+    _draw_main_text_single(state, "What is the height of the via cut?", "Via Definition: Metal 1 -> Metal 2");
+    int height = _get_integer(state, "");
+    _draw_main_text_single(state, "What is the spacing between via cuts in x-direction?", "Via Definition");
+    int xspace = _get_integer(state, "");
+    _draw_main_text_single(state, "What is the spacing between via cuts in y-direction?", "Via Definition");
+    int yspace = _get_integer(state, "");
+    _draw_main_text_single(state, "What is the minimum metal enclosure around via cuts in x-direction?", "Via Definition");
+    int xenclosure = _get_integer(state, "");
+    _draw_main_text_single(state, "What is the minimum metal enclosure around via cuts in y-direction?", "Via Definition");
+    int yenclosure = _get_integer(state, "");
+    */
+}
+
+static void _read_via_definitions(struct state* state)
+{
+    const char* lines[] = {
+        "Layout descriptions in openPCells are technology-independent. Vias (connections between layers such as metals or gates) on the other hand typically require exact dimensions, which can not be expressed easily in a generic way. Therefore, part of exporting layouts from openPCells involves so-called via arrayzation. For this, a set of rules have to be known. At least one rule per via layer is required, more can help tailor to more stringent design rules.",
+        "",
+        "Via arrayzation rules are defined by the size (width and height) of the cuts, their spacing in x- and y-direction as well as their enclosure at the ends of an array.",
+        NULL
+    };
+    _draw_main_text(state, lines, "Via Definitions");
+    _write_to_display(state);
+    _wait_for_enter(state);
+    unsigned int nummetals = technology_get_num_metals(state->techstate);
+    for(unsigned int i = 0; i < nummetals - 1; ++i)
+    {
+        _ask_via_definition(state, i + 1);
+    }
+}
+
+static void _read_constraints(struct state* state)
+{
+
+}
+
 static void _show_current_state(struct state* state)
 {
     // container for lines
@@ -1390,6 +1483,14 @@ static void _show_current_state(struct state* state)
     char** lines = vector_disown_content(vlines);
     _draw_main_text(state, (const char* const*) lines, "Current Technology State");
     free(lines);
+}
+
+static void _show_error(struct state* state, const char* msg)
+{
+    _set_color_RGB(state, 255, 0, 0);
+    _draw_main_text_single(state, msg, "Error");
+    _write_to_display(state);
+    _reset_color(state);
 }
 
 void main_techfile_assistant(const struct hashmap* config)
@@ -1486,40 +1587,82 @@ void main_techfile_assistant(const struct hashmap* config)
         // menu
         const char* menu[] = {
             "Please select one of the options below to configure the technology node.",
-            "The panel on the right indicates which definitions/configurations are lacking.",
+            "Some options can be chosen in arbitrary order, but for via definitions and size constraints the metal stack needs to be defined.",
+            "It is recommended to go through the options in their numeric order.",
             "",
-            " 1) Edit Assistant Configuration",
-            " 2) View Current Technology State",
-            " 3) Front-End-of-Line Configuration",
-            " 4) Well Configuration",
-            " 5) Metal Stack",
-            " 0) Quit",
+            "Technology Configuration:",
+            " 1) Front-End-of-Line Configuration",
+            " 2) Well Configuration",
+            " 3) Metal Stack Layers",
+            " 4) Via Definitions",
+            " 5) Size Constraints",
+            "",
+            "Additional Actions:",
+            " e) Edit Assistant Configuration",
+            " s) View Current Technology State",
+            "",
+            " q) Quit (will save status)",
             NULL
         };
         _draw_all(state);
         _draw_main_text(state, menu, "Main Menu");
-        int choice = _get_integer(state, "");
+        char choice = _get_character(state, "");
         switch(choice)
         {
-            case 0:
+            case 'q':
                 run = 0;
                 break;
-            case 1: // assistant configuration
+            case 'e': // assistant configuration
                 break;
-            case 2: // view current technology state
+            case 's': // view current technology state
                 _draw_all(state);
                 _show_current_state(state);
                 _write_to_display(state);
                 _wait_for_enter(state);
                 break;
-            case 3: // FEOL
+            case '1': // FEOL
                 _read_FEOL(state);
                 break;
-            case 4: // wells
+            case '2': // wells
                 _read_wells(state);
                 break;
-            case 5: // metals
+            case '3': // metals
                 _read_metal_stack(state);
+                break;
+            case '4': // vias
+            {
+                unsigned int nummetals = technology_get_num_metals(state->techstate);
+                if(nummetals > 1)
+                {
+                    _read_via_definitions(state);
+                }
+                else if(nummetals == 1)
+                {
+                    _draw_main_text_single(state, "No vias need to be defined, as there is only one metal layer.", "Via Definitions");
+                    _wait_for_enter(state);
+                }
+                else
+                {
+                    _show_error(state, "You must define the metal stack before via definitions can be assigned.");
+                    _wait_for_enter(state);
+                }
+                break;
+            }
+            case '5': // constraints
+                unsigned int nummetals = technology_get_num_metals(state->techstate);
+                if(nummetals > 0)
+                {
+                    _read_constraints(state);
+                }
+                else
+                {
+                    _show_error(state, "You must define the metal stack before constraints can be assigned.");
+                    _wait_for_enter(state);
+                }
+                break;
+            default:
+                _show_error(state, "Not a valid action");
+                _wait_for_enter(state);
                 break;
         }
         if(choice == 0)
@@ -1542,13 +1685,6 @@ void main_techfile_assistant(const struct hashmap* config)
     mosfetmarker1
     lvsmarker1
     polyresistorlvsmarker1
-
-    metal stack:
-    M1
-    viacutM1M2
-    M2
-    viacutM2M3
-    M3
 */
 
 // vim: nowrap
