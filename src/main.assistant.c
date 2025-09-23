@@ -16,8 +16,8 @@
 #include "terminal.h"
 #include "util.h"
 
-#define MAX_SCREEN_WIDTH 140
-#define MAX_SCREEN_HEIGHT 30
+#define MAX_SCREEN_WIDTH 120
+#define MAX_SCREEN_HEIGHT 24
 #define SIDE_PANEL_WIDTH 40
 #define SIDE_PANEL_GAP 2
 #define PROMPT_LINE_OFFSET 0
@@ -49,13 +49,17 @@
 #define KEY_CODE_X 24
 #define KEY_CODE_Y 25
 #define KEY_CODE_Z 26
+#define KEY_CODE_ESC 27
 #define KEY_CODE_ENTER 13
+#define KEY_CODE_UP 28
+#define KEY_CODE_DOWN 29
+#define KEY_CODE_LEFT 30
+#define KEY_CODE_RIGHT 31
 
 #define ATTRIBUTE_NORMAL    0
 #define ATTRIBUTE_BOLD      1
-
-// attribute masks
-#define AMASK_BOLD          1
+#define ATTRIBUTE_REVERSE   2
+#define ATTRIBUTE_COLOR     4
 
 // module-global terminal settings for restoring
 static struct termios old_settings;
@@ -83,34 +87,65 @@ struct state {
     int ystart;
     int yend;
     int pos;
-    int current_attribute;
-    int* attributes;
+    int attribute;
+    struct {
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+    } color;
+    int* current_attributes;
+    int* next_attributes;
     char* current_content;
     char* next_content;
     // actual technology state
     struct technology_state* techstate;
 };
 
+static void _set_attributes(struct state* state, int attribute)
+{
+    if(attribute & ATTRIBUTE_BOLD)
+    {
+        terminal_set_bold();
+    }
+    else
+    {
+        terminal_set_non_bold();
+    }
+    if(attribute & ATTRIBUTE_REVERSE)
+    {
+        terminal_set_reverse_color();
+    }
+    else
+    {
+        terminal_set_non_reverse_color();
+    }
+    if(attribute & ATTRIBUTE_COLOR)
+    {
+        terminal_set_foreground_color_RGB(state->color.r, state->color.g, state->color.b);
+    }
+    else
+    {
+        terminal_reset_foreground_color();
+    }
+}
+
 static void _write_to_display(struct state* state)
 {
     for(int i = 0; i < state->rows * state->columns; ++i)
     {
-        if(state->current_content[i] != state->next_content[i])
+        if(
+            (state->current_content[i] != state->next_content[i]) ||
+            (state->current_attributes[i] != state->next_attributes[i])
+           )
         {
             int row = i / state->columns;
             int column = i % state->columns;
             terminal_cursor_set_position(row + 1, column + 1);
-            int attribute = state->attributes[i];
-            if(attribute & AMASK_BOLD)
-            {
-                terminal_set_bold();
-            }
-            else
-            {
-                terminal_reset_color();
-            }
-            putchar(state->next_content[i]);
+            int attribute = state->next_attributes[i];
+            _set_attributes(state, attribute);
+            write(STDOUT_FILENO, state->next_content + i, 1);
             state->current_content[i] = state->next_content[i];
+            state->current_attributes[i] = state->next_attributes[i];
         }
     }
 }
@@ -120,15 +155,20 @@ static void _set_position(struct state* state, int row, int column)
     state->pos = (row - 1) * state->columns + column - 1;
 }
 
-static void _write(struct state* state, const char* str)
+static void _write_len(struct state* state, const char* str, size_t len)
 {
-    size_t len = strlen(str);
     for(size_t i = 0; i < len; ++i)
     {
         state->next_content[state->pos + i] = str[i];
-        state->attributes[state->pos + i] = state->current_attribute;
+        state->next_attributes[state->pos + i] = state->attribute;
     }
     state->pos += len;
+}
+
+static void _write(struct state* state, const char* str)
+{
+    size_t len = strlen(str);
+    _write_len(state, str, len);
 }
 
 static void _write_at(struct state* state, const char* str, int row, int column)
@@ -137,21 +177,45 @@ static void _write_at(struct state* state, const char* str, int row, int column)
     _write(state, str);
 }
 
+static void _write_len_at(struct state* state, const char* str, size_t len, int row, int column)
+{
+    _set_position(state, row, column);
+    _write_len(state, str, len);
+}
+
 static void _set_bold(struct state* state)
 {
-    state->current_attribute |= ATTRIBUTE_BOLD;
+    state->attribute |= ATTRIBUTE_BOLD;
 }
+
+static void _reset_bold(struct state* state)
+{
+    state->attribute &= ~ATTRIBUTE_BOLD;
+}
+
+/*
+static void _set_reverse(struct state* state)
+{
+    state->attribute |= ATTRIBUTE_REVERSE;
+}
+
+static void _reset_reverse(struct state* state)
+{
+    state->attribute &= ~ATTRIBUTE_REVERSE;
+}
+*/
 
 static void _set_color_RGB(struct state* state, unsigned char r, unsigned char g, unsigned char b)
 {
-    //state->color.r = r;
-    //state->color.g = g;
-    //state->color.b = b;
+    state->color.r = r;
+    state->color.g = g;
+    state->color.b = b;
+    state->attribute |= ATTRIBUTE_COLOR;
 }
 
 static void _reset_color(struct state* state)
 {
-    state->current_attribute = ATTRIBUTE_NORMAL;
+    state->attribute &= ~ATTRIBUTE_COLOR;
 }
 
 static void _set_to_blank(struct state* state)
@@ -159,7 +223,7 @@ static void _set_to_blank(struct state* state)
     for(int i = 0; i < state->rows * state->columns; ++i)
     {
         state->next_content[i] = ' ';
-        state->attributes[i] = ATTRIBUTE_NORMAL;
+        state->next_attributes[i] = ATTRIBUTE_NORMAL;
     }
 }
 
@@ -171,32 +235,49 @@ static void _save_state(struct state* state)
     }
 }
 
-static void _print(int row, int column, const char* str, size_t len)
+static void _print(struct state* state, int row, int column, const char* str, size_t len)
 {
-    terminal_cursor_set_position(row, column);
-    for(size_t i = 0; i < len; ++i)
-    {
-        write(STDOUT_FILENO, str + i, 1);
-    }
+    _write_len_at(state, str, len, row, column);
+    _write_to_display(state);
 }
 
 static void _draw_status(struct state* state, const char* text)
 {
+    terminal_save_cursor_position();
     _set_color_RGB(state, 255, 0, 0);
     _write_at(state, text, state->yend - STATUS_LINE_OFFSET, state->xstart);
     _reset_color(state);
     _write_to_display(state);
+    terminal_restore_cursor_position();
 }
 
-static void _clear_character_under_cursor(void)
+static void _clear_status(struct state* state)
 {
-    terminal_cursor_move_left(1);
-    putchar('_');
+    for(int i = state->xstart; i < state->xend - SIDE_PANEL_WIDTH; ++i)
+    {
+        _write_at(state, " ", state->yend - STATUS_LINE_OFFSET, i);
+    }
+    _write_to_display(state);
 }
 
 static int _getchar(struct state* state)
 {
-    int ch = getchar();
+    char ch;
+    while(1)
+    {
+        int num = read(STDIN_FILENO, &ch, 1);
+        if(num == -1)
+        {
+            terminal_clear_screen();
+            terminal_reset_all();
+            tcsetattr(STDOUT_FILENO, TCSAFLUSH, &old_settings);
+            exit(1);
+        }
+        if(num > 0)
+        {
+            break;
+        }
+    }
     if(ch == KEY_CODE_C) // ctrl-c
     {
         terminal_clear_screen();
@@ -205,7 +286,37 @@ static int _getchar(struct state* state)
         _save_state(state);
         exit(0);
     }
-    return ch;
+    if(ch == KEY_CODE_ESC)
+    {
+        char buf[2];
+        if(read(STDIN_FILENO, buf, 1) == 0)
+        {
+            return KEY_CODE_ESC;
+        }
+        if(read(STDIN_FILENO, buf + 1, 1) == 0)
+        {
+            return KEY_CODE_ESC;
+        }
+        if(buf[0] == '[') // escape sequency with '['
+        {
+            switch(buf[1])
+            {
+                case 'A': return KEY_CODE_UP;
+                case 'B': return KEY_CODE_DOWN;
+                case 'C': return KEY_CODE_RIGHT;
+                case 'D': return KEY_CODE_LEFT;
+            }
+            return KEY_CODE_ESC;
+        }
+        else
+        {
+            return KEY_CODE_ESC;
+        }
+    }
+    else
+    {
+        return ch;
+    }
 }
 
 static void _clear_prompt(struct state* state)
@@ -219,6 +330,11 @@ static void _clear_prompt(struct state* state)
 
 static const char* _get_string(struct state* state, const char* prefill)
 {
+    terminal_reset_color();
+    terminal_set_non_bold();
+    terminal_set_non_reverse_color();
+    _reset_color(state);
+    _reset_bold(state);
     int column = state->xstart + 3;
     int row = state->yend - PROMPT_LINE_OFFSET;
     int endpos = state->xend - SIDE_PANEL_WIDTH - SIDE_PANEL_GAP - 2;
@@ -229,6 +345,7 @@ static const char* _get_string(struct state* state, const char* prefill)
     _write_at(state, ">", row, state->xstart + 1);
     _write_to_display(state);
 
+    terminal_cursor_set_position(row, state->xstart + 3);
     terminal_cursor_visibility(1);
     static char buf[256];
     memset(buf, 0, 256);
@@ -238,10 +355,13 @@ static const char* _get_string(struct state* state, const char* prefill)
         strcpy(buf, prefill);
         i = strlen(prefill);
     }
-    _print(row, column, buf, i);
+    _print(state, row, column, buf, i);
     while(1)
     {
         int ch = _getchar(state);
+        terminal_cursor_visibility(0);
+        _clear_status(state);
+        terminal_cursor_visibility(1);
         if(ch == KEY_CODE_ENTER)
         {
             if(i > 0)
@@ -250,7 +370,10 @@ static const char* _get_string(struct state* state, const char* prefill)
             }
             else
             {
+                terminal_cursor_visibility(0);
                 _draw_status(state, "given answer must not be empty");
+                terminal_cursor_set_position(row, state->xstart + 3 + i);
+                terminal_cursor_visibility(1);
             }
         }
         else if(ch == 127) // backspace
@@ -258,7 +381,9 @@ static const char* _get_string(struct state* state, const char* prefill)
             if(i > 0)
             {
                 --i;
-                _clear_character_under_cursor();
+                _write_at(state, "_", row, state->xstart + 3 + i);
+                _write_to_display(state);
+                terminal_cursor_set_position(row, state->xstart + 3 + i);
             }
             buf[i] = 0;
         }
@@ -267,7 +392,7 @@ static const char* _get_string(struct state* state, const char* prefill)
             buf[i] = ch;
             ++i;
         }
-        _print(row, column, buf, i);
+        _print(state, row, column, buf, i);
     }
     terminal_cursor_visibility(0);
     _clear_prompt(state);
@@ -355,7 +480,7 @@ static void _draw_panel(struct state* state, int xl, int xr, int yt, int yb, con
         _set_position(state, state->ystart + 1, xl + (xr - xl + 2 - strlen(title)) / 2);
         _set_bold(state);
         _write(state, title);
-        _reset_color(state);
+        _reset_bold(state);
     }
 }
 
@@ -377,10 +502,8 @@ static void _draw_panel_section(struct state* state, int startpos, int endpos, i
     //_draw_panel_line(startpos, endpos, row + numrows);
     _set_position(state, row, startpos + (endpos - startpos + 2 - strlen(title)) / 2);
     _set_bold(state);
-    _set_bold(state);
     _write(state, title);
-    _reset_color(state);
-    _reset_color(state);
+    _reset_bold(state);
 }
 
 static void _clear_side_panel(struct state* state)
@@ -470,7 +593,7 @@ static void _draw_side_panel(struct state* state)
 {
     _clear_side_panel(state);
     int startpos = state->xend - SIDE_PANEL_WIDTH;
-    _draw_panel(state, startpos, state->xend, state->ystart, state->yend, "Settings");
+    _draw_panel(state, startpos, state->xend, state->ystart, state->yend, "Information");
     int ycurrent = state->ystart + 4; // first entries start at row 4
     // general information
     if(state->mode == GENERAL)
@@ -600,8 +723,24 @@ static void _draw_full_text(struct state* state, const char* const* text, const 
     }
 }
 
+static void _clear_main_area(struct state* state)
+{
+    int xstart = state->xstart;
+    int xend = state->xend - SIDE_PANEL_WIDTH - SIDE_PANEL_GAP - 1;
+    int ystart = state->ystart;
+    int yend = state->yend;
+    for(int i = xstart; i <= xend; ++i)
+    {
+        for(int j = ystart; j <= yend; ++j)
+        {
+            _write_at(state, " ", j, i);
+        }
+    }
+}
+
 static void _draw_main_text(struct state* state, const char* const* text, const char* section)
 {
+    _clear_main_area(state);
     int xstart = state->xstart;
     int xend = state->xend - SIDE_PANEL_WIDTH - SIDE_PANEL_GAP - 1;
     int textwidth = xend - xstart - 4;
@@ -694,8 +833,6 @@ static int _draw_main_text_single_prompt_boolean(struct state* state, const char
     {
         _write(state, " ");
     }
-    _set_position(state, state->yend, 2);
-    _write(state, ">");
     char* p = util_strdup(prompt);
     const char* str;
     while(1)
@@ -707,7 +844,9 @@ static int _draw_main_text_single_prompt_boolean(struct state* state, const char
         {
             break;
         }
+        terminal_cursor_visibility(0);
         _draw_status(state, "given answer must be 'yes' or 'no'");
+        terminal_cursor_visibility(1);
     }
     return strcmp(str, "yes") == 0;
 }
@@ -720,8 +859,6 @@ static int _get_integer(struct state* state, const char* prompt)
     {
         _write(state, " ");
     }
-    _set_position(state, state->yend, 2);
-    _write(state, ">");
     char* p = util_strdup(prompt);
     const char* str;
     int number;
@@ -748,24 +885,59 @@ static int _draw_main_text_single_prompt_integer(struct state* state, const char
     return number;
 }
 
+static int _menu(struct state* state, int row, int column, const char** choices, size_t len)
+{
+    size_t index = 0;
+    while(1)
+    {
+        for(size_t i = 0; i < len; ++i)
+        {
+            if(i == index)
+            {
+                _write_at(state, "* ", row - len + i + 1, column);
+            }
+            else
+            {
+                _write_at(state, "  ", row - len + i + 1, column);
+            }
+            _write_at(state, choices[i], row - len + i + 1, column + 2);
+        }
+        _write_to_display(state);
+        int ch = _getchar(state);
+        if(ch == KEY_CODE_ENTER)
+        {
+            return index;
+        }
+        if(ch == KEY_CODE_UP)
+        {
+            if(index > 0)
+            {
+                index -= 1;
+            }
+        }
+        if(ch == KEY_CODE_DOWN)
+        {
+            index += 1;
+            if(index >= len)
+            {
+                index = len - 1;
+            }
+        }
+    }
+}
+
+static int _draw_main_text_single_prompt_menu(struct state* state, const char* text, const char** choices, size_t len, const char* section)
+{
+    _draw_main_text_single(state, text, section);
+    int row = state->yend;
+    int column = state->xstart;
+    int selection = _menu(state, row, column, choices, len);
+    return selection;
+}
+
 static void _clear_all(struct state* state)
 {
     _set_to_blank(state);
-}
-
-static void _clear_main_area(struct state* state)
-{
-    int xstart = state->xstart;
-    int xend = state->xend - SIDE_PANEL_WIDTH - SIDE_PANEL_GAP - 1;
-    int ystart = state->ystart;
-    int yend = state->yend - 1;
-    for(int i = xstart; i <= xend; ++i)
-    {
-        for(int j = ystart; j <= yend; ++j)
-        {
-            _write_at(state, " ", j, i);
-        }
-    }
 }
 
 static void _wait_for_enter(struct state* state)
@@ -808,7 +980,10 @@ static int _setup_terminal(struct state* state)
         puts("could not retrieve terminal state");
         exit(1);
     }
+    // make raw, with time-out
     cfmakeraw(&termios);
+    termios.c_cc[VMIN] = 0;
+    termios.c_cc[VTIME] = 1;
     tcsetattr(fd, TCSAFLUSH, &termios);
     terminal_cursor_visibility(0);
     terminal_get_screen_size(&state->rows, &state->columns);
@@ -831,57 +1006,335 @@ static int _setup_terminal(struct state* state)
 
 static void _reset_terminal(int fd)
 {
-    terminal_cursor_visibility(1);
     terminal_clear_screen();
+    terminal_cursor_visibility(1);
     tcsetattr(fd, TCSAFLUSH, &old_settings);
     close(fd);
 }
 
-static struct string* _make_metal_question(int i, const char* identifier, const char* what)
+static char* _make_layer_question(const char* layer, const char* identifier, const char* what)
 {
     struct string* str = string_create();
-    string_add_string(str, "What is the ");
-    string_add_string(str, identifier);
-    string_add_character(str, ' ');
-    string_add_string(str, what);
-    string_add_string(str, " of metal ");
-    strprint_integer(str, i);
-    string_add_character(str, '?');
-    return str;
+    string_add_strings(str, 7, "What is the ", identifier, " ", what, " of ", layer, "?");
+    return string_dissolve(str);
 }
 
-static void _ask_metal_str(struct state* state, struct generics* layer, int i, const char* exportname, const char* layer_default, const char* purpose_default)
-{
-    struct string* layerq = _make_metal_question(i, exportname, "layer");
-    struct string* purposeq = _make_metal_question(i, exportname, "purpose");
-    char* metalnumstr = malloc(sizeof(char) * (5 + util_num_digits(i)) + 1);
-    sprintf(metalnumstr, "metal %d", i);
-    _clear_main_area(state);
-    char* layerstr = _draw_main_text_single_prompt_string(state, string_get(layerq), layer_default, metalnumstr);
-    _clear_main_area(state);
-    char* purposestr = _draw_main_text_single_prompt_string(state, string_get(purposeq), purpose_default, metalnumstr);
-    string_destroy(layerq);
-    string_destroy(purposeq);
-    generics_set_layer_export_string(layer, exportname, "layer", layerstr);
-    generics_set_layer_export_string(layer, exportname, "purpose", purposestr);
-    free(metalnumstr);
+#define _gen_fun_ask_layer_property(what, type) \
+static void _ask_layer_property_ ##what(struct state* state, struct generics* layer, const char* exportname, const char* title, const char* prettyname, const char* what, const char* defvalue) \
+{ \
+    char* str = _make_layer_question(prettyname, exportname, what); \
+    type value = _draw_main_text_single_prompt_ ##what(state, str, defvalue, title); \
+    generics_set_layer_export_ ##what(layer, exportname, what, value); \
+    free(str); \
 }
 
-static void _ask_metal_int(struct state* state, struct generics* layer, int i, const char* exportname, const char* layer_default, const char* purpose_default)
+#define _gen_fun_ask_layer(what) \
+static void _ask_layer_ ##what(struct state* state, struct generics* layer, const char* exportname, const char* title, const char* prettyname, const char* layer_default, const char* purpose_default) \
+{ \
+    _ask_layer_property_ ##what(state, layer, exportname, title, prettyname, "layer", layer_default); \
+    _ask_layer_property_ ##what(state, layer, exportname, title, prettyname, "purpose", purpose_default); \
+}
+
+_gen_fun_ask_layer_property(integer, int)
+_gen_fun_ask_layer_property(string, char*)
+_gen_fun_ask_layer(integer)
+_gen_fun_ask_layer(string)
+
+struct layerset {
+    char* layername;
+    char* prettyname;
+    char* title;
+    char* info;
+};
+
+struct layerset* _create_layerset(char* layername, char* prettyname, char* title, char* info)
 {
-    struct string* layerq = _make_metal_question(i, exportname, "layer");
-    struct string* purposeq = _make_metal_question(i, exportname, "purpose");
-    char* metalnumstr = malloc(sizeof(char) * (5 + util_num_digits(i)) + 1);
-    sprintf(metalnumstr, "metal %d", i);
+    struct layerset* layerset = malloc(sizeof(*layerset));
+    layerset->layername = layername;
+    layerset->prettyname = prettyname;
+    layerset->title = title;
+    layerset->info = info;
+    return layerset;
+}
+
+struct layerset* _create_layerset_copy(const char* layername, const char* prettyname, const char* title, const char* info)
+{
+    struct layerset* layerset = malloc(sizeof(*layerset));
+    layerset->layername = util_strdup(layername);
+    layerset->prettyname = util_strdup(prettyname);
+    layerset->title = util_strdup(title);
+    if(info)
+    {
+        layerset->info = util_strdup(info);
+    }
+    else
+    {
+        layerset->info = NULL;
+    }
+    return layerset;
+}
+
+void _destroy_layerset(void* v)
+{
+    struct layerset* layerset = v;
+    free(layerset->layername);
+    free(layerset->prettyname);
+    free(layerset->title);
+    free(layerset->info);
+    free(layerset);
+}
+
+static void _ask_layer(struct state* state, const char* layername, const char* prettyname, const char* title, const char* info)
+{
     _clear_main_area(state);
-    int layerstr = _draw_main_text_single_prompt_integer(state, string_get(layerq), layer_default, metalnumstr);
-    _clear_main_area(state);
-    int purposestr = _draw_main_text_single_prompt_integer(state, string_get(purposeq), purpose_default, metalnumstr);
-    string_destroy(layerq);
-    string_destroy(purposeq);
-    generics_set_layer_export_integer(layer, exportname, "layer", layerstr);
-    generics_set_layer_export_integer(layer, exportname, "purpose", purposestr);
-    free(metalnumstr);
+    if(info)
+    {
+        const char* const lines[] = {
+            info, NULL
+        };
+        _clear_main_area(state);
+        _draw_main_text(state, lines, title);
+        _write_to_display(state);
+        _wait_for_enter(state);
+        _clear_main_area(state);
+    }
+    struct generics* layer = technology_add_empty_layer(state->techstate, layername);
+    if(state->ask_gds)
+    {
+        _ask_layer_integer(state, layer, "gds", title, prettyname, "", "0");
+        _draw_side_panel(state);
+        _write_to_display(state);
+    }
+    if(state->ask_skill)
+    {
+        _ask_layer_string(state, layer, "SKILL", title, prettyname, "", "drawing");
+        _draw_side_panel(state);
+        _write_to_display(state);
+    }
+    if(state->ask_layer_name)
+    {
+        struct string* str = string_create();
+        string_add_strings(str, 3, "What is the layer name of ", prettyname, "?");
+        char* question = string_dissolve(str);
+        char* name = _draw_main_text_single_prompt_string(state, question, "", title);
+        generics_set_pretty_name(layer, name);
+        free(name);
+    }
+}
+
+static void _copy_layer_to_layer(struct state* state, const char* sourcename, const char* targetname)
+{
+    const struct generics* source = technology_get_layer(state->techstate, sourcename);
+    struct generics* target = technology_add_empty_layer(state->techstate, targetname);
+    generics_copy_properties(source, target);
+}
+
+static void _ask_layer_set(struct state* state, struct layerset** layerset, const char* commoninfo)
+{
+    if(commoninfo)
+    {
+        _clear_main_area(state);
+        const char* const lines[] = {
+            commoninfo, NULL
+        };
+        _draw_main_text(state, lines, "");
+    }
+    struct layerset** p = layerset;
+    while(*p)
+    {
+        struct layerset* ls = *p;
+        _ask_layer(state, ls->layername, ls->prettyname, ls->title, ls->info);
+        ++p;
+    }
+}
+
+static void _ask_vthtype(struct state* state, int numvthtype, char type)
+{
+    for(int i = 0; i < numvthtype; ++i)
+    {
+        int numdigits = util_num_digits(i);
+        char* layername = malloc(strlen("vthtypex") + numdigits + 1);
+        sprintf(layername, "vthtype%c%d", type, numdigits);
+        char* prettyname = malloc(strlen("Vth X-Type #") + numdigits + 1);
+        sprintf(prettyname, "Vth %c-Type #%d", type, numdigits);
+        char* title = malloc(strlen("Vth X-Type") + 1);
+        sprintf(title, "Vth %c-Type", type);
+        _ask_layer(state, layername, prettyname, title, NULL);
+        free(layername);
+        free(prettyname);
+        free(title);
+    }
+}
+
+static void _ask_oxide(struct state* state, int numoxide)
+{
+    for(int i = 0; i < numoxide; ++i)
+    {
+        int numdigits = util_num_digits(i);
+        char* layername = malloc(strlen("oxide") + numdigits + 1);
+        sprintf(layername, "oxide%d", numdigits);
+        char* prettyname = malloc(strlen("Oxide Type #") + numdigits + 1);
+        sprintf(prettyname, "Oxide Type #%d", numdigits);
+        _ask_layer(state, layername, prettyname, "Oxide Type", NULL);
+        free(layername);
+        free(prettyname);
+    }
+}
+
+static void _read_FEOL(struct state* state)
+{
+    /*
+    FEOL:
+    [x] active
+    [x] contactactive
+    [x] contactpoly
+    [x] contactgate
+    [x] contactsourcedrain
+    [x] nimplant
+    [x] pimplant
+    [x] gate
+    [x] vthtypep1
+    [x] vthtypen1
+    [ ] soiopen
+    [x] oxide1
+    [x] oxide2
+    [ ] silicideblocker
+    [ ] deeptrenchisolation
+    */
+    _draw_all(state);
+
+    /* active + implant layers */
+    const char* text = "In some process nodes, there is a generic 'active' region turned into n-plus or p-plus by additional marking layers ('active_plus_implant', three layers in total). In other processes, there are dedicated n-plus and p-plus active layers ('dedicated_active', two layers in total). Lastly, there are also processes where only n- or p-implants are marked and active regions without markings are the opposite ('asymmetric_active', two layers in total).";
+    const char* choices[] = {
+        "active_plus_implant",
+        "dedicated_active",
+        "asymmetric_active",
+    };
+    size_t len = sizeof(choices) / sizeof(choices[0]);
+    int choice = _draw_main_text_single_prompt_menu(state, text, choices, len, "FEOL Method");
+    switch(choice)
+    {
+        case 0:
+        {
+            // layers: active, p-plus, n-plus
+            struct layerset* layerset[] = {
+                _create_layerset_copy("active", "active diffusion", "Active Diffusion", "Let's start with the active diffusion layer. The active diffusion layer defines regions where, for instance, source/drain regions of MOSFETs are formed. They come in a p- and n-doped version (marked my an implant layer) and are often called DIFF, diffusion, active, ACT or similar."),
+                _create_layerset_copy("pimplant", "p-implant", "P-Implant", "After the active diffusion, we now talk about the p-implant layer. The P-Implant changes the polarity/majority charge carrier of an active diffusion into a p-type."),
+                _create_layerset_copy("nimplant", "n-implant", "N-Implant", "Just like the P-Implant layer, the N-Implant changes the polarity/majority charge carrier of an active diffusion into a n-type."),
+                NULL
+            };
+            _ask_layer_set(state, layerset, NULL);
+            break;
+        }
+        case 1:
+        {
+            // layers: p-active, n-active
+            struct layerset* layerset[] = {
+                _create_layerset_copy("pactive", "active p-doped diffusion", "Active P-Diffusion", "Let's start with the active p-doped diffusion layer. The active diffusion layer defines p+-doped regions where, for instance, source/drain regions of MOSFETs are formed."),
+                _create_layerset_copy("nactive", "active n-doped diffusion", "Active N-Diffusion", "Now let's move to the active n-doped diffusion layer, which is the opposite of the p-doped diffusion and defines n+-doped regions."),
+                NULL
+            };
+            _ask_layer_set(state, layerset, NULL);
+            break;
+        }
+        case 2:
+        {
+            // layers: active, n-plus or p-plus
+            const char* implanttext = "Are drawn active diffusion regions per default (without any additional implant layers) p-doped or n-doped?";
+            const char* implantchoices[] = {
+                "Active is p-default",
+                "Active is n-default",
+            };
+            int implantchoice = _draw_main_text_single_prompt_menu(state, implanttext, implantchoices, 2, "Default Active Polarity");
+            if(implantchoice == 0)
+            {
+                struct layerset* layerset[] = {
+                    _create_layerset_copy("active", "active diffusion", "Active Diffusion", "Let's start with the active diffusion layer. The active diffusion layer defines regions where, for instance, source/drain regions of MOSFETs are formed. They come in a p- and n-doped version (one marked by an additional implant layer) and are often called DIFF, diffusion, active, ACT or similar. The active diffusion layer is n-doped per default and can be changed into a p-doped region by using an additional p-implant layer."),
+                    _create_layerset_copy("pimplant", "p-implant", "P-Implant", "After the active diffusion, we now talk about the p-implant layer. The P-Implant changes the polarity/majority charge carrier of an active diffusion into a p-type."),
+                    NULL
+                };
+                _ask_layer_set(state, layerset, NULL);
+            }
+            else
+            {
+                struct layerset* layerset[] = {
+                    _create_layerset_copy("active", "active diffusion", "Active Diffusion", "Let's start with the active diffusion layer. The active diffusion layer defines regions where, for instance, source/drain regions of MOSFETs are formed. They come in a p- and n-doped version (one marked by an additional implant layer) and are often called DIFF, diffusion, active, ACT or similar. The active diffusion layer is p-doped per default and can be changed into a n-doped region by using an additional n-implant layer."),
+                    _create_layerset_copy("nimplant", "n-implant", "N-Implant", "After the active diffusion, we now talk about the n-implant layer. The N-Implant changes the polarity/majority charge carrier of an active diffusion into a n-type."),
+                    NULL
+                };
+                _ask_layer_set(state, layerset, NULL);
+            }
+            break;
+        }
+    }
+
+    /* gate layer */
+    _ask_layer(state, "gate", "Gate", "Gate", "MOSFET gates are drawn in the 'gate' layer. Typically this is polysilicon or a metal and called 'POLY' or 'PC' or similar.");
+
+    /* contacts */
+    int separate_contacts = _draw_main_text_single_prompt_boolean(state, "Connections between the active regions and gates are done by contacts. Some technology nodes differentiate between contacts to active regions, contacts to source/drain regions, contacts to gates and generic poly contacts (at least some of these). Other nodes only have one contact layer, where all these four options are mapped to the same layer. Does this process node distinguish between different contact types?", "no", "Separate Contact Layers");
+    if(separate_contacts)
+    {
+        _ask_layer(state, "contactactive", "active contact layer (not MOSFET source/drain contacts)", "Active Contacts", NULL);
+        _ask_layer(state, "contactpoly", "poly contact layer (not MOSFET gate contacts)", "Poly Contacts", NULL);
+        _ask_layer(state, "contactgate", "MOSFET gate contact layer", "MOSFET Gate Contacts", NULL);
+        _ask_layer(state, "contactsourcedrain", "MOSFET source/drain contact layer", "MOSFET Source/Drain Contacts", NULL);
+    }
+    else
+    {
+        _ask_layer(state, "contactactive", "gate/active contact layer (all contact types)", "Gate/Active Contacts", NULL);
+        _copy_layer_to_layer(state, "contactactive", "contactpoly");
+        _copy_layer_to_layer(state, "contactactive", "contactgate");
+        _copy_layer_to_layer(state, "contactactive", "contactsourcedrain");
+    }
+
+    /* vthtype */
+    int numnvthtype = _draw_main_text_single_prompt_integer(state, "The threshold voltage of MOSFETs can be changed by channel implants. Typically technology nodes provide layers to mark devices with different threshold voltages (e.g. low vth, high vth). Additionally, these might be seperated into p- and n-types. How many different layers (n-type) exist in this node? (can be 0)", "", "Number of n-type Vth Types");
+    int numpvthtype = _draw_main_text_single_prompt_integer(state, "And how many different layers exists for p-type channel implants? (can be 0)", "", "Number of p-type Vth Types");
+    _ask_vthtype(state, numnvthtype, 'n');
+    _ask_vthtype(state, numpvthtype, 'p');
+
+    /* oxide */
+    int numoxide = _draw_main_text_single_prompt_integer(state, "The gate thickness and voltage rating of MOSFET gates and other structures can take varying values. Typically there are layers that defines the oxide thickness class of drawn gate layer regions. Most often, if no layer is drawn the default thickness is used with one layer for defining thicker oxides. How many extra layers for defining oxide thickness are there?", "", "Number of Oxide Thickness Layers");
+    _ask_oxide(state, numoxide);
+}
+
+static void _read_wells(struct state* state)
+{
+    const char* text = "The bulk wafer is typically lightly doped (p or n). The majority of technology nodes use a p-doped base wafer, which one does this node use?";
+    const char* choices[] = {
+        "p-doped",
+        "n-doped"
+    };
+    size_t len = sizeof(choices) / sizeof(choices[0]);
+    int is_ndoped = _draw_main_text_single_prompt_menu(state, text, choices, len, "Base Wafer Majority Charge Carrier Type");
+    int has_pwell = 0;
+    int has_nwell = 0;
+    if(is_ndoped == 0) // p-doped
+    {
+        has_nwell = 1;
+        has_pwell = _draw_main_text_single_prompt_boolean(state, "Does this technology node have a dedicated p-well layer?", "no", "P-Well in P-Doped Wafer");
+    }
+    else
+    {
+        has_pwell = 1;
+        has_nwell = _draw_main_text_single_prompt_boolean(state, "Does this technology node have a dedicated n-well layer?", "no", "N-Well in N-Doped Wafer");
+    }
+    if(has_pwell)
+    {
+        _ask_layer(state, "pwell", "P-Well", "P-Well Layer", NULL);
+    }
+    if(has_nwell)
+    {
+        _ask_layer(state, "nwell", "N-Well", "N-Well Layer", NULL);
+    }
+    /*
+    Wells:
+    nwell
+    pwell
+    deepnwell
+    deeppwell
+    */
 }
 
 static void _read_metal_stack(struct state* state)
@@ -892,24 +1345,23 @@ static void _read_metal_stack(struct state* state)
     unsigned int nummetals = _draw_main_text_single_prompt_integer(state, "How many metals does the stack have?", "", "Number of Metals");
     technology_set_num_metals(state->techstate, nummetals);
     _draw_all(state);
+    struct vector* metals = vector_create(nummetals + 1, _destroy_layerset);
     for(unsigned int i = 1; i <= nummetals; ++i)
     {
-        size_t len = 1 + util_num_digits(i);
-        char* layername = malloc(len + 1);
-        snprintf(layername, len + 1, "M%d", i);
-        struct generics* layer = technology_add_empty_layer(state->techstate, layername);
-        free(layername);
-        if(state->ask_gds)
-        {
-            _ask_metal_int(state, layer, i, "gds", "", "0");
-            _draw_all(state);
-        }
-        if(state->ask_skill)
-        {
-            _ask_metal_str(state, layer, i, "SKILL", "", "drawing");
-            _draw_all(state);
-        }
+        size_t numdigits = 1 + util_num_digits(i);
+        char* layername = malloc(1 + numdigits + 1);
+        char* prettyname = malloc(6 + numdigits + 1);
+        char* title = malloc(6 + numdigits + 1);
+        snprintf(layername, 1 + numdigits + 1, "M%d", i);
+        snprintf(prettyname, 6 + numdigits + 1, "metal %d", i);
+        snprintf(title, 6 + numdigits + 1, "Metal %d", i);
+        struct layerset* layerset = _create_layerset(layername, prettyname, title, NULL);
+        vector_append(metals, layerset);
     }
+    vector_append(metals, NULL); // sentinel for char* array
+    struct layerset** layerset = vector_content(metals);
+    _ask_layer_set(state, layerset, NULL);
+    vector_destroy(metals);
 }
 
 static void _show_current_state(struct state* state)
@@ -943,22 +1395,23 @@ static void _show_current_state(struct state* state)
 void main_techfile_assistant(const struct hashmap* config)
 {
     // set up
-    struct state state = { 0 };
-    state.mode = NONE;
+    struct state S = { 0 };
+    struct state* state = &S; // I didn't want to type &state any more
+    state->mode = NONE;
 
-    int fd = _setup_terminal(&state);
+    int fd = _setup_terminal(state);
     if(fd < 1)
     {
         exit(1);
     }
 
-    state.current_content = calloc(state.rows * state.columns, sizeof(char));
-    state.next_content = calloc(state.rows * state.columns, sizeof(char));
-    state.attributes = calloc(state.rows * state.columns, sizeof(int));
+    state->current_content = calloc(state->rows * state->columns, sizeof(char));
+    state->next_content = calloc(state->rows * state->columns, sizeof(char));
+    state->current_attributes = calloc(state->rows * state->columns, sizeof(int));
+    state->next_attributes = calloc(state->rows * state->columns, sizeof(int));
 
     terminal_clear_screen();
-    terminal_cursor_visibility(0);
-    _set_to_blank(&state);
+    _set_to_blank(state);
 
     // introduction
     const char* introlines[] = {
@@ -977,10 +1430,10 @@ void main_techfile_assistant(const struct hashmap* config)
         "(hit <enter> to continue)",
         NULL
     };
-    _clear_all(&state);
-    _draw_full_text(&state, introlines, "Introduction");
-    _write_to_display(&state);
-    _wait_for_enter(&state);
+    _clear_all(state);
+    _draw_full_text(state, introlines, "Introduction");
+    _write_to_display(state);
+    _wait_for_enter(state);
 
     // technology files
     const char* techfiles[] = {
@@ -991,26 +1444,26 @@ void main_techfile_assistant(const struct hashmap* config)
         " * critical layer dimensions (e.g. the minimum metal 1 width is 100 nm)",
         NULL
     };
-    _clear_all(&state);
-    _draw_full_text(&state, techfiles, "Technology Node Definition");
-    _write_to_display(&state);
-    _wait_for_enter(&state);
+    _clear_all(state);
+    _draw_full_text(state, techfiles, "Technology Node Definition");
+    _write_to_display(state);
+    _wait_for_enter(state);
 
     // general
-    state.mode = GENERAL;
-    _clear_all(&state);
-    _draw_all(&state);
-    state.techname = _draw_main_text_single_prompt_string(&state, "What is the name of the technology library?", "", "Technology Name");
-    state.techstate = technology_initialize(state.techname);
+    state->mode = GENERAL;
+    _clear_all(state);
+    _draw_all(state);
+    state->techname = _draw_main_text_single_prompt_string(state, "What is the name of the technology library?", "", "Technology Name");
+    state->techstate = technology_initialize(state->techname);
     const struct vector* techpaths = hashmap_get_const(config, "techpaths");
     int loaded = 0;
-    if(technology_exists(techpaths, state.techname))
+    if(technology_exists(techpaths, state->techname))
     {
-        _draw_all(&state);
-        int load = _draw_main_text_single_prompt_boolean(&state, "This technology definition already exists. Do you want to load it for editing?", "", "Technology Loading");
+        _draw_all(state);
+        int load = _draw_main_text_single_prompt_boolean(state, "This technology definition already exists. Do you want to load it for editing?", "", "Technology Loading");
         if(load)
         {
-            state.techstate = main_create_techstate(techpaths, state.techname, NULL); // NULL: ignored layers, not needed
+            state->techstate = main_create_techstate(techpaths, state->techname, NULL); // NULL: ignored layers, not needed
 
             // FIXME: notify in case of errors
             loaded = 1;
@@ -1018,12 +1471,12 @@ void main_techfile_assistant(const struct hashmap* config)
     }
     if(!loaded)
     {
-        _draw_all(&state);
-        state.ask_layer_name = _draw_main_text_single_prompt_boolean(&state, "Should the assistant ask for layer names (useful for debugging)?", "yes", "Layer Info");
-        _draw_all(&state);
-        state.ask_gds = _draw_main_text_single_prompt_boolean(&state, "Should the assistant ask for GDS layer data (required for GDS export)?", "yes", "Layer Info");
-        _draw_all(&state);
-        state.ask_skill = _draw_main_text_single_prompt_boolean(&state, "Should the assistant ask for SKILL layer data (required for SKILL/virtuoso export)?", "yes", "Layer Info");
+        _draw_all(state);
+        state->ask_layer_name = _draw_main_text_single_prompt_boolean(state, "Should the assistant ask for layer names (useful for debugging)?", "yes", "Layer Info");
+        _draw_all(state);
+        state->ask_gds = _draw_main_text_single_prompt_boolean(state, "Should the assistant ask for GDS layer data (required for GDS export)?", "yes", "Layer Info");
+        _draw_all(state);
+        state->ask_skill = _draw_main_text_single_prompt_boolean(state, "Should the assistant ask for SKILL layer data (required for SKILL/virtuoso export)?", "yes", "Layer Info");
     }
     
     // main loop (random order)
@@ -1043,9 +1496,9 @@ void main_techfile_assistant(const struct hashmap* config)
             " 0) Quit",
             NULL
         };
-        _draw_all(&state);
-        _draw_main_text(&state, menu, "Main Menu");
-        int choice = _get_integer(&state, "");
+        _draw_all(state);
+        _draw_main_text(state, menu, "Main Menu");
+        int choice = _get_integer(state, "");
         switch(choice)
         {
             case 0:
@@ -1054,17 +1507,19 @@ void main_techfile_assistant(const struct hashmap* config)
             case 1: // assistant configuration
                 break;
             case 2: // view current technology state
-                _draw_all(&state);
-                _show_current_state(&state);
-                _write_to_display(&state);
-                _wait_for_enter(&state);
+                _draw_all(state);
+                _show_current_state(state);
+                _write_to_display(state);
+                _wait_for_enter(state);
                 break;
             case 3: // FEOL
+                _read_FEOL(state);
                 break;
             case 4: // wells
+                _read_wells(state);
                 break;
             case 5: // metals
-                _read_metal_stack(&state);
+                _read_metal_stack(state);
                 break;
         }
         if(choice == 0)
@@ -1072,7 +1527,7 @@ void main_techfile_assistant(const struct hashmap* config)
             break;
         }
     }
-    _save_state(&state);
+    _save_state(state);
     _reset_terminal(fd);
 }
 
@@ -1081,29 +1536,6 @@ void main_techfile_assistant(const struct hashmap* config)
 /*
     Special:
     special
-
-    FEOL:
-    active
-    contactactive
-    contactpoly
-    contactgate
-    contactsourcedrain
-    nimplant
-    pimplant
-    gate
-    vthtypep1
-    vthtypen1
-    soiopen
-    oxide1
-    oxide2
-    silicideblocker
-    deeptrenchisolation
-
-    Wells:
-    nwell
-    pwell
-    deepnwell
-    deeppwell
 
     DRC/LVS marker:
     gatemarker1
@@ -1118,3 +1550,5 @@ void main_techfile_assistant(const struct hashmap* config)
     viacutM2M3
     M3
 */
+
+// vim: nowrap

@@ -41,6 +41,7 @@ void technology_set_num_metals(struct technology_state* techstate, unsigned int 
 struct generics* technology_add_empty_layer(struct technology_state* techstate, const char* layername);
 void generics_set_layer_export_integer(struct generics* layer, const char* exportname, const char* key, int value);
 void generics_set_layer_export_string(struct generics* layer, const char* exportname, const char* key, const char* value);
+void generics_set_pretty_name(struct generics* layer, const char* prettyname);
 
 // technology translation flags/options
 void technology_enable_fallback_vias(struct technology_state* techstate);
@@ -80,6 +81,7 @@ unsigned int technology_get_number_of_layers(const struct technology_state* tech
 
 // layer creation interface
 struct generics* generics_create_empty_layer(const char* name);
+void generics_copy_properties(const struct generics* source, struct generics* target);
 const struct generics* generics_create_metal(struct technology_state* techstate, int num);
 const struct generics* generics_create_mptmetal(struct technology_state* techstate, int num, int mask);
 const struct generics* generics_create_metalport(struct technology_state* techstate, int num);

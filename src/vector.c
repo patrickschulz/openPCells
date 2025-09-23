@@ -276,6 +276,24 @@ int vector_find_flat(const struct vector* vector, const void* p)
     return index;
 }
 
+void vector_foreach(struct vector* vector, void (*func) (void* v, void* extraarg), void* extraarg)
+{
+    for(size_t i = 0; i < vector->size; ++i)
+    {
+        void* e = vector->elements[i];
+        func(e, extraarg);
+    }
+}
+
+void vector_foreach_const(const struct vector* vector, void (*func) (const void* v, void* extraarg), void* extraarg)
+{
+    for(size_t i = 0; i < vector->size; ++i)
+    {
+        const void* e = vector->elements[i];
+        func(e, extraarg);
+    }
+}
+
 struct const_vector {
     const void** elements;
     size_t size;
@@ -376,6 +394,21 @@ int const_vector_find_flat(const struct const_vector* vector, const void* p)
     {
         const void* e = vector->elements[i];
         if(e == p)
+        {
+            index = i;
+            break;
+        }
+    }
+    return index;
+}
+
+int vector_find_comp(const struct vector* vector, int (*comp) (const void* v, const void* extraarg), const void* extraarg)
+{
+    int index = -1;
+    for(size_t i = 0; i < vector->size; ++i)
+    {
+        const void* e = vector->elements[i];
+        if(comp(e, extraarg))
         {
             index = i;
             break;

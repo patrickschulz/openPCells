@@ -143,6 +143,32 @@ const void* hashmap_get_const(const struct hashmap* map, const char* key)
     return entry->value;
 }
 
+void hashmap_foreach(struct hashmap* map, void (*func) (const char* key, void* value, void* extraarg), void* extraarg)
+{
+    struct hashmap_iterator* it = hashmap_iterator_create(map);
+    while(hashmap_iterator_is_valid(it))
+    {
+        const char* key = hashmap_iterator_key(it);
+        void* value = hashmap_iterator_value(it);
+        func(key, value, extraarg);
+        hashmap_iterator_next(it);
+    }
+    hashmap_iterator_destroy(it);
+}
+
+void hashmap_foreach_const(const struct hashmap* map, void (*func) (const char* key, const void* value, void* extraarg), void* extraarg)
+{
+    struct hashmap_const_iterator* it = hashmap_const_iterator_create(map);
+    while(hashmap_const_iterator_is_valid(it))
+    {
+        const char* key = hashmap_const_iterator_key(it);
+        const void* value = hashmap_const_iterator_value(it);
+        func(key, value, extraarg);
+        hashmap_const_iterator_next(it);
+    }
+    hashmap_const_iterator_destroy(it);
+}
+
 struct hashmap_iterator {
     struct hashmap* hashmap;
     size_t index;

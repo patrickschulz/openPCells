@@ -8,6 +8,8 @@ void hashmap_insert(struct hashmap* map, const char* key, void* value);
 int hashmap_exists(const struct hashmap* map, const char* key);
 void* hashmap_get(struct hashmap* map, const char* key);
 const void* hashmap_get_const(const struct hashmap* map, const char* key);
+void hashmap_foreach(struct hashmap* map, void (*func) (const char* key, void* value, void* extraarg), void* extraarg);
+void hashmap_foreach_const(const struct hashmap* map, void (*func) (const char* key, const void* value, void* extraarg), void* extraarg);
 
 // iterator
 struct hashmap_iterator;

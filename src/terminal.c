@@ -10,7 +10,7 @@ static void _puts(const char* str)
     write(STDOUT_FILENO, str, strlen(str));
 }
 
-void terminal_get_screen_size(int* rows, int* columns)
+int terminal_get_screen_size(int* rows, int* columns)
 {
     _puts(TERMINAL_CSI "999B" TERMINAL_CSI "999C");
     _puts(TERMINAL_CSI "6n");
@@ -22,7 +22,11 @@ void terminal_get_screen_size(int* rows, int* columns)
     while(1)
     {
         // \x1b [ <rr> ; <cc> R
-        int ch = getchar();
+        char ch;
+        if(read(STDIN_FILENO, &ch, 1) == -1)
+        {
+            return 0;
+        }
         if(ch == '[')
         {
             rownum = 1;
@@ -48,6 +52,7 @@ void terminal_get_screen_size(int* rows, int* columns)
             ++i;
         }
     }
+    return 1;
 }
 
 void terminal_cursor_visibility(int visible)
@@ -64,18 +69,34 @@ void terminal_cursor_visibility(int visible)
     _puts(str);
 }
 
+void terminal_save_cursor_position(void)
+{
+    const char* str = TERMINAL_CSI "s";
+    _puts(str);
+}
+
+void terminal_restore_cursor_position(void)
+{
+    const char* str = TERMINAL_CSI "u";
+    _puts(str);
+}
+
 void terminal_set_reverse_color(void)
 {
     const char* str = TERMINAL_CSI "7" TERMINAL_CSI_END;
-    fputs(str, stdout);
-    fflush(stdout);
+    _puts(str);
 }
 
 void terminal_set_non_reverse_color(void)
 {
     const char* str = TERMINAL_CSI "27" TERMINAL_CSI_END;
-    fputs(str, stdout);
-    fflush(stdout);
+    _puts(str);
+}
+
+void terminal_set_non_bold(void)
+{
+    const char* str = TERMINAL_CSI "22" TERMINAL_CSI_END;
+    _puts(str);
 }
 
 void terminal_set_foreground_color_RGB(unsigned char R, unsigned char G, unsigned char B)
@@ -101,12 +122,6 @@ void terminal_set_bold(void)
 void terminal_set_half_bright(void)
 {
     const char* str = TERMINAL_CSI "2" TERMINAL_CSI_END;
-    _puts(str);
-}
-
-void terminal_reset_bold(void)
-{
-    const char* str = TERMINAL_CSI "22" TERMINAL_CSI_END;
     _puts(str);
 }
 

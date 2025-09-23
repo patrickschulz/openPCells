@@ -1,5 +1,6 @@
 #include "string.h"
 
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -61,6 +62,18 @@ void string_add_string(struct string* string, const char* str)
         string_add_character(string, *str);
         ++str;
     }
+}
+
+void string_add_strings(struct string* string, size_t num, ...)
+{
+    va_list strings;
+    va_start(strings, num);
+    for(size_t i = 0; i < num; ++i)
+    {
+        const char* str = va_arg(strings, const char*);
+        string_add_string(string, str);
+    }
+    va_end(strings);
 }
 
 const char* string_get(struct string* string)

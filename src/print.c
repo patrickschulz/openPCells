@@ -130,12 +130,22 @@ static void _append_line(char*** linesp, size_t* len, char* line)
 
 char** print_split_in_wrapped_lines(const char* text, unsigned int textwidth)
 {
+    /* the first line does not indent and does not skip space characters at the beginning */
+    int firstline = 1;
     /* non-printed text pointer */
     const char* ch = text;
     char** lines = NULL;
     size_t len = 0;
     while(*ch)
     {
+        /* skip to first non-space character (not on the first line) */
+        if(!firstline)
+        {
+            while(*ch && isspace(*ch))
+            {
+                ++ch;
+            }
+        }
         /* find last space that fits on a line */
         const char* lastspace = ch;
         const char* ptr = ch;
@@ -170,6 +180,7 @@ char** print_split_in_wrapped_lines(const char* text, unsigned int textwidth)
         char* line = _assemble_line(ch, lastspace);
         _append_line(&lines, &len, line);
         ch = lastspace;
+        firstline = 0;
     }
     // append NULL terminator
     _append_line(&lines, &len, NULL);

@@ -17,6 +17,7 @@ struct generics_entry {
 
 struct generics {
     char* name;
+    char* prettyname;
     struct vector* entries; // stores struct generics_entry*
 };
 
@@ -37,7 +38,7 @@ struct technology_state {
     struct vector* layertable; // stores struct generics*
     struct vector* viatable; // stores struct viaentry*
     struct technology_config* config;
-    struct hashmap* constraints;
+    struct hashmap* constraints; // stores struct tagged_value*
     int create_fallback_vias;
     int create_via_arrays;
     int ignore_premapped;
@@ -145,7 +146,7 @@ static struct generics_entry* _get_export_entry(const struct generics* layer, co
     return entry;
 }
 
-static void _insert_lpp_pairs(lua_State* L, struct hashmap* map, const char* layername)
+static void _insert_lpp_pairs(lua_State* L, struct hashmap* map)
 {
     lua_pushnil(L);
     while (lua_next(L, -2) != 0)
@@ -182,9 +183,6 @@ static void _insert_lpp_pairs(lua_State* L, struct hashmap* map, const char* lay
         }
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
-    // add layer name for all exports
-    struct tagged_value* vname = tagged_value_create_string(layername);
-    hashmap_insert(map, "name", vname);
 }
 
 static void _destroy_entry(void* entryv)
@@ -213,7 +211,7 @@ static struct generics* _make_layer_from_lua(const char* layername, lua_State* L
         {
             const char* name = lua_tostring(L, -2);
             struct generics_entry* entry = _create_entry(name);
-            _insert_lpp_pairs(L, entry->data, layername);
+            _insert_lpp_pairs(L, entry->data);
             vector_append(layer->entries, entry);
             lua_pop(L, 1); // pop value, keep key for next iteration
         }
@@ -238,10 +236,19 @@ static int _load_layermap(struct technology_state* techstate, const char* name, 
         const char* layername = lua_tostring(L, -2);
         if(!_is_ignored_layer(layername, ignoredlayers))
         {
+            // get layer data
             lua_getfield(L, -1, "layer");
             struct generics* layer = _make_layer_from_lua(layername, L);
-            vector_append(techstate->layertable, layer);
             lua_pop(L, 1); // pop layer table
+            // get optional pretty name
+            lua_getfield(L, -1, "name");
+            if(lua_type(L, -1) == LUA_TSTRING)
+            {
+                const char* prettyname = lua_tostring(L, -1);
+                generics_set_pretty_name(layer, prettyname);
+            }
+            lua_pop(L, 1); // pop 'name' value (the optional pretty name)
+            vector_append(techstate->layertable, layer);
         }
         else
         {
@@ -571,6 +578,10 @@ static void _write_layer_export(FILE* file, const struct generics_entry* entry)
 static void _write_layer(FILE* file, const struct generics* layer)
 {
     fprintf(file, "    %s = {\n", layer->name);
+    if(layer->prettyname)
+    {
+        fprintf(file, "        name = \"%s\",\n", layer->prettyname);
+    }
     struct vector_iterator* it = vector_iterator_create(layer->entries);
     while(vector_iterator_is_valid(it))
     {
@@ -600,12 +611,101 @@ static void _write_layermap(const struct technology_state* techstate, const char
     free(path);
 }
 
+static void _write_viaentry(FILE* file, const struct viaentry* entry)
+{
+    fprintf(file, "    %s = {\n", entry->name);
+    struct via_definition** viadef = entry->viadefs;
+    fputs("        entries = {\n", file);
+    while(*viadef)
+    {
+        struct via_definition* v = *viadef;
+        fprintf(
+            file,
+            "            { width = %d, height = %d, xspace = %d, yspace = %d, xenclosure = %d, yenclosure = %d },\n",
+            v->width, v->height,
+            v->xspace, v->yspace,
+            v->xenclosure, v->yenclosure
+        );
+        ++viadef;
+    }
+    fputs("        },\n", file);
+    if(entry->fallback)
+    {
+        fprintf(
+            file,
+            "        fallback = { width = %d, height = %d },\n",
+            entry->fallback->width, entry->fallback->height
+        );
+    }
+    fputs("    },\n", file);
+}
+
+static void _write_viarules(const struct technology_state* techstate, const char* basepath)
+{
+    char* path = _make_path(basepath, "vias.lua");
+    FILE* file = fopen(path, "w");
+    fputs("return {\n", file);
+    struct vector_iterator* it = vector_iterator_create(techstate->viatable);
+    while(vector_iterator_is_valid(it))
+    {
+        const struct viaentry* layer = vector_iterator_get(it);
+        _write_viaentry(file, layer);
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+    fputs("}\n", file);
+    fclose(file);
+    free(path);
+}
+
+static void _write_constraint(const char* key, void* vvalue, void* vfile)
+{
+    FILE* file = vfile;
+    struct tagged_value* value = vvalue;
+    fputs("    ", file);
+    fprintf(file, "[\"%s\"] = ", key);
+    if(tagged_value_is_integer(value))
+    {
+        int number = tagged_value_get_integer(value);
+        fprintf(file, "%d,", number);
+    }
+    else if(tagged_value_is_number(value))
+    {
+        double number = tagged_value_get_integer(value);
+        fprintf(file, "%f,", number);
+    }
+    else if(tagged_value_is_string(value))
+    {
+        const char* str = tagged_value_get_const_string(value);
+        fprintf(file, "\"%s\",", str);
+    }
+    else // boolean
+    {
+        int b = tagged_value_get_boolean(value);
+        fprintf(file, "%s,", b ? "true" : "false");
+    }
+    fputc('\n', file);
+}
+
+static void _write_constraints(const struct technology_state* techstate, const char* basepath)
+{
+    char* path = _make_path(basepath, "constraints.lua");
+    FILE* file = fopen(path, "w");
+    fputs("return {\n", file);
+    hashmap_foreach(techstate->constraints, _write_constraint, file);
+    fputs("}\n", file);
+    fclose(file);
+    free(path);
+}
+
 void technology_write_definition_files(const struct technology_state* techstate, const char* basepath)
 {
     char* path = _make_path(basepath, techstate->name);
     filesystem_mkdir(path);
     _write_config(techstate, path);
     _write_layermap(techstate, path);
+    _write_viarules(techstate, path);
+    _write_constraints(techstate, path);
     free(path);
 }
 
@@ -648,6 +748,15 @@ void generics_set_layer_export_string(struct generics* layer, const char* export
     }
     struct tagged_value* v = tagged_value_create_string(value);
     hashmap_insert(entry->data, key, v);
+}
+
+void generics_set_pretty_name(struct generics* layer, const char* prettyname)
+{
+    if(layer->prettyname)
+    {
+        free(layer->prettyname);
+    }
+    layer->prettyname = util_strdup(prettyname);
 }
 
 struct generics* technology_get_layer(struct technology_state* techstate, const char* layername)
@@ -805,22 +914,22 @@ int technology_resolve_metal(const struct technology_state* techstate, int metal
     }
 }
 
+static int _is_mpmetal(const void* value, const void* comp)
+{
+    int m = *((int*)comp);
+    const struct mpentry* entry = value;
+    if(entry->metal == m)
+    {
+        return 1;
+    }
+    return 0;
+}
+
 int technology_has_multiple_patterning(const struct technology_state* techstate, int metalnum)
 {
-    int ret = 0;
     int m = technology_resolve_metal(techstate, metalnum);
-    struct vector_iterator* it = vector_iterator_create(techstate->config->multiple_patterning_metals);
-    while(vector_iterator_is_valid(it))
-    {
-        struct mpentry* entry = vector_iterator_get(it);
-        if(entry->metal == m)
-        {
-            ret = 1;
-        }
-        vector_iterator_next(it);
-    }
-    vector_iterator_destroy(it);
-    return ret;
+    int ret = vector_find_comp(techstate->config->multiple_patterning_metals, _is_mpmetal, &m);
+    return ret != -1;
 }
 
 int technology_multiple_patterning_number(const struct technology_state* techstate, int metalnum)
@@ -1297,8 +1406,31 @@ struct generics* generics_create_empty_layer(const char* name)
     }
     memset(layer, 0, sizeof(*layer));
     layer->name = util_strdup(name);
+    layer->prettyname = NULL;
     layer->entries = vector_create(1, _destroy_entry);
     return layer;
+}
+
+static void _copy_layer_export_data(const char* key, const void* vvalue, void* vdata)
+{
+    const struct tagged_value* value = vvalue;
+    struct tagged_value* new = tagged_value_copy(value);
+    struct hashmap* data = vdata;
+    hashmap_insert(data, key, new);
+}
+
+static void _copy_layer_entries(const void* ventry, void* vtarget)
+{
+    const struct generics_entry* entry = ventry;
+    struct generics* target = vtarget;
+    struct generics_entry* new = _create_entry(entry->exportname);
+    hashmap_foreach_const(entry->data, _copy_layer_export_data, new->data);
+    vector_append(target->entries, new);
+}
+
+void generics_copy_properties(const struct generics* source, struct generics* target)
+{
+    vector_foreach_const(source->entries, _copy_layer_entries, target);
 }
 
 const struct generics* generics_create_metal(struct technology_state* techstate, int num)

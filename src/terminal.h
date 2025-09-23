@@ -24,10 +24,13 @@
 #define FOREGROUND_COLOR_NORMAL         "\033[39m"
 #define BACKGROUND_COLOR_NORMAL         "\033[49m"
 
-void terminal_get_screen_size(int* rows, int* columns);
+int terminal_get_screen_size(int* rows, int* columns);
 void terminal_cursor_visibility(int visible);
+void terminal_save_cursor_position(void);
+void terminal_restore_cursor_position(void);
 void terminal_set_reverse_color(void);
 void terminal_set_non_reverse_color(void);
+void terminal_set_non_bold(void);
 void terminal_set_foreground_color_RGB(unsigned char R, unsigned char G, unsigned char B);
 void terminal_set_background_color_RGB(unsigned char R, unsigned char G, unsigned char B);
 void terminal_set_bold(void);
