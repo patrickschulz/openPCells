@@ -460,7 +460,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 {
     if(verbose)
     {
-        puts("setting up...");
+        puts("loading and initializing technology state...");
     }
     int retval = 1;
     struct vector* techpaths = hashmap_get(config, "techpaths");
@@ -504,6 +504,10 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         technology_ignore_missing_exports(techstate);
     }
 
+    if(verbose)
+    {
+        puts("initializing pcell state...");
+    }
     // pcell state
     struct pcell_state* pcell_state = pcell_initialize_state();
     if(!pcell_state)
