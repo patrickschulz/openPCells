@@ -262,84 +262,129 @@ static int _load_layermap(struct technology_state* techstate, const char* name, 
     return 1;
 }
 
-struct via_definition** _read_via(lua_State* L)
+struct viaentry* _find_viaentry_by_name(struct technology_state* techstate, const char* vianame)
 {
+    struct viaentry* entry = NULL;
+    for(unsigned int i = 0; i < vector_size(techstate->viatable); ++i)
+    {
+        struct viaentry* e = vector_get(techstate->viatable, i);
+        if(strcmp(e->name, vianame) == 0)
+        {
+            entry = e;
+            break;
+        }
+    }
+    return entry;
+}
+
+struct viaentry* _find_viaentry(struct technology_state* techstate, int metal1, int metal2)
+{
+    size_t len = 3 + 1 + util_num_digits(metal1) + 1 + util_num_digits(metal2); // via + M + %d + M + %d
+    char* vianame = malloc(len + 1);
+    snprintf(vianame, len + 1, "viaM%dM%d", metal1, metal2);
+    struct viaentry* entry = _find_viaentry_by_name(techstate, vianame);
+    free(vianame);
+    return entry;
+}
+
+void _insert_via_entry(struct via_definition*** viadefs, struct via_definition* viadef)
+{
+    struct via_definition** p = *viadefs;
+    size_t index = 0;
+    while(*p)
+    {
+        ++index;
+        ++p;
+    }
+    *viadefs = realloc(*viadefs, (1 + index + 1) * sizeof(struct via_definition*));
+    (*viadefs)[index] = viadef;
+    (*viadefs)[index + 1] = NULL;
+}
+
+int _read_via(lua_State* L, struct technology_state* techstate, const char* vianame)
+{
+    struct viaentry* entry = _find_viaentry_by_name(techstate, vianame);
+    if(!entry)
+    {
+        return 0;
+    }
     lua_getfield(L, -1, "entries");
     lua_len(L, -1);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    struct via_definition** viadefs = calloc(len + 1, sizeof(*viadefs)); // + 1: sentinel-terminated
     for(unsigned int i = 1; i <= len; ++i)
     {
-        struct via_definition* viadef = malloc(sizeof(*viadef));
+        // get table
         lua_rawgeti(L, -1, i);
-
+        // get entries
         lua_getfield(L, -1, "width");
-        viadef->width = lua_tointeger(L, -1);
+        unsigned int width = lua_tointeger(L, -1);
         lua_pop(L, 1);
         lua_getfield(L, -1, "height");
-        viadef->height = lua_tointeger(L, -1);
+        unsigned int height = lua_tointeger(L, -1);
         lua_pop(L, 1);
         lua_getfield(L, -1, "xspace");
-        viadef->xspace = lua_tointeger(L, -1);
+        unsigned int xspace = lua_tointeger(L, -1);
         lua_pop(L, 1);
         lua_getfield(L, -1, "yspace");
-        viadef->yspace = lua_tointeger(L, -1);
+        unsigned int yspace = lua_tointeger(L, -1);
         lua_pop(L, 1);
         lua_getfield(L, -1, "xenclosure");
-        viadef->xenclosure = lua_tointeger(L, -1);
+        unsigned int xenclosure = lua_tointeger(L, -1);
         lua_pop(L, 1);
         lua_getfield(L, -1, "yenclosure");
-        viadef->yenclosure = lua_tointeger(L, -1);
+        unsigned int yenclosure = lua_tointeger(L, -1);
         lua_pop(L, 1);
         lua_getfield(L, -1, "maxwidth");
-        viadef->maxwidth = luaL_optinteger(L, -1, UINT_MAX);
+        unsigned int maxwidth = luaL_optinteger(L, -1, UINT_MAX);
         lua_pop(L, 1);
         lua_getfield(L, -1, "maxheight");
-        viadef->maxheight = luaL_optinteger(L, -1, UINT_MAX);
+        unsigned int maxheight = luaL_optinteger(L, -1, UINT_MAX);
+        lua_pop(L, 1);
+        // pop table
         lua_pop(L, 1);
 
-        lua_pop(L, 1);
-        viadefs[i - 1] = viadef;
+        technology_add_via_definition_by_name(techstate, vianame, width, height, xspace, yspace, xenclosure, yenclosure, maxwidth, maxheight);
     }
-    viadefs[len] = NULL;
     lua_pop(L, 1);
-    return viadefs;
+    return 1;
 }
 
-struct via_definition* _read_via_fallback(lua_State* L)
+int _read_via_fallback(lua_State* L, struct technology_state* techstate, const char* vianame)
 {
-    struct via_definition* viadef = malloc(sizeof(*viadef));
-    viadef->xspace = 0;
-    viadef->yspace = 0;
-    viadef->xenclosure = 0;
-    viadef->yenclosure = 0;
+    struct viaentry* entry = _find_viaentry_by_name(techstate, vianame);
+    if(!entry)
+    {
+        return 0;
+    }
 
     lua_getfield(L, -1, "fallback");
     if(lua_isnil(L, -1))
     {
         lua_pop(L, 1);
-        free(viadef);
-        return NULL;
+        return 1; // missing fallback is not an error
     }
 
     lua_getfield(L, -1, "width");
-    viadef->width = lua_tointeger(L, -1);
+    unsigned width = lua_tointeger(L, -1);
     lua_pop(L, 1);
     lua_getfield(L, -1, "height");
-    viadef->height = lua_tointeger(L, -1);
+    unsigned height = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
+    technology_set_fallback_via_by_name(techstate, vianame, width, height);
+
     lua_pop(L, 1);
-    return viadef;
+    return 1;
 }
 
-static void _insert_via(struct technology_state* techstate, char* vianame, struct via_definition** viadefs, struct via_definition* fallback)
+static void _create_via(struct technology_state* techstate, char* vianame)
 {
     struct viaentry* entry = malloc(sizeof(*entry));
     entry->name = vianame;
-    entry->viadefs = viadefs;
-    entry->fallback = fallback;
+    entry->viadefs = malloc(1 * sizeof(struct via_definition*));
+    entry->viadefs[0] = NULL;
+    entry->fallback = NULL;
     vector_append(techstate->viatable, entry);
 }
 
@@ -358,9 +403,9 @@ static int _load_viadefinitions(struct technology_state* techstate, const char* 
     while(lua_next(L, -2) != 0)
     {
         char* vianame = util_strdup(lua_tostring(L, -2));
-        struct via_definition** viadefs = _read_via(L);
-        struct via_definition* fallback = _read_via_fallback(L);
-        _insert_via(techstate, vianame, viadefs, fallback);
+        _create_via(techstate, vianame);
+        _read_via(L, techstate, vianame);
+        _read_via_fallback(L, techstate, vianame);
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
     lua_close(L);
@@ -719,6 +764,74 @@ void technology_set_num_metals(struct technology_state* techstate, unsigned int 
     techstate->config->metals = nummetals;
 }
 
+int technology_add_via_definition(struct technology_state* techstate, unsigned int startindex, unsigned int width, unsigned int height, unsigned int xspace, unsigned int yspace, unsigned int xenclosure, unsigned int yenclosure, unsigned int maxwidth, unsigned int maxheight)
+{
+    struct viaentry* entry = _find_viaentry(techstate, startindex, startindex + 1);
+    if(!entry)
+    {
+        return 0;
+    }
+    struct via_definition* viadef = malloc(sizeof(*viadef));
+    viadef->width = width;
+    viadef->height = height;
+    viadef->xspace = xspace;
+    viadef->yspace = yspace;
+    viadef->xenclosure = xenclosure;
+    viadef->yenclosure = yenclosure;
+    viadef->maxwidth = maxwidth;
+    viadef->maxheight = maxheight;
+    _insert_via_entry(&entry->viadefs, viadef);
+    return 1;
+}
+
+int technology_add_via_definition_by_name(struct technology_state* techstate, const char* vianame, unsigned int width, unsigned int height, unsigned int xspace, unsigned int yspace, unsigned int xenclosure, unsigned int yenclosure, unsigned int maxwidth, unsigned int maxheight)
+{
+    struct viaentry* entry = _find_viaentry_by_name(techstate, vianame);
+    if(!entry)
+    {
+        return 0;
+    }
+    struct via_definition* viadef = malloc(sizeof(*viadef));
+    viadef->width = width;
+    viadef->height = height;
+    viadef->xspace = xspace;
+    viadef->yspace = yspace;
+    viadef->xenclosure = xenclosure;
+    viadef->yenclosure = yenclosure;
+    viadef->maxwidth = maxwidth;
+    viadef->maxheight = maxheight;
+    _insert_via_entry(&entry->viadefs, viadef);
+    return 1;
+}
+
+int technology_set_fallback_via_by_name(struct technology_state* techstate, const char* vianame, unsigned int width, unsigned int height)
+{
+    struct viaentry* entry = _find_viaentry_by_name(techstate, vianame);
+    if(!entry)
+    {
+        return 0;
+    }
+    if(entry->fallback)
+    {
+        free(entry->fallback);
+    }
+    struct via_definition* viadef = malloc(sizeof(*viadef));
+    if(!viadef)
+    {
+        return 0;
+    }
+    viadef->width = width;
+    viadef->height = height;
+    viadef->xspace = 0;
+    viadef->yspace = 0;
+    viadef->xenclosure = 0;
+    viadef->yenclosure = 0;
+    viadef->maxwidth = UINT_MAX;
+    viadef->maxheight = UINT_MAX;
+    entry->fallback = viadef;
+    return 1;
+}
+
 struct generics* technology_add_empty_layer(struct technology_state* techstate, const char* layername)
 {
     struct generics* layer = generics_create_empty_layer(layername);
@@ -774,25 +887,12 @@ struct generics* technology_get_layer(struct technology_state* techstate, const 
 
 struct via_definition** technology_get_via_definitions(struct technology_state* techstate, int metal1, int metal2)
 {
-    size_t len = 3 + 1 + util_num_digits(metal1) + 1 + util_num_digits(metal2); // via + M + %d + M + %d
-    char* vianame = malloc(len + 1);
-    snprintf(vianame, len + 1, "viaM%dM%d", metal1, metal2);
-    struct via_definition** viadefs = NULL;
-    for(unsigned int i = 0; i < vector_size(techstate->viatable); ++i)
+    struct viaentry* entry = _find_viaentry(techstate, metal1, metal2);
+    if(!entry)
     {
-        struct viaentry* entry = vector_get(techstate->viatable, i);
-        if(strcmp(entry->name, vianame) == 0)
-        {
-            viadefs = entry->viadefs;
-            break;
-        }
+        printf("could not find via definitions for via from metal %d to metal %d\n", metal1, metal2);
     }
-    if(!viadefs)
-    {
-        printf("could not find via definitions for '%s'\n", vianame);
-    }
-    free(vianame);
-    return viadefs;
+    return entry->viadefs;
 }
 
 struct via_definition* technology_get_via_fallback(struct technology_state* techstate, int metal1, int metal2)
