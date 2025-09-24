@@ -120,7 +120,7 @@ static int _is_ignored_layer(const char* layername, const struct const_vector* i
     return ret;
 }
 
-static struct generics_entry* _create_entry(const char* name)
+static struct generics_entry* _create_generics_entry(const char* name)
 {
     struct generics_entry* entry = malloc(sizeof(*entry));
     entry->exportname = util_strdup(name);
@@ -210,7 +210,7 @@ static struct generics* _make_layer_from_lua(const char* layername, lua_State* L
         while (lua_next(L, -2) != 0)
         {
             const char* name = lua_tostring(L, -2);
-            struct generics_entry* entry = _create_entry(name);
+            struct generics_entry* entry = _create_generics_entry(name);
             _insert_lpp_pairs(L, entry->data);
             vector_append(layer->entries, entry);
             lua_pop(L, 1); // pop value, keep key for next iteration
@@ -277,11 +277,17 @@ struct viaentry* _find_viaentry_by_name(struct technology_state* techstate, cons
     return entry;
 }
 
-struct viaentry* _find_viaentry(struct technology_state* techstate, int metal1, int metal2)
+char* _make_vianame(int startmetal)
 {
-    size_t len = 3 + 1 + util_num_digits(metal1) + 1 + util_num_digits(metal2); // via + M + %d + M + %d
+    size_t len = 3 + 1 + util_num_digits(startmetal) + 1 + util_num_digits(startmetal + 1); // via + M + %d + M + %d
     char* vianame = malloc(len + 1);
-    snprintf(vianame, len + 1, "viaM%dM%d", metal1, metal2);
+    snprintf(vianame, len + 1, "viaM%dM%d", startmetal, startmetal + 1);
+    return vianame;
+}
+
+struct viaentry* _find_viaentry(struct technology_state* techstate, int startmetal)
+{
+    char* vianame = _make_vianame(startmetal);
     struct viaentry* entry = _find_viaentry_by_name(techstate, vianame);
     free(vianame);
     return entry;
@@ -378,7 +384,7 @@ int _read_via_fallback(lua_State* L, struct technology_state* techstate, const c
     return 1;
 }
 
-static void _create_via(struct technology_state* techstate, char* vianame)
+static void _create_via_entry_in_techstate(struct technology_state* techstate, char* vianame)
 {
     struct viaentry* entry = malloc(sizeof(*entry));
     entry->name = vianame;
@@ -403,7 +409,7 @@ static int _load_viadefinitions(struct technology_state* techstate, const char* 
     while(lua_next(L, -2) != 0)
     {
         char* vianame = util_strdup(lua_tostring(L, -2));
-        _create_via(techstate, vianame);
+        _create_via_entry_in_techstate(techstate, vianame);
         _read_via(L, techstate, vianame);
         _read_via_fallback(L, techstate, vianame);
         lua_pop(L, 1); // pop value, keep key for next iteration
@@ -622,20 +628,27 @@ static void _write_layer_export(FILE* file, const struct generics_entry* entry)
 
 static void _write_layer(FILE* file, const struct generics* layer)
 {
-    fprintf(file, "    %s = {\n", layer->name);
-    if(layer->prettyname)
+    if(!layer->prettyname && vector_size(layer->entries) == 0) // empty layer
     {
-        fprintf(file, "        name = \"%s\",\n", layer->prettyname);
+        fprintf(file, "    %s = {},\n", layer->name);
     }
-    struct vector_iterator* it = vector_iterator_create(layer->entries);
-    while(vector_iterator_is_valid(it))
+    else
     {
-        struct generics_entry* entry = vector_iterator_get(it);
-        _write_layer_export(file, entry);
-        vector_iterator_next(it);
+        fprintf(file, "    %s = {\n", layer->name);
+        if(layer->prettyname)
+        {
+            fprintf(file, "        name = \"%s\",\n", layer->prettyname);
+        }
+        struct vector_iterator* it = vector_iterator_create(layer->entries);
+        while(vector_iterator_is_valid(it))
+        {
+            struct generics_entry* entry = vector_iterator_get(it);
+            _write_layer_export(file, entry);
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+        fputs("    },\n", file);
     }
-    vector_iterator_destroy(it);
-    fputs("    },\n", file);
 }
 
 static void _write_layermap(const struct technology_state* techstate, const char* basepath)
@@ -766,10 +779,13 @@ void technology_set_num_metals(struct technology_state* techstate, unsigned int 
 
 int technology_add_via_definition(struct technology_state* techstate, unsigned int startindex, unsigned int width, unsigned int height, unsigned int xspace, unsigned int yspace, unsigned int xenclosure, unsigned int yenclosure, unsigned int maxwidth, unsigned int maxheight)
 {
-    struct viaentry* entry = _find_viaentry(techstate, startindex, startindex + 1);
+    struct viaentry* entry = _find_viaentry(techstate, startindex);
     if(!entry)
     {
-        return 0;
+        char* vianame = _make_vianame(startindex);
+        _create_via_entry_in_techstate(techstate, vianame);
+        // the newly created entry owns the vianame string, therefore there is no free()
+        entry = _find_viaentry(techstate, startindex);
     }
     struct via_definition* viadef = malloc(sizeof(*viadef));
     viadef->width = width;
@@ -801,6 +817,34 @@ int technology_add_via_definition_by_name(struct technology_state* techstate, co
     viadef->maxwidth = maxwidth;
     viadef->maxheight = maxheight;
     _insert_via_entry(&entry->viadefs, viadef);
+    return 1;
+}
+
+int technology_set_fallback_via(struct technology_state* techstate, unsigned int startindex, unsigned int width, unsigned int height)
+{
+    struct viaentry* entry = _find_viaentry(techstate, startindex);
+    if(!entry)
+    {
+        return 0;
+    }
+    if(entry->fallback)
+    {
+        free(entry->fallback);
+    }
+    struct via_definition* viadef = malloc(sizeof(*viadef));
+    if(!viadef)
+    {
+        return 0;
+    }
+    viadef->width = width;
+    viadef->height = height;
+    viadef->xspace = 0;
+    viadef->yspace = 0;
+    viadef->xenclosure = 0;
+    viadef->yenclosure = 0;
+    viadef->maxwidth = UINT_MAX;
+    viadef->maxheight = UINT_MAX;
+    entry->fallback = viadef;
     return 1;
 }
 
@@ -844,7 +888,7 @@ void generics_set_layer_export_integer(struct generics* layer, const char* expor
     struct generics_entry* entry = _get_export_entry(layer, exportname);
     if(!entry)
     {
-        entry = _create_entry(exportname);
+        entry = _create_generics_entry(exportname);
         vector_append(layer->entries, entry);
     }
     struct tagged_value* v = tagged_value_create_integer(value);
@@ -856,7 +900,7 @@ void generics_set_layer_export_string(struct generics* layer, const char* export
     struct generics_entry* entry = _get_export_entry(layer, exportname);
     if(!entry)
     {
-        entry = _create_entry(exportname);
+        entry = _create_generics_entry(exportname);
         vector_append(layer->entries, entry);
     }
     struct tagged_value* v = tagged_value_create_string(value);
@@ -887,7 +931,7 @@ struct generics* technology_get_layer(struct technology_state* techstate, const 
 
 struct via_definition** technology_get_via_definitions(struct technology_state* techstate, int metal1, int metal2)
 {
-    struct viaentry* entry = _find_viaentry(techstate, metal1, metal2);
+    struct viaentry* entry = _find_viaentry(techstate, metal1);
     if(!entry)
     {
         printf("could not find via definitions for via from metal %d to metal %d\n", metal1, metal2);
@@ -901,9 +945,7 @@ struct via_definition* technology_get_via_fallback(struct technology_state* tech
     {
         return NULL;
     }
-    size_t len = 3 + 1 + util_num_digits(metal1) + 1 + util_num_digits(metal2); // via + M + %d + M + %d
-    char* vianame = malloc(len + 1);
-    snprintf(vianame, len + 1, "viaM%dM%d", metal1, metal2);
+    char* vianame = _make_vianame(metal1);
     struct via_definition* viadef = NULL;
     for(unsigned int i = 0; i < vector_size(techstate->viatable); ++i)
     {
@@ -1523,7 +1565,7 @@ static void _copy_layer_entries(const void* ventry, void* vtarget)
 {
     const struct generics_entry* entry = ventry;
     struct generics* target = vtarget;
-    struct generics_entry* new = _create_entry(entry->exportname);
+    struct generics_entry* new = _create_generics_entry(entry->exportname);
     hashmap_foreach_const(entry->data, _copy_layer_export_data, new->data);
     vector_append(target->entries, new);
 }

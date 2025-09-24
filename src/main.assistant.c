@@ -1100,12 +1100,15 @@ struct layerset* _create_layerset_copy(const char* layername, const char* pretty
 
 void _destroy_layerset(void* v)
 {
-    struct layerset* layerset = v;
-    free(layerset->layername);
-    free(layerset->prettyname);
-    free(layerset->title);
-    free(layerset->info);
-    free(layerset);
+    if(v) // layersets can be NULL because they are NULL-terminated
+    {
+        struct layerset* layerset = v;
+        free(layerset->layername);
+        free(layerset->prettyname);
+        free(layerset->title);
+        free(layerset->info);
+        free(layerset);
+    }
 }
 
 static void _ask_layer(struct state* state, const char* layername, const char* prettyname, const char* title, const char* info)
@@ -1417,21 +1420,8 @@ static void _ask_via_definition(struct state* state, unsigned int vianum)
     int yspace = _ask_via_definition_property(state, "y-space", vianum);
     int xenclosure = _ask_via_definition_property(state, "x-enclosure", vianum);
     int yenclosure = _ask_via_definition_property(state, "y-enclosure", vianum);
-
-    /*
-    _draw_main_text_single(state, "What is the width of the via cut for the transition from metal 1 to metal 2?", "Via Definition: Metal 1 -> Metal 2");
-    int width = _get_integer(state, "");
-    _draw_main_text_single(state, "What is the height of the via cut?", "Via Definition: Metal 1 -> Metal 2");
-    int height = _get_integer(state, "");
-    _draw_main_text_single(state, "What is the spacing between via cuts in x-direction?", "Via Definition");
-    int xspace = _get_integer(state, "");
-    _draw_main_text_single(state, "What is the spacing between via cuts in y-direction?", "Via Definition");
-    int yspace = _get_integer(state, "");
-    _draw_main_text_single(state, "What is the minimum metal enclosure around via cuts in x-direction?", "Via Definition");
-    int xenclosure = _get_integer(state, "");
-    _draw_main_text_single(state, "What is the minimum metal enclosure around via cuts in y-direction?", "Via Definition");
-    int yenclosure = _get_integer(state, "");
-    */
+    technology_add_via_definition(state->techstate, vianum, width, height, xspace, yspace, xenclosure, yenclosure, 0, 0);
+    technology_set_fallback_via(state->techstate, vianum, width, height);
 }
 
 static void _read_via_definitions(struct state* state)
@@ -1440,6 +1430,8 @@ static void _read_via_definitions(struct state* state)
         "Layout descriptions in openPCells are technology-independent. Vias (connections between layers such as metals or gates) on the other hand typically require exact dimensions, which can not be expressed easily in a generic way. Therefore, part of exporting layouts from openPCells involves so-called via arrayzation. For this, a set of rules have to be known. At least one rule per via layer is required, more can help tailor to more stringent design rules.",
         "",
         "Via arrayzation rules are defined by the size (width and height) of the cuts, their spacing in x- and y-direction as well as their enclosure at the ends of an array.",
+        "",
+        "While multiple rules can be given per transition, this assistant will only ask for one each. If more are needed, please edit the files manually.",
         NULL
     };
     _draw_main_text(state, lines, "Via Definitions");

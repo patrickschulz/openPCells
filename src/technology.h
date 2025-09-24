@@ -40,6 +40,7 @@ unsigned int technology_get_num_metals(const struct technology_state* techstate)
 void technology_set_num_metals(struct technology_state* techstate, unsigned int nummetals);
 int technology_add_via_definition(struct technology_state* techstate, unsigned int startindex, unsigned int width, unsigned int height, unsigned int xspace, unsigned int yspace, unsigned int xenclosure, unsigned int yenclosure, unsigned int maxwidth, unsigned int maxheight);
 int technology_add_via_definition_by_name(struct technology_state* techstate, const char* vianame, unsigned int width, unsigned int height, unsigned int xspace, unsigned int yspace, unsigned int xenclosure, unsigned int yenclosure, unsigned int maxwidth, unsigned int maxheight);
+int technology_set_fallback_via(struct technology_state* techstate, unsigned int startindex, unsigned int width, unsigned int height);
 int technology_set_fallback_via_by_name(struct technology_state* techstate, const char* vianame, unsigned int width, unsigned int height);
 struct generics* technology_add_empty_layer(struct technology_state* techstate, const char* layername);
 void generics_set_layer_export_integer(struct generics* layer, const char* exportname, const char* key, int value);
