@@ -22,6 +22,7 @@
 #define SIDE_PANEL_GAP 2
 #define PROMPT_LINE_OFFSET 0
 #define STATUS_LINE_OFFSET 1
+#define DRAW_PANEL_LINES 0
 
 #define KEY_CODE_A 1
 #define KEY_CODE_B 2
@@ -438,45 +439,51 @@ static void _write_tech_entry_integer(struct state* state, const char* key, int 
 
 static void _draw_panel(struct state* state, int xl, int xr, int yt, int yb, const char* title)
 {
-    // corners
-    //_write(state, "┌");
-    _write_at(state, "+", yt, xl);
-    //_write(state, "└");
-    _write_at(state, "+", yb, xl);
-    //_write(state, "┐");
-    _write_at(state, "+", yt, xr);
-    //_write(state, "┘");
-    _write_at(state, "+", yb, xr);
-    // left/right line
-    for(int i = yt + 1; i <= yb - 1; ++i)
+    if(DRAW_PANEL_LINES)
     {
-        //_write(state, "│");
-        _write_at(state, "|", i, xl);
-        //_write(state, "│");
-        _write_at(state, "|", i, xr);
-    }
-    // top/bottom line
-    for(int i = xl + 1; i <= xr - 1; ++i)
-    {
-        //_write(state, "─");
-        _write_at(state, "-", yt, i);
-        //_write(state, "─");
-        _write_at(state, "-", yb, i);
-    }
-    if(title)
-    {
-        // title line
+        // corners
+        //_write(state, "┌");
+        _write_at(state, "+", yt, xl);
+        //_write(state, "└");
+        _write_at(state, "+", yb, xl);
+        //_write(state, "┐");
+        _write_at(state, "+", yt, xr);
+        //_write(state, "┘");
+        _write_at(state, "+", yb, xr);
+        // left/right line
+        for(int i = yt + 1; i <= yb - 1; ++i)
+        {
+            //_write(state, "│");
+            _write_at(state, "|", i, xl);
+            //_write(state, "│");
+            _write_at(state, "|", i, xr);
+        }
+        // top/bottom line
         for(int i = xl + 1; i <= xr - 1; ++i)
         {
             //_write(state, "─");
-            _write_at(state, "-", yt + 2, i);
+            _write_at(state, "-", yt, i);
+            //_write(state, "─");
+            _write_at(state, "-", yb, i);
         }
-        // title line "corners" (purposely overwrites the previously characters)
-        //_write(state, "├");
-        _write_at(state, "*", yt + 2, xl);
-        //_write(state, "┤");
-        _write_at(state, "*", yt + 2, xr);
-        // title
+        if(title)
+        {
+            // title line
+            for(int i = xl + 1; i <= xr - 1; ++i)
+            {
+                //_write(state, "─");
+                _write_at(state, "-", yt + 2, i);
+            }
+            // title line "corners" (purposely overwrites the previously characters)
+            //_write(state, "├");
+            _write_at(state, "*", yt + 2, xl);
+            //_write(state, "┤");
+            _write_at(state, "*", yt + 2, xr);
+        }
+    }
+    // title
+    if(title)
+    {
         _set_position(state, state->ystart + 1, xl + (xr - xl + 2 - strlen(title)) / 2);
         _set_bold(state);
         _write(state, title);
@@ -1148,6 +1155,26 @@ static void _ask_layer(struct state* state, const char* layername, const char* p
     }
 }
 
+static void _ask_constraint(struct state* state, const char* name, const char* info)
+{
+    _clear_main_area(state);
+    if(info)
+    {
+        const char* const lines[] = {
+            info, NULL
+        };
+        _draw_main_text(state, lines, name);
+        _write_to_display(state);
+        _wait_for_enter(state);
+        _clear_main_area(state);
+    }
+    struct string* str = string_create();
+    string_add_strings(str, 3, "What is the value of ", name, "?");
+    int value = _draw_main_text_single_prompt_integer(state, string_get(str), "", name);
+    string_destroy(str);
+    technology_set_constraint_integer(state->techstate, name, value);
+}
+
 static void _copy_layer_to_layer(struct state* state, const char* sourcename, const char* targetname)
 {
     const struct generics* source = technology_get_layer(state->techstate, sourcename);
@@ -1333,6 +1360,8 @@ static void _read_wells(struct state* state)
     };
     size_t len = sizeof(choices) / sizeof(choices[0]);
     int is_ndoped = _draw_main_text_single_prompt_menu(state, text, choices, len, "Base Wafer Majority Charge Carrier Type");
+
+    // regular wells
     int has_pwell = 0;
     int has_nwell = 0;
     if(is_ndoped == 0) // p-doped
@@ -1349,16 +1378,44 @@ static void _read_wells(struct state* state)
     {
         _ask_layer(state, "pwell", "P-Well", "P-Well Layer", NULL);
     }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "pwell");
+    }
     if(has_nwell)
     {
         _ask_layer(state, "nwell", "N-Well", "N-Well Layer", NULL);
     }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "nwell");
+    }
+
+    // deep wells
+    int has_deeppwell = _draw_main_text_single_prompt_boolean(state, "Does this technology node have a dedicated layer for a deep p-well?", "", "Deep P-Well");
+    if(has_deeppwell)
+    {
+        _ask_layer(state, "deeppwell", "Deep P-Well", "Deep P-Well Layer", NULL);
+    }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "deeppwell");
+    }
+    int has_deepnwell = _draw_main_text_single_prompt_boolean(state, "Does this technology node have a dedicated layer for a deep n-well?", "", "Deep N-Well");
+    if(has_deepnwell)
+    {
+        _ask_layer(state, "deepnwell", "Deep N-Well", "Deep N-Well Layer", NULL);
+    }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "deepnwell");
+    }
     /*
     Wells:
-    nwell
-    pwell
-    deepnwell
-    deeppwell
+    [x] nwell
+    [x] pwell
+    [x] deepnwell
+    [x] deeppwell
     */
 }
 
@@ -1446,7 +1503,48 @@ static void _read_via_definitions(struct state* state)
 
 static void _read_constraints(struct state* state)
 {
+    _ask_constraint(state, "Minimum Active Width", NULL);
+    /*
+    [ ] ["Minimum Active Width"] = 440,
+    [ ] ["Minimum Active Space"] = 1000,
+    [ ] ["Minimum Active Contact Target Width"] = 340,
+    [ ] ["Minimum Gate Contact Target Width"] = 340,
+    [ ] ["Minimum Well Extension"] = 100,
+    [ ] ["Minimum Implant Extension"] = 100,
+    [ ] ["Minimum Implant Extension"] = 100,
+    [ ] ["Minimum Gate Extension"] = 220,
+    [ ] ["Minimum Gate Length"] = 180,
+    [ ] ["Minimum Gate Width"] = 420,
+    [ ] ["Minimum Gate XSpace"] = 620,
+    [ ] ["Minimum Gate YSpace"] = 1000,
+    [ ] ["Minimum Gate Contact Region Size"] = 340,
+    [ ] ["Minimum Source/Drain Contact Region Size"] = 340,
+    [ ] ["Minimum Active Contact Region Size"] = 340,
+    [ ] ["Minimum M1 Width"] = 230,
+    [ ] ["Minimum M1 Space"] = 230,
+    [ ] ["Minimum M1 Pitch"] = 460,
+    [ ] ["Minimum M2 Width"] = 280,
+    [ ] ["Minimum M2 Space"] = 280,
+    [ ] ["Minimum M2 Pitch"] = 560,
+    [ ] ["Minimum M3 Width"] = 280,
+    [ ] ["Minimum M3 Space"] = 280,
+    [ ] ["Minimum M3 Pitch"] = 560,
+    [ ] ["Minimum M4 Width"] = 280,
+    [ ] ["Minimum M4 Space"] = 280,
+    [ ] ["Minimum M4 Pitch"] = 560,
+    [ ] ["Minimum M5 Width"] = 440,
+    [ ] ["Minimum M5 Space"] = 460,
+    [ ] ["Minimum M5 Pitch"] = 900,
+    [ ] ["Minimum M6 Width"] = 3000,
+    [ ] ["Minimum M6 Space"] = 2500,
+    [ ] ["Minimum M6 Pitch"] = 5500,
+    */
+}
 
+static void _read_auxiliary(struct state* state)
+{
+    _ask_layer(state, "special", "Special", "Special", "The 'special' layer is a non-physical non-process-related layer, that is used for marking opc structures (e.g. area anchors). As process nodes don't have a layer like this it should be mapped to a generics layer from the EDA tool or something unused.");
+    _ask_layer(state, "outline", "Outline", "Outline", "The outline layer marks the outline of blocks. Most often, it is not required but can help with the placement of filling, aligning blocks and other purposes. (Note: not every node defines this layer)");
 }
 
 static void _show_current_state(struct state* state)
@@ -1588,6 +1686,7 @@ void main_techfile_assistant(const struct hashmap* config)
             " 3) Metal Stack Layers",
             " 4) Via Definitions",
             " 5) Size Constraints",
+            " 6) Auxiliary Layers",
             "",
             "Additional Actions:",
             " e) Edit Assistant Configuration",
@@ -1651,6 +1750,9 @@ void main_techfile_assistant(const struct hashmap* config)
                     _show_error(state, "You must define the metal stack before constraints can be assigned.");
                     _wait_for_enter(state);
                 }
+                break;
+            case 6:
+                _read_auxiliary(state);
                 break;
             default:
                 _show_error(state, "Not a valid action");

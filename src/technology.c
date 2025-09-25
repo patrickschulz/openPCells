@@ -883,6 +883,17 @@ struct generics* technology_add_empty_layer(struct technology_state* techstate, 
     return layer;
 }
 
+int technology_set_constraint_integer(struct technology_state* techstate, const char* name, int value)
+{
+    struct tagged_value* tv = tagged_value_create_integer(value);
+    if(hashmap_exists(techstate->constraints, name))
+    {
+        return 0;
+    }
+    hashmap_insert(techstate->constraints, name, tv);
+    return 1;
+}
+
 void generics_set_layer_export_integer(struct generics* layer, const char* exportname, const char* key, int value)
 {
     struct generics_entry* entry = _get_export_entry(layer, exportname);

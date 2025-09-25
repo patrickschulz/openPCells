@@ -43,6 +43,7 @@ int technology_add_via_definition_by_name(struct technology_state* techstate, co
 int technology_set_fallback_via(struct technology_state* techstate, unsigned int startindex, unsigned int width, unsigned int height);
 int technology_set_fallback_via_by_name(struct technology_state* techstate, const char* vianame, unsigned int width, unsigned int height);
 struct generics* technology_add_empty_layer(struct technology_state* techstate, const char* layername);
+int technology_set_constraint_integer(struct technology_state* techstate, const char* name, int value);
 void generics_set_layer_export_integer(struct generics* layer, const char* exportname, const char* key, int value);
 void generics_set_layer_export_string(struct generics* layer, const char* exportname, const char* key, const char* value);
 void generics_set_pretty_name(struct generics* layer, const char* prettyname);
