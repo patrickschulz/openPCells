@@ -662,6 +662,21 @@ static void _draw_side_panel(struct state* state)
     //fflush(stdout);
 }
 
+static void _draw_lines(struct state* state, const char* const* lines)
+{
+    int xstart = state->xstart;
+    int ystart = state->ystart;
+    int lineindex = 0;
+    while(*lines)
+    {
+        const char* line = *lines;
+        _set_position(state, ystart + lineindex, xstart + 2);
+        _write(state, line);
+        ++lineindex;
+        ++lines;
+    }
+}
+
 static void _draw_full_text(struct state* state, const char* const* text, const char* section)
 {
     int xstart = state->xstart;
@@ -1504,47 +1519,66 @@ static void _read_via_definitions(struct state* state)
 static void _read_constraints(struct state* state)
 {
     _ask_constraint(state, "Minimum Active Width", NULL);
-    /*
-    [ ] ["Minimum Active Width"] = 440,
-    [ ] ["Minimum Active Space"] = 1000,
-    [ ] ["Minimum Active Contact Target Width"] = 340,
-    [ ] ["Minimum Gate Contact Target Width"] = 340,
-    [ ] ["Minimum Well Extension"] = 100,
-    [ ] ["Minimum Implant Extension"] = 100,
-    [ ] ["Minimum Implant Extension"] = 100,
-    [ ] ["Minimum Gate Extension"] = 220,
-    [ ] ["Minimum Gate Length"] = 180,
-    [ ] ["Minimum Gate Width"] = 420,
-    [ ] ["Minimum Gate XSpace"] = 620,
-    [ ] ["Minimum Gate YSpace"] = 1000,
-    [ ] ["Minimum Gate Contact Region Size"] = 340,
-    [ ] ["Minimum Source/Drain Contact Region Size"] = 340,
-    [ ] ["Minimum Active Contact Region Size"] = 340,
-    [ ] ["Minimum M1 Width"] = 230,
-    [ ] ["Minimum M1 Space"] = 230,
-    [ ] ["Minimum M1 Pitch"] = 460,
-    [ ] ["Minimum M2 Width"] = 280,
-    [ ] ["Minimum M2 Space"] = 280,
-    [ ] ["Minimum M2 Pitch"] = 560,
-    [ ] ["Minimum M3 Width"] = 280,
-    [ ] ["Minimum M3 Space"] = 280,
-    [ ] ["Minimum M3 Pitch"] = 560,
-    [ ] ["Minimum M4 Width"] = 280,
-    [ ] ["Minimum M4 Space"] = 280,
-    [ ] ["Minimum M4 Pitch"] = 560,
-    [ ] ["Minimum M5 Width"] = 440,
-    [ ] ["Minimum M5 Space"] = 460,
-    [ ] ["Minimum M5 Pitch"] = 900,
-    [ ] ["Minimum M6 Width"] = 3000,
-    [ ] ["Minimum M6 Space"] = 2500,
-    [ ] ["Minimum M6 Pitch"] = 5500,
-    */
+    _ask_constraint(state, "Minimum Active Space", NULL);
+    _ask_constraint(state, "Minimum Contact Target Width", NULL);
+    _ask_constraint(state, "Minimum Well Extension", NULL);
+    _ask_constraint(state, "Minimum Implant Extension", NULL);
+    _ask_constraint(state, "Minimum Gate Extension", NULL);
+    _ask_constraint(state, "Minimum Gate Length", NULL);
+    _ask_constraint(state, "Minimum Gate Width", NULL);
+    _ask_constraint(state, "Minimum Gate Space", NULL);
+    _ask_constraint(state, "Minimum Gate Contact Region Size", NULL);
+    _ask_constraint(state, "Minimum Source/Drain Contact Region Size", NULL);
+    _ask_constraint(state, "Minimum Active Contact Region Size", NULL);
+    unsigned int nummetals = technology_get_num_metals(state->techstate);
+    for(unsigned int i = 1; i <= nummetals; ++i)
+    {
+        struct string* str = string_create();
+        string_add_string(str, "Minimum M");
+        strprint_integer(str, i);
+        string_add_string(str, " Width");
+        _ask_constraint(state, string_get(str), NULL);
+        string_destroy(str);
+        str = string_create();
+        string_add_string(str, "Minimum M");
+        strprint_integer(str, i);
+        string_add_string(str, " Space");
+        _ask_constraint(state, string_get(str), NULL);
+        string_destroy(str);
+    }
 }
 
 static void _read_auxiliary(struct state* state)
 {
     _ask_layer(state, "special", "Special", "Special", "The 'special' layer is a non-physical non-process-related layer, that is used for marking opc structures (e.g. area anchors). As process nodes don't have a layer like this it should be mapped to a generics layer from the EDA tool or something unused.");
     _ask_layer(state, "outline", "Outline", "Outline", "The outline layer marks the outline of blocks. Most often, it is not required but can help with the placement of filling, aligning blocks and other purposes. (Note: not every node defines this layer)");
+}
+
+static void _show_stackup_model(struct state* state)
+{
+    _clear_main_area(state);
+    const char* lines[] = {
+        "      ---------------------------------                    ",
+        "      |    Metal 2                    |                    ",
+        "      ---------------------------------                    ",
+        "        |  | Via 1                                         ",
+        "   --------------------------                              ",
+        "           Metal 1          |                              ",
+        "   --------------------------                              ",
+        "                      |  | contact                         ",
+        "                 --------------                            ",
+        "                 |    Gate    |                            ",
+        "===========================================================",
+        "     |     **************************      |               ",
+        "     |     ********  Active *********      |               ",
+        "     |                                     |               ",
+        "     \\              N-Well                 /               ",
+        "      -------------------------------------                ",
+        NULL
+    };
+    _draw_lines(state, lines);
+    _write_to_display(state);
+    _wait_for_enter(state);
 }
 
 static void _show_current_state(struct state* state)
@@ -1681,6 +1715,7 @@ void main_techfile_assistant(const struct hashmap* config)
             "It is recommended to go through the options in their numeric order.",
             "",
             "Technology Configuration:",
+            " 0) Show openPCells Stack-Up Model",
             " 1) Front-End-of-Line Configuration",
             " 2) Well Configuration",
             " 3) Metal Stack Layers",
@@ -1710,6 +1745,9 @@ void main_techfile_assistant(const struct hashmap* config)
                 _show_current_state(state);
                 _write_to_display(state);
                 _wait_for_enter(state);
+                break;
+            case '0': // show stack-up model
+                _show_stackup_model(state);
                 break;
             case '1': // FEOL
                 _read_FEOL(state);
@@ -1771,9 +1809,6 @@ void main_techfile_assistant(const struct hashmap* config)
 // vim: nowrap
 
 /*
-    Special:
-    special
-
     DRC/LVS marker:
     gatemarker1
     mosfetmarker1
