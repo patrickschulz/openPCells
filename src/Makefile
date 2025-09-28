@@ -6,6 +6,7 @@ PPFLAGS=-DLUA_USE_LINUX -DTERMOGRAPHY_ENABLE_TERM_WIDTH
 WARNFLAGS=-Wall -Wextra
 #WARNFLAGS=-Wall -Wextra -Wstrict-prototypes -Werror=strict-prototypes -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Wno-analyzer-deref-before-check -Werror=discarded-qualifiers
 COMMONFLAGS=-pthread
+#OPTFLAGS=-Og
 OPTFLAGS=-O3
 #OPTFLAGS=-O3 -flto -fwhole-program
 #ANALYZEFLAGS= -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined
