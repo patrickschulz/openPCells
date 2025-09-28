@@ -1782,6 +1782,11 @@ int generics_is_layer_name(const struct generics* layer, const char* layername)
     return strcmp(layer->name, layername) == 0;
 }
 
+const char* generics_get_layer_pretty_name(const struct generics* layer)
+{
+    return layer->prettyname;
+}
+
 const struct hashmap* generics_get_first_layer_data(const struct generics* layer)
 {
     const struct generics_entry* entry = vector_get_const(layer->entries, 0);

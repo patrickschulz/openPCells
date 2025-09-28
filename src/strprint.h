@@ -4,5 +4,6 @@
 #include "string.h"
 
 void strprint_integer(struct string* string, int i);
+char* strprintf(const char* fmt, ...);
 
 #endif /* OPC_STRPRINT_H */
