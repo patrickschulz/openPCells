@@ -1692,11 +1692,17 @@ const struct generics* generics_create_oxide(struct technology_state* techstate,
 
 const struct generics* generics_create_implant(struct technology_state* techstate, char polarity)
 {
-    size_t len = 8; // [np]implant
-    char* layername = malloc(len + 1);
-    snprintf(layername, len + 1, "%cimplant", polarity);
+    char layername[] = "ximplant";
+    layername[0] = polarity;
     const struct generics* layer = _get_or_create_layer(techstate, layername);
-    free(layername);
+    return layer;
+}
+
+const struct generics* generics_create_well(struct technology_state* techstate, char polarity)
+{
+    char layername[] = "xwell";
+    layername[0] = polarity;
+    const struct generics* layer = _get_or_create_layer(techstate, layername);
     return layer;
 }
 

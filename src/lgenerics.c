@@ -173,6 +173,22 @@ static int lgenerics_create_implant(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_well(lua_State* L)
+{
+    const char* str = luaL_checkstring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_well(techstate, str[0]);
+    if(!layer)
+    {
+        lua_pushfstring(L, "generics: got NULL layer: generics.well('%c')\nif this layer is not needed, set it to {}", str[0]);
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
 static int lgenerics_create_vthtype(lua_State* L)
 {
     const char* channeltype = luaL_checkstring(L, 1);
@@ -322,6 +338,7 @@ int open_lgenerics_lib(lua_State* L)
         { "contact",                  lgenerics_create_contact           },
         { "oxide",                    lgenerics_create_oxide             },
         { "implant",                  lgenerics_create_implant           },
+        { "well",                     lgenerics_create_well              },
         { "vthtype",                  lgenerics_create_vthtype           },
         { "active",                   lgenerics_create_active            },
         { "gate",                     lgenerics_create_gate              },
