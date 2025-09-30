@@ -457,6 +457,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
 
 static void _write_cell_array(struct export_data* data, const char* identifier, const char* instbasename, const struct point* where, const struct transformationmatrix* trans, const struct transformationmatrix* array_trans, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
+    (void) array_trans; // not needed for this export
     _prepare_shape_for_group(data);
     export_data_append_string(data, "dbCreateParamSimpleMosaicByMasterName");
     export_data_append_char(data, '(');

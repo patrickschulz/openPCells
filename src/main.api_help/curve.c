@@ -4,7 +4,8 @@
         { "startangle", NUMBER,     NULL, "start angle of the line segment" },
         { "endangle",   NUMBER,     NULL, "end angle of the line segment" },
         { "radius",     INTEGER,    NULL, "radius of the line segment" },
-        { "clockwise",  BOOLEAN,    NULL, "flag if arc is drawn clock-wise or counter-clock-wise" }
+        { "clockwise",  BOOLEAN,    NULL, "flag if arc is drawn clock-wise or counter-clock-wise" },
+        { NULL }
     };
     vector_append(entries, _make_api_entry(
         "arcto",
@@ -14,10 +15,8 @@
         // example
         "geometry.curve(cell, generics.metal(1), point.create(0, 0), {\n"
         "	curve.arcto(180, 0, 1000, true),\n"
-        "}, grid, allow45)\n"
-        ,
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
+        "}, grid, allow45)\n",
+        parameters
     ));
 }
 
@@ -26,7 +25,8 @@
     struct parameter parameters[] = {
         { "ctp1",   POINT, NULL, "first control point" },
         { "ctp2",   POINT, NULL, "second control point" },
-        { "endpt",  POINT, NULL, "destination point of the cubic bezier segment" }
+        { "endpt",  POINT, NULL, "destination point of the cubic bezier segment" },
+        { NULL }
     };
     vector_append(entries, _make_api_entry(
         "cubicto",
@@ -36,17 +36,16 @@
         // example
         "geometry.curve(cell, generics.metal(1), point.create(0, 0), {\n"
         "	curve.cubicto(point.create(0, 500), point.create(500, 500), point.create(500, 0)),\n"
-        "}, grid, allow45)\n"
-        ,
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
+        "}, grid, allow45)\n",
+        parameters
     ));
 }
 
 /* curve.lineto, */
 {
     struct parameter parameters[] = {
-        { "point", POINT, NULL, "destination point of the line segment" }
+        { "point", POINT, NULL, "destination point of the line segment" },
+        { NULL }
     };
     vector_append(entries, _make_api_entry(
         "lineto",
@@ -56,10 +55,8 @@
         // example
         "geometry.curve(cell, generics.metal(1), point.create(0, 0), {\n"
         "	curve.lineto(point.create(1000, 1000)),\n"
-        "}, grid, allow45)\n"
-        ,
-        parameters,
-        sizeof(parameters) / sizeof(parameters[0])
+        "}, grid, allow45)\n",
+        parameters
     ));
 }
 

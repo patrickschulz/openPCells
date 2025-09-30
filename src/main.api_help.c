@@ -392,7 +392,7 @@ static struct api_entry* _make_api_entry(
     enum module module,
     const char* info,
     const char* example,
-    struct parameter* parameters, size_t len
+    struct parameter* parameters
 )
 {
     struct api_entry* entry = malloc(sizeof(*entry));
@@ -404,10 +404,12 @@ static struct api_entry* _make_api_entry(
     entry->module = module;
     entry->info = util_strdup(info);
     entry->example = util_strdup(example);
-    entry->parameters = vector_create(len, _destroy_parameter);
-    for(size_t i = 0; i < len; ++i)
+    entry->parameters = vector_create(1, _destroy_parameter);
+    struct parameter* parameter = parameters;
+    while(parameter->name)
     {
-        vector_append(entry->parameters, _copy_parameter(parameters + i));
+        vector_append(entry->parameters, _copy_parameter(parameter));
+        ++parameter;
     }
     return entry;
 }

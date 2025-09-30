@@ -61,8 +61,8 @@ int technology_resolve_metal(const struct technology_state* state, int metalnum)
 int technology_has_multiple_patterning(const struct technology_state* state, int metalnum);
 
 // vias
-struct via_definition** technology_get_via_definitions(struct technology_state* state, int metal1, int metal2);
-struct via_definition* technology_get_via_fallback(struct technology_state* state, int metal1, int metal2);
+struct via_definition** technology_get_via_definitions(struct technology_state* state, int lowermetal);
+struct via_definition* technology_get_via_fallback(struct technology_state* state, int lowermetal);
 struct via_definition** technology_get_contact_definitions(struct technology_state* state, const char* region);
 struct via_definition* technology_get_contact_fallback(struct technology_state* state, const char* region);
 

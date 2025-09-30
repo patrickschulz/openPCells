@@ -101,7 +101,7 @@ Help for API functions is provided by `--api-list` (list all available API funct
 
 # Building and Installation
 Building this project is fairly simple, as the sole dependency is a C compiler.
-It was tested with various gcc versions >= 11.1.0 and 4.7.x, but should work with other compilers too.
+It was mainly with various gcc versions (11 - 15, 4.7.x), but also compiles with clang, tcc and kefir.
 The build and install process installs all required files in standard paths (/usr/bin, /usr/share), but these paths can be configured.
 It is also possible to install it locally, which does not require any root privileges.
 Short-cut configure options exist to make this process easy.

@@ -152,7 +152,14 @@ void _backtrace(struct field *field, struct position *startpos, struct position 
 
     do {
         int score = field_get(field, current.x, current.y, current.z);
-        struct rpoint nextpoints[] = { [0 ... NUM_DIRECTIONS - 1] = {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX, .score = INT_MAX}};
+        struct rpoint nextpoints[NUM_DIRECTIONS] = { 0 };
+        for(int i = 0; i < NUM_DIRECTIONS; ++i)
+        {
+            nextpoints[i].x = UINT_MAX;
+            nextpoints[i].y = UINT_MAX;
+            nextpoints[i].z = UINT_MAX;
+            nextpoints[i].score = INT_MAX;
+        }
 
         /* circle around every point + check layer above and below store possible points in array */
         for(int i = 0; i < NUM_DIRECTIONS; i++)

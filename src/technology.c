@@ -940,23 +940,23 @@ struct generics* technology_get_layer(struct technology_state* techstate, const 
     return NULL;
 }
 
-struct via_definition** technology_get_via_definitions(struct technology_state* techstate, int metal1, int metal2)
+struct via_definition** technology_get_via_definitions(struct technology_state* techstate, int lowermetal)
 {
-    struct viaentry* entry = _find_viaentry(techstate, metal1);
+    struct viaentry* entry = _find_viaentry(techstate, lowermetal);
     if(!entry)
     {
-        printf("could not find via definitions for via from metal %d to metal %d\n", metal1, metal2);
+        printf("could not find via definitions for via from metal %d to metal %d\n", lowermetal, lowermetal + 1);
     }
     return entry->viadefs;
 }
 
-struct via_definition* technology_get_via_fallback(struct technology_state* techstate, int metal1, int metal2)
+struct via_definition* technology_get_via_fallback(struct technology_state* techstate, int lowermetal)
 {
     if(!techstate->create_fallback_vias)
     {
         return NULL;
     }
-    char* vianame = _make_vianame(metal1);
+    char* vianame = _make_vianame(lowermetal);
     struct via_definition* viadef = NULL;
     for(unsigned int i = 0; i < vector_size(techstate->viatable); ++i)
     {

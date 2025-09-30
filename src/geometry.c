@@ -937,7 +937,7 @@ static int _check_viabltr(
     int ret = 1;
     for(int i = metal1; i < metal2; ++i)
     {
-        struct via_definition** viadefs = technology_get_via_definitions(techstate, i, i + 1);
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i);
         if(!viadefs)
         {
             return 0;
@@ -1109,8 +1109,8 @@ static int _calculate_viabltr(
     }
     for(int i = metal1; i < metal2; ++i)
     {
-        struct via_definition** viadefs = technology_get_via_definitions(techstate, i, i + 1);
-        struct via_definition* fallback = technology_get_via_fallback(techstate, i, i + 1);
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i);
+        struct via_definition* fallback = technology_get_via_fallback(techstate, i);
         if(!viadefs)
         {
             return 0;
@@ -1153,8 +1153,8 @@ static int _viabltr(
     int ret = 1;
     for(int i = metal1; i < metal2; ++i)
     {
-        struct via_definition** viadefs = technology_get_via_definitions(techstate, i, i + 1);
-        struct via_definition* fallback = technology_get_via_fallback(techstate, i, i + 1);
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i);
+        struct via_definition* fallback = technology_get_via_fallback(techstate, i);
         if(!viadefs)
         {
             return 0;
@@ -1208,8 +1208,8 @@ static int _viabltr2(
         return 0;
     }
     int ret = 1;
-    struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1, metal2);
-    struct via_definition* fallback = technology_get_via_fallback(techstate, metal1, metal2);
+    struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1);
+    struct via_definition* fallback = technology_get_via_fallback(techstate, metal1);
     if(!viadefs)
     {
         return 0;

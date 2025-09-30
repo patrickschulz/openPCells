@@ -1906,6 +1906,7 @@ void main_techfile_assistant(const struct hashmap* config)
                 break;
             }
             case '5': // constraints
+            {
                 unsigned int nummetals = technology_get_num_metals(state->techstate);
                 if(nummetals > 0)
                 {
@@ -1917,9 +1918,12 @@ void main_techfile_assistant(const struct hashmap* config)
                     _wait_for_enter(state);
                 }
                 break;
+            }
             case 6:
+            {
                 _read_auxiliary(state);
                 break;
+            }
             default:
                 _show_error(state, "Not a valid action");
                 _wait_for_enter(state);
