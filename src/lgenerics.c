@@ -176,13 +176,25 @@ static int lgenerics_create_implant(lua_State* L)
 static int lgenerics_create_well(lua_State* L)
 {
     const char* str = luaL_checkstring(L, 1);
+    const char* mode = NULL;
+    if(lua_gettop(L) == 2)
+    {
+        mode = luaL_checkstring(L, 2);
+    }
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_well(techstate, str[0]);
+    const struct generics* layer = generics_create_well(techstate, str[0], mode);
     if(!layer)
     {
-        lua_pushfstring(L, "generics: got NULL layer: generics.well('%c')\nif this layer is not needed, set it to {}", str[0]);
+        if(mode)
+        {
+            lua_pushfstring(L, "generics: got NULL layer: generics.well('%c', \"%s\")\nif this layer is not needed, set it to {}", str[0], mode);
+        }
+        else
+        {
+            lua_pushfstring(L, "generics: got NULL layer: generics.well('%c')\nif this layer is not needed, set it to {}", str[0]);
+        }
         lua_error(L);
     }
     _push_layer(L, layer);
@@ -236,16 +248,88 @@ static int lgenerics_create_gate(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_feol(lua_State* L)
+{
+    const char* str = luaL_checkstring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_feol(techstate, str);
+    if(!layer)
+    {
+        lua_pushfstring(L, "generics: got NULL layer: generics.feol(\"%s\")\nif this layer is not needed, set it to {}", str);
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
+static int lgenerics_create_beol(lua_State* L)
+{
+    const char* str = luaL_checkstring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_beol(techstate, str);
+    if(!layer)
+    {
+        lua_pushfstring(L, "generics: got NULL layer: generics.beol(\"%s\")\nif this layer is not needed, set it to {}", str);
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
 static int lgenerics_create_marker(lua_State* L)
+{
+    const char* what = luaL_checkstring(L, 1);
+    int level = luaL_optinteger(L, 2, 0);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_marker(techstate, what, level);
+    if(!layer)
+    {
+        if(level > 0)
+        {
+            lua_pushfstring(L, "generics: got NULL layer: generics.marker(\"%s\", %d)\nif this layer is not needed, set it to {}", what, level);
+        }
+        else
+        {
+            lua_pushfstring(L, "generics: got NULL layer: generics.marker(\"%s\")\nif this layer is not needed, set it to {}", what);
+        }
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
+static int lgenerics_create_exclude(lua_State* L)
 {
     const char* what = luaL_checkstring(L, 1);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_marker(techstate, what);
+    const struct generics* layer = generics_create_exclude(techstate, what);
     if(!layer)
     {
-        lua_pushfstring(L, "generics: got NULL layer: generics.marker(\"%s\")\nif this layer is not needed, set it to {}", what);
+        lua_pushfstring(L, "generics: got NULL layer: generics.exclude(\"%s\")\nif this layer is not needed, set it to {}", what);
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
+static int lgenerics_create_fill(lua_State* L)
+{
+    const char* what = luaL_checkstring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_fill(techstate, what);
+    if(!layer)
+    {
+        lua_pushfstring(L, "generics: got NULL layer: generics.fill(\"%s\")\nif this layer is not needed, set it to {}", what);
         lua_error(L);
     }
     _push_layer(L, layer);
@@ -358,7 +442,11 @@ int open_lgenerics_lib(lua_State* L)
         { "vthtype",                  lgenerics_create_vthtype           },
         { "active",                   lgenerics_create_active            },
         { "gate",                     lgenerics_create_gate              },
+        { "feol",                     lgenerics_create_feol              },
+        { "beol",                     lgenerics_create_beol              },
         { "marker",                   lgenerics_create_marker            },
+        { "exclude",                  lgenerics_create_exclude           },
+        { "fill",                     lgenerics_create_fill              },
         { "other",                    lgenerics_create_other             },
         { "otherport",                lgenerics_create_otherport         },
         { "outline",                  lgenerics_create_outline           },

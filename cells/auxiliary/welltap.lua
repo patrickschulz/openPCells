@@ -46,15 +46,15 @@ end
 
 function layout(welltap, _P)
     -- active, implant and SOI opening
-    geometry.rectanglebltr(welltap, generics.other("active"), 
+    geometry.rectanglebltr(welltap, generics.active(), 
         point.create(0, 0),
         point.create(_P.width, _P.height)
     )
-    geometry.rectanglebltr(welltap, generics.other(string.format("%simplant", _P.contype)),
+    geometry.rectanglebltr(welltap, generics.implant(_P.contype),
         point.create(-_P.extendimplantleft, -_P.extendimplantbottom),
         point.create(_P.width + _P.extendimplantright, _P.height + _P.extendimplanttop)
     )
-    geometry.rectanglebltr(welltap, generics.other("soiopen"),
+    geometry.rectanglebltr(welltap, generics.feol("soiopen"),
         point.create(-_P.extendsoiopenleft, -_P.extendsoiopenbottom),
         point.create(_P.width + _P.extendsoiopenright, _P.height + _P.extendsoiopentop)
     )
@@ -72,7 +72,7 @@ function layout(welltap, _P)
     )
 
     -- well
-    geometry.rectanglebltr(welltap, generics.other(string.format("%swell", _P.contype)),
+    geometry.rectanglebltr(welltap, generics.well(_P.contype),
         point.create(-_P.extendwellleft, -_P.extendwellbottom),
         point.create(_P.width + _P.extendwellright, _P.height + _P.extendwelltop)
     )

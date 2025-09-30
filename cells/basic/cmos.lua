@@ -930,7 +930,7 @@ function layout(cmos, _P)
         welltap:translate_x(-_P.pmoswelltapextension / 2)
         welltap:translate_y(_P.ppowerspace + _P.powerwidth + _P.pmoswelltapspace)
         cmos:merge_into(welltap)
-        geometry.rectanglebltr(cmos, generics.other(_P.pmosflippedwell and "pwell" or "nwell"),
+        geometry.rectanglebltr(cmos, generics.well(_P.pmosflippedwell and "p" or "n"),
             point.create(
                 math.max(
                     leftnmoswell.tl:getx(),
@@ -962,7 +962,7 @@ function layout(cmos, _P)
         welltap:move_point(welltap:get_area_anchor("boundary").br, leftpdrainarea.bl)
         welltap:translate_x(-_P.pmoswelltapspace)
         cmos:merge_into(welltap)
-        geometry.rectanglebltr(cmos, generics.other(_P.pmosflippedwell and "pwell" or "nwell"),
+        geometry.rectanglebltr(cmos, generics.well(_P.pmosflippedwell and "p" or "n"),
             point.create(
                 welltap:get_area_anchor("well").l,
                 leftpmoswell.bl:gety()
@@ -985,7 +985,7 @@ function layout(cmos, _P)
         welltap:move_point(welltap:get_area_anchor("boundary").bl, rightpdrainarea.br)
         welltap:translate_x(_P.pmoswelltapspace)
         cmos:merge_into(welltap)
-        geometry.rectanglebltr(cmos, generics.other(_P.pmosflippedwell and "pwell" or "nwell"),
+        geometry.rectanglebltr(cmos, generics.well(_P.pmosflippedwell and "p" or "n"),
             rightpmoswell.br,
             point.create(
                 welltap:get_area_anchor("well").r,
@@ -1009,7 +1009,7 @@ function layout(cmos, _P)
         welltap:translate_x(-_P.nmoswelltapextension / 2)
         welltap:translate_y(-_P.npowerspace - _P.powerwidth - _P.nmoswelltapspace)
         cmos:merge_into(welltap)
-        geometry.rectanglebltr(cmos, generics.other(_P.nmosflippedwell and "nwell" or "pwell"),
+        geometry.rectanglebltr(cmos, generics.well(_P.nmosflippedwell and "n" or "p"),
             point.create(
                 math.min(
                     leftnmoswell.bl:getx(),
@@ -1035,7 +1035,7 @@ function layout(cmos, _P)
         welltap:move_point(welltap:get_area_anchor("boundary").tr, leftndrainarea.tl)
         welltap:translate_x(-_P.nmoswelltapspace)
         cmos:merge_into(welltap)
-        geometry.rectanglebltr(cmos, generics.other(_P.nmosflippedwell and "nwell" or "pwell"),
+        geometry.rectanglebltr(cmos, generics.well(_P.nmosflippedwell and "n" or "p"),
             point.create(
                 welltap:get_area_anchor("well").l,
                 leftnmoswell.bl:gety()
@@ -1058,7 +1058,7 @@ function layout(cmos, _P)
         welltap:move_point(welltap:get_area_anchor("boundary").tl, rightndrainarea.tr)
         welltap:translate_x(_P.nmoswelltapspace)
         cmos:merge_into(welltap)
-        geometry.rectanglebltr(cmos, generics.other(_P.nmosflippedwell and "nwell" or "pwell"),
+        geometry.rectanglebltr(cmos, generics.well(_P.nmosflippedwell and "n" or "p"),
             rightnmoswell.br,
             point.create(
                 welltap:get_area_anchor("well").r,
@@ -1072,11 +1072,11 @@ function layout(cmos, _P)
     end
 
     if _P.drawoutergatecut and _P.drawgatecuteverywhere then
-        geometry.rectanglebltr(cmos, generics.other("gatecut"),
+        geometry.rectanglebltr(cmos, generics.feol("gatecut"),
             cmos:get_area_anchor("PRp").bl:translate(0, (_P.powerwidth - _P.cutheight) / 2),
             cmos:get_area_anchor("PRp").br:translate(0, (_P.powerwidth - _P.cutheight) / 2 + _P.cutheight)
         )
-        geometry.rectanglebltr(cmos, generics.other("gatecut"),
+        geometry.rectanglebltr(cmos, generics.feol("gatecut"),
             cmos:get_area_anchor("PRn").tl:translate(0, -(_P.powerwidth - _P.cutheight) / 2 - _P.cutheight),
             cmos:get_area_anchor("PRn").tr:translate(0, -(_P.powerwidth - _P.cutheight) / 2)
         )

@@ -32,7 +32,7 @@ function parameters()
         { "fingerwidth(Finger Width)",                                                                  technology.get_dimension("Minimum Gate Width"), argtype = "integer", info = "gate finger width. The total width of the device is fingerwidth * finger" },
         { "gatelength(Gate Length)",                                                                    technology.get_dimension("Minimum Gate Length"), argtype = "integer", info = "drawn gate length (channel length)" },
         { "gatespace(Gate Spacing)",                                                                    technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), argtype = "integer", info = "gate space between the polysilicon lines" },
-        { "allow_poly_connections",                                                                     technology.get_option("Allow Poly Routing") },
+        { "allow_poly_connections",                                                                     technology.has_feature("allow_poly_routing") },
         { "topgatepolyextension",                                                                       0 },
         { "topgatepolyleftrightextension",                                                              0, follow = "topgatepolyextension" },
         { "topgatepolyleftextension",                                                                   0, follow = "topgatepolyleftrightextension" },
@@ -536,7 +536,7 @@ function layout(transistor, _P)
         gateaddbottom = _P.gatebotabsoluteheight
     end
 
-    local hasgatecut = not _P.simulatemissinggatecut and technology.has_layer(generics.other, "gatecut")
+    local hasgatecut = not _P.simulatemissinggatecut and technology.has_feature("has_gatecut")
 
     -- active
     if _P.drawactive then
@@ -604,7 +604,7 @@ function layout(transistor, _P)
         -- gate cut
         if _P.fingers > 0 and _P.drawtopgatecut then
             geometry.rectanglebltr(transistor,
-                generics.other("gatecut"),
+                generics.feol("gatecut"),
                 point.create(
                     gateblx - _P.topgatecutleftext,
                     _P.fingerwidth + _P.topgatecutspace
@@ -617,7 +617,7 @@ function layout(transistor, _P)
         end
         if _P.fingers > 0 and _P.drawbotgatecut then
             geometry.rectanglebltr(transistor,
-                generics.other("gatecut"),
+                generics.feol("gatecut"),
                 point.create(
                     gateblx - _P.botgatecutleftext,
                     -_P.botgatecutspace - _P.botgatecutheight
@@ -670,7 +670,7 @@ function layout(transistor, _P)
     -- gate marker
     for i = 1, _P.fingers do
         geometry.rectanglebltr(transistor,
-            generics.other(string.format("gatemarker%d", _P.gatemarker)),
+            generics.marker("gate", _P.gatemarker),
             point.create(gateblx + (i - 1) * gatepitch, gatebly),
             point.create(gatetrx + (i - 1) * gatepitch, gatetry)
         )
@@ -707,13 +707,13 @@ function layout(transistor, _P)
     if _P.fingers > 0 then
         if _P.mosfetmarkeralignatsourcedrain then
             geometry.rectanglebltr(transistor,
-                generics.other(string.format("mosfetmarker%d", _P.mosfetmarker)),
+                generics.marker("mosfet", _P.mosfetmarker),
                 point.create(0, 0),
                 point.create(_P.fingers * gatepitch, _P.fingerwidth)
             )
         else
             geometry.rectanglebltr(transistor,
-                generics.other(string.format("mosfetmarker%d", _P.mosfetmarker)),
+                generics.marker("mosfet", _P.mosfetmarker),
                 point.create(leftactext, 0),
                 point.create(leftactext + _P.fingers * gatepitch - _P.gatespace,  _P.fingerwidth)
             )
@@ -737,7 +737,7 @@ function layout(transistor, _P)
         )
         if polyline.isstopgate then
             geometry.rectanglebltr(transistor,
-                generics.other("diffusionbreakgate"),
+                generics.feol("diffusionbreakgate"),
                 point.create(leftpolyoffset - polyline.space - polyline.length, gatebly),
                 point.create(leftpolyoffset - polyline.space, gatetry)
             )
@@ -764,7 +764,7 @@ function layout(transistor, _P)
         )
         if polyline.isstopgate then
             geometry.rectanglebltr(transistor,
-                generics.other("diffusionbreakgate"),
+                generics.feol("diffusionbreakgate"),
                 point.create(rightpolyoffset + polyline.space, gatebly),
                 point.create(rightpolyoffset + polyline.space + polyline.length, gatetry)
             )
@@ -781,7 +781,7 @@ function layout(transistor, _P)
     if _P.drawleftstopgate then
         if _P.drawstopgatetopgatecut then
             geometry.rectanglebltr(transistor,
-                generics.other("gatecut"),
+                generics.feol("gatecut"),
                 point.create(
                     transistor:get_area_anchor("endleftgate").l - _P.topgatecutleftext,
                     _P.fingerwidth + _P.topgatecutspace
@@ -794,7 +794,7 @@ function layout(transistor, _P)
         end
         if _P.drawstopgatebotgatecut then
             geometry.rectanglebltr(transistor,
-                generics.other("gatecut"),
+                generics.feol("gatecut"),
                 point.create(
                     transistor:get_area_anchor("endleftgate").l - _P.botgatecutleftext,
                     -_P.botgatecutspace - _P.botgatecutheight
@@ -816,7 +816,7 @@ function layout(transistor, _P)
             end
         end
         geometry.rectanglebltr(transistor,
-            generics.other("diffusionbreakgate"),
+            generics.feol("diffusionbreakgate"),
             transistor:get_area_anchor("endleftgate").bl:translate_y(byoffset),
             transistor:get_area_anchor("endleftgate").tr:translate_y(tyoffset)
         )
@@ -829,7 +829,7 @@ function layout(transistor, _P)
     if _P.drawrightstopgate then
         if _P.drawstopgatetopgatecut then
             geometry.rectanglebltr(transistor,
-                generics.other("gatecut"),
+                generics.feol("gatecut"),
                 point.create(
                     transistor:get_area_anchor("endrightgate").l - _P.topgatecutleftext,
                     _P.fingerwidth + _P.topgatecutspace
@@ -842,7 +842,7 @@ function layout(transistor, _P)
         end
         if _P.drawstopgatebotgatecut then
             geometry.rectanglebltr(transistor,
-                generics.other("gatecut"),
+                generics.feol("gatecut"),
                 point.create(
                     transistor:get_area_anchor("endrightgate").l - _P.botgatecutleftext,
                     -_P.botgatecutspace - _P.botgatecutheight
@@ -864,7 +864,7 @@ function layout(transistor, _P)
             end
         end
         geometry.rectanglebltr(transistor,
-            generics.other("diffusionbreakgate"),
+            generics.feol("diffusionbreakgate"),
             transistor:get_area_anchor("endrightgate").bl:translate_y(byoffset),
             transistor:get_area_anchor("endrightgate").tr:translate_y(tyoffset)
         )
@@ -882,7 +882,7 @@ function layout(transistor, _P)
             point.create(gatetrx - i * gatepitch, gatetry)
         )
         geometry.rectanglebltr(transistor,
-            generics.other("floatinggatemarker"),
+            generics.marker("floatinggate"),
             point.create(gateblx - i * gatepitch, gatebly),
             point.create(gatetrx - i * gatepitch, gatetry)
         )
@@ -894,7 +894,7 @@ function layout(transistor, _P)
             point.create(gatetrx + (_P.fingers + i - 1) * gatepitch, gatetry)
         )
         geometry.rectanglebltr(transistor,
-            generics.other("floatinggatemarker"),
+            generics.marker("floatinggate"),
             point.create(gateblx + (_P.fingers + i - 1) * gatepitch, gatebly),
             point.create(gatetrx + (_P.fingers + i - 1) * gatepitch, gatetry)
         )
@@ -967,7 +967,7 @@ function layout(transistor, _P)
     -- rotation marker
     if _P.drawrotationmarker then
         geometry.rectanglebltr(transistor,
-            generics.other("rotationmarker"),
+            generics.marker("rotation"),
             point.create(-leftactauxext - _P.extendrotationmarkerleft, -_P.extendrotationmarkerbottom),
             point.create(activewidth + leftactext + rightactext + rightactauxext + _P.extendrotationmarkerright, _P.fingerwidth + _P.extendrotationmarkertop)
         )
@@ -1020,7 +1020,7 @@ function layout(transistor, _P)
     if _P.lvsmarkerincludeguardring then
         if _P.guardringrespectactivedummy then
             geometry.rectanglebltr(transistor,
-                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                generics.marker("lvs", _P.lvsmarker),
                 point.create(
                     -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace - _P.extendlvsmarkerleft,
                     -_P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace - _P.extendlvsmarkerbottom
@@ -1032,7 +1032,7 @@ function layout(transistor, _P)
             )
         else
             geometry.rectanglebltr(transistor,
-                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                generics.marker("lvs", _P.lvsmarker),
                 point.create(
                     -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.extendlvsmarkerleft,
                     -_P.guardringbottomsep - _P.guardringwidth - _P.extendlvsmarkerbottom
@@ -1046,7 +1046,7 @@ function layout(transistor, _P)
     else
         if _P.lvsmarkeralignwithactive then
             geometry.rectanglebltr(transistor,
-                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                generics.marker("lvs", _P.lvsmarker),
                 point.create(
                     -leftactauxext - _P.extendlvsmarkerleft,
                     -_P.extendlvsmarkerbottom
@@ -1058,7 +1058,7 @@ function layout(transistor, _P)
             )
         else
             geometry.rectanglebltr(transistor,
-                generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+                generics.marker("lvs", _P.lvsmarker),
                 point.create(
                     -leftactauxext - _P.extendlvsmarkerleft,
                     gatebly - _P.extendlvsmarkerbottom
@@ -1088,9 +1088,9 @@ function layout(transistor, _P)
     )
     if _P.drawwell then
         geometry.rectanglebltr(transistor,
-            generics.other(_P.flippedwell and
-                (_P.channeltype == "nmos" and "nwell" or "pwell") or
-                (_P.channeltype == "nmos" and "pwell" or "nwell")
+            generics.well(_P.flippedwell and
+                (_P.channeltype == "nmos" and "n" or "p") or
+                (_P.channeltype == "nmos" and "p" or "n")
             ),
             wellbl, welltr
         )

@@ -1081,7 +1081,7 @@ function layout(currentmirror, _P, env)
     end
 
     -- lvs marker for MOSFETs
-    geometry.rectanglebltr(half, generics.other(string.format("lvsmarker%d", 2)),
+    geometry.rectanglebltr(half, generics.marker("lvs", 2),
         nwellguardring:get_area_anchor("outerwell").bl,
         nwellguardring:get_area_anchor("outerwell").tr
     )
@@ -1592,5 +1592,5 @@ function layout(currentmirror, _P, env)
     currentmirror:add_port("iout", generics.metalport(_E.outeroutputmetal), currentmirror:get_area_anchor("rightoutput").bl, 1000)
     currentmirror:add_port("vdd1v8", generics.metalport(6), currentmirror:get_area_anchor("leftpowerline_1").br, 1000)
     currentmirror:add_port("vdd1v8", generics.metalport(6), currentmirror:get_area_anchor("rightpowerline_1").bl, 1000)
-    currentmirror:add_port("vss", generics.otherport("pwell"), point.create(0, 0), 1000)
+    currentmirror:add_port("vss", generics.well("p"), point.create(0, 0), 1000)
 end

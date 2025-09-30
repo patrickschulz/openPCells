@@ -34,26 +34,26 @@ function layout(gate, _P)
         end
         -- gates
         geometry.rectanglebltr(
-            gate, generics.other("gate"), 
+            gate, generics.gate(), 
             point.create(startx - shift - gl / 2, -height / 2),
             point.create(startx - shift + gl / 2,  height / 2)
         )
-        -- tuck gate marking
+        -- diffusionbreakgate marking
         if i == 1 then
             if _P.splitgates then
                 geometry.rectanglebltr(
-                    gate, generics.other("tuckgatemarker"), 
+                    gate, generics.feol("diffusionbreakgate"), 
                     point.create(startx - gl / 2, -(height / 2 + tp.cutheight / 2) / 2 - (height / 2 - tp.cutheight / 2) / 2),
                     point.create(startx + gl / 2,  (height / 2 + tp.cutheight / 2) / 2 + (height / 2 - tp.cutheight / 2) / 2)
                 )
                 geometry.rectanglebltr(
-                    gate, generics.other("tuckgatemarker"), 
+                    gate, generics.feol("diffusionbreakgate"), 
                     point.create(startx - gl / 2, -(height / 2 + tp.cutheight / 2) / 2 - (height / 2 - tp.cutheight / 2) / 2),
                     point.create(startx + gl / 2, -(height / 2 + tp.cutheight / 2) / 2 + (height / 2 - tp.cutheight / 2) / 2)
                 )
             else
                 geometry.rectanglebltr(
-                    gate, generics.other("tuckgatemarker"), 
+                    gate, generics.feol("diffusionbreakgate"), 
                     point.create(startx - gl / 2, -height / 2),
                     point.create(startx + gl / 2,  height / 2)
                 )
@@ -76,7 +76,7 @@ function layout(gate, _P)
     -- gate cuts
     if _P.splitgates then
         geometry.rectanglebltr(
-            gate, generics.other("gatecut"),
+            gate, generics.feol("gatecut"),
             gate:get_anchor("right"):translate(-(bp.gatelength + bp.gatespace), -tp.cutheight / 2),
             gate:get_anchor("right"):translate(0,  tp.cutheight / 2)
         )

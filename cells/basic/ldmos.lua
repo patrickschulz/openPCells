@@ -267,7 +267,7 @@ function layout(ldmos, _P)
 
     -- drain well
     for i = 1, _P.fingers / 2 do
-        geometry.rectanglebltr(ldmos, generics.other("nwell"),
+        geometry.rectanglebltr(ldmos, generics.well("n"),
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + _P.drainspace - _P.drainwellextendleftright,
                 -_P.drainwellextendtopbottom
@@ -281,7 +281,7 @@ function layout(ldmos, _P)
 
     -- soi open
     if not _P.drawinnerguardring then
-        geometry.rectanglebltr(ldmos, generics.other("soiopen"),
+        geometry.rectanglebltr(ldmos, generics.feol("soiopen"),
             point.create(
                 - _P.extendsoiopenleft + _P.sourcewidth,
                 - _P.gatestrapspace - _P.gatestrapwidth - _P.gbotext - _P.extendsoiopenbottom
@@ -295,7 +295,7 @@ function layout(ldmos, _P)
 
     -- substrate doping blocker
     for i = 1, _P.fingers / 2 do
-        geometry.rectanglebltr(ldmos, generics.other("subblock"),
+        geometry.rectanglebltr(ldmos, generics.feol("subblock"),
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace - _P.subblocksourceextension,
                 -_P.subblockbottomextension
@@ -305,7 +305,7 @@ function layout(ldmos, _P)
                 _P.fingerwidth + _P.subblocktopextension
             )
         )
-        geometry.rectanglebltr(ldmos, generics.other("subblock"),
+        geometry.rectanglebltr(ldmos, generics.feol("subblock"),
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace - _P.subblockdrainextension + _P.gatelength + 2 * _P.drainspace + _P.drainwidth,
                 -_P.subblockbottomextension

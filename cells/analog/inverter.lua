@@ -567,7 +567,7 @@ function layout(inverter, _P)
         )
         firstguardring:translate(-_P.guardringspace, -_P.guardringspace)
         inverter:merge_into(firstguardring)
-        geometry.rectanglebltr(inverter, generics.other("nwell"),
+        geometry.rectanglebltr(inverter, generics.well("n"),
             firstguardring:get_area_anchor("outerwell").bl,
             point.create(
                 firstguardring:get_area_anchor("outerwell").r,

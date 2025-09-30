@@ -8,8 +8,8 @@ function parameters()
 end
 
 function layout(diode, _P)
-    geometry.rectangle(diode, generics.other("active"), _P.width, _P.height)
+    geometry.rectangle(diode, generics.active(), _P.width, _P.height)
     geometry.rectangle(diode, generics.contact("active"), _P.width, _P.height)
-    geometry.rectangle(diode, generics.other("soiopen"), _P.width + 2 * _P.extension, _P.height + 2 * _P.extension)
+    geometry.rectangle(diode, generics.feol("soiopen"), _P.width + 2 * _P.extension, _P.height + 2 * _P.extension)
     --geometry.rectangle(diode, generics.diode(_P.diodetype), _P.width + 2 * _P.extension, _P.height + 2 * _P.extension)
 end

@@ -364,11 +364,11 @@ function layout(decap, _P)
     if _P.drawmoscap then
         -- fill excludes
         if _P.drawfillexcludes then
-            geometry.rectanglebltr(decap, generics.other("activeexclude"),
+            geometry.rectanglebltr(decap, generics.exclude("active"),
                 point.create(-_P.cellsize / 2, -_P.cellsize / 2),
                 point.create( _P.cellsize / 2,  _P.cellsize / 2)
             )
-            geometry.rectanglebltr(decap, generics.other("gateexclude"),
+            geometry.rectanglebltr(decap, generics.exclude("gate"),
                 point.create(-_P.cellsize / 2, -_P.cellsize / 2),
                 point.create( _P.cellsize / 2,  _P.cellsize / 2)
             )

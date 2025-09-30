@@ -53,7 +53,7 @@ function layout(pad, _P)
         pad:get_area_anchor("boundary").bl,
         pad:get_area_anchor("boundary").tr
     )
-    geometry.rectanglebltr(pad, generics.other("padopening"),
+    geometry.rectanglebltr(pad, generics.beol("padopening"),
         pad:get_area_anchor("padopeningboundary").bl,
         pad:get_area_anchor("padopeningboundary").tr
     )

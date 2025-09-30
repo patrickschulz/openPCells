@@ -20,19 +20,19 @@ function layout(cell, _P)
         local xshift = _P.innerareawidth / 2
         local yshift = _P.innerareaheight / 2
         for i = 1, numsegments do
-            geometry.rectanglebltr(cell, generics.other("deeptrenchisolation"),
+            geometry.rectanglebltr(cell, generics.feol("deeptrenchisolation"),
                 point.create(-xshift - _P.ringwidths[i], -maxheight / 2),
                 point.create(-xshift, maxheight / 2)
             )
-            geometry.rectanglebltr(cell, generics.other("deeptrenchisolation"),
+            geometry.rectanglebltr(cell, generics.feol("deeptrenchisolation"),
                 point.create(xshift, -maxheight / 2),
                 point.create(xshift + _P.ringwidths[i], maxheight / 2)
             )
-            geometry.rectanglebltr(cell, generics.other("deeptrenchisolation"),
+            geometry.rectanglebltr(cell, generics.feol("deeptrenchisolation"),
                 point.create(-maxwidth / 2, -yshift - _P.ringwidths[i]),
                 point.create(maxwidth / 2, -yshift)
             )
-            geometry.rectanglebltr(cell, generics.other("deeptrenchisolation"),
+            geometry.rectanglebltr(cell, generics.feol("deeptrenchisolation"),
                 point.create(-maxwidth / 2, yshift),
                 point.create(maxwidth / 2, yshift + _P.ringwidths[i])
             )
@@ -42,7 +42,7 @@ function layout(cell, _P)
     else -- true rings
         local shift = 2 * _P.ringwidths[1]
         for i = 1, numsegments do
-            geometry.ring(cell, generics.other("deeptrenchisolation"),
+            geometry.ring(cell, generics.feol("deeptrenchisolation"),
                 point.create(0, 0),
                 _P.innerareawidth + shift, _P.innerareaheight + shift,
                 _P.ringwidths[i]

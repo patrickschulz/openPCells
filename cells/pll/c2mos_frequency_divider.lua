@@ -1066,7 +1066,7 @@ function layout(divider, _P)
                 contype = "n",
             }
         )
-        geometry.rectanglebltr(latch, generics.other("nwell"),
+        geometry.rectanglebltr(latch, generics.well("n"),
             point.create(
                 latch:get_area_anchor("left_nmos_welltap_well").l,
                 latch:get_area_anchor("nmos_well").b
@@ -1088,7 +1088,7 @@ function layout(divider, _P)
                 extendwellleft = _P.welltapwellextension,
             }
         )
-        geometry.rectanglebltr(latch, generics.other("pwell"),
+        geometry.rectanglebltr(latch, generics.well("p"),
             point.create(
                 latch:get_area_anchor("left_pmos_welltap_well").l,
                 latch:get_area_anchor("pmos_well").b
@@ -1098,7 +1098,7 @@ function layout(divider, _P)
                 latch:get_area_anchor("pmos_well").t
             )
         )
-        geometry.rectanglebltr(latch, generics.other("pimplant"),
+        geometry.rectanglebltr(latch, generics.implant("p"),
             point.create(
                 latch:get_area_anchor("left_pmos_welltap_implant").l,
                 latch:get_area_anchor("pmos_implant").b
@@ -1150,7 +1150,7 @@ function layout(divider, _P)
                 contype = "n",
             }
         )
-        geometry.rectanglebltr(latch, generics.other("nwell"),
+        geometry.rectanglebltr(latch, generics.well("n"),
             point.create(
                 latch:get_area_anchor("nmos_well").l,
                 latch:get_area_anchor("nmos_well").b
@@ -1172,7 +1172,7 @@ function layout(divider, _P)
                 extendwellright = _P.welltapwellextension,
             }
         )
-        geometry.rectanglebltr(latch, generics.other("pwell"),
+        geometry.rectanglebltr(latch, generics.well("p"),
             point.create(
                 latch:get_area_anchor("pmos_well").r,
                 latch:get_area_anchor("pmos_well").b
@@ -1182,7 +1182,7 @@ function layout(divider, _P)
                 latch:get_area_anchor("right_pmos_welltap_well").t
             )
         )
-        geometry.rectanglebltr(latch, generics.other("pimplant"),
+        geometry.rectanglebltr(latch, generics.implant("p"),
             point.create(
                 latch:get_area_anchor("pmos_implant").r,
                 latch:get_area_anchor("pmos_implant").b
@@ -1796,7 +1796,7 @@ function layout(divider, _P)
                 contype = "n",
             }
         )
-        geometry.rectanglebltr(bufferref, generics.other("nwell"),
+        geometry.rectanglebltr(bufferref, generics.well("n"),
             point.create(
                 bufferref:get_area_anchor("left_nmos_welltap_well").l,
                 bufferref:get_area_anchor("nmos_well").b
@@ -1818,7 +1818,7 @@ function layout(divider, _P)
                 extendwellleft = _P.welltapwellextension,
             }
         )
-        geometry.rectanglebltr(bufferref, generics.other("pwell"),
+        geometry.rectanglebltr(bufferref, generics.well("p"),
             point.create(
                 bufferref:get_area_anchor("left_pmos_welltap_well").l,
                 bufferref:get_area_anchor("pmos_well").b
@@ -1828,7 +1828,7 @@ function layout(divider, _P)
                 bufferref:get_area_anchor("pmos_well").t
             )
         )
-        geometry.rectanglebltr(bufferref, generics.other("pimplant"),
+        geometry.rectanglebltr(bufferref, generics.implant("p"),
             point.create(
                 bufferref:get_area_anchor("left_pmos_welltap_implant").l,
                 bufferref:get_area_anchor("pmos_implant").b
@@ -1880,7 +1880,7 @@ function layout(divider, _P)
                 contype = "n",
             }
         )
-        geometry.rectanglebltr(bufferref, generics.other("nwell"),
+        geometry.rectanglebltr(bufferref, generics.well("n"),
             point.create(
                 bufferref:get_area_anchor("nmos_well").l,
                 bufferref:get_area_anchor("nmos_well").b
@@ -1902,7 +1902,7 @@ function layout(divider, _P)
                 extendwellright = _P.welltapwellextension,
             }
         )
-        geometry.rectanglebltr(bufferref, generics.other("pwell"),
+        geometry.rectanglebltr(bufferref, generics.well("p"),
             point.create(
                 bufferref:get_area_anchor("pmos_well").r,
                 bufferref:get_area_anchor("pmos_well").b
@@ -1912,7 +1912,7 @@ function layout(divider, _P)
                 bufferref:get_area_anchor("pmos_well").t
             )
         )
-        geometry.rectanglebltr(bufferref, generics.other("pimplant"),
+        geometry.rectanglebltr(bufferref, generics.implant("p"),
             point.create(
                 bufferref:get_area_anchor("pmos_implant").r,
                 bufferref:get_area_anchor("pmos_implant").b

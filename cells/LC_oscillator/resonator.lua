@@ -242,29 +242,29 @@ function layout(resonator, _P)
         local fillwidth = boundarywidth - 2 * _P.activefillouteroffset
         if _P.placeresonator then
             local activefillcell = object.create("resonator_activefillcell")
-            geometry.rectanglebltr(activefillcell, generics.other("activefill"),
+            geometry.rectanglebltr(activefillcell, generics.fill("active"),
                 point.create(-_P.activexspace / 2 - _P.activewidth, _P.activeyspace / 2                  ),
                 point.create(-_P.activexspace / 2                 , _P.activeyspace / 2 + _P.activeheight)
             )
-            geometry.rectanglebltr(activefillcell, generics.other("polyfill"),
+            geometry.rectanglebltr(activefillcell, generics.fill("poly"),
                 point.create( _P.activexspace / 2                 , _P.activeyspace / 2                  ),
                 point.create( _P.activexspace / 2 + _P.activewidth, _P.activeyspace / 2 + _P.activeheight)
             )
-            geometry.rectanglebltr(activefillcell, generics.other("activefill"),
+            geometry.rectanglebltr(activefillcell, generics.fill("active"),
                 point.create(-_P.activexspace / 2 - _P.activewidth, -_P.activeyspace / 2 - _P.activeheight),
                 point.create(-_P.activexspace / 2                 , -_P.activeyspace / 2                  )
             )
-            geometry.rectanglebltr(activefillcell, generics.other("polyfill"),
+            geometry.rectanglebltr(activefillcell, generics.fill("poly"),
                 point.create( _P.activexspace / 2                 , -_P.activeyspace / 2 - _P.activeheight),
                 point.create( _P.activexspace / 2 + _P.activewidth, -_P.activeyspace / 2                  )
             )
             geometry.rectanglebltr(activefillcell,
-                generics.other("pimplantfill"),
+                generics.fill("pimplant"),
                 point.create(-(_P.activewidth + _P.activexspace), -_P.activeheight - _P.activeyspace),
                 point.create( (_P.activewidth + _P.activexspace),  0)
             )
             geometry.rectanglebltr(activefillcell,
-                generics.other("nimplantfill"),
+                generics.fill("nimplant"),
                 point.create(-(_P.activewidth + _P.activexspace), 0),
                 point.create( (_P.activewidth + _P.activexspace), _P.activeheight + _P.activeyspace)
             )
@@ -284,11 +284,11 @@ function layout(resonator, _P)
         end
         -- fill excludes
         if _P.drawfillexcludes then
-            geometry.rectanglebltr(resonator, generics.other("activeexclude"),
+            geometry.rectanglebltr(resonator, generics.exclude("active"),
                 point.create(-boundarywidth / 2, -boundarywidth / 2),
                 point.create(boundarywidth / 2, boundarywidth / 2)
             )
-            geometry.rectanglebltr(resonator, generics.other("gateexclude"),
+            geometry.rectanglebltr(resonator, generics.exclude("gate"),
                 point.create(-boundarywidth / 2, -boundarywidth / 2),
                 point.create(boundarywidth / 2, boundarywidth / 2)
             )

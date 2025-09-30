@@ -59,6 +59,7 @@ void technology_ignore_missing_exports(struct technology_state* techstate);
 struct generics* technology_get_layer(struct technology_state* state, const char* layername);
 int technology_resolve_metal(const struct technology_state* state, int metalnum);
 int technology_has_multiple_patterning(const struct technology_state* state, int metalnum);
+int technology_has_feature(const struct technology_state* techstate, const char* feature);
 
 // vias
 struct via_definition** technology_get_via_definitions(struct technology_state* state, int lowermetal);
@@ -98,11 +99,15 @@ const struct generics* generics_create_viacut(struct technology_state* techstate
 const struct generics* generics_create_contact(struct technology_state* techstate, const char* region);
 const struct generics* generics_create_oxide(struct technology_state* techstate, int num);
 const struct generics* generics_create_implant(struct technology_state* techstate, char polarity);
-const struct generics* generics_create_well(struct technology_state* techstate, char polarity);
+const struct generics* generics_create_well(struct technology_state* techstate, char polarity, const char* mode);
 const struct generics* generics_create_vthtype(struct technology_state* techstate, char channeltype, int vthtype);
 const struct generics* generics_create_active(struct technology_state* techstate);
 const struct generics* generics_create_gate(struct technology_state* techstate);
-const struct generics* generics_create_marker(struct technology_state* techstate, const char* str);
+const struct generics* generics_create_feol(struct technology_state* techstate, const char* layername);
+const struct generics* generics_create_beol(struct technology_state* techstate, const char* layername);
+const struct generics* generics_create_marker(struct technology_state* techstate, const char* str, int level);
+const struct generics* generics_create_exclude(struct technology_state* techstate, const char* str);
+const struct generics* generics_create_fill(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_other(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_otherport(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_outline(struct technology_state* techstate);

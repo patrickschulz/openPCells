@@ -35,7 +35,7 @@ end
 
 function layout(bjt, _P)
     -- emitter
-    geometry.rectanglebltr(bjt, generics.other("active"),
+    geometry.rectanglebltr(bjt, generics.active(),
         point.create(0, 0),
         point.create(_P.emitterwidth, _P.emitterheight)
     )
@@ -44,7 +44,7 @@ function layout(bjt, _P)
             point.create(-_P.basegap / 2, -_P.basegap / 2),
             point.create(_P.emitterwidth + _P.basegap / 2, _P.emitterheight + _P.basegap / 2)
         )
-        geometry.rectanglebltr(bjt, generics.other("pwell"),
+        geometry.rectanglebltr(bjt, generics.well("p"),
             point.create(-_P.basegap / 2, -_P.basegap / 2),
             point.create(_P.emitterwidth + _P.basegap / 2, _P.emitterheight + _P.basegap / 2)
         )
@@ -53,7 +53,7 @@ function layout(bjt, _P)
             point.create(-_P.basegap / 2, -_P.basegap / 2),
             point.create(_P.emitterwidth + _P.basegap / 2, _P.emitterheight + _P.basegap / 2)
         )
-        geometry.rectanglebltr(bjt, generics.other("nwell"),
+        geometry.rectanglebltr(bjt, generics.well("n"),
             point.create(-_P.basegap / 2, -_P.basegap / 2),
             point.create(_P.emitterwidth + _P.basegap / 2, _P.emitterheight + _P.basegap / 2)
         )
@@ -84,7 +84,7 @@ function layout(bjt, _P)
     )
 
     -- base
-    geometry.unequal_ring_pts(bjt, generics.other("active"),
+    geometry.unequal_ring_pts(bjt, generics.active(),
         point.create(
             -_P.basegap - _P.basewidth,
             -_P.basegap - _P.basewidth
@@ -139,7 +139,7 @@ function layout(bjt, _P)
                 _P.emitterheight + _P.basegap - _P.basegap / 2
             )
         )
-        geometry.unequal_ring_pts(bjt, generics.other("pwell"),
+        geometry.unequal_ring_pts(bjt, generics.well("p"),
             point.create(
                 -_P.basegap - _P.basewidth - _P.collectorgap / 2,
                 -_P.basegap - _P.basewidth - _P.collectorgap / 2
@@ -176,7 +176,7 @@ function layout(bjt, _P)
                 _P.emitterheight + _P.basegap - _P.basegap / 2
             )
         )
-        geometry.unequal_ring_pts(bjt, generics.other("nwell"),
+        geometry.unequal_ring_pts(bjt, generics.well("n"),
             point.create(
                 -_P.basegap - _P.basewidth - _P.collectorgap / 2,
                 -_P.basegap - _P.basewidth - _P.collectorgap / 2
@@ -343,7 +343,7 @@ function layout(bjt, _P)
     )
 
     -- colletor
-    geometry.unequal_ring_pts(bjt, generics.other("active"),
+    geometry.unequal_ring_pts(bjt, generics.active(),
         point.create(
             -_P.basegap - _P.basewidth - _P.collectorgap - _P.collectorwidth,
             -_P.basegap - _P.basewidth - _P.collectorgap - _P.collectorwidth
@@ -380,7 +380,7 @@ function layout(bjt, _P)
                 _P.emitterheight + _P.basegap + _P.basewidth + _P.collectorgap - _P.collectorgap / 2
             )
         )
-        geometry.unequal_ring_pts(bjt, generics.other("nwell"),
+        geometry.unequal_ring_pts(bjt, generics.well("n"),
             point.create(
                 -_P.basegap - _P.basewidth - _P.collectorgap - _P.collectorwidth - _P.collectorwellextension,
                 -_P.basegap - _P.basewidth - _P.collectorgap - _P.collectorwidth - _P.collectorwellextension
@@ -417,7 +417,7 @@ function layout(bjt, _P)
                 _P.emitterheight + _P.basegap + _P.basewidth + _P.collectorgap - _P.collectorgap / 2
             )
         )
-        geometry.unequal_ring_pts(bjt, generics.other("pwell"),
+        geometry.unequal_ring_pts(bjt, generics.well("p"),
             point.create(
                 -_P.basegap - _P.basewidth - _P.collectorgap - _P.collectorwidth,
                 -_P.basegap - _P.basewidth - _P.collectorgap - _P.collectorwidth
@@ -602,7 +602,7 @@ function layout(bjt, _P)
     )
 
     -- soiopen
-    geometry.rectanglebltr(bjt, generics.other("soiopen"),
+    geometry.rectanglebltr(bjt, generics.feol("soiopen"),
         point.create(
             -_P.basegap - _P.basewidth - _P.collectorgap - _P.collectorwidth - _P.soiopen_xextension,
             -_P.basegap - _P.basewidth - _P.collectorgap - _P.collectorwidth - _P.soiopen_yextension
@@ -635,7 +635,7 @@ function layout(bjt, _P)
 
     --[[
     -- lvs marker
-    geometry.rectanglebltr(bjt, generics.other("bjtlvsmarker"),
+    geometry.rectanglebltr(bjt, generics.marker("bjt"),
         point.create(
             -_P.basegap - _P.basewidth - _P.collectorgap - _P.collectorwidth - _P.lvsmarker_xextension,
             -_P.basegap - _P.basewidth - _P.collectorgap - _P.collectorwidth - _P.lvsmarker_yextension

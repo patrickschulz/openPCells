@@ -336,7 +336,7 @@ function layout(ccp, _P)
     )
 
     -- lvs device marker
-    geometry.rectanglebltr(ccp, generics.other("lvsmarker2"),
+    geometry.rectanglebltr(ccp, generics.marker("lvsmarker", 2),
         ccp:get_area_anchor("nwellguardring_outerboundary").bl,
         ccp:get_area_anchor("nwellguardring_outerboundary").tr
     )
@@ -365,13 +365,13 @@ function layout(ccp, _P)
                 fit = true,
             }
         )
-        geometry.unequal_ring_pts(ccp, generics.other("nimplant"),
+        geometry.unequal_ring_pts(ccp, generics.implant("n"),
             ccp:get_area_anchor("psubguardring_innerimplant").bl,
             ccp:get_area_anchor("psubguardring_innerimplant").tr,
             ccp:get_area_anchor("nwellguardring_outerimplant").bl,
             ccp:get_area_anchor("nwellguardring_outerimplant").tr
         )
-        geometry.unequal_ring_pts(ccp, generics.other("soiopen"),
+        geometry.unequal_ring_pts(ccp, generics.feol("soiopen"),
             ccp:get_area_anchor("psubguardring_innerimplant").bl,
             ccp:get_area_anchor("psubguardring_innerimplant").tr,
             ccp:get_area_anchor("nwellguardring_outerimplant").bl,

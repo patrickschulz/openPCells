@@ -16,7 +16,7 @@ function parameters()
         { "markercoverall", true },
         { "markextension", 200 },
         { "drawwell", false },
-        { "welltype", "nwell", posvals = set("nwell", "pwell") },
+        { "welltype", "n", posvals = set("n", "p") },
         { "extendimplantx", 0 },
         { "extendimplanty", 0 },
         { "extendwellx", 0 },
@@ -43,14 +43,14 @@ function layout(resistor, _P)
             for y = 1, _P.nyfingers do
                 local yshift = (y - 1) * (_P.length + 2 * _P.extension + 2 * _P.contactheight + _P.yspace)
                 geometry.rectanglebltr(
-                    resistor, generics.other("gate"),
+                    resistor, generics.gate(),
                     point.create((x - 1) * (_P.width + _P.xspace), yshift),
                     point.create((x - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.length + 2 * _P.extension + 2 * _P.contactheight)
                 )
             end
         else
             geometry.rectanglebltr(
-                resistor, generics.other("gate"),
+                resistor, generics.gate(),
                 point.create((x - 1) * (_P.width + _P.xspace), 0),
                 point.create((x - 1) * (_P.width + _P.xspace) + _P.width, polyheight)
             )
@@ -172,7 +172,7 @@ function layout(resistor, _P)
     if _P.markercoverall then
         for y = 1, _P.nyfingers do
             local yshift = (y - 1) * (_P.length + _P.contactheight + 2 * _P.extension + 2 * _P.yspace) + _P.contactheight + _P.extension
-            geometry.rectanglebltr(resistor, generics.other("silicideblocker"),
+            geometry.rectanglebltr(resistor, generics.feol("silicideblocker"),
                 point.create(_P.nonresdummies * (_P.width + _P.xspace) - _P.markextension, _P.extraextension + yshift),
                 point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + _P.nonresdummies) * (_P.width + _P.xspace) - _P.xspace + _P.markextension, _P.extraextension + yshift + _P.length)
             )
@@ -181,7 +181,7 @@ function layout(resistor, _P)
         for x = 1, _P.nxfingers + _P.leftdummies + _P.rightdummies do
             local xshift = (x + _P.nonresdummies - 1) * (_P.width + _P.xspace)
             for y = 1, _P.nyfingers do
-                geometry.rectanglebltr(resistor, generics.other("silicideblocker"),
+                geometry.rectanglebltr(resistor, generics.feol("silicideblocker"),
                     point.create(xshift - _P.markextension, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace)),
                     point.create(xshift + _P.width + _P.markextension, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace) + _P.length)
                 )
@@ -189,25 +189,25 @@ function layout(resistor, _P)
         end
     end
     -- implant
-    geometry.rectanglebltr(resistor, generics.other("nimplant"),
+    geometry.rectanglebltr(resistor, generics.implant("n"),
         point.create((1 - 1) * (_P.width + _P.xspace) - _P.extendimplantx, -_P.extendimplanty),
         point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendimplantx, polyheight + _P.extendimplanty)
     )
     -- well
     if _P.drawwell then
-        geometry.rectanglebltr(resistor, generics.other(_P.welltype),
+        geometry.rectanglebltr(resistor, generics.well(_P.welltype),
             point.create((1 - 1) * (_P.width + _P.xspace) - _P.extendwellx, -_P.extendwelly),
             point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendwellx, polyheight + _P.extendwelly)
         )
     end
     -- LVS marker layer
-    geometry.rectanglebltr(resistor, generics.other(string.format("polyresistorlvsmarker%d", _P.resistortype)),
+    geometry.rectanglebltr(resistor, generics.marker("polyresistorlvs", _P.resistortype),
         point.create((1 + _P.nonresdummies - 1) * (_P.width + _P.xspace) - _P.extendlvsmarkerx, -_P.extendlvsmarkery),
         point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendlvsmarkerx, polyheight + _P.extendlvsmarkery)
     )
     -- LVS marker layer
     if _P.drawrotationmarker then
-        geometry.rectanglebltr(resistor, generics.other("rotationmarker"),
+        geometry.rectanglebltr(resistor, generics.marker("rotation"),
             point.create((1 - 1) * (_P.width + _P.xspace) - _P.extendlvsmarkerx, -_P.extendlvsmarkery),
             point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendlvsmarkerx, polyheight + _P.extendlvsmarkery)
         )

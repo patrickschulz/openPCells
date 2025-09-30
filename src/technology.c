@@ -29,6 +29,7 @@ struct mpentry { // entry for multiple patterning
 struct technology_config {
     unsigned int metals;
     unsigned int grid;
+    int has_gatecut;
     int allow_poly_routing;
     struct vector* multiple_patterning_metals; // stores struct mpentry*
 };
@@ -482,6 +483,17 @@ static int _load_config(struct technology_state* techstate, const char* name, co
     }
     techstate->config->allow_poly_routing = lua_toboolean(L, -1);
     lua_pop(L, 1); // pop allow_poly_routing
+                   //
+    // has gatecut
+    lua_getfield(L, -1, "has_gatecut");
+    if(lua_isnil(L, -1))
+    {
+        *errmsg = "technology configuration file does not contain info about the gate cut layer ('has_gatecut' entry)";
+        lua_close(L);
+        return 0;
+    }
+    techstate->config->has_gatecut = lua_toboolean(L, -1);
+    lua_pop(L, 1); // pop has_gatecut
 
     lua_close(L);
     return 1;
@@ -586,6 +598,7 @@ static void _write_config(const struct technology_state* techstate, const char* 
     fprintf(file, "    metals = %u,\n", techstate->config->metals);
     fprintf(file, "    grid = %u,\n", techstate->config->grid);
     fprintf(file, "    allow_poly_routing = %s,\n", techstate->config->allow_poly_routing ? "true" : "false");
+    fprintf(file, "    has_gatecut = %s,\n", techstate->config->has_gatecut ? "true" : "false");
     fputs("}\n", file);
     fclose(file);
     free(path);
@@ -1103,6 +1116,22 @@ int technology_multiple_patterning_number(const struct technology_state* techsta
     return number;
 }
 
+int technology_has_feature(const struct technology_state* techstate, const char* feature)
+{
+    if(strcmp(feature, "has_gatecut") == 0)
+    {
+        return techstate->config->has_gatecut;
+    }
+    else if(strcmp(feature, "allow_poly_routing") == 0)
+    {
+        return techstate->config->allow_poly_routing;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
 static int _resolve_layer(struct generics* layer, const char* exportname, int ignoremissing)
 {
     int found = 0;
@@ -1401,9 +1430,9 @@ static int ltechnology_get_optional_dimension(lua_State* L)
     return 1;
 }
 
-static int ltechnology_get_option(lua_State* L)
+static int ltechnology_has_feature(lua_State* L)
 {
-    const char* option = lua_tostring(L, 1);
+    const char* feature = luaL_checkstring(L, 1);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
@@ -1414,16 +1443,10 @@ static int ltechnology_get_option(lua_State* L)
     }
     else
     {
-        int found = 0;
-        int value;
-        if(strcmp(option, "Allow Poly Routing") == 0)
+        int value = technology_has_feature(techstate, feature);
+        if(value == -1)
         {
-            value = techstate->config->allow_poly_routing;
-            found = 1;
-        }
-        if(!found)
-        {
-            lua_pushfstring(L, "technology.get_option: tried to look up '%s', but this option was not found", option);
+            lua_pushfstring(L, "technology.has_feature: tried to look up feature '%s', but this is not a known technology feature", feature);
             lua_error(L);
             return 0; // this is not reached, but keeps the compiler happy
         }
@@ -1491,7 +1514,7 @@ int open_ltechnology_lib(lua_State* L)
         { "get_dimension",                  ltechnology_get_dimension               },
         { "get_dimension_max",              ltechnology_get_dimension_max           },
         { "get_optional_dimension",         ltechnology_get_optional_dimension      },
-        { "get_option",                     ltechnology_get_option                  },
+        { "has_feature",                    ltechnology_has_feature                 },
         { "has_metal",                      ltechnology_has_metal                   },
         { "has_layer",                      ltechnology_has_layer                   },
         { "resolve_metal",                  ltechnology_resolve_metal               },
@@ -1698,10 +1721,17 @@ const struct generics* generics_create_implant(struct technology_state* techstat
     return layer;
 }
 
-const struct generics* generics_create_well(struct technology_state* techstate, char polarity)
+const struct generics* generics_create_well(struct technology_state* techstate, char polarity, const char* mode)
 {
-    char layername[] = "xwell";
-    layername[0] = polarity;
+    char layername[] = "nnnnxwell"; // can be [deep][n|p]well
+    if(mode && strcmp(mode, "deep") == 0)
+    {
+        sprintf(layername, "deep%cwell", polarity);
+    }
+    else
+    {
+        sprintf(layername, "%cwell", polarity);
+    }
     const struct generics* layer = _get_or_create_layer(techstate, layername);
     return layer;
 }
@@ -1728,11 +1758,55 @@ const struct generics* generics_create_gate(struct technology_state* techstate)
     return layer;
 }
 
-const struct generics* generics_create_marker(struct technology_state* techstate, const char* what)
+const struct generics* generics_create_feol(struct technology_state* techstate, const char* layername)
 {
-    size_t len = 6 + strlen(what); // marker + %s
-    char* layername = malloc(len + 1);
-    snprintf(layername, len + 1, "%smarker", what);
+    const struct generics* layer = _get_or_create_layer(techstate, layername);
+    return layer;
+}
+
+const struct generics* generics_create_beol(struct technology_state* techstate, const char* layername)
+{
+    const struct generics* layer = _get_or_create_layer(techstate, layername);
+    return layer;
+}
+
+const struct generics* generics_create_marker(struct technology_state* techstate, const char* what, int level)
+{
+    char* layername;
+    if(level > 0)
+    {
+        size_t len = 6 + strlen(what) + util_num_digits(level); // marker + %s + %d
+        layername = malloc(len + 1);
+        snprintf(layername, len + 1, "%smarker%d", what, level);
+    }
+    else
+    {
+        size_t len = 6 + strlen(what); // marker + %s
+        layername = malloc(len + 1);
+        snprintf(layername, len + 1, "%smarker", what);
+    }
+    const struct generics* layer = _get_or_create_layer(techstate, layername);
+    free(layername);
+    return layer;
+}
+
+const struct generics* generics_create_exclude(struct technology_state* techstate, const char* what)
+{
+    char* layername;
+    size_t len = 7 + strlen(what); // exclude + %s
+    layername = malloc(len + 1);
+    snprintf(layername, len + 1, "%sexclude", what);
+    const struct generics* layer = _get_or_create_layer(techstate, layername);
+    free(layername);
+    return layer;
+}
+
+const struct generics* generics_create_fill(struct technology_state* techstate, const char* what)
+{
+    char* layername;
+    size_t len = 4 + strlen(what); // fill + %s
+    layername = malloc(len + 1);
+    snprintf(layername, len + 1, "%sfill", what);
     const struct generics* layer = _get_or_create_layer(techstate, layername);
     free(layername);
     return layer;

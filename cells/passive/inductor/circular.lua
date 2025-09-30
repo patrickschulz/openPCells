@@ -122,11 +122,11 @@ function layout(inductor, _P)
 
     -- lvs resistor
     if _P.drawlvsresistor then
-        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.topmetal))),
+        geometry.rectanglebltr(inductor, generics.marker(string.format("M%dlvsresistor", technology.resolve_metal(_P.topmetal))),
             inductor:get_area_anchor("leftline").bl,
             inductor:get_area_anchor("leftline").br:translate_y(_P.lvsreswidth)
         )
-        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.topmetal))),
+        geometry.rectanglebltr(inductor, generics.marker(string.format("M%dlvsresistor", technology.resolve_metal(_P.topmetal))),
             inductor:get_area_anchor("rightline").bl,
             inductor:get_area_anchor("rightline").br:translate_y(_P.lvsreswidth)
         )
@@ -134,7 +134,7 @@ function layout(inductor, _P)
 
     -- inductor marker
     if _P.drawinductormarker then
-        geometry.rectanglebltr(inductor, generics.other("inductormarker"),
+        geometry.rectanglebltr(inductor, generics.marker("inductor"),
             point.create(-_P.radius - _P.width / 2 - _P.inductormarkerextension, -_P.radius - _P.width / 2 - _P.inductormarkerextension),
             point.create( _P.radius + _P.width / 2 + _P.inductormarkerextension,  _P.radius + _P.width / 2 + _P.inductormarkerextension)
         )
@@ -150,7 +150,7 @@ function layout(inductor, _P)
 
     -- low substrat doping marker
     if _P.drawlowsubstratedopingmarker then
-        geometry.rectanglebltr(inductor, generics.other("subblock"),
+        geometry.rectanglebltr(inductor, generics.feol("subblock"),
             point.create(-_P.radius - _P.width / 2 - _P.dopingmarkerextension, -_P.radius - _P.width / 2 - _P.dopingmarkerextension),
             point.create( _P.radius + _P.width / 2 + _P.dopingmarkerextension,  _P.radius + _P.width / 2 + _P.dopingmarkerextension)
         )

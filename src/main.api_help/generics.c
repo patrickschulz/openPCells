@@ -56,6 +56,21 @@
     ));
 }
 
+/* generics.well */
+{
+    struct parameter parameters[] = {
+        { "polarity", STRING, NULL, "identifier for the type (polarity) of the well. Can be \"n\" or \"p\"" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "well",
+        MODULE_GENERICS,
+        "Create a generic layer representing a well",
+        "generics.well(\"n\")",
+        parameters
+    ));
+}
+
 /* generics.metal */
 {
     struct parameter parameters[] = {
@@ -144,6 +159,22 @@
         MODULE_GENERICS,
         "create a generic layer representing a metal fill shape with multiple-patterning information. Some technologies have special layer for metal fillings, but technology files can also map these to the same layers as generics.metal(). Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc. The mask information is a numeric indix starting at 1. The number of available masks for the respective metal can be querid by technology.multiple_patterning_number(metalnumber). If a metal is a mpt metal can be queried by technology.has_multiple_patterning(metalnumber)",
         "generics.mptmetal(1, 1)\ngenerics.mptmetal(1, 2)",
+        parameters
+    ));
+}
+
+/* generics.marker */
+{
+    struct parameter parameters[] = {
+        { "type",   STRING,   NULL, "type of the marker (e.g. a generic lvs marker or an inductor marker)" },
+        { "level",  INTEGER,  "0",  "optional level of the marker. If not present, this marker is considered to have no level (for instance, there might only be one marker for inductors)." },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "marker",
+        MODULE_GENERICS,
+        "Create a generic layer representing any marker (a non-physical layer)",
+        "generics.marker(\"inductor\")\ngenerics.marker(\"lvs\", 2)",
         parameters
     ));
 }

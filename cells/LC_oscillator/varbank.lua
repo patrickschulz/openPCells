@@ -558,7 +558,7 @@ function layout(varbank, _P)
     if _E.placesubstractlabel then
         varbank:add_port(
             "sx",
-            generics.otherport("pwell"),
+            generics.well("p"),
             point.create(
                 (varbank:get_area_anchor("psubguardring_outerboundary").l + varbank:get_area_anchor("psubguardring_outerboundary").r) / 2,
                 varbank:get_area_anchor("psubguardring_outerboundary").b - 1000

@@ -22,9 +22,9 @@ WARNFLAGS=-Wall -Wextra -pedantic -Werror=pedantic -pedantic-errors
 COMMONFLAGS=-pthread
 
 # Optimization
-#OPTFLAGS=-O3
+OPTFLAGS=-O3
 # for final program, takes longer to compile
-OPTFLAGS=-O3 -flto -fwhole-program
+#OPTFLAGS=-O3 -flto -fwhole-program
 
 # Code analyzer
 #ANALYZEFLAGS= -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined
@@ -87,15 +87,15 @@ opc.1: cmdoptions_def.c generate_manpage
 generate_manpage: cmdoptions.h cmdoptions.c generate_manpage.c
 	$(CC) $(CFLAGS) generate_manpage.c cmdoptions.c vector.c util.c -o generate_manpage
 
-_scriptmanager.c: _embed_compiled_lua_file_release scripts/*.lua
+_scriptmanager.c: _embed_compiled_lua_file scripts/*.lua
 	@echo '#include "_scriptmanager.h"' > __scriptmanager.c
 	@echo '#include <stddef.h>' >> __scriptmanager.c
 	@echo '#include "main.functions.h"' >> __scriptmanager.c
-	./_embed_compiled_lua_file_release --script scripts/list_cells.lua script_call list_cells __scriptmanager.c
-	./_embed_compiled_lua_file_release --script scripts/list_parameters.lua script_call list_parameters __scriptmanager.c
-	./_embed_compiled_lua_file_release --script scripts/list_anchors.lua script_call list_anchors __scriptmanager.c
-	./_embed_compiled_lua_file_release --script scripts/templates.lua script_call templates __scriptmanager.c
-	./_embed_compiled_lua_file_release --script scripts/check_technology.lua script_call check_technology __scriptmanager.c
+	./_embed_compiled_lua_file --script scripts/list_cells.lua script_call list_cells __scriptmanager.c
+	./_embed_compiled_lua_file --script scripts/list_parameters.lua script_call list_parameters __scriptmanager.c
+	./_embed_compiled_lua_file --script scripts/list_anchors.lua script_call list_anchors __scriptmanager.c
+	./_embed_compiled_lua_file --script scripts/templates.lua script_call templates __scriptmanager.c
+	./_embed_compiled_lua_file --script scripts/check_technology.lua script_call check_technology __scriptmanager.c
 	@mv __scriptmanager.c _scriptmanager.c
 
 _scriptmanager.h:
@@ -110,25 +110,25 @@ _scriptmanager.h:
 	@echo '#endif // OPC_SCRIPTMANAGER_H' >> __scriptmanager.h
 	@mv __scriptmanager.h _scriptmanager.h
 
-_modulemanager.c: _embed_compiled_lua_file_release modules/*.lua
+_modulemanager.c: _embed_compiled_lua_file modules/*.lua
 	@echo '#include "_modulemanager.h"' > _modulemanager.c
 	@echo '#include <stddef.h>' >> _modulemanager.c
 	@echo '#include "main.functions.h"' >> _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/alignmentgroup.lua module_load alignmentgroup _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/aux.lua module_load aux _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/check.lua module_load check _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/generator.lua module_load generator _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/globals.lua module_load globals _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/graphics.lua module_load graphics _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/layouthelpers.lua module_load layouthelpers _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/load.lua module_load load _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/pcell.lua module_load pcell _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/placement.lua module_load placement _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/routing.lua module_load routing _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/stack.lua module_load stack _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/util.lua module_load util _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/verilog.lua module_load verilog _modulemanager.c
-	./_embed_compiled_lua_file_release --module modules/verilogprocessor.lua module_load verilogprocessor _modulemanager.c
+	./_embed_compiled_lua_file --module modules/alignmentgroup.lua module_load alignmentgroup _modulemanager.c
+	./_embed_compiled_lua_file --module modules/aux.lua module_load aux _modulemanager.c
+	./_embed_compiled_lua_file --module modules/check.lua module_load check _modulemanager.c
+	./_embed_compiled_lua_file --module modules/generator.lua module_load generator _modulemanager.c
+	./_embed_compiled_lua_file --module modules/globals.lua module_load globals _modulemanager.c
+	./_embed_compiled_lua_file --module modules/graphics.lua module_load graphics _modulemanager.c
+	./_embed_compiled_lua_file --module modules/layouthelpers.lua module_load layouthelpers _modulemanager.c
+	./_embed_compiled_lua_file --module modules/load.lua module_load load _modulemanager.c
+	./_embed_compiled_lua_file --module modules/pcell.lua module_load pcell _modulemanager.c
+	./_embed_compiled_lua_file --module modules/placement.lua module_load placement _modulemanager.c
+	./_embed_compiled_lua_file --module modules/routing.lua module_load routing _modulemanager.c
+	./_embed_compiled_lua_file --module modules/stack.lua module_load stack _modulemanager.c
+	./_embed_compiled_lua_file --module modules/util.lua module_load util _modulemanager.c
+	./_embed_compiled_lua_file --module modules/verilog.lua module_load verilog _modulemanager.c
+	./_embed_compiled_lua_file --module modules/verilogprocessor.lua module_load verilogprocessor _modulemanager.c
 
 _modulemanager.h: modules/*.lua
 	@echo '#ifndef OPC_MODULEMANAGER_H' > _modulemanager.h
@@ -151,14 +151,8 @@ _modulemanager.h: modules/*.lua
 	@echo 'int module_load_verilogprocessor(lua_State* L);' >> _modulemanager.h
 	@echo '#endif // OPC_MODULEMANAGER_H' >> _modulemanager.h
 
-_embed_compiled_lua_file_release: embed_compiled_lua_file.c liblua_release.a
-	$(CC) $(CFLAGS) embed_compiled_lua_file.c liblua_release.a -o _embed_compiled_lua_file_release -lm
-
-_embed_compiled_lua_file_lint: embed_compiled_lua_file.c liblua_lint.a
-	$(CC) $(CFLAGS) embed_compiled_lua_file.c liblua_lint.a -o _embed_compiled_lua_file_lint -lm
-
-_embed_compiled_lua_file_debug: embed_compiled_lua_file.c liblua_debug.a
-	$(CC) $(CFLAGS) embed_compiled_lua_file.c liblua_debug.a -o _embed_compiled_lua_file_debug -lm
+_embed_compiled_lua_file: embed_compiled_lua_file.c
+	$(CC) $(PPFLAGS) embed_compiled_lua_file.c lua/lapi.c lua/lauxlib.c lua/lbaselib.c lua/lcode.c lua/lcorolib.c lua/lctype.c lua/ldblib.c lua/ldebug.c lua/ldo.c lua/ldump.c lua/lfunc.c lua/lgc.c lua/linit.c lua/liolib.c lua/llex.c lua/lmathlib.c lua/lmem.c lua/loadlib.c lua/lobject.c lua/lopcodes.c lua/loslib.c lua/lparser.c lua/lstate.c lua/lstring.c lua/lstrlib.c lua/ltable.c lua/ltablib.c lua/ltm.c lua/lundump.c lua/lvm.c lua/lzio.c -o _embed_compiled_lua_file -lm
 
 create_latex_API_doc: create_latex_API_doc.c main.api_help.c main.api_help.h vector.c vector.h util.c util.h terminal.c terminal.h
 	$(CC) $(CFLAGS) create_latex_API_doc.c main.api_help.c vector.c util.c terminal.c -o create_latex_API_doc
@@ -172,9 +166,7 @@ clean:
 	rm -f liblua_release.a $(LUA_CORE_RELEASEOBJS) $(LUA_LIB_RELEASEOBJS)
 	rm -f liblua_lint.a $(LUA_CORE_LINTOBJS) $(LUA_LIB_LINTOBJS)
 	rm -f liblua_debug.a $(LUA_CORE_DEBUGOBJS) $(LUA_LIB_DEBUGOBJS)
-	rm -f _embed_compiled_lua_file_release
-	rm -f _embed_compiled_lua_file_lint
-	rm -f _embed_compiled_lua_file_debug
+	rm -f _embed_compiled_lua_file
 	rm -f generate_manpage
 	rm -f create_latex_API_doc
 	rm -f _modulemanager.h _modulemanager.c
