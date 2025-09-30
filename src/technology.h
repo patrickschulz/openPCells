@@ -102,6 +102,7 @@ const struct generics* generics_create_well(struct technology_state* techstate, 
 const struct generics* generics_create_vthtype(struct technology_state* techstate, char channeltype, int vthtype);
 const struct generics* generics_create_active(struct technology_state* techstate);
 const struct generics* generics_create_gate(struct technology_state* techstate);
+const struct generics* generics_create_marker(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_other(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_otherport(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_outline(struct technology_state* techstate);

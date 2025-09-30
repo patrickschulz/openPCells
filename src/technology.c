@@ -1728,6 +1728,16 @@ const struct generics* generics_create_gate(struct technology_state* techstate)
     return layer;
 }
 
+const struct generics* generics_create_marker(struct technology_state* techstate, const char* what)
+{
+    size_t len = 6 + strlen(what); // marker + %s
+    char* layername = malloc(len + 1);
+    snprintf(layername, len + 1, "%smarker", what);
+    const struct generics* layer = _get_or_create_layer(techstate, layername);
+    free(layername);
+    return layer;
+}
+
 const struct generics* generics_create_other(struct technology_state* techstate, const char* layername)
 {
     const struct generics* layer = _get_or_create_layer(techstate, layername);
