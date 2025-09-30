@@ -978,7 +978,7 @@ function layout(transistor, _P)
         if _P.drawguardring then
             if _P.guardringrespectactivedummy then
                 geometry.rectanglebltr(transistor,
-                    generics.other("analogmarker"),
+                    generics.marker("analog"),
                     point.create(
                         -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace,
                         -_P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace
@@ -990,7 +990,7 @@ function layout(transistor, _P)
                 )
             else
                 geometry.rectanglebltr(transistor,
-                    generics.other("analogmarker"),
+                    generics.marker("analog"),
                     point.create(
                         -leftactauxext - _P.guardringleftsep - _P.guardringwidth,
                         -_P.guardringbottomsep - _P.guardringwidth
@@ -1003,7 +1003,7 @@ function layout(transistor, _P)
             end
         else
             geometry.rectanglebltr(transistor,
-                generics.other("analogmarker"),
+                generics.marker("analog"),
                 point.create(
                     -leftactauxext - _P.extendanalogmarkerleft,
                     -_P.extendanalogmarkerbottom
