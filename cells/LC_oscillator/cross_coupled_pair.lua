@@ -336,7 +336,7 @@ function layout(ccp, _P)
     )
 
     -- lvs device marker
-    geometry.rectanglebltr(ccp, generics.marker("lvsmarker", 2),
+    geometry.rectanglebltr(ccp, generics.marker("lvs", 2),
         ccp:get_area_anchor("nwellguardring_outerboundary").bl,
         ccp:get_area_anchor("nwellguardring_outerboundary").tr
     )
