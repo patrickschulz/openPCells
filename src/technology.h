@@ -36,6 +36,7 @@ void technology_write_definition_files(const struct technology_state* techstate,
 // not used by the main program, only the technology file assistant uses this
 // this is because the internal state might be messed up by this interface, so
 // it should not be used
+int technology_set_feature(struct technology_state* techstate, const char* feature, int value);
 unsigned int technology_get_num_metals(const struct technology_state* techstate);
 void technology_set_num_metals(struct technology_state* techstate, unsigned int nummetals);
 int technology_add_via_definition(struct technology_state* techstate, unsigned int startindex, unsigned int width, unsigned int height, unsigned int xspace, unsigned int yspace, unsigned int xenclosure, unsigned int yenclosure, unsigned int maxwidth, unsigned int maxheight);

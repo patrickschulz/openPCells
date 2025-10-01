@@ -780,6 +780,11 @@ void technology_write_definition_files(const struct technology_state* techstate,
     free(path);
 }
 
+int technology_set_feature(struct technology_state* techstate, const char* feature, int value)
+{
+    return 1;
+}
+
 unsigned int technology_get_num_metals(const struct technology_state* techstate)
 {
     return techstate->config->metals;
@@ -1606,6 +1611,7 @@ static void _copy_layer_entries(const void* ventry, void* vtarget)
 
 void generics_copy_properties(const struct generics* source, struct generics* target)
 {
+    target->prettyname = util_strdup(source->prettyname);
     vector_foreach_const(source->entries, _copy_layer_entries, target);
 }
 

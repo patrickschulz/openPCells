@@ -17,7 +17,7 @@
 #include "util.h"
 
 #define MAX_SCREEN_WIDTH 120
-#define MAX_SCREEN_HEIGHT 24
+#define MAX_SCREEN_HEIGHT 28
 #define SIDE_PANEL_WIDTH 40
 #define SIDE_PANEL_GAP 2
 #define PROMPT_LINE_OFFSET 0
@@ -90,12 +90,15 @@ struct state {
     int ask_gds;
     int ask_skill;
     // status
-    int finished_FEOL;
+    int finished_primary_FEOL;
+    int finished_secondary_FEOL;
     int finished_wells;
+    int finished_BEOL;
     int finished_metal_stack;
-    int finished_lvsdrc;
     int finished_vias;
+    int finished_lvsdrc;
     int finished_constraints;
+    int finished_auxiliary;
     // terminal stuff
     int rows;
     int columns;
@@ -650,19 +653,28 @@ static void _draw_side_panel(struct state* state)
         _write_at(state, "Layers: 0 / 42", ycurrent, startpos + 3);
         ++ycurrent;
         _set_position(state, ycurrent, startpos + 3);
-        _write_tech_entry_boolean(state, "FEOL", state->finished_FEOL);
+        _write_tech_entry_boolean(state, "Primary FEOL", state->finished_primary_FEOL);
+        ++ycurrent;
+        _set_position(state, ycurrent, startpos + 3);
+        _write_tech_entry_boolean(state, "Secondary FEOL", state->finished_secondary_FEOL);
         ++ycurrent;
         _set_position(state, ycurrent, startpos + 3);
         _write_tech_entry_boolean(state, "Wells", state->finished_wells);
         ++ycurrent;
         _set_position(state, ycurrent, startpos + 3);
+        _write_tech_entry_boolean(state, "BEOL", state->finished_BEOL);
+        ++ycurrent;
+        _set_position(state, ycurrent, startpos + 3);
         _write_tech_entry_boolean(state, "Metal Stack", state->finished_metal_stack);
+        ++ycurrent;
+        _set_position(state, ycurrent, startpos + 3);
+        _write_tech_entry_boolean(state, "Via Geometries", state->finished_vias);
         ++ycurrent;
         _set_position(state, ycurrent, startpos + 3);
         _write_tech_entry_boolean(state, "LVS/DRC Layers", state->finished_lvsdrc);
         ++ycurrent;
         _set_position(state, ycurrent, startpos + 3);
-        _write_tech_entry_boolean(state, "Via Geometries", state->finished_vias);
+        _write_tech_entry_boolean(state, "Auxiliary Layers", state->finished_auxiliary);
         ++ycurrent;
         _set_position(state, ycurrent, startpos + 3);
         _write_tech_entry_boolean(state, "Size Constraints", state->finished_constraints);
@@ -1252,6 +1264,8 @@ static void _ask_layer(struct state* state, const char* layername, const char* p
         char* name = _draw_main_text_single_prompt_string(state, question, "", title);
         generics_set_pretty_name(layer, name);
         free(name);
+        _draw_side_panel(state);
+        _write_to_display(state);
     }
 }
 
@@ -1318,9 +1332,9 @@ static void _ask_vthtype(struct state* state, int numvthtype, char type)
     }
 }
 
-static void _ask_oxide(struct state* state, int numoxide)
+static void _ask_oxide(struct state* state, int numoxide, int startindex)
 {
-    for(int i = 0; i < numoxide; ++i)
+    for(int i = startindex; i < numoxide; ++i)
     {
         int numdigits = util_num_digits(i);
         char* layername = malloc(strlen("oxide") + numdigits + 1);
@@ -1333,26 +1347,8 @@ static void _ask_oxide(struct state* state, int numoxide)
     }
 }
 
-static void _read_FEOL(struct state* state)
+static void _read_primary_FEOL(struct state* state)
 {
-    /*
-    FEOL:
-    [x] active
-    [x] contactactive
-    [x] contactpoly
-    [x] contactgate
-    [x] contactsourcedrain
-    [x] nimplant
-    [x] pimplant
-    [x] gate
-    [x] vthtypep1
-    [x] vthtypen1
-    [ ] soiopen
-    [x] oxide1
-    [x] oxide2
-    [ ] silicideblocker
-    [ ] deeptrenchisolation
-    */
     _draw_all(state);
 
     /* active + implant layers */
@@ -1443,13 +1439,99 @@ static void _read_FEOL(struct state* state)
     /* vthtype */
     int numnvthtype = _draw_main_text_single_prompt_integer(state, "The threshold voltage of MOSFETs can be changed by channel implants. Typically technology nodes provide layers to mark devices with different threshold voltages (e.g. low vth, high vth). Additionally, these might be seperated into p- and n-types. How many different layers (n-type) exist in this node? (can be 0)", "", "Number of n-type Vth Types");
     int numpvthtype = _draw_main_text_single_prompt_integer(state, "And how many different layers exists for p-type channel implants? (can be 0)", "", "Number of p-type Vth Types");
-    _ask_vthtype(state, numnvthtype, 'n');
-    _ask_vthtype(state, numpvthtype, 'p');
+    if(numnvthtype > 0)
+    {
+        _ask_vthtype(state, numnvthtype, 'n');
+    }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "vthtypen1");
+    }
+    if(numpvthtype > 0)
+    {
+        _ask_vthtype(state, numpvthtype, 'p');
+    }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "vthtypep1");
+    }
 
     /* oxide */
-    int numoxide = _draw_main_text_single_prompt_integer(state, "The gate thickness and voltage rating of MOSFET gates and other structures can take varying values. Typically there are layers that defines the oxide thickness class of drawn gate layer regions. Most often, if no layer is drawn the default thickness is used with one layer for defining thicker oxides. How many extra layers for defining oxide thickness are there?", "", "Number of Oxide Thickness Layers");
-    _ask_oxide(state, numoxide);
-    state->finished_FEOL = 1;
+    int numoxide = _draw_main_text_single_prompt_integer(state, "The gate thickness and voltage rating of MOSFET gates and other structures can take varying values. Typically there are layers that defines the oxide thickness class of drawn gate layer regions. Most often, if no layer is drawn the default thickness is used with one layer for defining thicker oxides. How many different oxide thicknesses are there?", "", "Number of Oxide Thicknesses");
+    if(numoxide > 1)
+    {
+        int has_default_oxide = _draw_main_text_single_prompt_integer(state, "Usually, the default oxide thickness does not require any layer to mark it. Is this the case? If yes, then the number of required oxide thickness definition layers is one less than the number of oxide thicknesses (this is typically the case).", "yes", "Number of Oxide Definition Layers");
+        if(has_default_oxide)
+        {
+            technology_add_empty_layer(state->techstate, "oxide1");
+            _ask_oxide(state, numoxide, 1); // start at oxide2
+        }
+        else
+        {
+            _ask_oxide(state, numoxide, 0); // start at oxide1
+        }
+    }
+    state->finished_primary_FEOL = 1;
+}
+
+static void _read_secondary_FEOL(struct state* state)
+{
+    _draw_all(state);
+
+    /* gatecut */
+    int has_gatecut = _draw_main_text_single_prompt_boolean(state, "Some process nodes (especially more modern ones), there is a 'gate cut' layer, which marks regions where existing polysilicon (gate) is removed. Does this technology node feature such a layer?", "Gate Cut Layer");
+    technology_set_feature(state->techstate, "has_gatecut", has_gatecut);
+    if(has_gatecut)
+    {
+        _ask_layer(state, "gatecut", "Gate Cut Layer", "Gate Cut Layer", NULL);
+    }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "gatecut");
+    }
+
+    /* silicideblocker */
+    int has_silicideblocker = _draw_main_text_single_prompt_boolean(state, "Typical process nodes use silicided polysilicon to reduce the resistance of MOSFET gates. However, for resistors (as deliberate devices) on the polysilicon layer, this silicide is often removed/blocken. For this a layer exists, a silicideblocker. Does this node support this layer?", "Polysilicon Silicide Blocker");
+    if(has_silicideblocker)
+    {
+        _ask_layer(state, "silicideblocker", "polysilicon silicide blocker", "Polysilicon Silicide Blocker", NULL);
+    }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "silicideblocker");
+    }
+
+    /* soiopen */
+    int is_soi = _draw_main_text_single_prompt_boolean(state, "Silicon-on-insulator (SOI) technology nodes require additional masks and hence design layers. Is this an SOI process?", "Silicon-on-Insulator Process Node");
+    technology_set_feature(state->techstate, "is_soi", is_soi);
+    if(is_soi)
+    {
+        int has_soiopen = _draw_main_text_single_prompt_boolean(state, "Some SOI process nodes allow physical access (contacts) to the underlying wafer (sometimes called handle wafer) under the buried oxide (BOX). Does this process node provide such access?", "Silicon-on-Insulator Process Node");
+        if(has_soiopen)
+        {
+            _ask_layer(state, "soiopen", "SOI opening layer", "Handle Wafer Access (SOI Opening)", NULL);
+        }
+        else
+        {
+            technology_add_empty_layer(state->techstate, "soiopen");
+        }
+    }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "soiopen");
+    }
+
+    /* subblock */
+    int has_subblock = _draw_main_text_single_prompt_boolean(state, "Normally, the bulk wafer of any process is lightly doped (p- or n-type). For some devices such as inductors or to mitigate noise coupling reducing the conductivity of the substrate can be helpful, which is why some process nodes offer a layer that turns the substrate into a high-ohmic region. Does this node offer such functionality?", "Substracte Doping Blocker");
+    if(has_subblock)
+    {
+        _ask_layer(state, "subblock", "polysilicon silicide blocker", "Polysilicon Silicide Blocker", NULL);
+    }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "subblock");
+    }
+    state->finished_secondary_FEOL = 1;
 }
 
 static void _read_wells(struct state* state)
@@ -1511,14 +1593,15 @@ static void _read_wells(struct state* state)
     {
         technology_add_empty_layer(state->techstate, "deepnwell");
     }
-    /*
-    Wells:
-    [x] nwell
-    [x] pwell
-    [x] deepnwell
-    [x] deeppwell
-    */
     state->finished_wells = 1;
+}
+
+static void _read_beol(struct state* state)
+{
+    /* padopening */
+    const char* text = "During manufacture of an integrated circuit, the final step involves adding passivation to seal to die from accidental connections. However, in order to connect signals to pads, the passivation needs to be opened. For this a dedicated layer should be present.";
+    _ask_layer(state, "padopening", "the passivation opening layer for pads", "Pad Passivation Opening Layer", text);
+    state->finished_BEOL = 1;
 }
 
 static void _show_metal_summary(struct state* state)
@@ -1565,24 +1648,42 @@ static void _read_metal_stack(struct state* state)
         unsigned int nummetals = _draw_main_text_single_prompt_integer(state, "How many metals does the stack have?", "", "Number of Metals");
         technology_set_num_metals(state->techstate, nummetals);
         _draw_all(state);
+        // metals
         struct vector* metals = vector_create(nummetals + 1, _destroy_layerset);
         for(unsigned int i = 1; i <= nummetals; ++i)
         {
-            size_t numdigits = 1 + util_num_digits(i);
-            char* layername = malloc(1 + numdigits + 1);
-            char* prettyname = malloc(6 + numdigits + 1);
-            char* title = malloc(6 + numdigits + 1);
-            snprintf(layername, 1 + numdigits + 1, "M%d", i);
-            snprintf(prettyname, 6 + numdigits + 1, "metal %d", i);
-            snprintf(title, 6 + numdigits + 1, "Metal %d", i);
+            char* layername = strprintf("M%d", i);
+            char* prettyname = strprintf("metal %d", i);
+            char* title = strprintf("Metal %d", i);
+            // the strings are free'd when the layerset is created
             struct layerset* layerset = _create_layerset(layername, prettyname, title, NULL);
             vector_append(metals, layerset);
         }
         vector_append(metals, NULL); // sentinel for char* array
-        struct layerset** layerset = vector_content(metals);
-        _ask_layer_set(state, layerset, NULL);
+        struct layerset** metalcontent = vector_content(metals);
+        _ask_layer_set(state, metalcontent, NULL);
         vector_destroy(metals);
         state->finished_metal_stack = 1;
+        // vias
+        _draw_all(state);
+        _draw_main_text_single(state, "For connections between the metal layers, vias are used. These are drawn in so-called via cut layers. For N metals, there are N - 1 via cut layers.", "Via Cut Layers");
+        _write_to_display(state);
+        _wait_for_enter(state);
+        struct vector* vias = vector_create(nummetals, _destroy_layerset);
+        for(unsigned int i = 1; i <= nummetals - 1; ++i)
+        {
+            char* layername = strprintf("viacutM%dM%d", i, i + 1);
+            char* prettyname = strprintf("via cut layer from metal %d to metal %d", i, i + 1);
+            char* title = strprintf("Via Cut %d -> %d", i, i + 1);
+            // the strings are free'd when the layerset is created
+            struct layerset* layerset = _create_layerset(layername, prettyname, title, NULL);
+            vector_append(vias, layerset);
+        }
+        vector_append(vias, NULL); // sentinel for char* array
+        struct layerset** viacontent = vector_content(vias);
+        _ask_layer_set(state, viacontent, NULL);
+        vector_destroy(vias);
+        state->finished_vias = 1;
     }
 }
 
@@ -1671,12 +1772,38 @@ static void _read_constraints(struct state* state)
         _ask_constraint(state, string_get(str), NULL);
         string_destroy(str);
     }
+    state->finished_constraints = 1;
 }
 
 static void _read_auxiliary(struct state* state)
 {
-    _ask_layer(state, "special", "Special", "Special", "The 'special' layer is a non-physical non-process-related layer, that is used for marking opc structures (e.g. area anchors). As process nodes don't have a layer like this it should be mapped to a generics layer from the EDA tool or something unused.");
-    _ask_layer(state, "outline", "Outline", "Outline", "The outline layer marks the outline of blocks. Most often, it is not required but can help with the placement of filling, aligning blocks and other purposes. (Note: not every node defines this layer)");
+    const char* special_text = 
+        "The 'special' layer is a non-physical non-process-related layer, that is used for marking opc structures (e.g. area anchors). "
+        "As process nodes don't have a layer like this it should be mapped to a generics layer from the EDA tool or something unused. "
+        "Do you want to provide this extra layer?";
+    int has_special = _draw_main_text_single_prompt_boolean(state, special_text, "Special Layer");
+    if(has_special)
+    {
+        _ask_layer(state, "special", "Special", "Special", NULL);
+    }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "special");
+    }
+    const char* outline_text = 
+        "The outline layer marks the outline of blocks. "
+        "Most often, it is not required but can help with the placement of filling, aligning blocks and other purposes. "
+        "(Note: not every node defines this layer)";
+    int has_outline = _draw_main_text_single_prompt_boolean(state, outline_text, "Outline Layer");
+    if(has_outline)
+    {
+        _ask_layer(state, "outline", "Outline", "Outline", NULL);
+    }
+    else
+    {
+        technology_add_empty_layer(state->techstate, "outline");
+    }
+    state->finished_auxiliary = 1;
 }
 
 static void _show_stackup_model(struct state* state)
@@ -1843,16 +1970,19 @@ void main_techfile_assistant(const struct hashmap* config)
             "",
             "Technology Configuration:",
             " 0) Show openPCells Stack-Up Model",
-            " 1) Front-End-of-Line Configuration",
-            " 2) Well Configuration",
-            " 3) Metal Stack Layers",
-            " 4) Via Definitions",
-            " 5) Size Constraints",
-            " 6) Auxiliary Layers",
+            " 1) Front-End-of-Line Primary Configuration",
+            " 2) Front-End-of-Line Secondary Configuration",
+            " 3) Well Configuration",
+            " 4) Back-End-of-Line",
+            " 5) Metal Stack Layers",
+            " 6) Via Definitions",
+            " 7) Size Constraints",
+            " 8) Auxiliary Layers",
             "",
             "Additional Actions:",
             " e) Edit Assistant Configuration",
             " s) View Current Technology State",
+            " c) Check Technology State with Standard PCells",
             "",
             " q) Quit (will save status)",
             NULL
@@ -1874,19 +2004,27 @@ void main_techfile_assistant(const struct hashmap* config)
                 _write_to_display(state);
                 _wait_for_enter(state);
                 break;
+            case 'c': // check technology state
+                break;
             case '0': // show stack-up model
                 _show_stackup_model(state);
                 break;
-            case '1': // FEOL
-                _read_FEOL(state);
+            case '1': // primary FEOL
+                _read_primary_FEOL(state);
                 break;
-            case '2': // wells
+            case '2': // secondary FEOL
+                _read_secondary_FEOL(state);
+                break;
+            case '3': // wells
                 _read_wells(state);
                 break;
-            case '3': // metals
+            case '4': // BEOL
+                _read_beol(state);
+                break;
+            case '5': // metals
                 _read_metal_stack(state);
                 break;
-            case '4': // vias
+            case '6': // vias
             {
                 unsigned int nummetals = technology_get_num_metals(state->techstate);
                 if(nummetals > 1)
@@ -1905,7 +2043,7 @@ void main_techfile_assistant(const struct hashmap* config)
                 }
                 break;
             }
-            case '5': // constraints
+            case '7': // constraints
             {
                 unsigned int nummetals = technology_get_num_metals(state->techstate);
                 if(nummetals > 0)
@@ -1919,7 +2057,7 @@ void main_techfile_assistant(const struct hashmap* config)
                 }
                 break;
             }
-            case 6:
+            case '8':
             {
                 _read_auxiliary(state);
                 break;
@@ -1938,14 +2076,56 @@ void main_techfile_assistant(const struct hashmap* config)
     _reset_terminal(fd);
 }
 
-// vim: nowrap
-
 /*
-    DRC/LVS marker:
-    gatemarker1
-    mosfetmarker1
-    lvsmarker1
-    polyresistorlvsmarker1
+Required:
+[x] generics.active()
+[x] generics.contact("active")
+[x] generics.gate()
+[x] generics.implant("n")
+[x] generics.implant("p")
+[x] generics.vthtype(_P.channeltype, _P.vthtype)
+[x] generics.oxide(_P.oxidetype)
+
+[x] generics.well("n")
+[x] generics.well("p")
+[x] generics.well("p", "deep")
+[x] generics.well("n", "deep")
+
+[x] generics.metal(1)
+[x] generics.viacut(8, 9)
+
+[x] generics.feol("gatecut")
+[x] generics.feol("silicideblocker")
+[x] generics.feol("soiopen")
+[x] generics.feol("subblock")
+
+[x] generics.beol("padopening")
+-> check for multiple patterning
+
+Optional:
+[x] generics.special()
+[x] generics.outline()
+[ ] generics.feol("deeptrenchisolation")
+[ ] generics.feol("diffusionbreakgate")
+[ ] generics.marker(string.format("M%dlvsresistor", technology.resolve_metal(_P.metalnum))),
+[ ] generics.marker("lvs", 2)
+[ ] generics.marker("polyresistorlvs", _P.resistortype)
+[ ] generics.marker("mosfet", _P.mosfetmarker)
+[ ] generics.marker("floatinggate")
+[ ] generics.marker("gate", _P.gatemarker)
+[ ] generics.marker("inductor")
+[ ] generics.marker("inductorlvs")
+[ ] generics.marker("analog")
+[ ] generics.marker("bjt")
+[ ] generics.marker("rotation")
+[ ] generics.exclude("active")
+[ ] generics.exclude("gate")
+[ ] generics.fill("active")
+[ ] generics.fill("pimplant")
+[ ] generics.fill("poly")
+[ ] generics.metalexclude(-1)
+[ ] generics.metalport(1)
+[ ] generics.mptmetal or generics.mptmetalfill
 */
 
 // vim: nowrap
