@@ -29,6 +29,7 @@ struct mpentry { // entry for multiple patterning
 struct technology_config {
     unsigned int metals;
     unsigned int grid;
+    int is_soi;
     int has_gatecut;
     int allow_poly_routing;
     struct vector* multiple_patterning_metals; // stores struct mpentry*
@@ -473,6 +474,17 @@ static int _load_config(struct technology_state* techstate, const char* name, co
     }
     lua_pop(L, 1); // pop multiple_patterning
 
+    // is soi
+    lua_getfield(L, -1, "is_soi");
+    if(lua_isnil(L, -1))
+    {
+        *errmsg = "technology configuration file does not contain info about the wafer type of this process node('is_soi' entry)";
+        lua_close(L);
+        return 0;
+    }
+    techstate->config->is_soi = lua_toboolean(L, -1);
+    lua_pop(L, 1); // pop is_soi
+
     // allow poly routing
     lua_getfield(L, -1, "allow_poly_routing");
     if(lua_isnil(L, -1))
@@ -483,7 +495,7 @@ static int _load_config(struct technology_state* techstate, const char* name, co
     }
     techstate->config->allow_poly_routing = lua_toboolean(L, -1);
     lua_pop(L, 1); // pop allow_poly_routing
-                   //
+
     // has gatecut
     lua_getfield(L, -1, "has_gatecut");
     if(lua_isnil(L, -1))
@@ -780,8 +792,29 @@ void technology_write_definition_files(const struct technology_state* techstate,
     free(path);
 }
 
+void technology_set_grid(struct technology_state* techstate, unsigned int grid)
+{
+    techstate->config->grid = grid;
+}
+
 int technology_set_feature(struct technology_state* techstate, const char* feature, int value)
 {
+    if(strcmp(feature, "has_gatecut") == 0)
+    {
+        techstate->config->has_gatecut = value;
+    }
+    else if(strcmp(feature, "allow_poly_routing") == 0)
+    {
+        techstate->config->allow_poly_routing = value;
+    }
+    else if(strcmp(feature, "is_soi") == 0)
+    {
+        techstate->config->is_soi = value;
+    }
+    else
+    {
+        return 0;
+    }
     return 1;
 }
 
@@ -1130,6 +1163,10 @@ int technology_has_feature(const struct technology_state* techstate, const char*
     else if(strcmp(feature, "allow_poly_routing") == 0)
     {
         return techstate->config->allow_poly_routing;
+    }
+    else if(strcmp(feature, "is_soi") == 0)
+    {
+        return techstate->config->is_soi;
     }
     else
     {

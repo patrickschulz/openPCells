@@ -670,9 +670,11 @@ static void _draw_side_panel(struct state* state)
         _set_position(state, ycurrent, startpos + 3);
         _write_tech_entry_boolean(state, "Via Geometries", state->finished_vias);
         ++ycurrent;
+        /*
         _set_position(state, ycurrent, startpos + 3);
         _write_tech_entry_boolean(state, "LVS/DRC Layers", state->finished_lvsdrc);
         ++ycurrent;
+        */
         _set_position(state, ycurrent, startpos + 3);
         _write_tech_entry_boolean(state, "Auxiliary Layers", state->finished_auxiliary);
         ++ycurrent;
@@ -1478,6 +1480,10 @@ static void _read_secondary_FEOL(struct state* state)
 {
     _draw_all(state);
 
+    /* allow poly routing */
+    int allow_poly_routing = _draw_main_text_single_prompt_boolean(state, "Polysilicon, which is used for forming MOSFET gates can be used for routing, like a low metal. However, newer process nodes have very stringent requirements for polysilicon shapes, making any routing that is not withtin the general polysilicon direction or on a grid impossible. Does this process node allow routing on polysilicon?", "Allow Routing on Polysilicon ");
+    technology_set_feature(state->techstate, "allow_poly_routing", allow_poly_routing);
+
     /* gatecut */
     int has_gatecut = _draw_main_text_single_prompt_boolean(state, "Some process nodes (especially more modern ones), there is a 'gate cut' layer, which marks regions where existing polysilicon (gate) is removed. Does this technology node feature such a layer?", "Gate Cut Layer");
     technology_set_feature(state->techstate, "has_gatecut", has_gatecut);
@@ -1806,6 +1812,12 @@ static void _read_auxiliary(struct state* state)
     state->finished_auxiliary = 1;
 }
 
+static void _read_grid(struct state* state)
+{
+    unsigned int grid = _draw_main_text_single_prompt_integer(state, "What is the minimum grid that all shapes have to be on? This grid is given in nano-meters.", "1", "Manufacturing Grid");
+    technology_set_grid(state->techstate, grid);
+}
+
 static void _show_stackup_model(struct state* state)
 {
     _clear_main_area(state);
@@ -1978,6 +1990,7 @@ void main_techfile_assistant(const struct hashmap* config)
             " 6) Via Definitions",
             " 7) Size Constraints",
             " 8) Auxiliary Layers",
+            " 9) Layout Grid",
             "",
             "Additional Actions:",
             " e) Edit Assistant Configuration",
@@ -2060,6 +2073,11 @@ void main_techfile_assistant(const struct hashmap* config)
             case '8':
             {
                 _read_auxiliary(state);
+                break;
+            }
+            case '9':
+            {
+                _read_grid(state);
                 break;
             }
             default:
