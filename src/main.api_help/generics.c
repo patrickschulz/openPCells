@@ -141,7 +141,7 @@
     vector_append(entries, _make_api_entry(
         "mptmetal",
         MODULE_GENERICS,
-        "create a generic layer representing a metal with multiple-patterning information. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc. The mask information is a numeric indix starting at 1. The number of available masks for the respective metal can be querid by technology.multiple_patterning_number(metalnumber). If a metal is a mpt metal can be queried by technology.has_multiple_patterning(metalnumber)",
+        "create a generic layer representing a metal with multiple-patterning (mpt) information. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc. The mask information is a numeric indix starting at 1. The number of available masks for the respective metal can be queried by technology.multiple_patterning_number(metalnumber). Whether a metal is a mpt metal can be queried by technology.has_multiple_patterning(metalnumber)",
         "generics.mptmetal(1, 1)\ngenerics.mptmetal(1, 2)",
         parameters
     ));
@@ -157,7 +157,7 @@
     vector_append(entries, _make_api_entry(
         "mptmetalfill",
         MODULE_GENERICS,
-        "create a generic layer representing a metal fill shape with multiple-patterning information. Some technologies have special layer for metal fillings, but technology files can also map these to the same layers as generics.metal(). Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc. The mask information is a numeric indix starting at 1. The number of available masks for the respective metal can be querid by technology.multiple_patterning_number(metalnumber). If a metal is a mpt metal can be queried by technology.has_multiple_patterning(metalnumber)",
+        "create a generic layer representing a metal fill shape with multiple-patterning (mpt) information. Some technologies have special layer for metal fillings, but technology files can also map these to the same layers as generics.metal(). Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc. The mask information is a numeric indix starting at 1. The number of available masks for the respective metal can be queried by technology.multiple_patterning_number(metalnumber). Whether a metal is a mpt metal can be queried by technology.has_multiple_patterning(metalnumber)",
         "generics.mptmetal(1, 1)\ngenerics.mptmetal(1, 2)",
         parameters
     ));
