@@ -98,6 +98,10 @@ int util_file_exists(const char* path)
 
 char* util_strdup(const char* str)
 {
+    if(!str)
+    {
+        return NULL;
+    }
     char* dup = malloc(strlen(str) + 1);
     if(!dup)
     {

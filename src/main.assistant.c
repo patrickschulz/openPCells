@@ -558,6 +558,47 @@ static void _clear_side_panel(struct state* state)
     }
 }
 
+static char* _assemble_layer_info(struct state* state, const char* layername)
+{
+    const struct generics* layer = technology_get_layer(state->techstate, layername);
+    // GDS info
+    char* gdsinfo = NULL;
+    const struct hashmap* gdsdata = generics_get_layer_data(layer, "gds");
+    if(gdsdata)
+    {
+        const struct tagged_value* vl = hashmap_get_const(gdsdata, "layer");
+        const struct tagged_value* vp = hashmap_get_const(gdsdata, "purpose");
+        if(vl && vp)
+        {
+            int layernum = tagged_value_get_integer(vl);
+            int purposenum = tagged_value_get_integer(vp);
+            gdsinfo = strprintf("[GDS: %d/%d]", layernum, purposenum);
+        }
+    }
+    // SKILL info
+    char* skillinfo = NULL;
+    const struct hashmap* skilldata = generics_get_layer_data(layer, "SKILL");
+    if(skilldata)
+    {
+        const struct tagged_value* vl = hashmap_get_const(skilldata, "layer");
+        const struct tagged_value* vp = hashmap_get_const(skilldata, "purpose");
+        if(vl && vp)
+        {
+            const char* layerstr = tagged_value_get_const_string(vl);
+            const char* purposestr = tagged_value_get_const_string(vp);
+            skillinfo = strprintf("[SKILL: %s/%s]", layerstr, purposestr);
+        }
+    }
+    // pretty name
+    const char* prettyname = generics_get_layer_pretty_name(layer);
+    // assembled info
+    char* info;
+    info = strprintf("%s: %s %s [name: %s]", layername,  gdsinfo, skillinfo, prettyname);
+    free(gdsinfo);
+    free(skillinfo);
+    return info;
+}
+
 static void _show_metal(struct state* state, unsigned int i, int* ycurrent, int startpos)
 {
     // write metal %d:
@@ -649,8 +690,6 @@ static void _draw_side_panel(struct state* state)
     if(state->mode == GENERAL)
     {
         _draw_panel_section(state, startpos, state->xend, ycurrent, 3, "Technology Status");
-        ++ycurrent;
-        _write_at(state, "Layers: 0 / 42", ycurrent, startpos + 3);
         ++ycurrent;
         _set_position(state, ycurrent, startpos + 3);
         _write_tech_entry_boolean(state, "Primary FEOL", state->finished_primary_FEOL);
@@ -1340,9 +1379,9 @@ static void _ask_oxide(struct state* state, int numoxide, int startindex)
     {
         int numdigits = util_num_digits(i);
         char* layername = malloc(strlen("oxide") + numdigits + 1);
-        sprintf(layername, "oxide%d", numdigits);
+        sprintf(layername, "oxide%d", i + 1);
         char* prettyname = malloc(strlen("Oxide Type #") + numdigits + 1);
-        sprintf(prettyname, "Oxide Type #%d", numdigits);
+        sprintf(prettyname, "Oxide Type #%d", i + 1);
         _ask_layer(state, layername, prettyname, "Oxide Type", NULL);
         free(layername);
         free(prettyname);
@@ -1439,8 +1478,8 @@ static void _read_primary_FEOL(struct state* state)
     }
 
     /* vthtype */
-    int numnvthtype = _draw_main_text_single_prompt_integer(state, "The threshold voltage of MOSFETs can be changed by channel implants. Typically technology nodes provide layers to mark devices with different threshold voltages (e.g. low vth, high vth). Additionally, these might be seperated into p- and n-types. How many different layers (n-type) exist in this node? (can be 0)", "", "Number of n-type Vth Types");
-    int numpvthtype = _draw_main_text_single_prompt_integer(state, "And how many different layers exists for p-type channel implants? (can be 0)", "", "Number of p-type Vth Types");
+    int numnvthtype = _draw_main_text_single_prompt_integer(state, "The threshold voltage of MOSFETs can be changed by channel implants. Typically technology nodes provide layers to mark devices with different threshold voltages (e.g. low vth, high vth). Additionally, these might be seperated into p- and n-types. How many different layers (n-type) exist in this node? (can be 0)", "0", "Number of n-type Vth Types");
+    int numpvthtype = _draw_main_text_single_prompt_integer(state, "And how many different layers exists for p-type channel implants? (can be 0)", "0", "Number of p-type Vth Types");
     if(numnvthtype > 0)
     {
         _ask_vthtype(state, numnvthtype, 'n');
@@ -1459,10 +1498,10 @@ static void _read_primary_FEOL(struct state* state)
     }
 
     /* oxide */
-    int numoxide = _draw_main_text_single_prompt_integer(state, "The gate thickness and voltage rating of MOSFET gates and other structures can take varying values. Typically there are layers that defines the oxide thickness class of drawn gate layer regions. Most often, if no layer is drawn the default thickness is used with one layer for defining thicker oxides. How many different oxide thicknesses are there?", "", "Number of Oxide Thicknesses");
+    int numoxide = _draw_main_text_single_prompt_integer(state, "The gate thickness and voltage rating of MOSFET gates and other structures can take varying values. Typically there are layers that defines the oxide thickness class of drawn gate layer regions. Most often, if no layer is drawn the default thickness is used with one layer for defining thicker oxides. How many different oxide thicknesses are there?", "2", "Number of Oxide Thicknesses");
     if(numoxide > 1)
     {
-        int has_default_oxide = _draw_main_text_single_prompt_integer(state, "Usually, the default oxide thickness does not require any layer to mark it. Is this the case? If yes, then the number of required oxide thickness definition layers is one less than the number of oxide thicknesses (this is typically the case).", "yes", "Number of Oxide Definition Layers");
+        int has_default_oxide = _draw_main_text_single_prompt_boolean(state, "Usually, the default oxide thickness does not require any layer to mark it. Is this the case? If yes, then the number of required oxide thickness definition layers is one less than the number of oxide thicknesses (this is typically the case).", "Number of Oxide Definition Layers");
         if(has_default_oxide)
         {
             technology_add_empty_layer(state->techstate, "oxide1");
@@ -1605,8 +1644,12 @@ static void _read_wells(struct state* state)
 static void _read_beol(struct state* state)
 {
     /* padopening */
-    const char* text = "During manufacture of an integrated circuit, the final step involves adding passivation to seal to die from accidental connections. However, in order to connect signals to pads, the passivation needs to be opened. For this a dedicated layer should be present.";
-    _ask_layer(state, "padopening", "the passivation opening layer for pads", "Pad Passivation Opening Layer", text);
+    const char* text = "During manufacture of an integrated circuit, the final step involves adding passivation to seal to die from accidental connections. However, in order to connect signals to pads, the passivation needs to be opened. For this a dedicated layer should be present. Do you want to define this layer now?";
+    int has_padopening = _draw_main_text_single_prompt_boolean(state, text, "Pad Passivation Opening Layer");
+    if(has_padopening)
+    {
+        _ask_layer(state, "padopening", "the passivation opening layer for pads", "Pad Passivation Opening Layer", text);
+    }
     state->finished_BEOL = 1;
 }
 
@@ -1820,27 +1863,27 @@ static void _read_grid(struct state* state)
 
 static void _show_stackup_model(struct state* state)
 {
-    _clear_main_area(state);
+    _clear_all(state);
     const char* lines[] = {
-        "      ---------------------------------                                        ",
-        "      |    Metal 2                    |                                        ",
-        "      ---------------------------------                                        ",
-        "        |  | Via 1                                                             ",
-        "   --------------------------                                                  ",
-        "           Metal 1          |                                                  ",
-        "   --------------------------                                                  ",
-        "                      |  | contact                                             ",
-        "                 --------------                                                ",
-        "                 |    Gate    |                                                ",
-        "===========================================================                    ",
-        "     |     **************************      |                                   ",
-        "     |     ********  Active *********      |                                   ",
-        "     |                                     |                                   ",
-        "     \\              N-Well                 /                                  ",
-        "      +--------------------------------------------------------------------+   ",
-        "      |                                                                    |   ",
-        "      \\                           Deep N-Well                              /",
-        "       --------------------------------------------------------------------    ",
+        "           ---------------------------------                                      ",
+        "           |    Metal 2                    |                                      ",
+        "           ---------------------------------                                      ",
+        "             |  | Via Cut 1 -> 2                                                  ",
+        "        --------------------------                                                ",
+        "                Metal 1          |                                                ",
+        "        --------------------------                                                ",
+        "            |  |           |  | contact                                           ",
+        "    contact |  |      --------------                                              ",
+        "            |  |      |    Gate    |                                              ",
+        "==================================================================================",
+        "          |   ..**************************..    |                                 ",
+        "          |   ..********  Active *********..    |                                 ",
+        "          |   .....................Implant..    |                                 ",
+        "          \\              N-Well                 /                                ",
+        "           +-------------------------------------------------------------------+  ",
+        "           |                                                                   |  ",
+        "           \\                           Deep N-Well                             /",
+        "            -------------------------------------------------------------------   ",
         NULL
     };
     _draw_lines(state, lines);
@@ -1874,6 +1917,31 @@ static void _show_current_state(struct state* state)
     char** lines = vector_disown_content(vlines);
     _draw_main_text(state, (const char* const*) lines, "Current Technology State");
     free(lines);
+}
+
+static void _edit_assistant_configuration(struct state* state)
+{
+    enum mode oldmode = state->mode;
+    state->mode = SETTINGS;
+    _draw_all(state);
+    state->ask_layer_name = _draw_main_text_single_prompt_boolean_yes(state, "Should the assistant ask for layer names (useful for debugging)?", "Layer Info");
+    _draw_all(state);
+    state->ask_gds = _draw_main_text_single_prompt_boolean_yes(state, "Should the assistant ask for GDS layer data (required for GDS export)?", "Layer Info");
+    _draw_all(state);
+    state->ask_skill = _draw_main_text_single_prompt_boolean_yes(state, "Should the assistant ask for SKILL layer data (required for SKILL/virtuoso export)?", "Layer Info");
+    state->mode = oldmode;
+}
+
+static void _list_all_layers(struct state* state)
+{
+    const char* layername = "active";
+    char* info = _assemble_layer_info(state, layername);
+    const char* lines[] = {
+        info,
+        NULL
+    };
+    _draw_lines(state, lines);
+    free(info);
 }
 
 static void _show_error(struct state* state, const char* msg)
@@ -1961,12 +2029,7 @@ void main_techfile_assistant(const struct hashmap* config)
     }
     if(!loaded)
     {
-        _draw_all(state);
-        state->ask_layer_name = _draw_main_text_single_prompt_boolean_yes(state, "Should the assistant ask for layer names (useful for debugging)?", "Layer Info");
-        _draw_all(state);
-        state->ask_gds = _draw_main_text_single_prompt_boolean_yes(state, "Should the assistant ask for GDS layer data (required for GDS export)?", "Layer Info");
-        _draw_all(state);
-        state->ask_skill = _draw_main_text_single_prompt_boolean_yes(state, "Should the assistant ask for SKILL layer data (required for SKILL/virtuoso export)?", "Layer Info");
+        _edit_assistant_configuration(state);
     }
     
     state->mode = GENERAL;
@@ -1995,7 +2058,8 @@ void main_techfile_assistant(const struct hashmap* config)
             "Additional Actions:",
             " e) Edit Assistant Configuration",
             " s) View Current Technology State",
-            " c) Check Technology State with Standard PCells",
+            " l) List All Defined Layers",
+            //" c) Check Technology State with Standard PCells",
             "",
             " q) Quit (will save status)",
             NULL
@@ -2010,12 +2074,16 @@ void main_techfile_assistant(const struct hashmap* config)
                 run = 0;
                 break;
             case 'e': // assistant configuration
+                _edit_assistant_configuration(state);
                 break;
             case 's': // view current technology state
                 _draw_all(state);
                 _show_current_state(state);
                 _write_to_display(state);
                 _wait_for_enter(state);
+                break;
+            case 'l': // list all layers
+                _list_all_layers(state);
                 break;
             case 'c': // check technology state
                 break;
