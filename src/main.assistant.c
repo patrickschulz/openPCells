@@ -24,6 +24,8 @@
 #define PROMPT_LINE_OFFSET 0
 #define STATUS_LINE_OFFSET 1
 #define DRAW_OUTER_PANEL 1
+#define OUTER_PANEL_XMARGIN 4
+#define OUTER_PANEL_YMARGIN 2
 #define DRAW_PANEL_LINES 1
 #define PANEL_TITLE_LINES 3 // constant, should be 3
 #define PANEL_BORDER_SIZE 1 // constant, should be 1
@@ -294,10 +296,14 @@ static void _set_background_color_RGB(struct state* state, unsigned char r, unsi
     state->attribute |= ATTRIBUTE_BACKGROUND_COLOR;
 }
 
-static void _reset_color(struct state* state)
+static void _reset_background_color(struct state* state)
+{
+    state->attribute &= ~ATTRIBUTE_BACKGROUND_COLOR;
+}
+
+static void _reset_foreground_color(struct state* state)
 {
     state->attribute &= ~ATTRIBUTE_FOREGROUND_COLOR;
-    state->attribute &= ~ATTRIBUTE_BACKGROUND_COLOR;
 }
 
 static void _set_to_blank(struct state* state)
@@ -306,7 +312,7 @@ static void _set_to_blank(struct state* state)
     {
         struct rchar* rch = state->next_content + i;
         rch->character = ' ';
-        rch->attribute = ATTRIBUTE_NORMAL;
+        //rch->attribute = ATTRIBUTE_NORMAL;
     }
 }
 
@@ -332,7 +338,7 @@ static void _draw_status(struct state* state, const char* text)
     terminal_save_cursor_position();
     _set_color_RGB(state, 255, 0, 0);
     _write_at(state, text, state->yend - STATUS_LINE_OFFSET, state->xstart);
-    _reset_color(state);
+    _reset_foreground_color(state);
     _write_to_display(state);
     terminal_restore_cursor_position();
 }
@@ -419,7 +425,7 @@ static const char* _get_string(struct state* state, const char* prefill)
     terminal_reset_color();
     terminal_set_non_bold();
     terminal_set_non_reverse_color();
-    _reset_color(state);
+    _reset_foreground_color(state);
     _reset_bold(state);
     int column = state->xstart + 3;
     int row = state->yend - PROMPT_LINE_OFFSET;
@@ -499,7 +505,7 @@ static void _write_tech_entry_boolean(struct state* state, const char* key, int 
         _write(state, "[ ] ");
     }
     _write(state, key);
-    _reset_color(state);
+    _reset_foreground_color(state);
 }
 
 static void _write_tech_entry_string(struct state* state, const char* key, const char* value)
@@ -573,7 +579,7 @@ static void _draw_panel(struct state* state, int xl, int xr, int yt, int yb, con
     if(title)
     {
         _set_bold(state);
-        _write_at(state, title, state->ystart + 1, xl + (xr - xl + 2 - strlen(title)) / 2);
+        _write_at(state, title, yt + 1, xl + (xr - xl + 2 - strlen(title)) / 2);
         _reset_bold(state);
     }
 }
@@ -810,9 +816,14 @@ static void _draw_outer_panel(struct state* state)
 {
     if(DRAW_OUTER_PANEL)
     {
-        //_set_background_color_RGB(state, 80, 80, 80);
-        _write_region(state, ' ', state->ystart - 1, state->xstart - 1, state->yend + 1, state->xend + 1);
-        //_reset_color(state);
+        _draw_panel(
+            state,
+            state->xstart - OUTER_PANEL_XMARGIN,
+            state->xend + OUTER_PANEL_XMARGIN,
+            state->ystart - OUTER_PANEL_YMARGIN,
+            state->yend + OUTER_PANEL_YMARGIN,
+            NULL
+        );
     }
 }
 
@@ -2122,7 +2133,7 @@ static void _show_error(struct state* state, const char* msg)
     _set_color_RGB(state, 255, 0, 0);
     _draw_main_text_single(state, msg, "Error");
     _write_to_display(state);
-    _reset_color(state);
+    _reset_foreground_color(state);
 }
 
 void main_techfile_assistant(const struct hashmap* config)
@@ -2143,38 +2154,6 @@ void main_techfile_assistant(const struct hashmap* config)
 
     terminal_clear_screen();
     _set_to_blank(state);
-
-    /*
-    const char* testlines[] = {
-        "01: foo bar baz",
-        "02: foo bar baz",
-        "03: foo bar baz",
-        "04: foo bar baz",
-        "05: foo bar baz",
-        "06: foo bar baz",
-        "07: foo bar baz",
-        "08: foo bar baz",
-        "09: foo bar baz",
-        "10: foo bar baz",
-        "11: foo bar baz",
-        "12: foo bar baz",
-        "13: foo bar baz",
-        "14: foo bar baz",
-        "15: foo bar baz",
-        "16: foo bar baz",
-        "17: foo bar baz",
-        "18: foo bar baz",
-        "19: foo bar baz",
-        "20: foo bar baz",
-        "21: foo bar baz",
-        "22: foo bar baz",
-        "23: foo bar baz",
-        "24: foo bar baz",
-        NULL
-    };
-    _clear_all(state);
-    _draw_full_text(state, testlines, "Test");
-    */
 
     // introduction
     const char* introlines[] = {
