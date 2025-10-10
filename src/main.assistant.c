@@ -9,6 +9,7 @@
 #include "_config.h"
 #include "main.functions.h"
 #include "print.h"
+#include "starray.h"
 #include "string.h"
 #include "strprint.h"
 #include "tagged_value.h"
@@ -22,7 +23,11 @@
 #define SIDE_PANEL_GAP 2
 #define PROMPT_LINE_OFFSET 0
 #define STATUS_LINE_OFFSET 1
+#define DRAW_OUTER_PANEL 1
 #define DRAW_PANEL_LINES 1
+#define PANEL_TITLE_LINES 3 // constant, should be 3
+#define PANEL_BORDER_SIZE 1 // constant, should be 1
+#define PANEL_MARGIN 2 // can be modified
 
 #define KEY_CODE_A 1
 #define KEY_CODE_B 2
@@ -56,11 +61,13 @@
 #define KEY_CODE_DOWN 29
 #define KEY_CODE_LEFT 30
 #define KEY_CODE_RIGHT 31
+#define KEY_CODE_BACKSPACE 127
 
-#define ATTRIBUTE_NORMAL    0
-#define ATTRIBUTE_BOLD      1
-#define ATTRIBUTE_REVERSE   2
-#define ATTRIBUTE_COLOR     4
+#define ATTRIBUTE_NORMAL                0
+#define ATTRIBUTE_BOLD                  1
+#define ATTRIBUTE_REVERSE               2
+#define ATTRIBUTE_FOREGROUND_COLOR      4
+#define ATTRIBUTE_BACKGROUND_COLOR      8
 
 // module-global terminal settings for restoring
 static struct termios old_settings;
@@ -75,9 +82,12 @@ enum mode {
 };
 
 struct rchar {
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
+    unsigned char fr;
+    unsigned char fg;
+    unsigned char fb;
+    unsigned char br;
+    unsigned char bg;
+    unsigned char bb;
     int attribute;
     char character;
 };
@@ -108,9 +118,12 @@ struct state {
     int yend;
     int pos;
     int attribute;
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
+    unsigned char fr;
+    unsigned char fg;
+    unsigned char fb;
+    unsigned char br;
+    unsigned char bg;
+    unsigned char bb;
     struct rchar* current_content;
     struct rchar* next_content;
     // actual technology state
@@ -137,13 +150,21 @@ static void _set_attributes(struct state* state, int index)
     {
         terminal_set_non_reverse_color();
     }
-    if(attribute & ATTRIBUTE_COLOR)
+    if(attribute & ATTRIBUTE_FOREGROUND_COLOR)
     {
-        terminal_set_foreground_color_RGB(rch->r, rch->g, rch->b);
+        terminal_set_foreground_color_RGB(rch->fr, rch->fg, rch->fb);
     }
     else
     {
         terminal_reset_foreground_color();
+    }
+    if(attribute & ATTRIBUTE_BACKGROUND_COLOR)
+    {
+        terminal_set_background_color_RGB(rch->br, rch->bg, rch->bb);
+    }
+    else
+    {
+        terminal_reset_background_color();
     }
 }
 
@@ -151,9 +172,12 @@ static int _is_equal(struct rchar* current, struct rchar* next, int i)
 {
     return (current + i)->character == (next + i)->character &&
            (current + i)->attribute == (next + i)->attribute &&
-           (current + i)->r == (next + i)->r &&
-           (current + i)->g == (next + i)->g &&
-           (current + i)->b == (next + i)->b;
+           (current + i)->fr == (next + i)->fr &&
+           (current + i)->fg == (next + i)->fg &&
+           (current + i)->fb == (next + i)->fb &&
+           (current + i)->br == (next + i)->br &&
+           (current + i)->bg == (next + i)->bg &&
+           (current + i)->bb == (next + i)->bb;
 }
 
 static void _write_to_display(struct state* state)
@@ -177,6 +201,20 @@ static void _set_position(struct state* state, int row, int column)
     state->pos = (row - 1) * state->columns + column - 1;
 }
 
+static void _write_ch(struct state* state, char ch)
+{
+    struct rchar* rch = state->next_content + state->pos;
+    rch->character = ch;
+    rch->attribute = state->attribute;
+    rch->fr = state->fr;
+    rch->fg = state->fg;
+    rch->fb = state->fb;
+    rch->br = state->br;
+    rch->bg = state->bg;
+    rch->bb = state->bb;
+    state->pos += 1;
+}
+
 static void _write_len(struct state* state, const char* str, size_t len)
 {
     for(size_t i = 0; i < len; ++i)
@@ -184,9 +222,12 @@ static void _write_len(struct state* state, const char* str, size_t len)
         struct rchar* rch = state->next_content + state->pos + i;
         rch->character = str[i];
         rch->attribute = state->attribute;
-        rch->r = state->r;
-        rch->g = state->g;
-        rch->b = state->b;
+        rch->fr = state->fr;
+        rch->fg = state->fg;
+        rch->fb = state->fb;
+        rch->br = state->br;
+        rch->bg = state->bg;
+        rch->bb = state->bb;
     }
     state->pos += len;
 }
@@ -195,6 +236,12 @@ static void _write(struct state* state, const char* str)
 {
     size_t len = strlen(str);
     _write_len(state, str, len);
+}
+
+static void _write_ch_at(struct state* state, char ch, int row, int column)
+{
+    _set_position(state, row, column);
+    _write_ch(state, ch);
 }
 
 static void _write_at(struct state* state, const char* str, int row, int column)
@@ -233,15 +280,24 @@ static void _reset_reverse(struct state* state)
 
 static void _set_color_RGB(struct state* state, unsigned char r, unsigned char g, unsigned char b)
 {
-    state->r = r;
-    state->g = g;
-    state->b = b;
-    state->attribute |= ATTRIBUTE_COLOR;
+    state->fr = r;
+    state->fg = g;
+    state->fb = b;
+    state->attribute |= ATTRIBUTE_FOREGROUND_COLOR;
+}
+
+static void _set_background_color_RGB(struct state* state, unsigned char r, unsigned char g, unsigned char b)
+{
+    state->br = r;
+    state->bg = g;
+    state->bb = b;
+    state->attribute |= ATTRIBUTE_BACKGROUND_COLOR;
 }
 
 static void _reset_color(struct state* state)
 {
-    state->attribute &= ~ATTRIBUTE_COLOR;
+    state->attribute &= ~ATTRIBUTE_FOREGROUND_COLOR;
+    state->attribute &= ~ATTRIBUTE_BACKGROUND_COLOR;
 }
 
 static void _set_to_blank(struct state* state)
@@ -254,12 +310,15 @@ static void _set_to_blank(struct state* state)
     }
 }
 
-static void _save_state(struct state* state)
+static void _save_and_destroy_state(struct state* state)
 {
     if(state->techstate) // techstate might not be initialized if an early ctrl-c occurs
     {
         technology_write_definition_files(state->techstate, "_assistant_tech");
     }
+    free(state->current_content);
+    free(state->next_content);
+    free(state);
 }
 
 static void _print(struct state* state, int row, int column, const char* str, size_t len)
@@ -310,7 +369,7 @@ static int _getchar(struct state* state)
         terminal_clear_screen();
         terminal_reset_all();
         tcsetattr(STDOUT_FILENO, TCSAFLUSH, &old_settings);
-        _save_state(state);
+        _save_and_destroy_state(state);
         exit(0);
     }
     if(ch == KEY_CODE_ESC)
@@ -403,7 +462,7 @@ static const char* _get_string(struct state* state, const char* prefill)
                 terminal_cursor_visibility(1);
             }
         }
-        else if(ch == 127) // backspace
+        else if(ch == KEY_CODE_BACKSPACE || ch == KEY_CODE_H) // backspace or ctrl-H
         {
             if(i > 0)
             {
@@ -513,9 +572,8 @@ static void _draw_panel(struct state* state, int xl, int xr, int yt, int yb, con
     // title
     if(title)
     {
-        _set_position(state, state->ystart + 1, xl + (xr - xl + 2 - strlen(title)) / 2);
         _set_bold(state);
-        _write(state, title);
+        _write_at(state, title, state->ystart + 1, xl + (xr - xl + 2 - strlen(title)) / 2);
         _reset_bold(state);
     }
 }
@@ -536,10 +594,34 @@ static void _draw_panel_section(struct state* state, int startpos, int endpos, i
     // bottom line
     (void)numrows;
     //_draw_panel_line(startpos, endpos, row + numrows);
-    _set_position(state, row, startpos + (endpos - startpos + 2 - strlen(title)) / 2);
     _set_bold(state);
-    _write(state, title);
+    _write_at(state, title, row, startpos + (endpos - startpos + 2 - strlen(title)) / 2);
     _reset_bold(state);
+}
+
+static void _write_region(struct state* state, char ch, int ystart, int xstart, int yend, int xend)
+{
+    for(int i = xstart; i <= xend; ++i)
+    {
+        for(int j = ystart; j <= yend; ++j)
+        {
+            _write_ch_at(state, ch, j, i);
+        }
+    }
+}
+
+static void _clear_region(struct state* state, int ystart, int xstart, int yend, int xend)
+{
+    _write_region(state, ' ', ystart, xstart, yend, xend);
+}
+
+static void _clear_main_area(struct state* state)
+{
+    int xstart = state->xstart;
+    int xend = state->xend - SIDE_PANEL_WIDTH - SIDE_PANEL_GAP - 1;
+    int ystart = state->ystart;
+    int yend = state->yend;
+    _clear_region(state, ystart, xstart, yend, xend);
 }
 
 static void _clear_side_panel(struct state* state)
@@ -548,55 +630,7 @@ static void _clear_side_panel(struct state* state)
     int xend = state->xend;
     int ystart = state->ystart;
     int yend = state->yend - 1;
-    for(int i = xstart; i <= xend; ++i)
-    {
-        for(int j = ystart; j <= yend; ++j)
-        {
-            _set_position(state, j, i);
-            _write(state, " ");
-        }
-    }
-}
-
-static char* _assemble_layer_info(struct state* state, const char* layername)
-{
-    const struct generics* layer = technology_get_layer(state->techstate, layername);
-    // GDS info
-    char* gdsinfo = NULL;
-    const struct hashmap* gdsdata = generics_get_layer_data(layer, "gds");
-    if(gdsdata)
-    {
-        const struct tagged_value* vl = hashmap_get_const(gdsdata, "layer");
-        const struct tagged_value* vp = hashmap_get_const(gdsdata, "purpose");
-        if(vl && vp)
-        {
-            int layernum = tagged_value_get_integer(vl);
-            int purposenum = tagged_value_get_integer(vp);
-            gdsinfo = strprintf("[GDS: %d/%d]", layernum, purposenum);
-        }
-    }
-    // SKILL info
-    char* skillinfo = NULL;
-    const struct hashmap* skilldata = generics_get_layer_data(layer, "SKILL");
-    if(skilldata)
-    {
-        const struct tagged_value* vl = hashmap_get_const(skilldata, "layer");
-        const struct tagged_value* vp = hashmap_get_const(skilldata, "purpose");
-        if(vl && vp)
-        {
-            const char* layerstr = tagged_value_get_const_string(vl);
-            const char* purposestr = tagged_value_get_const_string(vp);
-            skillinfo = strprintf("[SKILL: %s/%s]", layerstr, purposestr);
-        }
-    }
-    // pretty name
-    const char* prettyname = generics_get_layer_pretty_name(layer);
-    // assembled info
-    char* info;
-    info = strprintf("%s: %s %s [name: %s]", layername,  gdsinfo, skillinfo, prettyname);
-    free(gdsinfo);
-    free(skillinfo);
-    return info;
+    _clear_region(state, ystart, xstart, yend, xend);
 }
 
 static void _show_metal(struct state* state, unsigned int i, int* ycurrent, int startpos)
@@ -770,115 +804,142 @@ static void _draw_side_panel(struct state* state)
         //_draw_panel_section(state, startpos, state->xend, ycurrent, 3, "Via Geometries");
         ++ycurrent;
     }
-    // control info
-    //_set_position(state, state->yend - 2, startpos + 2);
-    //fputs("CTRL-S: Save Current State", stdout);
-    //_set_position(state, state->yend - 1, startpos + 2);
-    //fputs("CTRL-C: Abort Program", stdout);
-    //fflush(stdout);
 }
-        
+
+static void _draw_outer_panel(struct state* state)
+{
+    if(DRAW_OUTER_PANEL)
+    {
+        //_set_background_color_RGB(state, 80, 80, 80);
+        _write_region(state, ' ', state->ystart - 1, state->xstart - 1, state->yend + 1, state->xend + 1);
+        //_reset_color(state);
+    }
+}
+
+static void _draw_raw_lines(struct state* state, const char* const* lines, int ystart, int xstart, int yend, int xend)
+{
+    // count number of lines
+    const char* const* ptr = lines;
+    unsigned int numlines = 0;
+    while(*ptr)
+    {
+        ++numlines;
+        ++ptr;
+    }
+    int allowed_lines = yend - ystart + 1; // + 1: start/end are inclusive
+    // write out
+    unsigned int startline = 0;
+    unsigned int endline = allowed_lines;
+    while(1) // change scroll view or quit with enter
+    {
+        // clear previous content
+        _clear_region(state, ystart, xstart - PANEL_MARGIN, yend, xend + PANEL_MARGIN);
+        // write visible lines
+        unsigned int lineindex = 0;
+        unsigned int writeindex = 0;
+        const char* const* ptr = lines;
+        while(*ptr)
+        {
+            const char* line = *ptr;
+            if(lineindex >= startline && lineindex < endline)
+            {
+                _write_at(state, line, ystart + writeindex, xstart);
+                ++writeindex;
+            }
+            ++lineindex;
+            ++ptr;
+        }
+        // write scroll indicators
+        if(startline > 0)
+        {
+            _write_at(state, "^", ystart, xstart - PANEL_MARGIN);
+        }
+        if(endline < numlines)
+        {
+            _write_at(state, "v", yend, xstart - PANEL_MARGIN);
+        }
+        _write_to_display(state);
+        // interactive control
+        int ch = _getchar(state);
+        if(ch == KEY_CODE_ENTER || ch == 'q')
+        {
+            break;
+        }
+        if(ch == KEY_CODE_UP || ch == 'k')
+        {
+            if(startline > 0)
+            {
+                --startline;
+                --endline;
+            }
+        }
+        if(ch == KEY_CODE_DOWN || ch == 'j')
+        {
+            if(endline < numlines)
+            {
+                ++startline;
+                ++endline;
+            }
+        }
+    }
+}
+
 static void _draw_lines(struct state* state, const char* const* lines)
 {
-    int xstart = state->xstart;
-    int ystart = state->ystart;
-    int lineindex = 0;
-    while(*lines)
-    {
-        const char* line = *lines;
-        _set_position(state, ystart + lineindex, xstart + 2);
-        _write(state, line);
-        ++lineindex;
-        ++lines;
-    }
+    _draw_raw_lines(state, lines, state->ystart, state->xstart, state->yend, state->xend);
 }
 
 static void _draw_full_text(struct state* state, const char* const* text, const char* section)
 {
-    int xstart = state->xstart;
-    int xend = state->xend;
-    int textwidth = xend - xstart - 4;
+    int textwidth = state->xend - state->xstart + 1 - 2 * PANEL_BORDER_SIZE - 2 * PANEL_MARGIN;
+    // assemble raw lines
+    starray_create(alllines, char*);
+    size_t textlines = 0; // number of physical lines (paragraph-wrapped)
     const char* const* lines = text;
-    // set up panel
-    size_t totallines = 2; // 2 lines for the title
     while(*lines)
     {
-        if(**lines == 0) // empty string, skip a physical line
+        if(**lines == 0) // empty line, skip one physical line
         {
-            ++totallines;
+            starray_append(alllines, char*, util_strdup(""));
+            ++textlines;
         }
         else
         {
+            // prepare raw lines
             char** wrapped = print_split_in_wrapped_lines(*lines, textwidth);
-            // count wrapped lines
             char** line = wrapped;
             while(*line)
             {
-                ++totallines;
+                starray_append(alllines, char*, util_strdup(*line));
                 ++line;
+                ++textlines;
             }
         }
         ++lines;
     }
     // draw panel
-    int ystart = state->ystart;
-    int yend = ystart + totallines + 1;
-    _draw_panel(state, xstart, xend, ystart, yend, section);
+    int ystarttext = state->ystart + PANEL_TITLE_LINES;
+    int yend = ystarttext + textlines;
+    if(yend - state->ystart > MAX_SCREEN_HEIGHT - 1)
+    {
+        yend = state->ystart + MAX_SCREEN_HEIGHT - 1;
+    }
+    _draw_panel(state, state->xstart, state->xend, state->ystart, yend, section);
     // draw text
-    int ystarttext = ystart + 2; // 2 lines for the title
-    size_t lineindex = 0;
-    lines = text;
-    while(*lines)
-    {
-        if(**lines == 0) // empty line, skip one physical line
-        {
-            ++lineindex;
-        }
-        else
-        {
-            char** wrapped = print_split_in_wrapped_lines(*lines, textwidth);
-            // count wrapped lines
-            int numlines = 0;
-            char** line = wrapped;
-            while(*line)
-            {
-                ++numlines;
-                ++line;
-            }
-            // write out lines
-            line = wrapped;
-            size_t i = 0;
-            while(*line)
-            {
-                _set_position(state, ystarttext + lineindex + 1 + i, xstart + 2);
-                _write(state, *line);
-                ++i;
-                ++line;
-            }
-            lineindex += numlines;
-        }
-        ++lines;
-    }
-}
-
-static void _clear_main_area(struct state* state)
-{
-    int xstart = state->xstart;
-    int xend = state->xend - SIDE_PANEL_WIDTH - SIDE_PANEL_GAP - 1;
-    int ystart = state->ystart;
-    int yend = state->yend;
-    for(int i = xstart; i <= xend; ++i)
-    {
-        for(int j = ystart; j <= yend; ++j)
-        {
-            _write_at(state, " ", j, i);
-        }
-    }
+    _draw_raw_lines(
+        state,
+        (const char* const*) alllines,
+        ystarttext,
+        state->xstart + PANEL_BORDER_SIZE + PANEL_MARGIN,
+        yend - 1, // - 1: the panel border is at yend
+        state->xend - PANEL_BORDER_SIZE - PANEL_MARGIN
+    );
 }
 
 static void _draw_main_text(struct state* state, const char* const* text, const char* section)
 {
     _clear_main_area(state);
+    _draw_side_panel(state);
     int xstart = state->xstart;
     int xend = state->xend - SIDE_PANEL_WIDTH - SIDE_PANEL_GAP - 1;
     int textwidth = xend - xstart - 4;
@@ -934,8 +995,7 @@ static void _draw_main_text(struct state* state, const char* const* text, const 
             size_t i = 0;
             while(*line)
             {
-                _set_position(state, ystarttext + lineindex + 1 + i, xstart + 2);
-                _write(state, *line);
+                _write_at(state, *line, ystarttext + lineindex + 1 + i, xstart + 2);
                 ++i;
                 ++line;
             }
@@ -1000,7 +1060,7 @@ static int _draw_main_text_single_prompt_menu(struct state* state, const char* t
 {
     _draw_main_text_single(state, text, section);
     int row = state->yend;
-    int column = state->xstart;
+    int column = state->xstart + 1;
     int selection = _menu(state, row, column, choices, len);
     return selection;
 }
@@ -1037,11 +1097,10 @@ static int _draw_main_text_single_prompt_boolean_no(struct state* state, const c
 static int _draw_main_text_single_prompt_boolean(struct state* state, const char* text, const char* section)
 {
     _draw_main_text_single(state, text, section);
-    _set_position(state, state->yend, 1);
     int endpos = state->xend - SIDE_PANEL_WIDTH - SIDE_PANEL_GAP - 2;
     for(int i = 1; i <= endpos; ++i)
     {
-        _write(state, " ");
+        _write_at(state, " ", state->yend, i);
     }
     char* p = util_strdup("");
     const char* str;
@@ -1063,11 +1122,10 @@ static int _draw_main_text_single_prompt_boolean(struct state* state, const char
 
 static int _get_integer(struct state* state, const char* prompt)
 {
-    _set_position(state, state->yend, 1);
     int endpos = state->xend - SIDE_PANEL_WIDTH - SIDE_PANEL_GAP - 2;
     for(int i = 1; i <= endpos; ++i)
     {
-        _write(state, " ");
+        _write_at(state, " ", state->yend, i);
     }
     char* p = util_strdup(prompt);
     const char* str;
@@ -1090,11 +1148,10 @@ static int _get_integer(struct state* state, const char* prompt)
 
 static int _get_character(struct state* state, const char* prompt)
 {
-    _set_position(state, state->yend, 1);
     int endpos = state->xend - SIDE_PANEL_WIDTH - SIDE_PANEL_GAP - 2;
     for(int i = 1; i <= endpos; ++i)
     {
-        _write(state, " ");
+        _write_at(state, " ", state->yend, i);
     }
     char* p = util_strdup(prompt);
     const char* str;
@@ -1143,6 +1200,7 @@ static void _draw_all(struct state* state)
 {
     _clear_main_area(state);
     _draw_side_panel(state);
+    _draw_outer_panel(state);
     _write_to_display(state);
 }
 
@@ -1826,7 +1884,7 @@ static void _read_constraints(struct state* state)
 
 static void _read_auxiliary(struct state* state)
 {
-    const char* special_text = 
+    const char* special_text =
         "The 'special' layer is a non-physical non-process-related layer, that is used for marking opc structures (e.g. area anchors). "
         "As process nodes don't have a layer like this it should be mapped to a generics layer from the EDA tool or something unused. "
         "Do you want to provide this extra layer?";
@@ -1839,10 +1897,11 @@ static void _read_auxiliary(struct state* state)
     {
         technology_add_empty_layer(state->techstate, "special");
     }
-    const char* outline_text = 
+    const char* outline_text =
         "The outline layer marks the outline of blocks. "
         "Most often, it is not required but can help with the placement of filling, aligning blocks and other purposes. "
-        "(Note: not every node defines this layer)";
+        "(Note: not every node defines this layer) "
+        "Do you want to provide this extra layer?";
     int has_outline = _draw_main_text_single_prompt_boolean(state, outline_text, "Outline Layer");
     if(has_outline)
     {
@@ -1921,27 +1980,141 @@ static void _show_current_state(struct state* state)
 
 static void _edit_assistant_configuration(struct state* state)
 {
+    const char* title = "Assistant Configuration";
     enum mode oldmode = state->mode;
     state->mode = SETTINGS;
     _draw_all(state);
-    state->ask_layer_name = _draw_main_text_single_prompt_boolean_yes(state, "Should the assistant ask for layer names (useful for debugging)?", "Layer Info");
+    state->ask_layer_name = _draw_main_text_single_prompt_boolean_yes(
+        state,
+        "Should the assistant ask for layer names (useful for debugging)?",
+        title
+    );
     _draw_all(state);
-    state->ask_gds = _draw_main_text_single_prompt_boolean_yes(state, "Should the assistant ask for GDS layer data (required for GDS export)?", "Layer Info");
+    state->ask_gds = _draw_main_text_single_prompt_boolean_yes(
+        state,
+        "Should the assistant ask for GDS layer data (required for GDS export)?",
+        title
+    );
     _draw_all(state);
-    state->ask_skill = _draw_main_text_single_prompt_boolean_yes(state, "Should the assistant ask for SKILL layer data (required for SKILL/virtuoso export)?", "Layer Info");
+    state->ask_skill = _draw_main_text_single_prompt_boolean_yes(
+        state,
+        "Should the assistant ask for SKILL layer data (required for SKILL/virtuoso export)?",
+        title
+    );
+    _draw_main_text_single(
+        state,
+        "The assistent is configured.",
+        title
+    );
+    _draw_side_panel(state);
+    _write_to_display(state);
+    _wait_for_enter(state);
     state->mode = oldmode;
+}
+
+static void _assemble_layer_info(struct state* state, const char* layername, struct vector* vlines)
+{
+    const struct generics* layer = technology_get_layer(state->techstate, layername);
+    char* info;
+    if(!layer)
+    {
+        info = strprintf("%s: not defined", layername);
+    }
+    else if(generics_is_empty(layer))
+    {
+        info = strprintf("%s: empty", layername);
+    }
+    else
+    {
+        // GDS info
+        char* gdsinfo = util_strdup("[GDS: undefined]");
+        const struct hashmap* gdsdata = generics_get_layer_data(layer, "gds");
+        if(gdsdata)
+        {
+            const struct tagged_value* vl = hashmap_get_const(gdsdata, "layer");
+            const struct tagged_value* vp = hashmap_get_const(gdsdata, "purpose");
+            if(vl && vp)
+            {
+                int layernum = tagged_value_get_integer(vl);
+                int purposenum = tagged_value_get_integer(vp);
+                free(gdsinfo);
+                gdsinfo = strprintf("[GDS: %d/%d]", layernum, purposenum);
+            }
+        }
+        // SKILL info
+        char* skillinfo = util_strdup("[SKILL: undefined]");
+        const struct hashmap* skilldata = generics_get_layer_data(layer, "SKILL");
+        if(skilldata)
+        {
+            const struct tagged_value* vl = hashmap_get_const(skilldata, "layer");
+            const struct tagged_value* vp = hashmap_get_const(skilldata, "purpose");
+            if(vl && vp)
+            {
+                const char* layerstr = tagged_value_get_const_string(vl);
+                const char* purposestr = tagged_value_get_const_string(vp);
+                free(skillinfo);
+                skillinfo = strprintf("[SKILL: %s/%s]", layerstr, purposestr);
+            }
+        }
+        // pretty name
+        const char* prettyname = generics_get_layer_pretty_name(layer);
+        // assembled info
+        info = strprintf("%s: %s %s [name: %s]", layername, gdsinfo, skillinfo, prettyname ? prettyname : "undefined");
+        free(gdsinfo);
+        free(skillinfo);
+    }
+    vector_append(vlines, info);
 }
 
 static void _list_all_layers(struct state* state)
 {
-    const char* layername = "active";
-    char* info = _assemble_layer_info(state, layername);
-    const char* lines[] = {
-        info,
-        NULL
-    };
-    _draw_lines(state, lines);
-    free(info);
+    struct vector* vlines = vector_create(16, free); // vector takes ownership of strings
+    _assemble_layer_info(state, "active", vlines);
+    _assemble_layer_info(state, "gate", vlines);
+    _assemble_layer_info(state, "contactactive", vlines);
+    _assemble_layer_info(state, "contactpoly", vlines);
+    _assemble_layer_info(state, "contactgate", vlines);
+    _assemble_layer_info(state, "contactsourcedrain", vlines);
+    _assemble_layer_info(state, "pimplant", vlines);
+    _assemble_layer_info(state, "nimplant", vlines);
+    _assemble_layer_info(state, "oxide1", vlines);
+    _assemble_layer_info(state, "vthtypep1", vlines);
+    _assemble_layer_info(state, "vthtypen1", vlines);
+    _assemble_layer_info(state, "pwell", vlines);
+    _assemble_layer_info(state, "nwell", vlines);
+    _assemble_layer_info(state, "deeppwell", vlines);
+    _assemble_layer_info(state, "deepnwell", vlines);
+    _assemble_layer_info(state, "gatecut", vlines);
+    _assemble_layer_info(state, "silicideblocker", vlines);
+    _assemble_layer_info(state, "soiopen", vlines);
+    _assemble_layer_info(state, "subblock", vlines);
+    _assemble_layer_info(state, "padopening", vlines);
+    unsigned int nummetals = technology_get_num_metals(state->techstate);
+    if(nummetals > 0)
+    {
+        for(unsigned int i = 1; i <= nummetals; ++i)
+        {
+            char* metalname = strprintf("M%d", i);
+            _assemble_layer_info(state, metalname, vlines);
+            free(metalname);
+        }
+    }
+    if(nummetals > 1)
+    {
+        for(unsigned int i = 1; i <= nummetals - 1; ++i)
+        {
+            char* viacutname = strprintf("viacutM%dM%d", i, i + 1);
+            _assemble_layer_info(state, viacutname, vlines);
+            free(viacutname);
+        }
+    }
+    _assemble_layer_info(state, "special", vlines);
+    _assemble_layer_info(state, "outline", vlines);
+    vector_append(vlines, NULL); // add terminator
+    _clear_all(state);
+    _draw_lines(state, vector_content(vlines));
+    _write_to_display(state);
+    _wait_for_enter(state);
 }
 
 static void _show_error(struct state* state, const char* msg)
@@ -1955,8 +2128,8 @@ static void _show_error(struct state* state, const char* msg)
 void main_techfile_assistant(const struct hashmap* config)
 {
     // set up
-    struct state S = { 0 };
-    struct state* state = &S; // I didn't want to type &state any more
+    struct state* state = malloc(sizeof(*state));
+    memset(state, 0, sizeof(*state));
     state->mode = NONE;
 
     int fd = _setup_terminal(state);
@@ -1970,6 +2143,38 @@ void main_techfile_assistant(const struct hashmap* config)
 
     terminal_clear_screen();
     _set_to_blank(state);
+
+    /*
+    const char* testlines[] = {
+        "01: foo bar baz",
+        "02: foo bar baz",
+        "03: foo bar baz",
+        "04: foo bar baz",
+        "05: foo bar baz",
+        "06: foo bar baz",
+        "07: foo bar baz",
+        "08: foo bar baz",
+        "09: foo bar baz",
+        "10: foo bar baz",
+        "11: foo bar baz",
+        "12: foo bar baz",
+        "13: foo bar baz",
+        "14: foo bar baz",
+        "15: foo bar baz",
+        "16: foo bar baz",
+        "17: foo bar baz",
+        "18: foo bar baz",
+        "19: foo bar baz",
+        "20: foo bar baz",
+        "21: foo bar baz",
+        "22: foo bar baz",
+        "23: foo bar baz",
+        "24: foo bar baz",
+        NULL
+    };
+    _clear_all(state);
+    _draw_full_text(state, testlines, "Test");
+    */
 
     // introduction
     const char* introlines[] = {
@@ -1989,9 +2194,8 @@ void main_techfile_assistant(const struct hashmap* config)
         NULL
     };
     _clear_all(state);
+    _draw_outer_panel(state);
     _draw_full_text(state, introlines, "Introduction");
-    _write_to_display(state);
-    _wait_for_enter(state);
 
     // technology files
     const char* techfiles[] = {
@@ -2003,9 +2207,8 @@ void main_techfile_assistant(const struct hashmap* config)
         NULL
     };
     _clear_all(state);
+    _draw_outer_panel(state);
     _draw_full_text(state, techfiles, "Technology Node Definition");
-    _write_to_display(state);
-    _wait_for_enter(state);
 
     // general
     state->mode = SETTINGS;
@@ -2031,7 +2234,7 @@ void main_techfile_assistant(const struct hashmap* config)
     {
         _edit_assistant_configuration(state);
     }
-    
+
     state->mode = GENERAL;
     // main loop (random order)
     int run = 1;
@@ -2065,7 +2268,7 @@ void main_techfile_assistant(const struct hashmap* config)
             NULL
         };
         state->mode = GENERAL;
-        _draw_all(state);
+        _draw_side_panel(state);
         _draw_main_text(state, menu, "Main Menu");
         char choice = _get_character(state, "");
         switch(choice)
@@ -2158,7 +2361,7 @@ void main_techfile_assistant(const struct hashmap* config)
             break;
         }
     }
-    _save_state(state);
+    _save_and_destroy_state(state);
     _reset_terminal(fd);
 }
 

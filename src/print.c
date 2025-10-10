@@ -11,6 +11,9 @@
 #include <termios.h>
 #endif
 
+#include "starray.h"
+#include "ztstring.h"
+
 unsigned int print_get_screen_width(void)
 {
 #ifdef TERMOGRAPHY_ENABLE_TERM_WIDTH
@@ -121,21 +124,13 @@ static char* _assemble_line(const char* ch, const char* lastspace)
     return result;
 }
 
-static void _append_line(char*** linesp, size_t* len, char* line)
-{
-    *linesp = realloc(*linesp, (*len + 1) * sizeof(char*));
-    (*linesp)[*len] = line;
-    *len +=1 ;
-}
-
 char** print_split_in_wrapped_lines(const char* text, unsigned int textwidth)
 {
     /* the first line does not indent and does not skip space characters at the beginning */
     int firstline = 1;
     /* non-printed text pointer */
     const char* ch = text;
-    char** lines = NULL;
-    size_t len = 0;
+    starray_create(lines, char*);
     while(*ch)
     {
         /* skip to first non-space character (not on the first line) */
@@ -178,12 +173,10 @@ char** print_split_in_wrapped_lines(const char* text, unsigned int textwidth)
         }
         /* write line until lastspace */
         char* line = _assemble_line(ch, lastspace);
-        _append_line(&lines, &len, line);
+        starray_append(lines, char*, line);
         ch = lastspace;
         firstline = 0;
     }
-    // append NULL terminator
-    _append_line(&lines, &len, NULL);
     return lines;
 }
 
