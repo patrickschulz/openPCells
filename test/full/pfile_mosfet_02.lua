@@ -1,0 +1,3 @@
+return {
+    fingers = 4,
+}

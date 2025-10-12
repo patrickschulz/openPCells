@@ -1,5 +1,5 @@
 # main programs and generated code files
-Makefile
+/Makefile
 opc
 opc-lint
 opc-debug
