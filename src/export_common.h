@@ -1,5 +1,5 @@
-#ifndef OPC_LEXPORT_COMMON_H
-#define OPC_LEXPORT_COMMON_H
+#ifndef OPC_EXPORT_COMMON_H
+#define OPC_EXPORT_COMMON_H
 
 #include <stdio.h> // FILE
 
@@ -78,4 +78,4 @@ enum orientation {
 };
 enum orientation export_get_matrix_orientation(const struct transformationmatrix* matrix);
 
-#endif // OPC_LEXPORT_COMMON_H
+#endif // OPC_EXPORT_COMMON_H
