@@ -1,36 +1,30 @@
 # main programs and generated code files
 /Makefile
-opc
-opc-lint
-opc-debug
-!tech/opc
-src/_embed_compiled_lua_file
-src/_embed_compiled_lua_file_debug
-src/_embed_compiled_lua_file_release
-src/create_latex_API_doc
-src/_config.h
-src/_modulemanager.c
-src/_modulemanager.h
-src/_scriptmanager.c
-src/_scriptmanager.h
-src/generate_manpage
-src/tags
-src/release
-src/lint
-src/debug
-opc.1
+/opc
+/opc-lint
+/opc-debug
+/src/_embed_compiled_lua_file
+/src/_embed_compiled_lua_file_debug
+/src/_embed_compiled_lua_file_release
+/src/create_latex_API_doc
+/src/_config.h
+/src/_modulemanager.c
+/src/_modulemanager.h
+/src/_scriptmanager.c
+/src/_scriptmanager.h
+/src/generate_manpage
+/src/tags
+/src/release
+/src/lint
+/src/debug
+/opc.1
 
 # generated layouts and helpers
-openPCells.*
-pineapple.gds
-talentandsweat.gds
-gilfoyle.gds
-openPCells_extracted.cir
-pfile.lua
-verilogimport
+/openPCells.*
+/pfile.lua
 
 # development utils on my main machine
-devutils
+/devutils
 
 # generated files in example folder
 examples/digital/digital.lua
@@ -49,12 +43,12 @@ src/*.o
 tags
 
 # lua object files
-src/lua/lua
-src/lua/luac
-src/lua/*.o
-src/liblua_release.a
-src/liblua_lint.a
-src/liblua_debug.a
+/src/lua/lua
+/src/lua/luac
+/src/lua/*.o
+/src/liblua_release.a
+/src/liblua_lint.a
+/src/liblua_debug.a
 
 # tex auxiliary files
 *.aux
@@ -67,13 +61,13 @@ src/liblua_debug.a
 *.vrb
 
 # development information
-devinfo
-wip
-version1.0
+/devinfo
+/wip
+/version1.0
 
 # test code
-srctodo
+/srctodo
 
 # test files
-testfiles
+/testfiles
 /debug
