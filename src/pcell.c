@@ -27,18 +27,6 @@ struct pcell_state {
     int verbose;
 };
 
-/*
- * https://c-faq.com/varargs/handoff.html
- * use va_list
-void pcell_dprint(struct pcell_state* pcell_state, const char* fmt, ...)
-{
-    if(pcell_state->enable_dprint)
-    {
-        printf(fmt, ...);
-    }
-}
-*/
-
 struct pcell_state* pcell_initialize_state(void)
 {
     struct pcell_state* pcell_state = malloc(sizeof(*pcell_state));
