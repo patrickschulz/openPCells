@@ -792,6 +792,11 @@ void technology_write_definition_files(const struct technology_state* techstate,
     free(path);
 }
 
+unsigned int technology_get_grid(struct technology_state* techstate)
+{
+    return techstate->config->grid;
+}
+
 void technology_set_grid(struct technology_state* techstate, unsigned int grid)
 {
     techstate->config->grid = grid;
