@@ -119,6 +119,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "execute-lua-script", SINGLE_ARG, "e
 
 /* Diagnostic Functions */
 cmdoptions_add_section(cmdoptions, "Diagnostic functions");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "null", NO_ARG, "do nothing, can be used to check for availability of the opc command without any output");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-cellinfo", NO_ARG, "show some cell information: shape count, used layers, etc.");
 cmdoptions_add_option(cmdoptions, 'V', "verbose", NO_ARG, "enable verbose output");
 cmdoptions_add_option(cmdoptions, 'D', "debug", NO_ARG, "enable debugging output");
