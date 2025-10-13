@@ -65,6 +65,9 @@ tags
 /wip
 /version1.0
 
+# test unversioned files
+/test/helpers/test_compare
+
 # test code
 /srctodo
 
