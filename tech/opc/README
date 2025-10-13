@@ -1,0 +1,2 @@
+This technology is a mock technology, which is used for debugging/development of cells as well as tests.
+The cell tests are gds-based, therefore a .lyp file for klayout is provided which gives the layers proper names and colors.
