@@ -139,7 +139,7 @@ doc:
 	@\$(MAKE) -C doc full
 
 .PHONY: test
-test:
+test: opc
 	@\$(MAKE) -C test all
 
 .PHONY: clean
