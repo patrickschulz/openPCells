@@ -16,9 +16,9 @@ function do_test()
         ../../opc --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1}
     fi
     if ../helpers/test_compare ${1} ${3}; then
-        printf "\033[1;32mtest succeeded: %s (%s)\n\033[0m" ${1} ${2}
+        printf "\033[1;32mcell test succeeded: %s (%s)\n\033[0m" ${1} ${2}
     else
-        printf "\033[1;31mtest failed: %s (%s)\n\033[0m" ${1} ${2}
+        printf "\033[1;31mcell test failed: %s (%s)\n\033[0m" ${1} ${2}
         echo
     fi
 }
