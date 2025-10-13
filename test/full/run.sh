@@ -6,6 +6,10 @@
 # 3: export type
 function do_test()
 {
+    if [ ! -x ../../opc ]; then
+        printf "\033[1;31mopc is not available: test %s (%s)\n\033[0m" ${1} ${2}
+        return
+    fi
     ../../opc --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
     if [ $? -ne 0 ]; then
         echo
