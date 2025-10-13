@@ -386,6 +386,15 @@ return {
             svg = { color = "8000ff", order = 1 },
         }
     },
+    silicideblocker = {
+        name = "silicideblocker",
+        layer = {
+            gds = { layer = 28, purpose = 0 },
+            SKILL = { layer = "silicideblocker", purpose = "drawing" },
+            debug = { layer = "silicideblocker" },
+            svg = { color = "ffffff", order = 1 },
+        },
+    },
     -- unused layers
     oxide1 = {},
     oxide2 = {},
@@ -416,6 +425,5 @@ return {
     inductorlvsmarker = {},
     subblock = {},
     rotationmarker = {},
-    silicideblocker = {},
     polyresistorlvsmarker1 = {},
 }
