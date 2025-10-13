@@ -100,6 +100,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # create Makefile
+echo "writing Makefile"
 cat > Makefile << EOF
 DEPENDENCIES := src/_config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c
 
@@ -150,6 +151,7 @@ cleanall: clean
 EOF
 
 # create config.h
+echo "writing src/_config.h"
 cat > src/_config.h << EOF
 /*
  * This file is auto-generated.
@@ -165,3 +167,5 @@ cat > src/_config.h << EOF
 
 #endif /* OPC_CONFIG_H */
 EOF
+
+echo "You can now run 'make'"
