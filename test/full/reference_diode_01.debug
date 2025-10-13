@@ -1,4 +1,0 @@
-cell definition begin (opctoplevel)
-rect (active): (0, 0) (1000, 1000)
-rect (contactactive): (0, 0) (1000, 1000)
-cell definition end

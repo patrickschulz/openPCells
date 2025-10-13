@@ -63,16 +63,22 @@ int compare(const char* filename1, const char* filename2)
 
 int main(int argc, char** argv)
 {
-    if(argc != 2)
+    if(argc < 2)
     {
         fputs("test_compare: no basename given\n", stderr);
         return 1;
     }
+    if(argc < 3)
+    {
+        fputs("test_compare: no export type given\n", stderr);
+        return 1;
+    }
     const char* basename = argv[1];
-    char* filename1 = malloc(strlen(basename) + strlen("reference") + strlen("_") + strlen(".debug") + 1);
-    char* filename2 = malloc(strlen(basename) + strlen("test") + strlen("_") + strlen(".debug") + 1);
-    sprintf(filename1, "%s_%s.debug", "reference", basename);
-    sprintf(filename2, "%s_%s.debug", "test", basename);
+    const char* exporttype = argv[2];
+    char* filename1 = malloc(strlen(basename) + strlen("reference") + strlen("_") + strlen(".") + strlen(exporttype) + 1);
+    char* filename2 = malloc(strlen(basename) + strlen("test") + strlen("_") + strlen(".") + strlen(exporttype) + 1);
+    sprintf(filename1, "%s_%s.%s", "reference", basename, exporttype);
+    sprintf(filename2, "%s_%s.%s", "test", basename, exporttype);
     int result = compare(filename1, filename2);
     free(filename1);
     free(filename2);
