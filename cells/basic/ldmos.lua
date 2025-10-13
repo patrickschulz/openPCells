@@ -1,18 +1,18 @@
 function parameters()
     pcell.add_parameters(
         { "fingers",                        2, posvals = even() },
-        { "fingerwidth",                    0 },
+        { "fingerwidth",                    technology.get_dimension("Minimum Gate Width") },
         { "channeltype",                    "nmos", posvals = set("nmos", "pmos") },
-        { "gatelength",                     0 },
-        { "gatestrapwidth",                 0 },
+        { "gatelength",                     technology.get_dimension("Minimum Gate Length") },
+        { "gatestrapwidth",                 technology.get_dimension("Minimum Gate Contact Region Size")},
         { "gatestrapspace",                 0 },
         { "gatemetal",                      1 },
         { "sourcemetal",                    1 },
-        { "sourcewidth",                    0 },
+        { "sourcewidth",                    technology.get_dimension("Minimum Source/Drain Contact Region Size") },
         { "sourcespace",                    0 },
         { "sourceskip",                     0 },
         { "drainmetal",                     1 },
-        { "drainwidth",                     0 },
+        { "drainwidth",                     technology.get_dimension("Minimum Source/Drain Contact Region Size") },
         { "drainspace",                     0 },
         { "gtopext",                        0 },
         { "gbotext",                        0 },
@@ -22,7 +22,7 @@ function parameters()
         { "subblocktopextension",           0, follow = "subblocktopbottomextension" },
         { "subblockbottomextension",        0, follow = "subblocktopbottomextension" },
         { "drawinnerguardring",             true },
-        { "guardringwidth",                 0 },
+        { "guardringwidth",                 technology.get_dimension("Minimum Active Width"), posvals = positive() },
         { "guardringtopsep",                0 },
         { "guardringbottomsep",             0 },
         { "guardringleftsep",               0 },
@@ -107,6 +107,7 @@ function layout(ldmos, _P)
 
     -- gate contacts
     for i = 1, _P.fingers / 2 do
+        local debugstr = string.format("gate contacts:\n    x parameters: gatelength (%d)\n    y parameters: gatestrapwidth (%d)", _P.gatelength, _P.gatestrapwidth)
         geometry.contactbltr(ldmos, "gate",
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace,
@@ -115,7 +116,8 @@ function layout(ldmos, _P)
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength,
                 _P.fingerwidth + _P.gatestrapspace + _P.gatestrapwidth
-            )
+            ),
+            debugstr
         )
         geometry.contactbltr(ldmos, "gate",
             point.create(
@@ -125,7 +127,8 @@ function layout(ldmos, _P)
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength,
                 - _P.gatestrapspace
-            )
+            ),
+            debugstr
         )
         geometry.contactbltr(ldmos, "gate",
             point.create(
@@ -135,7 +138,8 @@ function layout(ldmos, _P)
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + 2 * _P.drainspace + _P.drainwidth + _P.gatelength,
                 - _P.gatestrapspace
-            )
+            ),
+            debugstr
         )
         geometry.contactbltr(ldmos, "gate",
             point.create(
@@ -145,7 +149,8 @@ function layout(ldmos, _P)
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + 2 * _P.drainspace + _P.drainwidth + _P.gatelength,
                 _P.fingerwidth + _P.gatestrapspace + _P.gatestrapwidth
-            )
+            ),
+            debugstr
         )
     end
 
@@ -195,6 +200,7 @@ function layout(ldmos, _P)
 
     -- source contacts
     for i = 1, _P.fingers / 2 do
+        local debugstr = string.format("source contacts:\n    x parameters: sourcewidth (%d)\n    y parameters: fingerwidth (%d)", _P.sourcewidth, _P.fingerwidth)
         geometry.contactbltr(ldmos, "active",
             point.create(
                 (i - 1) * xpitch,
@@ -203,7 +209,8 @@ function layout(ldmos, _P)
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth,
                 _P.fingerwidth
-            )
+            ),
+            debugstr
         )
         geometry.contactbltr(ldmos, "active",
             point.create(
@@ -213,7 +220,8 @@ function layout(ldmos, _P)
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + 2 * _P.drainspace + _P.drainwidth + 2 * _P.gatelength + _P.sourcespace + _P.sourcewidth,
                 _P.fingerwidth
-            )
+            ),
+            debugstr
         )
         if _P.sourcemetal > 1 then
             geometry.viabltr(ldmos, 1, _P.sourcemetal,
@@ -241,6 +249,7 @@ function layout(ldmos, _P)
 
     -- drain contacts
     for i = 1, _P.fingers / 2 do
+        local debugstr = string.format("drain contacts:\n    x parameters: drainwidth (%d)\n    y parameters: fingerwidth (%d)", _P.drainwidth, _P.fingerwidth)
         geometry.contactbltr(ldmos, "active",
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + _P.drainspace,

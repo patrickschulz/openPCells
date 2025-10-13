@@ -540,10 +540,10 @@ function layout(transistor, _P)
 
     -- active
     if _P.drawactive then
-        --geometry.rectanglebltr(transistor, generics.active(),
-        --    point.create(-leftactauxext, 0),
-        --    point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth)
-        --)
+        geometry.rectanglebltr(transistor, generics.active(),
+            point.create(-leftactauxext, 0),
+            point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth)
+        )
         transistor:add_anchor_line_y("activetop", _P.fingerwidth)
         transistor:add_anchor_line_y("activebottom", 0)
         transistor:add_area_anchor_bltr("active",
