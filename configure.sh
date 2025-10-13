@@ -138,6 +138,10 @@ install: opc opc.1
 doc:
 	@\$(MAKE) -C doc full
 
+.PHONY: test
+test:
+	@\$(MAKE) -C test all
+
 .PHONY: clean
 clean:
 	@\$(MAKE) -C src clean
