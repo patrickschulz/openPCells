@@ -108,7 +108,7 @@ function layout(ldmos, _P)
     -- gate contacts
     for i = 1, _P.fingers / 2 do
         local debugstr = string.format("gate contacts:\n    x parameters: gatelength (%d)\n    y parameters: gatestrapwidth (%d)", _P.gatelength, _P.gatestrapwidth)
-        geometry.contactbltr(ldmos, "gate",
+        geometry.contactbarebltr(ldmos, "gate",
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace,
                 _P.fingerwidth + _P.gatestrapspace
@@ -119,7 +119,7 @@ function layout(ldmos, _P)
             ),
             debugstr
         )
-        geometry.contactbltr(ldmos, "gate",
+        geometry.contactbarebltr(ldmos, "gate",
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace,
                 - _P.gatestrapspace - _P.gatestrapwidth
@@ -130,7 +130,7 @@ function layout(ldmos, _P)
             ),
             debugstr
         )
-        geometry.contactbltr(ldmos, "gate",
+        geometry.contactbarebltr(ldmos, "gate",
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + 2 * _P.drainspace + _P.drainwidth,
                 - _P.gatestrapspace - _P.gatestrapwidth
@@ -141,7 +141,7 @@ function layout(ldmos, _P)
             ),
             debugstr
         )
-        geometry.contactbltr(ldmos, "gate",
+        geometry.contactbarebltr(ldmos, "gate",
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + 2 * _P.drainspace + _P.drainwidth,
                 _P.fingerwidth + _P.gatestrapspace
@@ -201,7 +201,7 @@ function layout(ldmos, _P)
     -- source contacts
     for i = 1, _P.fingers / 2 do
         local debugstr = string.format("source contacts:\n    x parameters: sourcewidth (%d)\n    y parameters: fingerwidth (%d)", _P.sourcewidth, _P.fingerwidth)
-        geometry.contactbltr(ldmos, "active",
+        geometry.contactbarebltr(ldmos, "active",
             point.create(
                 (i - 1) * xpitch,
                 0
@@ -212,7 +212,7 @@ function layout(ldmos, _P)
             ),
             debugstr
         )
-        geometry.contactbltr(ldmos, "active",
+        geometry.contactbarebltr(ldmos, "active",
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + 2 * _P.sourcespace + 2 * _P.drainspace + _P.drainwidth + 2 * _P.gatelength,
                 0
@@ -222,6 +222,26 @@ function layout(ldmos, _P)
                 _P.fingerwidth
             ),
             debugstr
+        )
+        geometry.rectanglebltr(ldmos, generics.metal(1),
+            point.create(
+                (i - 1) * xpitch,
+                0
+            ),
+            point.create(
+                (i - 1) * xpitch + _P.sourcewidth,
+                _P.fingerwidth
+            )
+        )
+        geometry.rectanglebltr(ldmos, generics.metal(1),
+            point.create(
+                (i - 1) * xpitch + _P.sourcewidth + 2 * _P.sourcespace + 2 * _P.drainspace + _P.drainwidth + 2 * _P.gatelength,
+                0
+            ),
+            point.create(
+                (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + 2 * _P.drainspace + _P.drainwidth + 2 * _P.gatelength + _P.sourcespace + _P.sourcewidth,
+                _P.fingerwidth
+            )
         )
         if _P.sourcemetal > 1 then
             geometry.viabltr(ldmos, 1, _P.sourcemetal,
@@ -250,7 +270,17 @@ function layout(ldmos, _P)
     -- drain contacts
     for i = 1, _P.fingers / 2 do
         local debugstr = string.format("drain contacts:\n    x parameters: drainwidth (%d)\n    y parameters: fingerwidth (%d)", _P.drainwidth, _P.fingerwidth)
-        geometry.contactbltr(ldmos, "active",
+        geometry.contactbarebltr(ldmos, "active",
+            point.create(
+                (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + _P.drainspace,
+                0
+            ),
+            point.create(
+                (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + _P.drainspace + _P.drainwidth,
+                _P.fingerwidth
+            )
+        )
+        geometry.rectanglebltr(ldmos, generics.metal(1),
             point.create(
                 (i - 1) * xpitch + _P.sourcewidth + _P.sourcespace + _P.gatelength + _P.drainspace,
                 0

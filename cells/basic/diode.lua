@@ -16,7 +16,12 @@ function layout(diode, _P)
         point.create(_P.width, _P.height)
     )
     -- contacts
-    geometry.contactbltr(diode, "active",
+    geometry.contactbarebltr(diode, "active",
+        point.create(0, 0),
+        point.create(_P.width, _P.height)
+    )
+    -- metal 1
+    geometry.rectanglebltr(diode, generics.metal(1),
         point.create(0, 0),
         point.create(_P.width, _P.height)
     )
