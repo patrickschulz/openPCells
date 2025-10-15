@@ -1,0 +1,17 @@
+return {
+    channeltype = "nmos",
+    flippedwell = true,
+    gatelength = 300,
+    gatespace = 500,
+    fingerwidth = 1500,
+    fingers = 4,
+    drawtopgate = true,
+    connectsource = true,
+    drainmetal = 2,
+    drawguardring = true,
+    guardringleftsep = 600,
+    guardringrightsep = 600,
+    guardringtopsep = 600,
+    guardringbottomsep = 600,
+    guardringfillwell = true,
+}

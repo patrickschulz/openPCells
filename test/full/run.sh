@@ -46,29 +46,39 @@ function do_cellscript_test()
     fi
 }
 
-# cmos 01
+# cmos
 do_cell_test cmos_01 basic/cmos gds
 
-# diode 01
+# diode
 do_cell_test diode_01 basic/diode gds
 
-# guardring 01
+# guardring
 do_cell_test guardring_01 auxiliary/guardring gds
-# guardring 02
 do_cell_test guardring_02 auxiliary/guardring gds
 
-# ldmos 01
+# ldmos
 do_cell_test ldmos_01 basic/ldmos gds
 
-# mosfet 01
+# mosfet
 do_cell_test mosfet_01 basic/mosfet gds
-# mosfet 02
 do_cell_test mosfet_02 basic/mosfet gds
+do_cell_test mosfet_03 basic/mosfet gds
+do_cell_test mosfet_04 basic/mosfet gds
+do_cell_test mosfet_05 basic/mosfet gds
+do_cell_test mosfet_06 basic/mosfet gds
+do_cell_test mosfet_07 basic/mosfet gds
+do_cell_test mosfet_08 basic/mosfet gds
+do_cell_test mosfet_09 basic/mosfet gds
 
-# polyresistor 01
+# polyresistor
 do_cell_test polyresistor_01 basic/polyresistor gds
+do_cell_test polyresistor_02 basic/polyresistor gds
+do_cell_test polyresistor_03 basic/polyresistor gds
+do_cell_test polyresistor_04 basic/polyresistor gds
+do_cell_test polyresistor_05 basic/polyresistor gds
+do_cell_test polyresistor_06 basic/polyresistor gds
 
-# stacked_mosfet_array 01
+# stacked_mosfet_array
 do_cell_test stacked_mosfet_array_01 basic/stacked_mosfet_array gds
 
 # simple cellscript test (for name)
