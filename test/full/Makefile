@@ -4,4 +4,4 @@ all:
 
 .PHONY: clean
 clean:
-	rm -f test_*.debug
+	rm -f test_*.gds
