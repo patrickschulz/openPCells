@@ -119,7 +119,7 @@ opc-debug: \$(DEPENDENCIES)
 	@\$(MAKE) -C src opc-debug
 	@mv src/opc-debug .
 
-opc.1: src/cmdoptions_def.c
+opc.1: src/cmdoptions_def.c src/generate_manpage
 	@\$(MAKE) -C src opc.1
 	mv src/opc.1 .
 

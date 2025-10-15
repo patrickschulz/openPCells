@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "cmdoptions.h"
 
@@ -6,7 +8,10 @@ int main(void)
 {
     struct cmdoptions* cmdoptions = cmdoptions_create();
     #include "cmdoptions_def.c" // yes, I did that
-    puts(".TH opc 1 \"29 Aug 2022\" \"1.0\" \"opc man page\"");
+    time_t t = time(NULL);
+    char strtime[100];
+    strftime(strtime, 100, "%Y-%m-%d", localtime(&t));
+    printf(".TH opc 1 \"%s\" \"1.0\" \"opc man page\"\n", strtime);
     puts(".SH NAME");
     puts("opc \\- parametric and technology-independent IC layout generator");
     puts(".SH SYNOPSIS");
