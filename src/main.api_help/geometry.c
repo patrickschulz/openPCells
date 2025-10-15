@@ -987,8 +987,10 @@
         { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
         { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
         { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
-        { "bl",             POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
-        { "tr",             POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+        { "bl1",            POINT,      NULL,   "Bottom-left point of the first metal rectangular shape" },
+        { "tr1",            POINT,      NULL,   "Top-right point of the first metal rectangular shape" },
+        { "bl2",            POINT,      NULL,   "Bottom-left point of the second metal rectangular shape" },
+        { "tr2",            POINT,      NULL,   "Top-right point of the second metal rectangular shape" },
         { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
         { NULL }
     };
@@ -1005,7 +1007,7 @@
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL,   "Object in which the contact is created" },
-        { "layer",          STRING,     NULL,   "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
+        { "region",         STRING,     NULL,   "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
         { "bl",             POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
         { "tr",             POINT,      NULL,   "Top-right point of the generated rectangular shape" },
         { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
@@ -1021,11 +1023,32 @@
     ));
 }
 
+/* geometry.contactbltrov */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "region",         INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "bl1",            POINT,      NULL,   "Bottom-left point of the FEOL region rectangular shape" },
+        { "tr1",            POINT,      NULL,   "Top-right point of the FEOL region rectangular shape" },
+        { "bl2",            POINT,      NULL,   "Bottom-left point of the metal 1 rectangular shape" },
+        { "tr2",            POINT,      NULL,   "Top-right point of the metal 1 rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "contactbltrov",
+        MODULE_GEOMETRY,
+        "Create contacts defined by the overlap of two rectangular areas. With this approach enclosure rules can be satisfied for both layers (FEOL and metal), even though the overlap is technically too small to allow for contact generation (where geometry.contactbltr would fail). This allows for contacts in highly constrained regions, but it is more restrictive than the geometry.contactbltr family. This function does not support any of the additional parameters (e.g. xcontinuous).",
+        "geometry.contactbltrov(cell,\n    \"gate\",\n    point.create(-20, -100),\n    point.create(20, 100)\n    point.create(-100, -20)\n    point.create(100, 20)\n)\n",
+        parameters
+    ));
+}
+
 /* geometry.contactbarebltr */
 {
     struct parameter parameters[] = {
         { "cell",   OBJECT,     NULL,   "Object in which the contact is created" },
-        { "layer",  STRING,     NULL,   "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
+        { "region", STRING,     NULL,   "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
         { "bl",     POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
         { "tr",     POINT,      NULL,   "Top-right point of the generated rectangular shape" },
         { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
