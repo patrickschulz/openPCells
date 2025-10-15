@@ -67,6 +67,7 @@ tags
 
 # test unversioned files
 /test/helpers/test_compare
+/test/full/test_*.gds
 
 # test code
 /srctodo
