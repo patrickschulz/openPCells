@@ -1,8 +1,9 @@
 #include "geometry.h"
 
-#include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "math.h"
 
@@ -1332,6 +1333,27 @@ static int _contactbltr(
         widthclass,
         technology_is_create_via_arrays(techstate)
     );
+    const struct generics* feollayer = NULL;
+    if(strcmp(region, "gate") == 0)
+    {
+        feollayer = generics_create_gate(techstate);
+    }
+    else if(strcmp(region, "poly") == 0)
+    {
+        feollayer = generics_create_gate(techstate);
+    }
+    else if(strcmp(region, "active") == 0)
+    {
+        feollayer = generics_create_active(techstate);
+    }
+    else if(strcmp(region, "sourcedrain") == 0)
+    {
+        feollayer = generics_create_active(techstate);
+    }
+    if(feollayer)
+    {
+        _rectanglebltr(cell, feollayer, blx, bly, trx, try);
+    }
     _rectanglebltr(cell, generics_create_metal(techstate, 1), blx, bly, trx, try);
     return ret;
 }
