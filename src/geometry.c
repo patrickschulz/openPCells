@@ -1336,6 +1336,39 @@ static int _contactbltr(
     return ret;
 }
 
+static int _contactbltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    const char* region,
+    coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1,
+    coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2
+)
+{
+    struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
+    struct via_definition* fallback = technology_get_contact_fallback(techstate, region);
+    if(!viadefs)
+    {
+        return 0;
+    }
+    int ret = 1;
+    const struct generics* cutlayer = generics_create_contact(techstate, region);
+    if(!cutlayer)
+    {
+        printf("could not create contact layer for region '%s'\n", region);
+        return 0;
+    }
+    ret = ret && _via_contact_bltr2(cell,
+        viadefs, fallback,
+        cutlayer,
+        blx1, bly1, trx1, try1,
+        blx2, bly2, trx2, try2,
+        technology_is_create_via_arrays(techstate)
+    );
+    _rectanglebltr(cell, generics_create_gate(techstate), blx1, bly1, trx1, try1);
+    _rectanglebltr(cell, generics_create_metal(techstate, 1), blx2, bly2, trx2, try2);
+    return ret;
+}
+
 static int _contactbarebltr(
     struct object* cell,
     struct technology_state* techstate,
@@ -1390,6 +1423,23 @@ int geometry_contactbltr(
         xcont, ycont,
         equal_pitch,
         widthclass
+    );
+}
+
+int geometry_contactbltrov(
+    struct object* cell,
+    struct technology_state* techstate,
+    const char* region,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2
+)
+{
+    return _contactbltr2(
+        cell,
+        techstate,
+        region,
+        bl1->x, bl1->y, tr1->x, tr1->y,
+        bl2->x, bl2->y, tr2->x, tr2->y
     );
 }
 

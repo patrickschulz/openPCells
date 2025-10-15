@@ -1941,6 +1941,57 @@ static int lgeometry_contactbltr(lua_State* L)
     return 0;
 }
 
+static int lgeometry_contactbltrov(lua_State* L)
+{
+    lcheck_check_numargs2(L, 6, 7, "geometry.contactbltrov");
+    struct lobject* cell = lobject_check(L, 1);
+    const char* region = luaL_checkstring(L, 2);
+    struct lpoint* bl1 = lpoint_checkpoint(L, 3);
+    struct lpoint* tr1 = lpoint_checkpoint(L, 4);
+    struct lpoint* bl2 = lpoint_checkpoint(L, 5);
+    struct lpoint* tr2 = lpoint_checkpoint(L, 6);
+    const char* debugstring = lua_tostring(L, 7);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.contactbltrov called without debug string");
+        lua_error(L);
+    }
+#endif
+    _check_rectangle_points(L, bl1, tr1, "geometry.contactbltrov");
+    _check_rectangle_points(L, bl2, tr2, "geometry.contactbltrov");
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_contactbltrov(lobject_get_full(L, cell), techstate, region, lpoint_get(bl1), lpoint_get(tr1), lpoint_get(bl2), lpoint_get(tr2));
+    if(!res)
+    {
+        if(debugstring)
+        {
+            lua_pushfstring(L, "geometry.contactbltrov: could not fit contact from %s to metal 1. Areas: (%d, %d)/(%d, %d) and (%d, %d)/(%d, %d)\ndebug info: %s",
+                region,
+                lpoint_get(bl1)->x, lpoint_get(bl1)->y,
+                lpoint_get(tr1)->x, lpoint_get(tr1)->y,
+                lpoint_get(bl2)->x, lpoint_get(bl2)->y,
+                lpoint_get(tr2)->x, lpoint_get(tr2)->y,
+                debugstring
+            );
+        }
+        else
+        {
+            lua_pushfstring(L, "geometry.contactbltrov: could not fit contact from %s to metal 1. Areas: (%d, %d)/(%d, %d) and (%d, %d)/(%d, %d)",
+                region,
+                lpoint_get(bl1)->x, lpoint_get(bl1)->y,
+                lpoint_get(tr1)->x, lpoint_get(tr1)->y,
+                lpoint_get(bl2)->x, lpoint_get(bl2)->y,
+                lpoint_get(tr2)->x, lpoint_get(tr2)->y
+            );
+        }
+        lua_error(L);
+    }
+    return 0;
+}
+
 static int lgeometry_contactbarebltr(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -2412,6 +2463,7 @@ int open_lgeometry_lib(lua_State* L)
         { "viabarebltr_ycontinuous",                    lgeometry_viabarebltr_ycontinuous                               },
         { "viabarebltr_continuous",                     lgeometry_viabarebltr_continuous                                },
         { "contactbltr",                                lgeometry_contactbltr                                           },
+        { "contactbltrov",                              lgeometry_contactbltrov                                         },
         { "contactbarebltr",                            lgeometry_contactbarebltr                                       },
         { "cross",                                      lgeometry_cross                                                 },
         { "ring",                                       lgeometry_ring                                                  },
