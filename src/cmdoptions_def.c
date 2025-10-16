@@ -45,7 +45,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "resolve-path-extensions", NO_ARG, "
 cmdoptions_add_option(cmdoptions, NO_SHORT, "rasterize-curves", NO_ARG, "rasterize curves");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "triangulate-polygons", NO_ARG, "triangulate all polygons");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "enable-fallback-vias", NO_ARG, "enable the use of fallback vias. These are usually not desirable for layout as they only produce one single cut and might not be DRC clean. But fallback vias can be used to sucessfully generate a layout and finding the cause for the problems with the via generation");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-via-arrayzation", NO_ARG, "don't create via arrays, instead create single large via regions (useful for EM simulations)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-via-arrayzation", NO_ARG, "don't create via arrays, instead create single large via regions (useful for EM simulations or debugging)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "separator", SINGLE_ARG, "cell parameter separator (default \\n)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "seed", SINGLE_ARG, "set seed for random functions for reproducible layout generation. Random functions are mostly used in digital place & route functions, but also in some cells");
 
