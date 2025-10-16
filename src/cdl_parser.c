@@ -8,6 +8,7 @@
 #include "buffer.h"
 #include "cdl_tokenlist.h"
 #include "hashmap.h"
+#include "helpers.h"
 #include "string.h"
 #include "util.h"
 #include "vector.h"
@@ -448,8 +449,8 @@ struct CDL_tokenlist* _tokenize(const char* filename, const char** message)
         }
         */
         char* context = _make_context(filename, startindex, startindex + 1);
-        printf("error: unknown token: '%c'\n", ch);
-        printf("%s\n", context);
+        fprintf(stderr, "error: unknown token: '%c'\n", ch);
+        fprintf(stderr, "%s\n", context);
         free(context);
         return NULL;
 restart: ; // empty statement for older gcc versions
@@ -466,7 +467,7 @@ int _parse_instance_parameter(struct CDL_tokenlist* CDL_tokenlist, struct device
     const char* parametervalue;
     if(!CDL_token_expect(CDL_tokenlist, IDENTIFIER)) // parameter name
     {
-        printf("instantiation: expected an identifier for parameter, got %s\n", CDL_token_stringify(CDL_tokenlist));
+        fprintf(stderr, "instantiation: expected an identifier for parameter, got %s\n", CDL_token_stringify(CDL_tokenlist));
         return 0;
     }
     else
@@ -519,12 +520,12 @@ struct device* _parse_device(struct CDL_tokenlist* CDL_tokenlist)
     }
     if(!CDL_token_expect(CDL_tokenlist, CLOSEBRACE)) // end nets
     {
-        printf("instantiation: expected closing brace after port connections, got %s\n", CDL_token_stringify(CDL_tokenlist));
+        fprintf(stderr, "instantiation: expected closing brace after port connections, got %s\n", CDL_token_stringify(CDL_tokenlist));
     }
     CDL_token_advance(CDL_tokenlist);
     if(!CDL_token_expect(CDL_tokenlist, IDENTIFIER)) // model name
     {
-        printf("instantiation: expected model name (IDENTIFIER), got %s\n", CDL_token_stringify(CDL_tokenlist));
+        fprintf(stderr, "instantiation: expected model name (IDENTIFIER), got %s\n", CDL_token_stringify(CDL_tokenlist));
         return NULL;
     }
     else
@@ -572,7 +573,7 @@ struct device* _parse_device(struct CDL_tokenlist* CDL_tokenlist)
         }
         else
         {
-            printf("unexpected token while parsing instance: %s\n", CDL_token_stringify(CDL_tokenlist));
+            fprintf(stderr, "unexpected token while parsing instance: %s\n", CDL_token_stringify(CDL_tokenlist));
         }
     }
     // eat end-of-line token
@@ -635,7 +636,7 @@ static int _start_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
     else
     {
         const char* name = CDL_token_get_value(CDL_tokenlist);
-        printf("subcircuit definition: '%s'\n", name);
+        debugprintf("subcircuit definition: '%s'\n", name);
         // FIXME: do something with the name
     }
     CDL_token_advance(CDL_tokenlist); // eat name
@@ -663,7 +664,7 @@ static int _start_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
     }
     if(!CDL_token_expect(CDL_tokenlist, ENDOFLINE)) // end nets
     {
-        printf("subcircuit definition: expected new line after subcitcuit ports, got %s\n", CDL_token_stringify(CDL_tokenlist));
+        fprintf(stderr, "subcircuit definition: expected new line after subcitcuit ports, got %s\n", CDL_token_stringify(CDL_tokenlist));
         CDL_token_print_context(CDL_tokenlist);
     }
     CDL_token_advance(CDL_tokenlist); // eat end-of-line
@@ -787,11 +788,11 @@ static int _read_instantiation(struct CDL_tokenlist* CDL_tokenlist, struct hashm
                 _read_parameter(CDL_tokenlist, &parameter, &message);
                 vector_append(parameters, parameter);
             }
-            printf("%s: mosfet (%s): g: %s, d: %s, s: %s, b: %s\n", string_get(identifier), modelname, gatenet, drainnet, sourcenet, bulknet);
+            debugprintf("%s: mosfet (%s): g: %s, d: %s, s: %s, b: %s\n", string_get(identifier), modelname, gatenet, drainnet, sourcenet, bulknet);
             for(size_t i = 0; i < vector_size(parameters); ++i)
             {
                 struct parameter* parameter = vector_get(parameters, i);
-                printf("    %s = %s\n", parameter->key, parameter->value);
+                debugprintf("    %s = %s\n", parameter->key, parameter->value);
             }
             // FIXME:
             CDL_token_advance_until(CDL_tokenlist, ENDOFLINE);
@@ -852,7 +853,7 @@ static void _read_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
     while(hashmap_iterator_is_valid(it))
     {
         const char* net = hashmap_iterator_key(it);
-        printf("    %s\n", net);
+        debugprintf("    %s\n", net);
         hashmap_iterator_next(it);
     }
     hashmap_iterator_destroy(it);

@@ -6,12 +6,14 @@
  *  Changed and restructured by Philipp Nickel to store struct rpoint
  */
 
-#include "lrouter_field.h"
 #include "lrouter_min_heap.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+#include "helpers.h"
+#include "lrouter_field.h"
 
 #define LCHILD(x) 2 * x + 1
 #define RCHILD(x) 2 * x + 2
@@ -169,7 +171,7 @@ void heap_inorder_trav(struct minheap *hp, size_t i)
     {
         heap_inorder_trav(hp, LCHILD(i));
     }
-    printf("%d ", hp->elem[i].point->score);
+    debugprintf("%d ", hp->elem[i].point->score);
     if(RCHILD(i) < hp->size)
     {
         heap_inorder_trav(hp, RCHILD(i));
@@ -190,7 +192,7 @@ void heap_preorder_trav(struct minheap *hp, size_t i)
     {
         heap_preorder_trav(hp, RCHILD(i));
     }
-    printf("%d ", hp->elem[i].point->score);
+    debugprintf("%d ", hp->elem[i].point->score);
 }
 
 
@@ -199,7 +201,7 @@ void heap_preorder_trav(struct minheap *hp, size_t i)
    */
 void heap_postorder_trav(struct minheap *hp, size_t i)
 {
-    printf("%d ", hp->elem[i].point->score);
+    debugprintf("%d ", hp->elem[i].point->score);
     if(LCHILD(i) < hp->size)
     {
         heap_postorder_trav(hp, LCHILD(i));
@@ -219,7 +221,7 @@ void heap_levelorder_trav(struct minheap *hp)
     size_t i;
     for(i = 0; i < hp->size; i++)
     {
-        printf("%d ", hp->elem[i].point->score);
+        debugprintf("%d ", hp->elem[i].point->score);
     }
 }
 

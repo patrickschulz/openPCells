@@ -139,7 +139,7 @@ static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions, c
             lua_pushnil(L);
             while(lua_next(L, -2) != 0)
             {
-                printf("unknown config entry '%s'\n", lua_tostring(L, -2));
+                fprintf(stderr, "unknown config entry '%s'\n", lua_tostring(L, -2));
                 lua_pop(L, 1);
                 ret = LUA_ERRRUN;
             }
@@ -155,7 +155,7 @@ static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions, c
 
 static void _print_general_info(void)
 {
-    printf("This is the openPCell layout generator (opc), version %u.%u.%u.\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
+    fprintf(stdout, "This is the openPCell layout generator (opc), version %u.%u.%u.\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
     puts("Copyright 2020-2025 Patrick Kurth");
     puts("");
     puts("To generate a layout, you need to pass the technology,");
@@ -238,7 +238,7 @@ int main(int argc, const char* const * argv)
     }
     if(cmdoptions_was_provided_long(cmdoptions, "version"))
     {
-        printf("openPCells (opc) %u.%u.%u\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
+        fprintf(stdout, "openPCells (opc) %u.%u.%u\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
         goto DESTROY_CMDOPTIONS;
     }
     int stdoutp = 0;
@@ -373,11 +373,11 @@ int main(int argc, const char* const * argv)
         const char* content = lua_tostring(L, -1);
         if(!content)
         {
-            printf("template '%s' not found\n", template_name);
+            fprintf(stderr, "template '%s' not found\n", template_name);
         }
         else
         {
-            printf("%s\n", content);
+            fprintf(stdout, "%s\n", content);
         }
         lua_close(L);
         goto DESTROY_CMDOPTIONS;
@@ -394,13 +394,13 @@ int main(int argc, const char* const * argv)
         const char* content = lua_tostring(L, -1);
         if(!content)
         {
-            printf("local cell = pcell.create_layout(\"%s\", \"_cell\", {\n", template_name);
+            fprintf(stdout, "local cell = pcell.create_layout(\"%s\", \"_cell\", {\n", template_name);
             main_list_cell_parameters(template_name, "    %n = %v,", NULL, cmdoptions, config);
             puts("})");
         }
         else
         {
-            printf("%s\n", content);
+            fprintf(stdout, "%s\n", content);
         }
         lua_close(L);
         goto DESTROY_CMDOPTIONS;
@@ -529,11 +529,11 @@ int main(int argc, const char* const * argv)
     // list tech paths
     if(cmdoptions_was_provided_long(cmdoptions, "list-techpaths"))
     {
-        printf("%s\n", OPC_TECH_PATH "/tech");
+        fprintf(stdout, "%s\n", OPC_TECH_PATH "/tech");
         const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
         while(arg && *arg)
         {
-            printf("%s\n", *arg);
+            fprintf(stdout, "%s\n", *arg);
             ++arg;
         }
         if(hashmap_exists(config, "techpaths"))
@@ -541,7 +541,7 @@ int main(int argc, const char* const * argv)
             const struct vector* techpaths = hashmap_get_const(config, "techpaths");
             for(unsigned int i = 0; i < vector_size(techpaths); ++i)
             {
-                printf("%s\n", (const char*)vector_get_const(techpaths, i));
+                fprintf(stdout, "%s\n", (const char*)vector_get_const(techpaths, i));
             }
         }
         goto DESTROY_CONFIG;

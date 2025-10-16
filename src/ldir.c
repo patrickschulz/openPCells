@@ -38,7 +38,7 @@ int ldir_walk(lua_State* L)
         int ret = stat(fullpath, &statbuf);
         if(ret == -1)
         {
-            printf("ldir error with '%s'\n", fullpath);
+            fprintf(stderr, "ldir error with '%s'\n", fullpath);
             perror("");
         }
         const char* type = NULL;

@@ -423,7 +423,7 @@ static void _simulated_annealing(struct RanState* rstate, struct block* block, s
 
         unsigned int total_penalty = total_wirelength + 100 * too_wide_penalty;
 
-        //printf("penalty (current / last): %u / %u\n", total_penalty, last_total_penalty);
+        //debugprintf("penalty (current / last): %u / %u\n", total_penalty, last_total_penalty);
 
         if(total_penalty > last_total_penalty)
         {
@@ -444,7 +444,7 @@ static void _simulated_annealing(struct RanState* rstate, struct block* block, s
     unsigned int percentage = 0;
     if(steps * 100 / needed_steps >= percentage)
     {
-        printf("placement %2d %% done\n", percentage);
+        debugprintf("placement %2d %% done\n", percentage);
         percentage += percentage_divisor;
     }
     */

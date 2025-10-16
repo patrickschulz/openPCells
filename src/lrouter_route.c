@@ -1,14 +1,15 @@
 #include "lrouter_route.h"
 
-#include "lrouter_net.h"
-#include "lrouter_min_heap.h"
-#include "lrouter_field.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
 #include <pthread.h>
 #include <sys/sysinfo.h>
+
+#include "helpers.h"
+#include "lrouter_net.h"
+#include "lrouter_min_heap.h"
+#include "lrouter_field.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define EVEN(val) ((val % 2) == 0)
@@ -367,7 +368,7 @@ static struct vector* _route_single_threaded(struct net *net, struct field* fiel
     struct vector* deltas = vector_create(1, free);
     while(net_get_size(net) > 1)
     {
-        printf("net size: %d\n", net_get_size(net));
+        debugprintf("net size: %d\n", net_get_size(net));
         struct position* startpos = NULL;
         int port_index = 1;
 
@@ -400,7 +401,7 @@ static struct vector* _route_single_threaded(struct net *net, struct field* fiel
         if(min_routing_cost == INT_MAX)
         {
             // FIXME: this is a critical error and should abort the entire routing process
-            printf("%s\n", "not routable");
+            fprintf(stderr, "%s\n", "not routable");
             break;
         }
         /* look for path again to prepare the field for the backtrace */
@@ -504,7 +505,7 @@ static struct vector* _route_multi_threaded(struct net *net, struct field* field
         if(min_routing_cost == INT_MAX)
         {
             // FIXME: this is a critical error and should abort the entire routing process
-            //printf("not routable\n");
+            //fprintf(stderr, "not routable\n");
             break;
         }
         /* look for path again to prepare the field for the backtrace */
@@ -529,7 +530,7 @@ static struct vector* _route_multi_threaded(struct net *net, struct field* field
 
 struct vector* route(struct net *net, struct field* field)
 {
-    printf("routing net '%s'\n", net_get_name(net));
+    debugprintf("routing net '%s'\n", net_get_name(net));
     return _route_multi_threaded(net, field);
     //return _route_single_threaded(net, field);
 }

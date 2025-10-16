@@ -542,7 +542,7 @@ int gdsparser_show_cell_definitions(const char* filename)
     int status = _read_raw_stream_noerror(filename, &stream, &errorbyte);
     if(!status)
     {
-        printf("show GDSII records: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
+        fprintf(stderr, "show GDSII cell definitions: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
         return 0;
     }
 
@@ -648,7 +648,7 @@ int gdsparser_show_records(const char* filename, int raw)
     int status = _read_raw_stream_noerror(filename, &stream, &errorbyte);
     if(!status)
     {
-        printf("show GDSII records: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
+        fprintf(stderr, "show GDSII records: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
         return 0;
     }
 
@@ -712,7 +712,7 @@ int gdsparser_show_records(const char* filename, int raw)
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
                         double num = pdata[i];
-                        printf("%g ", num);
+                        fprintf(stdout, "%g ", num);
                     }
                     free(pdata);
                     break;
@@ -723,7 +723,7 @@ int gdsparser_show_records(const char* filename, int raw)
                     for(int i = 0; i < (record->length - 4) / 8; ++i)
                     {
                         double num = pdata[i];
-                        printf("%g ", num);
+                        fprintf(stdout, "%g ", num);
                     }
                     free(pdata);
                     break;
@@ -1697,7 +1697,7 @@ static int _read_structure(
         }
         else // wrong record
         {
-            printf("structure: unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index - 2);
+            fprintf(stderr, "structure: unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index - 2);
             if(cellfile)
             {
                 fclose(cellfile);

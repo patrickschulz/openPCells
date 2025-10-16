@@ -190,7 +190,7 @@ static void _move_origin(struct object* toplevel, struct cmdoptions* cmdoptions)
         int x, y;
         if(!_parse_point(arg, &x, &y))
         {
-            printf("could not parse translation '%s'\n", arg);
+            fprintf(stderr, "could not parse translation '%s'\n", arg);
         }
         else
         {
@@ -207,7 +207,7 @@ static void _translate(struct object* toplevel, struct cmdoptions* cmdoptions)
         int dx, dy;
         if(!_parse_point(arg, &dx, &dy))
         {
-            printf("could not parse translation '%s'\n", arg);
+            fprintf(stderr, "could not parse translation '%s'\n", arg);
         }
         else
         {

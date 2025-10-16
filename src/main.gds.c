@@ -98,7 +98,7 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     }
     if(!ret)
     {
-        printf("could not read stream file '%s'\n", readgds);
+        fprintf(stderr, "could not read stream file '%s'\n", readgds);
     }
     gdsparser_destroy_layermap(gdslayermap);
     vector_destroy(ignorelpp);

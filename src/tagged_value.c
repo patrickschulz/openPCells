@@ -93,16 +93,16 @@ void tagged_value_print(const struct tagged_value* v)
     switch(v->tag)
     {
         case INTEGER:
-            printf("%d", v->content.i);
+            fprintf(stdout, "%d", v->content.i);
             break;
         case NUMBER:
-            printf("%g", v->content.d);
+            fprintf(stdout, "%g", v->content.d);
             break;
         case STRING:
-            printf("%s", v->content.str);
+            fprintf(stdout, "%s", v->content.str);
             break;
         case BOOLEAN:
-            printf("%s", v->content.i ? "true" : "false");
+            fprintf(stdout, "%s", v->content.i ? "true" : "false");
             break;
     }
 }

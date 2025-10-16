@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "helpers.h"
+
 struct queue_node {
     struct queue_node *next;
     void *data;
@@ -158,7 +160,7 @@ void queue_print(struct queue *queue)
 	struct rpoint *point = queue_peek_nth_elem(queue, i);
 	if(point != NULL)
 	{
-	    printf("Queue Point: %i %i %i\n", point->x, point->y, point->z);
+	    debugprintf("Queue Point: %i %i %i\n", point->x, point->y, point->z);
 	}
     }
 }

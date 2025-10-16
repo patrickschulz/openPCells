@@ -727,7 +727,7 @@ int cmdoptions_help(const struct cmdoptions* options)
         puts("list of command line options:\n");
         if(options->size > 1)
         {
-            printf("%s:\n", "generic options");
+            fprintf(stdout, "%s:\n", "generic options");
         }
         mode = _get_const_basemode(options);
         for(i = 0; i < mode->entries_size; ++i)
@@ -740,7 +740,7 @@ int cmdoptions_help(const struct cmdoptions* options)
         for(m = 1; m < options->size; ++m)
         {
             mode = options->modes[m];
-            printf("%s:\n", mode->identifier);
+            fprintf(stdout, "%s:\n", mode->identifier);
             for(i = 0; i < mode->entries_size; ++i)
             {
                 const struct entry* entry = mode->entries[i];
@@ -827,13 +827,13 @@ void cmdoptions_export_manpage(const struct cmdoptions* options)
                     fputc('-', stdout);
                     fputs(option->long_identifier, stdout);
                 }
-                printf("\\fR %s\" 4\n", "");
+                fprintf(stdout, "\\fR %s\" 4\n", "");
                 _print_with_correct_escape_sequences(option->help);
             }
             else /* section */
             {
                 struct section* section = entry->value;
-                printf(".SS %s\n", section->name);
+                fprintf(stdout, ".SS %s\n", section->name);
             }
         }
     }
@@ -1096,11 +1096,11 @@ int _store_argument(struct option* option, int* iptr, int argc, const char* cons
         {
             if(option->long_identifier)
             {
-                printf("expected argument for option '%s'\n", option->long_identifier);
+                fprintf(stderr, "expected argument for option '%s'\n", option->long_identifier);
             }
             else
             {
-                printf("expected argument for option '%c'\n", option->short_identifier);
+                fprintf(stderr, "expected argument for option '%c'\n", option->short_identifier);
             }
             return 0;
         }
@@ -1156,14 +1156,14 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                 struct option* option = _get_option(mode, 0, longopt);
                 if(!option)
                 {
-                    printf("unknown command line option: '--%s'\n", longopt);
+                    fprintf(stderr, "unknown command line option: '--%s'\n", longopt);
                     return 0;
                 }
                 else
                 {
                     if(option->was_provided && !(option->numargs & MULTI_ARGS))
                     {
-                        printf("option '%s' is only allowed once\n", longopt);
+                        fprintf(stderr, "option '%s' is only allowed once\n", longopt);
                     }
                     if(!_store_argument(option, &i, argc, argv))
                     {
@@ -1182,14 +1182,14 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                     struct option* option = _get_option(mode, shortopt, NULL);
                     if(!option)
                     {
-                        printf("unknown command line option: '-%c'\n", shortopt);
+                        fprintf(stderr, "unknown command line option: '-%c'\n", shortopt);
                         return 0;
                     }
                     else
                     {
                         if(option->was_provided && !(option->numargs & MULTI_ARGS))
                         {
-                            printf("option '%c' is only allowed once\n", shortopt);
+                            fprintf(stderr, "option '%c' is only allowed once\n", shortopt);
                             return 0;
                         }
                         option->was_provided = 1;

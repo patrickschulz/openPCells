@@ -281,7 +281,7 @@ static void _process_input_arguments(lua_State* L, struct const_vector* cellargs
             lua_gettable(L, -2);
             if(!lua_isnil(L, -1))
             {
-                printf("the parameters '%s' is defined by a pfile but overwritten on the commandline\n", key);
+                fprintf(stdout, "the parameters '%s' is defined by a pfile but overwritten on the commandline\n", key);
             }
             lua_pop(L, 1);
             // write key-value pair

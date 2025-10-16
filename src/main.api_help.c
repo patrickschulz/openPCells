@@ -556,7 +556,7 @@ void main_API_help(const char* funcname)
 
     if(!found)
     {
-        printf("no help entry for '%s' was found (use --api-search to find help entries)\n", funcname);
+        fprintf(stdout, "no help entry for '%s' was found (use --api-search to find help entries)\n", funcname);
     }
     _destroy_api_entries(entries);
 }
@@ -641,32 +641,32 @@ static void _create_latex_entry(const struct api_entry* entry, const char** last
     {
         if(!(*lastmodule) || strcmp(module, *lastmodule) != 0)
         {
-            printf("\\subsection{%s Module}\n", module);
+            fprintf(stdout, "\\subsection{%s Module}\n", module);
         }
     }
     *lastmodule = module;
     if(entry->module != MODULE_NONE)
     {
-        printf("\\begin{APIfunc}{%s.%s(", _stringify_module(entry->module), entry->funcname);
+        fprintf(stdout, "\\begin{APIfunc}{%s.%s(", _stringify_module(entry->module), entry->funcname);
     }
     else
     {
-        printf("\\begin{APIfunc}{%s(", entry->funcname);
+        fprintf(stdout, "\\begin{APIfunc}{%s(", entry->funcname);
     }
     for(size_t i = 0; i < vector_size(entry->parameters); ++i)
     {
         const struct parameter* param = vector_get_const(entry->parameters, i);
-        printf("%s", param->name);
+        fprintf(stdout, "%s", param->name);
         if(i < vector_size(entry->parameters) - 1)
         {
             putchar(',');
             putchar(' ');
         }
     }
-    printf("%s\n", ")}");
+    fprintf(stdout, "%s\n", ")}");
 
     // function info
-    printf("    %s\n", entry->info);
+    fprintf(stdout, "    %s\n", entry->info);
 
     // detailed parameter list
     struct vector_const_iterator* it = vector_const_iterator_create(entry->parameters);
@@ -676,7 +676,7 @@ static void _create_latex_entry(const struct api_entry* entry, const char** last
         const struct parameter* parameter = vector_const_iterator_get(it);
         {
             // name
-            printf("        \\parameter{%s}{", parameter->name);
+            fprintf(stdout, "        \\parameter{%s}{", parameter->name);
 
             // type
             switch(parameter->type)
@@ -730,7 +730,7 @@ static void _create_latex_entry(const struct api_entry* entry, const char** last
             */
             
             // text
-            printf("            %s", parameter->text);
+            fprintf(stdout, "            %s", parameter->text);
             putchar(';');
             putchar('\n');
         }

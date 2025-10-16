@@ -501,7 +501,7 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
     }
     else if(status == EXPORT_STATUS_NOTFOUND)
     {
-        printf("could not find export '%s'\n", state->exportname);
+        fprintf(stderr, "could not find export '%s'\n", state->exportname);
         ret = 0;
         goto EXPORT_CLEANUP;
     }

@@ -9,8 +9,9 @@
 #include "lplacer_common.h"
 #include "lplacer_rand.h"
 
-#include "math.h"
 #include "hashmap.h"
+#include "helpers.h"
+#include "math.h"
 #include "util.h"
 
 struct cell {
@@ -313,7 +314,7 @@ static void _simulated_annealing(struct RanState* rstate, struct block* block, s
                 {
                     if(verbose)
                     {
-                        printf("%f, %u, %u, %u\n", temperature, last_wirelength, new_wirelength, iterations);
+                        debugprintf("%f, %u, %u, %u\n", temperature, last_wirelength, new_wirelength, iterations);
                     }
                     last_wirelength = new_wirelength;    
                 }
@@ -326,7 +327,7 @@ static void _simulated_annealing(struct RanState* rstate, struct block* block, s
             {
                 if(verbose)
                 {
-                    printf("%f, %u, %u, %u\n", temperature, last_wirelength, new_wirelength, iterations);
+                    debugprintf("%f, %u, %u, %u\n", temperature, last_wirelength, new_wirelength, iterations);
                 }
                 last_wirelength = new_wirelength;    
             }

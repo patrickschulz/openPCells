@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "helpers.h"
 #include "vector.h"
 
 struct token {
@@ -203,18 +204,18 @@ void CDL_token_print(struct CDL_tokenlist* CDL_tokenlist)
     struct token* token = vector_get(CDL_tokenlist->tokens, CDL_tokenlist->current);
     if(token->value)
     {
-        printf("%s('%s')\n", _stringify(token->type), string_get(token->value));
+        fprintf(stdout, "%s('%s')\n", _stringify(token->type), string_get(token->value));
     }
     else
     {
-        printf("%s\n", _stringify(token->type));
+        fprintf(stdout, "%s\n", _stringify(token->type));
     }
 }
 
 void CDL_token_print_context(struct CDL_tokenlist* CDL_tokenlist)
 {
     struct token* token = vector_get(CDL_tokenlist->tokens, CDL_tokenlist->current);
-    printf("%s\n", token->context);
+    fprintf(stdout, "%s\n", token->context);
 }
 
 void CDL_tokenlist_print(struct CDL_tokenlist* CDL_tokenlist)
@@ -224,11 +225,11 @@ void CDL_tokenlist_print(struct CDL_tokenlist* CDL_tokenlist)
         struct token* token = vector_get(CDL_tokenlist->tokens, i);
         if(token->value)
         {
-            printf("%s('%s')\n", _stringify(token->type), string_get(token->value));
+            fprintf(stderr, "%s('%s')\n", _stringify(token->type), string_get(token->value));
         }
         else
         {
-            printf("%s\n", _stringify(token->type));
+            fprintf(stderr, "%s\n", _stringify(token->type));
         }
     }
 }
@@ -240,11 +241,11 @@ void CDL_tokenlist_print_from_current(struct CDL_tokenlist* CDL_tokenlist)
         struct token* token = vector_get(CDL_tokenlist->tokens, i);
         if(token->value)
         {
-            printf("%s('%s')\n", _stringify(token->type), string_get(token->value));
+            fprintf(stderr, "%s('%s')\n", _stringify(token->type), string_get(token->value));
         }
         else
         {
-            printf("%s\n", _stringify(token->type));
+            fprintf(stderr, "%s\n", _stringify(token->type));
         }
     }
 }
