@@ -1301,7 +1301,10 @@ void technology_destroy(struct technology_state* techstate)
     vector_destroy(techstate->layertable);
     vector_destroy(techstate->viatable);
 
-    vector_destroy(techstate->config->multiple_patterning_metals);
+    if(techstate->config->multiple_patterning_metals)
+    {
+        vector_destroy(techstate->config->multiple_patterning_metals);
+    }
     free(techstate->config);
 
     hashmap_destroy(techstate->constraints);
