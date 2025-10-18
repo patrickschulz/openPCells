@@ -27,8 +27,10 @@ void vector_swap(struct vector* vector, size_t idx1, size_t idx2);
 void vector_reverse(struct vector* vector);
 int vector_find_flat(const struct vector* vector, const void* p);
 int vector_find_comp(const struct vector* vector, int (*comp) (const void* v, const void* extraarg), const void* extraarg);
-void vector_foreach(struct vector* vector, void (*func) (void* v, void* extraarg), void* extraarg);
-void vector_foreach_const(const struct vector* vector, void (*func) (const void* v, void* extraarg), void* extraarg);
+void vector_foreach0(struct vector* vector, void (*func) (void* v));
+void vector_foreach0_const(const struct vector* vector, void (*func) (const void* v));
+void vector_foreach1(struct vector* vector, void (*func) (void* v, void* extraarg), void* extraarg);
+void vector_foreach1_const(const struct vector* vector, void (*func) (const void* v, void* extraarg), void* extraarg);
 
 struct vector_iterator;
 struct vector_iterator* vector_iterator_create(struct vector* vector);

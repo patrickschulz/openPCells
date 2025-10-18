@@ -1657,7 +1657,7 @@ static void _copy_layer_entries(const void* ventry, void* vtarget)
 void generics_copy_properties(const struct generics* source, struct generics* target)
 {
     target->prettyname = util_strdup(source->prettyname);
-    vector_foreach_const(source->entries, _copy_layer_entries, target);
+    vector_foreach1_const(source->entries, _copy_layer_entries, target);
 }
 
 const struct generics* generics_create_metal(struct technology_state* techstate, int num)
