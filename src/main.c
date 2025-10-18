@@ -380,7 +380,7 @@ int main(int argc, const char* const * argv)
             fprintf(stdout, "%s\n", content);
         }
         lua_close(L);
-        goto DESTROY_CMDOPTIONS;
+        goto DESTROY_CONFIG;
     }
 
     /* templates (auto) */
@@ -403,44 +403,45 @@ int main(int argc, const char* const * argv)
             fprintf(stdout, "%s\n", content);
         }
         lua_close(L);
-        goto DESTROY_CMDOPTIONS;
+        goto DESTROY_CONFIG;
     }
 
     if(cmdoptions_was_provided_long(cmdoptions, "api-help"))
     {
         const char* funcname = cmdoptions_get_argument_long(cmdoptions, "api-help");
         main_API_help(funcname);
-        goto DESTROY_CMDOPTIONS;
+        goto DESTROY_CONFIG;
     }
     if(cmdoptions_was_provided_long(cmdoptions, "api-search"))
     {
         const char* funcname = cmdoptions_get_argument_long(cmdoptions, "api-search");
         main_API_search(funcname);
-        goto DESTROY_CMDOPTIONS;
+        goto DESTROY_CONFIG;
     }
     if(cmdoptions_was_provided_long(cmdoptions, "api-list"))
     {
         main_API_list();
-        goto DESTROY_CMDOPTIONS;
+        goto DESTROY_CONFIG;
     }
     if(cmdoptions_was_provided_long(cmdoptions, "generate-tutorial"))
     {
         main_generate_tutorial();
-        goto DESTROY_CMDOPTIONS;
+        goto DESTROY_CONFIG;
     }
     if(cmdoptions_was_provided_long(cmdoptions, "tutorial"))
     {
         main_tutorial();
-        goto DESTROY_CMDOPTIONS;
+        goto DESTROY_CONFIG;
     }
 
     if(cmdoptions_was_provided_long(cmdoptions, "import"))
     {
         const char* scriptname = cmdoptions_get_argument_long(cmdoptions, "import");
         const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
-        const struct const_vector* args = const_vector_adapt_from_pointer_array((void**)ptr);
+        struct const_vector* args = const_vector_adapt_from_pointer_array((void**)ptr);
         main_import_script(scriptname, args);
-        goto DESTROY_CMDOPTIONS;
+        const_vector_destroy(args);
+        goto DESTROY_CONFIG;
     }
 
     // FIXME
