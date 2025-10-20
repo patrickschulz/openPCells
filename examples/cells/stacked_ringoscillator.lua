@@ -18,6 +18,6 @@ return pcell.create_layout("analog/stacked_ringoscillator", "oscillator", {
     --gatestrapwidth = 70,
     --gatestrapspace = 70,
     --sdwidth= 70,
-    buffershift = 800,
+    buffershift = 3000,
     --powerlinemetal = 5,
 })
