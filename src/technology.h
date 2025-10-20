@@ -5,8 +5,8 @@
 
 #include "lua/lua.h"
 
-#include "vector.h"
 #include "hashmap.h"
+#include "vector.h"
 
 // public struct declarations
 struct technology_state;

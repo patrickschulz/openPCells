@@ -6,6 +6,7 @@
 
 #include "lua/lauxlib.h"
 
+#include "_config.h"
 #include "export.h"
 #include "filesystem.h"
 #include "gdsparser.h"
@@ -18,7 +19,6 @@
 #include "technology.h"
 #include "util_cmodule.h"
 #include "util.h"
-#include "_config.h"
 
 static int _parse_point(const char* arg, int* xptr, int* yptr)
 {

@@ -123,6 +123,7 @@ struct technology_state* main_create_techstate(const struct vector* techpaths, c
     struct technology_state* techstate = technology_initialize(techname);
     if(!technology_load(techpaths, techstate, ignoredlayers))
     {
+        technology_destroy(techstate);
         return NULL;
     }
     return techstate;
