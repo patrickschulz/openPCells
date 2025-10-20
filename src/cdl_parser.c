@@ -13,27 +13,6 @@
 #include "util.h"
 #include "vector.h"
 
-struct parameter {
-    char* key;
-    char* value;
-};
-
-static struct parameter* _make_parameter(const char* key, const char* value)
-{
-    struct parameter* parameter = malloc(sizeof(*parameter));
-    parameter->key = util_strdup(key);
-    parameter->value = util_strdup(value);
-    return parameter;
-}
-
-static void _destroy_parameter(void *v)
-{
-    struct parameter* parameter = v;
-    free(parameter->key);
-    free(parameter->value);
-    free(parameter);
-}
-
 static char siprefixes[] = {
     'P',
     'T',
@@ -582,7 +561,7 @@ struct device* _parse_device(struct CDL_tokenlist* CDL_tokenlist)
 }
 */
 
-static int _read_parameter(struct CDL_tokenlist* CDL_tokenlist, struct parameter** parameter, const char** message)
+static int _read_parameter(struct CDL_tokenlist* CDL_tokenlist, char** key, char** value, const char** message)
 {
     const char* parametername;
     const char* parametervalue;
@@ -611,7 +590,8 @@ static int _read_parameter(struct CDL_tokenlist* CDL_tokenlist, struct parameter
     {
         parametervalue = CDL_token_get_value(CDL_tokenlist);
     }
-    *parameter = _make_parameter(parametername, parametervalue);
+    *key = util_strdup(parametername);
+    *value = util_strdup(parametervalue);
     CDL_token_advance(CDL_tokenlist);
     return 1;
 }
@@ -626,21 +606,24 @@ static int _is_directive(struct CDL_tokenlist* CDL_tokenlist, const char* key)
     return strcmp(keyword, key) == 0;
 }
 
-static int _start_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
+static int _start_subcircuit(struct CDL_tokenlist* CDL_tokenlist, struct subcircuit* subcircuit)
 {
-    CDL_token_advance(CDL_tokenlist); // eat 'SUBCKT'
-    if(!CDL_token_expect(CDL_tokenlist, IDENTIFIER)) // subcircuit name
+    // eat 'SUBCKT'
+    CDL_token_advance(CDL_tokenlist);
+    // subcircuit name
+    if(!CDL_token_expect(CDL_tokenlist, IDENTIFIER))
     {
         return 0;
     }
     else
     {
         const char* name = CDL_token_get_value(CDL_tokenlist);
-        debugprintf("subcircuit definition: '%s'\n", name);
+        //debugprintf("subcircuit definition: '%s'\n", name);
+        netlist_subcircuit_set_name(subcircuit, name);
         // FIXME: do something with the name
     }
-    CDL_token_advance(CDL_tokenlist); // eat name
-
+    // eat name
+    CDL_token_advance(CDL_tokenlist);
     // nets are all identifier after the name until a real newline (expect parameters)
     while(CDL_token_expect(CDL_tokenlist, IDENTIFIER) && !CDL_token_expect_n(CDL_tokenlist, 1, EQUALSIGN))
     {
@@ -656,22 +639,28 @@ static int _start_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
             CDL_token_advance(CDL_tokenlist);
         }
     }
+    // read parameters
     while(CDL_token_expect(CDL_tokenlist, IDENTIFIER) && CDL_token_expect_n(CDL_tokenlist, 1, EQUALSIGN))
     {
-        struct parameter* parameter;
+        char* key = NULL;
+        char* value = NULL;
         const char* message;
-        _read_parameter(CDL_tokenlist, &parameter, &message);
+        _read_parameter(CDL_tokenlist, &key, &value, &message);
+        free(key);
+        free(value);
     }
-    if(!CDL_token_expect(CDL_tokenlist, ENDOFLINE)) // end nets
+    // end header
+    if(!CDL_token_expect(CDL_tokenlist, ENDOFLINE))
     {
         fprintf(stderr, "subcircuit definition: expected new line after subcitcuit ports, got %s\n", CDL_token_stringify(CDL_tokenlist));
         CDL_token_print_context(CDL_tokenlist);
     }
-    CDL_token_advance(CDL_tokenlist); // eat end-of-line
+    // eat end-of-line
+    CDL_token_advance(CDL_tokenlist);
     return 1;
 }
 
-static const char* _read_net(struct CDL_tokenlist* CDL_tokenlist, const char** message)
+static char* _read_net(struct CDL_tokenlist* CDL_tokenlist, const char** message)
 {
     if(!CDL_token_expect(CDL_tokenlist, IDENTIFIER)) // net name
     {
@@ -721,18 +710,9 @@ static int _test_parameter(struct CDL_tokenlist* CDL_tokenlist)
     return 1;
 }
 
-static void _insert_net(struct hashmap* nets, const char* net)
-{
-    if(!hashmap_exists(nets, net))
-    {
-        hashmap_insert(nets, net, NULL);
-    }
-}
-
-static int _read_instantiation(struct CDL_tokenlist* CDL_tokenlist, struct hashmap* nets)
+static struct instance* _read_instantiation(struct CDL_tokenlist* CDL_tokenlist)
 {
     struct string* identifier = string_create();
-
     string_add_string(identifier, CDL_token_get_value(CDL_tokenlist));
     CDL_token_advance(CDL_tokenlist); // eat instance identifier/name
     if(CDL_token_expect(CDL_tokenlist, OPENANGLEBRACE)) // interated instance
@@ -751,6 +731,7 @@ static int _read_instantiation(struct CDL_tokenlist* CDL_tokenlist, struct hashm
         CDL_token_advance(CDL_tokenlist);
         CDL_token_advance(CDL_tokenlist);
     }
+    struct instance* instance = netlist_make_instance(string_get(identifier));
     switch(string_get_character(identifier, 0))
     {
         case 'R':
@@ -771,36 +752,37 @@ static int _read_instantiation(struct CDL_tokenlist* CDL_tokenlist, struct hashm
             break;
         case 'M':
         {
+            netlist_instance_set_type(instance, "mosfet");
             const char* message;
             // read terminal connections
-            const char* drainnet = _read_net(CDL_tokenlist, &message);
-            const char* gatenet = _read_net(CDL_tokenlist, &message);
-            const char* sourcenet = _read_net(CDL_tokenlist, &message);
+            char* drainnet = _read_net(CDL_tokenlist, &message);
+            char* gatenet = _read_net(CDL_tokenlist, &message);
+            char* sourcenet = _read_net(CDL_tokenlist, &message);
             // FIXME: bulknet is optional
-            const char* bulknet = _read_net(CDL_tokenlist, &message);
+            char* bulknet = _read_net(CDL_tokenlist, &message);
             // read model name
             const char* modelname = CDL_token_get_value(CDL_tokenlist);
             CDL_token_advance(CDL_tokenlist);
-            struct vector* parameters = vector_create(8, _destroy_parameter);
             while(_test_parameter(CDL_tokenlist))
             {
-                struct parameter* parameter;
-                _read_parameter(CDL_tokenlist, &parameter, &message);
-                vector_append(parameters, parameter);
-            }
-            debugprintf("%s: mosfet (%s): g: %s, d: %s, s: %s, b: %s\n", string_get(identifier), modelname, gatenet, drainnet, sourcenet, bulknet);
-            for(size_t i = 0; i < vector_size(parameters); ++i)
-            {
-                struct parameter* parameter = vector_get(parameters, i);
-                debugprintf("    %s = %s\n", parameter->key, parameter->value);
+                char* key = NULL;
+                char* value = NULL;
+                _read_parameter(CDL_tokenlist, &key, &value, &message);
+                netlist_instance_add_parameter(instance, key, value);
+                free(key);
+                free(value);
             }
             // FIXME:
             CDL_token_advance_until(CDL_tokenlist, ENDOFLINE);
             // store nets
-            _insert_net(nets, gatenet);
-            _insert_net(nets, drainnet);
-            _insert_net(nets, sourcenet);
-            _insert_net(nets, bulknet);
+            netlist_instance_add_connection(instance, "gate", gatenet);
+            netlist_instance_add_connection(instance, "drain", drainnet);
+            netlist_instance_add_connection(instance, "source", sourcenet);
+            netlist_instance_add_connection(instance, "bulk", bulknet);
+            free(gatenet);
+            free(drainnet);
+            free(sourcenet);
+            free(bulknet);
             break;
         }
         case 'Q':
@@ -812,11 +794,12 @@ static int _read_instantiation(struct CDL_tokenlist* CDL_tokenlist, struct hashm
             puts("instance");
             break;
         default:
-            return 0;
+            return NULL;
             break;
     }
     CDL_token_advance(CDL_tokenlist); // eat end-of-line
-    return 1;
+    string_destroy(identifier);
+    return instance;
 }
 
 static void _end_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
@@ -824,22 +807,23 @@ static void _end_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
     CDL_token_advance(CDL_tokenlist); // eat 'ENDS'
 }
 
-static void _read_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
+static struct subcircuit* _read_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
 {
+    struct subcircuit* subcircuit = netlist_make_subcircuit();
     // read start
-    _start_subcircuit(CDL_tokenlist);
+    _start_subcircuit(CDL_tokenlist, subcircuit);
     // read content
-    struct hashmap* nets = hashmap_create(NULL); // FIXME: destructor
     while(!_is_directive(CDL_tokenlist, "ENDS"))
     {
         if(CDL_token_expect(CDL_tokenlist, IDENTIFIER)) // instantiation
         {
-            int success = _read_instantiation(CDL_tokenlist, nets);
-            if(!success)
+            struct instance* instance = _read_instantiation(CDL_tokenlist);
+            if(!instance)
             {
                 fprintf(stderr, "%s\n", "could not read instantiation");
-                return;
+                return NULL;
             }
+            netlist_subcircuit_add_instance(subcircuit, instance);
         }
         else
         {
@@ -848,17 +832,9 @@ static void _read_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
             CDL_token_advance(CDL_tokenlist);
         }
     }
-    struct hashmap_iterator* it = hashmap_iterator_create(nets);
-    puts("nets:");
-    while(hashmap_iterator_is_valid(it))
-    {
-        const char* net = hashmap_iterator_key(it);
-        debugprintf("    %s\n", net);
-        hashmap_iterator_next(it);
-    }
-    hashmap_iterator_destroy(it);
     // read end
     _end_subcircuit(CDL_tokenlist);
+    return subcircuit;
 }
 
 static void _resolve_line_continuations(struct CDL_tokenlist* CDL_tokenlist)
@@ -881,14 +857,14 @@ static void _resolve_line_continuations(struct CDL_tokenlist* CDL_tokenlist)
     CDL_tokenlist_reset(CDL_tokenlist);
 }
 
-void cdlparser_parse(const char* filename)
+struct netlist* cdlparser_parse(const char* filename)
 {
     const char* message;
     struct CDL_tokenlist* CDL_tokenlist = _tokenize(filename, &message);
     if(!CDL_tokenlist) // tokenization errors
     {
         fprintf(stderr, "could not tokenize CDL netlist, reason: %s\n", message);
-        return;
+        return NULL;
     }
     /*
     while(!CDL_token_empty(CDL_tokenlist))
@@ -899,6 +875,7 @@ void cdlparser_parse(const char* filename)
     CDL_tokenlist_reset(CDL_tokenlist);
     */
     _resolve_line_continuations(CDL_tokenlist);
+    struct netlist* netlist = netlist_create();
     while(!CDL_token_empty(CDL_tokenlist))
     {
         if(CDL_token_expect(CDL_tokenlist, ENDOFLINE)) // skip unneeded eol
@@ -909,9 +886,10 @@ void cdlparser_parse(const char* filename)
         {
             if(_is_directive(CDL_tokenlist, "SUBCKT")) // subcircuit definition
             {
-                _read_subcircuit(CDL_tokenlist);
+                struct subcircuit* subcircuit = _read_subcircuit(CDL_tokenlist);
+                netlist_add_subcircuit(netlist, subcircuit);
             }
-            else // ignore
+            else // ignore other directives
             {
                 CDL_token_advance(CDL_tokenlist);
             }
@@ -926,9 +904,10 @@ void cdlparser_parse(const char* filename)
             fprintf(stderr, "unexpected token: %s\n", CDL_token_stringify(CDL_tokenlist));
             CDL_token_print_context(CDL_tokenlist);
             CDL_tokenlist_destroy(CDL_tokenlist);
-            return;
+            return NULL;
         }
     }
     CDL_tokenlist_destroy(CDL_tokenlist);
+    return netlist;
 }
 

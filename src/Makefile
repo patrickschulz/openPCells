@@ -34,7 +34,7 @@ CFLAGS=-std=c99 $(WARNFLAGS) $(COMMONFLAGS) $(PPFLAGS) $(ANALYZEFLAGS)
 
 ########################################################################################################################
 
-OBJS:= bltrshape.o buffer.o cdl_parser.o cdl_tokenlist.o cells.o cmdoptions.o error.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o limport.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lterminal.o lua_util.o lutil.o main.api_help.o main.assistant.o main.cell.o main.functions.o main.gds.o main.tutorial.o main.import.o object.o output.o pcell.o placement.o point.o polygon.o postprocess.o print.o shape.o skillexport.o string.o strprint.o tagged_value.o technology.o terminal.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
+OBJS:= bltrshape.o buffer.o cdl_parser.o cdl_tokenlist.o cells.o cmdoptions.o error.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o limport.o lobject.o lplacement.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lpostprocess.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lterminal.o lua_util.o lutil.o main.api_help.o main.assistant.o main.cell.o main.functions.o main.gds.o main.tutorial.o main.import.o netlist.o object.o output.o pcell.o placement.o point.o polygon.o postprocess.o print.o shape.o skillexport.o string.o strprint.o tagged_value.o technology.o terminal.o transformationmatrix.o union.o util_cmodule.o util.o vector.o
 RELEASEOBJS = $(addprefix release/, $(OBJS))
 LINTOBJS = $(addprefix lint/, $(OBJS))
 DEBUGOBJS = $(addprefix debug/, $(OBJS))
@@ -333,6 +333,7 @@ main.import.o: main.import.c main.import.h vector.h \
  util_cmodule.h util.h
 main.tutorial.o: main.tutorial.c main.tutorial.h print.h \
  terminal.h
+netlist.o: netlist.c netlist.h
 object.o: object.c object.h hashmap.h polygon.h \
  point.h shape.h technology.h lua/lua.h lua/luaconf.h \
  vector.h transformationmatrix.h bltrshape.h util.h

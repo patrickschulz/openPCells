@@ -2,11 +2,16 @@
 
 #include "lua/lauxlib.h"
 
-#include "limport.h"
+#include "cdl_parser.h"
+#include "netlist.h"
 
 static int limport_read_CDL_netlist(lua_State* L)
 {
-    return 0;
+    const char* filename = luaL_checkstring(L, 1);
+    struct netlist* netlist = cdlparser_parse(filename);
+    netlist_create_lua_representation(netlist, L);
+    netlist_destroy(netlist);
+    return 1; // netlist_create_lua_representation creates a table
 }
 
 int open_limport_lib(lua_State* L)
