@@ -1,4 +1,6 @@
+#include <ctype.h>
 #include <fcntl.h>
+#include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +21,7 @@
 
 #define MAX_SCREEN_WIDTH 120
 #define MAX_SCREEN_HEIGHT 28
-#define SIDE_PANEL_WIDTH 40
+#define SIDE_PANEL_WIDTH 48
 #define SIDE_PANEL_GAP 2
 #define PROMPT_LINE_OFFSET 0
 #define STATUS_LINE_OFFSET 1
@@ -134,6 +136,8 @@ struct state {
     struct rchar* next_content;
     // actual technology state
     struct technology_state* techstate;
+    // jump buffer
+    jmp_buf jump_buffer;
 };
 
 static void _set_attributes(struct state* state, int index)
@@ -328,7 +332,7 @@ static void _save_and_destroy_state(struct state* state)
 {
     if(state->techstate) // techstate might not be initialized if an early ctrl-c occurs
     {
-        technology_write_definition_files(state->techstate, "_assistant_tech");
+        technology_write_definition_files(state->techstate, "openPCells_techfile_assistant");
     }
     free(state->current_content);
     free(state->next_content);
@@ -360,7 +364,13 @@ static void _clear_status(struct state* state)
     _write_to_display(state);
 }
 
-static int _getchar(struct state* state)
+enum getchar_mode {
+    GETCHAR_NONE,
+    GETCHAR_EXIT,
+    GETCHAR_JUMP,
+};
+
+static int _getchar(struct state* state, enum getchar_mode mode)
 {
     char ch;
     while(1)
@@ -378,13 +388,27 @@ static int _getchar(struct state* state)
             break;
         }
     }
-    if(ch == KEY_CODE_C) // ctrl-c
+    switch(mode)
     {
-        terminal_clear_screen();
-        terminal_reset_all();
-        tcsetattr(STDOUT_FILENO, TCSAFLUSH, &old_settings);
-        _save_and_destroy_state(state);
-        exit(0);
+        case GETCHAR_NONE:
+            break;
+        case GETCHAR_EXIT:
+            if(ch == KEY_CODE_C) // ctrl-c
+            {
+                terminal_clear_screen();
+                terminal_reset_all();
+                tcsetattr(STDOUT_FILENO, TCSAFLUSH, &old_settings);
+                _save_and_destroy_state(state);
+                exit(0);
+            }
+            break;
+        case GETCHAR_JUMP:
+            if(ch == KEY_CODE_C) // ctrl-c
+            {
+                longjmp(state->jump_buffer, 1);
+                return 0;
+            }
+            break;
     }
     if(ch == KEY_CODE_ESC)
     {
@@ -458,7 +482,7 @@ static const char* _get_string(struct state* state, const char* prefill)
     _print(state, row, column, buf, i);
     while(1)
     {
-        int ch = _getchar(state);
+        int ch = _getchar(state, GETCHAR_JUMP);
         terminal_cursor_visibility(0);
         _clear_status(state);
         terminal_cursor_visibility(1);
@@ -487,11 +511,12 @@ static const char* _get_string(struct state* state, const char* prefill)
             }
             buf[i] = 0;
         }
-        else
+        else if(isgraph(ch) || isspace(ch))
         {
             buf[i] = ch;
             ++i;
         }
+        // do nothing for characters that are not handled by the above if/else clauses
         _print(state, row, column, buf, i);
     }
     terminal_cursor_visibility(0);
@@ -792,6 +817,34 @@ static void _draw_side_panel(struct state* state)
     {
         _draw_panel_section(state, startpos, state->xend, ycurrent, 3, "Primary FEOL");
         ++ycurrent;
+        _set_position(state, ycurrent, startpos + 3);
+        _write_tech_entry_string(state, "FEOL Method", "active-plus-implant");
+        ++ycurrent;
+        _set_position(state, ycurrent, startpos + 3);
+        _write_tech_entry_boolean(state, "Separate Contact Layers", 0);
+        ++ycurrent;
+        _set_position(state, ycurrent, startpos + 3);
+        _write_tech_entry_integer(state, "Number of P-Implants", 2);
+        ++ycurrent;
+        _set_position(state, ycurrent, startpos + 3);
+        _write_tech_entry_integer(state, "Number of N-Implants", 2);
+        ++ycurrent;
+        _set_position(state, ycurrent, startpos + 3);
+        _write_tech_entry_integer(state, "Number of Oxide Thicknesses", 2);
+        ++ycurrent;
+    }
+    // secondary FEOL
+    if(state->mode == SECONDARY_FEOL)
+    {
+        _set_position(state, ycurrent, startpos + 3);
+        _write_tech_entry_boolean(state, "Allow Poly Routing", 0);
+        ++ycurrent;
+        _set_position(state, ycurrent, startpos + 3);
+        _write_tech_entry_boolean(state, "Gate Cut", 0);
+        ++ycurrent;
+        _set_position(state, ycurrent, startpos + 3);
+        _write_tech_entry_boolean(state, "Is SOI Technology", 0);
+        ++ycurrent;
     }
     // substrate and wells
     if(state->mode == SUBSTRATE_WELL)
@@ -882,7 +935,7 @@ static void _draw_raw_lines(struct state* state, const char* const* lines, int y
         }
         _write_to_display(state);
         // interactive control
-        int ch = _getchar(state);
+        int ch = _getchar(state, GETCHAR_JUMP);
         if(ch == KEY_CODE_ENTER || ch == 'q')
         {
             break;
@@ -1055,7 +1108,7 @@ static int _menu(struct state* state, int row, int column, const char** choices,
             _write_at(state, choices[i], row - len + i + 1, column + 2);
         }
         _write_to_display(state);
-        int ch = _getchar(state);
+        int ch = _getchar(state, GETCHAR_JUMP);
         if(ch == KEY_CODE_ENTER)
         {
             return index;
@@ -1207,7 +1260,7 @@ static void _wait_for_enter(struct state* state)
 {
     while(1)
     {
-        int ch = _getchar(state);
+        int ch = _getchar(state, GETCHAR_NONE);
         if(ch == KEY_CODE_ENTER)
         {
             break;
@@ -1247,7 +1300,7 @@ static int _setup_terminal(struct state* state)
     // make raw, with time-out
     cfmakeraw(&termios);
     termios.c_cc[VMIN] = 0;
-    termios.c_cc[VTIME] = 1;
+    termios.c_cc[VTIME] = 20;
     tcsetattr(fd, TCSAFLUSH, &termios);
     terminal_cursor_visibility(0);
     terminal_get_screen_size(&state->rows, &state->columns);
@@ -1667,6 +1720,8 @@ static void _read_secondary_FEOL(struct state* state)
 
 static void _read_wells(struct state* state)
 {
+    enum mode oldmode = state->mode;
+    state->mode = SUBSTRATE_WELL;
     const char* text = "The bulk wafer is typically lightly doped (p or n). The majority of technology nodes use a p-doped base wafer, which one does this node use?";
     const char* choices[] = {
         "p-doped",
@@ -1725,6 +1780,7 @@ static void _read_wells(struct state* state)
         technology_add_empty_layer(state->techstate, "deepnwell");
     }
     state->finished_wells = 1;
+    state->mode = oldmode;
 }
 
 static void _read_beol(struct state* state)
@@ -1989,8 +2045,7 @@ static void _show_stackup_model(struct state* state)
         NULL
     };
     _draw_lines(state, lines);
-    _write_to_display(state);
-    _wait_for_enter(state);
+    _clear_all(state);
 }
 
 static void _show_current_state(struct state* state)
@@ -2166,7 +2221,7 @@ static void _show_error(struct state* state, const char* msg)
     _reset_foreground_color(state);
 }
 
-void main_techfile_assistant(const struct hashmap* config)
+void main_techfile_assistant(const struct hashmap* config, struct output* output)
 {
     // set up
     struct state* state = malloc(sizeof(*state));
@@ -2233,7 +2288,7 @@ void main_techfile_assistant(const struct hashmap* config)
         int load = _draw_main_text_single_prompt_boolean(state, "This technology definition already exists. Do you want to load it for editing? Type explicit 'yes' or 'no'.", "Technology Loading");
         if(load)
         {
-            state->techstate = main_create_techstate(techpaths, state->techname, NULL); // NULL: ignored layers, not needed
+            state->techstate = main_create_techstate(techpaths, state->techname, NULL, output); // NULL: ignored layers, not needed
 
             // FIXME: notify in case of errors
             loaded = 1;
@@ -2249,6 +2304,7 @@ void main_techfile_assistant(const struct hashmap* config)
     int run = 1;
     while(run)
     {
+        setjmp(state->jump_buffer);
         // menu
         const char* menu[] = {
             "Please select one of the options below to configure the technology node.",
