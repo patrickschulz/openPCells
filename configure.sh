@@ -155,7 +155,7 @@ cleanall: clean
 
 .PHONY: targets
 targets: 
-    @echo "opc:        main program (default target)"
+	@echo "opc:        main program (default target)"
 	@echo "opc-debug:  main program, debug build"
 	@echo "opc-lint:   main program, lint build (additional run-time checks)"
 	@echo "test:       run automated tests"
