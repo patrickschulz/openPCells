@@ -140,7 +140,7 @@ doc:
 
 .PHONY: test
 test: opc
-	@\$(MAKE) -C test all
+	@\$(MAKE) -s -C test all
 
 .PHONY: clean
 clean:
