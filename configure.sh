@@ -152,6 +152,17 @@ clean:
 cleanall: clean
 	rm -f src/_config.h
 	rm -f Makefile
+
+.PHONY: targets
+targets: 
+    @echo "opc:        main program (default target)"
+	@echo "opc-debug:  main program, debug build"
+	@echo "opc-lint:   main program, lint build (additional run-time checks)"
+	@echo "test:       run automated tests"
+	@echo "doc:        build the documentation"
+	@echo "opc.1:      create the manpage"
+	@echo "clean:      clean build files"
+	@echo "cleanall:   clean build files and configures files (like this Makefile)"
 EOF
 
 # create config.h
@@ -172,4 +183,5 @@ cat > src/_config.h << EOF
 #endif /* OPC_CONFIG_H */
 EOF
 
-echo "You can now run 'make'"
+echo "> You can now run 'make'"
+echo "> The available targes are shown by 'make targets'"
