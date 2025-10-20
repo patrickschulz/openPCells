@@ -2221,7 +2221,7 @@ static void _show_error(struct state* state, const char* msg)
     _reset_foreground_color(state);
 }
 
-void main_techfile_assistant(const struct hashmap* config, struct output* output)
+void main_techfile_assistant(const struct hashmap* config)
 {
     // set up
     struct state* state = malloc(sizeof(*state));
@@ -2288,7 +2288,7 @@ void main_techfile_assistant(const struct hashmap* config, struct output* output
         int load = _draw_main_text_single_prompt_boolean(state, "This technology definition already exists. Do you want to load it for editing? Type explicit 'yes' or 'no'.", "Technology Loading");
         if(load)
         {
-            state->techstate = main_create_techstate(techpaths, state->techname, NULL, output); // NULL: ignored layers, not needed
+            state->techstate = main_create_techstate(techpaths, state->techname, NULL); // NULL: ignored layers, not needed
 
             // FIXME: notify in case of errors
             loaded = 1;
