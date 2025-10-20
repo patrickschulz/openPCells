@@ -1330,12 +1330,18 @@ void _get_viacontact_properties(lua_State* L, int idx, int* xcont, int* ycont, c
             *minyspace = lua_toboolean(L, -1);
             lua_pop(L, 1);
         }
-        lua_getfield(L, idx, "equal_pitch");
-        *equal_pitch = lua_toboolean(L, -1);
-        lua_pop(L, 1);
-        lua_getfield(L, idx, "widthclass");
-        *widthclass = lua_tointeger(L, -1);
-        lua_pop(L, 1);
+        if(equal_pitch)
+        {
+            lua_getfield(L, idx, "equal_pitch");
+            *equal_pitch = lua_toboolean(L, -1);
+            lua_pop(L, 1);
+        }
+        if(widthclass)
+        {
+            lua_getfield(L, idx, "widthclass");
+            *widthclass = lua_tointeger(L, -1);
+            lua_pop(L, 1);
+        }
     }
     else if(lua_type(L, idx) != LUA_TNONE)
     {
@@ -1992,6 +1998,57 @@ static int lgeometry_contactbltrov(lua_State* L)
     return 0;
 }
 
+static int lgeometry_contactbltr2(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* region = luaL_checkstring(L, 2);
+    struct lpoint* bl1 = lpoint_checkpoint(L, 3);
+    struct lpoint* tr1 = lpoint_checkpoint(L, 4);
+    struct lpoint* bl2 = lpoint_checkpoint(L, 5);
+    struct lpoint* tr2 = lpoint_checkpoint(L, 6);
+    _check_rectangle_points(L, bl1, tr1, "geometry.contactbltr1");
+    _check_rectangle_points(L, bl2, tr2, "geometry.contactbltr2");
+    const char* debugstring = lua_tostring(L, 7);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushstring(L, "geometry.contactbltr2 called without debug string");
+        lua_error(L);
+    }
+#endif
+    coordinate_t minxspace = 0;
+    coordinate_t minyspace = 0;
+    coordinate_t widthclass = 0;
+    _get_viacontact_properties(L, 8, NULL, NULL, &minxspace, &minyspace, NULL, &widthclass);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_contactbltr2(
+        lobject_get_full(L, cell),
+        techstate,
+        region,
+        lpoint_get(bl1), lpoint_get(tr1),
+        lpoint_get(bl2), lpoint_get(tr2),
+        widthclass
+    );
+    if(!res)
+    {
+        const struct point* blp1 = lpoint_get(bl1);
+        const struct point* trp1 = lpoint_get(tr1);
+        const struct point* blp2 = lpoint_get(bl2);
+        const struct point* trp2 = lpoint_get(tr2);
+        if(debugstring)
+        {
+            lua_pushfstring(L, "geometry.contactbltr2: could not fit contact from %s to metal 1 (width1 = %d, height1 = %d, width2 = %d, height2 = %d)\ndebug info: %s", region, trp1->x - blp1->x, trp1->y - blp1->y, trp2->x - blp2->x, trp2->y - blp2->y, debugstring);
+        }
+        else
+        {
+            lua_pushfstring(L, "geometry.contactbltr2: could not fit contact from %s to metal 1 (width1 = %d, height1 = %d, width2 = %d, height2 = %d)", region, trp1->x - blp1->x, trp1->y - blp1->y, trp2->x - blp2->x, trp2->y - blp2->y);
+        }
+        lua_error(L);
+    }
+    return 0;
+}
 static int lgeometry_contactbarebltr(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -2464,6 +2521,7 @@ int open_lgeometry_lib(lua_State* L)
         { "viabarebltr_continuous",                     lgeometry_viabarebltr_continuous                                },
         { "contactbltr",                                lgeometry_contactbltr                                           },
         { "contactbltrov",                              lgeometry_contactbltrov                                         },
+        { "contactbltr2",                               lgeometry_contactbltr2                                          },
         { "contactbarebltr",                            lgeometry_contactbarebltr                                       },
         { "cross",                                      lgeometry_cross                                                 },
         { "ring",                                       lgeometry_ring                                                  },

@@ -5,8 +5,10 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "error.h"
 #include "filesystem.h"
 #include "lua_util.h"
+#include "strprint.h"
 #include "tagged_value.h"
 #include "util.h"
 
@@ -309,12 +311,44 @@ void _insert_via_entry(struct via_definition*** viadefs, struct via_definition* 
     (*viadefs)[index + 1] = NULL;
 }
 
-int _read_via(lua_State* L, struct technology_state* techstate, const char* vianame)
+static error_t _read_via_property(lua_State* L, const char* what, unsigned int* param, int allownil)
+{
+    lua_getfield(L, -1, what);
+    error_t e;
+    if(!lua_isnumber(L, -1))
+    {
+        if(allownil)
+        {
+            // do nothing, as the default values are already in the variables
+        }
+        else
+        {
+            if(lua_isnil(L, -1))
+            {
+                e.message = strprintf("expected a number for the via property '%s'", what);
+            }
+            else
+            {
+                e.message = strprintf("expected a number for the via property '%s', got '%s'", what, luaL_typename(L, -1));
+            }
+            e.status = 0;
+        }
+    }
+    else
+    {
+        *param = lua_tointeger(L, -1);
+        e.status = 1;
+    }
+    lua_pop(L, 1);
+    return e;
+}
+
+error_t _read_via(lua_State* L, struct technology_state* techstate, const char* vianame)
 {
     struct viaentry* entry = _find_viaentry_by_name(techstate, vianame);
     if(!entry)
     {
-        return 0;
+        return error_fail();
     }
     lua_getfield(L, -1, "entries");
     lua_len(L, -1);
@@ -324,53 +358,153 @@ int _read_via(lua_State* L, struct technology_state* techstate, const char* vian
     {
         // get table
         lua_rawgeti(L, -1, i);
+        // check entry type (common xspace etc. or xenclosure1, xenclosure2, etc.)
+        int is_duo = 0;
+        lua_getfield(L, -1, "xenclosure1");
+        if(!lua_isnil(L, -1))
+        {
+            is_duo = 1;
+        }
+        lua_pop(L, 1);
         // get entries
-        lua_getfield(L, -1, "width");
-        unsigned int width = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        lua_getfield(L, -1, "height");
-        unsigned int height = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        lua_getfield(L, -1, "xspace");
-        unsigned int xspace = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        lua_getfield(L, -1, "yspace");
-        unsigned int yspace = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        lua_getfield(L, -1, "xenclosure");
-        unsigned int xenclosure = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        lua_getfield(L, -1, "yenclosure");
-        unsigned int yenclosure = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        lua_getfield(L, -1, "maxwidth");
-        unsigned int maxwidth = luaL_optinteger(L, -1, UINT_MAX);
-        lua_pop(L, 1);
-        lua_getfield(L, -1, "maxheight");
-        unsigned int maxheight = luaL_optinteger(L, -1, UINT_MAX);
-        lua_pop(L, 1);
+        if(is_duo)
+        {
+            unsigned int width;
+            unsigned int height;
+            unsigned int xspace;
+            unsigned int yspace;
+            unsigned int xenclosure1;
+            unsigned int xenclosure2;
+            unsigned int yenclosure1;
+            unsigned int yenclosure2;
+            unsigned int maxwidth = UINT_MAX;
+            unsigned int maxheight = UINT_MAX;
+            error_t e = _read_via_property(L, "width", &width, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "height", &height, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "xspace", &xspace, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "yspace", &yspace, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "xenclosure1", &xenclosure1, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "xenclosure2", &xenclosure2, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "yenclosure1", &yenclosure1, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "yenclosure2", &yenclosure2, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "maxwidth", &maxwidth, 1);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "maxheight", &maxheight, 1);
+            if(!e.status)
+            {
+                return e;
+            }
+            technology_add_via_definition_by_name2(techstate, vianame, width, height, xspace, yspace, xenclosure1, xenclosure2, yenclosure1, yenclosure2, maxwidth, maxheight);
+        }
+        else
+        {
+            unsigned int width;
+            unsigned int height;
+            unsigned int xspace;
+            unsigned int yspace;
+            unsigned int xenclosure;
+            unsigned int yenclosure;
+            unsigned int maxwidth = UINT_MAX;
+            unsigned int maxheight = UINT_MAX;
+            error_t e = _read_via_property(L, "width", &width, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "height", &height, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "xspace", &xspace, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "yspace", &yspace, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "xenclosure", &xenclosure, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "yenclosure", &yenclosure, 0);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "maxwidth", &maxwidth, 1);
+            if(!e.status)
+            {
+                return e;
+            }
+            e = _read_via_property(L, "maxheight", &maxheight, 1);
+            if(!e.status)
+            {
+                return e;
+            }
+            technology_add_via_definition_by_name(techstate, vianame, width, height, xspace, yspace, xenclosure, yenclosure, maxwidth, maxheight);
+        }
         // pop table
         lua_pop(L, 1);
-
-        technology_add_via_definition_by_name(techstate, vianame, width, height, xspace, yspace, xenclosure, yenclosure, maxwidth, maxheight);
     }
     lua_pop(L, 1);
-    return 1;
+    return error_success();
 }
 
-int _read_via_fallback(lua_State* L, struct technology_state* techstate, const char* vianame)
+error_t _read_via_fallback(lua_State* L, struct technology_state* techstate, const char* vianame)
 {
+    error_t e = error_success();
     struct viaentry* entry = _find_viaentry_by_name(techstate, vianame);
     if(!entry)
     {
-        return 0;
+        error_set_failure(&e);
+        return e;
     }
 
     lua_getfield(L, -1, "fallback");
     if(lua_isnil(L, -1))
     {
         lua_pop(L, 1);
-        return 1; // missing fallback is not an error
+        return e; // missing fallback is not an error (e is still on success)
     }
 
     lua_getfield(L, -1, "width");
@@ -383,7 +517,7 @@ int _read_via_fallback(lua_State* L, struct technology_state* techstate, const c
     technology_set_fallback_via_by_name(techstate, vianame, width, height);
 
     lua_pop(L, 1);
-    return 1;
+    return e;
 }
 
 static void _create_via_entry_in_techstate(struct technology_state* techstate, char* vianame)
@@ -396,28 +530,47 @@ static void _create_via_entry_in_techstate(struct technology_state* techstate, c
     vector_append(techstate->viatable, entry);
 }
 
-static int _load_viadefinitions(struct technology_state* techstate, const char* name)
+static error_t _load_viadefinitions(struct technology_state* techstate, const char* name)
 {
+    error_t e = error_success();
     lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, name);
     if(ret != LUA_OK)
     {
+        e.status = 0;
         const char* msg = lua_tostring(L, -1);
-        fprintf(stderr, "error while loading via definitions: %s\n", msg);
-        lua_close(L);
-        return 0;
+        error_add(&e, msg);
+        goto VIA_EXIT;
     }
     lua_pushnil(L);
     while(lua_next(L, -2) != 0)
     {
         char* vianame = util_strdup(lua_tostring(L, -2));
         _create_via_entry_in_techstate(techstate, vianame);
-        _read_via(L, techstate, vianame);
-        _read_via_fallback(L, techstate, vianame);
+        error_t ev = _read_via(L, techstate, vianame);
+        if(!ev.status)
+        {
+            error_set_failure(&e);
+            error_prepend(&e, "\": ");
+            error_prepend(&e, vianame);
+            error_prepend(&e, "\"");
+            error_add(&e, ev.message);
+            error_clean(&ev);
+            goto VIA_EXIT;
+        }
+        ev = _read_via_fallback(L, techstate, vianame);
+        if(!ev.status)
+        {
+            error_set_failure(&e);
+            error_add(&e, strprintf("error while loading fallback via definitions for '%s': %s", name, ev.message));
+            error_clean(&ev);
+            goto VIA_EXIT;
+        }
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
+VIA_EXIT:
     lua_close(L);
-    return 1;
+    return e;
 }
 
 static int _load_config(struct technology_state* techstate, const char* name, const char** errmsg)
@@ -545,6 +698,7 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
         return 0;
     }
     int ret;
+    error_t e;
     ret = _load_layermap(techstate, layermapname, ignoredlayers);
     free(layermapname);
     if(!ret)
@@ -559,8 +713,8 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
         free(vianame);
         return 0;
     }
-    ret = _load_viadefinitions(techstate, vianame);
-    if(!ret)
+    e = _load_viadefinitions(techstate, vianame);
+    if(!e.status)
     {
         return 0;
     }
@@ -702,13 +856,29 @@ static void _write_viaentry(FILE* file, const struct viaentry* entry)
     while(*viadef)
     {
         struct via_definition* v = *viadef;
-        fprintf(
-            file,
-            "            { width = %d, height = %d, xspace = %d, yspace = %d, xenclosure = %d, yenclosure = %d },\n",
-            v->width, v->height,
-            v->xspace, v->yspace,
-            v->xenclosure, v->yenclosure
-        );
+        if((v->xenclosure1 == v->xenclosure2) &&
+           (v->yenclosure1 == v->yenclosure2)
+        )
+        {
+            fprintf(
+                file,
+                "            { width = %d, height = %d, xspace = %d, yspace = %d, xenclosure = %d, yenclosure = %d },\n",
+                v->width, v->height,
+                v->xspace, v->yspace,
+                v->xenclosure1, v->yenclosure1
+            );
+        }
+        else
+        {
+            fprintf(
+                file,
+                "            { width = %d, height = %d, xspace = %d, yspace = %d, xenclosure1 = %d, yenclosure1 = %d, xenclosure2 = %d, yenclosure2 = %d },\n",
+                v->width, v->height,
+                v->xspace, v->yspace,
+                v->xenclosure1, v->yenclosure1,
+                v->xenclosure2, v->yenclosure2
+            );
+        }
         ++viadef;
     }
     fputs("        },\n", file);
@@ -848,8 +1018,10 @@ int technology_add_via_definition(struct technology_state* techstate, unsigned i
     viadef->height = height;
     viadef->xspace = xspace;
     viadef->yspace = yspace;
-    viadef->xenclosure = xenclosure;
-    viadef->yenclosure = yenclosure;
+    viadef->xenclosure1 = xenclosure;
+    viadef->xenclosure2 = xenclosure;
+    viadef->yenclosure1 = yenclosure;
+    viadef->yenclosure2 = yenclosure;
     viadef->maxwidth = maxwidth;
     viadef->maxheight = maxheight;
     _insert_via_entry(&entry->viadefs, viadef);
@@ -868,8 +1040,32 @@ int technology_add_via_definition_by_name(struct technology_state* techstate, co
     viadef->height = height;
     viadef->xspace = xspace;
     viadef->yspace = yspace;
-    viadef->xenclosure = xenclosure;
-    viadef->yenclosure = yenclosure;
+    viadef->xenclosure1 = xenclosure;
+    viadef->xenclosure2 = xenclosure;
+    viadef->yenclosure1 = yenclosure;
+    viadef->yenclosure2 = yenclosure;
+    viadef->maxwidth = maxwidth;
+    viadef->maxheight = maxheight;
+    _insert_via_entry(&entry->viadefs, viadef);
+    return 1;
+}
+
+int technology_add_via_definition_by_name2(struct technology_state* techstate, const char* vianame, unsigned int width, unsigned int height, unsigned int xspace, unsigned int yspace, unsigned int xenclosure1, unsigned int xenclosure2, unsigned int yenclosure1, unsigned int yenclosure2, unsigned int maxwidth, unsigned int maxheight)
+{
+    struct viaentry* entry = _find_viaentry_by_name(techstate, vianame);
+    if(!entry)
+    {
+        return 0;
+    }
+    struct via_definition* viadef = malloc(sizeof(*viadef));
+    viadef->width = width;
+    viadef->height = height;
+    viadef->xspace = xspace;
+    viadef->yspace = yspace;
+    viadef->xenclosure1 = xenclosure1;
+    viadef->xenclosure2 = xenclosure2;
+    viadef->yenclosure1 = yenclosure1;
+    viadef->yenclosure2 = yenclosure2;
     viadef->maxwidth = maxwidth;
     viadef->maxheight = maxheight;
     _insert_via_entry(&entry->viadefs, viadef);
@@ -896,8 +1092,10 @@ int technology_set_fallback_via(struct technology_state* techstate, unsigned int
     viadef->height = height;
     viadef->xspace = 0;
     viadef->yspace = 0;
-    viadef->xenclosure = 0;
-    viadef->yenclosure = 0;
+    viadef->xenclosure1 = 0;
+    viadef->xenclosure2 = 0;
+    viadef->yenclosure1 = 0;
+    viadef->yenclosure2 = 0;
     viadef->maxwidth = UINT_MAX;
     viadef->maxheight = UINT_MAX;
     entry->fallback = viadef;
@@ -924,8 +1122,10 @@ int technology_set_fallback_via_by_name(struct technology_state* techstate, cons
     viadef->height = height;
     viadef->xspace = 0;
     viadef->yspace = 0;
-    viadef->xenclosure = 0;
-    viadef->yenclosure = 0;
+    viadef->xenclosure1 = 0;
+    viadef->xenclosure2 = 0;
+    viadef->yenclosure1 = 0;
+    viadef->yenclosure2 = 0;
     viadef->maxwidth = UINT_MAX;
     viadef->maxheight = UINT_MAX;
     entry->fallback = viadef;

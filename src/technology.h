@@ -19,8 +19,10 @@ struct via_definition { // FIXME: this is in the header file because the geometr
     unsigned int height;
     unsigned int xspace;
     unsigned int yspace;
-    int xenclosure;
-    int yenclosure;
+    int xenclosure1;
+    int xenclosure2;
+    int yenclosure1;
+    int yenclosure2;
     unsigned int maxwidth;
     unsigned int maxheight;
 };
@@ -43,6 +45,7 @@ unsigned int technology_get_num_metals(const struct technology_state* techstate)
 void technology_set_num_metals(struct technology_state* techstate, unsigned int nummetals);
 int technology_add_via_definition(struct technology_state* techstate, unsigned int startindex, unsigned int width, unsigned int height, unsigned int xspace, unsigned int yspace, unsigned int xenclosure, unsigned int yenclosure, unsigned int maxwidth, unsigned int maxheight);
 int technology_add_via_definition_by_name(struct technology_state* techstate, const char* vianame, unsigned int width, unsigned int height, unsigned int xspace, unsigned int yspace, unsigned int xenclosure, unsigned int yenclosure, unsigned int maxwidth, unsigned int maxheight);
+int technology_add_via_definition_by_name2(struct technology_state* techstate, const char* vianame, unsigned int width, unsigned int height, unsigned int xspace, unsigned int yspace, unsigned int xenclosure1, unsigned int xenclosure2, unsigned int yenclosure1, unsigned int yenclosure2, unsigned int maxwidth, unsigned int maxheight);
 int technology_set_fallback_via(struct technology_state* techstate, unsigned int startindex, unsigned int width, unsigned int height);
 int technology_set_fallback_via_by_name(struct technology_state* techstate, const char* vianame, unsigned int width, unsigned int height);
 struct generics* technology_add_empty_layer(struct technology_state* techstate, const char* layername);
