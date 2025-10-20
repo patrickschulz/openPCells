@@ -693,7 +693,7 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
     const char* errmsg;
     if(!layermapname)
     {
-        printf("technology: no techfile for technology '%s' found\n", techstate->name);
+        fprintf(stderr, "technology: no techfile for technology '%s' found\n", techstate->name);
         free(layermapname);
         return 0;
     }
@@ -709,13 +709,14 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
     char* vianame = _get_tech_filename(techpaths, techstate->name, "vias");
     if(!vianame)
     {
-        printf("technology: no via definitions for technology '%s' found", techstate->name);
+        fprintf(stderr, "technology: no via definitions for technology '%s' found\n", techstate->name);
         free(vianame);
         return 0;
     }
     e = _load_viadefinitions(techstate, vianame);
     if(!e.status)
     {
+        fprintf(stderr, "technology: errors while loading via definitions: %s\n", e.message);
         return 0;
     }
     free(vianame);
@@ -723,7 +724,7 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
     char* configname = _get_tech_filename(techpaths, techstate->name, "config");
     if(!configname)
     {
-        printf("technology: no config file for technology '%s' found", techstate->name);
+        fprintf(stderr, "technology: no config file for technology '%s' found\n", techstate->name);
         free(configname);
         return 0;
     }
@@ -739,7 +740,7 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
     char* constraintsname = _get_tech_filename(techpaths, techstate->name, "constraints");
     if(!constraintsname)
     {
-        printf("technology: no constraints file for technology '%s' found", techstate->name);
+        fprintf(stderr, "technology: no constraints file for technology '%s' found\n", techstate->name);
         free(constraintsname);
         return 0;
     }
@@ -1201,7 +1202,7 @@ struct via_definition** technology_get_via_definitions(struct technology_state* 
     struct viaentry* entry = _find_viaentry(techstate, lowermetal);
     if(!entry)
     {
-        printf("could not find via definitions for via from metal %d to metal %d\n", lowermetal, lowermetal + 1);
+        fprintf(stderr, "could not find via definitions for via from metal %d to metal %d\n", lowermetal, lowermetal + 1);
     }
     return entry->viadefs;
 }
@@ -1225,7 +1226,7 @@ struct via_definition* technology_get_via_fallback(struct technology_state* tech
     }
     if(!viadef)
     {
-        //printf("could not find fallback via definitions for '%s'\n", vianame);
+        //fprintf(stderr, "could not find fallback via definitions for '%s'\n", vianame);
     }
     free(vianame);
     return viadef;
@@ -1269,7 +1270,7 @@ struct via_definition** technology_get_contact_definitions(struct technology_sta
     // no viadefs found
     if(!viadefs)
     {
-        printf("could not find contact definitions for '%s'\n", contactname);
+        fprintf(stderr, "could not find contact definitions for '%s'\n", contactname);
     }
     free(contactname);
     return viadefs;
@@ -1296,7 +1297,7 @@ struct via_definition* technology_get_contact_fallback(struct technology_state* 
     }
     if(!fallback)
     {
-        //printf("could not find fallback contact definitions for '%s'\n", contactname);
+        //fprintf(stderr, "could not find fallback contact definitions for '%s'\n", contactname);
     }
     free(contactname);
     return fallback;
@@ -1412,8 +1413,6 @@ static int _resolve_layer(struct generics* layer, const char* exportname, int ig
             }
             else
             {
-                printf("no layer data for export type '%s' found (layer: %s, number of entries: %zd)\n",
-                    exportname, layer->name, vector_size(layer->entries));
                 return 0;
             }
         }
@@ -1430,6 +1429,11 @@ int technology_resolve_premapped_layers(struct technology_state* techstate, cons
         struct generics* layer = hashmap_iterator_value(it);
         if(!_resolve_layer(layer, exportname, techstate->ignore_missing_exports))
         {
+            fprintf(
+                stderr,
+                "no layer data for export type '%s' found (layer: %s, number of entries: %zd)\n",
+                exportname, layer->name, vector_size(layer->entries)
+            );
             hashmap_iterator_destroy(it);
             return 0;
         }
