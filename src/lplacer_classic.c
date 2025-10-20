@@ -191,9 +191,6 @@ static void _clean_up(struct block* block, struct floorplan* floorplan)
     placer_destroy_floorplan(floorplan);
 }
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 static void _update_net_positions(struct block* block)
 {
     // reset positions
@@ -213,10 +210,10 @@ static void _update_net_positions(struct block* block)
         {
             struct net* net = c->base.nets[i];
             unsigned int pinoffset = c->base.pinoffset[i];
-            net->xmin = min(net->xmin, c->pos_x + pinoffset);
-            net->xmax = max(net->xmax, c->pos_x+ pinoffset);
-            net->ymin = min(net->ymin, c->pos_y);
-            net->ymax = max(net->ymax, c->pos_y);
+            net->xmin = MIN2(net->xmin, c->pos_x + pinoffset);
+            net->xmax = MAX2(net->xmax, c->pos_x+ pinoffset);
+            net->ymin = MIN2(net->ymin, c->pos_y);
+            net->ymax = MAX2(net->ymax, c->pos_y);
         }
     }
 }

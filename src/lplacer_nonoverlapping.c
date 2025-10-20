@@ -8,6 +8,7 @@
 
 #include "lplacer_common.h"
 #include "lplacer_rand.h"
+#include "helpers.h"
 
 struct cell {
     unsigned int instance;
@@ -340,9 +341,6 @@ static void _create_lua_result(lua_State* L, struct block* block)
     }
 }
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 static void _update_net_positions(struct block* block)
 {
     // reset positions
@@ -365,10 +363,10 @@ static void _update_net_positions(struct block* block)
             {
                 struct net* net = c->nets[i];
                 unsigned int pinoffset = c->pinoffset[i];
-                net->xmin = min(net->xmin, col + width + pinoffset);
-                net->xmax = max(net->xmax, col + width + pinoffset);
-                net->ymin = min(net->ymin, row);
-                net->ymax = max(net->ymax, row);
+                net->xmin = MIN2(net->xmin, col + width + pinoffset);
+                net->xmax = MAX2(net->xmax, col + width + pinoffset);
+                net->ymin = MIN2(net->ymin, row);
+                net->ymax = MAX2(net->ymax, row);
             }
             width += c->width;
         }

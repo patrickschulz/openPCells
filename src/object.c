@@ -5,10 +5,8 @@
 #include <stdio.h>
 
 #include "bltrshape.h"
+#include "helpers.h"
 #include "util.h"
-
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
 
 #define OBJECT_DEFAULT_SHAPES_SIZE 32
 #define OBJECT_DEFAULT_CHILDREN_SIZE 16
@@ -2482,14 +2480,14 @@ void object_inherit_alignment_box(struct object* cell, const struct object* othe
         coordinate_t sinnerbly = cell->content.full.alignmentbox[5];
         coordinate_t sinnertrx = cell->content.full.alignmentbox[6];
         coordinate_t sinnertry = cell->content.full.alignmentbox[7];
-        outerblx = min(outerblx, souterblx);
-        outerbly = min(outerbly, souterbly);
-        outertrx = max(outertrx, soutertrx);
-        outertry = max(outertry, soutertry);
-        innerblx = min(innerblx, sinnerblx);
-        innerbly = min(innerbly, sinnerbly);
-        innertrx = max(innertrx, sinnertrx);
-        innertry = max(innertry, sinnertry);
+        outerblx = MIN2(outerblx, souterblx);
+        outerbly = MIN2(outerbly, souterbly);
+        outertrx = MAX2(outertrx, soutertrx);
+        outertry = MAX2(outertry, soutertry);
+        innerblx = MIN2(innerblx, sinnerblx);
+        innerbly = MIN2(innerbly, sinnerbly);
+        innertrx = MAX2(innertrx, sinnertrx);
+        innertry = MAX2(innertry, sinnertry);
     }
     object_set_alignment_box(cell, outerblx, outerbly, outertrx, outertry, innerblx, innerbly, innertrx, innertry);
     point_destroy(outerbl);
@@ -2513,10 +2511,10 @@ static void _alignment_box_include_xy(struct object* cell, coordinate_t x, coord
     coordinate_t outerbly, outertry, innerbly, innertry;
     if(include_x)
     {
-        outerblx = min(x, souterblx);
-        outertrx = max(x, soutertrx);
-        innerblx = min(x, sinnerblx);
-        innertrx = max(x, sinnertrx);
+        outerblx = MIN2(x, souterblx);
+        outertrx = MAX2(x, soutertrx);
+        innerblx = MIN2(x, sinnerblx);
+        innertrx = MAX2(x, sinnertrx);
     }
     else
     {
@@ -2527,10 +2525,10 @@ static void _alignment_box_include_xy(struct object* cell, coordinate_t x, coord
     }
     if(include_y)
     {
-        outerbly = min(y, souterbly);
-        outertry = max(y, soutertry);
-        innerbly = min(y, sinnerbly);
-        innertry = max(y, sinnertry);
+        outerbly = MIN2(y, souterbly);
+        outertry = MAX2(y, soutertry);
+        innerbly = MIN2(y, sinnerbly);
+        innertry = MAX2(y, sinnertry);
     }
     else
     {
@@ -2770,10 +2768,10 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
                 transformationmatrix_apply_transformation_xy(extratrans, &maxx_, &maxy_);
             }
             _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
-            minx = min(minx, minx_);
-            maxx = max(maxx, maxx_);
-            miny = min(miny, miny_);
-            maxy = max(maxy, maxy_);
+            minx = MIN2(minx, minx_);
+            maxx = MAX2(maxx, maxx_);
+            miny = MIN2(miny, miny_);
+            maxy = MAX2(maxy, maxy_);
         }
     }
     if(cell->content.full.children)
@@ -2788,10 +2786,10 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
             transformationmatrix_apply_transformation_xy(cell->trans, &maxx_, &maxy_);
             _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
             // FIXME: transformation? -> should be handled by recursive call, but check this! (construct a cell with the right transformations)
-            minx = min(minx, minx_);
-            maxx = max(maxx, maxx_);
-            miny = min(miny, miny_);
-            maxy = max(maxy, maxy_);
+            minx = MIN2(minx, minx_);
+            maxx = MAX2(maxx, maxx_);
+            miny = MIN2(miny, miny_);
+            maxy = MAX2(maxy, maxy_);
         }
     }
     *minxp = minx;

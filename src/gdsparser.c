@@ -8,13 +8,14 @@
 
 #include "lua/lauxlib.h"
 
-#include "math.h"
 #include "filesystem.h"
-#include "vector.h"
-#include "point.h"
 #include "hashmap.h"
+#include "helpers.h"
 #include "lua_util.h"
+#include "math.h"
+#include "point.h"
 #include "util.h"
+#include "vector.h"
 
 enum datatypes
 {
@@ -795,11 +796,6 @@ int gdsparser_show_records(const char* filename, int raw)
     _destroy_stream(stream);
     return 1;
 }
-
-#define MAX2(a, b) ((a) > (b) ? (a) : (b))
-#define MIN2(a, b) ((a) > (b) ? (b) : (a))
-#define MAX4(a, b, c, d) MAX2(MAX2(a, b), MAX2(c, d))
-#define MIN4(a, b, c, d) MIN2(MIN2(a, b), MIN2(c, d))
 
 static void _rectangle_coordinates(const coordinate_t* points, coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try)
 {
