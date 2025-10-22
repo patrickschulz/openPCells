@@ -12,6 +12,9 @@ function parameters()
         { "gatelandingspace", 0 },
         { "sdwidth", 0 },
         { "sdstrapwidth", 0 },
+        { "gatemetal", 5 },
+        { "sourcemetal", 3 },
+        { "drainmetal", 4 },
         { "guardringwidth", 0 },
         { "guardringxspace", 0 },
         { "guardringyspace", 0 },
@@ -38,10 +41,10 @@ function layout(mosfet, _P)
         botgatewidth = _P.gatestrapwidth,
         botgatespace = _P.gatestrapspace,
         connectsource = true,
-        sourcemetal = 3,
+        sourcemetal = _P.sourcemetal,
         connectsourcewidth = _P.sdstrapwidth,
         connectdrain = true,
-        drainmetal = 4,
+        drainmetal = _P.drainmetal,
         connectdrainwidth = _P.sdstrapwidth,
         drawleftactivedummy = _P.drawactivedummies,
         leftactivedummywidth = _P.activedummywidth,
@@ -69,12 +72,12 @@ function layout(mosfet, _P)
         base:get_area_anchor("botgatestrap").br:translate_x(_P.gatelandingspace),
         base:get_area_anchor("topgatestrap").tr:translate_x(_P.gatelandingspace + _P.gatelandingwidth)
     )
-    geometry.viabltr(mosfet, 1, 5,
+    geometry.viabltr(mosfet, 1, _P.gatemetal,
         mosfet:get_area_anchor("leftgatelanding").bl,
         mosfet:get_area_anchor("leftgatelanding").tr,
         string.format("left gate landing:\n    x parameters: gatelandingwidth (%d)\n    y parameters: gatestrapwidth (%d)", _P.gatelandingwidth, _P.gatestrapwidth)
     )
-    geometry.viabltr(mosfet, 1, 5,
+    geometry.viabltr(mosfet, 1, _P.gatemetal,
         mosfet:get_area_anchor("rightgatelanding").bl,
         mosfet:get_area_anchor("rightgatelanding").tr,
         string.format("right gate landing:\n    x parameters: gatelandingwidth (%d)\n    y parameters: gatestrapwidth (%d)", _P.gatelandingwidth, _P.gatestrapwidth)
