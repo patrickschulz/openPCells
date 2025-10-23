@@ -269,7 +269,7 @@ static void _basic_introduction(void)
     _putsnl("but it requires sufficient knowledge about the layout process in general.");
     _putnl();
     terminal_set_foreground_color_RGB(255, 0, 0);
-    _putsnl("It is not a suitable tool for beginners in integrated circuits layouts");
+    _putsnl("It is not a suitable tool for beginners in integrated circuits layouts.");
     terminal_reset_color();
     _wait_chunk_reset();
     _putsnl("As openPCells is text-based, code examples will be shown.");
@@ -288,16 +288,16 @@ static void _basic_introduction(void)
 static void _simple_example(void)
 {
     terminal_clear_screen();
-    _putsnl("The basic introduction will use cell scripts to demonstrate the usage of opc.");
+    _putsnl("The basic introduction will use so-called cell scripts to demonstrate the usage of opc.");
     _putsnl("For this, the best way to follow this tutorial is to have an editor and a second");
     _putsnl("terminal ready for editing cell scripts and calling opc.");
     _wait_chunk_reset();
     _putsnl("The user front-end of openPCells is accesible in lua, a lightweight programming language.");
     _putsnl("This means that cell definitions and cell scripts are also written in lua,");
-    _putsnl("and that layout descriptions have fully functional programming constructs available.");
+    _putsnl("and that layout descriptions have proper programming constructs available.");
     _wait_chunk_reset();
     _putsnl("For this tutorial it is not important to know lua.");
-    _putsnl("The basic concepts should be clear to anyone who was some understanding of programming");
+    _putsnl("The basic concepts should be clear to anyone who has some understanding of programming");
     _putsnl("in a procedural language. If any more complext topics arise, they will be explained.");
     _wait_chunk_reset();
     _putsnl("We will start with a simple example: a rectangle on the lowest metal layer.");
