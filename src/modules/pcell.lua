@@ -20,7 +20,7 @@ function paramlib.check_constraints(parameter, value)
     local name = parameter.name
     if posvals then
         if posvals.type == "set" then
-            local found = aux.find_predicate(posvals.values, function(v) return v == value end)
+            local found = util.find_predicate(posvals.values, function(v) return v == value end)
             if not found then
                 moderror(string.format("parameter '%s' (%s) can only be %s", name, value, table.concat(posvals.values, " or ")))
             end

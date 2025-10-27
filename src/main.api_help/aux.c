@@ -32,38 +32,6 @@
     ));
 }
 
-/* aux.find */
-{
-    struct parameter parameters[] = {
-        { "t",      TABLE,  NULL, "array to be searched" },
-        { "value",  ANY,    NULL, "value to be found" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "find",
-        MODULE_AUX,
-        "runs a first-level linear search of a value in an array. The comparison is performed by the '==' operator. This function returns two values: the index and the element",
-        "aux.find({ 1, 2, 3, \"foo\", \"bar\", \"baz\" }, \"foo\") -- 4, \"foo\"",
-        parameters
-    ));
-}
-
-/* aux.find_predicate */
-{
-    struct parameter parameters[] = {
-        { "t",      TABLE,  NULL, "array to be searched" },
-        { "value",  ANY,    NULL, "value to be found" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "find_predicate",
-        MODULE_AUX,
-        "runs a first-level linear search of a value in an array. The comparison is performed by the given predicate function, which is called consecutively on the array elements. This function returns two values: the index and the element",
-        "aux.find_predicate({ 1, 2, 3, \"foo\", \"bar\", \"baz\" }, function(v) return v == \"foo\") -- 4, \"foo\"",
-        parameters
-    ));
-}
-
 /* aux.make_even */
 {
     struct parameter parameters[] = {

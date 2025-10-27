@@ -784,13 +784,14 @@
     struct parameter parameters[] = {
         { "table",  TABLE,      NULL, "table (array-like)" },
         { "comp",   FUNCTION,   NULL, "comparison function" },
+        { "...",    VARARGS,    NULL, "additional arguments passed to predicate function" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "find_predicate",
         MODULE_UTIL,
         "Like util.find, but call a function to do the comparison.",
-        "util.find({ 3, 4, 5 }, function(e) return e == 4 end) -- 2, 4",
+        "util.find({ 3, 4, 5 }, function(e) return e == 4 end) -- 2, 4\nlocal target = 4]\nutil.find({ 3, 4, 5 }, function(e, t) return e == t end, target) -- 2, 4\n",
         parameters
     ));
 }

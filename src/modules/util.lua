@@ -612,12 +612,12 @@ function util.find(t, value)
     end
 end
 
-function util.find_predicate(t, predicate)
+function util.find_predicate(t, predicate, ...)
     check.set_next_function_name("util.find_predicate")
     check.arg(1, "t", "table", t)
     check.arg(2, "predicate", "function", predicate)
     for i, v in ipairs(t) do
-        if predicate(v) then
+        if predicate(v, ...) then
             return i, v
         end
     end

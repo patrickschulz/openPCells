@@ -28,22 +28,6 @@ function aux.clone_shallow(t, predicate)
     return new
 end
 
-function aux.find(t, value)
-    for i, v in ipairs(t) do
-        if v == value then
-            return i, v
-        end
-    end
-end
-
-function aux.find_predicate(t, predicate)
-    for i, v in ipairs(t) do
-        if predicate(v) then
-            return i, v
-        end
-    end
-end
-
 function aux.shuffle(t)
   for i = #t, 2, -1 do
     local j = math.random(i)
