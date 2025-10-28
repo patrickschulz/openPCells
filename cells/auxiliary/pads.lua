@@ -25,28 +25,28 @@ end
 function layout(pads, _P)
     local Spad = pcell.create_layout("auxiliary/pad", "Spad", {
         orientation = _P.orientation,
-        alignment = _P.alignment
-        padwidth = _P.Spadwidth, 
-        padheight = _P.Spadheight, 
-        padopeningxoffset = _P.Spadopeningxoffset, 
+        alignment = _P.alignment,
+        padwidth = _P.Spadwidth,
+        padheight = _P.Spadheight,
+        padopeningxoffset = _P.Spadopeningxoffset,
         padopeningyoffset = _P.Spadopeningyoffset,
     })
 
     local Gpad = pcell.create_layout("auxiliary/pad", "Gpad", {
         orientation = _P.orientation,
-        alignment = _P.alignment
-        padwidth = _P.Gpadwidth, 
-        padheight = _P.Gpadheight, 
-        padopeningxoffset = _P.Gpadopeningxoffset, 
+        alignment = _P.alignment,
+        padwidth = _P.Gpadwidth,
+        padheight = _P.Gpadheight,
+        padopeningxoffset = _P.Gpadopeningxoffset,
         padopeningyoffset = _P.Gpadopeningyoffset,
     })
 
     local Ppad = pcell.create_layout("auxiliary/pad", "Ppad", {
         orientation = _P.orientation,
-        alignment = _P.alignment
-        padwidth = _P.Ppadwidth, 
-        padheight = _P.Ppadheight, 
-        padopeningxoffset = _P.Ppadopeningxoffset, 
+        alignment = _P.alignment,
+        padwidth = _P.Ppadwidth,
+        padheight = _P.Ppadheight,
+        padopeningxoffset = _P.Ppadopeningxoffset,
         padopeningyoffset = _P.Ppadopeningyoffset,
     })
 
