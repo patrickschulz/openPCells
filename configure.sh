@@ -123,6 +123,10 @@ opc.1: src/cmdoptions_def.c src/generate_manpage
 	@\$(MAKE) -C src opc.1
 	mv src/opc.1 .
 
+.PHONY: check
+check:
+	@\$(MAKE) -C src check
+
 .PHONY: install
 install: opc opc.1
 	install -m 755 -D opc \${DESTDIR}${BIN_PATH}/${EXE_NAME}

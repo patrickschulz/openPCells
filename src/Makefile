@@ -81,6 +81,10 @@ debug/$(PROGNAME): debug cmdoptions_def.c version.h main.c liblua_debug.a _modul
 debug/%.o: %.c
 	$(CC) -c $(CFLAGS) -O0 -g -o $@ $<
 
+.PHONY: check
+check:
+	clang-tidy *.h *.c
+
 opc.1: cmdoptions_def.c generate_manpage
 	./generate_manpage > opc.1
 
