@@ -16,8 +16,9 @@ The main entry point (the main function) is in src/main.c.
 
 ## Dependencies
 Avoid. This project is meant to be installable by users of ancient CAD servers, that might run on a not-supported-anymore version of centOS or something.
-We can not assume that the user of this software has any install priviliges and there might also be no or nor fast support from their IT team.
-Hence most things here are built from scratch and also the reason for the --all-load-paths-local configuration option.
+We can not assume that the user of this software has any install priviliges and there might also be no or not fast support from their IT team.
+Hence everything here is built from scratch.
+Additionally, the reason for the --all-load-paths-local configuration option also comes from the need for simple installation without priviliges.
 
 ## Goals for Version 1.0
 Here is a list of goals that I want to implement before opc moves on to version 1.0.
@@ -49,6 +50,8 @@ Especially with HTML-based stuff (cell display, searchable documentation) I coul
     x generic finfet technology (if freePDK15 does not include that)
 * improve handling of error messages deep in a call stack
 * proper and thorough testing
+* pcell module implementation mostly in C, lua only as an interface
+* properly support pcells written in C (required pcell module C implementation)
 
 ## Important Types
 There are a few types that are used throughout the project.
@@ -102,6 +105,7 @@ They are added to the binary by being compiled to bytecode which then is inserte
 Follow the [mention guide] in general.
 A few particularities are listed here:
  * curly braces for functions, conditionals etc. belong on their own line:
+
      if(condition)
      {
 
@@ -110,7 +114,9 @@ A few particularities are listed here:
      {
 
      }
+
  * curly braces for initializers, structs, enums etc. belong on the same line as the preceeding code:
+
      struct foo {
 
      };
@@ -122,10 +128,13 @@ A few particularities are listed here:
          2,
          3
      }; // this example could also be on one line
+
  * there is no hard limit on the line length, make it reasonable. Do not break at 80, that is too short.
  * prepend the namespace of a module:
+
     // in module foo.c
     int foo_create(void);
+
  * static functions don't prepend the module name and start with an underscore
  * Yes, I'm aware that identifiers starting with an underscore are reserved. I will change this in the future.
  * In geneneral (a few expections exist) structs and enums are *not* typedef'd. Use the full qualifier.
