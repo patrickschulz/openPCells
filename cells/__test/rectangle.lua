@@ -1,8 +1,14 @@
 function parameters()
+    pcell.add_parameters(
+        { "width", 500 },
+        { "height", 500 }
+    )
 end
 
 function layout(cell, _P)
-    geometry.rectangle(cell, generics.metal(1), 50, 50, 0,  50)
-    --geometry.rectangle(cell, generics.metal(1), 50, 50):translate(0, -50)
-    --cell:add_anchor("A", point.create(0, 75))
+    geometry.rectanglebltr(cell, generics.metal(1), point.create(0, 0), point.create(_P.width, _P.height))
+    cell:set_alignment_box(
+        point.create(0, 0),
+        point.create(_P.width, _P.height)
+    )
 end
