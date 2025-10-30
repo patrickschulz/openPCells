@@ -112,7 +112,7 @@ function layout(gate, _P)
     -- drain connection
     local yinvert = _P.gatetype == "nand" and 1 or -1
     local startpt, endpt
-    local connpt = harness:get_area_anchor(string.format("G%d", 2 * _P.fingers)).bl:translate(xpitch + _P.shiftoutput, 0)
+    local connpt = harness:get_area_anchor(string.format("G%d", 2 * _P.fingers)).bl:translate(xpitch + _P.gatelength / 2 + _P.shiftoutput, 0)
     if _P.gatetype == "nand" then
         startpt = harness:get_area_anchor("nSD3").tr:translate(0, -yinvert * _P.sdwidth / 2)
         endpt = harness:get_area_anchor("pSD2").br:translate(0, yinvert * _P.sdwidth / 2)

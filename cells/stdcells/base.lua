@@ -20,8 +20,8 @@ function parameters()
         { "pnumtracks(Number of PMOS Routing Tracks)",                  4 },
         { "nnumtracks(Number of NMOS Routing Tracks)",                  4 },
         { "numinnerroutes(Number of inner M1 routes)",                  3 }, -- the current implementations expects this to be 3 always, so don't change this
-        { "powerwidth(Power Rail Metal Width)",                         4 * technology.get_dimension("Minimum M1 Width") },
-        { "powerspace(Power Rail Space)",                               4 * technology.get_dimension("Minimum M1 Space") },
+        { "powerwidth(Power Rail Metal Width)",                         technology.get_dimension("Minimum Gate Contact Region Size") },
+        { "powerspace(Power Rail Space)",                               technology.get_dimension("Minimum M1 Space") },
         { "gateext(Gate Extension)",                                    0 },
         { "psdheight(PMOS Source/Drain Contact Height)",                0 },
         { "nsdheight(NMOS Source/Drain Contact Height)",                0 },
