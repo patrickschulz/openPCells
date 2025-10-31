@@ -1456,7 +1456,8 @@ static int lobject_extend_alignment_box_xy_symmetrical(lua_State* L)
 static int lobject_flatten(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    struct object* obj = object_flatten(lobject_get(L, cell), 0); // 0: !flattenports
+    int flattenports = lua_toboolean(L, 2);
+    struct object* obj = object_flatten(lobject_get(L, cell), flattenports);
     lobject_adapt_owning(L, obj);
     return 1;
 }
@@ -1464,7 +1465,8 @@ static int lobject_flatten(lua_State* L)
 static int lobject_flatten_inline(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    object_flatten_inline(lobject_get(L, cell), 0);
+    int flattenports = lua_toboolean(L, 2);
+    object_flatten_inline(lobject_get(L, cell), flattenports);
     return 1;
 }
 

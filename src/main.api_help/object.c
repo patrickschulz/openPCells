@@ -1064,14 +1064,15 @@
 /* object.flatten_inline */
 {
     struct parameter parameters[] = {
-        { "cell",      OBJECT, NULL, "Object which should be flattened" },
+        { "cell",           OBJECT,     NULL,       "Object which should be flattened" },
+        { "flattenports",   BOOLEAN,    "false",    "flatten ports" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "flatten_inline",
         MODULE_OBJECT,
-        "resolve the cell by placing all shapes from all children in the parent cell. This operates in-place and modifies the object. Copy the cell or use object:flatten() if this is unwanted",
-        "cell:flatten_inline()\ncell:copy():flatten_inline()",
+        "resolve the cell by placing all shapes from all children in the parent cell. This operates in-place and modifies the object. Copy the cell or use object:flatten() if this is unwanted. The second argument specifies if ports from lower levels are copied into the flattened object. The default for this is false.",
+        "cell:flatten_inline()\ncell:copy():flatten_inline()\ncell:flatten_inline(true) -- flatten ports",
         parameters
     ));
 }
@@ -1079,14 +1080,15 @@
 /* object.flatten */
 {
     struct parameter parameters[] = {
-        { "cell",      OBJECT, NULL, "Object which should be flattened" },
+        { "cell",           OBJECT,     NULL,       "Object which should be flattened" },
+        { "flattenports",   BOOLEAN,    "false",    "flatten ports" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "flatten",
         MODULE_OBJECT,
-        "resolve the cell by placing all shapes from all children in the parent cell. This operates in-place and modifies the object. Copy the cell if this is unwanted",
-        "cell:flatten()\ncell:copy():flatten()",
+        "resolve the cell by placing all shapes from all children in the parent cell. This does not operate in-place, the object is copied. The second argument specifies if ports from lower levels are copied into the flattened object. The default for this is false.",
+        "cell:flatten()\ncell:flatten(true) -- flatten ports",
         parameters
     ));
 }
