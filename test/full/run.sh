@@ -1,19 +1,25 @@
 #! /bin/sh
 
+extraargs="--write-children-ports --flatten-ports"
+
 # args:
 # 1: basename
 # 2: cellname
 # 3: export type
 function do_cell_test()
 {
+    if [ ! -f pfile_${1}.lua ]; then
+        printf "\033[1;31mpfile 'pfile_%s.lua' does not exist: test %s (%s)\n\033[0m" ${1} ${1} ${2}
+        return
+    fi
     if [ ! -x ../../opc ]; then
         printf "\033[1;31mopc is not available: test %s (%s)\n\033[0m" ${1} ${2}
         return
     fi
-    ../../opc --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
+    ../../opc ${extraargs} --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
     if [ $? -ne 0 ]; then
         echo
-        ../../opc --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1}
+        ../../opc ${extraargs} --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1}
     fi
     if ../helpers/test_compare ${1} ${3}; then
         printf "\033[1;32mcell test succeeded: %s (%s)\n\033[0m" ${1} ${2}
@@ -33,10 +39,10 @@ function do_cellscript_test()
         printf "\033[1;31mopc is not available: test %s (%s)\n\033[0m" ${1} ${2}
         return
     fi
-    ../../opc --export ${3} --technology opc --cellscript ${2} --pfile pfile_${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
+    ../../opc ${extraargs} --export ${3} --technology opc --cellscript ${2} --pfile pfile_${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
     if [ $? -ne 0 ]; then
         echo
-        ../../opc --export ${3} --technology opc --cellscript ${2} --pfile pfile_${1}.lua --filename test_${1}
+        ../../opc ${extraargs} --export ${3} --technology opc --cellscript ${2} --pfile pfile_${1}.lua --filename test_${1}
     fi
     if ../helpers/test_compare ${1} ${3}; then
         printf "\033[1;32mcellscript test succeeded: %s (%s)\n\033[0m" ${1} ${2}
@@ -83,3 +89,12 @@ do_cell_test stacked_mosfet_array_01 basic/stacked_mosfet_array gds
 
 # simple cellscript test (for name)
 do_cellscript_test cellscript_name cellscript_name.lua gds
+
+# cellscript test for object:flatten_inline()
+do_cellscript_test cellscript_flatten cellscript_flatten.lua gds
+
+# cellscript test for object hierarchies with translations
+do_cellscript_test cellscript_hierarchy cellscript_hierarchy.lua gds
+
+# cellscript test for object anchors
+do_cellscript_test cellscript_anchor cellscript_anchor.lua gds
