@@ -427,14 +427,25 @@ function layout(resistor, _P)
             )
         end
     else
-        resistor:add_area_anchor_bltr("plus",
-            resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, 2)).bl,
-            resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, 2)).tr
-        )
-        resistor:add_area_anchor_bltr("minus",
-            resistor:get_area_anchor(string.format("contact_%d_%d", 1, 1)).bl,
-            resistor:get_area_anchor(string.format("contact_%d_%d", 1, 1)).tr
-        )
+        if _P.yspace > 0 then
+            resistor:add_area_anchor_bltr("plus",
+                resistor:get_area_anchor(string.format("contact_upper_%d_%d", _P.nxfingers, _P.nyfingers)).bl,
+                resistor:get_area_anchor(string.format("contact_upper_%d_%d", _P.nxfingers, _P.nyfingers)).tr
+            )
+            resistor:add_area_anchor_bltr("minus",
+                resistor:get_area_anchor(string.format("contact_lower_%d_%d", 1, 1)).bl,
+                resistor:get_area_anchor(string.format("contact_lower_%d_%d", 1, 1)).tr
+            )
+        else
+            resistor:add_area_anchor_bltr("plus",
+                resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, _P.nyfingers + 1)).bl,
+                resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, _P.nyfingers + 1)).tr
+            )
+            resistor:add_area_anchor_bltr("minus",
+                resistor:get_area_anchor(string.format("contact_%d_%d", 1, 1)).bl,
+                resistor:get_area_anchor(string.format("contact_%d_%d", 1, 1)).tr
+            )
+        end
     end
     if _P.plusmetal > 1 then
         geometry.viabltr(resistor, 1, _P.plusmetal,
