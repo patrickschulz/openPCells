@@ -30,7 +30,12 @@ function parameters()
         { "drawrotationmarker", false },
         { "resistortype", 1 },
         { "plusmetal", 1 },
-        { "minusmetal", 1 }
+        { "minusmetal", 1 },
+        { "drawguardring", false },
+        { "guardring_ringwidth", technology.get_dimension("Minimum Active Width"), posvals = positive() },
+        { "guardring_contype", "p", posvals = set("p", "n") },
+        { "guardring_xsep", 0 },
+        { "guardring_ysep", 0 }
     )
 end
 
@@ -476,5 +481,56 @@ function layout(resistor, _P)
             resistor:get_area_anchor("minus").bl,
             resistor:get_area_anchor("minus").tr
         )
+    end
+
+    -- guardring
+    if _P.drawguardring then
+        local holewidth =
+            (_P.nxfingers + _P.leftdummies + _P.rightdummies) * _P.width +
+            (_P.nxfingers + _P.leftdummies + _P.rightdummies - 1) * _P.xspace +
+            2 * _P.guardring_xsep
+        local holeheight =
+            _P.nyfingers * (_P.length + 2 * _P.extension) +
+            (_P.nyfingers - 1) * _P.yspace +
+            2 * _P.guardring_ysep
+        if _P.yspace > 0 then
+            holeheight = holeheight + _P.nyfingers * 2 * _P.contactheight
+        else
+            holeheight = holeheight + (_P.nyfingers + 1) * _P.contactheight
+        end
+        local guardring = pcell.create_layout("auxiliary/guardring", "_guardring", {
+            contype = _P.guardring_contype,
+            holewidth = holewidth,
+            holeheight = holeheight,
+            ringwidth = _P.guardring_ringwidth,
+            fillwell = true,
+        })
+        if _P.yspace > 0 then
+            if _P.leftdummies > 0 then
+                guardring:move_point(
+                    guardring:get_area_anchor("innerboundary").bl,
+                    resistor:get_area_anchor_fmt("leftdummycontact_lower_%d_%d", 1, 1).bl
+                )
+            else
+                guardring:move_point(
+                    guardring:get_area_anchor("innerboundary").bl,
+                    resistor:get_area_anchor_fmt("contact_lower_%d_%d", 1, 1).bl
+                )
+            end
+        else
+            if _P.leftdummies > 0 then
+                guardring:move_point(
+                    guardring:get_area_anchor("innerboundary").bl,
+                    resistor:get_area_anchor_fmt("leftdummycontact_%d_%d", 1, 1).bl
+                )
+            else
+                guardring:move_point(
+                    guardring:get_area_anchor("innerboundary").bl,
+                    resistor:get_area_anchor_fmt("contact_%d_%d", 1, 1).bl
+                )
+            end
+        end
+        guardring:translate(-_P.guardring_xsep, -_P.guardring_ysep)
+        resistor:merge_into(guardring)
     end
 end
