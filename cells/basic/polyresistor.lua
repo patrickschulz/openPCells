@@ -17,6 +17,8 @@ function parameters()
         { "markextension", 200 },
         { "drawwell", false },
         { "welltype", "n", posvals = set("n", "p") },
+        { "implanttype", "n", posvals = set("n", "p") },
+        { "implant_coverall", true },
         { "extendimplantx", technology.get_dimension("Minimum Implant Extension") },
         { "extendimplanty", technology.get_dimension("Minimum Implant Extension") },
         { "extendwellx", technology.get_dimension("Minimum Well Extension") },
@@ -71,6 +73,13 @@ function layout(resistor, _P)
         end
     end
 
+    local allanchors = {}
+
+    local function _add_contact_anchor(resistor, name, bl, tr)
+        table.insert(allanchors, name)
+        resistor:add_area_anchor_bltr(name, bl, tr)
+    end
+
     -- contacts
     for x = 1, _P.nxfingers do
         if _P.yspace > 0 then
@@ -84,19 +93,19 @@ function layout(resistor, _P)
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                 )
-                resistor:add_area_anchor_bltr(string.format("contact_lower_%d_%d", x, y),
+                _add_contact_anchor(resistor, string.format("contact_lower_%d_%d", x, y),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                 )
-                resistor:add_area_anchor_bltr(string.format("contact_lower_-%d_-%d", _P.nxfingers - x + 1, y),
+                _add_contact_anchor(resistor, string.format("contact_lower_-%d_-%d", _P.nxfingers - x + 1, y),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                 )
-                resistor:add_area_anchor_bltr(string.format("contact_upper_%d_%d", x, y),
+                _add_contact_anchor(resistor, string.format("contact_upper_%d_%d", x, y),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                 )
-                resistor:add_area_anchor_bltr(string.format("contact_upper_-%d_-%d", _P.nxfingers - x + 1, y),
+                _add_contact_anchor(resistor, string.format("contact_upper_-%d_-%d", _P.nxfingers - x + 1, y),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                 )
@@ -112,11 +121,11 @@ function layout(resistor, _P)
                         _P.width, _P.contactheight
                     )
                 )
-                resistor:add_area_anchor_bltr(string.format("contact_%d_%d", x, y),
+                _add_contact_anchor(resistor, string.format("contact_%d_%d", x, y),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                 )
-                resistor:add_area_anchor_bltr(string.format("contact_-%d_-%d", _P.nxfingers - x + 1, _P.nyfingers - y + 1),
+                _add_contact_anchor(resistor, string.format("contact_-%d_-%d", _P.nxfingers - x + 1, _P.nyfingers - y + 1),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                     point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                 )
@@ -138,11 +147,11 @@ function layout(resistor, _P)
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                     )
-                    resistor:add_area_anchor_bltr(string.format("leftdummycontact_lower_%d_%d", x, y),
+                    _add_contact_anchor(resistor, string.format("leftdummycontact_lower_%d_%d", x, y),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
-                    resistor:add_area_anchor_bltr(string.format("leftdummycontact_upper_%d_%d", x, y),
+                    _add_contact_anchor(resistor, string.format("leftdummycontact_upper_%d_%d", x, y),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + 2 * _P.extension + _P.contactheight),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + 2 * _P.extension + 2 * _P.contactheight)
                     )
@@ -150,11 +159,11 @@ function layout(resistor, _P)
             else
                 for y = 1, _P.nyfingers + 1 do
                     local yshift = (y - 1) * ypitch
-                    geometry.contactbarebltr(resistor, "gate",
+                    geometry.contactbltr(resistor, "gate",
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
-                    resistor:add_area_anchor_bltr(string.format("leftdummycontact_%d_%d", x, y),
+                    _add_contact_anchor(resistor, string.format("leftdummycontact_%d_%d", x, y),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
@@ -173,11 +182,11 @@ function layout(resistor, _P)
                         point.create((x + _P.leftdummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
                         point.create((x + _P.leftdummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                     )
-                    resistor:add_area_anchor_bltr(string.format("rightdummycontact_lower_%d_%d", x, y),
+                    _add_contact_anchor(resistor, string.format("rightdummycontact_lower_%d_%d", x, y),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
-                    resistor:add_area_anchor_bltr(string.format("rightdummycontact_upper_%d_%d", x, y),
+                    _add_contact_anchor(resistor, string.format("rightdummycontact_upper_%d_%d", x, y),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + 2 * _P.extension + _P.contactheight),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + 2 * _P.extension + 2 * _P.contactheight)
                     )
@@ -185,11 +194,11 @@ function layout(resistor, _P)
             else
                 for y = 1, _P.nyfingers + 1 do
                     local yshift = (y - 1) * ypitch
-                    geometry.contactbarebltr(resistor, "gate",
+                    geometry.contactbltr(resistor, "gate",
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
-                    resistor:add_area_anchor_bltr(string.format("rightdummycontact_%d_%d", x, y),
+                    _add_contact_anchor(resistor, string.format("rightdummycontact_%d_%d", x, y),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
@@ -220,16 +229,25 @@ function layout(resistor, _P)
         end
     end
     -- implant
-    geometry.rectanglebltr(resistor, generics.implant("n"),
-        point.create(
-            (1 - 1) * (_P.width + _P.xspace) - _P.extendimplantx,
-            -_P.extendimplanty
-        ),
-        point.create(
-            (_P.nxfingers + _P.leftdummies + _P.rightdummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendimplantx,
-            totalpolyheight + _P.extendimplanty
+    if _P.implant_coverall then
+        geometry.rectanglebltr(resistor, generics.implant(_P.implanttype),
+            point.create(
+                (1 - 1) * (_P.width + _P.xspace) - _P.extendimplantx,
+                -_P.extendimplanty
+            ),
+            point.create(
+                (_P.nxfingers + _P.leftdummies + _P.rightdummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendimplantx,
+                totalpolyheight + _P.extendimplanty
+            )
         )
-    )
+    else
+        for _, anchor in ipairs(allanchors) do
+            geometry.rectanglebltr(resistor, generics.implant(_P.implanttype),
+                resistor:get_area_anchor(anchor).bl:translate(-_P.extendimplantx, -_P.extendimplanty),
+                resistor:get_area_anchor(anchor).tr:translate(_P.extendimplantx, _P.extendimplanty)
+            )
+        end
+    end
     -- well
     if _P.drawwell then
         geometry.rectanglebltr(resistor, generics.well(_P.welltype),
