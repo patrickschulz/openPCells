@@ -20,9 +20,30 @@ struct lpoint {
 
 coordinate_t lpoint_checkcoordinate(lua_State* L, int idx, const char* coordinate)
 {
-    if(lua_isnil(L, idx) || lua_isnone(L, idx))
+    if(idx < 0)
+    {
+        if(lua_gettop(L) < -idx)
+        {
+            lua_pushfstring(L, "point module: no argument received for %s", coordinate);
+            lua_error(L);
+        }
+    }
+    else
+    {
+        if(lua_gettop(L) < idx)
+        {
+            lua_pushfstring(L, "point module: no argument received for %s", coordinate);
+            lua_error(L);
+        }
+    }
+    if(lua_isnil(L, idx))
     {
         lua_pushfstring(L, "point module: nil number received for %s", coordinate);
+        lua_error(L);
+    }
+    if(lua_type(L, idx) != LUA_TNUMBER)
+    {
+        lua_pushfstring(L, "point module: non-number parameter (%s) received for %s", lua_typename(L, lua_type(L, idx)), coordinate);
         lua_error(L);
     }
     int isnum;
@@ -74,6 +95,11 @@ struct lpoint* lpoint_takeover_point(lua_State* L, struct point* pt)
 
 int lpoint_create(lua_State* L)
 {
+    if(lua_gettop(L) < 2)
+    {
+        lua_pushfstring(L, "point.create(): expected two arguments (x and y), got %d", lua_gettop(L));
+        lua_error(L);
+    }
     coordinate_t x = lpoint_checkcoordinate(L, -2, "x");
     coordinate_t y = lpoint_checkcoordinate(L, -1, "y");
     lua_pop(L, 2);
