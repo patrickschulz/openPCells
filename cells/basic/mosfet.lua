@@ -1213,8 +1213,8 @@ function layout(transistor, _P)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
         if _P.allow_poly_connections then
             geometry.rectanglebltr(transistor, generics.gate(),
-                point.create(bl:getx() - _P.topgatepolyleftextension, bl:gety() - _P.topgatepolybottomextension),
-                point.create(tr:getx() + _P.topgatepolyrightextension, gatetry + _P.topgatepolytopextension)
+                point.create(bl:getx() + _P.topgateleftextension - _P.topgatepolyleftextension, bl:gety() - _P.topgatepolybottomextension),
+                point.create(tr:getx() - _P.topgaterightextension + _P.topgatepolyrightextension, gatetry + _P.topgatepolytopextension)
             )
         end
         if _P.drawtopgatevia and _P.topgatemetal > 1 then
@@ -1262,8 +1262,8 @@ function layout(transistor, _P)
         transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
         if _P.allow_poly_connections then
             geometry.rectanglebltr(transistor, generics.gate(),
-                point.create(bl:getx() - _P.botgatepolyleftextension, gatebly - _P.botgatepolybottomextension),
-                point.create(tr:getx() + _P.botgatepolyrightextension, tr:gety() + _P.botgatepolytopextension)
+                point.create(bl:getx() + _P.botgateleftextension - _P.botgatepolyleftextension, gatebly - _P.botgatepolybottomextension),
+                point.create(tr:getx() - _P.botgaterightextension + _P.botgatepolyrightextension, tr:gety() + _P.botgatepolytopextension)
             )
         end
         if _P.drawbotgatevia and _P.botgatemetal > 1 then
