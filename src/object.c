@@ -3240,6 +3240,18 @@ void object_flatten_inline(struct object* cell, int flattenports)
                     shape_destroy(S);
                 }
             }
+            if(flat->content.full.labels)
+            {
+                for(unsigned int p = 0; p < vector_size(flat->content.full.labels); ++p)
+                {
+                    struct port* label = vector_get(flat->content.full.labels, p);
+                    coordinate_t x = label->where->x;
+                    coordinate_t y = label->where->y;
+                    transformationmatrix_apply_transformation_xy(child->trans, &x, &y);
+                    transformationmatrix_apply_transformation_xy(flat->trans, &x, &y);
+                    _add_label(cell, label->name, label->layer, x, y, label->sizehint);
+                }
+            }
             if(flattenports)
             {
                 for(unsigned int p = 0; p < vector_size(flat->content.full.ports); ++p)
