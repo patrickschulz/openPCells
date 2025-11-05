@@ -1147,7 +1147,7 @@ static int lobject_add_port(lua_State* L)
     const char* name = luaL_checkstring(L, 2);
     const struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
-    double sizehint = luaL_optnumber(L, 5, 0.0);
+    unsigned int sizehint = luaL_optinteger(L, 5, 0);
     object_add_port(lobject_get(L, cell), name, layer, lpoint_get(lpoint), sizehint);
     return 0;
 }
@@ -1160,7 +1160,7 @@ static int lobject_add_port_with_anchor(lua_State* L)
     const char* name = luaL_checkstring(L, 2);
     const struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
-    double sizehint = luaL_optnumber(L, 5, 0.0);
+    unsigned int sizehint = luaL_optinteger(L, 5, 0);
     object_add_port(lobject_get(L, cell), name, layer, lpoint_get(lpoint), sizehint);
     object_add_anchor(lobject_get(L, cell), name, point_getx(lpoint_get(lpoint)), point_gety(lpoint_get(lpoint)));
     return 0;
@@ -1176,7 +1176,7 @@ static int lobject_add_bus_port(lua_State* L)
     int endindex = luaL_checkinteger(L, 6);
     coordinate_t xpitch = lpoint_checkcoordinate(L, 7, "xpitch");
     coordinate_t ypitch = lpoint_checkcoordinate(L, 8, "ypitch");
-    double sizehint = luaL_optnumber(L, 9, 0.0);
+    unsigned int sizehint = luaL_optinteger(L, 9, 0);
     object_add_bus_port(lobject_get(L, cell), name, layer, lpoint_get(lpoint), startindex, endindex, xpitch, ypitch, sizehint);
     return 0;
 }

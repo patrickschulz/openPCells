@@ -272,8 +272,8 @@ static void _write_polygon(struct export_data* data, const struct hashmap* layer
     vector_const_iterator_destroy(it);
     export_data_append_char(data, ')');
     export_data_append_char(data, ')');
-    export_data_append_char(data, '\n');
     _finish_shape_for_group(data);
+    export_data_append_char(data, '\n');
     _ensure_legal_limit(data);
 }
 
@@ -301,8 +301,8 @@ static void _write_path(struct export_data* data, const struct hashmap* layer, c
     export_data_append_char(data, ' ');
     _write_coordinate(data, width);
     export_data_append_char(data, ')');
-    export_data_append_char(data, '\n');
     _finish_shape_for_group(data);
+    export_data_append_char(data, '\n');
     _ensure_legal_limit(data);
 }
 
@@ -400,8 +400,8 @@ static void _write_port(struct export_data* data, const char* name, const struct
         _write_coordinate(data, __labelsize);
     }
     export_data_append_char(data, ')');
-    export_data_append_char(data, '\n');
     _finish_shape_for_group(data);
+    export_data_append_char(data, '\n');
     _ensure_legal_limit(data);
 }
 
@@ -450,8 +450,8 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     }
     export_data_append_string(data, "\"");
     export_data_append_char(data, ')');
-    export_data_append_char(data, '\n');
     _finish_shape_for_group(data);
+    export_data_append_char(data, '\n');
     _ensure_legal_limit(data);
 }
 
@@ -511,8 +511,8 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     _write_coordinate(data, xpitch);
     export_data_append_string(data, " nil");
     export_data_append_char(data, ')');
-    export_data_append_char(data, '\n');
     _finish_shape_for_group(data);
+    export_data_append_char(data, '\n');
     _ensure_legal_limit(data);
 }
 
