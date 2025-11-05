@@ -21,6 +21,7 @@ function parameters()
         { "implant_coverall", true },
         { "extendimplantx", technology.get_dimension("Minimum Implant Extension") },
         { "extendimplanty", technology.get_dimension("Minimum Implant Extension") },
+        { "drawresistancelevel", false },
         { "resistanclevel", 1 },
         { "resistancelevel_coverall", true },
         { "extendreslevelx", 0 },
@@ -298,23 +299,25 @@ function layout(resistor, _P)
         )
     end
     -- resistance level
-    if _P.resistancelevel_coverall then
-        for y = 1, _P.nyfingers do
-            local yshift = (y - 1) * ypitch
-            local ystart = _P.extraextension + _P.contactheight + _P.extension
-            geometry.rectanglebltr(resistor, generics.feol(string.format("resistancelevel%d", _P.resistanclevel)),
-                point.create(_P.nonresdummies * (_P.width + _P.xspace) - _P.extendreslevelx, ystart + yshift),
-                point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + _P.nonresdummies) * (_P.width + _P.xspace) - _P.xspace + _P.extendreslevely, ystart + _P.length + yshift)
-            )
-        end
-    else
-        for x = 1, _P.nxfingers + _P.leftdummies + _P.rightdummies do
-            local xshift = (x + _P.nonresdummies - 1) * (_P.width + _P.xspace)
+    if _P.drawresistancelevel then
+        if _P.resistancelevel_coverall then
             for y = 1, _P.nyfingers do
+                local yshift = (y - 1) * ypitch
+                local ystart = _P.extraextension + _P.contactheight + _P.extension
                 geometry.rectanglebltr(resistor, generics.feol(string.format("resistancelevel%d", _P.resistanclevel)),
-                    point.create(xshift - _P.extendreslevelx, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace)),
-                    point.create(xshift + _P.width + _P.extendreslevely, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace) + _P.length)
+                    point.create(_P.nonresdummies * (_P.width + _P.xspace) - _P.extendreslevelx, ystart + yshift),
+                    point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + _P.nonresdummies) * (_P.width + _P.xspace) - _P.xspace + _P.extendreslevely, ystart + _P.length + yshift)
                 )
+            end
+        else
+            for x = 1, _P.nxfingers + _P.leftdummies + _P.rightdummies do
+                local xshift = (x + _P.nonresdummies - 1) * (_P.width + _P.xspace)
+                for y = 1, _P.nyfingers do
+                    geometry.rectanglebltr(resistor, generics.feol(string.format("resistancelevel%d", _P.resistanclevel)),
+                        point.create(xshift - _P.extendreslevelx, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace)),
+                        point.create(xshift + _P.width + _P.extendreslevely, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace) + _P.length)
+                    )
+                end
             end
         end
     end
