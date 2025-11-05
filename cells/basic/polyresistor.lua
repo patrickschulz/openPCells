@@ -39,7 +39,12 @@ function parameters()
         { "guardring_ringwidth", technology.get_dimension("Minimum Active Width"), posvals = positive() },
         { "guardring_contype", "p", posvals = set("p", "n") },
         { "guardring_xsep", 0 },
-        { "guardring_ysep", 0 }
+        { "guardring_ysep", 0 },
+        { "addlabel", false },
+        { "labeltext", "" },
+        { "labellayer", false }, -- nil is not possible due to internal pcell handling
+        { "labelxshift", 0 },
+        { "labelyshift", 0 }
     )
 end
 
@@ -79,6 +84,22 @@ function layout(resistor, _P)
                 point.create((x - 1) * (_P.width + _P.xspace), 0),
                 point.create((x - 1) * (_P.width + _P.xspace) + _P.width, totalpolyheight)
             )
+        end
+    end
+
+    if _P.addlabel then
+        for x = 1, _P.nxfingers + _P.leftdummies + _P.rightdummies do
+            for y = 1, _P.nyfingers do
+                local yshift = (y - 1) * ypitch
+                resistor:add_label(
+                    _P.labeltext,
+                    _P.labellayer,
+                    point.create(
+                        (x - 1) * (_P.width + _P.xspace) + _P.width / 2 + _P.labelxshift,
+                        yshift + _P.extraextension + _P.contactheight + _P.extension + _P.labelyshift
+                    )
+                )
+            end
         end
     end
 
