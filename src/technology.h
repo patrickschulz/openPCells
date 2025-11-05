@@ -112,6 +112,7 @@ const struct generics* generics_create_gate(struct technology_state* techstate);
 const struct generics* generics_create_feol(struct technology_state* techstate, const char* layername);
 const struct generics* generics_create_beol(struct technology_state* techstate, const char* layername);
 const struct generics* generics_create_marker(struct technology_state* techstate, const char* str, int level);
+const struct generics* generics_create_devicelabel(struct technology_state* techstate, const char* label);
 const struct generics* generics_create_exclude(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_fill(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_other(struct technology_state* techstate, const char* str);

@@ -2045,6 +2045,12 @@ const struct generics* generics_create_marker(struct technology_state* techstate
     return layer;
 }
 
+const struct generics* generics_create_devicelabel(struct technology_state* techstate, const char* label)
+{
+    const struct generics* layer = _get_or_create_layer(techstate, label);
+    return layer;
+}
+
 const struct generics* generics_create_exclude(struct technology_state* techstate, const char* what)
 {
     char* layername;

@@ -304,6 +304,22 @@ static int lgenerics_create_marker(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_devicelabel(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const char* label = luaL_checkstring(L, 1);
+    const struct generics* layer = generics_create_devicelabel(techstate, label);
+    if(!layer)
+    {
+        lua_pushfstring(L, "generics: got NULL layer: generics.devicelabel(\"%s\")\nif this layer is not needed, set it to {}", label);
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
 static int lgenerics_create_exclude(lua_State* L)
 {
     const char* what = luaL_checkstring(L, 1);
@@ -445,6 +461,7 @@ int open_lgenerics_lib(lua_State* L)
         { "feol",                     lgenerics_create_feol              },
         { "beol",                     lgenerics_create_beol              },
         { "marker",                   lgenerics_create_marker            },
+        { "devicelabel",              lgenerics_create_devicelabel       },
         { "exclude",                  lgenerics_create_exclude           },
         { "fill",                     lgenerics_create_fill              },
         { "other",                    lgenerics_create_other             },
