@@ -20,6 +20,7 @@ function parameters()
         { "oxidetype", 1 },
         { "connect_gates", false },
         { "continuous_gate_strap", true },
+        { "diodeconnected", false },
         { "gateext", 0 },
         { "actext", 0 }
     )
@@ -71,6 +72,7 @@ function layout(cell, _P)
         extendall = _P.gatestrapwidth + 2 * _P.gatestrapspace,
         botgatepolytopbottomextension = _P.gateext,
         actext = _P.actext,
+        diodeconnected = _P.diodeconnected,
     })
     cascode:align_center_x(source)
     cascode:align_area_anchor_y("sourcestrap", source, "drainstrap")
