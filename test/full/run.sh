@@ -83,6 +83,14 @@ do_cell_test polyresistor_03 basic/polyresistor gds
 do_cell_test polyresistor_04 basic/polyresistor gds
 do_cell_test polyresistor_05 basic/polyresistor gds
 do_cell_test polyresistor_06 basic/polyresistor gds
+do_cell_test polyresistor_07 basic/polyresistor gds
+do_cell_test polyresistor_08 basic/polyresistor gds
+do_cell_test polyresistor_09 basic/polyresistor gds
+do_cell_test polyresistor_10 basic/polyresistor gds
+do_cell_test polyresistor_11 basic/polyresistor gds
+do_cell_test polyresistor_12 basic/polyresistor gds
+do_cell_test polyresistor_13 basic/polyresistor gds
+do_cell_test polyresistor_14 basic/polyresistor gds
 
 # stacked_mosfet_array
 do_cell_test stacked_mosfet_array_01 basic/stacked_mosfet_array gds
