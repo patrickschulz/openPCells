@@ -21,6 +21,10 @@ function parameters()
         { "implant_coverall", true },
         { "extendimplantx", technology.get_dimension("Minimum Implant Extension") },
         { "extendimplanty", technology.get_dimension("Minimum Implant Extension") },
+        { "resistanclevel", 1 },
+        { "resistancelevel_coverall", true },
+        { "extendreslevelx", 0 },
+        { "extendreslevely", 0 },
         { "extendwellx", technology.get_dimension("Minimum Well Extension") },
         { "extendwelly", technology.get_dimension("Minimum Well Extension") },
         { "extendlvsmarkerx", 0 },
@@ -271,6 +275,27 @@ function layout(resistor, _P)
             point.create((1 - 1) * (_P.width + _P.xspace) - _P.extendlvsmarkerx, -_P.extendlvsmarkery),
             point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendlvsmarkerx, totalpolyheight + _P.extendlvsmarkery)
         )
+    end
+    -- resistance level
+    if _P.resistancelevel_coverall then
+        for y = 1, _P.nyfingers do
+            local yshift = (y - 1) * ypitch
+            local ystart = _P.extraextension + _P.contactheight + _P.extension
+            geometry.rectanglebltr(resistor, generics.feol(string.format("resistancelevel%d", _P.resistanclevel)),
+                point.create(_P.nonresdummies * (_P.width + _P.xspace) - _P.extendreslevelx, ystart + yshift),
+                point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + _P.nonresdummies) * (_P.width + _P.xspace) - _P.xspace + _P.extendreslevely, ystart + _P.length + yshift)
+            )
+        end
+    else
+        for x = 1, _P.nxfingers + _P.leftdummies + _P.rightdummies do
+            local xshift = (x + _P.nonresdummies - 1) * (_P.width + _P.xspace)
+            for y = 1, _P.nyfingers do
+                geometry.rectanglebltr(resistor, generics.feol(string.format("resistancelevel%d", _P.resistanclevel)),
+                    point.create(xshift - _P.extendreslevelx, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace)),
+                    point.create(xshift + _P.width + _P.extendreslevely, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace) + _P.length)
+                )
+            end
+        end
     end
 
     -- connections
