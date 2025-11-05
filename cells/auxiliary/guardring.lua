@@ -5,7 +5,7 @@ function parameters()
         { "drawmetal",                                      true },
         { "holewidth",                                      5000, posvals = positive() },
         { "holeheight",                                     5000, posvals = positive() },
-        { "ringwidth",                                      technology.get_dimension("Minimum Active Width"), posvals = positive() },
+        { "ringwidth",                                      technology.get_dimension("Minimum Active Contact Target Width"), posvals = positive() },
         { "drawsegments",                                   { "left", "right", "top", "bottom" } },
         { "extendall",                                      0 },
         { "extendallinner",                                 0, follow = "extendall" },
