@@ -19,7 +19,8 @@ function parameters()
         { "powerspace", technology.get_dimension("Minimum M1 Width") },
         { "oxidetype", 1 },
         { "connect_gates", false },
-        { "continuous_gate_strap", true },
+        { "continuous_upper_gate_strap", true },
+        { "continuous_lower_gate_strap", true },
         { "diodeconnected", false },
         { "gateext", 0 },
         { "actext", 0 }
@@ -98,7 +99,7 @@ function layout(cell, _P)
     cell:inherit_area_anchor_as(source, "sourcestrap", "power")
     cell:inherit_area_anchor_as(cascode, "drainstrap", "output")
     -- continuous gate strap
-    if _P.continuous_gate_strap then
+    if _P.continuous_upper_gate_strap then
         geometry.rectanglebltr(cell, generics.metal(1),
             point.create(
                 source:get_area_anchor("sourcedrain1").l,
@@ -107,6 +108,19 @@ function layout(cell, _P)
             point.create(
                 source:get_area_anchor("sourcedrain-1").r,
                 cascode:get_area_anchor("botgatestrap").t
+            )
+        )
+    end
+    -- continuous gate strap
+    if _P.continuous_lower_gate_strap then
+        geometry.rectanglebltr(cell, generics.metal(1),
+            point.create(
+                source:get_area_anchor("sourcedrain1").l,
+                source:get_area_anchor("topgatestrap").b
+            ),
+            point.create(
+                source:get_area_anchor("sourcedrain-1").r,
+                source:get_area_anchor("topgatestrap").t
             )
         )
     end
