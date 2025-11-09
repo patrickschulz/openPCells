@@ -17,6 +17,11 @@ function parameters()
         { "markextension", 200 },
         { "drawwell", false },
         { "welltype", "n", posvals = set("n", "p") },
+        { "drawoxidetype", false },
+        { "oxidetype_coverall", true },
+        { "oxidetype", 1 },
+        { "extendoxidetypex", 0 },
+        { "extendoxidetypey", 0 },
         { "implanttype", "n", posvals = set("n", "p") },
         { "implant_coverall", true },
         { "extendimplantx", technology.get_dimension("Minimum Implant Extension") },
@@ -276,6 +281,26 @@ function layout(resistor, _P)
             geometry.rectanglebltr(resistor, generics.implant(_P.implanttype),
                 resistor:get_area_anchor(anchor).bl:translate(-_P.extendimplantx, -_P.extendimplanty),
                 resistor:get_area_anchor(anchor).tr:translate(_P.extendimplantx, _P.extendimplanty)
+            )
+        end
+    end
+    -- oxidetype
+    if _P.oxidetype_coverall then
+        geometry.rectanglebltr(resistor, generics.oxide(_P.oxidetype),
+            point.create(
+                (1 - 1) * (_P.width + _P.xspace) - _P.extendoxidetypex,
+                -_P.extendoxidetypey
+            ),
+            point.create(
+                (_P.nxfingers + _P.leftdummies + _P.rightdummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendoxidetypex,
+                totalpolyheight + _P.extendoxidetypey
+            )
+        )
+    else
+        for _, anchor in ipairs(allanchors) do
+            geometry.rectanglebltr(resistor, generics.oxidetype(_P.oxidetype),
+                resistor:get_area_anchor(anchor).bl:translate(-_P.extendoxidetypex, -_P.extendoxidetypey),
+                resistor:get_area_anchor(anchor).tr:translate(_P.extendoxidetypex, _P.extendoxidetypey)
             )
         end
     end
