@@ -249,6 +249,7 @@ function parameters()
         { "drawbotwelltap",                                                                             false },
         { "drawguardring",                                                                              false },
         { "guardringrespectactivedummy",                                                                false },
+        { "guardringrespectgatestraps",                                                                 true },
         { "guardringwidth",                                                                             technology.get_dimension("Minimum Active Contact Region Size") },
         { "guardringsep",                                                                               technology.get_dimension("Minimum Active Space") },
         { "guardringleftsep",                                                                           technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
@@ -1121,47 +1122,43 @@ function layout(transistor, _P)
 
     local guardring -- variable needs to be visible for alignment box setting
     if _P.drawguardring then
+        local holewidth = activewidth + leftactauxext + leftactext + rightactauxext + rightactext + _P.guardringleftsep + _P.guardringrightsep
+        local holeheight = _P.fingerwidth + _P.guardringtopsep + _P.guardringbottomsep
         if _P.guardringrespectactivedummy then
-            guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
-                contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
-                ringwidth = _P.guardringwidth,
-                holewidth = activewidth + leftactauxext + leftactext + rightactext + rightactauxext + _P.guardringleftsep + _P.guardringrightsep + _P.leftactivedummywidth + _P.leftactivedummyspace + _P.rightactivedummywidth + _P.rightactivedummyspace,
-                holeheight = _P.fingerwidth + _P.guardringtopsep + _P.guardringbottomsep + _P.topactivedummywidth + _P.topactivedummyspace + _P.bottomactivedummywidth + _P.bottomactivedummyspace,
-                fillwell = true,
-                drawsegments = _P.guardringsegments,
-                fillwell = _P.guardringfillwell,
-                fillinnerimplant = _P.guardringfillimplant,
-                innerimplantpolarity = _P.channeltype == "nmos" and "n" or "p",
-                wellinnerextension = _P.guardringwellinnerextension,
-                wellouterextension = _P.guardringwellouterextension,
-                implantinnerextension = _P.guardringimplantinnerextension,
-                implantouterextension = _P.guardringimplantouterextension,
-                soiopeninnerextension = _P.guardringsoiopeninnerextension,
-                soiopenouterextension = _P.guardringsoiopenouterextension,
-            })
-            guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext - _P.leftactivedummywidth - _P.leftactivedummyspace, - _P.bottomactivedummywidth - _P.bottomactivedummyspace))
-            guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
-        else
-            guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
-                contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
-                ringwidth = _P.guardringwidth,
-                holewidth = activewidth + leftactauxext + leftactext + rightactext + rightactauxext + _P.guardringleftsep + _P.guardringrightsep,
-                holeheight = _P.fingerwidth + _P.guardringtopsep + _P.guardringbottomsep,
-                fillwell = true,
-                drawsegments = _P.guardringsegments,
-                fillwell = _P.guardringfillwell,
-                fillinnerimplant = _P.guardringfillimplant,
-                innerimplantpolarity = _P.channeltype == "nmos" and "n" or "p",
-                wellinnerextension = _P.guardringwellinnerextension,
-                wellouterextension = _P.guardringwellouterextension,
-                implantinnerextension = _P.guardringimplantinnerextension,
-                implantouterextension = _P.guardringimplantouterextension,
-                soiopeninnerextension = _P.guardringsoiopeninnerextension,
-                soiopenouterextension = _P.guardringsoiopenouterextension,
-            })
-            guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext, 0))
-            guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
+            holewidth = holewidth + _P.leftactivedummywidth + _P.leftactivedummyspace + _P.rightactivedummywidth + _P.rightactivedummyspace
+            holeheight = holeheight + _P.topactivedummywidth + _P.topactivedummyspace + _P.bottomactivedummywidth + _P.bottomactivedummyspace
         end
+        if _P.guardringrespectgatestraps then
+            if _P.drawtopgatestrap then
+                holeheight = holeheight + _P.topgatespace + _P.topgatewidth
+            end
+            if _P.drawbotgatestrap then
+                holeheight = holeheight + _P.botgatespace + _P.botgatewidth
+            end
+        end
+        guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
+            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+            ringwidth = _P.guardringwidth,
+            holewidth = holewidth,
+            holeheight = holeheight,
+            fillwell = true,
+            drawsegments = _P.guardringsegments,
+            fillwell = _P.guardringfillwell,
+            fillinnerimplant = _P.guardringfillimplant,
+            innerimplantpolarity = _P.channeltype == "nmos" and "n" or "p",
+            wellinnerextension = _P.guardringwellinnerextension,
+            wellouterextension = _P.guardringwellouterextension,
+            implantinnerextension = _P.guardringimplantinnerextension,
+            implantouterextension = _P.guardringimplantouterextension,
+            soiopeninnerextension = _P.guardringsoiopeninnerextension,
+            soiopenouterextension = _P.guardringsoiopenouterextension,
+        })
+        if _P.guardringrespectactivedummy then
+            guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext - _P.leftactivedummywidth - _P.leftactivedummyspace, - _P.bottomactivedummywidth - _P.bottomactivedummyspace))
+        else
+            guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext, 0))
+        end
+        guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
         transistor:merge_into(guardring)
         transistor:add_area_anchor_bltr("outerguardring",
             guardring:get_area_anchor("outerboundary").bl,
