@@ -31,11 +31,12 @@ procedure(OPCWritePolygon(file layer purpose pts)
 	)
 )
 
-procedure(OPCWriteLabel(file layer purpose name pt)
+procedure(OPCWriteLabel(file cellname layer purpose name pt)
 	let(
 		(
 		)
-        fprintf(file "cell:add_port(\"%s\", %s, point.create(%d, %d))\n"
+        fprintf(file "%s:add_port(\"%s\", %s, point.create(%d, %d))\n"
+            cellname
             name
             OPCFormatLayer(layer purpose)
             xCoord(pt) yCoord(pt)
@@ -43,12 +44,53 @@ procedure(OPCWriteLabel(file layer purpose name pt)
 	)
 )
 
-procedure(OPCWriteShape(file shape x y)
+procedure(OPCWriteShape(file cellname shape x y)
     unless(shape->layerName == "instance"
         case(shape->objType
-            ("rect" OPCWriteRectangle(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y))))
-            ("polygon" OPCWritePolygon(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y))))
-            ("label" OPCWriteLabel(file shape->layerName shape->purpose shape->theLabel car(OPCConvertPtsToNanometer(OPCAddPtsOffset(list(shape->xy) x y)))))
+            ("rect" OPCWriteRectangle(file cellname shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y))))
+            ("polygon" OPCWritePolygon(file cellname shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y))))
+            ("label" OPCWriteLabel(file cellname shape->layerName shape->purpose shape->theLabel car(OPCConvertPtsToNanometer(OPCAddPtsOffset(list(shape->xy) x y)))))
+        )
+    )
+)
+
+procedure(OPCWriteVia(file cellname via x y)
+    /*
+	let(
+		(ovbl obtr viaProp)
+        viaProp = via->viaHeader->viaDef
+        ; FIXME: calculate overlap
+        ; FIXME: if metals are perfectly overlapping, use only viabltr
+        ovbl = list(0 0)
+        ovtr = list(0 0)
+        ; write metal 1
+        OPCWriteRectangle(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y)))
+        ; write metal 2
+        OPCWriteRectangle(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y)))
+        ; write via cut
+        fprintf(file "geometry.viabarebltr(cell, %d, %d, point.create(%d, %d), point.create(%d, %d))\n",
+            OPCFormatLayer(layer purpose) xCoord(car(bBox)) yCoord(car(bBox)) xCoord(cadr(bBox)) yCoord(cadr(bBox))
+        )
+	)
+    */
+    foreach(shape via->viaHeader->master->shapes
+        OPCWriteShape(file cellname shape x y)
+    )
+)
+
+procedure(OPCWriteCell(file cell)
+    let(
+        (x y)
+        x = xCoord(cell->xy)
+        y = yCoord(cell->xy)
+        foreach(shape cell->shapes
+            OPCWriteShape(file cell->cellName shape x y)
+        )
+        foreach(via cell->vias
+            OPCWriteVia(file cell->cellName via y y)
+        )
+        foreach(inst cell->instances
+            OPCWriteCell(file inst->master)
         )
     )
 )
@@ -62,15 +104,7 @@ procedure(OPCExportCell(filename)
         )
         file = outfile(path "w")
         fprintf(file "local cell = object.create(\"%s\")\n" cv->cellName)
-        foreach(shape cv->shapes
-            OPCWriteShape(file shape 0 0)
-        )
-        ; FIXME: export vias
-        foreach(inst cv->instances
-            foreach(shape inst->master->shapes
-                OPCWriteShape(file shape xCoord(inst->xy) yCoord(inst->xy))
-            )
-        )
+        OPCWriteCell(file cv)
         fprintf(file "return cell\n")
         close(file)
         hiDisplayAppDBox(
