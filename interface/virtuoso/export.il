@@ -10,21 +10,25 @@ procedure(OPCFormatLayer(layer purpose)
     lsprintf("generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } })" layer purpose)
 )
 
-procedure(OPCWriteRectangle(file layer purpose bBox)
+procedure(OPCWriteRectangle(file cellname layer purpose bBox)
 	let(
 		(
 		)
-        fprintf(file "geometry.rectanglebltr(cell, %s, point.create(%d, %d), point.create(%d, %d))\n",
-            OPCFormatLayer(layer purpose) xCoord(car(bBox)) yCoord(car(bBox)) xCoord(cadr(bBox)) yCoord(cadr(bBox))
+        fprintf(file "geometry.rectanglebltr(%s, %s, point.create(%d, %d), point.create(%d, %d))\n",
+            cellname
+            OPCFormatLayer(layer purpose)
+            xCoord(car(bBox)) yCoord(car(bBox))
+            xCoord(cadr(bBox)) yCoord(cadr(bBox))
         )
 	)
 )
 
-procedure(OPCWritePolygon(file layer purpose pts)
+procedure(OPCWritePolygon(file cellname layer purpose pts)
 	let(
 		(
 		)
-        fprintf(file "geometry.polygon(cell, %s, { %s })\n"
+        fprintf(file "geometry.polygon(%s, %s, { %s })\n"
+            cellname
             OPCFormatLayer(layer purpose)
             buildString(mapcar(lambda( (pt) lsprintf("point.create(%d, %d)" xCoord(pt) yCoord(pt))) pts) ", ")
         )
@@ -74,24 +78,48 @@ procedure(OPCWriteVia(file cellname via x y)
 	)
     */
     foreach(shape via->viaHeader->master->shapes
-        OPCWriteShape(file cellname shape x y)
+        OPCWriteShape(file cellname shape x + xCoord(via->origin) y + yCoord(via->origin))
     )
 )
 
-procedure(OPCWriteCell(file cell)
+procedure(OPCWriteInstance(file parent instname)
     let(
-        (x y)
-        x = xCoord(cell->xy)
-        y = yCoord(cell->xy)
-        foreach(shape cell->shapes
-            OPCWriteShape(file cell->cellName shape x y)
+        ()
+        fprintf(file "%s:add_child(%s, \"%s\")"
+            parent
+            instname
+            name
+            OPCFormatLayer(layer purpose)
+            xCoord(pt) yCoord(pt)
         )
-        foreach(via cell->vias
-            OPCWriteVia(file cell->cellName via y y)
+    )
+)
+
+; FIXME: untested/unfinished/broken
+procedure(OPCWriteCell(file cell x y)
+    foreach(shape cell->shapes
+        OPCWriteShape(file cell->cellName shape x y)
+    )
+    foreach(via cell->vias
+        OPCWriteVia(file cell->cellName via y y)
+    )
+    foreach(inst cell->instances
+        if(t ; FIXME: check if object was already exported
         )
-        foreach(inst cell->instances
-            OPCWriteCell(file inst->master)
-        )
+        OPCWriteCell(file inst->master inst->master->cellName x + xCoord(inst->xy) y + yCoord(inst->xy))
+        OPCWriteInstance(file cell->cellName inst->master inst->master->cellName x + xCoord(inst->xy) y + yCoord(inst->xy))
+    )
+)
+
+procedure(OPCWriteCellFlat(file cell cellname x y)
+    foreach(shape cell->shapes
+        OPCWriteShape(file cellname shape x y)
+    )
+    foreach(via cell->vias
+        OPCWriteVia(file cellname via y y)
+    )
+    foreach(inst cell->instances
+        OPCWriteCellFlat(file inst->master cellname x + xCoord(inst->xy) y + yCoord(inst->xy))
     )
 )
 
@@ -104,7 +132,7 @@ procedure(OPCExportCell(filename)
         )
         file = outfile(path "w")
         fprintf(file "local cell = object.create(\"%s\")\n" cv->cellName)
-        OPCWriteCell(file cv)
+        OPCWriteCellFlat(file cv cv->cellName 0 0)
         fprintf(file "return cell\n")
         close(file)
         hiDisplayAppDBox(
