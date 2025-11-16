@@ -148,6 +148,14 @@ int geometry_viabarebltr(
     coordinate_t widthclass
 );
 
+int geometry_viabarebltrov(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2
+);
+
 int geometry_viapoints(
     struct object* cell,
     struct technology_state* techstate,

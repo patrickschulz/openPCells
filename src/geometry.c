@@ -1453,6 +1453,17 @@ int geometry_viabarebltr(struct object* cell, struct technology_state* techstate
     return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
 }
 
+int geometry_viabarebltrov(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl1, const struct point* tr1, const struct point* bl2, const struct point* tr2)
+{
+    int bare = 1;
+    return _viabltrov(cell, techstate,
+        metal1, metal2,
+        bl1->x, bl1->y, tr1->x, tr1->y,
+        bl2->x, bl2->y, tr2->x, tr2->y,
+        bare
+    );
+}
+
 int geometry_viapoints(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* pt1, const struct point* pt2, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     int bare = 0;
