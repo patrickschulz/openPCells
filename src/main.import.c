@@ -18,13 +18,14 @@
 
 #include "_modulemanager.h"
 
-void main_import_script(const char* scriptname, const struct const_vector* args)
+int main_import_script(const char* scriptname, const struct const_vector* args)
 {
     lua_State* L = util_create_basic_lua_state();
     open_lutil_cmodule_lib(L);
     module_load_globals(L);
     module_load_check(L);
     module_load_aux(L);
+    module_load_stack(L);
     module_load_util(L);
     module_load_verilog(L);
     module_load_verilogprocessor(L);
@@ -46,6 +47,7 @@ void main_import_script(const char* scriptname, const struct const_vector* args)
     }
     lua_setglobal(L, "args");
 
-    main_call_lua_program(L, scriptname);
+    int ret = main_call_lua_program(L, scriptname);
     lua_close(L);
+    return ret == LUA_OK;
 }

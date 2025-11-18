@@ -113,7 +113,7 @@ local function _newline(lines)
     table.insert(lines, "")
 end
 
-function M.analog(file, devices, nets, placement)
+function M.analog(file, devices, placement, nets)
     local lines = {}
     -- start cellscript
     _section(lines, "top-level cell")
@@ -122,24 +122,98 @@ function M.analog(file, devices, nets, placement)
     _newline(lines)
     _section(lines, "devices")
     for _, device in ipairs(devices) do
+        table.insert(lines, "-- nets:")
+        for k, v in pairs(device.connections) do
+            table.insert(lines, string.format("--  %s = %s", k, v))
+        end
         local paramt = {}
         for k, v in pairs(device.parameters) do
-            table.insert(paramt, string.format("%s = %s", k, v))
+            if type(v) == "number" then
+                table.insert(paramt, string.format("%s = %d", k, math.floor(v + 0.5)))
+            else
+                table.insert(paramt, string.format("%s = %q", k, v))
+            end
         end
-        local fmt = "local %s = pcell.create_layout(\"basic/mosfet\", \"_%s\", {%s})"
-        table.insert(lines, string.format(fmt, device.name, device.name, table.concat(paramt, ", ")))
+        local fmt = "local %s = pcell.create_layout(\"basic/mosfet\", \"_%s\", {\n    %s\n})"
+        table.insert(lines, string.format(fmt, device.name, device.name, table.concat(paramt, ",\n    ")))
     end
     -- placement
     _newline(lines)
     _section(lines, "placement")
+    local group = stack.create()
+    local allgroups = 0
+    local groupcontent = stack.create()
     for _, entry in ipairs(placement) do
-        if entry.what == "abut" then
-        elseif entry.what == "group" then
+        if entry.what == "initial" then
+            -- do nothing, initial placement can be anywhere
+            -- FIXME: perhaps provide an option to specify placement?
+            if groupcontent:peek() then
+                table.insert(groupcontent:top(), entry.object)
+            end
+        elseif entry.what == "abut" then
+            local x
+            local y
+            if entry.where == "top" then
+                x = "align_center_x"
+                y = "abut_top"
+            elseif entry.where == "bottom" then
+                x = "align_center_x"
+                y = "abut_bottom"
+            elseif entry.where == "left" then
+                x = "abut_left"
+                y = "align_center_y"
+            elseif entry.where == "right" then
+                x = "abut_right"
+                y = "align_center_y"
+            else
+                error(string.format("generator.analog: placement entry has unknown 'where' type: '%s'", entry.where))
+            end
+            table.insert(lines, string.format("%s:%s(%s)", entry.object, x, entry.reference))
+            table.insert(lines, string.format("%s:%s(%s)", entry.object, y, entry.reference))
+            if groupcontent:peek() then
+                table.insert(groupcontent:top(), entry.object)
+            end
+        elseif entry.what == "place" then
+            local x
+            local y
+            if entry.where == "top" then
+                x = "align_center_x"
+                y = "place_top"
+            elseif entry.where == "bottom" then
+                x = "align_center_x"
+                y = "place_bottom"
+            elseif entry.where == "left" then
+                x = "place_left"
+                y = "align_center_y"
+            elseif entry.where == "right" then
+                x = "place_right"
+                y = "align_center_y"
+            else
+                error(string.format("generator.analog: placement entry has unknown 'where' type: '%s'", entry.where))
+            end
+            table.insert(lines, string.format("%s:%s(%s)", entry.object, x, entry.reference))
+            table.insert(lines, string.format("%s:%s(%s)", entry.object, y, entry.reference))
+            if groupcontent:peek() then
+                table.insert(groupcontent:top(), entry.object)
+            end
+        elseif entry.what == "startgroup" then
+            allgroups = allgroups + 1
+            group:push(string.format("ag%d", allgroups))
+            table.insert(lines, string.format("local %s = alignmentgroup.create()", group:top()))
+            groupcontent:push({})
+        elseif entry.what == "endgroup" then
+            local groupname = group:top()
+            for _, member in ipairs(groupcontent:top()) do
+                table.insert(lines, string.format("%s:add(%s)", groupname, member))
+            end
+            group:pop()
+            groupcontent:pop()
+            if groupcontent:peek() then
+                table.insert(groupcontent:top(), groupname)
+            end
         else
             error(string.format("generator.analog: placement entry has unknown 'what' type: '%s'", entry.what))
         end
-        table.insert(lines, string.format("%s:place_top(%s)", device.name, devices[i - 1].name))
-        table.insert(lines, string.format("%s:align_center_x(%s)", device.name, devices[i - 1].name))
     end
     -- merging
     _newline(lines)
@@ -147,6 +221,11 @@ function M.analog(file, devices, nets, placement)
     for _, device in ipairs(devices) do
         table.insert(lines, string.format("cell:merge_into(%s)", device.name))
     end
+    --[[
+    for _, device in ipairs(devices) do
+        table.insert(lines, string.format("cell:merge_into(%s)", device.name))
+    end
+    --]]
     _newline(lines)
     _section(lines, "routing")
     -- end cellscript

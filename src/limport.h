@@ -3,8 +3,6 @@
 
 #include "lua/lua.h"
 
-#define LIMPORTMODULE "import"
-
 int open_limport_lib(lua_State* L);
 
 #endif // OPC_LIMPORT_H
