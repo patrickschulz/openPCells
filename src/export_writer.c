@@ -4,6 +4,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "foreach.h"
 #include "tagged_value.h"
 #include "util.h"
 
@@ -790,6 +791,7 @@ static int _write_shapes_with_malformed(struct export_writer* writer, const stru
 
 static int _write_children(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext)
 {
+    //object_foreach_child(cell
     struct child_iterator* it = object_create_child_iterator(cell);
     while(child_iterator_is_valid(it))
     {
@@ -804,7 +806,7 @@ static int _write_children(struct export_writer* writer, const struct object* ce
     return 1;
 }
 
-static int _write_port(struct export_writer* writer, const char* name, const struct hashmap* layerdata, struct point* where, unsigned int sizehint)
+static int _write_port(struct export_writer* writer, const char* name, const struct hashmap* layerdata, const struct point* where, unsigned int sizehint)
 {
     if(writer->islua)
     {
@@ -834,47 +836,40 @@ static int _write_port(struct export_writer* writer, const char* name, const str
     }
 }
 
-static int _write_ports(struct export_writer* writer, const struct object* cell, char leftdelim, char rightdelim)
+static int _do_port(const char* name, const struct generics* layer, const struct point* where, int isbusport, int busindex, unsigned int sizehint, struct generic_arg* extraargs)
 {
-    struct port_iterator* it = object_create_port_iterator(cell);
-    int ret = 1;
-    while(port_iterator_is_valid(it))
+    struct export_writer* writer = args_get_pointer(extraargs, 1);
+    char leftdelim = args_get_char(extraargs, 2);
+    char rightdelim = args_get_char(extraargs, 3);
+    char* busportname = NULL;
+    if(isbusport)
     {
-        const char* portname;
-        const struct point* portwhere;
-        const struct generics* portlayer;
-        int portisbusport;
-        int portbusindex;
-        unsigned int sizehint;
-        port_iterator_get(it, &portname, &portwhere, &portlayer, &portisbusport, &portbusindex, &sizehint);
-        struct point where = { .x = portwhere->x, .y = portwhere->y };
-        object_transform_point(cell, &where);
-        const struct hashmap* layerdata = generics_get_first_layer_data(portlayer);
-        char* busportname = NULL;
-        const char* name = portname;
-        if(portisbusport)
-        {
-            size_t len = strlen(portname) + 2 + util_num_digits(portbusindex);
-            busportname = malloc(len + 1);
-            snprintf(busportname, len + 1, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
-            name = busportname;
-        }
-        ret = _write_port(writer, name, layerdata, &where, sizehint);
-        if(portisbusport)
-        {
-            free(busportname);
-        }
-        if(!ret)
-        {
-            break;
-        }
-        port_iterator_next(it);
+        size_t len = strlen(name) + 2 + util_num_digits(busindex);
+        busportname = malloc(len + 1);
+        snprintf(busportname, len + 1, "%s%c%d%c", name, leftdelim, busindex, rightdelim);
+        name = busportname;
     }
-    port_iterator_destroy(it);
+    const struct hashmap* layerdata = generics_get_first_layer_data(layer);
+    int ret = _write_port(writer, name, layerdata, where, sizehint);
+    if(isbusport)
+    {
+        free(busportname);
+    }
     return ret;
 }
 
-static int _write_label(struct export_writer* writer, const char* name, const struct hashmap* layerdata, struct point* where, unsigned int sizehint)
+static int _write_ports(struct export_writer* writer, const struct object* cell, char leftdelim, char rightdelim)
+{
+    struct generic_arg args[] = {
+        { .type = ARG_POINTER, .content.ptr = writer },
+        { .type = ARG_CHAR, .content.ch = leftdelim },
+        { .type = ARG_CHAR, .content.ch = rightdelim },
+        { .type = ARG_END }
+    };
+    return object_foreach_port(cell, _do_port, args);
+}
+
+static int _write_label(struct export_writer* writer, const char* name, const struct hashmap* layerdata, const struct point* where, unsigned int sizehint)
 {
     if(writer->islua)
     {
@@ -916,6 +911,24 @@ static int _write_label(struct export_writer* writer, const char* name, const st
     }
 }
 
+static int _do_label(const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint, struct generic_arg* extraargs)
+{
+    struct export_writer* writer = args_get_pointer(extraargs, 1);
+    const struct hashmap* layerdata = generics_get_first_layer_data(layer);
+    int ret = _write_label(writer, name, layerdata, where, sizehint);
+    return ret;
+}
+
+static int _write_labels(struct export_writer* writer, const struct object* cell)
+{
+    struct generic_arg args[] = {
+        { .type = ARG_POINTER, .content.ptr = writer },
+        { .type = ARG_END }
+    };
+    return object_foreach_label(cell, _do_label, args);
+}
+
+/*
 static int _write_labels(struct export_writer* writer, const struct object* cell)
 {
     struct label_iterator* it = object_create_label_iterator(cell);
@@ -940,6 +953,7 @@ static int _write_labels(struct export_writer* writer, const struct object* cell
     label_iterator_destroy(it);
     return ret;
 }
+*/
 
 static int _write_cell_elements(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int write_ports, int write_malformed, char leftdelim, char rightdelim)
 {
