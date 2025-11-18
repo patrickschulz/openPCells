@@ -154,6 +154,22 @@ static int lpoint_gety(lua_State* L)
     return 1;
 }
 
+static int lpoint_setx(lua_State* L)
+{
+    struct lpoint* p = lpoint_checkpoint(L, -2);
+    coordinate_t x = lpoint_checkcoordinate(L, 2, "x");
+    point_setx(p->point, x);
+    return 0;
+}
+
+static int lpoint_sety(lua_State* L)
+{
+    struct lpoint* p = lpoint_checkpoint(L, -2);
+    coordinate_t y = lpoint_checkcoordinate(L, 2, "y");
+    point_sety(p->point, y);
+    return 0;
+}
+
 static int lpoint_translate(lua_State* L)
 {
     struct lpoint* p = lpoint_checkpoint(L, 1);
@@ -402,6 +418,8 @@ int open_lpoint_lib(lua_State* L)
         { "unwrap",      lpoint_unwrap      },
         { "getx",        lpoint_getx        },
         { "gety",        lpoint_gety        },
+        { "setx",        lpoint_setx        },
+        { "sety",        lpoint_sety        },
         { "translate",   lpoint_translate   },
         { "translate_x", lpoint_translate_x },
         { "translate_y", lpoint_translate_y },

@@ -26,6 +26,8 @@ void* point_copy(const void* pt);
 
 coordinate_t point_getx(const struct point* pt);
 coordinate_t point_gety(const struct point* pt);
+void point_setx(struct point* pt, coordinate_t x);
+void point_sety(struct point* pt, coordinate_t y);
 
 void point_translate(struct point* pt, coordinate_t x, coordinate_t y);
 

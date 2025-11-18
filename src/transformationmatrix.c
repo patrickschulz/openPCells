@@ -17,9 +17,16 @@ struct transformationmatrix {
 
 #define M(matrix, idx) matrix->coefficients[idx]
 
-struct transformationmatrix* transformationmatrix_create(void)
+static struct transformationmatrix* _create(void)
 {
     struct transformationmatrix* matrix = malloc(sizeof(*matrix));
+    return matrix;
+}
+
+struct transformationmatrix* transformationmatrix_create(void)
+{
+    struct transformationmatrix* matrix = _create();
+    transformationmatrix_identity(matrix);
     return matrix;
 }
 
@@ -78,9 +85,8 @@ struct transformationmatrix* transformationmatrix_copy(const struct transformati
     return matrix;
 }
 
-struct transformationmatrix* transformationmatrix_invert(const struct transformationmatrix* old)
+struct transformationmatrix* transformationmatrix_invert_inline(struct transformationmatrix* matrix, const struct transformationmatrix* old)
 {
-    struct transformationmatrix* matrix = transformationmatrix_create();
     coordinate_t c0 = M(old, 0);
     coordinate_t c1 = M(old, 1);
     coordinate_t c2 = M(old, 2);
@@ -94,6 +100,13 @@ struct transformationmatrix* transformationmatrix_invert(const struct transforma
     M(matrix, 3) = -c3 / det;
     M(matrix, 4) = c0 / det;
     M(matrix, 5) = (-c0 * c5 - c2 * c3) / det;
+    return matrix;
+}
+
+struct transformationmatrix* transformationmatrix_invert(const struct transformationmatrix* old)
+{
+    struct transformationmatrix* matrix = transformationmatrix_create();
+    transformationmatrix_invert_inline(matrix, old);
     return matrix;
 }
 

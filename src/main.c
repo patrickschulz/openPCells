@@ -70,6 +70,10 @@ static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions, c
     if(!no_user_config)
     {
         const char* home = getenv("HOME");
+        if(!home)
+        {
+            home = ".";
+        }
         size_t len = strlen(home) + strlen("/.opcconfig.lua");
         char* filename = malloc(len + 1);
         snprintf(filename, len + 1, "%s/.opcconfig.lua", home);
@@ -102,7 +106,7 @@ static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions, c
             lua_setfield(L, -2, "techpaths");
 
             // cellpaths
-            techpaths = hashmap_get(config, "prepend_cellpaths");
+            prepend_cellpaths = hashmap_get(config, "prepend_cellpaths");
             lua_getfield(L, -1, "prepend_cellpaths");
             if(!lua_isnil(L, -1))
             {
@@ -439,7 +443,8 @@ int main(int argc, const char* const * argv)
         const char* scriptname = cmdoptions_get_argument_long(cmdoptions, "import");
         const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
         struct const_vector* args = const_vector_adapt_from_pointer_array((void**)ptr);
-        main_import_script(scriptname, args);
+        int ret = main_import_script(scriptname, args);
+        returnvalue = !ret; // programs return 0 on success
         const_vector_destroy(args);
         goto DESTROY_CONFIG;
     }

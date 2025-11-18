@@ -223,6 +223,27 @@ static struct generics* _make_layer_from_lua(const char* layername, lua_State* L
     return layer;
 }
 
+static int _check_layer_content(lua_State* L, const char* layername)
+{
+    lua_pushnil(L);
+    while(lua_next(L, -2) != 0)
+    {
+        const char* key = lua_tostring(L, -2);
+        if(
+            !(
+                (strcmp(key, "layer") == 0) ||
+                (strcmp(key, "name") == 0)
+            )
+        )
+        {
+            lua_pushfstring(L, "the layer '%s' contains an entry '%s', but only 'layer' and 'name' are allowed.", layername, key);
+            return 0;
+        }
+        lua_pop(L, 1); // pop value, keep key for next iteration
+    }
+    return 1;
+}
+
 static int _load_layermap(struct technology_state* techstate, const char* name, const struct const_vector* ignoredlayers)
 {
     lua_State* L = util_create_minimal_lua_state();
@@ -240,6 +261,13 @@ static int _load_layermap(struct technology_state* techstate, const char* name, 
         const char* layername = lua_tostring(L, -2);
         if(!_is_ignored_layer(layername, ignoredlayers))
         {
+            if(!_check_layer_content(L, layername))
+            {
+                const char* msg = lua_tostring(L, -1);
+                fprintf(stderr, "error while loading layermap:\n  %s\n", msg);
+                lua_close(L);
+                return 0;
+            }
             // get layer data
             lua_getfield(L, -1, "layer");
             struct generics* layer = _make_layer_from_lua(layername, L);
@@ -314,7 +342,7 @@ void _insert_via_entry(struct via_definition*** viadefs, struct via_definition* 
 static error_t _read_via_property(lua_State* L, const char* what, unsigned int* param, int allownil)
 {
     lua_getfield(L, -1, what);
-    error_t e;
+    error_t e = error_success();
     if(!lua_isnumber(L, -1))
     {
         if(allownil)
@@ -1461,6 +1489,7 @@ static void _destroy_layer(void* layerv)
         vector_destroy(layer->entries);
     }
     free(layer->name);
+    free(layer->prettyname);
     free(layer);
 }
 
