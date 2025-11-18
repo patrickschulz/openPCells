@@ -1223,32 +1223,39 @@ static int lobject_add_label(lua_State* L)
     const char* name = luaL_checkstring(L, 2);
     const struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
-    double sizehint = luaL_optnumber(L, 5, 0.0);
+    unsigned int sizehint = luaL_optinteger(L, 5, 0);
     object_add_label(lobject_get(L, cell), name, layer, lpoint_get(lpoint), sizehint);
     return 0;
+}
+
+static int _collect_ports(const char* name, const struct generics* layer, const struct point* where, int isbusport, int busindex, unsigned int sizehint, struct generic_arg* extraargs)
+{
+    (void) layer;
+    (void) isbusport;
+    (void) busindex;
+    (void) sizehint;
+    lua_State* L = args_get_pointer(extraargs, 1);
+    lua_rawlen(L, -2);
+    int len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    lua_newtable(L);
+    lua_pushstring(L, name);
+    lua_setfield(L, -2, "name");
+    lpoint_create_internal_xy(L, where->x, where->y);
+    lua_setfield(L, -2, "where");
+    lua_rawseti(L, -2, len + 1);
+    return 1;
 }
 
 static int lobject_get_ports(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     lua_newtable(L);
-    struct port_iterator* it = object_create_port_iterator(lobject_get_const(cell));
-    int i = 1;
-    while(port_iterator_is_valid(it))
-    {
-        const char* portname;
-        const struct point* portwhere;
-        port_iterator_get(it, &portname, &portwhere, NULL, NULL, NULL, NULL);
-        lua_newtable(L);
-        lua_pushstring(L, portname);
-        lua_setfield(L, -2, "name");
-        lpoint_create_internal_xy(L, portwhere->x, portwhere->y);
-        lua_setfield(L, -2, "where");
-        lua_rawseti(L, -2, i);
-        port_iterator_next(it);
-        ++i;
-    }
-    port_iterator_destroy(it);
+    struct generic_arg args[] = {
+        { .type = ARG_POINTER, .content.ptr = L },
+        { .type = ARG_END }
+    };
+    object_foreach_port(lobject_get_const(cell), _collect_ports, args);
     return 1;
 }
 
