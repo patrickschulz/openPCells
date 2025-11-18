@@ -23,6 +23,30 @@ struct port {
     unsigned int sizehint;
 };
 
+static struct port* _port_create(const char* name, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, unsigned int sizehint)
+{
+    struct port* port = malloc(sizeof(*port));
+    port->where = point_create(x, y);
+    port->layer = layer;
+    port->isbusport = isbusport;
+    port->busindex = busindex;
+    port->name = util_strdup(name);
+    port->sizehint = sizehint;
+    return port;
+}
+
+static struct port* _port_copy(const struct port* port)
+{
+    struct port* newport = malloc(sizeof(*newport));
+    newport->where = point_copy(port->where);
+    newport->layer = port->layer;
+    newport->isbusport = port->isbusport;
+    newport->busindex = port->busindex;
+    newport->name = util_strdup(port->name);
+    newport->sizehint = port->sizehint;
+    return newport;
+}
+
 static void _port_destroy(void* p)
 {
     struct port* port = p;
@@ -296,14 +320,8 @@ struct object* object_copy(const struct object* cell)
             new->content.full.ports = vector_create(vector_size(cell->content.full.ports), _port_destroy);
             for(unsigned int i = 0; i < vector_size(cell->content.full.ports); ++i)
             {
-                struct port* port = vector_get(cell->content.full.ports, i);
-                struct port* newport = malloc(sizeof(*newport));
-                newport->where = point_copy(port->where);
-                newport->layer = port->layer;
-                newport->isbusport = port->isbusport;
-                newport->busindex = port->busindex;
-                newport->name = util_strdup(port->name);
-                newport->sizehint = port->sizehint;
+                const struct port* port = vector_get_const(cell->content.full.ports, i);
+                struct port* newport = _port_copy(port);
                 vector_append(new->content.full.ports, newport);
             }
         }
@@ -314,15 +332,9 @@ struct object* object_copy(const struct object* cell)
             new->content.full.labels = vector_create(vector_size(cell->content.full.labels), _port_destroy);
             for(unsigned int i = 0; i < vector_size(cell->content.full.labels); ++i)
             {
-                struct port* port = vector_get(cell->content.full.labels, i);
-                struct port* newport = malloc(sizeof(*newport));
-                newport->where = point_copy(port->where);
-                newport->layer = port->layer;
-                newport->isbusport = port->isbusport;
-                newport->busindex = port->busindex;
-                newport->name = util_strdup(port->name);
-                newport->sizehint = port->sizehint;
-                vector_append(new->content.full.labels, newport);
+                const struct port* label = vector_get_const(cell->content.full.labels, i);
+                struct port* newlabel = _port_copy(label);
+                vector_append(new->content.full.labels, newlabel);
             }
         }
 
@@ -2256,30 +2268,23 @@ struct polygon_container* object_get_layer_boundary(const struct object* cell, c
     }
 }
 
-static void _add_port(struct object* cell, const char* name, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, unsigned int sizehint)
+static void _add_port(struct object* cell, struct port* port)
 {
-    if(!generics_is_empty(layer))
+    if(!cell->content.full.ports)
     {
-        if(!cell->content.full.ports)
-        {
-            cell->content.full.ports = vector_create(OBJECT_DEFAULT_PORT_SIZE, _port_destroy);
-        }
-        struct port* port = malloc(sizeof(*port));
-        port->where = point_create(x, y);
-        transformationmatrix_apply_inverse_transformation(cell->trans, port->where);
-        port->layer = layer;
-        port->isbusport = isbusport;
-        port->busindex = busindex;
-        port->name = malloc(strlen(name) + 1);
-        strcpy(port->name, name);
-        port->sizehint = sizehint;
-        vector_append(cell->content.full.ports, port);
+        cell->content.full.ports = vector_create(OBJECT_DEFAULT_PORT_SIZE, _port_destroy);
     }
+    vector_append(cell->content.full.ports, port);
 }
 
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
 {
-    _add_port(cell, name, layer, where->x, where->y, 0, 0, sizehint);
+    if(!generics_is_empty(layer))
+    {
+        struct port* port = _port_create(name, layer, where->x, where->y, 0, 0, sizehint);
+        transformationmatrix_apply_inverse_transformation(cell->trans, port->where);
+        _add_port(cell, port);
+    }
 }
 
 void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint)
@@ -2289,7 +2294,9 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
     {
         for(int i = startindex; i <= endindex; ++i)
         {
-            _add_port(cell, name, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, sizehint);
+            struct port* port = _port_create(name, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, sizehint);
+            transformationmatrix_apply_inverse_transformation(cell->trans, port->where);
+            _add_port(cell, port);
             ++shift;
         }
     }
@@ -2297,7 +2304,9 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
     {
         for(int i = startindex; i >= endindex; --i)
         {
-            _add_port(cell, name, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, sizehint);
+            struct port* port = _port_create(name, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, sizehint);
+            transformationmatrix_apply_inverse_transformation(cell->trans, port->where);
+            _add_port(cell, port);
             ++shift;
         }
     }
@@ -2880,6 +2889,11 @@ struct shape* object_get_shape(struct object* cell, size_t idx)
     return vector_get(cell->content.full.shapes, idx);
 }
 
+const struct shape* object_get_shape_const(const struct object* cell, size_t idx)
+{
+    return vector_get_const(cell->content.full.shapes, idx);
+}
+
 struct shape* object_get_transformed_shape(const struct object* cell, size_t idx)
 {
     struct shape* shape = vector_get(cell->content.full.shapes, idx);
@@ -3254,68 +3268,110 @@ coordinate_t object_get_area_anchor_height(const struct object* cell, const char
     return height;
 }
 
+static void _apply_transformation_to_cell_content(struct vector* shapes, struct vector* labels, struct vector* ports, const struct transformationmatrix* trans)
+{
+    for(size_t si = 0; si < vector_size(shapes); ++si)
+    {
+        struct shape* shape = vector_get(shapes, si);
+        shape_apply_transformation(shape, trans);
+    }
+    for(size_t si = 0; si < vector_size(ports); ++si)
+    {
+        struct port* port = vector_get(ports, si);
+        transformationmatrix_apply_transformation(trans, port->where);
+    }
+    for(size_t si = 0; si < vector_size(labels); ++si)
+    {
+        struct port* label = vector_get(labels, si);
+        transformationmatrix_apply_transformation(trans, label->where);
+    }
+}
+
+static void _gather_cell_content(const struct object* cell, struct vector* shapes, struct vector* ports, struct vector* labels)
+{
+    if(cell->content.full.children)
+    {
+        for(size_t i = 0; i < vector_size(cell->content.full.children); ++i)
+        {
+            const struct object* child = vector_get_const(cell->content.full.children, i);
+            const struct object* reference = child->content.proxy.reference;
+            _gather_cell_content(reference, shapes, ports, labels);
+            _apply_transformation_to_cell_content(shapes, ports, labels, child->trans);
+        }
+    }
+    if(cell->content.full.shapes)
+    {
+        for(size_t si = 0; si < vector_size(cell->content.full.shapes); ++si)
+        {
+            const struct shape* S = object_get_shape_const(cell, si);
+            struct shape* new = shape_copy(S);
+            // transformation is applied below
+            vector_append(shapes, new);
+        }
+    }
+    if(cell->content.full.ports)
+    {
+        for(size_t si = 0; si < vector_size(cell->content.full.ports); ++si)
+        {
+            const struct port* port = vector_get_const(cell->content.full.ports, si);
+            struct port* new = _port_copy(port);
+            // transformation is applied below
+            vector_append(ports, new);
+        }
+    }
+    if(cell->content.full.labels)
+    {
+        for(size_t si = 0; si < vector_size(cell->content.full.labels); ++si)
+        {
+            const struct port* label = vector_get_const(cell->content.full.labels, si);
+            struct port* new = _port_copy(label);
+            // transformation is applied below
+            vector_append(labels, new);
+        }
+    }
+    _apply_transformation_to_cell_content(shapes, ports, labels, cell->trans);
+}
+
 void object_flatten_inline(struct object* cell, int flattenports)
 {
-    // add shapes and flatten children (recursive)
+    struct vector* shapes = vector_create(8, NULL); // non-owning
+    struct vector* labels = vector_create(8, NULL); // non-owning
+    struct vector* ports = vector_create(8, NULL); // non-owning
     if(cell->content.full.children)
     {
         for(unsigned int i = 0; i < vector_size(cell->content.full.children); ++i)
         {
-            struct object* child = vector_get(cell->content.full.children, i);
+            const struct object* child = vector_get_const(cell->content.full.children, i);
             const struct object* reference = child->content.proxy.reference;
-            struct object* flat = object_flatten(reference, flattenports);
-            if(flat->content.full.shapes)
-            {
-                size_t size = vector_size(flat->content.full.shapes);
-                while(size > 0)
-                {
-                    struct shape* S = object_disown_shape(flat, size - 1);
-                    --size;
-                    shape_apply_transformation(S, flat->trans);
-                    shape_apply_transformation(S, child->trans);
-                    for(unsigned int ix = 1; ix <= child->content.proxy.xrep; ++ix)
-                    {
-                        for(unsigned int iy = 1; iy <= child->content.proxy.yrep; ++iy)
-                        {
-                            struct shape* copy = shape_copy(S);
-                            shape_translate(copy, (ix - 1) * child->content.proxy.xpitch, (iy - 1) * child->content.proxy.ypitch);
-                            object_add_raw_shape(cell, copy);
-                        }
-                    }
-                    shape_destroy(S);
-                }
-            }
-            if(flat->content.full.labels)
-            {
-                for(unsigned int p = 0; p < vector_size(flat->content.full.labels); ++p)
-                {
-                    struct port* label = vector_get(flat->content.full.labels, p);
-                    coordinate_t x = label->where->x;
-                    coordinate_t y = label->where->y;
-                    transformationmatrix_apply_transformation_xy(child->trans, &x, &y);
-                    transformationmatrix_apply_transformation_xy(flat->trans, &x, &y);
-                    _add_label(cell, label->name, label->layer, x, y, label->sizehint);
-                }
-            }
-            if(flattenports)
-            {
-                for(unsigned int p = 0; p < vector_size(flat->content.full.ports); ++p)
-                {
-                    struct port* port = vector_get(flat->content.full.ports, p);
-                    coordinate_t x = port->where->x;
-                    coordinate_t y = port->where->y;
-                    transformationmatrix_apply_transformation_xy(child->trans, &x, &y);
-                    transformationmatrix_apply_transformation_xy(flat->trans, &x, &y);
-                    _add_port(cell, port->name, port->layer, x, y, port->isbusport, port->busindex, port->sizehint);
-                }
-            }
-            object_destroy(flat);
+            _gather_cell_content(reference, shapes, ports, labels);
+            _apply_transformation_to_cell_content(shapes, ports, labels, child->trans);
         }
         vector_destroy(cell->content.full.children);
         cell->content.full.children = NULL;
         vector_destroy(cell->content.full.references);
         cell->content.full.references = NULL;
     }
+    for(size_t si = 0; si < vector_size(shapes); ++si)
+    {
+        struct shape* shape = vector_get(shapes, si);
+        object_add_raw_shape(cell, shape);
+    }
+    if(flattenports)
+    {
+        for(size_t si = 0; si < vector_size(ports); ++si)
+        {
+            struct port* port = vector_get(ports, si);
+            _add_port(cell, port);
+        }
+    }
+    for(size_t si = 0; si < vector_size(labels); ++si)
+    {
+        struct port* label = vector_get(labels, si);
+        _add_port(cell, label);
+    }
+    vector_destroy(shapes);
+    vector_destroy(ports);
+    vector_destroy(labels);
 }
 
 struct object* object_flatten(const struct object* cell, int flattenports)
