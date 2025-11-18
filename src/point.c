@@ -32,6 +32,16 @@ inline coordinate_t point_gety(const struct point* pt)
     return pt->y;
 }
 
+inline void point_setx(struct point* pt, coordinate_t x)
+{
+    pt->x = x;
+}
+
+inline void point_sety(struct point* pt, coordinate_t y)
+{
+    pt->y = y;
+}
+
 void point_translate(struct point* pt, coordinate_t x, coordinate_t y)
 {
     pt->x += x;
