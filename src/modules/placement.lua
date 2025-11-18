@@ -572,3 +572,161 @@ function placement.columnwise_flat(parent, cellsdef, flip, flipfirst)
 
     return cells
 end
+
+function placement.hbox(...)
+    local num = select("#", ...)
+    local args = { ... }
+    local box = {
+        type = "horizontal",
+        content = {}
+    }
+    for i = 1, num do
+        box.content[i] = args[i]
+    end
+    return box
+end
+
+function placement.vbox(...)
+    local num = select("#", ...)
+    local args = { ... }
+    local box = {
+        type = "vertical",
+        content = {}
+    }
+    for i = 1, num do
+        box.content[i] = args[i]
+    end
+    return box
+end
+
+local _has_children = function(t)
+    for _, e in ipairs(t.content) do
+        if type(e) == "table" then
+            return true
+        end
+    end
+    return false
+end
+
+local _find_initial_group
+_find_initial_group = function(t)
+    if not _has_children(t) then
+        return t
+    else
+        for _, e in ipairs(t.content) do
+            if type(e) == "table" then
+                return _find_initial_group(e)
+            end
+        end
+    end
+end
+
+--[[
+
+hbox(vbox("M1", "M2"), "M3")
+-> order and grouping: (M1 M2) (M3)
+-> there is one degree of freedom here, the placement can also start with M2
+
+hbox(vbox("M1", "M2"), vbox("M3", "M4", hbox("M5", "M6")))
+-> order and grouping: (M1 M2) (M3 M4 (M5 M6))
+
+--]]
+
+function placement.transform_plan(plan)
+    local instructions = {}
+    --[[
+    local initial = _find_initial_group(plan)
+    table.insert(instructions, {
+        what = "initial",
+        object = initial.content[1],
+    })
+    _collect_placements(plan, instructions)
+    local ref = initial
+    for _, element in ipairs(plan.content) do
+        if element ~= initial then
+            table.insert(instructions, {
+                what = "abut",
+                where = plan.type == "vertical" and "top" or "right",
+                object = element,
+                reference = ref,
+            })
+        end
+    end
+    --]]
+    table.insert(instructions, {
+        what = "abut",
+        where = plan.type == "vertical" and "top" or "right",
+        object = element,
+        reference = ref,
+    })
+    return instructions
+end
+
+--[[
+function placement.custom(parent, plan)
+    local explosionvalue = 500
+    for _, box in ipairs(plan) do
+        if box.type == "vertical" then
+            local lastboxcell
+            for _, cell in ipairs(box.content) do
+                if lastboxcell then
+                    cell:align_center_x(lastboxcell)
+                    cell:abut_top(lastboxcell)
+                    cell:translate_y(explosionvalue)
+                end
+                parent:merge_into(cell)
+                lastboxcell = cell
+            end
+        elseif box.type == "horizontal" then
+            local lastboxcell
+            for _, cell in ipairs(box.content) do
+                if lastboxcell then
+                    cell:align_center_y(lastboxcell)
+                    cell:abut_right(lastboxcell)
+                    cell:translate_x(explosionvalue)
+                end
+                parent:merge_into(cell)
+                lastboxcell = cell
+            end
+        else
+            error(string.format("placement.custom: unknown box type '%s'", box.type))
+        end
+    end
+end
+--]]
+
+function placement.custom(parent, plan)
+    local explosionvalue = 100
+    local currentgroup
+    local isgroup = false
+    local lastcell
+    for _, instruction in ipairs(plan) do
+        if instruction.placement == "initial" then
+            -- do nothing, actions are done by common code
+        elseif instruction.placement == "above" then
+            local target = isgroup and lastcell or currentgroup
+            instruction.cell:align_center_x(target)
+            instruction.cell:abut_top(target)
+            instruction.cell:translate_y(explosionvalue)
+        elseif instruction.placement == "right" then
+            local target = isgroup and lastcell or currentgroup
+            instruction.cell:align_center_y(target)
+            instruction.cell:abut_right(target)
+            instruction.cell:translate_x(explosionvalue)
+        else
+            error(string.format("placement.custom: unrecognized placemement instruction '%s'", instruction.placement))
+        end
+        lastcell = instruction.cell
+        parent:merge_into(instruction.cell)
+        if not isgroup then
+            currentgroup = alignmentgroup.create()
+            isgroup = true
+        end
+        if isgroup then
+            currentgroup:add(instruction.cell)
+        end
+        if instruction.groupbarrier then
+            isgroup = false
+        end
+    end
+end

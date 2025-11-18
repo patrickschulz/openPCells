@@ -3,6 +3,6 @@
 
 #include "vector.h"
 
-void main_import_script(const char* scriptname, const struct const_vector* args);
+int main_import_script(const char* scriptname, const struct const_vector* args);
 
 #endif // OPC_MAIN_IMPORT_H

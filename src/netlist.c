@@ -27,6 +27,7 @@ static void _destroy_subcircuit(void* v)
 struct instance {
     char* identifier;
     char* type;
+    char* model;
     struct vector* connections; // stores struct connection*
     struct vector* parameters; // stores struct parameter*
 };
@@ -36,6 +37,7 @@ static void _destroy_instance(void* v)
     struct instance* instance = v;
     free(instance->identifier);
     free(instance->type);
+    free(instance->model);
     vector_destroy(instance->connections);
     vector_destroy(instance->parameters);
     free(instance);
@@ -113,6 +115,7 @@ struct instance* netlist_make_instance(const char* identifier)
     struct instance* instance = malloc(sizeof(*instance));
     instance->identifier = util_strdup(identifier);
     instance->type = NULL;
+    instance->model = NULL;
     instance->connections = vector_create(8, _destroy_connection);
     instance->parameters = vector_create(8, _destroy_parameter);
     return instance;
@@ -125,6 +128,15 @@ void netlist_instance_set_type(struct instance* instance, const char* type)
         free(instance->type);
     }
     instance->type = util_strdup(type);
+}
+
+void netlist_instance_set_model(struct instance* instance, const char* model)
+{
+    if(instance->model)
+    {
+        free(instance->model);
+    }
+    instance->model = util_strdup(model);
 }
 
 static struct connection* _make_connection(const char* portname, const char* netname)
@@ -179,6 +191,9 @@ void netlist_create_lua_representation(struct netlist* netlist, lua_State* L)
             // instance type
             lua_pushstring(L, instance->type);
             lua_setfield(L, -2, "type");
+            // instance model
+            lua_pushstring(L, instance->model);
+            lua_setfield(L, -2, "model");
             // connection table
             lua_newtable(L);
             for(size_t connidx = 0; connidx < vector_size(instance->connections); ++connidx)
@@ -199,6 +214,7 @@ void netlist_create_lua_representation(struct netlist* netlist, lua_State* L)
                 lua_rawset(L, -3);
             }
             lua_setfield(L, -2, "parameters");
+            // add instance to instances table
             lua_rawseti(L, -2, instidx + 1);
         }
         lua_rawseti(L, -2, scidx + 1);
