@@ -443,7 +443,8 @@ int main(int argc, const char* const * argv)
         const char* scriptname = cmdoptions_get_argument_long(cmdoptions, "import");
         const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
         struct const_vector* args = const_vector_adapt_from_pointer_array((void**)ptr);
-        main_import_script(scriptname, args);
+        int ret = main_import_script(scriptname, args);
+        returnvalue = !ret; // programs return 0 on success
         const_vector_destroy(args);
         goto DESTROY_CONFIG;
     }
