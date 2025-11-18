@@ -1,5 +1,6 @@
 #include "ztstring.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 char* ztstring_create(void)
