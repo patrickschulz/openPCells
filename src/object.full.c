@@ -1,0 +1,394 @@
+void objectfull_copy_to(const struct object_full* full, struct object_full* new)
+{
+    // shapes
+    if(full->private.shapes)
+    {
+        new->private.shapes = vector_copy(full->private.shapes, shape_copy);
+    }
+
+    // alignmentbox
+    if(full->private.alignmentbox)
+    {
+        object_set_alignment_box(
+            new,
+            full->private.alignmentbox[0], full->private.alignmentbox[1],
+            full->private.alignmentbox[2], full->private.alignmentbox[3],
+            full->private.alignmentbox[4], full->private.alignmentbox[5],
+            full->private.alignmentbox[6], full->private.alignmentbox[7]
+        );
+    }
+
+    // anchors
+    if(full->private.anchors)
+    {
+        new->private.anchors = hashmap_create(objectanchor_destroy);
+        struct hashmap_const_iterator* it = hashmap_const_iterator_create(full->private.anchors);
+        while(hashmap_const_iterator_is_valid(it))
+        {
+            const char* key = hashmap_const_iterator_key(it);
+            const struct anchor* anchor = hashmap_const_iterator_value(it);
+            hashmap_insert(new->private.anchors, key, objectanchor_copy(anchor));
+            hashmap_const_iterator_next(it);
+        }
+        hashmap_const_iterator_destroy(it);
+    }
+
+    // anchor lines
+    if(full->private.anchorlines)
+    {
+        new->private.anchorlines = hashmap_create(free);
+        struct hashmap_const_iterator* it = hashmap_const_iterator_create(full->private.anchorlines);
+        while(hashmap_const_iterator_is_valid(it))
+        {
+            const char* key = hashmap_const_iterator_key(it);
+            const coordinate_t* c = hashmap_const_iterator_value(it);
+            coordinate_t* cc = malloc(sizeof(*cc));
+            *cc = *c;
+            hashmap_insert(new->private.anchorlines, key, cc);
+            hashmap_const_iterator_next(it);
+        }
+        hashmap_const_iterator_destroy(it);
+    }
+
+    // children
+    if(full->private.children)
+    {
+        new->private.children = vector_create(vector_size(full->private.children), object_destroy);
+        for(unsigned int i = 0; i < vector_size(full->private.children); ++i)
+        {
+            vector_append(new->private.children, object_copy(vector_get(full->private.children, i)));
+        }
+        new->private.references = vector_create(vector_size(full->private.references), object_destroy);
+        for(unsigned int i = 0; i < vector_size(full->private.references); ++i)
+        {
+            vector_append(new->private.references, object_copy(vector_get(full->private.references, i)));
+        }
+    }
+
+    // ports
+    if(full->private.ports)
+    {
+        new->private.ports = vector_create(vector_size(full->private.ports), objectport_destroy);
+        for(unsigned int i = 0; i < vector_size(full->private.ports); ++i)
+        {
+            struct port* port = vector_get(full->private.ports, i);
+            struct port* newport = objectport_copy(port);
+            vector_append(new->private.ports, newport);
+        }
+    }
+
+    // labels
+    if(full->private.labels)
+    {
+        new->private.labels = vector_create(vector_size(full->private.labels), objectport_destroy);
+        for(unsigned int i = 0; i < vector_size(full->private.labels); ++i)
+        {
+            struct port* label = vector_get(full->private.labels, i);
+            struct port* newlabel = objectport_copy(label);
+            vector_append(new->private.labels, newlabel);
+        }
+    }
+
+    // boundary
+    if(full->private.boundary)
+    {
+        new->private.boundary = vector_create(4, point_destroy);
+        struct vector_const_iterator* bit = vector_const_iterator_create(full->private.boundary);
+        while(vector_const_iterator_is_valid(bit))
+        {
+            const struct point* pt = vector_const_iterator_get(bit);
+            vector_append(new->private.boundary, point_copy(pt));
+            vector_const_iterator_next(bit);
+        }
+        vector_const_iterator_destroy(bit);
+    }
+
+    // layer boundaries
+    if(full->private.layer_boundaries)
+    {
+        new->private.layer_boundaries = hashmap_create(polygon_container_destroy);
+        struct hashmap_iterator* lbit = hashmap_iterator_create(full->private.layer_boundaries);
+        while(hashmap_iterator_is_valid(lbit))
+        {
+            const char* key = hashmap_iterator_key(lbit);
+            struct polygon_container* polygon_container = hashmap_iterator_value(lbit);
+            hashmap_insert(new->private.layer_boundaries, key, polygon_container_copy(polygon_container));
+            hashmap_iterator_next(lbit);
+        }
+        hashmap_iterator_destroy(lbit);
+    }
+
+    // nets
+    if(full->private.nets)
+    {
+        new->private.nets = hashmap_create(vector_destroy);
+        struct hashmap_iterator* netit = hashmap_iterator_create(full->private.nets);
+        while(hashmap_iterator_is_valid(netit))
+        {
+            const char* key = hashmap_iterator_key(netit);
+            struct vector* nets = hashmap_iterator_value(netit);
+            hashmap_insert(new->private.nets, key, vector_copy(nets, bltrshape_copy));
+            hashmap_iterator_next(netit);
+        }
+        hashmap_iterator_destroy(netit);
+    }
+}
+
+void objectfull_destroy(struct object_full* full)
+{
+    // shapes
+    if(full->private.shapes)
+    {
+        vector_destroy(full->private.shapes);
+    }
+
+    // children
+    if(full->private.children)
+    {
+        vector_destroy(full->private.children);
+        vector_destroy(full->private.references);
+    }
+
+    // anchors
+    if(full->private.anchors)
+    {
+        hashmap_destroy(full->private.anchors);
+    }
+
+    // anchor lines
+    if(full->private.anchorlines)
+    {
+        hashmap_destroy(full->private.anchorlines);
+    }
+
+    // ports
+    if(full->private.ports)
+    {
+        vector_destroy(full->private.ports);
+    }
+
+    // labels
+    if(full->private.labels)
+    {
+        vector_destroy(full->private.labels);
+    }
+
+    // alignmentbox
+    if(full->private.alignmentbox)
+    {
+        free(full->private.alignmentbox);
+    }
+
+    // boundary
+    if(full->private.boundary)
+    {
+        vector_destroy(full->private.boundary);
+    }
+
+    // layer boundaries
+    if(full->private.layer_boundaries)
+    {
+        hashmap_destroy(full->private.layer_boundaries);
+    }
+}
+
+void objectfull_add_shape(struct object_full* full, struct shape* S)
+{
+    if(!cell->private.shapes)
+    {
+        cell->private.shapes = vector_create(OBJECT_DEFAULT_SHAPES_SIZE, shape_destroy);
+    }
+    vector_append(cell->private.shapes, S);
+}
+
+void objectfull_remove_shape(struct object_full* full, size_t idx)
+{
+    vector_remove(full->private.shapes, idx);
+}
+
+struct shape* object_disown_shape(struct object_full* full, size_t idx)
+{
+    struct shape* shape = vector_disown_element(full->private.shapes, idx);
+    return shape;
+}
+
+static int _contains_reference(const struct object_full* full, const struct object* reference)
+{
+    return vector_find_flat(full->private.references, reference) != -1;
+}
+
+int objectfull_add_reference(struct object_full* full, struct object* reference)
+{
+    if(!full->private.children)
+    {
+        full->private.children = vector_create(OBJECT_DEFAULT_CHILDREN_SIZE, object_destroy);
+        full->private.references = vector_create(OBJECT_DEFAULT_REFERENCES_SIZE, object_destroy);
+    }
+    if(!reference->ismanaged && !_contains_reference(full, reference))
+    {
+        vector_append(full->private.references, reference);
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void objectfull_add_proxy(struct object_full* full, struct object* proxy)
+{
+    if(!full->private.children)
+    {
+        full->private.children = vector_create(OBJECT_DEFAULT_CHILDREN_SIZE, object_destroy);
+        full->private.references = vector_create(OBJECT_DEFAULT_REFERENCES_SIZE, object_destroy);
+    }
+    vector_append(full->private.children, proxy);
+}
+
+void objectfull_merge_into(struct object_full* fulltarget, const struct object_full* fullsource, int merge_ports)
+{
+    if(fullsource->private.shapes)
+    {
+        for(unsigned int i = 0; i < vector_size(fullsource->private.shapes); ++i)
+        {
+            struct shape* shape = shape_copy(vector_get(fullsource->private.shapes, i));
+            object_add_raw_shape(fulltarget, shape);
+            shape_apply_transformation(shape, fullsource->trans);
+            shape_apply_inverse_transformation(shape, fulltarget->trans);
+        }
+    }
+    if(fullsource->private.children)
+    {
+        // * add_child expects an object that will be owned by the fulltarget
+        // * this means that the references must be copied
+        // * the references must be only copied once, otherwise all children reference different objects
+        // * the data structure of struct object does not allow for finding all children of one reference in a simple manner,
+        //   therefore the following code is a bit convoluted
+        struct const_vector* used_cell_references = const_vector_create(OBJECT_DEFAULT_REFERENCES_SIZE);
+        struct vector* new_cell_references = vector_create(OBJECT_DEFAULT_REFERENCES_SIZE, NULL); // non-owning vector, but non-constant elements are needed
+        for(size_t i = 0; i < vector_size(fullsource->private.children); ++i)
+        {
+            const struct object* child = vector_get_const(fullsource->private.children, i);
+            int index = const_vector_find_flat(used_cell_references, child->private.reference);
+            if(index == -1)
+            {
+                const_vector_append(used_cell_references, child->private.reference);
+                vector_append(new_cell_references, object_copy(child->private.reference));
+                index = vector_size(new_cell_references) - 1;
+            }
+            struct object* newchild = object_add_child(fulltarget, vector_get(new_cell_references, index), child->name);
+            object_apply_other_transformation(newchild, child->trans);
+            // FIXME: transformation
+        }
+        const_vector_destroy(used_cell_references);
+        vector_destroy(new_cell_references);
+    }
+    if(fullsource->private.labels)
+    {
+        for(unsigned int i = 0; i < vector_size(fullsource->private.labels); ++i)
+        {
+            struct port* label = vector_get(fullsource->private.labels, i);
+            struct port* newlabel = objectport_copy(label);
+            objectport_transform_to_global_coordinates(newlabel, fullsource->trans);
+            objectport_transform_to_cell_coordinates(newlabel, fulltarget->trans);
+            _add_label(fulltarget, newlabel);
+        }
+    }
+    if(fullsource->private.ports)
+    {
+        for(unsigned int i = 0; i < vector_size(fullsource->private.ports); ++i)
+        {
+            struct port* port = vector_get(fullsource->private.ports, i);
+            struct port* newport = objectport_copy(port);
+            objectport_transform_to_global_coordinates(newport, fullsource->trans);
+            objectport_transform_to_cell_coordinates(newport, fulltarget->trans);
+            _add_port(fulltarget, newport);
+        }
+    }
+}
+
+int objectfull_add_anchor(struct object_full* full, const char* name, struct anchor* anchor)
+{
+    if(!full->private.anchors)
+    {
+        full->private.anchors = hashmap_create(objectanchor_destroy);
+    }
+    if(hashmap_exists(full->private.anchors, name))
+    {
+        return 0;
+    }
+    else
+    {
+        objectanchor_transform_to_cell_coordinates(anchor, full->trans);
+        hashmap_insert(full->private.anchors, name, anchor);
+    }
+    return 1;
+}
+
+void objectfull_inherit_all_anchors_with_prefix(struct object_full* cell, const struct object_full* other, const char* prefix)
+{
+    if(obj->private.anchors)
+    {
+        struct hashmap_const_iterator* it = hashmap_const_iterator_create(obj->private.anchors);
+        while(hashmap_const_iterator_is_valid(it))
+        {
+            const char* key = hashmap_const_iterator_key(it);
+            const struct anchor* anchor = hashmap_const_iterator_value(it);
+            char* newanchorname = malloc(strlen(prefix) + strlen(key) + 1);
+            sprintf(newanchorname, "%s%s", prefix, key);
+            if(objectanchor_is_area(anchor))
+            {
+                object_inherit_area_anchor_as(cell, obj, key, newanchorname);
+            }
+            else
+            {
+                object_inherit_anchor_as(cell, obj, key, newanchorname);
+            }
+            free(newanchorname);
+            hashmap_const_iterator_next(it);
+        }
+        hashmap_const_iterator_destroy(it);
+    }
+}
+
+int objectfull_add_anchor_line_xy(struct object_full* full, const char* name, coordinate_t c, int xory)
+{
+    if(!full->private.anchorlines)
+    {
+        full->private.anchorlines = hashmap_create(free);
+    }
+    if(hashmap_exists(full->private.anchorlines, name))
+    {
+        return 0;
+    }
+    else
+    {
+        coordinate_t dummy = 0;
+        if(xory)
+        {
+            objectbase_transform_to_local_coordinates_xy(full, &c, &dummy);
+        }
+        else
+        {
+            objectbase_transform_to_local_coordinates_xy(full, &dummy, &c);
+        }
+        coordinate_t* ptr = malloc(sizeof(*ptr));
+        *ptr = c;
+        hashmap_insert(full->private.anchorlines, name, ptr);
+    }
+    return 1;
+}
+
+coordinate_t* objectfull_get_alignment_box(const struct object_full* full)
+{
+    if(!full->private.alignmentbox)
+    {
+        return NULL;
+    }
+    else
+    {
+        coordinate_t* alignmentbox = calloc(8, sizeof(coordinate_t));
+        memcpy(alignmentbox, obj->private.alignmentbox, 8 * sizeof(coordinate_t));
+        return alignmentbox;
+    }
+}

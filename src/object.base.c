@@ -1,0 +1,2097 @@
+#include "object.h"
+
+#define OPC_OBJECT_IMPLEMENTATION
+#include "object.anchors.h"
+#include "object.base.h"
+#include "object.common.h"
+#include "object.full.h"
+#include "object.ports.h"
+#include "object.proxy.h"
+#undef OPC_OBJECT_IMPLEMENTATION
+
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+#include "assert.h"
+#include "bltrshape.h"
+#include "helpers.h"
+#include "util.h"
+
+#define OBJECT_DEFAULT_SHAPES_SIZE 32
+#define OBJECT_DEFAULT_CHILDREN_SIZE 16
+#define OBJECT_DEFAULT_REFERENCES_SIZE 8
+#define OBJECT_DEFAULT_PORT_SIZE 16
+#define OBJECT_DEFAULT_LABEL_SIZE 16
+
+struct object {
+    struct object_common common;
+    union {
+        struct object_proxy proxy; // proxy objects (light handles to children)
+        struct object_full full; // full objects
+    } content;
+};
+
+#define COMMON(obj) &obj->common
+#define PROXY(obj) &obj->content.proxy
+#define FULL(obj) &obj->content.full
+#define REFERENCE(obj) objectproxy_get_reference(&obj->content.proxy)
+
+#define CHECK_FULL(obj) OPC_ASSERT_MSG2(objectcommon_is_full(COMMON(obj)), __func__, ": object given must be a full object")
+#define CHECK_PROXY(obj) OPC_ASSERT_MSG2(objectcommon_is_proxy(COMMON(obj)), __func__, ": object given must be a proxy object")
+#define CHECK_FULL_OR_PROXY(obj) OPC_ASSERT_MSG2(objectcommon_is_full(COMMON(obj)) || objectcommon_is_full(COMMON(obj)), __func__, ": object given must be a full object")
+
+static struct object* _create(const char* name)
+{
+    struct object* obj = malloc(sizeof(*obj));
+    if(!obj)
+    {
+        return NULL;
+    }
+    memset(obj, 0, sizeof(*obj));
+    objectcommon_initialize(COMMON(obj));
+    objectcommon_set_name(COMMON(obj), name);
+    objectcommon_set_managed(COMMON(obj), 0);
+    objectcommon_set_used(COMMON(obj), 1);
+    return obj;
+}
+
+struct object* object_create(const char* name)
+{
+    struct object* obj = _create(name);
+    objectcommon_set_proxy(COMMON(obj), 0);
+    return obj;
+}
+
+struct object* object_create_pseudo(void)
+{
+    struct object* obj = _create(NULL);
+    objectcommon_set_proxy(COMMON(obj), 0);
+    return obj;
+}
+
+struct object* objectbase_create_proxy(const char* name, struct object* reference)
+{
+    CHECK_FULL(reference);
+    struct object* obj = _create(name);
+    objectcommon_set_proxy(COMMON(obj), 1);
+    objectproxy_initialize(PROXY(obj), reference);
+    return obj;
+}
+
+struct object* object_copy(const struct object* cell)
+{
+    struct object* new = _create(NULL); // name is copied in objectcommon_copy_to
+    if(!new)
+    {
+        return NULL;
+    }
+    objectcommon_copy_to(COMMON(cell), COMMON(new));
+
+    if(objectcommon_is_proxy(COMMON(cell)))
+    {
+        objectproxy_copy_to(PROXY(cell), PROXY(new));
+    }
+    else
+    {
+        objectfull_copy_to(FULL(cell), FULL(new));
+    }
+    return new;
+}
+
+void object_destroy(void* cellv)
+{
+    struct object* cell = cellv;
+    if(objectcommon_is_proxy(COMMON(cell)))
+    {
+        objectproxy_destroy(PROXY(cell));
+    }
+    else
+    {
+        objectfull_destroy(FULL(cell));
+    }
+    objectcommon_destroy(COMMON(cell));
+    free(cell);
+}
+
+void object_set_name(struct object* cell, const char* name)
+{
+    objectcommon_set_name(COMMON(cell), name);
+}
+
+void objectbase_add_raw_shape(struct object* cell, struct shape* S)
+{
+    objectfull_add_shape(FULL(cell), S);
+}
+
+void objectbase_set_managed(struct object* reference)
+{
+    objectcommon_set_managed(COMMON(reference), 1);
+}
+
+void objectbase_set_unused(struct object* reference)
+{
+    objectcommon_set_used(COMMON(reference), 0);
+}
+
+void objectbase_set_used(struct object* reference)
+{
+    objectcommon_set_used(COMMON(reference), 1);
+}
+
+void objectbase_add_reference(struct object* cell, struct object* reference)
+{
+    if(objectfull_add_reference(FULL(cell), reference))
+    {
+        objectbase_set_managed(reference);
+    }
+}
+
+void objectbase_add_proxy(struct object* cell, struct object* proxy)
+{
+    objectfull_add_proxy(FULL(cell), proxy);
+}
+
+const struct transformationmatrix* objectbase_get_tmatrix(const struct object* cell)
+{
+    return objectcommon_get_tmatrix(COMMON(cell));
+}
+
+void objectbase_set_tmatrix(struct object* cell, struct transformationmatrix* trans)
+{
+    objectcommon_set_tmatrix(COMMON(cell), trans);
+}
+
+void objectbase_set_array(struct object* cell, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
+{
+    CHECK_PROXY(cell);
+    objectproxy_set_array(PROXY(cell), xrep, yrep, xpitch, ypitch);
+}
+
+void object_merge_into(struct object* cell, const struct object* other)
+{
+    CHECK_FULL(cell);
+    CHECK_FULL(other);
+    objectfull_merge_into(FULL(cell), FULL(other), 0);
+}
+
+void object_merge_into_with_ports(struct object* cell, const struct object* other)
+{
+    CHECK_FULL(cell);
+    CHECK_FULL(other);
+    objectfull_merge_into(FULL(cell), FULL(other), 1);
+}
+
+int objectbase_add_anchor(struct object* cell, const char* name, struct anchor* anchor)
+{
+    CHECK_FULL(cell);
+    objectfull_add_anchor(FULL(cell), name, anchor);
+    return 1;
+}
+
+void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
+{
+    CHECK_FULL(cell);
+    CHECK_FULL_OR_PROXY(other);
+    if(object_is_proxy(other))
+    {
+        objectfull_inherit_all_anchors_with_prefix(FULL(cell), FULL(REFERENCE(other)), prefix);
+    }
+    else
+    {
+        objectfull_inherit_all_anchors_with_prefix(FULL(cell), FULL(other), prefix);
+    }
+}
+
+int object_add_anchor_line_x(struct object* cell, const char* name, coordinate_t c)
+{
+    CHECK_FULL(cell);
+    objectfull_add_anchor_line_xy(FULL(cell), name, c, 0);
+    return 1;
+}
+
+int object_add_anchor_line_y(struct object* cell, const char* name, coordinate_t c)
+{
+    CHECK_FULL(cell);
+    objectfull_add_anchor_line_xy(FULL(cell), name, c, 1);
+    return 1;
+}
+
+void objectbase_transform_to_local_coordinates_xy(const struct object* cell, coordinate_t* x, coordinate_t* y)
+{
+    objectcommon_transform_to_local_coordinates_xy(COMMON(cell), x, y);
+    if(object_is_proxy(cell))
+    {
+        objectcommon_transform_to_local_coordinates_xy(COMMON(REFERENCE(cell)), x, y);
+    }
+}
+
+void objectbase_transform_to_local_coordinates(const struct object* cell, struct point* pt)
+{
+    objectbase_transform_to_local_coordinates_xy(cell, &pt->x, &pt->y);
+}
+
+void objectbase_transform_to_global_coordinates_xy(const struct object* cell, coordinate_t* x, coordinate_t* y)
+{
+    objectcommon_transform_to_global_coordinates_xy(COMMON(cell), x, y);
+    if(object_is_proxy(cell))
+    {
+        objectcommon_transform_to_global_coordinates_xy(COMMON(REFERENCE(cell)), x, y);
+    }
+}
+
+void objectbase_transform_to_global_coordinates(const struct object* cell, struct point* pt)
+{
+    objectbase_transform_to_global_coordinates_xy(cell, &pt->x, &pt->y);
+}
+
+static void _check_coordinates(coordinate_t* alignmentbox, size_t idx1, size_t idx2)
+{
+    if(alignmentbox[idx1] > alignmentbox[idx2])
+    {
+        coordinate_t tmp = alignmentbox[idx1];
+        alignmentbox[idx1] = alignmentbox[idx2];
+        alignmentbox[idx2] = tmp;
+    }
+}
+
+static void _fix_alignmentbox_order(coordinate_t* alignmentbox)
+{
+    _check_coordinates(alignmentbox, 0, 2);
+    _check_coordinates(alignmentbox, 0, 4);
+    _check_coordinates(alignmentbox, 0, 6);
+    _check_coordinates(alignmentbox, 4, 2);
+    _check_coordinates(alignmentbox, 4, 6);
+    _check_coordinates(alignmentbox, 6, 2);
+    _check_coordinates(alignmentbox, 1, 3);
+    _check_coordinates(alignmentbox, 1, 5);
+    _check_coordinates(alignmentbox, 1, 7);
+    _check_coordinates(alignmentbox, 5, 3);
+    _check_coordinates(alignmentbox, 5, 7);
+    _check_coordinates(alignmentbox, 7, 3);
+}
+
+static void _get_trans12(const struct object* cell, const struct transformationmatrix** trans1, const struct transformationmatrix** trans2)
+{
+    *trans1 = objectcommon_get_tmatrix(COMMON(cell));
+    if(object_is_proxy(cell))
+    {
+        *trans2 = objectcommon_get_tmatrix(COMMON(REFERENCE(cell)));
+    }
+    else
+    {
+        *trans2 = NULL;
+    }
+}
+
+coordinate_t* objectbase_get_transformed_alignment_box(const struct object* cell)
+{
+    CHECK_FULL_OR_PROXY(cell);
+    const struct transformationmatrix* trans1;
+    const struct transformationmatrix* trans2;
+    _get_trans12(cell, &trans1, &trans2);
+    const struct object* obj;
+    if(object_is_proxy(cell))
+    {
+        obj = objectproxy_get_reference(PROXY(cell));
+    }
+    coordinate_t* alignmentbox = objectfull_get_alignment_box(FULL(obj));
+    if(!alignmentbox)
+    {
+        return NULL;
+    }
+    for(unsigned int i = 0; i < 4; ++i)
+    {
+        transformationmatrix_apply_transformation_xy(trans1, alignmentbox + 0 + i * 2, alignmentbox + 1 + i * 2);
+    }
+    if(trans2)
+    {
+        for(unsigned int i = 0; i < 4; ++i)
+        {
+            transformationmatrix_apply_transformation_xy(trans2, alignmentbox + 0 + i * 2, alignmentbox + 1 + i * 2);
+        }
+    }
+    _fix_alignmentbox_order(alignmentbox);
+    if(object_is_child_array(cell))
+    {
+        objectproxy_translate_x_to_array_end(PROXY(cell), &objectbase_alignmentbox_get_innertrx(alignmentbox));
+        objectproxy_translate_y_to_array_end(PROXY(cell), &objectbase_alignmentbox_get_innertry(alignmentbox));
+        objectproxy_translate_x_to_array_end(PROXY(cell), &objectbase_alignmentbox_get_outertrx(alignmentbox));
+        objectproxy_translate_y_to_array_end(PROXY(cell), &objectbase_alignmentbox_get_outertry(alignmentbox));
+    }
+    return alignmentbox;
+}
+
+coordinate_t* objectbase_get_transformed_bounding_box(const struct object* cell)
+{
+    const struct transformationmatrix* trans1;
+    const struct transformationmatrix* trans2;
+    _get_trans12(cell, &trans1, &trans2);
+    coordinate_t* boundingbox = object_get_minmax_xy(cell);
+    objectbase_transform_to_global_coordinates_xy(cell, boundingbox + 0, boundingbox + 1);
+    objectbase_transform_to_global_coordinates_xy(cell, boundingbox + 2, boundingbox + 3);
+    _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
+    return boundingbox;
+}
+
+struct anchor* objectbase_get_anchor(const struct object* cell, const char* name)
+{
+    const struct object* obj = cell;
+    if(object_is_proxy(cell))
+    {
+        obj = cell->content.proxy.reference;
+    }
+    if(obj->content.full.anchors)
+    {
+        if(hashmap_exists(obj->content.full.anchors, name))
+        {
+            return hashmap_get(obj->content.full.anchors, name);
+        }
+    }
+    return NULL;
+}
+
+struct point* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name)
+{
+    if(!object_is_child_array(cell))
+    {
+        return NULL;
+    }
+    // resolve negative indices
+    if(xindex < 0)
+    {
+        xindex = cell->content.proxy.xrep + xindex + 1;
+    }
+    if(yindex < 0)
+    {
+        yindex = cell->content.proxy.yrep + yindex + 1;
+    }
+    struct point* pt = object_get_anchor(cell, name);
+    if(pt)
+    {
+        point_translate(pt, cell->content.proxy.xpitch * (xindex - 1), cell->content.proxy.ypitch * (yindex - 1));
+        return pt;
+    }
+    // no anchor found
+    return NULL;
+}
+
+struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base)
+{
+    if(!object_is_child_array(cell))
+    {
+        return NULL;
+    }
+    if(xindex > (int)cell->content.proxy.xrep)
+    {
+        return NULL;
+    }
+    if(yindex > (int)cell->content.proxy.yrep)
+    {
+        return NULL;
+    }
+    // resolve negative indices
+    if(xindex < 0)
+    {
+        xindex = cell->content.proxy.xrep + xindex + 1;
+    }
+    if(yindex < 0)
+    {
+        yindex = cell->content.proxy.yrep + yindex + 1;
+    }
+
+    const struct object* obj = cell->content.proxy.reference;
+    if(obj->content.full.anchors)
+    {
+        if(hashmap_exists(obj->content.full.anchors, base) && objectanchor_is_area(hashmap_get(obj->content.full.anchors, base)))
+        {
+            struct anchor* anchor = hashmap_get(obj->content.full.anchors, base);
+            struct point* pts = malloc(2 * sizeof(*pts));
+            objectanchor_get_area_points(anchor, pts);
+            objectbase_transform_to_global_coordinates(cell, pts + 0);
+            objectbase_transform_to_global_coordinates(cell, pts + 1);
+            if(pts[0].x > pts[1].x)
+            {
+                SWAP(pts[0].x, pts[1].x, coordinate_t);
+            }
+            if(pts[0].y > pts[1].y)
+            {
+                SWAP(pts[0].y, pts[1].y, coordinate_t);
+            }
+            // translate for array
+            pts[0].x += xindex * cell->content.proxy.xpitch;
+            pts[0].y += yindex * cell->content.proxy.ypitch;
+            pts[1].x += xindex * cell->content.proxy.xpitch;
+            pts[1].y += yindex * cell->content.proxy.ypitch;
+            return pts;
+        }
+    }
+    return NULL;
+}
+
+coordinate_t* object_get_anchor_line_x(const struct object* cell, const char* name)
+{
+    const struct object* obj = cell;
+    if(object_is_proxy(cell))
+    {
+        obj = cell->content.proxy.reference;
+    }
+
+    if(obj->content.full.anchorlines)
+    {
+        if(hashmap_exists(obj->content.full.anchorlines, name))
+        {
+            coordinate_t* x = hashmap_get(obj->content.full.anchorlines, name);
+            coordinate_t dummy = 0;
+            objectbase_transform_to_global_coordinates_xy(cell, x, &dummy);
+            return x;
+        }
+    }
+    return NULL;
+}
+
+coordinate_t* object_get_anchor_line_y(const struct object* cell, const char* name)
+{
+    const struct object* obj = cell;
+    if(object_is_proxy(cell))
+    {
+        obj = cell->content.proxy.reference;
+    }
+
+    if(obj->content.full.anchorlines)
+    {
+        if(hashmap_exists(obj->content.full.anchorlines, name))
+        {
+            coordinate_t* y = hashmap_get(obj->content.full.anchorlines, name);
+            coordinate_t dummy = 0;
+            objectbase_transform_to_global_coordinates_xy(cell, &dummy, y);
+            return y;
+        }
+    }
+    return NULL;
+}
+
+const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
+{
+    struct hashmap* anchors = hashmap_create(objectanchor_destroy);
+    const struct object* obj = cell;
+    if(object_is_proxy(cell))
+    {
+        obj = cell->content.proxy.reference;
+    }
+    if(obj->content.full.anchors)
+    {
+        struct hashmap_const_iterator* it = hashmap_const_iterator_create(obj->content.full.anchors);
+        while(hashmap_const_iterator_is_valid(it))
+        {
+            const char* key = hashmap_const_iterator_key(it);
+            const struct anchor* anchor = hashmap_const_iterator_value(it);
+            if(objectanchor_is_area(anchor))
+            {
+                // use the proper object API functions to deal with coordinate transformation
+                struct point* pts = object_get_area_anchor(obj, key);
+                size_t len = strlen(key);
+                char* name = malloc(len + 2 + 1);
+                strcpy(name, key);
+                name[len + 0] = 'b';
+                name[len + 1] = 'l';
+                hashmap_insert(anchors, name, point_create(pts[0].x, pts[0].y));
+                name[len + 0] = 'b';
+                name[len + 1] = 'r';
+                hashmap_insert(anchors, name, point_create(pts[1].x, pts[0].y));
+                name[len + 0] = 't';
+                name[len + 1] = 'l';
+                hashmap_insert(anchors, name, point_create(pts[0].x, pts[1].y));
+                name[len + 0] = 't';
+                name[len + 1] = 'r';
+                hashmap_insert(anchors, name, point_create(pts[1].x, pts[1].y));
+            }
+            else
+            {
+                struct point* pt = object_get_anchor(obj, key);
+                hashmap_insert(anchors, key, pt);
+            }
+            hashmap_const_iterator_next(it);
+        }
+        hashmap_const_iterator_destroy(it);
+        return obj->content.full.anchors;
+    }
+    return NULL;
+}
+
+void object_set_boundary(struct object* cell, struct vector* boundary)
+{
+    cell->content.full.boundary = vector_create(vector_size(boundary), point_destroy);
+    struct vector_const_iterator* it = vector_const_iterator_create(boundary);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const struct point* pt = vector_const_iterator_get(it);
+        struct point* newpt = point_copy(pt);
+        transformationmatrix_apply_inverse_transformation(cell->trans, newpt);
+        vector_append(cell->content.full.boundary, newpt);
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+}
+
+void object_set_empty_layer_boundary(struct object* cell, const struct generics* layer)
+{
+    if(!cell->content.full.layer_boundaries)
+    {
+        cell->content.full.layer_boundaries = hashmap_create(polygon_container_destroy);
+    }
+    if(hashmap_exists(cell->content.full.layer_boundaries, (const char*)layer))
+    {
+        struct polygon_container* boundary = hashmap_get(cell->content.full.layer_boundaries, (const char*)layer);
+        polygon_container_destroy(boundary);
+    }
+    struct polygon_container* boundary = polygon_container_create_empty();
+    hashmap_insert(cell->content.full.layer_boundaries, (const char*)layer, boundary);
+}
+
+void object_add_layer_boundary(struct object* cell, const struct generics* layer, struct simple_polygon* new)
+{
+    if(!cell->content.full.layer_boundaries)
+    {
+        cell->content.full.layer_boundaries = hashmap_create(polygon_container_destroy);
+    }
+    if(!hashmap_exists(cell->content.full.layer_boundaries, (const char*)layer))
+    {
+        struct polygon_container* polygon_container = polygon_container_create();
+        hashmap_insert(cell->content.full.layer_boundaries, (const char*)layer, polygon_container);
+    }
+    struct polygon_container* boundary = hashmap_get(cell->content.full.layer_boundaries, (const char*)layer);
+    // transform points to local coordinates
+    struct simple_polygon_iterator* it = simple_polygon_iterator_create(new);
+    while(simple_polygon_iterator_is_valid(it))
+    {
+        struct point* pt = simple_polygon_iterator_get(it);
+        transformationmatrix_apply_inverse_transformation(cell->trans, pt);
+        simple_polygon_iterator_next(it);
+    }
+    simple_polygon_iterator_destroy(it);
+    // add transformed polygon
+    polygon_container_add(boundary, new);
+}
+
+void object_inherit_boundary(struct object* cell, const struct object* othercell)
+{
+    cell->content.full.boundary = vector_create(4, point_destroy);
+    struct vector_const_iterator* it;
+    if(object_is_proxy(othercell))
+    {
+        it = vector_const_iterator_create(othercell->content.proxy.reference->content.full.boundary);
+    }
+    else
+    {
+        it = vector_const_iterator_create(othercell->content.full.boundary);
+    }
+    while(vector_const_iterator_is_valid(it))
+    {
+        const struct point* pt = vector_const_iterator_get(it);
+        struct point* newpt = point_copy(pt);
+        transformationmatrix_apply_transformation(othercell->trans, newpt);
+        transformationmatrix_apply_inverse_transformation(cell->trans, newpt);
+        vector_append(cell->content.full.boundary, newpt);
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+}
+
+void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer)
+{
+    struct polygon_container* boundary = object_get_layer_boundary(othercell, layer);
+
+    struct polygon_container_iterator* it = polygon_container_iterator_create(boundary);
+    while(polygon_container_iterator_is_valid(it))
+    {
+        const struct simple_polygon* sp = polygon_container_iterator_get(it);
+        struct simple_polygon* new = simple_polygon_copy(sp);
+        object_add_layer_boundary(cell, layer, new);
+        polygon_container_iterator_next(it);
+    }
+    polygon_container_iterator_destroy(it);
+    polygon_container_destroy(boundary);
+}
+
+int object_has_boundary(const struct object* cell)
+{
+    if(object_is_proxy(cell))
+    {
+        return cell->content.proxy.reference->content.full.boundary ? 1 : 0;
+    }
+    else
+    {
+        return cell->content.full.boundary ? 1 : 0;
+    }
+}
+
+struct vector* object_get_boundary(const struct object* cell)
+{
+    struct vector* boundary = vector_create(4, point_destroy);
+    if(object_is_proxy(cell))
+    {
+        struct vector* cellboundary = cell->content.proxy.reference->content.full.boundary;
+        if(cellboundary)
+        {
+            struct vector_const_iterator* it = vector_const_iterator_create(cellboundary);
+            while(vector_const_iterator_is_valid(it))
+            {
+                const struct point* pt = vector_const_iterator_get(it);
+                struct point* newpt = point_copy(pt);
+                transformationmatrix_apply_transformation(cell->content.proxy.reference->trans, newpt);
+                transformationmatrix_apply_transformation(cell->trans, newpt);
+                vector_append(boundary, newpt);
+                vector_const_iterator_next(it);
+            }
+            vector_const_iterator_destroy(it);
+        }
+        else
+        {
+            coordinate_t blx, bly, trx, try;
+            object_get_minmax_xy(cell->content.proxy.reference, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
+            transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
+            transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
+            vector_append(boundary, point_create(blx, bly));
+            vector_append(boundary, point_create(trx, bly));
+            vector_append(boundary, point_create(trx, try));
+            vector_append(boundary, point_create(blx, try));
+        }
+    }
+    else
+    {
+        struct vector* cellboundary = cell->content.full.boundary;
+        if(cellboundary)
+        {
+            struct vector_const_iterator* it = vector_const_iterator_create(cellboundary);
+            while(vector_const_iterator_is_valid(it))
+            {
+                const struct point* pt = vector_const_iterator_get(it);
+                struct point* newpt = point_copy(pt);
+                transformationmatrix_apply_transformation(cell->trans, newpt);
+                vector_append(boundary, newpt);
+                vector_const_iterator_next(it);
+            }
+            vector_const_iterator_destroy(it);
+        }
+        else
+        {
+            coordinate_t blx, bly, trx, try;
+            object_get_minmax_xy(cell, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
+            vector_append(boundary, point_create(blx, bly));
+            vector_append(boundary, point_create(trx, bly));
+            vector_append(boundary, point_create(trx, try));
+            vector_append(boundary, point_create(blx, try));
+        }
+    }
+    return boundary;
+}
+
+int object_has_layer_boundary(const struct object* cell, const struct generics* layer)
+{
+    if(object_is_proxy(cell))
+    {
+        if(cell->content.proxy.reference->content.full.layer_boundaries)
+        {
+            return hashmap_exists(cell->content.proxy.reference->content.full.layer_boundaries, (const char*)layer);
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        if(cell->content.full.layer_boundaries)
+        {
+            return hashmap_exists(cell->content.full.layer_boundaries, (const char*)layer);
+        }
+        else
+        {
+            return 0;
+        }
+    }
+}
+
+struct polygon_container* object_get_layer_boundary(const struct object* cell, const struct generics* layer)
+{
+    if(object_is_proxy(cell))
+    {
+        if(!cell->content.proxy.reference->content.full.layer_boundaries)
+        {
+            return polygon_container_create_empty();
+        }
+        struct polygon_container* cellboundary = hashmap_get(cell->content.proxy.reference->content.full.layer_boundaries, (const char*)layer);
+        if(cellboundary)
+        {
+            if(polygon_container_is_empty(cellboundary))
+            {
+                return polygon_container_create_empty();
+            }
+            struct polygon_container* boundary = polygon_container_create();
+            struct polygon_container_const_iterator* pit = polygon_container_const_iterator_create(cellboundary);
+            while(polygon_container_const_iterator_is_valid(pit))
+            {
+                const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(pit);
+                struct simple_polygon_const_iterator* it = simple_polygon_const_iterator_create(simple_polygon);
+                struct simple_polygon* single_boundary = simple_polygon_create();
+                while(simple_polygon_const_iterator_is_valid(it))
+                {
+                    const struct point* pt = simple_polygon_const_iterator_get(it);
+                    struct point* newpt = point_copy(pt);
+                    objectbase_transform_to_global_coordinates(cell, newpt);
+                    simple_polygon_append(single_boundary, newpt);
+                    simple_polygon_const_iterator_next(it);
+                }
+                simple_polygon_const_iterator_destroy(it);
+                polygon_container_add(boundary, single_boundary);
+                polygon_container_const_iterator_next(pit);
+            }
+            polygon_container_const_iterator_destroy(pit);
+            return boundary;
+        }
+        else
+        {
+            struct polygon_container* boundary = polygon_container_create();
+            coordinate_t blx, bly, trx, try;
+            object_get_minmax_xy(cell->content.proxy.reference, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
+            transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
+            transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
+            struct simple_polygon* single_boundary = simple_polygon_create();
+            simple_polygon_append(single_boundary, point_create(blx, bly));
+            simple_polygon_append(single_boundary, point_create(trx, bly));
+            simple_polygon_append(single_boundary, point_create(trx, try));
+            simple_polygon_append(single_boundary, point_create(blx, try));
+            polygon_container_add(boundary, single_boundary);
+            return boundary;
+        }
+    }
+    else
+    {
+        if(!cell->content.full.layer_boundaries)
+        {
+            return polygon_container_create_empty();
+        }
+        struct polygon_container* cellboundary = hashmap_get(cell->content.full.layer_boundaries, (const char*)layer);
+        if(cellboundary)
+        {
+            if(polygon_container_is_empty(cellboundary))
+            {
+                return polygon_container_create_empty();
+            }
+            struct polygon_container* boundary = polygon_container_create();
+            struct polygon_container_const_iterator* pit = polygon_container_const_iterator_create(cellboundary);
+            while(polygon_container_const_iterator_is_valid(pit))
+            {
+                const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(pit);
+                struct simple_polygon_const_iterator* it = simple_polygon_const_iterator_create(simple_polygon);
+                struct simple_polygon* single_boundary = simple_polygon_create();
+                while(simple_polygon_const_iterator_is_valid(it))
+                {
+                    const struct point* pt = simple_polygon_const_iterator_get(it);
+                    struct point* newpt = point_copy(pt);
+                    objectbase_transform_to_global_coordinates(cell, newpt);
+                    simple_polygon_append(single_boundary, newpt);
+                    simple_polygon_const_iterator_next(it);
+                }
+                simple_polygon_const_iterator_destroy(it);
+                polygon_container_add(boundary, single_boundary);
+                polygon_container_const_iterator_next(pit);
+            }
+            polygon_container_const_iterator_destroy(pit);
+            return boundary;
+        }
+        else
+        {
+            struct polygon_container* boundary = polygon_container_create();
+            coordinate_t blx, bly, trx, try;
+            object_get_minmax_xy(cell, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
+            struct simple_polygon* single_boundary = simple_polygon_create();
+            simple_polygon_append(single_boundary, point_create(blx, bly));
+            simple_polygon_append(single_boundary, point_create(trx, bly));
+            simple_polygon_append(single_boundary, point_create(trx, try));
+            simple_polygon_append(single_boundary, point_create(blx, try));
+            polygon_container_add(boundary, single_boundary);
+            return boundary;
+        }
+    }
+}
+
+static void _add_port(struct object* cell, struct port* port)
+{
+    if(!cell->content.full.ports)
+    {
+        cell->content.full.ports = vector_create(OBJECT_DEFAULT_PORT_SIZE, objectport_destroy);
+    }
+    vector_append(cell->content.full.ports, port);
+}
+
+void object_add_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
+{
+    if(!generics_is_empty(layer))
+    {
+        struct port* port = objectport_create(name, layer, where->x, where->y, 0, 0, sizehint);
+        objectport_transform_to_cell_coordinates(port, cell->trans);
+        _add_port(cell, port);
+    }
+}
+
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint)
+{
+    int shift = 0;
+    if(startindex < endindex)
+    {
+        SWAP(startindex, endindex, int);
+    }
+    for(int i = startindex; i <= endindex; ++i)
+    {
+        struct port* port = objectport_create(name, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, sizehint);
+        objectport_transform_to_cell_coordinates(port, cell->trans);
+        _add_port(cell, port);
+        ++shift;
+    }
+}
+
+static void _add_label(struct object* cell, struct port* label)
+{
+    if(!cell->content.full.labels)
+    {
+        cell->content.full.labels = vector_create(OBJECT_DEFAULT_LABEL_SIZE, objectport_destroy);
+    }
+    vector_append(cell->content.full.labels, label);
+}
+
+void object_add_label(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
+{
+    if(!generics_is_empty(layer))
+    {
+        struct port* label = objectport_create(name, layer, where->x, where->y, 0, 0, sizehint);
+        objectport_transform_to_cell_coordinates(label, cell->trans);
+        _add_label(cell, label);
+    }
+}
+
+const struct vector* object_get_ports(const struct object* cell)
+{
+    return cell->content.full.ports;
+}
+
+const struct vector* object_get_labels(const struct object* cell)
+{
+    return cell->content.full.labels;
+}
+
+void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer)
+{
+    if(object_is_proxy(cell)) // can't add nets to proxy objects
+    {
+        return;
+    }
+    if(!cell->content.full.nets)
+    {
+        cell->content.full.nets = hashmap_create(vector_destroy);
+    }
+    if(!hashmap_exists(cell->content.full.nets, netname))
+    {
+        struct vector* v = vector_create(8, bltrshape_destroy);
+        hashmap_insert(cell->content.full.nets, netname, v);
+    }
+    struct vector* nets = hashmap_get(cell->content.full.nets, netname);
+    struct bltrshape* netarea = bltrshape_create(bl, tr, layer);
+    objectbase_transform_to_local_coordinates(cell, bltrshape_get_bl(netarea));
+    objectbase_transform_to_local_coordinates(cell, bltrshape_get_tr(netarea));
+    vector_append(nets, netarea);
+}
+
+struct vector* object_get_net_shapes(const struct object* cell, const char* netname, const struct generics* layer)
+{
+    const struct object* obj = cell;
+    if(object_is_proxy(cell))
+    {
+        obj = cell->content.proxy.reference;
+    }
+    if(!obj->content.full.nets)
+    {
+        return NULL;
+    }
+    else if(!hashmap_exists(obj->content.full.nets, netname))
+    {
+        return NULL;
+    }
+    else
+    {
+        if(object_is_child_array(cell))
+        {
+            const struct vector* nets = hashmap_get(obj->content.full.nets, netname);
+            struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
+            for(unsigned int i = 0; i < vector_size(nets); ++i)
+            {
+                const struct bltrshape* s = vector_get_const(nets, i);
+                for(unsigned int xindex = 0; xindex < cell->content.proxy.xrep; ++xindex)
+                {
+                    for(unsigned int yindex = 0; yindex < cell->content.proxy.yrep; ++yindex)
+                    {
+                        int include = 1;
+                        if(layer && !bltrshape_is_layer(s, layer))
+                        {
+                            include = 0;
+                        }
+                        if(include)
+                        {
+                            struct bltrshape* bltrshape = bltrshape_copy(s);
+                            objectbase_transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
+                            point_translate(bltrshape_get_bl(bltrshape), cell->content.proxy.xpitch * xindex, cell->content.proxy.ypitch * yindex);
+                            objectbase_transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
+                            point_translate(bltrshape_get_tr(bltrshape), cell->content.proxy.xpitch * xindex, cell->content.proxy.ypitch * yindex);
+                            vector_append(new, bltrshape);
+                        }
+                    }
+                }
+            }
+            return new;
+        }
+        else
+        {
+            const struct vector* nets = hashmap_get(obj->content.full.nets, netname);
+            struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
+            for(unsigned int i = 0; i < vector_size(nets); ++i)
+            {
+                const struct bltrshape* s = vector_get_const(nets, i);
+                int include = 1;
+                if(layer && !bltrshape_is_layer(s, layer))
+                {
+                    include = 0;
+                }
+                if(include)
+                {
+                    struct bltrshape* bltrshape = bltrshape_copy(s);
+                    objectbase_transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
+                    objectbase_transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
+                    vector_append(new, bltrshape);
+                }
+            }
+            return new;
+        }
+    }
+}
+
+struct vector* object_get_array_net_shapes(const struct object* cell, int xindex, int yindex, const char* netname, const struct generics* layer)
+{
+    if(!object_is_child_array(cell))
+    {
+        return NULL;
+    }
+    const struct object* obj = cell->content.proxy.reference;
+    if(!obj->content.full.nets)
+    {
+        return NULL;
+    }
+    else if(!hashmap_exists(obj->content.full.nets, netname))
+    {
+        return NULL;
+    }
+    const struct vector* nets = hashmap_get(obj->content.full.nets, netname);
+    struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
+    for(unsigned int i = 0; i < vector_size(nets); ++i)
+    {
+        const struct bltrshape* s = vector_get_const(nets, i);
+        int include = 1;
+        if(layer && !bltrshape_is_layer(s, layer))
+        {
+            include = 0;
+        }
+        if(include)
+        {
+            struct bltrshape* bltrshape = bltrshape_copy(s);
+            objectbase_transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
+            point_translate(bltrshape_get_bl(bltrshape), cell->content.proxy.xpitch * (xindex - 1), cell->content.proxy.ypitch * (yindex - 1));
+            objectbase_transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
+            point_translate(bltrshape_get_tr(bltrshape), cell->content.proxy.xpitch * (xindex - 1), cell->content.proxy.ypitch * (yindex - 1));
+            vector_append(new, bltrshape);
+        }
+    }
+    return new;
+}
+
+
+void object_clear_alignment_box(struct object* cell)
+{
+    free(cell->content.full.alignmentbox);
+    cell->content.full.alignmentbox = NULL;
+}
+
+void object_set_alignment_box(
+    struct object* cell,
+    coordinate_t outerblx, coordinate_t outerbly,
+    coordinate_t outertrx, coordinate_t outertry,
+    coordinate_t innerblx, coordinate_t innerbly,
+    coordinate_t innertrx, coordinate_t innertry
+)
+{
+    if(!cell->content.full.alignmentbox)
+    {
+        cell->content.full.alignmentbox = calloc(8, sizeof(coordinate_t));
+    }
+    cell->content.full.alignmentbox[0] = outerblx;
+    cell->content.full.alignmentbox[1] = outerbly;
+    cell->content.full.alignmentbox[2] = outertrx;
+    cell->content.full.alignmentbox[3] = outertry;
+    cell->content.full.alignmentbox[4] = innerblx;
+    cell->content.full.alignmentbox[5] = innerbly;
+    cell->content.full.alignmentbox[6] = innertrx;
+    cell->content.full.alignmentbox[7] = innertry;
+}
+
+// FIXME: this does not account for transformations, at least not really
+void object_inherit_alignment_box(struct object* cell, const struct object* other)
+{
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(other);
+    struct point* innerbl = object_get_alignmentbox_anchor_innerbl(other);
+    struct point* innertr = object_get_alignmentbox_anchor_innertr(other);
+    coordinate_t outerblx = outerbl->x;
+    coordinate_t outerbly = outerbl->y;
+    coordinate_t outertrx = outertr->x;
+    coordinate_t outertry = outertr->y;
+    coordinate_t innerblx = innerbl->x;
+    coordinate_t innerbly = innerbl->y;
+    coordinate_t innertrx = innertr->x;
+    coordinate_t innertry = innertr->y;
+    if(cell->content.full.alignmentbox)
+    {
+        coordinate_t souterblx = cell->content.full.alignmentbox[0];
+        coordinate_t souterbly = cell->content.full.alignmentbox[1];
+        coordinate_t soutertrx = cell->content.full.alignmentbox[2];
+        coordinate_t soutertry = cell->content.full.alignmentbox[3];
+        coordinate_t sinnerblx = cell->content.full.alignmentbox[4];
+        coordinate_t sinnerbly = cell->content.full.alignmentbox[5];
+        coordinate_t sinnertrx = cell->content.full.alignmentbox[6];
+        coordinate_t sinnertry = cell->content.full.alignmentbox[7];
+        outerblx = MIN2(outerblx, souterblx);
+        outerbly = MIN2(outerbly, souterbly);
+        outertrx = MAX2(outertrx, soutertrx);
+        outertry = MAX2(outertry, soutertry);
+        innerblx = MIN2(innerblx, sinnerblx);
+        innerbly = MIN2(innerbly, sinnerbly);
+        innertrx = MAX2(innertrx, sinnertrx);
+        innertry = MAX2(innertry, sinnertry);
+    }
+    object_set_alignment_box(cell, outerblx, outerbly, outertrx, outertry, innerblx, innerbly, innertrx, innertry);
+    point_destroy(outerbl);
+    point_destroy(outertr);
+    point_destroy(innerbl);
+    point_destroy(innertr);
+}
+
+static void _alignment_box_include_xy(struct object* cell, coordinate_t x, coordinate_t y, int include_x, int include_y)
+{
+    transformationmatrix_apply_inverse_transformation_xy(cell->trans, &x, &y);
+    coordinate_t souterblx = cell->content.full.alignmentbox[0];
+    coordinate_t souterbly = cell->content.full.alignmentbox[1];
+    coordinate_t soutertrx = cell->content.full.alignmentbox[2];
+    coordinate_t soutertry = cell->content.full.alignmentbox[3];
+    coordinate_t sinnerblx = cell->content.full.alignmentbox[4];
+    coordinate_t sinnerbly = cell->content.full.alignmentbox[5];
+    coordinate_t sinnertrx = cell->content.full.alignmentbox[6];
+    coordinate_t sinnertry = cell->content.full.alignmentbox[7];
+    coordinate_t outerblx, outertrx, innerblx, innertrx;
+    coordinate_t outerbly, outertry, innerbly, innertry;
+    if(include_x)
+    {
+        outerblx = MIN2(x, souterblx);
+        outertrx = MAX2(x, soutertrx);
+        innerblx = MIN2(x, sinnerblx);
+        innertrx = MAX2(x, sinnertrx);
+    }
+    else
+    {
+        outerblx = souterblx;
+        outertrx = soutertrx;
+        innerblx = sinnerblx;
+        innertrx = sinnertrx;
+    }
+    if(include_y)
+    {
+        outerbly = MIN2(y, souterbly);
+        outertry = MAX2(y, soutertry);
+        innerbly = MIN2(y, sinnerbly);
+        innertry = MAX2(y, sinnertry);
+    }
+    else
+    {
+        outerbly = souterbly;
+        outertry = soutertry;
+        innerbly = sinnerbly;
+        innertry = sinnertry;
+    }
+    object_set_alignment_box(cell, outerblx, outerbly, outertrx, outertry, innerblx, innerbly, innertrx, innertry);
+}
+
+void object_alignment_box_include_point(struct object* cell, const struct point* pt)
+{
+    if(object_is_proxy(cell))
+    {
+        return;
+    }
+    if(cell->content.full.alignmentbox)
+    {
+        // copy coordinates as they are transformed
+        coordinate_t x = pt->x;
+        coordinate_t y = pt->y;
+        _alignment_box_include_xy(cell, x, y, 1, 1); // include both x and y
+    }
+    else
+    {
+        puts("using object.alignment_box_include_point on an object without an alignment box. While this could be a sensible operation, it is currently not implemented.");
+        // FIXME
+    }
+}
+
+void object_alignment_box_include_x(struct object* cell, coordinate_t x)
+{
+    if(object_is_proxy(cell))
+    {
+        return;
+    }
+    if(cell->content.full.alignmentbox)
+    {
+        _alignment_box_include_xy(cell, x, 0, 1, 0); // include only x
+    }
+    else
+    {
+        puts("using object.alignment_box_include_point on an object without an alignment box. While this could be a sensible operation, it is currently not implemented.");
+        // FIXME
+    }
+}
+
+void object_alignment_box_include_y(struct object* cell, coordinate_t y)
+{
+    if(object_is_proxy(cell))
+    {
+        return;
+    }
+    if(cell->content.full.alignmentbox)
+    {
+        _alignment_box_include_xy(cell, 0, y, 0, 1); // include only y
+    }
+    else
+    {
+        puts("using object.alignment_box_include_point on an object without an alignment box. While this could be a sensible operation, it is currently not implemented.");
+        // FIXME
+    }
+}
+
+int object_extend_alignment_box(struct object* cell,
+    coordinate_t extouterblx, coordinate_t extouterbly,
+    coordinate_t extoutertrx, coordinate_t extoutertry,
+    coordinate_t extinnerblx, coordinate_t extinnerbly,
+    coordinate_t extinnertrx, coordinate_t extinnertry)
+{
+    if(!cell->content.full.alignmentbox)
+    {
+        return 0;
+    }
+    cell->content.full.alignmentbox[0] += extouterblx;
+    cell->content.full.alignmentbox[1] += extouterbly;
+    cell->content.full.alignmentbox[2] += extoutertrx;
+    cell->content.full.alignmentbox[3] += extoutertry;
+    cell->content.full.alignmentbox[4] += extinnerblx;
+    cell->content.full.alignmentbox[5] += extinnerbly;
+    cell->content.full.alignmentbox[6] += extinnertrx;
+    cell->content.full.alignmentbox[7] += extinnertry;
+    return 1;
+}
+
+void object_move_to(struct object* cell, coordinate_t x, coordinate_t y)
+{
+    transformationmatrix_move_to(cell->trans, x, y);
+}
+
+void object_translate(struct object* cell, coordinate_t x, coordinate_t y)
+{
+    transformationmatrix_translate(cell->trans, x, y);
+}
+
+void object_reset_translation(struct object* cell)
+{
+    object_move_to(cell, 0, 0);
+}
+
+void object_translate_x(struct object* cell, coordinate_t x)
+{
+    object_translate(cell, x, 0);
+}
+
+void object_translate_y(struct object* cell, coordinate_t y)
+{
+    object_translate(cell, 0, y);
+}
+
+void object_mirror_at_xaxis(struct object* cell)
+{
+    transformationmatrix_mirror_x(cell->trans);
+}
+
+void object_mirror_at_yaxis(struct object* cell)
+{
+    transformationmatrix_mirror_y(cell->trans);
+}
+
+void object_mirror_at_origin(struct object* cell)
+{
+    transformationmatrix_mirror_origin(cell->trans);
+}
+
+void object_rotate_90_left(struct object* cell)
+{
+    transformationmatrix_rotate_90_left(cell->trans);
+}
+
+void object_rotate_90_right(struct object* cell)
+{
+    transformationmatrix_rotate_90_right(cell->trans);
+}
+
+void object_array_rotate_90_left(struct object* cell)
+{
+    transformationmatrix_rotate_90_left(cell->content.proxy.array_trans);
+}
+
+void object_array_rotate_90_right(struct object* cell)
+{
+    transformationmatrix_rotate_90_right(cell->content.proxy.array_trans);
+}
+
+void object_apply_other_transformation(struct object* cell, const struct transformationmatrix* trans)
+{
+    transformationmatrix_chain_inline(cell->trans, trans);
+}
+
+int object_move_x(struct object* cell, coordinate_t source, coordinate_t target)
+{
+    object_translate(cell, target - source, 0);
+    return 1;
+}
+
+int object_move_y(struct object* cell, coordinate_t source, coordinate_t target)
+{
+    object_translate(cell, 0, target - source);
+    return 1;
+}
+
+int object_move_point(struct object* cell, const struct point* source, const struct point* target)
+{
+    object_translate(cell, target->x - source->x, target->y - source->y);
+    return 1;
+}
+
+int object_move_point_to_origin(struct object* cell, const struct point* target)
+{
+    object_translate(cell, target->x, target->y);
+    return 1;
+}
+
+int object_move_point_to_origin_xy(struct object* cell, coordinate_t x, coordinate_t y)
+{
+    object_translate(cell, x, y);
+    return 1;
+}
+
+int object_move_point_x(struct object* cell, const struct point* source, const struct point* target)
+{
+    object_translate(cell, target->x - source->x, 0);
+    return 1;
+}
+
+int object_move_point_y(struct object* cell, const struct point* source, const struct point* target)
+{
+    object_translate(cell, 0, target->y - source->y);
+    return 1;
+}
+
+int object_center(struct object* cell const struct point* target)
+{
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(other);
+    coordinate_t sourcex = 0.5 * (point_getx(outertr) - point_getx(outerbl));
+    coordinate_t sourcey = 0.5 * (point_gety(outertr) - point_gety(outerbl));
+    coordinate_t targetcx = 0;
+    coordinate_t targetcy = 0;
+    if(target)
+    {
+        coordinate_t targetxc = point_getx(target);
+        coordinate_t targetyc = point_gety(target);
+    }
+    object_translate(cell, targetcx - sourcex, targetcy - sourcey);
+}
+
+int object_center_x(struct object* cell const struct point* target)
+{
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(other);
+    coordinate_t source = 0.5 * (point_getx(outertr) - point_getx(outerbl));
+    coordinate_t targetc = 0;
+    if(target)
+    {
+        coordinate_t targetc = point_getx(target);
+    }
+    object_translate(cell, targetc - source, 0);
+}
+
+int object_center_y(struct object* cell const struct point* target)
+{
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(other);
+    coordinate_t source = 0.5 * (point_gety(outertr) - point_gety(outerbl));
+    coordinate_t targetc = 0;
+    if(target)
+    {
+        coordinate_t targetc = point_gety(target);
+    }
+    object_translate(cell, 0, targetc - source);
+}
+
+void object_scale(struct object* cell, double factor)
+{
+    transformationmatrix_scale(cell->trans, factor);
+}
+
+static void _fix_minmax_order(coordinate_t *minx, coordinate_t* miny, coordinate_t* maxx, coordinate_t* maxy)
+{
+    if(*minx > *maxx)
+    {
+        coordinate_t tmp = *minx;
+        *minx = *maxx;
+        *maxx = tmp;
+    }
+    if(*miny > *maxy)
+    {
+        coordinate_t tmp = *miny;
+        *miny = *maxy;
+        *maxy = tmp;
+    }
+}
+
+void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
+{
+    coordinate_t* minmax = calloc(4, sizeof(coordinate_t)); // order: minx, miny, maxx, maxy
+    // FIXME: arrays?
+    coordinate_t minx = COORDINATE_MAX;
+    coordinate_t maxx = COORDINATE_MIN;
+    coordinate_t miny = COORDINATE_MAX;
+    coordinate_t maxy = COORDINATE_MIN;
+    if(cell->content.full.shapes)
+    {
+        for(unsigned int i = 0; i < vector_size(cell->content.full.shapes); ++i)
+        {
+            struct shape* S = vector_get(cell->content.full.shapes, i);
+            coordinate_t minx_;
+            coordinate_t maxx_;
+            coordinate_t miny_;
+            coordinate_t maxy_;
+            shape_get_minmax_xy(S, &minx_, &miny_, &maxx_, &maxy_);
+            minx = MIN2(minx, minx_);
+            maxx = MAX2(maxx, maxx_);
+            miny = MIN2(miny, miny_);
+            maxy = MAX2(maxy, maxy_);
+        }
+    }
+    if(cell->content.full.children)
+    {
+        for(unsigned int i = 0; i < vector_size(cell->content.full.children); ++i)
+        {
+            const struct object* child = vector_get(cell->content.full.children, i);
+            const struct object* obj = child->content.proxy.reference;
+            coordinate_t minx_, maxx_, miny_, maxy_;
+            object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_, child->trans);
+            transformationmatrix_apply_transformation_xy(cell->trans, &minx_, &miny_);
+            transformationmatrix_apply_transformation_xy(cell->trans, &maxx_, &maxy_);
+            _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
+            // FIXME: transformation? -> should be handled by recursive call, but check this! (construct a cell with the right transformations)
+            minx = MIN2(minx, minx_);
+            maxx = MAX2(maxx, maxx_);
+            miny = MIN2(miny, miny_);
+            maxy = MAX2(maxy, maxy_);
+        }
+    }
+    *(minmax + 0) = minx;
+    *(minmax + 1) = maxx;
+    *(minmax + 2) = miny;
+    *(minmax + 3) = maxy;
+}
+
+void object_foreach_shapes(struct object* cell, void (*func)(struct shape*))
+{
+    if(cell->content.full.shapes)
+    {
+        for(unsigned int i = 0; i < vector_size(cell->content.full.shapes); ++i)
+        {
+            struct shape* shape = vector_get(cell->content.full.shapes, i);
+            func(shape);
+        }
+    }
+}
+
+size_t object_get_shapes_size(const struct object* cell)
+{
+    if(!cell->content.full.shapes)
+    {
+        return 0;
+    }
+    else
+    {
+        return vector_size(cell->content.full.shapes);
+    }
+}
+
+struct shape* object_get_shape(struct object* cell, size_t idx)
+{
+    return vector_get(cell->content.full.shapes, idx);
+}
+
+struct shape* object_get_transformed_shape(const struct object* cell, size_t idx)
+{
+    struct shape* shape = vector_get(cell->content.full.shapes, idx);
+    struct shape* new = shape_copy(shape);
+    shape_apply_transformation(new, cell->trans);
+    return new;
+}
+
+static void _rasterize_curves(struct shape* shape)
+{
+    if(!shape_is_curve(shape))
+    {
+        return;
+    }
+    shape_rasterize_curve_inline(shape);
+}
+
+void object_rasterize_curves(struct object* cell)
+{
+    object_foreach_shapes(cell, _rasterize_curves);
+}
+
+static void _get_all_shapes_helper(const struct object* cell, const struct generics* layer, size_t maxlevel, struct vector* shapes)
+{
+    for(size_t i = 0; i < object_get_shapes_size(cell); ++i)
+    {
+        struct shape* shape = object_get_transformed_shape(cell, i);
+        if(shape_is_layer(shape, layer))
+        {
+            vector_append(shapes, shape);
+        }
+        else
+        {
+            shape_destroy(shape);
+        }
+    }
+    struct child_iterator* it = object_create_child_iterator(cell);
+    while(child_iterator_is_valid(it))
+    {
+        const struct object* child = child_iterator_get(it);
+        _get_all_shapes_helper(child, layer, maxlevel, shapes);
+        child_iterator_next(it);
+    }
+    child_iterator_destroy(it);
+}
+
+static struct vector* _get_all_shapes(const struct object* cell, const struct generics* layer, size_t maxlevel)
+{
+    struct vector* shapes = vector_create(64, shape_destroy);
+    _get_all_shapes_helper(cell, layer, maxlevel, shapes);
+    return shapes;
+}
+
+struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics* layer)
+{
+    struct polygon_container* container = polygon_container_create();
+    struct vector* shapes = _get_all_shapes(cell, layer, 0);
+    for(size_t i = 0; i < vector_size(shapes); ++i)
+    {
+        struct shape* shape = vector_get(shapes, i);
+        struct simple_polygon* polygon = shape_to_polygon(shape);
+        polygon_container_add(container, polygon);
+    }
+    return container;
+}
+
+const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell)
+{
+    return cell->trans;
+}
+
+const struct transformationmatrix* object_get_array_transformation_matrix(const struct object* cell)
+{
+    return cell->content.proxy.array_trans;
+}
+
+static void _get_transformation_correction(const struct object* cell, coordinate_t* cx, coordinate_t* cy)
+{
+    const struct object* obj = cell;
+    if(object_is_proxy(cell))
+    {
+        obj = cell->content.proxy.reference;
+    }
+    coordinate_t blx, bly, trx, try;
+    // FIXME: fix for alignmentbox with eight coordinates
+    if(obj->content.full.alignmentbox)
+    {
+        blx = obj->content.full.alignmentbox[0];
+        bly = obj->content.full.alignmentbox[1];
+        trx = obj->content.full.alignmentbox[2];
+        try = obj->content.full.alignmentbox[3];
+    }
+    else
+    {
+        object_get_minmax_xy(obj, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix
+    }
+    coordinate_t x = 0;
+    coordinate_t y = 0;
+    transformationmatrix_apply_transformation_xy(cell->trans, &x, &y);
+    *cx = blx + trx + 2 * x;
+    *cy = bly + try + 2 * y;
+}
+
+static void _flipx(struct object* cell, int ischild)
+{
+    coordinate_t cx, cy;
+    _get_transformation_correction(cell, &cx, &cy);
+    transformationmatrix_mirror_y(cell->trans);
+    if(!ischild)
+    {
+        object_translate(cell, cx, 0);
+    }
+    if(!object_is_proxy(cell))
+    {
+        if(cell->content.full.children)
+        {
+            for(unsigned int i = 0; i < vector_size(cell->content.full.children); ++i)
+            {
+                _flipx(vector_get(cell->content.full.children, i), 1);
+            }
+        }
+    }
+}
+
+void object_flipx(struct object* cell)
+{
+    _flipx(cell, 0);
+}
+
+static void _flipy(struct object* cell, int ischild)
+{
+    coordinate_t cx, cy;
+    _get_transformation_correction(cell, &cx, &cy);
+    transformationmatrix_mirror_x(cell->trans);
+    if(!ischild)
+    {
+        object_translate(cell, 0, cy);
+    }
+    if(!object_is_proxy(cell))
+    {
+        if(cell->content.full.children)
+        {
+            for(unsigned int i = 0; i < vector_size(cell->content.full.children); ++i)
+            {
+                _flipy(vector_get(cell->content.full.children, i), 1);
+            }
+        }
+    }
+}
+
+void object_flipy(struct object* cell)
+{
+    _flipy(cell, 0);
+}
+
+void object_apply_transformation(struct object* cell)
+{
+    if(cell->content.full.shapes)
+    {
+        for(unsigned int i = 0; i < vector_size(cell->content.full.shapes); ++i)
+        {
+            struct shape* shape = vector_get(cell->content.full.shapes, i);
+            shape_apply_transformation(shape, cell->trans);
+        }
+    }
+}
+
+void object_transform_point(const struct object* cell, struct point* pt)
+{
+    transformationmatrix_apply_transformation(cell->trans, pt);
+}
+
+int object_is_pseudo(const struct object* cell)
+{
+    return cell->name == NULL;
+}
+
+int object_is_proxy(const struct object* cell)
+{
+    return cell->isproxy;
+}
+
+int object_has_shapes(const struct object* cell)
+{
+    return cell->content.full.shapes ? !vector_empty(cell->content.full.shapes) : 0;
+}
+
+int object_has_layer_flat(const struct object* cell, const struct generics* layer)
+{
+    const struct object* obj = cell;
+    if(object_is_proxy(cell))
+    {
+        obj = cell->content.proxy.reference;
+    }
+    if(obj->content.full.shapes)
+    {
+        struct vector_iterator* it = vector_iterator_create(obj->content.full.shapes);
+        while(vector_iterator_is_valid(it))
+        {
+            struct shape* shape = vector_iterator_get(it);
+            if(shape_is_layer(shape, layer))
+            {
+                return 1;
+            }
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+    }
+    return 0;
+}
+
+int object_has_layer(const struct object* cell, const struct generics* layer)
+{
+    const struct object* obj = cell;
+    if(object_is_proxy(cell))
+    {
+        obj = cell->content.proxy.reference;
+    }
+    if(object_has_layer_flat(obj, layer))
+    {
+        return 1;
+    }
+    if(obj->content.full.children)
+    {
+        struct vector_iterator* it = vector_iterator_create(obj->content.full.children);
+        while(vector_iterator_is_valid(it))
+        {
+            struct object* object = vector_iterator_get(it);
+            if(object_has_layer(object, layer))
+            {
+                return 1;
+            }
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+    }
+    return 0;
+}
+
+int object_has_children(const struct object* cell)
+{
+    return cell->content.full.children ? !vector_empty(cell->content.full.children) : 0;
+}
+
+int object_has_ports(const struct object* cell)
+{
+    return cell->content.full.ports ? !vector_empty(cell->content.full.ports) : 0;
+}
+
+int object_is_empty(const struct object* cell)
+{
+    return !object_has_shapes(cell) && !object_has_children(cell) && !object_has_ports(cell);
+}
+
+int object_is_used(const struct object* cell)
+{
+    return cell->isused;
+}
+
+int object_is_child_array(const struct object* cell)
+{
+    return cell->isproxy && cell->content.proxy.isarray;
+}
+
+int object_has_alignmentbox(const struct object* cell)
+{
+    if(object_is_proxy(cell))
+    {
+        return cell->content.proxy.reference->content.full.alignmentbox != NULL;
+    }
+    else
+    {
+        return cell->content.full.alignmentbox != NULL;
+    }
+}
+
+const char* object_get_name(const struct object* cell)
+{
+    return cell->name;
+}
+
+const char* object_get_child_reference_name(const struct object* child)
+{
+    return child->content.proxy.reference->name;
+}
+
+void object_flatten_inline(struct object* cell, int flattenports)
+{
+    // add shapes and flatten children (recursive)
+    if(cell->content.full.children)
+    {
+        for(unsigned int i = 0; i < vector_size(cell->content.full.children); ++i)
+        {
+            struct object* child = vector_get(cell->content.full.children, i);
+            const struct object* reference = child->content.proxy.reference;
+            struct object* flat = object_flatten(reference, flattenports);
+            if(flat->content.full.shapes)
+            {
+                size_t size = vector_size(flat->content.full.shapes);
+                while(size > 0)
+                {
+                    struct shape* S = object_disown_shape(flat, size - 1);
+                    --size;
+                    shape_apply_transformation(S, flat->trans);
+                    shape_apply_transformation(S, child->trans);
+                    for(unsigned int ix = 1; ix <= child->content.proxy.xrep; ++ix)
+                    {
+                        for(unsigned int iy = 1; iy <= child->content.proxy.yrep; ++iy)
+                        {
+                            struct shape* copy = shape_copy(S);
+                            shape_translate(copy, (ix - 1) * child->content.proxy.xpitch, (iy - 1) * child->content.proxy.ypitch);
+                            object_add_raw_shape(cell, copy);
+                        }
+                    }
+                    shape_destroy(S);
+                }
+            }
+            if(flat->content.full.labels)
+            {
+                for(unsigned int p = 0; p < vector_size(flat->content.full.labels); ++p)
+                {
+                    struct port* label = vector_get(flat->content.full.labels, p);
+                    struct port* newlabel = objectport_copy(label);
+                    objectport_transform_to_global_coordinates(newlabel, flat->trans);
+                    objectport_transform_to_global_coordinates(newlabel, child->trans);
+                    _add_port(cell, newlabel);
+                }
+            }
+            if(flattenports)
+            {
+                if(flat->content.full.ports)
+                {
+                    for(unsigned int p = 0; p < vector_size(flat->content.full.ports); ++p)
+                    {
+                        struct port* port = vector_get(flat->content.full.ports, p);
+                        struct port* newport = objectport_copy(port);
+                        objectport_transform_to_global_coordinates(newport, flat->trans);
+                        objectport_transform_to_global_coordinates(newport, child->trans);
+                        _add_port(cell, newport);
+                    }
+                }
+            }
+            object_destroy(flat);
+        }
+        vector_destroy(cell->content.full.children);
+        cell->content.full.children = NULL;
+        vector_destroy(cell->content.full.references);
+        cell->content.full.references = NULL;
+    }
+}
+
+struct object* object_flatten(const struct object* cell, int flattenports)
+{
+    struct object* new = object_copy(cell);
+    object_flatten_inline(new, flattenports);
+    return new;
+}
+
+unsigned int object_get_child_xrep(const struct object* cell)
+{
+    return cell->content.proxy.xrep;
+}
+
+unsigned int object_get_child_yrep(const struct object* cell)
+{
+    return cell->content.proxy.yrep;
+}
+
+coordinate_t object_get_child_xpitch(const struct object* cell)
+{
+    return cell->content.proxy.xpitch;
+}
+
+coordinate_t object_get_child_ypitch(const struct object* cell)
+{
+    return cell->content.proxy.ypitch;
+}
+
+static void _collect_references(const struct object* cell, struct const_vector* references)
+{
+    if(cell->content.full.references)
+    {
+        struct vector_const_iterator* it = vector_const_iterator_create(cell->content.full.references);
+        while(vector_const_iterator_is_valid(it))
+        {
+            const struct object* ref = vector_const_iterator_get(it);
+            _collect_references(ref, references);
+            const_vector_append(references, ref);
+            vector_const_iterator_next(it);
+        }
+        vector_const_iterator_destroy(it);
+    }
+}
+
+struct const_vector* object_collect_references(const struct object* cell)
+{
+    struct const_vector* references = const_vector_create(8);
+    _collect_references(cell, references);
+    return references;
+}
+
+static void _collect_references_mutable(const struct object* cell, struct vector* references)
+{
+    if(cell->content.full.references)
+    {
+        struct vector_iterator* it = vector_iterator_create(cell->content.full.references);
+        while(vector_iterator_is_valid(it))
+        {
+            struct object* ref = vector_iterator_get(it);
+            _collect_references_mutable(ref, references);
+            vector_append(references, ref);
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+    }
+}
+
+struct vector* object_collect_references_mutable(struct object* cell)
+{
+    struct vector* references = vector_create(8, NULL);
+    _collect_references_mutable(cell, references);
+    return references;
+}
+
+/*
+const char* object_get_identifier(const struct object* cell)
+{
+    return cell->identifier;
+}
+*/
+
+struct shape_iterator {
+    const struct vector* shapes;
+    size_t index;
+};
+
+struct shape_iterator* object_create_shape_iterator(const struct object* cell)
+{
+    struct shape_iterator* it = malloc(sizeof(*it));
+    it->shapes = cell->content.full.shapes;
+    it->index = 0;
+    return it;
+}
+
+int shape_iterator_is_valid(struct shape_iterator* it)
+{
+    if(!it->shapes)
+    {
+        return 0;
+    }
+    else
+    {
+        return it->index < vector_size(it->shapes);
+    }
+}
+
+void shape_iterator_next(struct shape_iterator* it)
+{
+    it->index += 1;
+}
+
+const struct shape* shape_iterator_get(struct shape_iterator* it)
+{
+    return vector_get_const(it->shapes, it->index);
+}
+
+void shape_iterator_destroy(struct shape_iterator* it)
+{
+    free(it);
+}
+
+// child iterator
+struct child_iterator {
+    const struct vector* children;
+    size_t index;
+};
+
+struct child_iterator* object_create_child_iterator(const struct object* cell)
+{
+    struct child_iterator* it = malloc(sizeof(*it));
+    it->children = cell->content.full.children;
+    it->index = 0;
+    return it;
+}
+
+int child_iterator_is_valid(struct child_iterator* it)
+{
+    if(!it->children)
+    {
+        return 0;
+    }
+    else
+    {
+        return it->index < vector_size(it->children);
+    }
+}
+
+void child_iterator_next(struct child_iterator* it)
+{
+    it->index += 1;
+}
+
+const struct object* child_iterator_get(struct child_iterator* it)
+{
+    return vector_get_const(it->children, it->index);
+}
+
+void child_iterator_destroy(struct child_iterator* it)
+{
+    free(it);
+}
+
+// reference iterator
+struct reference_iterator {
+    const struct vector* references;
+    size_t index;
+};
+
+struct reference_iterator* object_create_reference_iterator(const struct object* cell)
+{
+    struct reference_iterator* it = malloc(sizeof(*it));
+    it->references = cell->content.full.references;
+    it->index = 0;
+    return it;
+}
+
+int reference_iterator_is_valid(struct reference_iterator* it)
+{
+    if(!it->references)
+    {
+        return 0;
+    }
+    else
+    {
+        return it->index < vector_size(it->references);
+    }
+}
+
+void reference_iterator_next(struct reference_iterator* it)
+{
+    it->index += 1;
+}
+
+const struct object* reference_iterator_get(struct reference_iterator* it)
+{
+    return vector_get_const(it->references, it->index);
+}
+
+void reference_iterator_destroy(struct reference_iterator* it)
+{
+    free(it);
+}
+
+// mutable reference iterator
+struct mutable_reference_iterator {
+    struct vector* references;
+    size_t index;
+};
+
+struct mutable_reference_iterator* object_create_mutable_reference_iterator(struct object* cell)
+{
+    struct mutable_reference_iterator* it = malloc(sizeof(*it));
+    it->references = cell->content.full.references;
+    it->index = 0;
+    return it;
+}
+
+int mutable_reference_iterator_is_valid(struct mutable_reference_iterator* it)
+{
+    if(!it->references)
+    {
+        return 0;
+    }
+    else
+    {
+        return it->index < vector_size(it->references);
+    }
+}
+
+void mutable_reference_iterator_next(struct mutable_reference_iterator* it)
+{
+    it->index += 1;
+}
+
+struct object* mutable_reference_iterator_get(struct mutable_reference_iterator* it)
+{
+    return vector_get(it->references, it->index);
+}
+
+void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it)
+{
+    free(it);
+}
+
+int object_foreach_anchor(const struct object* cell, anchor_action action, struct generic_arg* extraargs)
+{
+    if(cell->content.full.anchors)
+    {
+        struct hashmap_const_iterator* it = hashmap_const_iterator_create(cell->content.full.anchors);
+        while(hashmap_const_iterator_is_valid(it))
+        {
+            const char* name = hashmap_const_iterator_key(it);
+            const struct anchor* anchor = hashmap_const_iterator_value(it);
+            if(!objectanchor_call(anchor, name, cell->trans, action, extraargs))
+            {
+                hashmap_const_iterator_destroy(it);
+                return 0;
+            }
+            hashmap_const_iterator_next(it);
+        }
+        hashmap_const_iterator_destroy(it);
+    }
+    return 1;
+}
+
+int object_foreach_port(const struct object* cell, port_action action, struct generic_arg* extraargs)
+{
+    if(cell->content.full.ports)
+    {
+        for(size_t i = 0; i < vector_size(cell->content.full.ports); ++i)
+        {
+            const struct port* port = vector_get_const(cell->content.full.ports, i);
+            if(!objectport_call_port(port, cell->trans, action, extraargs))
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+int object_foreach_label(const struct object* cell, label_action action, struct generic_arg* extraargs)
+{
+    if(cell->content.full.labels)
+    {
+        for(size_t i = 0; i < vector_size(cell->content.full.labels); ++i)
+        {
+            const struct port* label = vector_get_const(cell->content.full.labels, i);
+            if(!objectport_call_label(label, cell->trans, action, extraargs))
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}

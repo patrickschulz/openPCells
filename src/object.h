@@ -1,6 +1,7 @@
 #ifndef OPC_OBJECT_H
 #define OPC_OBJECT_H
 
+#include "foreach.h"
 #include "hashmap.h"
 #include "polygon.h"
 #include "shape.h"
@@ -199,6 +200,9 @@ int object_move_point_to_origin(struct object* cell, const struct point* target)
 int object_move_point_to_origin_xy(struct object* cell, coordinate_t x, coordinate_t y);
 int object_move_point_x(struct object* cell, const struct point* source, const struct point* target);
 int object_move_point_y(struct object* cell, const struct point* source, const struct point* target);
+int object_center(struct object* cell, const struct point* target);
+int object_center_x(struct object* cell, const struct point* target);
+int object_center_y(struct object* cell, const struct point* target);
 void object_scale(struct object* cell, double factor);
 void object_apply_transformation(struct object* cell);
 void object_transform_point(const struct object* cell, struct point* pt);
@@ -267,30 +271,34 @@ void mutable_reference_iterator_next(struct mutable_reference_iterator* it);
 struct object* mutable_reference_iterator_get(struct mutable_reference_iterator* it);
 void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it);
 
-// anchor iterator
-struct anchor_iterator;
-struct anchor_iterator* object_create_anchor_iterator(const struct object* cell);
-int anchor_iterator_is_valid(struct anchor_iterator* it);
-void anchor_iterator_next(struct anchor_iterator* it);
-int anchor_iterator_is_area(struct anchor_iterator* it);
-const struct point* anchor_iterator_anchor(struct anchor_iterator* it);
-const char* anchor_iterator_name(struct anchor_iterator* it);
-void anchor_iterator_destroy(struct anchor_iterator* it);
+// anchor foreach
+typedef int (*anchor_action)(
+    const char* name,
+    const struct point* pts,
+    int isarea,
+    struct generic_arg* extraargs
+);
+int object_foreach_anchor(const struct object* cell, anchor_action, struct generic_arg* extraargs);
 
-// port iterator
-struct port_iterator;
-struct port_iterator* object_create_port_iterator(const struct object* cell);
-int port_iterator_is_valid(struct port_iterator* it);
-void port_iterator_next(struct port_iterator* it);
-void port_iterator_get(struct port_iterator* it, const char** portname, const struct point** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex, unsigned int* sizehint);
-void port_iterator_destroy(struct port_iterator* it);
+// port foreach
+typedef int (*port_action)(
+    const char* name,
+    const struct generics* layer,
+    const struct point* where,
+    int isbusport, int busindex,
+    unsigned int sizehint,
+    struct generic_arg* extraargs
+);
+int object_foreach_port(const struct object* cell, port_action, struct generic_arg* extraargs);
 
-// label iterator
-struct label_iterator;
-struct label_iterator* object_create_label_iterator(const struct object* cell);
-int label_iterator_is_valid(struct label_iterator* it);
-void label_iterator_next(struct label_iterator* it);
-void label_iterator_get(struct label_iterator* it, const char** labelname, const struct point** labelwhere, const struct generics** labellayer, unsigned int* sizehint);
-void label_iterator_destroy(struct label_iterator* it);
+// label foreach
+typedef int (*label_action)(
+    const char* name,
+    const struct generics* layer,
+    const struct point* where,
+    unsigned int sizehint,
+    struct generic_arg* extraargs
+);
+int object_foreach_label(const struct object* cell, label_action, struct generic_arg* extraargs);
 
 #endif // OPC_OBJECT_H
