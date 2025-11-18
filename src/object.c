@@ -1315,6 +1315,51 @@ const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
     return NULL;
 }
 
+int object_center(struct object* cell, const struct point* target)
+{
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
+    coordinate_t sourcex = 0.5 * (point_getx(outertr) - point_getx(outerbl));
+    coordinate_t sourcey = 0.5 * (point_gety(outertr) - point_gety(outerbl));
+    coordinate_t targetcx = 0;
+    coordinate_t targetcy = 0;
+    if(target)
+    {
+        targetcx = point_getx(target);
+        targetcy = point_gety(target);
+    }
+    object_translate(cell, targetcx - sourcex, targetcy - sourcey);
+    return 1;
+}
+
+int object_center_x(struct object* cell, const struct point* target)
+{
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
+    coordinate_t source = 0.5 * (point_getx(outertr) - point_getx(outerbl));
+    coordinate_t targetc = 0;
+    if(target)
+    {
+        targetc = point_getx(target);
+    }
+    object_translate(cell, targetc - source, 0);
+    return 1;
+}
+
+int object_center_y(struct object* cell, const struct point* target)
+{
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
+    coordinate_t source = 0.5 * (point_gety(outertr) - point_gety(outerbl));
+    coordinate_t targetc = 0;
+    if(target)
+    {
+        targetc = point_gety(target);
+    }
+    object_translate(cell, 0, targetc - source);
+    return 1;
+}
+
 int object_abut_right(struct object* cell, const struct object* other)
 {
     coordinate_t* alb1 = _get_transformed_alignment_box(cell);

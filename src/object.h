@@ -62,6 +62,9 @@ struct point* object_get_alignmentbox_anchor_innertr(const struct object* cell);
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
 
 // abutment and alignment
+int object_center(struct object* cell, const struct point* target);
+int object_center_x(struct object* cell, const struct point* target);
+int object_center_y(struct object* cell, const struct point* target);
 int object_abut_right(struct object* cell, const struct object* other);
 int object_abut_left(struct object* cell, const struct object* other);
 int object_abut_top(struct object* cell, const struct object* other);
