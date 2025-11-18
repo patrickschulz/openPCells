@@ -762,6 +762,7 @@ static struct instance* _read_instantiation(struct CDL_tokenlist* CDL_tokenlist)
             char* bulknet = _read_net(CDL_tokenlist, &message);
             // read model name
             const char* modelname = CDL_token_get_value(CDL_tokenlist);
+            netlist_instance_set_model(instance, modelname);
             CDL_token_advance(CDL_tokenlist);
             while(_test_parameter(CDL_tokenlist))
             {
