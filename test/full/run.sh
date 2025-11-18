@@ -1,6 +1,7 @@
 #! /bin/sh
 
-extraargs="--write-children-ports --flatten-ports"
+commonargs="--write-children-ports --flatten-ports"
+opcexec="../../opc"
 
 # args:
 # 1: basename
@@ -12,14 +13,14 @@ function do_cell_test()
         printf "\033[1;31mpfile 'pfile_%s.lua' does not exist: test %s (%s)\n\033[0m" ${1} ${1} ${2}
         return
     fi
-    if [ ! -x ../../opc ]; then
+    if [ ! -x ${opcexec} ]; then
         printf "\033[1;31mopc is not available: test %s (%s)\n\033[0m" ${1} ${2}
         return
     fi
-    ../../opc ${extraargs} --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
+    ${opcexec} ${commonargs} --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
     if [ $? -ne 0 ]; then
         echo
-        ../../opc ${extraargs} --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1}
+        ${opcexec} ${commonargs} --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1}
     fi
     if ../helpers/test_compare ${1} ${3}; then
         printf "\033[1;32mcell test succeeded: %s (%s)\n\033[0m" ${1} ${2}
@@ -33,16 +34,17 @@ function do_cell_test()
 # 1: basename
 # 2: cellscript filename
 # 3: export type
+# 4: extra arguments
 function do_cellscript_test()
 {
-    if [ ! -x ../../opc ]; then
+    if [ ! -x ${opcexec} ]; then
         printf "\033[1;31mopc is not available: test %s (%s)\n\033[0m" ${1} ${2}
         return
     fi
-    ../../opc ${extraargs} --export ${3} --technology opc --cellscript ${2} --pfile pfile_${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
+    ${opcexec} ${commonargs} ${4} --export ${3} --technology opc --cellscript ${2} --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
     if [ $? -ne 0 ]; then
         echo
-        ../../opc ${extraargs} --export ${3} --technology opc --cellscript ${2} --pfile pfile_${1}.lua --filename test_${1}
+        ${opcexec} ${commonargs} ${4} --export ${3} --technology opc --cellscript ${2} --filename test_${1}
     fi
     if ../helpers/test_compare ${1} ${3}; then
         printf "\033[1;32mcellscript test succeeded: %s (%s)\n\033[0m" ${1} ${2}
@@ -105,4 +107,7 @@ do_cellscript_test cellscript_flatten cellscript_flatten.lua gds
 do_cellscript_test cellscript_hierarchy cellscript_hierarchy.lua gds
 
 # cellscript test for object anchors
-do_cellscript_test cellscript_anchor cellscript_anchor.lua gds
+do_cellscript_test cellscript_anchor cellscript_anchor.lua gds --draw-all-anchors
+
+# cellscript test for ports
+do_cellscript_test cellscript_port cellscript_port.lua gds
