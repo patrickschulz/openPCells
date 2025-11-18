@@ -660,11 +660,7 @@ static int lobject_add_child(lua_State* L)
     }
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* child = lobject_check(L, 2);
-    const char* name = NULL;
-    if(lua_gettop(L) == 3) // explicit name
-    {
-        name = luaL_checkstring(L, 3);
-    }
+    const char* name = luaL_checkstring(L, 3);
     // use lobject_get_unchecked for child instead of lobject_get, as this function needs non-constant objects but can be called on objects there were already added as children
     struct object* proxy = object_add_child(lobject_get(L, cell), lobject_get_unchecked(child), name);
     if(!proxy)
@@ -682,11 +678,7 @@ static int lobject_add_child_array(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* child = lobject_check(L, 2);
-    const char* name = NULL;
-    if(!lua_isnil(L, 3)) // explicit name
-    {
-        name = luaL_checkstring(L, 3);
-    }
+    const char* name = luaL_checkstring(L, 3);
     unsigned xrep = luaL_checkinteger(L, 4);
     unsigned yrep = luaL_checkinteger(L, 5);
     ucoordinate_t xpitch;
