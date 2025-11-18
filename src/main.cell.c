@@ -274,9 +274,25 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
     }
 }
 
+static int _draw_anchor(const char* name, const struct point* pts, int isarea, struct generic_arg* extraargs)
+{
+    struct object* cell = args_get_pointer(extraargs, 1);
+    const struct generics* layer = args_get_const_pointer(extraargs, 2);
+    int sizehint = args_get_int(extraargs, 3);
+    if(isarea)
+    {
+        geometry_rectanglebltr(cell, layer, pts + 0, pts + 1);
+        object_add_port(cell, name, layer, pts + 0, sizehint);
+    }
+    else
+    {
+        object_add_port(cell, name, layer, pts + 0, sizehint);
+    }
+    return 1;
+}
+
 static void _draw_cell_anchors(struct object* cell, struct technology_state* techstate, int asoutline, int sizehint)
 {
-    struct anchor_iterator* iterator = object_create_anchor_iterator(cell);
     const struct generics* layer;
     if(asoutline)
     {
@@ -286,24 +302,13 @@ static void _draw_cell_anchors(struct object* cell, struct technology_state* tec
     {
        layer = generics_create_special(techstate);
     }
-    while(anchor_iterator_is_valid(iterator))
-    {
-        if(anchor_iterator_is_area(iterator))
-        {
-            const struct point* anchor = anchor_iterator_anchor(iterator);
-            const char* name = anchor_iterator_name(iterator);
-            geometry_rectanglebltr(cell, layer, anchor + 0, anchor + 1);
-            object_add_port(cell, name, layer, anchor + 0, sizehint);
-        }
-        else
-        {
-            const struct point* anchor = anchor_iterator_anchor(iterator);
-            const char* name = anchor_iterator_name(iterator);
-            object_add_port(cell, name, layer, anchor, sizehint);
-        }
-        anchor_iterator_next(iterator);
-    }
-    anchor_iterator_destroy(iterator);
+    struct generic_arg args[] = {
+        { .type = ARG_POINTER, .content.ptr = cell },
+        { .type = ARG_CONST_POINTER, .content.cptr = layer },
+        { .type = ARG_INT, .content.i = sizehint },
+        { .type = ARG_END }
+    };
+    object_foreach_anchor(cell, _draw_anchor, args);
 }
 
 static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate)
