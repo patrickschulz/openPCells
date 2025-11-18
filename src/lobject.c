@@ -402,6 +402,48 @@ static int lobject_move_point_y(lua_State* L)
     return 1;
 }
 
+static int lobject_center(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const struct point* origin = NULL;
+    if(lua_gettop(L) == 2)
+    {
+        struct lpoint* pt = lpoint_checkpoint(L, 2);
+        origin = lpoint_get(pt);
+        lua_rotate(L, 1, 1);
+    }
+    object_center(lobject_get(L, cell), origin);
+    return 1;
+}
+
+static int lobject_center_x(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const struct point* origin = NULL;
+    if(lua_gettop(L) == 2)
+    {
+        struct lpoint* pt = lpoint_checkpoint(L, 2);
+        origin = lpoint_get(pt);
+        lua_rotate(L, 1, 1);
+    }
+    object_center_x(lobject_get(L, cell), origin);
+    return 1;
+}
+
+static int lobject_center_y(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const struct point* origin = NULL;
+    if(lua_gettop(L) == 2)
+    {
+        struct lpoint* pt = lpoint_checkpoint(L, 2);
+        origin = lpoint_get(pt);
+        lua_rotate(L, 1, 1);
+    }
+    object_center_y(lobject_get(L, cell), origin);
+    return 1;
+}
+
 #define _gen_fun_abut_align(what) \
 static int lobject_ ##what (lua_State* L) \
 { \
@@ -1903,6 +1945,9 @@ int open_lobject_lib(lua_State* L)
         { "move_point",                             lobject_move_point                          },
         { "move_point_x",                           lobject_move_point_x                        },
         { "move_point_y",                           lobject_move_point_y                        },
+        { "center",                                 lobject_center                              },
+        { "center_x",                               lobject_center_x                            },
+        { "center_y",                               lobject_center_y                            },
         { "abut_left",                              lobject_abut_left                           },
         { "abut_right",                             lobject_abut_right                          },
         { "abut_top",                               lobject_abut_top                            },
