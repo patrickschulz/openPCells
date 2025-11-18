@@ -70,6 +70,10 @@ static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions, c
     if(!no_user_config)
     {
         const char* home = getenv("HOME");
+        if(!home)
+        {
+            home = ".";
+        }
         size_t len = strlen(home) + strlen("/.opcconfig.lua");
         char* filename = malloc(len + 1);
         snprintf(filename, len + 1, "%s/.opcconfig.lua", home);
