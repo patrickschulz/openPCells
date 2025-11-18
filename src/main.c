@@ -106,7 +106,7 @@ static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions, c
             lua_setfield(L, -2, "techpaths");
 
             // cellpaths
-            techpaths = hashmap_get(config, "prepend_cellpaths");
+            prepend_cellpaths = hashmap_get(config, "prepend_cellpaths");
             lua_getfield(L, -1, "prepend_cellpaths");
             if(!lua_isnil(L, -1))
             {
