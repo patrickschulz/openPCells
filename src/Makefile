@@ -195,6 +195,7 @@ _modulemanager.c: _embed_compiled_lua_file modules/*.lua
 	./_embed_compiled_lua_file --module modules/generator.lua module_load generator _modulemanager.c
 	./_embed_compiled_lua_file --module modules/globals.lua module_load globals _modulemanager.c
 	./_embed_compiled_lua_file --module modules/graphics.lua module_load graphics _modulemanager.c
+	./_embed_compiled_lua_file --module modules/import.lua module_load import _modulemanager.c
 	./_embed_compiled_lua_file --module modules/layouthelpers.lua module_load layouthelpers _modulemanager.c
 	./_embed_compiled_lua_file --module modules/load.lua module_load load _modulemanager.c
 	./_embed_compiled_lua_file --module modules/pcell.lua module_load pcell _modulemanager.c
@@ -215,6 +216,7 @@ _modulemanager.h: modules/*.lua
 	@echo 'int module_load_generator(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_globals(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_graphics(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_import(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_layouthelpers(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_load(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_pcell(lua_State* L);' >> _modulemanager.h
