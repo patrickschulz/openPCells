@@ -44,7 +44,7 @@ static const char *const luaX_tokens [] = {
     "return", "then", "true", "until", "while",
     "//", "..", "...", "==", ">=", "<=", "~=",
     "<<", ">>", "::", "<eof>",
-    "<number>", "<integer>", "<name>", "<string>"
+    "<number>", "<integer>", "<name>", "<narg>", "<string>"
 };
 
 
@@ -564,6 +564,26 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       case '5': case '6': case '7': case '8': case '9': {
         return read_numeral(ls, seminfo);
       }
+      /* OPC ADDITION BEGIN */
+      case '@': { /* named function parameter */
+        next(ls); /* eat @ sign */
+        if (lislalpha(ls->current)) {  /* identifier or reserved word? */
+          TString *ts;
+          do {
+            save_and_next(ls);
+          } while (lislalnum(ls->current));
+          ts = luaX_newstring(ls, luaZ_buffer(ls->buff),
+                                  luaZ_bufflen(ls->buff));
+          seminfo->ts = ts;
+          return TK_NARG;
+        }
+        else {  /* single-char @-sign */
+          int c = ls->current;
+          next(ls);
+          return c;
+        }
+      }
+      /* OPC ADDITION END */
       case EOZ: {
         return TK_EOS;
       }

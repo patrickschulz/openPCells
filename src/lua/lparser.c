@@ -1038,15 +1038,7 @@ static void funcargs (LexState *ls, expdesc *f, int line) {
       check_match(ls, ')', '(', line);
       break;
     }
-    case '{': {  /* funcargs -> constructor */
-      constructor(ls, &args);
-      break;
-    }
-    case TK_STRING: {  /* funcargs -> STRING */
-      codestring(&args, ls->t.seminfo.ts);
-      luaX_next(ls);  /* must use 'seminfo' before 'next' */
-      break;
-    }
+    /* OPC_REMOVE: removed support for foo{} and foo"" function calls */
     default: {
       luaX_syntaxerror(ls, "function arguments expected");
     }
@@ -1125,7 +1117,8 @@ static void suffixedexp (LexState *ls, expdesc *v) {
         funcargs(ls, v, line);
         break;
       }
-      case '(': case TK_STRING: case '{': {  /* funcargs */
+      /* OPC_REMOVE: removed support for foo{} and foo"" function calls */
+      case '(': {  /* funcargs */
         luaK_exp2nextreg(fs, v);
         funcargs(ls, v, line);
         break;
