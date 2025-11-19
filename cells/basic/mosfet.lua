@@ -34,23 +34,27 @@ function parameters()
         { "gatespace(Gate Spacing)",                                                                    technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), argtype = "integer", info = "gate space between the polysilicon lines" },
         { "allow_poly_connections",                                                                     technology.has_feature("allow_poly_routing") },
         { "topgatepolyextension",                                                                       0 },
-        { "topgatepolyleftrightextension",                                                              0, follow = "topgatepolyextension" },
-        { "topgatepolyleftextension",                                                                   0, follow = "topgatepolyleftrightextension" },
-        { "topgatepolyrightextension",                                                                  0, follow = "topgatepolyleftrightextension" },
-        { "topgatepolytopbottomextension",                                                              0, follow = "topgatepolyextension" },
-        { "topgatepolytopextension",                                                                    0, follow = "topgatepolytopbottomextension" },
-        { "topgatepolybottomextension",                                                                 0, follow = "topgatepolytopbottomextension" },
+        { "topgatepolyleftrightextension",                                                              technology.get_optional_dimension("Gate Contact Poly XExtension"), follow = "topgatepolyextension" },
+        { "topgatepolyleftextension",                                                                   technology.get_optional_dimension("Gate Contact Poly XExtension"), follow = "topgatepolyleftrightextension" },
+        { "topgatepolyrightextension",                                                                  technology.get_optional_dimension("Gate Contact Poly XExtension"), follow = "topgatepolyleftrightextension" },
+        { "topgatepolytopbottomextension",                                                              technology.get_optional_dimension("Gate Contact Poly YExtension"), follow = "topgatepolyextension" },
+        { "topgatepolytopextension",                                                                    technology.get_optional_dimension("Gate Contact Poly YExtension"), follow = "topgatepolytopbottomextension" },
+        { "topgatepolybottomextension",                                                                 technology.get_optional_dimension("Gate Contact Poly YExtension"), follow = "topgatepolytopbottomextension" },
         { "botgatepolyextension",                                                                       0 },
-        { "botgatepolyleftrightextension",                                                              0, follow = "botgatepolyextension" },
-        { "botgatepolyleftextension",                                                                   0, follow = "botgatepolyleftrightextension" },
-        { "botgatepolyrightextension",                                                                  0, follow = "botgatepolyleftrightextension" },
-        { "botgatepolytopbottomextension",                                                              0, follow = "botgatepolyextension" },
-        { "botgatepolytopextension",                                                                    0, follow = "botgatepolytopbottomextension" },
-        { "botgatepolybottomextension",                                                                 0, follow = "botgatepolytopbottomextension" },
-        { "actext(Active Extension)",                                                                   0, info = "left/right active extension. This is added to the calculated width of the active regions, dependent on the number of gates, the finger widths, gate spacing and left/right dummy devices" },
+        { "botgatepolyleftrightextension",                                                              technology.get_optional_dimension("Gate Contact Poly XExtension"), follow = "botgatepolyextension" },
+        { "botgatepolyleftextension",                                                                   technology.get_optional_dimension("Gate Contact Poly XExtension"), follow = "botgatepolyleftrightextension" },
+        { "botgatepolyrightextension",                                                                  technology.get_optional_dimension("Gate Contact Poly XExtension"), follow = "botgatepolyleftrightextension" },
+        { "botgatepolytopbottomextension",                                                              technology.get_optional_dimension("Gate Contact Poly YExtension"), follow = "botgatepolyextension" },
+        { "botgatepolytopextension",                                                                    technology.get_optional_dimension("Gate Contact Poly YExtension"), follow = "botgatepolytopbottomextension" },
+        { "botgatepolybottomextension",                                                                 technology.get_optional_dimension("Gate Contact Poly YExtension"), follow = "botgatepolytopbottomextension" },
+        { "actext(Active Extension)",                                                                   technology.get_optional_dimension("Minimum Device Minimum Active Extension"), info = "left/right active extension. This is added to the calculated width of the active regions, dependent on the number of gates, the finger widths, gate spacing and left/right dummy devices" },
         { "sdwidth(Source/Drain Contact Width)",                                                        technology.get_dimension("Minimum Source/Drain Contact Region Size"), argtype = "integer", info = "width of the source/drain contact regions. Currently, all metals are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future." }, -- FIXME: rename
         { "sdviawidth(Source/Drain Metal Width for Vias)",                                              technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth", info  = "width of the source/drain via regions. Currently, all vias are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future. This parameter follows 'sdwidth'." },
         { "sdmetalwidth(Source/Drain Metal Width)",                                                     technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdviawidth", info = "width of the source/drain metals. This parameter follows 'sdviawidth'." },
+        { "sdm1botext",                                                                                 0, argtype = "integer", info = "extend the source/drain metal 1 region (bottom). This is useful for meeting minimum area requirements for devices with small finger widths" },
+        { "sdm1topext",                                                                                 0, argtype = "integer", info = "extend the source/drain metal 1 region (top). This is useful for meeting minimum area requirements for devices with small finger widths" },
+        { "sdmxbotext",                                                                                 0, argtype = "integer", follow = "sdm1botext", info = "extend the inter-level (not M1, not highest metal) source/drain metal region (bottom). This is useful for meeting minimum area requirements for devices with small finger widths" },
+        { "sdmxtopext",                                                                                 0, argtype = "integer", follow = "sdm1topext", info = "extend the inter-level (not M1, not highest metal) source/drain metal region (top). This is useful for meeting minimum area requirements for devices with small finger widths" },
         { "interweavevias",                                                                             false },
         { "alternateinterweaving",                                                                      false },
         { "minviaxspace",                                                                               0 },
@@ -250,6 +254,7 @@ function parameters()
         { "drawguardring",                                                                              false },
         { "guardringrespectactivedummy",                                                                false },
         { "guardringrespectgatestraps",                                                                 true },
+        { "guardringrespectgateextensions",                                                             true },
         { "guardringwidth",                                                                             technology.get_dimension("Minimum Active Contact Region Size") },
         { "guardringsep",                                                                               technology.get_dimension("Minimum Active Space") },
         { "guardringleftsep",                                                                           technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
@@ -259,12 +264,17 @@ function parameters()
         { "guardringsegments",                                                                          { "left", "right", "top", "bottom" } },
         { "guardringfillimplant",                                                                       false },
         { "guardringfillwell",                                                                          false },
-        { "guardringwellinnerextension",                                                                0 },
-        { "guardringwellouterextension",                                                                0 },
-        { "guardringimplantinnerextension",                                                             0 },
-        { "guardringimplantouterextension",                                                             0 },
-        { "guardringsoiopeninnerextension",                                                             0 },
-        { "guardringsoiopenouterextension",                                                             0 },
+        { "guardringdrawoxidetype",                                                                     true },
+        { "guardringfilloxidetype",                                                                     true },
+        { "guardringoxidetype",                                                                         1, follow = "oxidetype" },
+        { "guardringwellinnerextension",                                                                technology.get_dimension("Minimum Well Extension") },
+        { "guardringwellouterextension",                                                                technology.get_dimension("Minimum Well Extension") },
+        { "guardringimplantinnerextension",                                                             technology.get_dimension("Minimum Implant Extension") },
+        { "guardringimplantouterextension",                                                             technology.get_dimension("Minimum Implant Extension") },
+        { "guardringsoiopeninnerextension",                                                             technology.get_optional_dimension("Minimum Soiopen Extension") },
+        { "guardringsoiopenouterextension",                                                             technology.get_optional_dimension("Minimum Soiopen Extension") },
+        { "guardringoxidetypeinnerextension",                                                           technology.get_dimension("Minimum Oxide Extension") },
+        { "guardringoxidetypeouterextension",                                                           technology.get_dimension("Minimum Oxide Extension") },
         { "botwelltapwidth",                                                                            technology.get_dimension("Minimum M1 Width") },
         { "botwelltapspace",                                                                            technology.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                                                       0 },
@@ -475,7 +485,7 @@ function check(_P)
     if _P.sdmetalwidth < _P.sdviawidth then
         return false, string.format("sdmetalwidth must not be smaller than sdviawidth (%d vs. %d)", _P.sdmetalwidth, _P.sdviawidth)
     end
-    if _P.sourcesize < 0 then
+    if _P.sourcesize < 0 or _P.sourcesize > _P.fingerwidth then
         return false, string.format("sourcesize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.sourcesize, _P.fingerwidth)
     end
     if _P.drainsize < 0 then
@@ -939,7 +949,7 @@ function layout(transistor, _P)
             _P.fingerwidth + _P.extendimplanttop or
             gatetry + _P.extendimplanttop
     )
-    if _P.drawimplant then
+    if _P.drawimplant and not _P.drawguardring then -- if a guardring is present, it draws the inner/MOSFET implant
         geometry.rectanglebltr(transistor, generics.implant(_P.channeltype), implantbl, implanttr)
     end
     transistor:add_area_anchor_bltr("implant", implantbl, implanttr)
@@ -1122,8 +1132,9 @@ function layout(transistor, _P)
 
     local guardring -- variable needs to be visible for alignment box setting
     if _P.drawguardring then
-        local holewidth = activewidth + leftactauxext + leftactext + rightactauxext + rightactext + _P.guardringleftsep + _P.guardringrightsep
-        local holeheight = _P.fingerwidth + _P.guardringtopsep + _P.guardringbottomsep
+        -- hole sizes are calculated without seperations, these are added in the instatiation
+        local holewidth = activewidth + leftactauxext + leftactext + rightactauxext + rightactext
+        local holeheight = _P.fingerwidth
         if _P.guardringrespectactivedummy then
             holewidth = holewidth + _P.leftactivedummywidth + _P.leftactivedummyspace + _P.rightactivedummywidth + _P.rightactivedummyspace
             holeheight = holeheight + _P.topactivedummywidth + _P.topactivedummyspace + _P.bottomactivedummywidth + _P.bottomactivedummyspace
@@ -1136,16 +1147,21 @@ function layout(transistor, _P)
                 holeheight = holeheight + _P.botgatespace + _P.botgatewidth
             end
         end
+        if _P.guardringrespectgateextensions then
+            holeheight = math.max(holeheight, gatetry - gatebly)
+        end
         guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             ringwidth = _P.guardringwidth,
-            holewidth = holewidth,
-            holeheight = holeheight,
-            fillwell = true,
+            holewidth = holewidth + _P.guardringleftsep + _P.guardringrightsep,
+            holeheight = holeheight + _P.guardringtopsep + _P.guardringbottomsep,
             drawsegments = _P.guardringsegments,
             fillwell = _P.guardringfillwell,
-            fillinnerimplant = _P.guardringfillimplant,
+            fillinnerimplant = true,
             innerimplantpolarity = _P.channeltype == "nmos" and "n" or "p",
+            drawoxidetype = _P.guardringdrawoxidetype,
+            filloxidetype = _P.guardringfilloxidetype,
+            oxidetype = _P.guardringoxidetype,
             wellinnerextension = _P.guardringwellinnerextension,
             wellouterextension = _P.guardringwellouterextension,
             implantinnerextension = _P.guardringimplantinnerextension,
@@ -1153,11 +1169,19 @@ function layout(transistor, _P)
             soiopeninnerextension = _P.guardringsoiopeninnerextension,
             soiopenouterextension = _P.guardringsoiopenouterextension,
         })
+        local gtargetx = -leftactauxext
+        local gtargety = 0
         if _P.guardringrespectactivedummy then
-            guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext - _P.leftactivedummywidth - _P.leftactivedummyspace, - _P.bottomactivedummywidth - _P.bottomactivedummyspace))
-        else
-            guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext, 0))
+            gtargetx = gtargetx - _P.leftactivedummywidth - _P.leftactivedummyspace, - _P.bottomactivedummywidth - _P.bottomactivedummyspace
         end
+        if _P.guardringrespectgatestraps and _P.drawbotgatestrap then
+            gtargety = gtargety - _P.botgatespace - _P.botgatewidth
+        end
+        -- FIXME: respect source/drain straps
+        if _P.guardringrespectgateextensions then
+            gtargety = math.min(gtargety, gatebly)
+        end
+        guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, gtargety))
         guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
         transistor:merge_into(guardring)
         transistor:add_area_anchor_bltr("outerguardring",
@@ -1172,11 +1196,13 @@ function layout(transistor, _P)
 
     -- gate contacts
     local gatecontacttype = _P.drawrotationmarker and "gaterotated" or "gate"
+    local contactfun = geometry.contactbltr2
     if _P.drawtopgate then
         if _P.allow_poly_connections then
-            local contactfun = _P.drawtopgatestrap and geometry.contactbarebltr or geometry.contactbltr
             contactfun(transistor,
                 gatecontacttype,
+                point.create(gateblx + (1 - 1) * gatepitch, _P.fingerwidth + _P.topgatespace - _P.topgatepolybottomextension),
+                point.create(gatetrx + (_P.fingers - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth + _P.topgatepolytopextension),
                 point.create(gateblx + (1 - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
                 point.create(gatetrx + (_P.fingers - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth),
                 string.format(
@@ -1186,9 +1212,10 @@ function layout(transistor, _P)
             )
         else
             for i = 1, _P.fingers do
-                local contactfun = _P.drawtopgatestrap and geometry.contactbarebltr or geometry.contactbltr
                 contactfun(transistor,
                     gatecontacttype,
+                    point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace - _P.topgatepolybottomextension),
+                    point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth + _P.topgatepolytopextension),
                     point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
                     point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth),
                     string.format(
@@ -1229,18 +1256,20 @@ function layout(transistor, _P)
     end
     if _P.drawbotgate then
         if _P.allow_poly_connections then
-            local contactfun = _P.drawbotgatestrap and geometry.contactbarebltr or geometry.contactbltr
             contactfun(transistor,
                 gatecontacttype,
+                point.create(gateblx + (1 - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth - _P.botgatepolybottomextension),
+                point.create(gatetrx + (_P.fingers - 1) * gatepitch, -_P.botgatespace + _P.botgatepolytopextension),
                 point.create(gateblx + (1 - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
                 point.create(gatetrx + (_P.fingers - 1) * gatepitch, -_P.botgatespace),
                 string.format("bot gate contact:\n    x parameters: gatelength (%d)\n    y parameters: botgatewidth (%d)", _P.gatelength, _P.botgatewidth)
             )
         else
             for i = 1, _P.fingers do
-                local contactfun = _P.drawbotgatestrap and geometry.contactbarebltr or geometry.contactbltr
                 contactfun(transistor,
                     gatecontacttype,
+                    point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth - _P.botgatepolybottomextension),
+                    point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace + _P.botgatepolytopextension),
                     point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
                     point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace),
                     string.format("bot gate contact:\n    x parameters: gatelength (%d)\n    y parameters: botgatewidth (%d)", _P.gatelength, _P.botgatewidth)
@@ -1347,11 +1376,13 @@ function layout(transistor, _P)
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "source" then
             for i = 1, _P.fingers + 1, 2 do
                 local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
-                local bl = point.create(shift, sourceoffset)
-                local tr = point.create(shift + _P.sdwidth, sourceoffset + _P.sourcesize)
+                local activebl = point.create(shift - _P.actext, sourceoffset)
+                local activetr = point.create(shift + _P.actext + _P.sdwidth, sourceoffset + _P.sourcesize)
+                local metalbl = point.create(shift, sourceoffset)
+                local metaltr = point.create(shift + _P.sdwidth, sourceoffset + _P.sourcesize)
                 local debugstr = string.format("source/drain contacts:\n    x parameters: sdwidth (%d)\n    y parameters: sourcesize (%d)", _P.sdwidth, _P.sourcesize)
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
-                    geometry.contactbarebltr(transistor, contacttype, bl, tr, debugstr)
+                    geometry.contactbltr2(transistor, contacttype, activebl, activetr, metalbl, metaltr, debugstr)
                     if _P.drawsourcevia and _P.sourceviametal > 1 and
                         not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         for metal = 1, _P.sourceviametal - 1 do
@@ -1417,20 +1448,27 @@ function layout(transistor, _P)
                             end
                         end
                     end
+                    -- metal 1
                     geometry.rectanglebltr(transistor, generics.metal(1),
-                        point.create(shift - sdmetalshift, sourceoffset),
-                        point.create(shift + _P.sdmetalwidth - sdmetalshift, sourceoffset + _P.sourcesize)
+                        point.create(shift - sdmetalshift, sourceoffset - _P.sdm1botext),
+                        point.create(shift + _P.sdmetalwidth - sdmetalshift, sourceoffset + _P.sourcesize + _P.sdm1topext)
                     )
-                    for metal = 2, _P.sourceviametal do
+                    -- inter-level metals
+                    for metal = 2, _P.sourceviametal - 1 do
                         geometry.rectanglebltr(transistor, generics.metal(metal),
-                            point.create(shift - sdmetalshift, sourceviaoffset),
-                            point.create(shift + _P.sdmetalwidth - sdmetalshift, sourceviaoffset + _P.sourceviasize)
+                            point.create(shift - sdmetalshift, sourceviaoffset - _P.sdmxbotext),
+                            point.create(shift + _P.sdmetalwidth - sdmetalshift, sourceviaoffset + _P.sourceviasize + _P.sdmxtopext)
                         )
                     end
+                    -- top via metal
+                    geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
+                        point.create(shift - sdmetalshift, sourceviaoffset),
+                        point.create(shift + _P.sdmetalwidth - sdmetalshift, sourceviaoffset + _P.sourceviasize)
+                    )
                 end
                 -- anchors
-                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i), bl, tr)
-                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i - _P.fingers - 2), bl, tr)
+                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i), metalbl, metaltr)
+                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i - _P.fingers - 2), metalbl, metaltr)
                 transistor:add_area_anchor_bltr(string.format("sourcedrainmetal%d", i),
                     point.create(shift - sdmetalshift, sourceviaoffset),
                     point.create(shift + _P.sdmetalwidth - sdmetalshift, sourceviaoffset + _P.sourceviasize)
@@ -1445,11 +1483,13 @@ function layout(transistor, _P)
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "drain" then
             for i = 2, _P.fingers + 1, 2 do
                 local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
-                local bl = point.create(shift, drainoffset)
-                local tr = point.create(shift + _P.sdwidth, drainoffset + _P.drainsize)
+                local activebl = point.create(shift - _P.actext, drainoffset)
+                local activetr = point.create(shift + _P.actext + _P.sdwidth, drainoffset + _P.drainsize)
+                local metalbl = point.create(shift, drainoffset)
+                local metaltr = point.create(shift + _P.sdwidth, drainoffset + _P.drainsize)
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
-                    geometry.contactbarebltr(
-                        transistor, contacttype, bl, tr,
+                    geometry.contactbltr2(
+                        transistor, contacttype, activebl, activetr, metalbl, metaltr,
                         string.format(
                             "drain contact:\n    x parameters: sdwidth (%d)\n    y parameters: drainsize (%d)",
                             _P.sdwidth, _P.drainsize
@@ -1520,20 +1560,26 @@ function layout(transistor, _P)
                             end
                         end
                     end
+                    -- metal 1
                     geometry.rectanglebltr(transistor, generics.metal(1),
-                        point.create(shift - sdmetalshift, drainoffset),
-                        point.create(shift + _P.sdmetalwidth - sdmetalshift, drainoffset + _P.drainsize)
+                        point.create(shift - sdmetalshift, drainoffset - _P.sdm1botext),
+                        point.create(shift + _P.sdmetalwidth - sdmetalshift, drainoffset + _P.drainsize + _P.sdm1topext)
                     )
-                    for metal = 2, _P.drainviametal do
+                    -- inter-level metals
+                    for metal = 2, _P.drainviametal - 1 do
                         geometry.rectanglebltr(transistor, generics.metal(metal),
-                            point.create(shift - sdmetalshift, drainviaoffset),
-                            point.create(shift + _P.sdmetalwidth - sdmetalshift, drainviaoffset + _P.drainviasize)
+                            point.create(shift - sdmetalshift, drainviaoffset - _P.sdmxbotext),
+                            point.create(shift + _P.sdmetalwidth - sdmetalshift, drainviaoffset + _P.drainviasize + _P.sdmxtopext)
                         )
                     end
+                    geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
+                        point.create(shift - sdmetalshift, drainviaoffset),
+                        point.create(shift + _P.sdmetalwidth - sdmetalshift, drainviaoffset + _P.drainviasize)
+                    )
                 end
                 -- anchors
-                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i), bl, tr)
-                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i - _P.fingers - 2), bl, tr)
+                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i), metalbl, metaltr)
+                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i - _P.fingers - 2), metalbl, metaltr)
                 transistor:add_area_anchor_bltr(string.format("sourcedrainmetal%d", i),
                 point.create(shift - sdmetalshift, drainviaoffset),
                 point.create(shift + _P.sdmetalwidth - sdmetalshift, drainviaoffset + _P.drainviasize)

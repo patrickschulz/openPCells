@@ -14,7 +14,7 @@ function parameters()
         { "nonresdummies", 0 },
         { "extraextension", 0 * 50 },
         { "silicideblocker_coverall", true },
-        { "markextension", 200 },
+        { "silicideblockerextendx", technology.get_optional_dimension("Minium Silicideblocker Extension") },
         { "drawwell", false },
         { "welltype", "n", posvals = set("n", "p") },
         { "drawoxidetype", false },
@@ -27,7 +27,7 @@ function parameters()
         { "extendimplantx", technology.get_dimension("Minimum Implant Extension") },
         { "extendimplanty", technology.get_dimension("Minimum Implant Extension") },
         { "drawresistancelevel", false },
-        { "resistanclevel", 1 },
+        { "resistancelevel", 1 },
         { "resistancelevel_coverall", true },
         { "extendreslevelx", 0 },
         { "extendreslevely", 0 },
@@ -46,11 +46,20 @@ function parameters()
         { "guardring_contype", "p", posvals = set("p", "n") },
         { "guardring_xsep", 0 },
         { "guardring_ysep", 0 },
+        { "guardringwellinnerextension", technology.get_dimension("Minimum Well Extension") },
+        { "guardringwellouterextension", technology.get_dimension("Minimum Well Extension") },
+        { "guardringimplantinnerextension", technology.get_dimension("Minimum Implant Extension") },
+        { "guardringimplantouterextension", technology.get_dimension("Minimum Implant Extension") },
+        { "guardringsoiopeninnerextension", technology.get_optional_dimension("Minimum Soiopen Extension") },
+        { "guardringsoiopenouterextension", technology.get_optional_dimension("Minimum Soiopen Extension") },
+        { "guardringoxidetypeinnerextension", technology.get_dimension("Minimum Oxide Extension") },
+        { "guardringoxidetypeouterextension", technology.get_dimension("Minimum Oxide Extension") },
         { "addlabel", false },
         { "labeltext", "" },
         { "labellayer", false }, -- nil is not possible due to internal pcell handling
         { "labelxshift", 0 },
-        { "labelyshift", 0 }
+        { "labelyshift", 0 },
+        { "labelsizehint", 100 }
     )
 end
 
@@ -103,7 +112,8 @@ function layout(resistor, _P)
                     point.create(
                         (x - 1) * (_P.width + _P.xspace) + _P.width / 2 + _P.labelxshift,
                         yshift + _P.extraextension + _P.contactheight + _P.extension + _P.labelyshift
-                    )
+                    ),
+                    _P.labelsizehint
                 )
             end
         end
@@ -249,8 +259,8 @@ function layout(resistor, _P)
             local yshift = (y - 1) * ypitch
             local ystart = _P.extraextension + _P.contactheight + _P.extension
             geometry.rectanglebltr(resistor, generics.feol("silicideblocker"),
-                point.create(_P.nonresdummies * (_P.width + _P.xspace) - _P.markextension, ystart + yshift),
-                point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + _P.nonresdummies) * (_P.width + _P.xspace) - _P.xspace + _P.markextension, ystart + _P.length + yshift)
+                point.create(_P.nonresdummies * (_P.width + _P.xspace) - _P.silicideblockerextendx, ystart + yshift),
+                point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + _P.nonresdummies) * (_P.width + _P.xspace) - _P.xspace + _P.silicideblockerextendx, ystart + _P.length + yshift)
             )
         end
     else
@@ -258,8 +268,8 @@ function layout(resistor, _P)
             local xshift = (x + _P.nonresdummies - 1) * (_P.width + _P.xspace)
             for y = 1, _P.nyfingers do
                 geometry.rectanglebltr(resistor, generics.feol("silicideblocker"),
-                    point.create(xshift - _P.markextension, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace)),
-                    point.create(xshift + _P.width + _P.markextension, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace) + _P.length)
+                    point.create(xshift - _P.silicideblockerextendx, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace)),
+                    point.create(xshift + _P.width + _P.silicideblockerextendx, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace) + _P.length)
                 )
             end
         end
@@ -329,18 +339,18 @@ function layout(resistor, _P)
             for y = 1, _P.nyfingers do
                 local yshift = (y - 1) * ypitch
                 local ystart = _P.extraextension + _P.contactheight + _P.extension
-                geometry.rectanglebltr(resistor, generics.feol(string.format("resistancelevel%d", _P.resistanclevel)),
-                    point.create(_P.nonresdummies * (_P.width + _P.xspace) - _P.extendreslevelx, ystart + yshift),
-                    point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + _P.nonresdummies) * (_P.width + _P.xspace) - _P.xspace + _P.extendreslevely, ystart + _P.length + yshift)
+                geometry.rectanglebltr(resistor, generics.feol(string.format("resistancelevel%d", _P.resistancelevel)),
+                    point.create(_P.nonresdummies * (_P.width + _P.xspace) - _P.extendreslevelx, ystart + yshift - _P.extendreslevely),
+                    point.create((_P.nxfingers + _P.leftdummies + _P.rightdummies + _P.nonresdummies) * (_P.width + _P.xspace) - _P.xspace + _P.extendreslevelx, ystart + _P.length + yshift + _P.extendreslevely)
                 )
             end
         else
             for x = 1, _P.nxfingers + _P.leftdummies + _P.rightdummies do
                 local xshift = (x + _P.nonresdummies - 1) * (_P.width + _P.xspace)
                 for y = 1, _P.nyfingers do
-                    geometry.rectanglebltr(resistor, generics.feol(string.format("resistancelevel%d", _P.resistanclevel)),
-                        point.create(xshift - _P.extendreslevelx, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace)),
-                        point.create(xshift + _P.width + _P.extendreslevely, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace) + _P.length)
+                    geometry.rectanglebltr(resistor, generics.feol(string.format("resistancelevel%d", _P.resistancelevel)),
+                        point.create(xshift - _P.extendreslevelx, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace) - _P.extendreslevely),
+                        point.create(xshift + _P.width + _P.extendreslevelx, _P.contactheight + _P.extension + (y - 1) * (_P.length + _P.yspace) + _P.length + _P.extendreslevely)
                     )
                 end
             end
@@ -578,7 +588,7 @@ function layout(resistor, _P)
             (_P.nxfingers + _P.leftdummies + _P.rightdummies - 1) * _P.xspace +
             2 * _P.guardring_xsep
         local holeheight =
-            _P.nyfingers * (_P.length + 2 * _P.extension) +
+            _P.nyfingers * (_P.length + 2 * _P.extension + 2 * _P.extraextension) +
             (_P.nyfingers - 1) * _P.yspace +
             2 * _P.guardring_ysep
         if _P.yspace > 0 then
@@ -592,6 +602,17 @@ function layout(resistor, _P)
             holeheight = holeheight,
             ringwidth = _P.guardring_ringwidth,
             fillwell = true,
+            fillinnerimplant = _P.implant_coverall,
+            innerimplantpolarity = _P.guardring_contype,
+            drawoxidetype = _P.drawoxidetype,
+            filloxidetype = _P.drawoxidetype,
+            oxidetype = _P.oxidetype,
+            wellinnerextension = _P.guardringwellinnerextension,
+            wellouterextension = _P.guardringwellouterextension,
+            implantinnerextension = _P.guardringimplantinnerextension,
+            implantouterextension = _P.guardringimplantouterextension,
+            soiopeninnerextension = _P.guardringsoiopeninnerextension,
+            soiopenouterextension = _P.guardringsoiopenouterextension,
         })
         if _P.yspace > 0 then
             if _P.leftdummies > 0 then

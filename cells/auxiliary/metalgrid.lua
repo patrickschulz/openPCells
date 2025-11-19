@@ -27,7 +27,8 @@ function parameters()
         { "continuousvias", false },
         { "centergrid", true },
         { "flatvias", true },
-        { "flipvias", false }
+        { "flipvias", false },
+        { "drawfillexclude", false }
     )
 end
 
@@ -114,6 +115,34 @@ function layout(grid, _P)
                     end
                 end
             end
+        end
+    end
+
+    -- fill excludes
+    if _P.drawmetalh then
+        if _P.centergrid then
+            geometry.rectanglebltr(grid, generics.metalexclude(_P.metalh),
+                point.create(-_P.mvlines * (_P.mvwidth + _P.mvspace) / 2, -_P.mhlines * (_P.mhwidth + _P.mhspace) / 2),
+                point.create(_P.mvlines * (_P.mvwidth + _P.mvspace) / 2, _P.mhlines * (_P.mhwidth + _P.mhspace) / 2)
+            )
+        else
+            geometry.rectanglebltr(grid, generics.metalexclude(_P.metalh),
+                point.create(0, 0),
+                point.create(_P.mvlines * (_P.mvwidth + _P.mvspace), _P.mhlines * (_P.mhwidth + _P.mhspace))
+            )
+        end
+    end
+    if _P.drawmetalv then
+        if _P.centergrid then
+            geometry.rectanglebltr(grid, generics.metalexclude(_P.metalv),
+                point.create(-_P.mvlines * (_P.mvwidth + _P.mvspace) / 2, -_P.mhlines * (_P.mhwidth + _P.mhspace) / 2),
+                point.create(_P.mvlines * (_P.mvwidth + _P.mvspace) / 2, _P.mhlines * (_P.mhwidth + _P.mhspace) / 2)
+            )
+        else
+            geometry.rectanglebltr(grid, generics.metalexclude(_P.metalv),
+                point.create(0, 0),
+                point.create(_P.mvlines * (_P.mvwidth + _P.mvspace), _P.mhlines * (_P.mhwidth + _P.mhspace))
+            )
         end
     end
 
