@@ -1,6 +1,7 @@
 return {
     ["Minimum Active Width"]                        = 200,
     ["Minimum Source/Drain Contact Region Size"]    = 200,
+    ["Minimum Active Contact Region Size"]          = 200,
     ["Minimum Gate Contact Region Size"]            = 200,
     ["Minimum Active Contact Region Size"]          = 200,
     ["Minimum Well Extension"]                      = 100,
