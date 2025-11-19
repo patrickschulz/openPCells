@@ -42,6 +42,20 @@ void objectproxy_set_array(struct object_proxy* proxy, unsigned int xrep, unsign
     proxy->private.array_trans = transformationmatrix_create();
 }
 
+void objectproxy_translate_pt_to_array(const struct object_proxy* proxy, struct point* pt, int xindex, int yindex)
+{
+    // resolve negative indices
+    if(xindex < 0)
+    {
+        xindex = cell->private.xrep + xindex + 1;
+    }
+    if(yindex < 0)
+    {
+        yindex = cell->private.yrep + yindex + 1;
+    }
+    point_translate(pt, cell->private.xpitch * (xindex - 1), cell->private.ypitch * (yindex - 1));
+}
+
 void objectproxy_translate_x_to_array_end(coordinate_t* x)
 {
     *x += (cell->private.xrep - 1) * cell->private.xpitch;
@@ -50,4 +64,18 @@ void objectproxy_translate_x_to_array_end(coordinate_t* x)
 void objectproxy_translate_y_to_array_end(coordinate_t* y)
 {
     *y += (cell->private.yrep - 1) * cell->private.ypitch;
+}
+
+int objectproxy_check_array_bounds(const struct object_proxy* proxy, int xindex, int yindex)
+{
+
+    if(xindex > (int)proxy->private.xrep)
+    {
+        return 0;
+    }
+    if(yindex > (int)proxy->private.yrep)
+    {
+        return 0;
+    }
+    return 1;
 }

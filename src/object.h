@@ -61,7 +61,6 @@ struct point* object_get_alignmentbox_anchor_outerbl(const struct object* cell);
 struct point* object_get_alignmentbox_anchor_outertr(const struct object* cell);
 struct point* object_get_alignmentbox_anchor_innerbl(const struct object* cell);
 struct point* object_get_alignmentbox_anchor_innertr(const struct object* cell);
-const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
 
 // abutment and alignment
 int object_center(struct object* cell, const struct point* target);
@@ -173,11 +172,7 @@ int object_get_alignment_box_corners(
     coordinate_t* outerblx, coordinate_t* outerbly, coordinate_t* outertrx, coordinate_t* outertry,
     coordinate_t* innerblx, coordinate_t* innerbly, coordinate_t* innertrx, coordinate_t* innertry
 );
-void object_get_minmax_xy(
-    const struct object* cell,
-    coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp,
-    const struct transformationmatrix* extratrans
-);
+coordinate_t* object_get_minmax_xy(const struct object* cell);
 void object_width_height_alignmentbox(const struct object* cell, ucoordinate_t* width, ucoordinate_t* height);
 
 // transformations

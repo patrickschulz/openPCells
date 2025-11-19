@@ -7,6 +7,7 @@
 #include "object.full.h"
 #include "object.ports.h"
 #include "object.proxy.h"
+#include "object.util.h"
 #undef OPC_OBJECT_IMPLEMENTATION
 
 #include <stdlib.h>
@@ -36,6 +37,7 @@ struct object {
 #define PROXY(obj) &obj->content.proxy
 #define FULL(obj) &obj->content.full
 #define REFERENCE(obj) objectproxy_get_reference(&obj->content.proxy)
+#define FULLREFERENCE(obj) FULL(REFERENCE(obj))
 
 #define CHECK_FULL(obj) OPC_ASSERT_MSG2(objectcommon_is_full(COMMON(obj)), __func__, ": object given must be a full object")
 #define CHECK_PROXY(obj) OPC_ASSERT_MSG2(objectcommon_is_proxy(COMMON(obj)), __func__, ": object given must be a proxy object")
@@ -195,7 +197,7 @@ void object_inherit_all_anchors_with_prefix(struct object* cell, const struct ob
     CHECK_FULL_OR_PROXY(other);
     if(object_is_proxy(other))
     {
-        objectfull_inherit_all_anchors_with_prefix(FULL(cell), FULL(REFERENCE(other)), prefix);
+        objectfull_inherit_all_anchors_with_prefix(FULL(cell), FULLREFERENCE(other), prefix);
     }
     else
     {
@@ -330,193 +332,71 @@ coordinate_t* objectbase_get_transformed_bounding_box(const struct object* cell)
     coordinate_t* boundingbox = object_get_minmax_xy(cell);
     objectbase_transform_to_global_coordinates_xy(cell, boundingbox + 0, boundingbox + 1);
     objectbase_transform_to_global_coordinates_xy(cell, boundingbox + 2, boundingbox + 3);
-    _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
+    objectutil_fix_rectangle_order_xy(boundingbox + 0, boundingbox + 1, boundingbox + 2, boundingbox + 3);
     return boundingbox;
 }
 
 struct anchor* objectbase_get_anchor(const struct object* cell, const char* name)
 {
-    const struct object* obj = cell;
     if(object_is_proxy(cell))
     {
-        obj = cell->content.proxy.reference;
+        return objectfull_get_anchor(FULLREFERENCE(cell), name);
     }
-    if(obj->content.full.anchors)
+    else
     {
-        if(hashmap_exists(obj->content.full.anchors, name))
-        {
-            return hashmap_get(obj->content.full.anchors, name);
-        }
+        return objectfull_get_anchor(FULL(cell), name);
     }
-    return NULL;
 }
 
-struct point* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name)
+coordinate_t* objectbase_get_anchor_line(const struct object* cell, const char* name)
 {
+    if(object_is_proxy(cell))
+    {
+        return objectfull_get_anchor_line(FULLREFERENCE(cell), name);
+    }
+    else
+    {
+        return objectfull_get_anchor_line(FULL(cell), name);
+    }
+}
+
+struct point* objectbase_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name)
+{
+    CHECK_PROXY(cell);
     if(!object_is_child_array(cell))
     {
         return NULL;
     }
-    // resolve negative indices
-    if(xindex < 0)
+    if(!objectproxy_check_array_bounds(PROXY(cell), xindex, yindex))
     {
-        xindex = cell->content.proxy.xrep + xindex + 1;
-    }
-    if(yindex < 0)
-    {
-        yindex = cell->content.proxy.yrep + yindex + 1;
+        return NULL;
     }
     struct point* pt = object_get_anchor(cell, name);
     if(pt)
     {
-        point_translate(pt, cell->content.proxy.xpitch * (xindex - 1), cell->content.proxy.ypitch * (yindex - 1));
-        return pt;
+        objectproxy_translate_pt_to_array(PROXY(cell), pt, xindex, yindex);
     }
-    // no anchor found
-    return NULL;
+    return pt;
 }
 
-struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base)
+struct point* objectbase_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base)
 {
+    CHECK_PROXY(cell);
     if(!object_is_child_array(cell))
     {
         return NULL;
     }
-    if(xindex > (int)cell->content.proxy.xrep)
+    if(!objectproxy_check_array_bounds(PROXY(cell), xindex, yindex))
     {
         return NULL;
     }
-    if(yindex > (int)cell->content.proxy.yrep)
+    struct point* pts = object_get_area_anchor(cell, base);
+    if(pts)
     {
-        return NULL;
+        objectproxy_translate_pt_to_array(PROXY(cell), pts + 0, xindex, yindex);
+        objectproxy_translate_pt_to_array(PROXY(cell), pts + 1, xindex, yindex);
     }
-    // resolve negative indices
-    if(xindex < 0)
-    {
-        xindex = cell->content.proxy.xrep + xindex + 1;
-    }
-    if(yindex < 0)
-    {
-        yindex = cell->content.proxy.yrep + yindex + 1;
-    }
-
-    const struct object* obj = cell->content.proxy.reference;
-    if(obj->content.full.anchors)
-    {
-        if(hashmap_exists(obj->content.full.anchors, base) && objectanchor_is_area(hashmap_get(obj->content.full.anchors, base)))
-        {
-            struct anchor* anchor = hashmap_get(obj->content.full.anchors, base);
-            struct point* pts = malloc(2 * sizeof(*pts));
-            objectanchor_get_area_points(anchor, pts);
-            objectbase_transform_to_global_coordinates(cell, pts + 0);
-            objectbase_transform_to_global_coordinates(cell, pts + 1);
-            if(pts[0].x > pts[1].x)
-            {
-                SWAP(pts[0].x, pts[1].x, coordinate_t);
-            }
-            if(pts[0].y > pts[1].y)
-            {
-                SWAP(pts[0].y, pts[1].y, coordinate_t);
-            }
-            // translate for array
-            pts[0].x += xindex * cell->content.proxy.xpitch;
-            pts[0].y += yindex * cell->content.proxy.ypitch;
-            pts[1].x += xindex * cell->content.proxy.xpitch;
-            pts[1].y += yindex * cell->content.proxy.ypitch;
-            return pts;
-        }
-    }
-    return NULL;
-}
-
-coordinate_t* object_get_anchor_line_x(const struct object* cell, const char* name)
-{
-    const struct object* obj = cell;
-    if(object_is_proxy(cell))
-    {
-        obj = cell->content.proxy.reference;
-    }
-
-    if(obj->content.full.anchorlines)
-    {
-        if(hashmap_exists(obj->content.full.anchorlines, name))
-        {
-            coordinate_t* x = hashmap_get(obj->content.full.anchorlines, name);
-            coordinate_t dummy = 0;
-            objectbase_transform_to_global_coordinates_xy(cell, x, &dummy);
-            return x;
-        }
-    }
-    return NULL;
-}
-
-coordinate_t* object_get_anchor_line_y(const struct object* cell, const char* name)
-{
-    const struct object* obj = cell;
-    if(object_is_proxy(cell))
-    {
-        obj = cell->content.proxy.reference;
-    }
-
-    if(obj->content.full.anchorlines)
-    {
-        if(hashmap_exists(obj->content.full.anchorlines, name))
-        {
-            coordinate_t* y = hashmap_get(obj->content.full.anchorlines, name);
-            coordinate_t dummy = 0;
-            objectbase_transform_to_global_coordinates_xy(cell, &dummy, y);
-            return y;
-        }
-    }
-    return NULL;
-}
-
-const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
-{
-    struct hashmap* anchors = hashmap_create(objectanchor_destroy);
-    const struct object* obj = cell;
-    if(object_is_proxy(cell))
-    {
-        obj = cell->content.proxy.reference;
-    }
-    if(obj->content.full.anchors)
-    {
-        struct hashmap_const_iterator* it = hashmap_const_iterator_create(obj->content.full.anchors);
-        while(hashmap_const_iterator_is_valid(it))
-        {
-            const char* key = hashmap_const_iterator_key(it);
-            const struct anchor* anchor = hashmap_const_iterator_value(it);
-            if(objectanchor_is_area(anchor))
-            {
-                // use the proper object API functions to deal with coordinate transformation
-                struct point* pts = object_get_area_anchor(obj, key);
-                size_t len = strlen(key);
-                char* name = malloc(len + 2 + 1);
-                strcpy(name, key);
-                name[len + 0] = 'b';
-                name[len + 1] = 'l';
-                hashmap_insert(anchors, name, point_create(pts[0].x, pts[0].y));
-                name[len + 0] = 'b';
-                name[len + 1] = 'r';
-                hashmap_insert(anchors, name, point_create(pts[1].x, pts[0].y));
-                name[len + 0] = 't';
-                name[len + 1] = 'l';
-                hashmap_insert(anchors, name, point_create(pts[0].x, pts[1].y));
-                name[len + 0] = 't';
-                name[len + 1] = 'r';
-                hashmap_insert(anchors, name, point_create(pts[1].x, pts[1].y));
-            }
-            else
-            {
-                struct point* pt = object_get_anchor(obj, key);
-                hashmap_insert(anchors, key, pt);
-            }
-            hashmap_const_iterator_next(it);
-        }
-        hashmap_const_iterator_destroy(it);
-        return obj->content.full.anchors;
-    }
-    return NULL;
+    return pts;
 }
 
 void object_set_boundary(struct object* cell, struct vector* boundary)
@@ -1356,23 +1236,7 @@ void object_scale(struct object* cell, double factor)
     transformationmatrix_scale(cell->trans, factor);
 }
 
-static void _fix_minmax_order(coordinate_t *minx, coordinate_t* miny, coordinate_t* maxx, coordinate_t* maxy)
-{
-    if(*minx > *maxx)
-    {
-        coordinate_t tmp = *minx;
-        *minx = *maxx;
-        *maxx = tmp;
-    }
-    if(*miny > *maxy)
-    {
-        coordinate_t tmp = *miny;
-        *miny = *maxy;
-        *maxy = tmp;
-    }
-}
-
-void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
+coordinate_t* object_get_minmax_xy(const struct object* cell)
 {
     coordinate_t* minmax = calloc(4, sizeof(coordinate_t)); // order: minx, miny, maxx, maxy
     // FIXME: arrays?

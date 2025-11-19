@@ -379,6 +379,30 @@ int objectfull_add_anchor_line_xy(struct object_full* full, const char* name, co
     return 1;
 }
 
+struct anchor* objectfull_get_anchor(const struct object_full* cell, const char* name)
+{
+    if(hashmap_exists(obj->private.anchors, name))
+    {
+        return hashmap_get(obj->private.anchors, name);
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+coordinate_t* objectfull_get_anchor_line(const struct object_full* cell, const char* name)
+{
+    if(hashmap_exists(obj->private.anchorlines, name))
+    {
+        return hashmap_get(obj->private.anchorlines, name);
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
 coordinate_t* objectfull_get_alignment_box(const struct object_full* full)
 {
     if(!full->private.alignmentbox)

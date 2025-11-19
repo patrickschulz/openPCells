@@ -1,3 +1,7 @@
+#ifndef OPC_OBJECT_IMPLEMENTATION
+#error "This header must only be included in the implementation files of the object module. It is not intended for external use."
+#endif
+
 #ifndef OPC_OBJECT_UTIL_H
 #define OPC_OBJECT_UTIL_H
 

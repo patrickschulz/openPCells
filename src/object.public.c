@@ -237,17 +237,50 @@ struct point* object_get_area_anchor(const struct object* cell, const char* base
         objectanchor_get_area_points(anchor, pts);
         objectbase_transform_to_global_coordinates(cell, pts + 0);
         objectbase_transform_to_global_coordinates(cell, pts + 1);
-        if(pts[0].x > pts[1].x)
-        {
-            SWAP(pts[0].x, pts[1].x, coordinate_t);
-        }
-        if(pts[0].y > pts[1].y)
-        {
-            SWAP(pts[0].y, pts[1].y, coordinate_t);
-        }
+        objectutil_fix_rectangle_order(pts + 0, pts + 1);
         return pts;
     }
     return NULL;
+}
+
+struct point* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name)
+{
+    return objectbase_get_array_anchor(cell, xindex, yindex, name);
+}
+
+struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base)
+{
+    return objectbase_get_array_area_anchor(cell, xindex, yindex, name);
+}
+
+coordinate_t* object_get_anchor_line_x(const struct object* cell, const char* name)
+{
+    coordinate_t* c = objectbase_get_anchor_line(cell, name);
+    if(c)
+    {
+        coordinate_t dummy;
+        objectbase_transform_to_global_coordinates_xy(cell, c, &dummy);
+        return c;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+coordinate_t* object_get_anchor_line_y(const struct object* cell, const char* name)
+{
+    coordinate_t* c = objectbase_get_anchor_line(cell, name);
+    if(c)
+    {
+        coordinate_t dummy;
+        objectbase_transform_to_global_coordinates_xy(cell, &dummy, c);
+        return c;
+    }
+    else
+    {
+        return NULL;
+    }
 }
 
 // ************************************************************************************************************************ 

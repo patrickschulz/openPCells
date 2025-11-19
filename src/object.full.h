@@ -43,6 +43,8 @@ void objectfull_merge_into(struct object_full* cell, const struct object_full* o
 int objectfull_add_anchor(struct object_full* full, const char* name, struct anchor* anchor);
 void objectfull_inherit_all_anchors_with_prefix(struct object_full* cell, const struct object_full* other, const char* prefix);
 int objectfull_add_anchor_line_xy(struct object_full* full, const char* name, coordinate_t c, int xory);
+struct anchor* objectfull_get_anchor(const struct object_full* cell, const char* name);
+coordinate_t* objectfull_get_anchor_line(const struct object_full* cell, const char* name);
 
 // alignment box
 coordinate_t* objectfull_get_alignment_box(const struct object_full* full);

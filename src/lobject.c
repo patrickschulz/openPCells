@@ -1120,25 +1120,6 @@ static int lobject_get_array_area_anchor(lua_State* L)
     return 1;
 }
 
-static int lobject_get_all_regular_anchors(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    const struct hashmap* anchors = object_get_all_regular_anchors(lobject_get_const(cell));
-    struct hashmap_const_iterator* iterator = hashmap_const_iterator_create(anchors);
-    lua_newtable(L);
-    while(hashmap_const_iterator_is_valid(iterator))
-    {
-        const char* key = hashmap_const_iterator_key(iterator);
-        const struct point* anchor = hashmap_const_iterator_value(iterator);
-        struct point* pt = point_copy(anchor);
-        lpoint_adapt_point(L, pt);
-        lua_setfield(L, -2, key);
-        hashmap_const_iterator_next(iterator);
-    }
-    hashmap_const_iterator_destroy(iterator);
-    return 1;
-}
-
 static int lobject_get_anchor_line_x(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1906,7 +1887,6 @@ int open_lobject_lib(lua_State* L)
         { "get_area_anchor_fmt",                    lobject_get_area_anchor_fmt                 },
         { "get_array_anchor",                       lobject_get_array_anchor                    },
         { "get_array_area_anchor",                  lobject_get_array_area_anchor               },
-        { "get_all_regular_anchors",                lobject_get_all_regular_anchors             },
         { "get_anchor_line_x",                      lobject_get_anchor_line_x                   },
         { "get_anchor_line_y",                      lobject_get_anchor_line_y                   },
         { "add_port",                               lobject_add_port                            },

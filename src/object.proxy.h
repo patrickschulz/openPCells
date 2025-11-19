@@ -24,7 +24,10 @@ void objectproxy_destroy(struct object_proxy* proxy);
 const struct object* objectproxy_get_reference(const struct object_proxy* proxy);
 void objectproxy_set_array(struct object_proxy* proxy, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch);
 
+// handle array translation
+void objectproxy_translate_pt_to_array(const struct object_proxy* proxy, struct point* pt, int xindex, int yindex);
 void objectproxy_translate_x_to_array_end(const struct object_proxy* proxy, coordinate_t* x);
 void objectproxy_translate_y_to_array_end(const struct object_proxy* proxy, coordinate_t* y);
+int objectproxy_check_array_bounds(const struct object_proxy* proxy, int xindex, int yindex);
 
 #endif /* OPC_OBJECT_PROXY_H */

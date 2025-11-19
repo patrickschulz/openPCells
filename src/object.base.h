@@ -41,6 +41,9 @@ int objectbase_add_anchor(struct object* cell, const char* name, struct anchor* 
 coordinate_t* objectbase_get_transformed_alignment_box(const struct object* cell);
 coordinate_t* objectbase_get_transformed_bounding_box(const struct object* cell);
 struct anchor* objectbase_get_anchor(const struct object* cell, const char* name);
+struct point* objectbase_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base);
+struct point* objectbase_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
+coordinate_t* objectbase_get_anchor_line(const struct object* cell, const char* name);
 const struct transformationmatrix* objectbase_get_tmatrix(const struct object* cell);
 void objectbase_set_tmatrix(struct object* cell, struct transformationmatrix* matrix);
 void objectbase_transform_to_local_coordinates_xy(const struct object* cell, coordinate_t* x, coordinate_t* y);
