@@ -482,7 +482,6 @@ static void _print_api_entry(const struct api_entry* entry)
     putchar('\n');
     print_wrapped_paragraph(entry->info, 0, 0); // 0, 0: auto-width mode, zero left margin
     putchar('\n');
-    putchar('\n');
 
     // detailed parameter list
     _print_parameters(entry->parameters);
