@@ -49,4 +49,12 @@ coordinate_t* objectfull_get_anchor_line(const struct object_full* cell, const c
 // alignment box
 coordinate_t* objectfull_get_alignment_box(const struct object_full* full);
 
+// boundaries
+struct vector* objectfull_set_boundary(struct object_full* full, struct vector* boundary);
+struct vector* objectfull_get_boundary(const struct object_full* full);
+int objectfull_has_boundary(const struct object_full* full);
+void objectfull_set_empty_layer_boundary(struct object_full* full, const struct generics* layer);
+void objectfull_add_layer_boundary(struct object_full* full, const struct generics* layer, struct simple_polygon* new);
+int objectfull_has_layer_boundary(const struct object_full* full, const struct generics* layer);
+
 #endif /* OPC_OBJECT_FULL_H */

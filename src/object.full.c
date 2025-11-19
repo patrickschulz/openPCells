@@ -416,3 +416,79 @@ coordinate_t* objectfull_get_alignment_box(const struct object_full* full)
         return alignmentbox;
     }
 }
+
+struct vector* objectfull_set_boundary(struct object_full* full, struct vector* boundary)
+{
+    if(full->private.boundary)
+    {
+        vector_destroy(full->private.boundary);
+    }
+    full->private.boundary = vector_create(vector_size(boundary), point_destroy);
+    struct vector_const_iterator* it = vector_const_iterator_create(boundary);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const struct point* pt = vector_const_iterator_get(it);
+        struct point* newpt = point_copy(pt);
+        transformationmatrix_apply_inverse_transformation(full->trans, newpt);
+        vector_append(cullell->private.boundary, newpt);
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    return full->private.boundary;
+}
+
+struct vector* objectfull_get_boundary(const struct object_full* full)
+{
+    if(full->private.boundary)
+    {
+        return full->private.boundary;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+int objectfull_has_boundary(const struct object_full* full)
+{
+    if(full->private.boundary)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void objectfull_set_empty_layer_boundary(struct object_full* full, const struct generics* layer)
+{
+    if(!full->private.layer_boundaries)
+    {
+        full->private.layer_boundaries = hashmap_create(polygon_container_destroy);
+    }
+    if(hashmap_exists(full->private.layer_boundaries, (const char*)layer))
+    {
+        struct polygon_container* boundary = hashmap_get(full->private.layer_boundaries, (const char*)layer);
+        polygon_container_destroy(boundary);
+    }
+    struct polygon_container* boundary = polygon_container_create_empty();
+    hashmap_insert(full->private.layer_boundaries, (const char*)layer, boundary);
+}
+
+void objectfull_add_layer_boundary(struct object_full* full, const struct generics* layer, struct simple_polygon* new)
+{
+    if(!full->private.layer_boundaries)
+    {
+        full->private.layer_boundaries = hashmap_create(polygon_container_destroy);
+    }
+    if(!hashmap_exists(full->private.layer_boundaries, (const char*)layer))
+    {
+        struct polygon_container* polygon_container = polygon_container_create();
+        hashmap_insert(full->private.layer_boundaries, (const char*)layer, polygon_container);
+    }
+    struct polygon_container* boundary = hashmap_get(full->private.layer_boundaries, (const char*)layer);
+    // add transformed polygon
+    polygon_container_add(boundary, new);
+}
+

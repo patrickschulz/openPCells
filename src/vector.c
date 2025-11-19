@@ -276,6 +276,19 @@ int vector_find_flat(const struct vector* vector, const void* p)
     return index;
 }
 
+int vector_foreach(struct vector* vector, anchor_action action, struct generic_arg* extraargs)
+{
+    for(size_t i = 0; i < vector->size; ++i)
+    {
+        int ret = action(vector->elements[i], extraargs);
+        if(!ret)
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 void vector_foreach0(struct vector* vector, void (*func) (void* v))
 {
     for(size_t i = 0; i < vector->size; ++i)

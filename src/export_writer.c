@@ -1072,12 +1072,16 @@ static int _initialize(struct export_writer* writer, const struct object* object
     if(writer->islua)
     {
         lua_getfield(writer->interface.L, -1, "initialize");
-        coordinate_t minx, maxx, miny, maxy;
-        object_get_minmax_xy(object, &minx, &miny, &maxx, &maxy, NULL); // NULL: no extra transformation matrix
-        lua_pushinteger(writer->interface.L, minx);
-        lua_pushinteger(writer->interface.L, maxx);
-        lua_pushinteger(writer->interface.L, miny);
-        lua_pushinteger(writer->interface.L, maxy);
+        coordinate_t* minmax = object_get_minmax_xy(object);
+        // FIXME: no transformation?
+        // FIXME: the order is skewed, as the order for the function call 'initialize'
+        //        and the return order of object_get_minmax_xy is different
+        //        It would be better to use a common interface for all these things,
+        //        there is already bltrshape, why not use that?
+        lua_pushinteger(writer->interface.L, minmax[0]);
+        lua_pushinteger(writer->interface.L, minmax[2]);
+        lua_pushinteger(writer->interface.L, minmax[1]);
+        lua_pushinteger(writer->interface.L, minmax[3]);
         int ret = _pcall(writer->interface.L, 4, 0, "initialize");
         if(!ret)
         {

@@ -247,6 +247,40 @@ void objectbase_transform_to_global_coordinates(const struct object* cell, struc
     objectbase_transform_to_global_coordinates_xy(cell, &pt->x, &pt->y);
 }
 
+static int _transform_array_point_to_local_coordinates(void* v, struct generic_arg* args)
+{
+    struct point* pt = v;
+    const struct object* cell = args_get_const_pointer(args, 1);
+    objectbase_transform_to_local_coordinates(cell, pt);
+    return 1;
+}
+
+void objectbase_transform_to_local_coordinates_pts(const struct object* cell, struct vector* pts)
+{
+    struct generic_arg args[] = {
+        { .type = ARG_CONST_POINTER, .content.cptr = cell },
+        { .type = ARG_END }
+    };
+    vector_foreach(pts, _transform_array_point_to_local_coordinates, args);
+}
+
+static int _transform_array_point_to_global_coordinates(void* v, struct generic_arg* args)
+{
+    struct point* pt = v;
+    const struct object* cell = args_get_const_pointer(args, 1);
+    objectbase_transform_to_global_coordinates(cell, pt);
+    return 1;
+}
+
+void objectbase_transform_to_global_coordinates_pts(const struct object* cell, struct vector* pts)
+{
+    struct generic_arg args[] = {
+        { .type = ARG_CONST_POINTER, .content.cptr = cell },
+        { .type = ARG_END }
+    };
+    vector_foreach(pts, _transform_array_point_to_global_coordinates, args);
+}
+
 static void _check_coordinates(coordinate_t* alignmentbox, size_t idx1, size_t idx2)
 {
     if(alignmentbox[idx1] > alignmentbox[idx2])
@@ -399,83 +433,72 @@ struct point* objectbase_get_array_area_anchor(const struct object* cell, int xi
     return pts;
 }
 
-void object_set_boundary(struct object* cell, struct vector* boundary)
+void objectbase_set_boundary(struct object* cell, struct vector* boundary)
 {
-    cell->content.full.boundary = vector_create(vector_size(boundary), point_destroy);
-    struct vector_const_iterator* it = vector_const_iterator_create(boundary);
-    while(vector_const_iterator_is_valid(it))
-    {
-        const struct point* pt = vector_const_iterator_get(it);
-        struct point* newpt = point_copy(pt);
-        transformationmatrix_apply_inverse_transformation(cell->trans, newpt);
-        vector_append(cell->content.full.boundary, newpt);
-        vector_const_iterator_next(it);
-    }
-    vector_const_iterator_destroy(it);
+    CHECK_FULL(cell);
+    struct vector* new = objectfull_set_boundary(FULL(cell), boundary);
+    objectbase_transform_to_local_coordinates_pts(cell, new);
 }
 
-void object_set_empty_layer_boundary(struct object* cell, const struct generics* layer)
+struct vector* objectbase_get_boundary(const struct object* cell)
 {
-    if(!cell->content.full.layer_boundaries)
+    CHECK_FULL_OR_PROXY(cell);
+    struct vector* boundary = NULL;
+    if(object_is_proxy(cell))
     {
-        cell->content.full.layer_boundaries = hashmap_create(polygon_container_destroy);
+        boundary = objectfull_get_boundary(FULLREFERENCE(cell));
+        objectbase_transform_to_global_coordinates_pts(cell, boundary);
     }
-    if(hashmap_exists(cell->content.full.layer_boundaries, (const char*)layer))
+    else
     {
-        struct polygon_container* boundary = hashmap_get(cell->content.full.layer_boundaries, (const char*)layer);
-        polygon_container_destroy(boundary);
+        boundary = objectfull_get_boundary(FULL(cell));
+        objectbase_transform_to_global_coordinates_pts(cell, boundary);
     }
-    struct polygon_container* boundary = polygon_container_create_empty();
-    hashmap_insert(cell->content.full.layer_boundaries, (const char*)layer, boundary);
+    return boundary;
 }
 
-void object_add_layer_boundary(struct object* cell, const struct generics* layer, struct simple_polygon* new)
+void objectbase_inherit_boundary(struct object* cell, const struct object* othercell)
 {
-    if(!cell->content.full.layer_boundaries)
+    CHECK_FULL(cell);
+    CHECK_FULL_OR_PROXY(othercell);
+    struct vector* boundary = objectbase_get_boundary(othercell);
+    objectbase_set_boundary(cell, boundary);
+}
+
+int object_has_boundary(const struct object* cell)
+{
+    if(object_is_proxy(cell))
     {
-        cell->content.full.layer_boundaries = hashmap_create(polygon_container_destroy);
+        return objectfull_has_boundary(FULLREFERENCE(cell));
     }
-    if(!hashmap_exists(cell->content.full.layer_boundaries, (const char*)layer))
+    else
     {
-        struct polygon_container* polygon_container = polygon_container_create();
-        hashmap_insert(cell->content.full.layer_boundaries, (const char*)layer, polygon_container);
+        return objectfull_has_boundary(FULL(cell));
     }
-    struct polygon_container* boundary = hashmap_get(cell->content.full.layer_boundaries, (const char*)layer);
+}
+
+void objectbase_set_empty_layer_boundary(struct object* cell, const struct generics* layer)
+{
+    CHECK_FULL(cell);
+    objectfull_set_empty_layer_boundary(FULL(cell), layer);
+}
+
+void objectbase_add_layer_boundary(struct object* cell, const struct generics* layer, struct simple_polygon* new)
+{
+    CHECK_FULL(cell);
+    objectfull_add_layer_boundary(FULL(cell), layer, new);
     // transform points to local coordinates
+    // NOTE: the object takes ownership of the 'new' polygon
+    // This works because this function is called from lua, where a new polygon is assembled from a table.
+    // If this ever changes, handle this the same way as cell boundaries: return a pointer to the new polygon, transform here
     struct simple_polygon_iterator* it = simple_polygon_iterator_create(new);
     while(simple_polygon_iterator_is_valid(it))
     {
         struct point* pt = simple_polygon_iterator_get(it);
-        transformationmatrix_apply_inverse_transformation(cell->trans, pt);
+        objectbase_transform_to_local_coordinates(cell, pt);
         simple_polygon_iterator_next(it);
     }
     simple_polygon_iterator_destroy(it);
-    // add transformed polygon
-    polygon_container_add(boundary, new);
-}
-
-void object_inherit_boundary(struct object* cell, const struct object* othercell)
-{
-    cell->content.full.boundary = vector_create(4, point_destroy);
-    struct vector_const_iterator* it;
-    if(object_is_proxy(othercell))
-    {
-        it = vector_const_iterator_create(othercell->content.proxy.reference->content.full.boundary);
-    }
-    else
-    {
-        it = vector_const_iterator_create(othercell->content.full.boundary);
-    }
-    while(vector_const_iterator_is_valid(it))
-    {
-        const struct point* pt = vector_const_iterator_get(it);
-        struct point* newpt = point_copy(pt);
-        transformationmatrix_apply_transformation(othercell->trans, newpt);
-        transformationmatrix_apply_inverse_transformation(cell->trans, newpt);
-        vector_append(cell->content.full.boundary, newpt);
-        vector_const_iterator_next(it);
-    }
-    vector_const_iterator_destroy(it);
 }
 
 void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer)
@@ -494,80 +517,17 @@ void object_inherit_layer_boundary(struct object* cell, const struct object* oth
     polygon_container_destroy(boundary);
 }
 
-int object_has_boundary(const struct object* cell)
-{
-    if(object_is_proxy(cell))
-    {
-        return cell->content.proxy.reference->content.full.boundary ? 1 : 0;
-    }
-    else
-    {
-        return cell->content.full.boundary ? 1 : 0;
-    }
-}
-
-struct vector* object_get_boundary(const struct object* cell)
-{
-    struct vector* boundary = vector_create(4, point_destroy);
-    if(object_is_proxy(cell))
-    {
-        struct vector* cellboundary = cell->content.proxy.reference->content.full.boundary;
-        if(cellboundary)
-        {
-            struct vector_const_iterator* it = vector_const_iterator_create(cellboundary);
-            while(vector_const_iterator_is_valid(it))
-            {
-                const struct point* pt = vector_const_iterator_get(it);
-                struct point* newpt = point_copy(pt);
-                transformationmatrix_apply_transformation(cell->content.proxy.reference->trans, newpt);
-                transformationmatrix_apply_transformation(cell->trans, newpt);
-                vector_append(boundary, newpt);
-                vector_const_iterator_next(it);
-            }
-            vector_const_iterator_destroy(it);
-        }
-        else
-        {
-            coordinate_t blx, bly, trx, try;
-            object_get_minmax_xy(cell->content.proxy.reference, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
-            transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
-            transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
-            vector_append(boundary, point_create(blx, bly));
-            vector_append(boundary, point_create(trx, bly));
-            vector_append(boundary, point_create(trx, try));
-            vector_append(boundary, point_create(blx, try));
-        }
-    }
-    else
-    {
-        struct vector* cellboundary = cell->content.full.boundary;
-        if(cellboundary)
-        {
-            struct vector_const_iterator* it = vector_const_iterator_create(cellboundary);
-            while(vector_const_iterator_is_valid(it))
-            {
-                const struct point* pt = vector_const_iterator_get(it);
-                struct point* newpt = point_copy(pt);
-                transformationmatrix_apply_transformation(cell->trans, newpt);
-                vector_append(boundary, newpt);
-                vector_const_iterator_next(it);
-            }
-            vector_const_iterator_destroy(it);
-        }
-        else
-        {
-            coordinate_t blx, bly, trx, try;
-            object_get_minmax_xy(cell, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
-            vector_append(boundary, point_create(blx, bly));
-            vector_append(boundary, point_create(trx, bly));
-            vector_append(boundary, point_create(trx, try));
-            vector_append(boundary, point_create(blx, try));
-        }
-    }
-    return boundary;
-}
-
 int object_has_layer_boundary(const struct object* cell, const struct generics* layer)
+{
+    if(object_is_proxy(cell))
+    {
+        return objectfull_has_layer_boundary(FULLREFERENCE(cell), layer);
+    }
+    else
+    {
+        return objectfull_has_layer_boundary(FULL(cell), layer);
+    }
+}
 {
     if(object_is_proxy(cell))
     {
