@@ -23,15 +23,15 @@ procedure(OPCPrepareArgsForCellCreation(args origin @key (useOrigin t) (groupnam
         then
             OPCArgs = lsprintf(
                 "--technology %s --export %s --origin '(%d, %d)' --ignore-malformed-shapes --resolve-path-extensions %s -X '-L %f'"
-                OPCTech exporttype 
-                fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
+                OPCTech exporttype
+                fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin))
                 args
                 OPCSettingsForm->OPCSettingsLabelSize->value
             )
         else
             OPCArgs = lsprintf(
                 "--technology %s --export %s --ignore-malformed-shapes --resolve-path-extensions %s -X '-L %f'"
-                OPCTech exporttype 
+                OPCTech exporttype
                 args
                 OPCSettingsForm->OPCSettingsLabelSize->value
             )
@@ -87,27 +87,42 @@ procedure(OPCCall(OPCCommand @key (redirect nil))
             printf("opc call: %s\n" OPCCommand)
         )
         pid = ipcBeginProcess(OPCCommand)
-        ipcWait(pid 30 300) ; wait for process to finish
-        exitstatus = ipcGetExitStatus(pid)
-        if(exitstatus != 0
-            then 
-                warn("opc call failed, command was: %s\n" OPCCommand)
-                errmsg = ipcReadProcess(pid)
-                unless(errmsg
-                    errmsg = "unknown error, this is a bug in opc (likely a segmentation fault)"
-                )
+        ipcWait(pid 30 OPCSettingsForm->OPCSettingsTimeout->value) ; wait for process to finish
+        if(ipcIsAliveProcess(pid)
+            then
+                ; opc timed-out, kill
+                ipcKillProcess(pid)
                 hiDisplayAppDBox(
                     ?name        'OPCInfoDialog
                     ?dboxBanner  "openPCells"
-                    ?dboxText    lsprintf("errors while executing opc: %s" errmsg)
+                    ?dboxText    lsprintf("opc call took too long and was killed. The time-out length (current value: %d seconds) can be set in the opc setttings form" OPCSettingsForm->OPCSettingsTimeout->value)
                     ?dialogType   hicWarningDialog
                     ?dialogStyle 'modeless
                     ?buttonLayout 'Close
                 )
                 nil
             else
-                t
-        ) ; if exitstatus
+                exitstatus = ipcGetExitStatus(pid)
+                if(exitstatus != 0
+                    then
+                        warn("opc call failed, command was: %s\n" OPCCommand)
+                        errmsg = ipcReadProcess(pid)
+                        unless(errmsg
+                            errmsg = "unknown error, this is a bug in opc (likely a segmentation fault)"
+                        )
+                        hiDisplayAppDBox(
+                            ?name        'OPCInfoDialog
+                            ?dboxBanner  "openPCells"
+                            ?dboxText    lsprintf("errors while executing opc: %s" errmsg)
+                            ?dialogType   hicWarningDialog
+                            ?dialogStyle 'modeless
+                            ?buttonLayout 'Close
+                        )
+                        nil
+                    else
+                        t
+                ) ; if exitstatus
+        )
     ) ; let
 )
 

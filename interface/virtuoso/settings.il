@@ -143,6 +143,11 @@ procedure(OPCCreateSettingsForm()
                 ?value "xterm -fa monaco -fs 13 -e 'vim %s'"
                 ?prompt "Edit command for update"
             )
+            hiCreateIntField(
+                ?name 'OPCSettingsTimeout
+                ?value 10
+                ?prompt "OPC Call Time-Out Length in Seconds"
+            )
         )
     )
 ) ; procedure
