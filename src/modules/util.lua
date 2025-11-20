@@ -120,6 +120,18 @@ function util.make_rectangle(center, width, height)
     return bl, tr
 end
 
+function util.polygon_rectangular_boundary(polygon)
+    check.set_next_function_name("util.polygon_rectangular_boundary")
+    check.arg(1, "polygon", "table", bl)
+    local xmin = util.polygon_xmin(polygon)
+    local ymin = util.polygon_ymin(polygon)
+    local xmax = util.polygon_xmax(polygon)
+    local ymax = util.polygon_ymax(polygon)
+    local bl = point.create(xmin, ymin)
+    local tr = point.create(xmax, ymax)
+    return bl, tr
+end
+
 function util.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
     check.set_next_function_name("util.rectangle_to_polygon")
     check.arg_func(1, "bl", "point", bl, point.is_point)

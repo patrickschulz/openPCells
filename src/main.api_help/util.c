@@ -557,6 +557,21 @@
     ));
 }
 
+/* util.polygon_rectangular_boundary(polygon) */
+{
+    struct parameter parameters[] = {
+        { "polygon", TABLE, NULL, "polygon" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "polygon_rectangular_boundary",
+        MODULE_UTIL,
+        "calculate the encompassing rectangle of the given polygon. This function two points: 'bl' (bottom-left) and 'tr' (top-right).",
+        "local bl, tr = util.polygon_rectangular_boundary(polygon)",
+        parameters
+    ));
+}
+
 /* util.rectangle_to_polygon(value, ratio) */
 {
     struct parameter parameters[] = {

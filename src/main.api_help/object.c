@@ -1327,8 +1327,8 @@
     vector_append(entries, _make_api_entry(
         "get_boundary",
         MODULE_OBJECT,
-        "Retrieve the boundary of an object. If no explicit boundary exists, it is calculated from the extrem coordinates of all shapes (bounding box). The boundary is returned as a table containing the points. A boundary is not necessarily rectangular, but automatically-calculated boundaries are",
-        "local boundary = cell:get_boundary()",
+        "Retrieve the boundary of an object. If no explicit boundary exists, it is calculated from the extrem coordinates of all shapes (bounding box). The boundary is returned as a table containing the points. A boundary is not necessarily rectangular, but automatically-calculated boundaries are. In any case, the boundary is returned as a polygon, even if it is rectangular. This can be converted into a rectangular representation by util.polygon_rectangular_boundary(boundary).",
+        "local boundary = cell:get_boundary()\n-- get min/max points:\nlocal bl, tr = util.polygon_rectangular_boundary(boundary)",
         parameters
     ));
 }
