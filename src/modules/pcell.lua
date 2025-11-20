@@ -385,6 +385,7 @@ function state.create_cellenv(state, cellname, ovrenv)
             has_parameter                   = pcell.has_parameter,
         },
         technology = {
+            get_grid = technology.get_grid,
             get_dimension = technology.get_dimension,
             get_dimension_max = technology.get_dimension_max,
             get_optional_dimension = technology.get_optional_dimension,
