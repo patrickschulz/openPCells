@@ -68,6 +68,33 @@ function M.place_powervlines(cell, bl, tr, layer, width, space, powershapes)
     end
 end
 
+function M.place_powerhlines(cell, bl, tr, layer, height, space, powershapes)
+    local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(
+        bl, tr,
+        height, space
+    )
+    for i = 1, numlines do
+        local plbl = point.create(
+            bl:getx(),
+            bl:gety() + offset + (i - 1) * (height + space)
+        )
+        local pltr = point.create(
+            bl:getx() + width,
+            bl:gety() + offset + (i - 1) * (height + space) + height
+        )
+        geometry.rectanglebltr(cell, generics.metal(layer), plbl, pltr)
+        for _, target in ipairs(powershapes) do
+            local r = util.rectangle_intersection(plbl, pltr, target.bl, target.tr)
+            if r then
+                geometry.viabltr(cell, layer - 1, layer,
+                    point.create(plbl:getx(), target.bl:gety()),
+                    point.create(pltr:getx(), target.tr:gety())
+                )
+            end
+        end
+    end
+end
+
 function M.place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth, hspace, plusshapes, minusshapes)
     local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(
         bl, tr,

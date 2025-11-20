@@ -298,6 +298,27 @@
     ));
 }
 
+/* layouthelpers.place_powerhlines */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place power lines in" },
+        { "bl",             POINT,      NULL, "bottom-left boundary corner" },
+        { "tr",             POINT,      NULL, "top-right boundary corner" },
+        { "layer",          INTEGER,    NULL, "metal layer (number) for power lines" },
+        { "width",          INTEGER,    NULL, "width of power lines" },
+        { "space",          INTEGER,    NULL, "space of power lines" },
+        { "powershapes",    TABLE,      NULL, "target shapes for via creation. Table containing tables with 'bl' and 'tr' items" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_powerhlines",
+        MODULE_LAYOUTHELPERS,
+        "Create power lines with horizontal lines that connect to given target shapes. Target shapes for the power net are given in the form of tables containing { bl = ..., tr = ... } pairs.",
+        "local powershapes = { { bl = point(2000, 0), tr = point.create(8000, 200) } }\nlayouthelpers.place_powerhlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    5, -- metal layer\n    400, 800,-- height/space\n    powershapes)",
+        parameters
+    ));
+}
+
 /* layouthelpers.place_vlines */
 {
     struct parameter parameters[] = {
