@@ -614,6 +614,17 @@ static int _load_config(struct technology_state* techstate, const char* name, co
         return 0;
     }
 
+    // grid
+    lua_getfield(L, -1, "grid");
+    if(lua_isnil(L, -1))
+    {
+        *errmsg = "technology configuration file specify the manufacturing grid";
+        lua_close(L);
+        return 0;
+    }
+    techstate->config->grid = lua_tointeger(L, -1);
+    lua_pop(L, 1); // pop grid
+
     // number of metals
     lua_getfield(L, -1, "metals");
     if(lua_isnil(L, -1))
@@ -1603,6 +1614,23 @@ unsigned int technology_get_number_of_layers(const struct technology_state* tech
     return vector_size(techstate->layertable);
 }
 
+static int ltechnology_get_grid(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushstring(L, "technology.get_grid(): could not retrieve technology state");
+        lua_error(L);
+    }
+    else
+    {
+        lua_pushinteger(L, technology_get_grid(techstate));
+    }
+    return 1;
+}
+
 static int ltechnology_get_dimension(lua_State* L)
 {
     int n = lua_gettop(L);
@@ -1794,6 +1822,7 @@ int open_ltechnology_lib(lua_State* L)
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
+        { "get_grid",                       ltechnology_get_grid                    },
         { "get_dimension",                  ltechnology_get_dimension               },
         { "get_dimension_max",              ltechnology_get_dimension_max           },
         { "get_optional_dimension",         ltechnology_get_optional_dimension      },

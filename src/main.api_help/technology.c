@@ -1,3 +1,17 @@
+/* technology.get_grid */
+{
+    struct parameter parameters[] = {
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_grid",
+        MODULE_TECHNOLOGY,
+        "Get the manufacturing grid of the process node (in nanometer)",
+        "local grid = technology.get_grid()",
+        parameters
+    ));
+}
+
 /* technology.get_dimension */
 {
     struct parameter parameters[] = {
