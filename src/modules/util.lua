@@ -374,6 +374,13 @@ function util.make_insert_pts(pts, idx)
     end
 end
 
+function util.is_on_grid(num, grid)
+    check.set_next_function_name("util.is_on_grid")
+    check.arg(1, "num", "number", num)
+    check.arg(2, "grid", "number", grid)
+    return num % grid == 0
+end
+
 function util.check_grid(grid, ...)
     check.set_next_function_name("util.check_grid")
     check.arg(1, "grid", "number", grid)
@@ -822,6 +829,20 @@ function util.fit_lines_lower(total, size, space)
     check.arg(2, "size", "number", size)
     check.arg(3, "space", "number", space)
     return math.floor((total + space) / (size + space))
+end
+
+function util.fit_lines_width_grid(total, width, numlines, grid)
+    check.set_next_function_name("util.fit_lines_width_grid")
+    check.arg(1, "total", "number", total)
+    check.arg(2, "width", "number", width)
+    check.arg(3, "numlines", "number", numlines)
+    check.arg_optional(4, "grid", "number", grid)
+    grid = grid or 1
+    local space = math.floor((total - numlines * width) / (numlines - 1))
+    while not util.is_on_grid(space, grid) do
+        space = space - 1
+    end
+    return space
 end
 
 function util.uniq(t)

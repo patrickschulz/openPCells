@@ -1,3 +1,19 @@
+/* util.is_on_grid(t) */
+{
+    struct parameter parameters[] = {
+        { "value",  INTEGER, NULL, "value to check" },
+        { "grid",   INTEGER, NULL, "grid" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "is_on_grid",
+        MODULE_UTIL,
+        "check if a value is on a given grid. This function returns a boolean, and does not assert internally. This is for detecting off-grid situations in order to remedy them, not as a sanity check. Use util.check_grid if that is required.",
+        "util.check_grid(80, 10) -- true\nutil.check_grid(85, 10) -- false",
+        parameters
+    ));
+}
+
 /* util.check_grid(t) */
 {
     struct parameter parameters[] = {
@@ -8,7 +24,7 @@
     vector_append(entries, _make_api_entry(
         "check_grid",
         MODULE_UTIL,
-        "check that all given numbers are on integer multiples of the given grid. This function calls assert, so aborts the entire program if the assertation fails",
+        "check that all given numbers are on integer multiples of the given grid. This function calls assert, so aborts the entire program if the assertation fails. This is intended as a sanity check, not detection in order to solve this. Use util.is_on_grid if that is required.",
         "util.check_grid(100, 100, 800, 42, 10000) -- will fail",
         parameters
     ));
@@ -826,6 +842,24 @@
         MODULE_UTIL,
         "Calculate the number of lines with the given size and space that fit into the given total width/height. This function rounds down.",
         "util.fit_lines_lower(10000, 500, 500) -- 10",
+        parameters
+    ));
+}
+
+/* util.fit_lines_width_grid(total, width, numlines, grid) */
+{
+    struct parameter parameters[] = {
+        { "total",      INTEGER,    NULL, "full region size" },
+        { "width",      INTEGER,    NULL, "width of lines to fit" },
+        { "numlines",   INTEGER,    NULL, "number of lines to fit" },
+        { "grid",       INTEGER,    "1",  "optional grid" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "fit_lines_width_grid",
+        MODULE_UTIL,
+        "Calculate the spacing of a given number of lines of a certain width that should fit in a region. This function can take a grid and will decrement the space until it fits on the grid",
+        "util.fit_lines_lower(10000, 1000, 8) -- 285\nutil.fit_lines_lower(10000, 1000, 8, 10) -- 280",
         parameters
     ));
 }
