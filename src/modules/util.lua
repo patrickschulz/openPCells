@@ -122,7 +122,7 @@ end
 
 function util.polygon_rectangular_boundary(polygon)
     check.set_next_function_name("util.polygon_rectangular_boundary")
-    check.arg(1, "polygon", "table", bl)
+    check.arg(1, "polygon", "table", polygon)
     local xmin = util.polygon_xmin(polygon)
     local ymin = util.polygon_ymin(polygon)
     local xmax = util.polygon_xmax(polygon)
