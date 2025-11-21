@@ -849,6 +849,9 @@ function util.fit_lines_width_grid(total, width, numlines, grid)
     check.arg(2, "width", "number", width)
     check.arg(3, "numlines", "number", numlines)
     check.arg_optional(4, "grid", "number", grid)
+    if numlines < 2 then
+        return 0
+    end
     grid = grid or 1
     local space = math.floor((total - numlines * width) / (numlines - 1))
     while not util.is_on_grid(space, grid) do
