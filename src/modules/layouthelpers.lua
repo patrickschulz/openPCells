@@ -96,57 +96,120 @@ function M.place_powerhlines(cell, bl, tr, layer, height, space, powershapes)
 end
 
 function M.place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth, hspace, plusshapes, minusshapes)
-    local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(
-        bl, tr,
-        vwidth, vspace
-    )
-    local pluslines = {}
-    local minuslines = {}
-    for i = 1, numlines do
-        local plbl = point.create(
-            bl:getx() + offset + (i - 1) * (width + space),
-            bl:gety()
+    check.set_next_function_name("layouthelpers.place_powergrid")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg_func(2, "bl", "point", bl, point.is_point)
+    check.arg_func(3, "tr", "point", bl, point.is_point)
+    check.arg_optional(4, "vlayer", "number", vlayer)
+    check.arg_optional(5, "hlayer", "number", hlayer)
+    check.arg(6, "vwidth", "number", vwidth)
+    check.arg(7, "vspace", "number", vspace)
+    check.arg(8, "hwidth", "number", hwidth)
+    check.arg(9, "hspace", "number", hspace)
+    check.arg_optional(10, "plusshapes", "table", plusshapes)
+    check.arg_optional(11, "minusshapes", "table", minusshapes)
+    if not vlayer and not hlayer then
+        error("layouthelpers.place_powergrid: at least one metal layer must not be nil")
+    end
+    local hpluslines = {}
+    local hminuslines = {}
+    local vpluslines = {}
+    local vminuslines = {}
+    if vlayer then
+        local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(
+            bl, tr,
+            vwidth, vspace
         )
-        local pltr = point.create(
-            bl:getx() + offset + (i - 1) * (width + space) + width,
-            bl:gety() + height
+        for i = 1, numlines do
+            local plbl = point.create(
+                bl:getx() + offset + (i - 1) * (width + space),
+                bl:gety()
+            )
+            local pltr = point.create(
+                bl:getx() + offset + (i - 1) * (width + space) + width,
+                bl:gety() + height
+            )
+            geometry.rectanglebltr(cell, generics.metal(vlayer), plbl, pltr)
+            local inserttarget = i % 2 == 1 and vpluslines or vminuslines
+            table.insert(inserttarget, { bl = plbl, tr = pltr })
+        end
+    end
+    if hlayer then
+        local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(
+            bl, tr,
+            hwidth, hspace
         )
-        geometry.rectanglebltr(cell, generics.metal(vlayer), plbl, pltr)
-        local powershapes = i % 2 == 1 and plusshapes or minusshapes
-        local inserttarget = i % 2 == 1 and pluslines or minuslines
-        table.insert(inserttarget, { bl = plbl, tr = pltr })
-        for _, target in ipairs(powershapes) do
-            local r = util.rectangle_intersection(plbl, pltr, target.bl, target.tr)
-            if r then
-                geometry.viabltr(cell, vlayer - 1, vlayer,
-                    point.create(plbl:getx(), target.bl:gety()),
-                    point.create(pltr:getx(), target.tr:gety())
-                )
+        for i = 1, numlines do
+            local plbl = point.create(
+                bl:getx(),
+                bl:gety() + offset + (i - 1) * (height + space)
+            )
+            local pltr = point.create(
+                bl:getx() + width,
+                bl:gety() + offset + (i - 1) * (height + space) + height
+            )
+            geometry.rectanglebltr(cell, generics.metal(hlayer), plbl, pltr)
+            local inserttarget = i % 2 == 1 and hpluslines or hminuslines
+            table.insert(inserttarget, { bl = plbl, tr = pltr })
+        end
+    end
+    -- place vias between powerlines
+    if vlayer and hlayer then
+        for _, hline in ipairs(hpluslines) do
+            for _, vline in ipairs(vpluslines) do
+                local r = util.rectangle_intersection(hline.bl, hline.tr, vline.bl, vline.tr)
+                if r then
+                    geometry.viabltr(cell, vlayer - 1, vlayer,
+                        point.create(vline.bl:getx(), hline.bl:gety()),
+                        point.create(vline.tr:getx(), hline.tr:gety())
+                    )
+                end
+            end
+        end
+        for _, hline in ipairs(hminuslines) do
+            for _, vline in ipairs(vminuslines) do
             end
         end
     end
-    local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(
-        bl, tr,
-        hwidth, hspace
-    )
-    for i = 1, numlines do
-        local plbl = point.create(
-            bl:getx(),
-            bl:gety() + offset + (i - 1) * (height + space)
-        )
-        local pltr = point.create(
-            bl:getx() + width,
-            bl:gety() + offset + (i - 1) * (height + space) + height
-        )
-        geometry.rectanglebltr(cell, generics.metal(hlayer), plbl, pltr)
-        local powerlines = i % 2 == 1 and pluslines or minuslines
-        for _, target in ipairs(powerlines) do
-            local r = util.rectangle_intersection(plbl, pltr, target.bl, target.tr)
+    -- place vias to plus/minus shapes
+    local pluslines
+    local minuslines
+    local layer
+    if hlayer and not vlayer then
+        pluslines = hpluslines
+        minuslines = hminuslines
+        layer = hlayer
+    elseif vlayer and not hlayer then
+        pluslines = vpluslines
+        minuslines = vminuslines
+        layer = vlayer
+    elseif hlayer < vlayer then
+        pluslines = hpluslines
+        minuslines = hminuslines
+        layer = hlayer
+    else
+        pluslines = vpluslines
+        minuslines = vminuslines
+        layer = vlayer
+    end
+    for _, line in ipairs(pluslines) do
+        for _, target in ipairs(plusshapes) do
+            local r = util.rectangle_intersection(line.bl, line.tr, target.bl, target.tr)
+            print(r)
             if r then
-                geometry.viabltr(cell, hlayer - 1, hlayer,
-                    point.create(target.bl:getx(), plbl:gety()),
-                    point.create(target.tr:getx(), pltr:gety())
-                )
+                geometry.viabltr(cell, layer - 1, layer, r.bl, r.tr)
+                --geometry.viabltr(cell, layer - 1, layer,
+                --    point.create(line.bl:getx(), target.bl:gety()),
+                --    point.create(line.tr:getx(), target.tr:gety())
+                --)
+            end
+        end
+    end
+    for _, line in ipairs(minuslines) do
+        for _, target in ipairs(minusshapes) do
+            local r = util.rectangle_intersection(line.bl, line.tr, target.bl, target.tr)
+            if r then
+                geometry.viabltr(cell, layer - 1, layer, r.bl, r.tr)
             end
         end
     end
