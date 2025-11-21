@@ -6,6 +6,8 @@ return {
     ["Minimum Active Contact Region Size"]          = 200,
     ["Minimum Well Extension"]                      = 100,
     ["Minimum Implant Extension"]                   = 100,
+    ["Minimum Oxide Extension"]                     = 80,
+    ["Minimum Silicideblocker Extension"]           = 200,
     ["Minimum Active Space"]                        = 200,
     ["Minimum Gate Extension"]                      = 100,
     ["Minimum Gate Length"]                         = 200,
