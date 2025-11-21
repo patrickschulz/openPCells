@@ -1379,7 +1379,7 @@
         "add_net_shape",
         MODULE_OBJECT,
         "mark a rectangular area in a cell with a certain net. This can be used for automatic via placement from power grids, for instance.",
-        "cell:add_net_shape(\"vdd\", cell:get_area_anchor(\"sourcestrap\").bl, cell:get_area_anchor(\"sourcestra\").tr, generics.metal(2))",
+        "cell:add_net_shape(\"vdd\", cell:get_area_anchor(\"sourcestrap\").bl, cell:get_area_anchor(\"sourcestrap\").tr, generics.metal(2))",
         parameters
     ));
 }
