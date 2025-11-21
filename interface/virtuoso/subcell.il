@@ -89,7 +89,6 @@ procedure(OPCSubCellCreateBase(cv name properties)
     let((group)
         group = dbCreateFigGroup(cv name nil 0:0 "R0")
         foreach(prop properties
-            ; FIXME: check whether getq is correct
             dbCreateProp(group getq(prop name) getq(prop type) getq(prop value))
         )
         group
@@ -120,7 +119,13 @@ procedure(OPCSubCellScriptCreateCallback()
                 )
                 filename = lsprintf("%s/%s.lua" path groupname)
                 OPCOpenEditor(filename)
-                group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opcpath" 'type "string" 'value filename)))
+                group = OPCSubCellCreateBase(cv
+                    groupname
+                    list(
+                        list(nil 'name "opcpath" 'type "string" 'value filename)
+                        list(nil 'name "opcprotect" 'type "boolean" 'value nil)
+                    )
+                )
                 label = dbCreateLabel(cv OPCGetInfoLayer() 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
                 rect = dbCreateRect(cv OPCGetInfoLayer() list(-0.5:-0.5 0.5:0.5))
@@ -165,7 +170,13 @@ procedure(OPCSubCellCellCreateCallback()
                 )
                 nil
             else
-                group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" cellname))))
+                group = OPCSubCellCreateBase(cv
+                    groupname
+                    list(
+                        list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" cellname))
+                        list(nil 'name "opcprotect" 'type "boolean" 'value nil)
+                    )
+                )
                 label = dbCreateLabel(cv OPCGetInfoLayer() 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
                 t
@@ -232,18 +243,20 @@ procedure(OPCSubCellUpdate()
         opcgroup = OPCSubCellGet()
         if(opcgroup
             then
-                if(setof(p opcgroup->prop p->name == "opcpath") ; group is an opc group (cellscript)
-                    then
-                        OPCUpdateCellscriptCallback(
-                            ?hierarchical nil
-                            ?deleteAll nil
-                            ?xpath opcgroup->opcpath
-                            ?origin opcgroup->origin
-                            ?useOrigin t
-                            ?xgroupname opcgroup->name
-                        )
-                    else
-                        OPCSubCellUpdateCell(opcgroup)
+                when(opcgroup->opcprotect == "FALSE"
+                    if(setof(p opcgroup->prop p->name == "opcpath") ; group is an opc group (cellscript)
+                        then
+                            OPCUpdateCellscriptCallback(
+                                ?hierarchical nil
+                                ?deleteAll nil
+                                ?xpath opcgroup->opcpath
+                                ?origin opcgroup->origin
+                                ?useOrigin t
+                                ?xgroupname opcgroup->name
+                            )
+                        else
+                            OPCSubCellUpdateCell(opcgroup)
+                    )
                 )
             else
                 nil
