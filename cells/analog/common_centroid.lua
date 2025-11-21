@@ -18,6 +18,7 @@ function parameters()
         { "interconnectmetal", 3 },
         { "sourcemetal", 2 },
         { "equalsourcenets", true },
+        { "multiplesourcelines", true },
         { "sdwidth", technology.get_dimension("Minimum Source/Drain Contact Region Size") },
         { "sdm1ext", 0 },
         { "fingers", 2, posvals = even() },
@@ -148,6 +149,9 @@ function check(_P)
     if _P.interconnectlinepos == "offside" and _P.usesourcestraps and not _P.sourcestrapsinside and _P.sourcemetal == _P.drainmetal then
         return false, "if interconnectlines are positioned 'offside' and source straps are used, the drain and source connections can not be on the same metal"
     end
+    if not _P.equalsourcenets and not ((_P.xseparation > 0) or _P.drawinnerguardrings) then
+        return false, "if source nets are not equal, the xseparation between devices can not be 0 or inner guard rings must be present"
+    end
     if #_P.connectgatetosourcedrain ~= 0 then
         if _P.equalgatenets and #_P.connectgatetosourcedrain ~= 1 then
             return false, string.format("if gates are connected to source/drain nets, not more than one net shall be specified when equalgatenets == true (given nets: '%s')", table.concat(_P.connectgatetosourcedrain, ", "))
@@ -164,6 +168,11 @@ function check(_P)
     -- check that no shorted dummies are present if gates are shorted
     if _P.shortgates and _P.shortdummies and hasdummies then
         return false, "shorted dummies (with dummies present) are not allowed if gates are shorted"
+    end
+
+    -- connect interconnect lines (source) to output lines
+    if _P.usesourcestraps and not _P.equalsourcenets and _P.outputlinemode ~= "local" then
+        return false, "when source straps with non-equal source nets are used, the sources can't reliably be connected by global output lines. Use local output lines or source interconnect lines"
     end
     return true
 end
@@ -246,7 +255,11 @@ function layout(cell, _P)
                 end
                 interconnectline_space_occupation = (numlines + 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
             else
-                local numlines = 4 * maxnumdevicespersinglerow
+                local numlines = 0
+                for rownum = 2, numrows - 1, 2 do
+                    local l = 2 * (numdevicesperrow[rownum] + numdevicesperrow[rownum + 1])
+                    numlines = math.max(numlines, l)
+                end
                 interconnectline_space_occupation = (numlines + 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
             end
         end
@@ -397,6 +410,7 @@ function layout(cell, _P)
         return result[1]
     end
 
+    -- prepare mosfet rows
     local function _make_row_devices(rownum, devicerow)
         local devices = {}
         table.insert(devices,
@@ -418,7 +432,6 @@ function layout(cell, _P)
         local connectsourceinverse
         if _P.sourcestrapsinside then
             connectsourceinverse = ((_P.channeltype == "pmos") and (rownum % 2 == 0)) or ((_P.channeltype == "nmos") and (rownum % 2 == 1))
-            dprint(rownum, connectsourceinverse)
         else
             connectsourceinverse = ((_P.channeltype == "pmos") and (rownum % 2 == 1)) or ((_P.channeltype == "nmos") and (rownum % 2 == 0))
         end
@@ -479,6 +492,7 @@ function layout(cell, _P)
         return devices
     end
 
+    -- create mosfet array
     local rows = {}
     for rownum = 1, numrows do
         local row = util.add_options(rowoptions, {})
@@ -486,7 +500,6 @@ function layout(cell, _P)
         row.devices = _make_row_devices(rownum, devicerow)
         table.insert(rows, row)
     end
-
     local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
         rows = rows,
         drawimplant = not (_P.guardringfillimplant and (_P.drawinnerguardrings or _P.drawouterguardring)),
@@ -899,15 +912,15 @@ function layout(cell, _P)
                 local rightdevice = singlerowdevices[#singlerowdevices]
                 local skipstrap = (_P.usesourcestraps and not _P.sourcestrapsinside) and _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth or 0
                 local lines = {}
-                if _P.equalsourcenets then
-                    -- create common source line
-                    if not _P.usesourcestraps then
+                if not _P.usesourcestraps then
+                    if _P.equalsourcenets then
+                        -- create common source line
                         table.insert(lines, "source0")
-                    end
-                else
-                    -- add individual source lines
-                    for line, num in ipairs(devindices) do
-                        table.insert(lines, string.format("source%d", num))
+                    else
+                        -- add individual source lines
+                        for line, num in ipairs(devindices) do
+                            table.insert(lines, string.format("source%d", num))
+                        end
                     end
                 end
                 -- add individual drain lines
@@ -935,10 +948,8 @@ function layout(cell, _P)
     end
 
     -- connect sources to interconnect lines
-    if _P.equalsourcenets then
-        if _P.usesourcestraps then
-            -- do nothing
-        else
+    if not _P.usesourcestraps then
+        if _P.equalsourcenets then
             if _P.interconnectlinepos == "inline" then
                 if _P.sourcemetal ~= _P.interconnectmetal then
                     for rownum = 1, numrows do
@@ -1022,80 +1033,80 @@ function layout(cell, _P)
                     end
                 end
             end
-        end
-    else -- not _P.equalsourcenets
-        if _P.interconnectlinepos == "inline" then
-            for rownum = 1, numrows do
-                local devices = _get_active_devices(function(device) return device.row == rownum end)
-                for _, device in ipairs(devices) do
-                    for finger = 1, _P.fingers + 1, 2 do
-                        geometry.viabarebltrov(cell, _P.sourcemetal, _P.interconnectmetal,
-                            _get_dev_anchor(device, string.format("sourcedrain%d", finger)).bl,
-                            _get_dev_anchor(device, string.format("sourcedrain%d", finger)).tr,
-                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).bl,
-                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).tr
-                        )
+        else -- not _P.equalsourcenets
+            if _P.interconnectlinepos == "inline" then
+                for rownum = 1, numrows do
+                    local devices = _get_active_devices(function(device) return device.row == rownum end)
+                    for _, device in ipairs(devices) do
+                        for finger = 1, _P.fingers + 1, 2 do
+                            geometry.viabarebltrov(cell, _P.sourcemetal, _P.interconnectmetal,
+                                _get_dev_anchor(device, string.format("sourcedrain%d", finger)).bl,
+                                _get_dev_anchor(device, string.format("sourcedrain%d", finger)).tr,
+                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).bl,
+                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).tr
+                            )
+                        end
                     end
                 end
-            end
-        elseif _P.interconnectlinepos == "gate" then
-        else -- "offside"
-            for rownum = 1, numrows do
-                local anchor
-                if rownum % 2 == 1 then
-                    anchor = "b"
-                else
-                    anchor = "t"
-                end
-                local devices = _get_active_devices(function(device) return device.row == rownum end)
-                for _, device in ipairs(devices) do
-                    for finger = 1, _P.fingers + 1, 2 do
-                        if rownum % 2 == 1 then
-                            geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
-                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).b
-                                ),
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).b
+            elseif _P.interconnectlinepos == "gate" then
+            else -- "offside"
+                for rownum = 1, numrows do
+                    local anchor
+                    if rownum % 2 == 1 then
+                        anchor = "b"
+                    else
+                        anchor = "t"
+                    end
+                    local devices = _get_active_devices(function(device) return device.row == rownum end)
+                    for _, device in ipairs(devices) do
+                        for finger = 1, _P.fingers + 1, 2 do
+                            if rownum % 2 == 1 then
+                                geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
+                                    point.create(
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
+                                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).b
+                                    ),
+                                    point.create(
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).b
+                                    )
                                 )
-                            )
-                            geometry.viabarebltrov(cell, _P.sourcemetal, _P.interconnectmetal,
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
-                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).b
-                                ),
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).b
-                                ),
-                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).bl,
-                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).tr
-                            )
-                        else
-                            geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).t
-                                ),
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
-                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).t
+                                geometry.viabarebltrov(cell, _P.sourcemetal, _P.interconnectmetal,
+                                    point.create(
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
+                                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).b
+                                    ),
+                                    point.create(
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).b
+                                    ),
+                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).bl,
+                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).tr
                                 )
-                            )
-                            geometry.viabarebltrov(cell, _P.sourcemetal, _P.interconnectmetal,
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).t
-                                ),
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
-                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).t
-                                ),
-                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).bl,
-                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).tr
-                            )
+                            else
+                                geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
+                                    point.create(
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).t
+                                    ),
+                                    point.create(
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
+                                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).t
+                                    )
+                                )
+                                geometry.viabarebltrov(cell, _P.sourcemetal, _P.interconnectmetal,
+                                    point.create(
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).t
+                                    ),
+                                    point.create(
+                                        _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
+                                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).t
+                                    ),
+                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).bl,
+                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).tr
+                                )
+                            end
                         end
                     end
                 end
@@ -1192,22 +1203,22 @@ function layout(cell, _P)
     local outputlineminy
     local outputlinemaxy
     if _P.interconnectlinepos == "inline" then
-        local lowerrowdevices = _get_active_devices(function(device) return device.row == 1 end)
+        local lowerrowdevices = _get_devices(function(device) return device.row == 1 end)
         local lowerdevice = lowerrowdevices[1]
-        local upperrowdevices = _get_active_devices(function(device) return device.row == numrows end)
+        local upperrowdevices = _get_devices(function(device) return device.row == numrows end)
         local upperdevice = upperrowdevices[1]
         outputlineminy = _get_dev_anchor(lowerdevice, "active").b
         outputlinemaxy = _get_dev_anchor(upperdevice, "active").t
     elseif _P.interconnectlinepos == "gate" then
-        local lowerrowdevices = _get_active_devices(function(device) return device.row == 1 end)
+        local lowerrowdevices = _get_devices(function(device) return device.row == 1 end)
         local lowerdevice = lowerrowdevices[1]
-        local upperrowdevices = _get_active_devices(function(device) return device.row == numrows end)
+        local upperrowdevices = _get_devices(function(device) return device.row == numrows end)
         local upperdevice = upperrowdevices[1]
         outputlineminy = _get_dev_anchor(lowerdevice, "active").b
         outputlinemaxy = _get_dev_anchor(upperdevice, "active").t
     else -- "offside"
         local lowerdevindices = _get_uniq_row_devices_single(1)
-        local lowerdevices = _get_active_devices(function(device) return device.row == 1 end)
+        local lowerdevices = _get_devices(function(device) return device.row == 1 end)
         local lowerdevice = lowerdevices[1]
         local skipstrap = _P.usesourcestraps and _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth or 0
         local numlowerlines = #lowerdevindices
@@ -1220,7 +1231,7 @@ function layout(cell, _P)
         end
         outputlineminy = _get_dev_anchor(lowerdevice, "active").b - (skipstrap + _P.interconnectlinespace + _P.interconnectlinewidth + (numlowerlines - 1) * (_P.interconnectlinespace + _P.interconnectlinewidth))
         local upperdevindices = _get_uniq_row_devices_single(numrows)
-        local upperdevices = _get_active_devices(function(device) return device.row == numrows end)
+        local upperdevices = _get_devices(function(device) return device.row == numrows end)
         local upperdevice = upperdevices[1]
         local numupperlines = #upperdevindices
         if not _P.usesourcestraps then
@@ -1252,18 +1263,28 @@ function layout(cell, _P)
             --local numhalflines = (numdevices % 2 == 1) and ((numdevices + 1) / 2) or (numdevices / 2)
             local numhalflines = numdevices / 2
             if _P.grouporder == "drain_inside" then
-                for i = 1, numhalflines do
-                    -- insert source lines
-                    if _P.equalsourcenets then
+                -- insert source lines
+                if _P.equalsourcenets then
+                    if _P.multiplesourcelines then
+                        for i = 1, numhalflines do
+                            table.insert(lines, {
+                                device = "source0",
+                                variant = i,
+                            })
+                        end
+                    else
                         table.insert(lines, {
                             device = "source0",
-                            variant = i,
                         })
-                    else
+                    end
+                else
+                    for i = 1, numhalflines do
                         table.insert(lines, {
                             device = string.format("source%d", i),
                         })
                     end
+                end
+                for i = 1, numhalflines do
                 end
                 if _P.drainordermanual then
                     for _, entry in ipairs(_P.drainorder) do
@@ -1280,16 +1301,24 @@ function layout(cell, _P)
                         })
                     end
                 end
-                for i = 1, numhalflines do
-                    -- insert source lines
-                    if _P.equalsourcenets then
-                        table.insert(lines, {
-                            device = "source0",
-                            variant = numhalflines + i,
-                        })
+                -- insert source lines
+                if _P.equalsourcenets then
+                    if _P.multiplesourcelines then
+                        for i = 1, numhalflines do
+                            table.insert(lines, {
+                                device = "source0",
+                                variant = numhalflines + i,
+                            })
+                        end
                     else
                         table.insert(lines, {
-                            device = string.format("source%d", i),
+                            device = "source0",
+                        })
+                    end
+                else
+                    for i = 1, numhalflines do
+                        table.insert(lines, {
+                            device = string.format("source%d", numhalflines + i),
                         })
                     end
                 end
@@ -1300,14 +1329,22 @@ function layout(cell, _P)
                         device = string.format("drain%d", i),
                     })
                 end
-                for i = 1, numdevices do
-                    -- insert source lines
-                    if _P.equalsourcenets then
+                -- insert source lines
+                if _P.equalsourcenets then
+                    if _P.multiplesourcelines then
+                        for i = 1, numdevices do
+                            table.insert(lines, {
+                                device = "source0",
+                                variant = i,
+                            })
+                        end
+                    else
                         table.insert(lines, {
                             device = "source0",
-                            variant = i,
                         })
-                    else
+                    end
+                else
+                    for i = 1, numhalflines do
                         table.insert(lines, {
                             device = string.format("source%d", i),
                         })
@@ -1379,7 +1416,7 @@ function layout(cell, _P)
             end
         end
         local numlines = #lines
-        local width, space = util.fit_lines_width_grid(targetwidth, _P.outputlinewidth, numlines, technology.get_grid())
+        local space = util.fit_lines_width_grid(targetwidth, _P.outputlinewidth, numlines, technology.get_grid())
         for lineindex, line in ipairs(lines) do
             local identifier
             local netname
@@ -1391,11 +1428,11 @@ function layout(cell, _P)
             local identifier = string.format("outputconnectline_%s", netname)
             cell:add_area_anchor_bltr(identifier,
                 point.create(
-                    cell:get_alignment_anchor("outerbl"):getx() + outputline_center - (numlines * width + (numlines - 1) * space) / 2 + (lineindex - 1) * (space + width),
+                    cell:get_alignment_anchor("outerbl"):getx() + outputline_center - (numlines * _P.outputlinewidth + (numlines - 1) * space) / 2 + (lineindex - 1) * (space + _P.outputlinewidth),
                     outputlineminy - _P.outputlinebotextend
                 ),
                 point.create(
-                    cell:get_alignment_anchor("outerbl"):getx() + outputline_center - (numlines * width + (numlines - 1) * space) / 2 + width + (lineindex - 1) * (space + width),
+                    cell:get_alignment_anchor("outerbl"):getx() + outputline_center - (numlines * _P.outputlinewidth + (numlines - 1) * space) / 2 + _P.outputlinewidth + (lineindex - 1) * (space + _P.outputlinewidth),
                     outputlinemaxy + _P.outputlinetopextend
                 )
             )
@@ -1555,77 +1592,109 @@ function layout(cell, _P)
     end
 
     -- connect interconnect lines (source) to output lines
-    if _P.equalsourcenets then
-        if _P.outputlinemode == "global" then
-            for rownum = 1, numrows do
-                local devices = _get_active_devices(function(device) return device.row == rownum end)
-                -- FIXME: if #devices > 0 or _P.connectdummiestosource0line
-                if #devices > 0 then -- ignore dummy-only rows
-                    if not _P.usesourcestraps then
-                        for i = 1, numdevices do -- iterate over variants
+    if not _P.usesourcestraps then
+        if _P.equalsourcenets then
+            if _P.outputlinemode == "global" then
+                for rownum = 1, numrows do
+                    local devices = _get_active_devices(function(device) return device.row == rownum end)
+                    -- FIXME: if #devices > 0 or _P.connectdummiestosource0line
+                    if #devices > 0 then -- ignore dummy-only rows
+                        if _P.multiplesourcelines then
+                            for i = 1, numdevices do -- iterate over variants
+                                geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
+                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").bl,
+                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").tr,
+                                    cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).bl,
+                                    cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).tr
+                                )
+                            end
+                        else
                             geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
                                 cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").bl,
                                 cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").tr,
-                                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).bl,
-                                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).tr
-                            )
-                        end
-                    else
-                        local alldevices = _get_devices(function(device) return device.row == rownum end)
-                        local leftdevice = alldevices[1]
-                        local rightdevice = alldevices[numinstancesperrow]
-                        for i = 1, numdevices do -- iterate over variants
-                            geometry.viabltr(cell, _P.sourcemetal, _P.interconnectmetal + 1,
-                                point.create(
-                                    cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).l,
-                                    _get_dev_anchor(leftdevice, "sourcestrap").b
-                                ),
-                                point.create(
-                                    cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).r,
-                                    _get_dev_anchor(rightdevice, "sourcestrap").t
-                                )
+                                cell:get_area_anchor_fmt("outputconnectline_%s", "source0").bl,
+                                cell:get_area_anchor_fmt("outputconnectline_%s", "source0").tr
                             )
                         end
                     end
                 end
+            else -- _P.outputlinemode == "local"
+                for rownum = 1, numrows do
+                    local devices = _get_active_devices(function(device) return device.row == rownum end)
+                    for _, device in ipairs(devices) do
+                        geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
+                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").bl,
+                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").tr,
+                            cell:get_area_anchor_fmt("outputconnectline_%d_%d_%s", rownum, device.column, "source0").bl,
+                            cell:get_area_anchor_fmt("outputconnectline_%d_%d_%s", rownum, device.column, "source0").tr
+                        )
+                    end
+                end
             end
-        else
-            for rownum = 1, numrows do
-                local devices = _get_active_devices(function(device) return device.row == rownum end)
-                for _, device in ipairs(devices) do
-                    geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
-                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").bl,
-                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").tr,
-                        cell:get_area_anchor_fmt("outputconnectline_%d_%d_%s", rownum, device.column, "source0").bl,
-                        cell:get_area_anchor_fmt("outputconnectline_%d_%d_%s", rownum, device.column, "source0").tr
-                    )
+        else -- not _P.equalsourcenets
+            if _P.outputlinemode == "global" then
+                for rownum = 1, numrows do
+                    local devices = _get_active_devices(function(device) return device.row == rownum end)
+                    for _, device in ipairs(devices) do
+                        geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
+                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).bl,
+                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).tr,
+                            cell:get_area_anchor_fmt("outputconnectline_%s", string.format("source%d", device.device)).bl,
+                            cell:get_area_anchor_fmt("outputconnectline_%s", string.format("source%d", device.device)).tr
+                        )
+                    end
+                end
+            else -- "local"
+                for rownum = 1, numrows do
+                    local devices = _get_active_devices(function(device) return device.row == rownum end)
+                    for _, device in ipairs(devices) do
+                        geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
+                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).bl,
+                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).tr,
+                            cell:get_area_anchor_fmt("outputconnectline_%d_%d_%s", rownum, device.column, string.format("source%d", device.device)).bl,
+                            cell:get_area_anchor_fmt("outputconnectline_%d_%d_%s", rownum, device.column, string.format("source%d", device.device)).tr
+                        )
+                    end
                 end
             end
         end
-    else
-        if _P.outputlinemode == "global" then
+    else -- _P.usesourcestraps
+        if _P.equalsourcenets then
             for rownum = 1, numrows do
-                local devices = _get_active_devices(function(device) return device.row == rownum end)
-                for _, device in ipairs(devices) do
-                    geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
-                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).bl,
-                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).tr,
-                        cell:get_area_anchor_fmt("outputconnectline_%s", string.format("source%d", device.device)).bl,
-                        cell:get_area_anchor_fmt("outputconnectline_%s", string.format("source%d", device.device)).tr
+                local alldevices = _get_devices(function(device) return device.row == rownum end)
+                local leftdevice = alldevices[1]
+                local rightdevice = alldevices[numinstancesperrow]
+                if not _P.groupoutputlines and _P.multiplesourcelines then
+                    for i = 1, numdevices do -- iterate over variants
+                        geometry.viabltr(cell, _P.sourcemetal, _P.interconnectmetal + 1,
+                            point.create(
+                                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).l,
+                                _get_dev_anchor(leftdevice, "sourcestrap").b
+                            ),
+                            point.create(
+                                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).r,
+                                _get_dev_anchor(rightdevice, "sourcestrap").t
+                            )
+                        )
+                    end
+                else
+                    geometry.viabltr(cell, _P.sourcemetal, _P.interconnectmetal + 1,
+                        point.create(
+                            cell:get_area_anchor_fmt("outputconnectline_%s", "source0").l,
+                            _get_dev_anchor(leftdevice, "sourcestrap").b
+                        ),
+                        point.create(
+                            cell:get_area_anchor_fmt("outputconnectline_%s", "source0").r,
+                            _get_dev_anchor(rightdevice, "sourcestrap").t
+                        )
                     )
                 end
             end
-        else -- "local"
-            for rownum = 1, numrows do
-                local devices = _get_active_devices(function(device) return device.row == rownum end)
-                for _, device in ipairs(devices) do
-                    geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
-                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).bl,
-                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", device.device)).tr,
-                        cell:get_area_anchor_fmt("outputconnectline_%d_%d_%s", rownum, device.column, string.format("source%d", device.device)).bl,
-                        cell:get_area_anchor_fmt("outputconnectline_%d_%d_%s", rownum, device.column, string.format("source%d", device.device)).tr
-                    )
-                end
+        else -- not _P.equalsourcenets
+            if _P.outputlinemode == "local" then
+                -- FIXME: implement
+            else
+                -- this can not be reliable connected, hence it is caught in check()
             end
         end
     end
@@ -1701,27 +1770,11 @@ function layout(cell, _P)
         end
     end
 
-    --[[
-    -- connect all dummies (vertical)
-    if not _P.connectdummysources then
-        if _P.outerdummies > 0 then
-            geometry.rectanglebltr(cell, generics.metal(1),
-                cell:get_area_anchor_fmt("outerleftdummy_%d_sourcedrain1", 1).tl,
-                cell:get_area_anchor_fmt("outerleftdummy_%d_sourcedrain1", numrows).br
-            )
-            geometry.rectanglebltr(cell, generics.metal(1),
-                cell:get_area_anchor_fmt("outerrightdummy_%d_sourcedrain-1", 1).tl,
-                cell:get_area_anchor_fmt("outerrightdummy_%d_sourcedrain-1", numrows).br
-            )
-        end
-    end
-    --]]
-
     -- add source nets to output lines
     if _P.equalsourcenets then
         if _P.outputlinemode == "global" then
             for i = 1, numdevices do
-                if _P.sourcenets[i] then
+                if _P.sourcenets[1] then
                     cell:add_net_shape(_P.sourcenets[1],
                         cell:get_area_anchor_fmt("outputconnectline_source0_%d", i).bl,
                         cell:get_area_anchor_fmt("outputconnectline_source0_%d", i).tr
