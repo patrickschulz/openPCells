@@ -158,6 +158,11 @@ static int _load_pfiles(struct pcell_state* pcell_state, lua_State* L)
         {
             return 0;
         }
+        if(lua_type(L, -1) != LUA_TTABLE)
+        {
+            fprintf(stderr, "pfile '%s' did not return a table, but a %s\n", pfilename, lua_typename(L, lua_type(L, -1)));
+            return 0;
+        }
         lua_pushnil(L);
         while(lua_next(L, -2) != 0)
         {
