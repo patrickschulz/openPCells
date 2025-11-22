@@ -1242,6 +1242,7 @@ struct via_definition** technology_get_via_definitions(struct technology_state* 
     if(!entry)
     {
         fprintf(stderr, "could not find via definitions for via from metal %d to metal %d\n", lowermetal, lowermetal + 1);
+        return NULL;
     }
     return entry->viadefs;
 }
