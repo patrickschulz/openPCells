@@ -195,13 +195,8 @@ function M.place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth,
     for _, line in ipairs(pluslines) do
         for _, target in ipairs(plusshapes) do
             local r = util.rectangle_intersection(line.bl, line.tr, target.bl, target.tr)
-            print(r)
             if r then
                 geometry.viabltr(cell, layer - 1, layer, r.bl, r.tr)
-                --geometry.viabltr(cell, layer - 1, layer,
-                --    point.create(line.bl:getx(), target.bl:gety()),
-                --    point.create(line.tr:getx(), target.tr:gety())
-                --)
             end
         end
     end
