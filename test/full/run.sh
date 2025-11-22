@@ -94,6 +94,9 @@ do_cell_test polyresistor_12 basic/polyresistor gds
 do_cell_test polyresistor_13 basic/polyresistor gds
 do_cell_test polyresistor_14 basic/polyresistor gds
 
+# common centroid
+do_cell_test common_centroid_01 analog/common_centroid gds
+
 # stacked_mosfet_array
 do_cell_test stacked_mosfet_array_01 basic/stacked_mosfet_array gds
 
