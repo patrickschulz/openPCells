@@ -3,7 +3,6 @@ return {
     ["Minimum Source/Drain Contact Region Size"]    = 200,
     ["Minimum Active Contact Region Size"]          = 200,
     ["Minimum Gate Contact Region Size"]            = 200,
-    ["Minimum Active Contact Region Size"]          = 200,
     ["Minimum Well Extension"]                      = 100,
     ["Minimum Implant Extension"]                   = 100,
     ["Minimum Oxide Extension"]                     = 80,
