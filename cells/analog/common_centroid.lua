@@ -1415,7 +1415,7 @@ function layout(cell, _P)
             end
         end
         local numlines = #lines
-        local space = util.fit_lines_width_grid(targetwidth, _P.outputlinewidth, numlines, technology.get_grid())
+        local space = util.fit_lines_width_grid(targetwidth, _P.outputlinewidth, numlines, technology.get_even_grid())
         for lineindex, line in ipairs(lines) do
             local identifier
             local netname
