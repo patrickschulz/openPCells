@@ -497,6 +497,12 @@ function check(_P)
     if _P.drainviasize < 0 then
         return false, string.format("drainviasize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.drainviasize, _P.fingerwidth)
     end
+    if _P.sourceendmetal < _P.sourcestartmetal then
+        return false, string.format("the source end metal must be larger than or equal to the source start metal, got %d and %d", _P.sourceendmetal, _P.sourcestartmetal)
+    end
+    if _P.drainendmetal < _P.drainstartmetal then
+        return false, string.format("the drain end metal must be larger than or equal to the drain start metal, got %d and %d", _P.drainendmetal, _P.drainstartmetal)
+    end
     if _P.shortdevice and ((_P.sourcesize % 2) ~= (_P.sdwidth % 2)) then
         return false, string.format("sourcesize and sdwidth must both be even or odd when shortdevice is true (%d vs. %d)", _P.sourcesize, _P.sdwidth)
     end
