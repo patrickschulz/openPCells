@@ -12,6 +12,20 @@
     ));
 }
 
+/* technology.get_even_grid */
+{
+    struct parameter parameters[] = {
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_even_grid",
+        MODULE_TECHNOLOGY,
+        "Get the manufacturing grid of the process node (in nanometer). If the grid is not an even number, return the next even multiple of the grid (grid * 2). This function is useful when geometries that need to be on grid are calculated from given parameters and divided later on.",
+        "local grid = technology.get_even_grid()",
+        parameters
+    ));
+}
+
 /* technology.get_dimension */
 {
     struct parameter parameters[] = {

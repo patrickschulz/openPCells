@@ -1632,6 +1632,28 @@ static int ltechnology_get_grid(lua_State* L)
     return 1;
 }
 
+static int ltechnology_get_even_grid(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushstring(L, "technology.get_even_grid(): could not retrieve technology state");
+        lua_error(L);
+    }
+    else
+    {
+        unsigned int grid = technology_get_grid(techstate);
+        if(grid % 2 != 0)
+        {
+            grid = grid * 2;
+        }
+        lua_pushinteger(L, grid);
+    }
+    return 1;
+}
+
 static int ltechnology_get_dimension(lua_State* L)
 {
     int n = lua_gettop(L);
@@ -1824,6 +1846,7 @@ int open_ltechnology_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "get_grid",                       ltechnology_get_grid                    },
+        { "get_even_grid",                  ltechnology_get_even_grid               },
         { "get_dimension",                  ltechnology_get_dimension               },
         { "get_dimension_max",              ltechnology_get_dimension_max           },
         { "get_optional_dimension",         ltechnology_get_optional_dimension      },
