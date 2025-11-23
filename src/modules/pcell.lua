@@ -194,9 +194,6 @@ local function _get_cell(state, cellname, nocallparams)
 end
 
 local function _add_parameter_internal(cell, name, value, argtype, posvals, info, follow, readonly)
-    if value == nil then
-        error(string.format("pcell.add_parameter ('%s'): the value can't be nil", name))
-    end
     argtype = argtype or type(value)
     cell.parameters:add(name, value, argtype, posvals, info, follow, readonly)
 end
@@ -220,15 +217,17 @@ local function _get_parameters(state, cellname, cellargs)
     local P = {}
 
     -- (1) fill with default values
+    local Pset = {}
     for _, entry in ipairs(cellparams) do
         P[entry.name] = entry.value
+        Pset[entry.name] = true
     end
 
     -- (2) process input parameters
     local explicit = {}
     if cellargs then
         for name, value in pairs(cellargs) do
-            assert(P[name] ~= nil,
+            assert(Pset[name],
                 string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cellname))
             P[name] = value
             explicit[name] = true
@@ -240,8 +239,7 @@ local function _get_parameters(state, cellname, cellargs)
     local followers = aux.clone_shallow(cell.parameters:get_followers())
     local ordered = {}
     -- this loop runs as long as there are unhandled followers
-    -- in case of cycles, this will never stop, hence
-    -- FIXME: check for follower loops
+    -- cycles can not occur, as they are checked for when adding parameters
     repeat
         for name, target in pairs(followers) do
             if not followers[target] then
@@ -382,6 +380,7 @@ function state.create_cellenv(state, cellname, ovrenv)
     local env = {}
     local envmeta = {
         -- "global" functions for posvals entries:
+        rawget = rawget,
         set = function(...) return { type = "set", values = { ... } } end,
         interval = function(lower, upper) return { type = "interval", values = { lower = lower, upper = upper }} end,
         even = function() return { type = "even" } end,
