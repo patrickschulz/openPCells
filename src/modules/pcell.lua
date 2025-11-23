@@ -64,6 +64,23 @@ function _has_parameter(self, name)
     return false
 end
 
+local function _check_follower_cycle(followers)
+    for initial in pairs(followers) do
+        local f = initial
+        while true do
+            f = followers[f]
+            if not f then
+                -- no cycle
+                break
+            end
+            if f == initial then
+                return false
+            end
+        end
+    end
+    return true
+end
+
 function parammeta.add(self, name, value, argtype, posvals, info, follow, readonly)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
     if not pname then pname = name end -- no display name
@@ -81,8 +98,10 @@ function parammeta.add(self, name, value, argtype, posvals, info, follow, readon
     }
     table.insert(self.values, new)
     if follow then
-        -- FIXME: add cycle check
         self.followers[pname] = follow
+        if not _check_follower_cycle(self.followers) then
+            moderror(string.format("detected follower cycle when inserting parameter '%s' (which follows '%s')", pname, follow))
+        end
     end
 end
 
