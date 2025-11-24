@@ -587,15 +587,7 @@ function layout(resistor, _P)
             (_P.nxfingers + _P.leftdummies + _P.rightdummies) * _P.width +
             (_P.nxfingers + _P.leftdummies + _P.rightdummies - 1) * _P.xspace +
             2 * _P.guardring_xsep
-        local holeheight =
-            _P.nyfingers * (_P.length + 2 * _P.extension + 2 * _P.extraextension) +
-            (_P.nyfingers - 1) * _P.yspace +
-            2 * _P.guardring_ysep
-        if _P.yspace > 0 then
-            holeheight = holeheight + _P.nyfingers * 2 * _P.contactheight
-        else
-            holeheight = holeheight + (_P.nyfingers + 1) * _P.contactheight
-        end
+        local holeheight = totalpolyheight + 2 * _P.guardring_ysep
         local guardring = pcell.create_layout("auxiliary/guardring", "_guardring", {
             contype = _P.guardring_contype,
             holewidth = holewidth,
@@ -639,7 +631,7 @@ function layout(resistor, _P)
                 )
             end
         end
-        guardring:translate(-_P.guardring_xsep, -_P.guardring_ysep)
+        guardring:translate(-_P.guardring_xsep, -_P.extraextension - _P.guardring_ysep)
         resistor:merge_into(guardring)
     end
 end
