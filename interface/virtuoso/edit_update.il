@@ -131,31 +131,6 @@ procedure(OPCUpdateCellCellCallback(cellname parameterlist @key (deleteAll t) (c
     )
 ) ; procedure
 
-procedure(OPCUpdateAsGDS()
-    letseq(
-        (
-            (cv geGetEditCellView())
-            (libPath cv->lib->readPath)
-            (cellName cv->cellName)
-            (path lsprintf("%s/%s/layout/layout.lua" libPath cellName))
-            OPCArgs OPCCmd success
-        )
-        OPCArgs = OPCPrepareArgsForCellCreation(
-            lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value)
-            list(0 0) ; origin
-            ?exporttype "gds"
-            ?groupname nil
-        )
-        /*
-        unless(hierarchical
-            OPCArgs = lsprintf("%s --flat" OPCArgs)
-        )
-        */
-        OPCCmd = OPCBuildCallCommand(OPCArgs)
-        OPCCall(OPCCmd ?redirect OPCSettingsForm->OPCStdoutFileName->value)
-    )
-) ; procedure
-
 procedure(OPCDeleteDesignFile()
 
     letseq(

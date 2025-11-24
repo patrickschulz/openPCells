@@ -51,9 +51,6 @@ procedure(OPCCreateLayoutMenu()
             cellmenu = hiCreateSliderMenuItem(?name 'OPCCellMenu ?itemText "Cells" ?subMenu cellmenupulldown)
         )
 
-        ; export gds
-        exportgds = hiCreateMenuItem(?name 'OPCCellScriptGDS ?itemText "Update as GDSII" ?callback "OPCUpdateAsGDS()")
-
         ; export cell
         export = hiCreateMenuItem(?name 'OPCExport ?itemText "Export Cell" ?callback "OPCExportCell(nil)")
 
@@ -81,8 +78,6 @@ procedure(OPCCreateLayoutMenu()
             subcellmenu
             SEP
             cellmenu
-            SEP
-            exportgds
             SEP
             export
         )
