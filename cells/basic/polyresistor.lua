@@ -35,7 +35,8 @@ function parameters()
         { "extendwelly", technology.get_dimension("Minimum Well Extension") },
         { "extendlvsmarkerx", 0 },
         { "extendlvsmarkery", 0 },
-        { "conntype", "parallel", posvals = set("none", "parallel", "series") },
+        { "conntype", "parallel", posvals = set("none", "parallel", "series", "custom") },
+        { "customconnections", {} },
         { "invertseriesconnections", false },
         { "drawrotationmarker", false },
         { "resistortype", 1 },
@@ -128,54 +129,22 @@ function layout(resistor, _P)
 
     -- contacts
     for x = 1, _P.nxfingers do
-        if _P.yspace > 0 then
-            for y = 1, _P.nyfingers do
-                local yshift = (y - 1) * ypitch
-                geometry.contactbltr(resistor, "gate",
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
-                )
-                geometry.contactbltr(resistor, "gate",
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
-                )
-                _add_contact_anchor(resistor, string.format("contact_lower_%d_%d", x, y),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
-                )
-                _add_contact_anchor(resistor, string.format("contact_lower_-%d_-%d", _P.nxfingers - x + 1, y),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
-                )
-                _add_contact_anchor(resistor, string.format("contact_upper_%d_%d", x, y),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
-                )
-                _add_contact_anchor(resistor, string.format("contact_upper_-%d_-%d", _P.nxfingers - x + 1, y),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
-                )
-            end
-        else
-            for y = 1, _P.nyfingers + 1 do
-                local yshift = (y - 1) * ypitch
-                geometry.contactbltr(resistor, "gate",
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight),
-                    string.format(
-                        "resistor contact:\n    x parameters: width (%d)\n    y parameters: contactheight (%d)",
-                        _P.width, _P.contactheight
-                    )
-                )
-                _add_contact_anchor(resistor, string.format("contact_%d_%d", x, y),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
-                )
-                _add_contact_anchor(resistor, string.format("contact_-%d_-%d", _P.nxfingers - x + 1, _P.nyfingers - y + 1),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
-                    point.create((x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
-                )
-            end
+        for y = 1, _P.nyfingers do
+            local yshift = (y - 1) * ypitch
+            local blx1 = (x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace)
+            local bly1 = _P.extraextension + yshift
+            local trx1 = (x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width
+            local try1 = _P.extraextension + yshift + _P.contactheight
+            local blx2 = (x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace)
+            local bly2 = _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension
+            local trx2 = (x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width
+            local try2 = _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight
+            geometry.contactbltr(resistor, "gate", point.create(blx1, bly1), point.create(trx1, try1))
+            geometry.contactbltr(resistor, "gate", point.create(blx2, bly2), point.create(trx2, try2))
+            _add_contact_anchor(resistor, string.format("contact_minus_%d_%d", x, y), point.create(blx1, bly1), point.create(trx1, try1))
+            _add_contact_anchor(resistor, string.format("contact_minus_-%d_-%d", _P.nxfingers - x + 1, y), point.create(blx1, bly1), point.create(trx1, try1))
+            _add_contact_anchor(resistor, string.format("contact_plus_%d_%d", x, y), point.create(blx2, bly2), point.create(trx2, try2))
+            _add_contact_anchor(resistor, string.format("contact_plus_-%d_-%d", _P.nxfingers - x + 1, y), point.create(blx2, bly2), point.create(trx2, try2))
         end
     end
 
@@ -193,11 +162,11 @@ function layout(resistor, _P)
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                     )
-                    _add_contact_anchor(resistor, string.format("leftdummycontact_lower_%d_%d", x, y),
+                    _add_contact_anchor(resistor, string.format("leftdummycontact_minus_%d_%d", x, y),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
-                    _add_contact_anchor(resistor, string.format("leftdummycontact_upper_%d_%d", x, y),
+                    _add_contact_anchor(resistor, string.format("leftdummycontact_plus_%d_%d", x, y),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + 2 * _P.extension + _P.contactheight),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + 2 * _P.extension + 2 * _P.contactheight)
                     )
@@ -228,11 +197,11 @@ function layout(resistor, _P)
                         point.create((x + _P.leftdummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
                         point.create((x + _P.leftdummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                     )
-                    _add_contact_anchor(resistor, string.format("rightdummycontact_lower_%d_%d", x, y),
+                    _add_contact_anchor(resistor, string.format("rightdummycontact_minus_%d_%d", x, y),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
-                    _add_contact_anchor(resistor, string.format("rightdummycontact_upper_%d_%d", x, y),
+                    _add_contact_anchor(resistor, string.format("rightdummycontact_plus_%d_%d", x, y),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + 2 * _P.extension + _P.contactheight),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + 2 * _P.extension + 2 * _P.contactheight)
                     )
@@ -359,65 +328,48 @@ function layout(resistor, _P)
 
     -- connections
     if _P.conntype == "parallel" then
-        if _P.yspace > 0 then
-            for y = 1, _P.nyfingers do
-                geometry.rectanglebltr(resistor, generics.metal(1),
-                    resistor:get_area_anchor(string.format("contact_upper_%d_%d", 1, y)).bl,
-                    resistor:get_area_anchor(string.format("contact_upper_%d_%d", _P.nxfingers, y)).tr
-                )
-                geometry.rectanglebltr(resistor, generics.metal(1),
-                    resistor:get_area_anchor(string.format("contact_lower_%d_%d", 1, y)).bl,
-                    resistor:get_area_anchor(string.format("contact_lower_%d_%d", _P.nxfingers, y)).tr
-                )
+        for y = 1, _P.nyfingers do
+            geometry.rectanglebltr(resistor, generics.metal(1),
+                resistor:get_area_anchor(string.format("contact_plus_%d_%d", 1, y)).bl,
+                resistor:get_area_anchor(string.format("contact_plus_%d_%d", _P.nxfingers, y)).tr
+            )
+            geometry.rectanglebltr(resistor, generics.metal(1),
+                resistor:get_area_anchor(string.format("contact_minus_%d_%d", 1, y)).bl,
+                resistor:get_area_anchor(string.format("contact_minus_%d_%d", _P.nxfingers, y)).tr
+            )
+        end
+    elseif _P.conntype == "series" then
+        for x = 1, _P.nxfingers - 1 do
+            local yindex
+            local contact
+            if _P.invertseriesconnections then
+                yindex = (x % 2 == 1) and 1 or _P.nyfingers
+                contact = (x % 2 == 1) and "minus" or "plus"
+            else
+                yindex = (x % 2 == 1) and _P.nyfingers or 1
+                contact = (x % 2 == 1) and "plus" or "minus"
             end
-        else
-            for y = 1, _P.nyfingers + 1 do
+            -- end connections
+            geometry.rectanglebltr(resistor, generics.metal(1),
+                resistor:get_area_anchor(string.format("contact_%s_%d_%d", contact, x, yindex)).bl,
+                resistor:get_area_anchor(string.format("contact_%s_%d_%d", contact, x + 1, yindex)).tr
+            )
+        end
+        for x = 1, _P.nxfingers do
+            -- in-between connections
+            for y = 1, _P.nyfingers - 1 do
                 geometry.rectanglebltr(resistor, generics.metal(1),
-                    resistor:get_area_anchor(string.format("contact_%d_%d", 1, y)).bl,
-                    resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, y)).tr
+                    resistor:get_area_anchor(string.format("contact_plus_%d_%d", x, y)).bl,
+                    resistor:get_area_anchor(string.format("contact_minus_%d_%d", x, y + 1)).tr
                 )
             end
         end
-    elseif _P.conntype == "series" then
-        if _P.yspace > 0 then
-            for x = 1, _P.nxfingers - 1 do
-                local yindex
-                local contact
-                if _P.invertseriesconnections then
-                    yindex = (x % 2 == 1) and 1 or _P.nyfingers
-                    contact = (x % 2 == 1) and "lower" or "upper"
-                else
-                    yindex = (x % 2 == 1) and _P.nyfingers or 1
-                    contact = (x % 2 == 1) and "upper" or "lower"
-                end
-                -- end connections
-                geometry.rectanglebltr(resistor, generics.metal(1),
-                    resistor:get_area_anchor(string.format("contact_%s_%d_%d", contact, x, yindex)).bl,
-                    resistor:get_area_anchor(string.format("contact_%s_%d_%d", contact, x + 1, yindex)).tr
-                )
-            end
-            for x = 1, _P.nxfingers do
-                -- in-between connections
-                for y = 1, _P.nyfingers - 1 do
-                    geometry.rectanglebltr(resistor, generics.metal(1),
-                        resistor:get_area_anchor(string.format("contact_upper_%d_%d", x, y)).tl,
-                        resistor:get_area_anchor(string.format("contact_lower_%d_%d", x, y + 1)).br
-                    )
-                end
-            end
-        else
-            for x = 1, _P.nxfingers - 1 do
-                local yindex
-                if _P.invertseriesconnections then
-                    yindex = (x % 2 == 1) and 1 or _P.nyfingers + 1
-                else
-                    yindex = (x % 2 == 1) and _P.nyfingers + 1 or 1
-                end
-                geometry.rectanglebltr(resistor, generics.metal(1),
-                    resistor:get_area_anchor(string.format("contact_%d_%d", x, yindex)).bl,
-                    resistor:get_area_anchor(string.format("contact_%d_%d", x + 1, yindex)).tr
-                )
-            end
+    elseif _P.conntype == "custom" then
+        for _, connection in ipairs(_P.customconnections) do
+            geometry.rectanglebltr(resistor, generics.metal(1),
+                resistor:get_area_anchor(string.format("contact_%s_%d_%d", connection.pin1, connection.x1, connection.y1)).bl,
+                resistor:get_area_anchor(string.format("contact_%s_%d_%d", connection.pin2, connection.x2, connection.y2)).tr
+            )
         end
     end
 
@@ -427,22 +379,22 @@ function layout(resistor, _P)
             for y = 1, _P.nyfingers do
                 if _P.leftdummies > 0 then
                     geometry.rectanglebltr(resistor, generics.metal(1),
-                        resistor:get_area_anchor(string.format("leftdummycontact_lower_%d_%d", 1, y)).bl,
-                        resistor:get_area_anchor(string.format("leftdummycontact_lower_%d_%d", _P.leftdummies, y)).tr
+                        resistor:get_area_anchor(string.format("leftdummycontact_minus_%d_%d", 1, y)).bl,
+                        resistor:get_area_anchor(string.format("leftdummycontact_minus_%d_%d", _P.leftdummies, y)).tr
                     )
                     geometry.rectanglebltr(resistor, generics.metal(1),
-                        resistor:get_area_anchor(string.format("leftdummycontact_upper_%d_%d", 1, y)).bl,
-                        resistor:get_area_anchor(string.format("leftdummycontact_upper_%d_%d", _P.leftdummies, y)).tr
+                        resistor:get_area_anchor(string.format("leftdummycontact_plus_%d_%d", 1, y)).bl,
+                        resistor:get_area_anchor(string.format("leftdummycontact_plus_%d_%d", _P.leftdummies, y)).tr
                     )
                 end
                 if _P.rightdummies > 1 then
                     geometry.rectanglebltr(resistor, generics.metal(1),
-                        resistor:get_area_anchor(string.format("rightdummycontact_lower_%d_%d", 1, y)).bl,
-                        resistor:get_area_anchor(string.format("rightdummycontact_lower_%d_%d", _P.rightdummies, y)).tr
+                        resistor:get_area_anchor(string.format("rightdummycontact_minus_%d_%d", 1, y)).bl,
+                        resistor:get_area_anchor(string.format("rightdummycontact_minus_%d_%d", _P.rightdummies, y)).tr
                     )
                     geometry.rectanglebltr(resistor, generics.metal(1),
-                        resistor:get_area_anchor(string.format("rightdummycontact_upper_%d_%d", 1, y)).bl,
-                        resistor:get_area_anchor(string.format("rightdummycontact_upper_%d_%d", _P.rightdummies, y)).tr
+                        resistor:get_area_anchor(string.format("rightdummycontact_plus_%d_%d", 1, y)).bl,
+                        resistor:get_area_anchor(string.format("rightdummycontact_plus_%d_%d", _P.rightdummies, y)).tr
                     )
                 end
             end
@@ -474,12 +426,12 @@ function layout(resistor, _P)
     if _P.drawdummycontacts and _P.leftdummies > 0 then
         if _P.yspace > 0 then
             resistor:add_area_anchor_bltr("leftdummyplus",
-                resistor:get_area_anchor(string.format("leftdummycontact_upper_%d_%d", 1, _P.nyfingers)).bl,
-                resistor:get_area_anchor(string.format("leftdummycontact_upper_%d_%d", _P.leftdummies, _P.nyfingers)).tr
+                resistor:get_area_anchor(string.format("leftdummycontact_plus_%d_%d", 1, _P.nyfingers)).bl,
+                resistor:get_area_anchor(string.format("leftdummycontact_plus_%d_%d", _P.leftdummies, _P.nyfingers)).tr
             )
             resistor:add_area_anchor_bltr("leftdummyminus",
-                resistor:get_area_anchor(string.format("leftdummycontact_lower_%d_%d", 1, 1)).bl,
-                resistor:get_area_anchor(string.format("leftdummycontact_lower_%d_%d", _P.leftdummies, 1)).tr
+                resistor:get_area_anchor(string.format("leftdummycontact_minus_%d_%d", 1, 1)).bl,
+                resistor:get_area_anchor(string.format("leftdummycontact_minus_%d_%d", _P.leftdummies, 1)).tr
             )
         else
             resistor:add_area_anchor_bltr("leftdummyplus",
@@ -495,12 +447,12 @@ function layout(resistor, _P)
     if _P.drawdummycontacts and _P.rightdummies > 0 then
         if _P.yspace > 0 then
             resistor:add_area_anchor_bltr("rightdummyplus",
-                resistor:get_area_anchor(string.format("rightdummycontact_upper_%d_%d", 1, _P.nyfingers)).bl,
-                resistor:get_area_anchor(string.format("rightdummycontact_upper_%d_%d", _P.rightdummies, _P.nyfingers)).tr
+                resistor:get_area_anchor(string.format("rightdummycontact_plus_%d_%d", 1, _P.nyfingers)).bl,
+                resistor:get_area_anchor(string.format("rightdummycontact_plus_%d_%d", _P.rightdummies, _P.nyfingers)).tr
             )
             resistor:add_area_anchor_bltr("rightdummyminus",
-                resistor:get_area_anchor(string.format("rightdummycontact_lower_%d_%d", 1, 1)).bl,
-                resistor:get_area_anchor(string.format("rightdummycontact_lower_%d_%d", _P.rightdummies, 1)).tr
+                resistor:get_area_anchor(string.format("rightdummycontact_minus_%d_%d", 1, 1)).bl,
+                resistor:get_area_anchor(string.format("rightdummycontact_minus_%d_%d", _P.rightdummies, 1)).tr
             )
         else
             resistor:add_area_anchor_bltr("rightdummyplus",
@@ -514,59 +466,30 @@ function layout(resistor, _P)
         end
     end
     if _P.conntype == "parallel" then
-        if _P.yspace > 0 then
-            resistor:add_area_anchor_bltr("plus",
-                resistor:get_area_anchor(string.format("contact_upper_%d_%d", 1, _P.nyfingers)).bl,
-                resistor:get_area_anchor(string.format("contact_upper_%d_%d", _P.nxfingers, _P.nyfingers)).tr
-            )
-            resistor:add_area_anchor_bltr("minus",
-                resistor:get_area_anchor(string.format("contact_lower_%d_%d", 1, 1)).bl,
-                resistor:get_area_anchor(string.format("contact_lower_%d_%d", _P.nxfingers, 1)).tr
-            )
-        else
-            resistor:add_area_anchor_bltr("plus",
-                resistor:get_area_anchor(string.format("contact_%d_%d", 1, _P.nyfingers + 1)).bl,
-                resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, _P.nyfingers + 1)).tr
-            )
-            resistor:add_area_anchor_bltr("minus",
-                resistor:get_area_anchor(string.format("contact_%d_%d", 1, 1)).bl,
-                resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, 1)).tr
-            )
-        end
+        resistor:add_area_anchor_bltr("plus",
+            resistor:get_area_anchor(string.format("contact_plus_%d_%d", 1, _P.nyfingers)).bl,
+            resistor:get_area_anchor(string.format("contact_plus_%d_%d", _P.nxfingers, _P.nyfingers)).tr
+        )
+        resistor:add_area_anchor_bltr("minus",
+            resistor:get_area_anchor(string.format("contact_minus_%d_%d", 1, 1)).bl,
+            resistor:get_area_anchor(string.format("contact_minus_%d_%d", _P.nxfingers, 1)).tr
+        )
     else -- series
-        if _P.yspace > 0 then
-            if _P.nxfingers % 2 == 0 then
-                resistor:add_area_anchor_bltr("plus",
-                    resistor:get_area_anchor(string.format("contact_lower_%d_%d", _P.nxfingers, 1)).bl,
-                    resistor:get_area_anchor(string.format("contact_lower_%d_%d", _P.nxfingers, 1)).tr
-                )
-            else
-                resistor:add_area_anchor_bltr("plus",
-                    resistor:get_area_anchor(string.format("contact_upper_%d_%d", _P.nxfingers, _P.nyfingers)).bl,
-                    resistor:get_area_anchor(string.format("contact_upper_%d_%d", _P.nxfingers, _P.nyfingers)).tr
-                )
-            end
-            resistor:add_area_anchor_bltr("minus",
-                resistor:get_area_anchor(string.format("contact_lower_%d_%d", 1, 1)).bl,
-                resistor:get_area_anchor(string.format("contact_lower_%d_%d", 1, 1)).tr
+        if _P.nxfingers % 2 == 0 then
+            resistor:add_area_anchor_bltr("plus",
+                resistor:get_area_anchor(string.format("contact_minus_%d_%d", _P.nxfingers, 1)).bl,
+                resistor:get_area_anchor(string.format("contact_minus_%d_%d", _P.nxfingers, 1)).tr
             )
         else
-            if _P.nxfingers % 2 == 0 then
-                resistor:add_area_anchor_bltr("plus",
-                    resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, 1)).bl,
-                    resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, 1)).tr
-                )
-            else
-                resistor:add_area_anchor_bltr("plus",
-                    resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, _P.nyfingers + 1)).bl,
-                    resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, _P.nyfingers + 1)).tr
-                )
-            end
-            resistor:add_area_anchor_bltr("minus",
-                resistor:get_area_anchor(string.format("contact_%d_%d", 1, 1)).bl,
-                resistor:get_area_anchor(string.format("contact_%d_%d", 1, 1)).tr
+            resistor:add_area_anchor_bltr("plus",
+                resistor:get_area_anchor(string.format("contact_plus_%d_%d", _P.nxfingers, _P.nyfingers)).bl,
+                resistor:get_area_anchor(string.format("contact_plus_%d_%d", _P.nxfingers, _P.nyfingers)).tr
             )
         end
+        resistor:add_area_anchor_bltr("minus",
+            resistor:get_area_anchor(string.format("contact_minus_%d_%d", 1, 1)).bl,
+            resistor:get_area_anchor(string.format("contact_minus_%d_%d", 1, 1)).tr
+        )
     end
     if _P.plusmetal > 1 then
         geometry.viabltr(resistor, 1, _P.plusmetal,
@@ -606,30 +529,16 @@ function layout(resistor, _P)
             soiopeninnerextension = _P.guardringsoiopeninnerextension,
             soiopenouterextension = _P.guardringsoiopenouterextension,
         })
-        if _P.yspace > 0 then
-            if _P.leftdummies > 0 then
-                guardring:move_point(
-                    guardring:get_area_anchor("innerboundary").bl,
-                    resistor:get_area_anchor_fmt("leftdummycontact_lower_%d_%d", 1, 1).bl
-                )
-            else
-                guardring:move_point(
-                    guardring:get_area_anchor("innerboundary").bl,
-                    resistor:get_area_anchor_fmt("contact_lower_%d_%d", 1, 1).bl
-                )
-            end
+        if _P.leftdummies > 0 then
+            guardring:move_point(
+                guardring:get_area_anchor("innerboundary").bl,
+                resistor:get_area_anchor_fmt("leftdummycontact_minus_%d_%d", 1, 1).bl
+            )
         else
-            if _P.leftdummies > 0 then
-                guardring:move_point(
-                    guardring:get_area_anchor("innerboundary").bl,
-                    resistor:get_area_anchor_fmt("leftdummycontact_%d_%d", 1, 1).bl
-                )
-            else
-                guardring:move_point(
-                    guardring:get_area_anchor("innerboundary").bl,
-                    resistor:get_area_anchor_fmt("contact_%d_%d", 1, 1).bl
-                )
-            end
+            guardring:move_point(
+                guardring:get_area_anchor("innerboundary").bl,
+                resistor:get_area_anchor_fmt("contact_minus_%d_%d", 1, 1).bl
+            )
         end
         guardring:translate(-_P.guardring_xsep, -_P.extraextension - _P.guardring_ysep)
         resistor:merge_into(guardring)
