@@ -42,7 +42,6 @@ return {
     guardringfilloxidetype = true,
     interconnectlinepos = "offside",
     interconnectlinewidth = 400,
-    outputlinemode = "global",
     outputlinewidth = 2000,
     groupoutputlines = true,
     grouporder = "source_inside",
