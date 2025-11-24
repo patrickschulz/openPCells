@@ -621,6 +621,19 @@ function util.clone_shallow_predicate(t, predicate)
     return new
 end
 
+function util.clone_array_predicate(t, predicate)
+    check.set_next_function_name("util.clone_array_predicate")
+    check.arg(1, "t", "table", t)
+    check.arg(2, "predicate", "function", predicate)
+    local new = {}
+    for _, e in ipairs(t) do
+        if predicate(e) then
+            table.insert(new, e)
+        end
+    end
+    return new
+end
+
 function util.find(t, value)
     check.set_next_function_name("util.find")
     check.arg(1, "t", "table", t)

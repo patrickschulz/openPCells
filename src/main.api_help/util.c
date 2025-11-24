@@ -491,6 +491,22 @@
     ));
 }
 
+/* util.clone_array_predicate(t) */
+{
+    struct parameter parameters[] = {
+        { "table",      TABLE,      NULL, "table" },
+        { "predicate",  FUNCTION,   NULL, "predicate function" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "clone_array_predicate",
+        MODULE_UTIL,
+        "create a shallow copy of an array-like table. This function creates a copy of the given table, where all first-level array values are copied. If those values are tables, they reference the same table as the original object. This function only copies items where the given predicate function (called with value of the item) returns true. The array indices might change as not all elements might be copied.",
+        "local new = util.clone_shallow_predicate(t, function(e) if string.match(e, \"vdd.+\") end)",
+        parameters
+    ));
+}
+
 /* util.add_options(baseoptions, additional) */
 {
     struct parameter parameters[] = {
