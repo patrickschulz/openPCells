@@ -286,8 +286,8 @@ struct vector* simple_polygon_line_intersections(
 
 struct vector* polygon_container_line_intersections(
     const struct polygon_container* polygon_container,
-    coordinate_t blx, coordinate_t bly,
-    coordinate_t trx, coordinate_t try
+    coordinate_t x1, coordinate_t y1,
+    coordinate_t x2, coordinate_t y2
 )
 {
     struct vector* intersections = vector_create(1, point_destroy);
@@ -295,7 +295,7 @@ struct vector* polygon_container_line_intersections(
     while(polygon_container_const_iterator_is_valid(it))
     {
         const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(it);
-        struct vector* subintersections = simple_polygon_line_intersections(simple_polygon, blx, bly, trx, try);
+        struct vector* subintersections = simple_polygon_line_intersections(simple_polygon, x1, y1, x2, y2);
         while(!vector_empty(subintersections))
         {
             vector_append(intersections, vector_disown_element(subintersections, vector_size(subintersections) - 1));

@@ -51,7 +51,7 @@ void net_remove_position(struct net *net, unsigned int i);
 struct position* net_create_position(const char *instance, const char *port, unsigned int x, unsigned int y, unsigned int z);
 const char *net_position_get_inst(const struct position *pos);
 const char *net_position_get_port(const struct position *pos);
-void* net_copy_position(const void* pos);
+void* net_copy_position(const void* vp);
 struct rpoint *net_position_to_point(const struct position *pos);
 struct position *net_point_to_position(const struct rpoint *point);
 const struct position *net_get_position_at_point(const struct net *net, const struct rpoint *point);

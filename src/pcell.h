@@ -33,7 +33,7 @@ void pcell_enable_dprint(struct pcell_state* pcell_state);
 void pcell_set_dprint_target(struct pcell_state* pcell_state, const char* filename);
 void pcell_set_verbose(struct pcell_state* pcell_state);
 
-struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* name, struct const_vector* cellargs, const char* cellenvfilename);
+struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* name, struct const_vector* cellargs, const char* cellenvfilename);
 struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* toplevelname, const char* cellenvfilename);
 
 #endif // OPC_PCELL_H

@@ -53,7 +53,7 @@ struct point* object_get_anchor(const struct object* cell, const char* name);
 struct point* object_get_alignment_anchor(const struct object* cell, const char* name);
 struct point* object_get_area_anchor(const struct object* cell, const char* base);
 struct point* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
-struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* name);
+struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base);
 coordinate_t* object_get_anchor_line_x(const struct object* cell, const char* name);
 coordinate_t* object_get_anchor_line_y(const struct object* cell, const char* name);
 struct point* object_get_alignmentbox_anchor_outerbl(const struct object* cell);
