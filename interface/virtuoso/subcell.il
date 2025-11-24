@@ -14,7 +14,7 @@ procedure(OPCIsOPCGroup(group)
 ) ; procedure OPCIsOPCGroup
 
 procedure(OPCSubCellGet()
-    setof(groupd geGetSelSet() OPCIsOPCGroup(group))
+    setof(group geGetSelSet() OPCIsOPCGroup(group))
 ) ; procedure
 
 procedure(OPCSubCellCreateScript()
