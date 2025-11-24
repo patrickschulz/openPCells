@@ -154,7 +154,7 @@ debug/%.o: %.c
 
 .PHONY: check
 check:
-	clang-tidy *.h *.c
+	clang-tidy $(patsubst %.o,%.c,$(OBJS)) $(wildcard *.h)
 
 opc.1: cmdoptions_def.c generate_manpage
 	./generate_manpage > opc.1
