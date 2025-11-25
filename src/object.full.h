@@ -5,6 +5,9 @@
 #ifndef OPC_OBJECT_FULL_H
 #define OPC_OBJECT_FULL_H
 
+#include "bltrshape.h"
+#include "object.ports.h"
+
 // the struct is exposed so that composition is possible, but all content is hidden behind 'private'
 struct object_full {
     struct {
@@ -56,5 +59,13 @@ int objectfull_has_boundary(const struct object_full* full);
 void objectfull_set_empty_layer_boundary(struct object_full* full, const struct generics* layer);
 void objectfull_add_layer_boundary(struct object_full* full, const struct generics* layer, struct simple_polygon* new);
 int objectfull_has_layer_boundary(const struct object_full* full, const struct generics* layer);
+struct polygon_container* objectfull_get_layer_boundary(const struct object_full* full, const struct generics* layer);
+
+// ports and labels
+void objectfull_add_port(struct object_full* cell, struct port* port);
+void objectfull_add_label(struct object_full* cell, struct port* port);
+
+// net shapes
+struct bltrshape* objectfull_add_net_shape(struct object_full* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer);
 
 #endif /* OPC_OBJECT_FULL_H */

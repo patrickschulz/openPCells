@@ -1,3 +1,9 @@
+#define OBJECT_DEFAULT_SHAPES_SIZE 32
+#define OBJECT_DEFAULT_CHILDREN_SIZE 16
+#define OBJECT_DEFAULT_REFERENCES_SIZE 8
+#define OBJECT_DEFAULT_PORT_SIZE 16
+#define OBJECT_DEFAULT_LABEL_SIZE 16
+
 void objectfull_copy_to(const struct object_full* full, struct object_full* new)
 {
     // shapes
@@ -194,11 +200,11 @@ void objectfull_destroy(struct object_full* full)
 
 void objectfull_add_shape(struct object_full* full, struct shape* S)
 {
-    if(!cell->private.shapes)
+    if(!full->private.shapes)
     {
-        cell->private.shapes = vector_create(OBJECT_DEFAULT_SHAPES_SIZE, shape_destroy);
+        full->private.shapes = vector_create(OBJECT_DEFAULT_SHAPES_SIZE, shape_destroy);
     }
-    vector_append(cell->private.shapes, S);
+    vector_append(full->private.shapes, S);
 }
 
 void objectfull_remove_shape(struct object_full* full, size_t idx)
@@ -325,7 +331,7 @@ int objectfull_add_anchor(struct object_full* full, const char* name, struct anc
     return 1;
 }
 
-void objectfull_inherit_all_anchors_with_prefix(struct object_full* cell, const struct object_full* other, const char* prefix)
+void objectfull_inherit_all_anchors_with_prefix(struct object_full* full, const struct object_full* other, const char* prefix)
 {
     if(obj->private.anchors)
     {
@@ -338,11 +344,11 @@ void objectfull_inherit_all_anchors_with_prefix(struct object_full* cell, const 
             sprintf(newanchorname, "%s%s", prefix, key);
             if(objectanchor_is_area(anchor))
             {
-                object_inherit_area_anchor_as(cell, obj, key, newanchorname);
+                object_inherit_area_anchor_as(full, obj, key, newanchorname);
             }
             else
             {
-                object_inherit_anchor_as(cell, obj, key, newanchorname);
+                object_inherit_anchor_as(full, obj, key, newanchorname);
             }
             free(newanchorname);
             hashmap_const_iterator_next(it);
@@ -379,11 +385,11 @@ int objectfull_add_anchor_line_xy(struct object_full* full, const char* name, co
     return 1;
 }
 
-struct anchor* objectfull_get_anchor(const struct object_full* cell, const char* name)
+struct anchor* objectfull_get_anchor(const struct object_full* full, const char* name)
 {
-    if(hashmap_exists(obj->private.anchors, name))
+    if(hashmap_exists(full->private.anchors, name))
     {
-        return hashmap_get(obj->private.anchors, name);
+        return hashmap_get(full->private.anchors, name);
     }
     else
     {
@@ -391,7 +397,7 @@ struct anchor* objectfull_get_anchor(const struct object_full* cell, const char*
     }
 }
 
-coordinate_t* objectfull_get_anchor_line(const struct object_full* cell, const char* name)
+coordinate_t* objectfull_get_anchor_line(const struct object_full* full, const char* name)
 {
     if(hashmap_exists(obj->private.anchorlines, name))
     {
@@ -492,3 +498,98 @@ void objectfull_add_layer_boundary(struct object_full* full, const struct generi
     polygon_container_add(boundary, new);
 }
 
+int objectfull_has_layer_boundary(const struct object* full, const struct generics* layer)
+{
+    if(full->private.layer_boundaries)
+    {
+        return hashmap_exists(full->private.layer_boundaries, (const char*)layer);
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+struct polygon_container* objectfull_get_layer_boundary(const struct object_full* full, const struct generics* layer)
+{
+    if(!full->private.layer_boundaries)
+    {
+        return polygon_container_create_empty();
+    }
+    struct polygon_container* cellboundary = hashmap_get(full->private.layer_boundaries, (const char*)layer);
+    if(cellboundary)
+    {
+        if(polygon_container_is_empty(cellboundary))
+        {
+            return polygon_container_create_empty();
+        }
+        struct polygon_container* boundary = polygon_container_create();
+        struct polygon_container_const_iterator* pit = polygon_container_const_iterator_create(cellboundary);
+        while(polygon_container_const_iterator_is_valid(pit))
+        {
+            const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(pit);
+            struct simple_polygon_const_iterator* it = simple_polygon_const_iterator_create(simple_polygon);
+            struct simple_polygon* single_boundary = simple_polygon_create();
+            while(simple_polygon_const_iterator_is_valid(it))
+            {
+                const struct point* pt = simple_polygon_const_iterator_get(it);
+                struct point* newpt = point_copy(pt);
+                simple_polygon_append(single_boundary, newpt);
+                simple_polygon_const_iterator_next(it);
+            }
+            simple_polygon_const_iterator_destroy(it);
+            polygon_container_add(boundary, single_boundary);
+            polygon_container_const_iterator_next(pit);
+        }
+        polygon_container_const_iterator_destroy(pit);
+        return boundary;
+    }
+    else
+    {
+        struct polygon_container* boundary = polygon_container_create();
+        coordinate_t blx, bly, trx, try;
+        object_get_minmax_xy(cell, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
+        struct simple_polygon* single_boundary = simple_polygon_create();
+        simple_polygon_append(single_boundary, point_create(blx, bly));
+        simple_polygon_append(single_boundary, point_create(trx, bly));
+        simple_polygon_append(single_boundary, point_create(trx, try));
+        simple_polygon_append(single_boundary, point_create(blx, try));
+        polygon_container_add(boundary, single_boundary);
+        return boundary;
+    }
+}
+
+void objectfull_add_port(struct object_full* full, struct port* port)
+{
+    if(!full->private.ports)
+    {
+        full->private.ports = vector_create(OBJECT_DEFAULT_PORT_SIZE, objectport_destroy);
+    }
+    vector_append(full->private.ports, port);
+}
+
+void objectfull_add_port(struct object_full* full, struct port* port)
+{
+    if(!full->private.labels)
+    {
+        full->private.labels = vector_create(OBJECT_DEFAULT_PORT_SIZE, objectport_destroy);
+    }
+    vector_append(full->private.labels, port);
+}
+
+struct bltrshape* objectull_add_net_shape(struct object_full* full, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer)
+{
+    if(!full->private.nets)
+    {
+        full->private.nets = hashmap_create(vector_destroy);
+    }
+    if(!hashmap_exists(full->private.nets, netname))
+    {
+        struct vector* v = vector_create(8, bltrshape_destroy);
+        hashmap_insert(full->private.nets, netname, v);
+    }
+    struct vector* nets = hashmap_get(full->private.nets, netname);
+    struct bltrshape* netarea = bltrshape_create(bl, tr, layer);
+    vector_append(nets, netarea);
+    return netarea;
+}

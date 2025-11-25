@@ -377,7 +377,6 @@ coordinate_t simple_polygon_get_minx(const struct simple_polygon* simple_polygon
     return minx;
 }
 
-
 coordinate_t polygon_container_get_minx(const struct polygon_container* polygon_container)
 {
     coordinate_t minx = COORDINATE_MAX;
@@ -392,6 +391,7 @@ coordinate_t polygon_container_get_minx(const struct polygon_container* polygon_
         }
         polygon_container_const_iterator_next(it);
     }
+    polygon_container_iterator_destroy(it);
     return minx;
 }
 
@@ -423,6 +423,7 @@ coordinate_t polygon_container_get_miny(const struct polygon_container* polygon_
         }
         polygon_container_const_iterator_next(it);
     }
+    polygon_container_iterator_destroy(it);
     return miny;
 }
 
@@ -437,9 +438,9 @@ coordinate_t simple_polygon_get_maxx(const struct simple_polygon* simple_polygon
             maxx = point_getx(pt);
         }
     }
+    polygon_container_iterator_destroy(it);
     return maxx;
 }
-
 
 coordinate_t polygon_container_get_maxx(const struct polygon_container* polygon_container)
 {
@@ -455,6 +456,7 @@ coordinate_t polygon_container_get_maxx(const struct polygon_container* polygon_
         }
         polygon_container_const_iterator_next(it);
     }
+    polygon_container_iterator_destroy(it);
     return maxx;
 }
 
@@ -469,6 +471,7 @@ coordinate_t simple_polygon_get_maxy(const struct simple_polygon* simple_polygon
             maxy = point_gety(pt);
         }
     }
+    polygon_container_iterator_destroy(it);
     return maxy;
 }
 
@@ -486,8 +489,29 @@ coordinate_t polygon_container_get_maxy(const struct polygon_container* polygon_
         }
         polygon_container_const_iterator_next(it);
     }
+    polygon_container_iterator_destroy(it);
     return maxy;
 }
+
+int polygon_container_foreach_points(struct polygon_container* polygon, polygon_container_point_action action, struct generic_arg* extraargs)
+{
+    struct polygon_container_iterator* it = polygon_container_iterator_create(polygon_container);
+    while(polygon_container_iterator_is_valid(it))
+    {
+        struct simple_polygon* simple_polygon = polygon_container_iterator_get(it);
+        struct simple_polygon_iterator* it = simple_polygon_iterator_create(simple_polygon);
+        while(simple_polygon_iterator_is_valid(it))
+        {
+            struct point* pt = simple_polygon_iterator_get(it);
+            action(pt, extraargs);
+            simple_polygon_iterator_next(it);
+        }
+        simple_polygon_iterator_destroy(it);
+        polygon_container_iterator_next(it);
+    }
+    polygon_container_iterator_destroy(it);
+}
+
 
 struct simple_polygon_iterator {
     struct vector_iterator* iterator;

@@ -1,7 +1,9 @@
 #ifndef OPC_POLYGON_H
 #define OPC_POLYGON_H
 
+#include "foreach.h"
 #include "point.h"
+#include "transformationmatrix.h"
 
 struct simple_polygon;
 struct polygon_container;
@@ -28,6 +30,11 @@ coordinate_t polygon_container_get_minx(const struct polygon_container* polygon_
 coordinate_t polygon_container_get_maxx(const struct polygon_container* polygon_container);
 coordinate_t polygon_container_get_miny(const struct polygon_container* polygon_container);
 coordinate_t polygon_container_get_maxy(const struct polygon_container* polygon_container);
+typedef int (*polygon_container_point_action)(
+    void* pt, // void* for compatibility with vector_foreach actions
+    struct generic_arg* extraargs
+);
+int polygon_container_foreach_points(struct polygon_container* polygon, polygon_container_point_action action, struct generic_arg* extraargs);
 
 struct simple_polygon_iterator;
 struct simple_polygon_iterator* simple_polygon_iterator_create(struct simple_polygon* simple_polygon);

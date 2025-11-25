@@ -57,10 +57,9 @@ void objectport_destroy(void* p)
     free(port);
 }
 
-void objectport_get_point(const struct port* port, struct point* pt)
+struct point* objectport_get_point(const struct port* port)
 {
-    pt->x = port->where->x;
-    pt->y = port->where->y;
+    return port->where;
 }
 
 int objectport_call_port(const struct port* port, struct transformationmatrix* matrix, port_action action, struct generic_arg* extraargs)

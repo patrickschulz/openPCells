@@ -19,12 +19,6 @@
 #include "helpers.h"
 #include "util.h"
 
-#define OBJECT_DEFAULT_SHAPES_SIZE 32
-#define OBJECT_DEFAULT_CHILDREN_SIZE 16
-#define OBJECT_DEFAULT_REFERENCES_SIZE 8
-#define OBJECT_DEFAULT_PORT_SIZE 16
-#define OBJECT_DEFAULT_LABEL_SIZE 16
-
 struct object {
     struct object_common common;
     union {
@@ -272,13 +266,22 @@ static int _transform_array_point_to_global_coordinates(void* v, struct generic_
     return 1;
 }
 
-void objectbase_transform_to_global_coordinates_pts(const struct object* cell, struct vector* pts)
+void objectbase_transform_to_global_coordinates_vector(const struct object* cell, struct vector* pts)
 {
     struct generic_arg args[] = {
         { .type = ARG_CONST_POINTER, .content.cptr = cell },
         { .type = ARG_END }
     };
     vector_foreach(pts, _transform_array_point_to_global_coordinates, args);
+}
+
+void objectbase_transform_to_global_coordinates_polygon_container(const struct object* cell, struct polygon_container* polygon)
+{
+    struct generic_arg args[] = {
+        { .type = ARG_CONST_POINTER, .content.cptr = cell },
+        { .type = ARG_END }
+    };
+    polygon_container_foreach_points(polygon, _transform_array_point_to_global_coordinates, args);
 }
 
 static void _check_coordinates(coordinate_t* alignmentbox, size_t idx1, size_t idx2)
@@ -447,12 +450,14 @@ struct vector* objectbase_get_boundary(const struct object* cell)
     if(object_is_proxy(cell))
     {
         boundary = objectfull_get_boundary(FULLREFERENCE(cell));
-        objectbase_transform_to_global_coordinates_pts(cell, boundary);
     }
     else
     {
         boundary = objectfull_get_boundary(FULL(cell));
-        objectbase_transform_to_global_coordinates_pts(cell, boundary);
+    }
+    if(boundary)
+    {
+        objectbase_transform_to_global_coordinates_vector(cell, boundary);
     }
     return boundary;
 }
@@ -504,7 +509,6 @@ void objectbase_add_layer_boundary(struct object* cell, const struct generics* l
 void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer)
 {
     struct polygon_container* boundary = object_get_layer_boundary(othercell, layer);
-
     struct polygon_container_iterator* it = polygon_container_iterator_create(boundary);
     while(polygon_container_iterator_is_valid(it))
     {
@@ -528,156 +532,40 @@ int object_has_layer_boundary(const struct object* cell, const struct generics* 
         return objectfull_has_layer_boundary(FULL(cell), layer);
     }
 }
-{
-    if(object_is_proxy(cell))
-    {
-        if(cell->content.proxy.reference->content.full.layer_boundaries)
-        {
-            return hashmap_exists(cell->content.proxy.reference->content.full.layer_boundaries, (const char*)layer);
-        }
-        else
-        {
-            return 0;
-        }
-    }
-    else
-    {
-        if(cell->content.full.layer_boundaries)
-        {
-            return hashmap_exists(cell->content.full.layer_boundaries, (const char*)layer);
-        }
-        else
-        {
-            return 0;
-        }
-    }
-}
 
 struct polygon_container* object_get_layer_boundary(const struct object* cell, const struct generics* layer)
 {
+    CHECK_FULL_OR_PROXY(cell);
+    struct polygon_container* boundary = NULL;
     if(object_is_proxy(cell))
     {
-        if(!cell->content.proxy.reference->content.full.layer_boundaries)
-        {
-            return polygon_container_create_empty();
-        }
-        struct polygon_container* cellboundary = hashmap_get(cell->content.proxy.reference->content.full.layer_boundaries, (const char*)layer);
-        if(cellboundary)
-        {
-            if(polygon_container_is_empty(cellboundary))
-            {
-                return polygon_container_create_empty();
-            }
-            struct polygon_container* boundary = polygon_container_create();
-            struct polygon_container_const_iterator* pit = polygon_container_const_iterator_create(cellboundary);
-            while(polygon_container_const_iterator_is_valid(pit))
-            {
-                const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(pit);
-                struct simple_polygon_const_iterator* it = simple_polygon_const_iterator_create(simple_polygon);
-                struct simple_polygon* single_boundary = simple_polygon_create();
-                while(simple_polygon_const_iterator_is_valid(it))
-                {
-                    const struct point* pt = simple_polygon_const_iterator_get(it);
-                    struct point* newpt = point_copy(pt);
-                    objectbase_transform_to_global_coordinates(cell, newpt);
-                    simple_polygon_append(single_boundary, newpt);
-                    simple_polygon_const_iterator_next(it);
-                }
-                simple_polygon_const_iterator_destroy(it);
-                polygon_container_add(boundary, single_boundary);
-                polygon_container_const_iterator_next(pit);
-            }
-            polygon_container_const_iterator_destroy(pit);
-            return boundary;
-        }
-        else
-        {
-            struct polygon_container* boundary = polygon_container_create();
-            coordinate_t blx, bly, trx, try;
-            object_get_minmax_xy(cell->content.proxy.reference, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
-            transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
-            transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
-            struct simple_polygon* single_boundary = simple_polygon_create();
-            simple_polygon_append(single_boundary, point_create(blx, bly));
-            simple_polygon_append(single_boundary, point_create(trx, bly));
-            simple_polygon_append(single_boundary, point_create(trx, try));
-            simple_polygon_append(single_boundary, point_create(blx, try));
-            polygon_container_add(boundary, single_boundary);
-            return boundary;
-        }
+        boundary = objectfull_get_layer_boundary(FULLREFERENCE(cell), layer);
     }
     else
     {
-        if(!cell->content.full.layer_boundaries)
-        {
-            return polygon_container_create_empty();
-        }
-        struct polygon_container* cellboundary = hashmap_get(cell->content.full.layer_boundaries, (const char*)layer);
-        if(cellboundary)
-        {
-            if(polygon_container_is_empty(cellboundary))
-            {
-                return polygon_container_create_empty();
-            }
-            struct polygon_container* boundary = polygon_container_create();
-            struct polygon_container_const_iterator* pit = polygon_container_const_iterator_create(cellboundary);
-            while(polygon_container_const_iterator_is_valid(pit))
-            {
-                const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(pit);
-                struct simple_polygon_const_iterator* it = simple_polygon_const_iterator_create(simple_polygon);
-                struct simple_polygon* single_boundary = simple_polygon_create();
-                while(simple_polygon_const_iterator_is_valid(it))
-                {
-                    const struct point* pt = simple_polygon_const_iterator_get(it);
-                    struct point* newpt = point_copy(pt);
-                    objectbase_transform_to_global_coordinates(cell, newpt);
-                    simple_polygon_append(single_boundary, newpt);
-                    simple_polygon_const_iterator_next(it);
-                }
-                simple_polygon_const_iterator_destroy(it);
-                polygon_container_add(boundary, single_boundary);
-                polygon_container_const_iterator_next(pit);
-            }
-            polygon_container_const_iterator_destroy(pit);
-            return boundary;
-        }
-        else
-        {
-            struct polygon_container* boundary = polygon_container_create();
-            coordinate_t blx, bly, trx, try;
-            object_get_minmax_xy(cell, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
-            struct simple_polygon* single_boundary = simple_polygon_create();
-            simple_polygon_append(single_boundary, point_create(blx, bly));
-            simple_polygon_append(single_boundary, point_create(trx, bly));
-            simple_polygon_append(single_boundary, point_create(trx, try));
-            simple_polygon_append(single_boundary, point_create(blx, try));
-            polygon_container_add(boundary, single_boundary);
-            return boundary;
-        }
+        boundary = objectfull_get_layer_boundary(FULL(cell), layer);
     }
-}
-
-static void _add_port(struct object* cell, struct port* port)
-{
-    if(!cell->content.full.ports)
+    if(boundary)
     {
-        cell->content.full.ports = vector_create(OBJECT_DEFAULT_PORT_SIZE, objectport_destroy);
+        objectbase_transform_to_global_coordinates_polygon_container(cell, boundary);
     }
-    vector_append(cell->content.full.ports, port);
+    return boundary;
 }
 
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
 {
+    CHECK_FULL(cell);
     if(!generics_is_empty(layer))
     {
         struct port* port = objectport_create(name, layer, where->x, where->y, 0, 0, sizehint);
-        objectport_transform_to_cell_coordinates(port, cell->trans);
-        _add_port(cell, port);
+        objectbase_transform_to_global_coordinates(cell, objectport_get_point(port));
+        objectfull_add_port(FULL(cell), port);
     }
 }
 
 void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint)
 {
+    CHECK_FULL(cell);
     int shift = 0;
     if(startindex < endindex)
     {
@@ -686,65 +574,33 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
     for(int i = startindex; i <= endindex; ++i)
     {
         struct port* port = objectport_create(name, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, sizehint);
-        objectport_transform_to_cell_coordinates(port, cell->trans);
-        _add_port(cell, port);
+        objectbase_transform_to_global_coordinates(cell, objectport_get_point(port));
+        objectfull_add_port(FULL(cell), port);
         ++shift;
     }
 }
 
-static void _add_label(struct object* cell, struct port* label)
-{
-    if(!cell->content.full.labels)
-    {
-        cell->content.full.labels = vector_create(OBJECT_DEFAULT_LABEL_SIZE, objectport_destroy);
-    }
-    vector_append(cell->content.full.labels, label);
-}
-
 void object_add_label(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
 {
+    CHECK_FULL(cell);
     if(!generics_is_empty(layer))
     {
         struct port* label = objectport_create(name, layer, where->x, where->y, 0, 0, sizehint);
-        objectport_transform_to_cell_coordinates(label, cell->trans);
-        _add_label(cell, label);
+        objectbase_transform_to_global_coordinates(cell, objectport_get_point(label));
+        objectfull_add_label(FULL(cell), label);
     }
-}
-
-const struct vector* object_get_ports(const struct object* cell)
-{
-    return cell->content.full.ports;
-}
-
-const struct vector* object_get_labels(const struct object* cell)
-{
-    return cell->content.full.labels;
 }
 
 void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer)
 {
-    if(object_is_proxy(cell)) // can't add nets to proxy objects
-    {
-        return;
-    }
-    if(!cell->content.full.nets)
-    {
-        cell->content.full.nets = hashmap_create(vector_destroy);
-    }
-    if(!hashmap_exists(cell->content.full.nets, netname))
-    {
-        struct vector* v = vector_create(8, bltrshape_destroy);
-        hashmap_insert(cell->content.full.nets, netname, v);
-    }
-    struct vector* nets = hashmap_get(cell->content.full.nets, netname);
-    struct bltrshape* netarea = bltrshape_create(bl, tr, layer);
+    struct bltrshape* netarea = objectfull_add_net_shape(FULL(cell), netname, bl, tr, layer);
     objectbase_transform_to_local_coordinates(cell, bltrshape_get_bl(netarea));
     objectbase_transform_to_local_coordinates(cell, bltrshape_get_tr(netarea));
-    vector_append(nets, netarea);
 }
 
 struct vector* object_get_net_shapes(const struct object* cell, const char* netname, const struct generics* layer)
 {
+    CHECK_FULL_OR_PROXY(cell);
     const struct object* obj = cell;
     if(object_is_proxy(cell))
     {
