@@ -76,13 +76,15 @@ procedure(OPCCreateLayoutMenu()
             (
                 editfillscript
                 runfillscript
+                deletefillgroup
                 deletefillscript
                 fillmenupulldown
             )
             editfillscript = hiCreateMenuItem(?name 'OPCEditFillScript ?itemText "Edit Fill Script" ?callback "OPCFillEditScript()")
             runfillscript = hiCreateMenuItem(?name 'OPCFillScriptRun ?itemText "Run Fill Script" ?callback "OPCUpdateFillCallback()")
+            deletefillgroup = hiCreateMenuItem(?name 'OPCFillDeleteGroup ?itemText "Delete Fill Shapes" ?callback "OPCDeleteFillGroup()")
             deletefillscript = hiCreateMenuItem(?name 'OPCFillScriptDelete ?itemText "Delete Fill Script" ?callback "OPCDeleteFillScript()")
-            fillmenupulldown = hiCreatePulldownMenu('OPCFillMenuPulldown "" list(editfillscript runfillscript deletefillscript))
+            fillmenupulldown = hiCreatePulldownMenu('OPCFillMenuPulldown "" list(editfillscript runfillscript deletefillgroup deletefillscript))
             fillmenu = hiCreateSliderMenuItem(?name 'OPCFillMenu ?itemText "Fill" ?subMenu fillmenupulldown)
         )
 

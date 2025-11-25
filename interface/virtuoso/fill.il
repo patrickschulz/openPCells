@@ -140,6 +140,20 @@ procedure(OPCUpdateFillCallback(@key (deleteAll t) (callopc t) (hierarchical nil
     )
 ) ; OPCUpdateCellscriptCallback
 
+procedure(OPCDeleteFillGroup()
+    let(
+        (cv groupname)
+        cv = geGetEditCellView()
+        groupname = "opcfill"
+        let(((group dbGetFigGroupByName(cv groupname)))
+            when(group
+                foreach(obj group->figs dbDeleteObject(obj))
+                dbDeleteObject(group)
+            )
+        )
+    )
+)
+
 procedure(OPCDeleteFillScript()
     letseq(
         (
