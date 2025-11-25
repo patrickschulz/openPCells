@@ -7,7 +7,20 @@ procedure(OPCConvertPtsToNanometer(pts)
 )
 
 procedure(OPCFormatLayer(layer purpose)
-    lsprintf("generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } })" layer purpose)
+    let((mapping)
+        mapping = if(OPCLayerMap
+            then
+                setof(entry OPCLayerMap (entry->layer == layer) && (entry->purpose == purpose))
+            else
+                nil
+        )
+        if(mapping
+            then
+                lsprintf("%s" car(mapping)->map)
+            else
+                lsprintf("generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } })" layer purpose)
+        )
+    )
 )
 
 procedure(OPCWriteRectangle(file cellname layer purpose bBox)
