@@ -1,4 +1,4 @@
-procedure(OPCEditCallback()
+procedure(OPCFillEditScript()
     letseq(
         (
             (cv geGetEditCellView())
