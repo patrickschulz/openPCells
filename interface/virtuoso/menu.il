@@ -69,7 +69,7 @@ procedure(OPCCreateLayoutMenu()
         )
 
         ; export cell
-        export = hiCreateMenuItem(?name 'OPCExport ?itemText "Export Cell" ?callback "OPCExportCell(nil)")
+        export = hiCreateMenuItem(?name 'OPCExport ?itemText "Export Cell" ?callback "OPCHiExportCell(nil)")
 
         ; fill cell
         let(

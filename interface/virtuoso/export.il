@@ -131,9 +131,24 @@ procedure(OPCExportCell(filename)
             file
         )
         file = outfile(path "w")
-        fprintf(file "local cell = object.create(\"%s\")\n" cv->cellName)
+        fprintf(file "local %s = object.create(\"%s\")\n" cv->cellName cv->cellName)
         OPCWriteCellFlat(file cv cv->cellName 0 0)
-        fprintf(file "return cell\n")
+        fprintf(file "%s cell\n" cv->cellName)
+        close(file)
+    )
+)
+
+procedure(OPCHiExportCell(filename)
+    let(
+        (
+            (cv geGetEditCellView())
+            (path if(filename filename "openPCells_export.lua"))
+            file
+        )
+        file = outfile(path "w")
+        fprintf(file "local %s = object.create(\"%s\")\n" cv->cellName cv->cellName)
+        OPCWriteCellFlat(file cv cv->cellName 0 0)
+        fprintf(file "%s cell\n" cv->cellName)
         close(file)
         hiDisplayAppDBox(
             ?name        'OPCInfoDialog
