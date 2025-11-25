@@ -104,8 +104,7 @@ procedure(OPCWriteCell(file cell x y)
         OPCWriteVia(file cell->cellName via y y)
     )
     foreach(inst cell->instances
-        if(t ; FIXME: check if object was already exported
-        )
+        ; FIXME: check if object was already exported
         OPCWriteCell(file inst->master inst->master->cellName x + xCoord(inst->xy) y + yCoord(inst->xy))
         OPCWriteInstance(file cell->cellName inst->master inst->master->cellName x + xCoord(inst->xy) y + yCoord(inst->xy))
     )
