@@ -105,6 +105,7 @@ procedure(OPCUpdateFillCallback(@key (deleteAll t) (callopc t) (hierarchical nil
         )
         groupname = "opcfill"
         let(((group dbGetFigGroupByName(cv groupname)))
+            foreach(obj group->figs dbDeleteObject(obj))
             dbDeleteObject(group)
         )
         ; write out current cell (for exclude shapes)
