@@ -61,7 +61,7 @@ procedure(OPCFillWriteInitial(file)
     fprintf(file "%s\n" "}")
     newline(file)
     fprintf(file "%s\n" "-- collect the shape outlines from the cell")
-    fprintf(file "%s\n" "local excludes = external:get_shape_outlines(generics.metal(1))")
+    fprintf(file "%s\n" "local excludes = cellshapes:get_shape_outlines(generics.metal(1))")
     fprintf(file "%s\n" "-- add an offset (spacing)")
     fprintf(file "%s\n" "local exclude_offset = 200")
     fprintf(file "%s\n" "for i = 1, #excludes do")
@@ -150,7 +150,6 @@ procedure(OPCUpdateFillCallback(@key (deleteAll t) (callopc t) (hierarchical nil
 ) ; OPCUpdateCellscriptCallback
 
 procedure(OPCDeleteFillScript()
-
     letseq(
         (
             (cv geGetEditCellView())
