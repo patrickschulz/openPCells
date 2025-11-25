@@ -366,7 +366,17 @@ function layout(resistor, _P)
         end
     elseif _P.conntype == "custom" then
         for _, connection in ipairs(_P.customconnections) do
-            geometry.rectanglebltr(resistor, generics.metal(1),
+            if connection.metal and connection.metal > 1 then
+                geometry.viabltr(resistor, 1, connection.metal,
+                    resistor:get_area_anchor(string.format("contact_%s_%d_%d", connection.pin1, connection.x1, connection.y1)).bl,
+                    resistor:get_area_anchor(string.format("contact_%s_%d_%d", connection.pin1, connection.x1, connection.y1)).tr
+                )
+                geometry.viabltr(resistor, 1, connection.metal,
+                    resistor:get_area_anchor(string.format("contact_%s_%d_%d", connection.pin2, connection.x2, connection.y2)).bl,
+                    resistor:get_area_anchor(string.format("contact_%s_%d_%d", connection.pin2, connection.x2, connection.y2)).tr
+                )
+            end
+            geometry.rectanglebltr(resistor, generics.metal(connection.metal or 1),
                 resistor:get_area_anchor(string.format("contact_%s_%d_%d", connection.pin1, connection.x1, connection.y1)).bl,
                 resistor:get_area_anchor(string.format("contact_%s_%d_%d", connection.pin2, connection.x2, connection.y2)).tr
             )
