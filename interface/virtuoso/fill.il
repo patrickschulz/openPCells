@@ -149,3 +149,17 @@ procedure(OPCUpdateFillCallback(@key (deleteAll t) (callopc t) (hierarchical nil
     )
 ) ; OPCUpdateCellscriptCallback
 
+procedure(OPCDeleteFillScript()
+
+    letseq(
+        (
+            (cv geGetEditCellView())
+            (libPath cv->lib->readPath)
+            (cellName cv->cellName)
+            (path lsprintf("%s/%s/layout/opcfill.lua" libPath cellName))
+        )
+        when(isFile(path)
+            deleteFile(path)
+        )
+    )
+) ; procedure
