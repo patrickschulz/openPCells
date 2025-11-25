@@ -60,21 +60,6 @@ procedure(OPCFillWriteInitial(file)
     fprintf(file "%s\n" "    },")
     fprintf(file "%s\n" "}")
     newline(file)
-    fprintf(file "%s\n" "-- collect the shape outlines from the cell")
-    fprintf(file "%s\n" "local excludes = cellshapes:get_shape_outlines(generics.metal(1))")
-    fprintf(file "%s\n" "-- add an offset (spacing)")
-    fprintf(file "%s\n" "local exclude_offset = 200")
-    fprintf(file "%s\n" "for i = 1, #excludes do")
-    fprintf(file "%s\n" "    local exclude = excludes[i]")
-    fprintf(file "%s\n" "    local new = util.offset_polygon(exclude, exclude_offset)")
-    fprintf(file "%s\n" "    excludes[i] = new")
-    fprintf(file "%s\n" "end")
-    newline(file)
-    fprintf(file "%s\n" "-- show the excludes in the layout")
-    fprintf(file "%s\n" "for i = 1, #excludes do")
-    fprintf(file "%s\n" "    geometry.polygon(fillcell, generics.special(), excludes[i])")
-    fprintf(file "%s\n" "end")
-    newline(file)
     fprintf(file "%s\n" "-- create fill shapes")
     fprintf(file "%s\n" "for _, layer in ipairs(filllayers) do")
     fprintf(file "%s\n" "    local size = fillsizes[layer]")
@@ -118,11 +103,14 @@ procedure(OPCUpdateFillCallback(@key (deleteAll t) (callopc t) (hierarchical nil
             (cellName cv->cellName)
             path groupname OPCArgs OPCCmd success
         )
+        groupname = "opcfill"
+        let(((group dbGetFigGroupByName(cv groupname)))
+            dbDeleteObject(group)
+        )
         ; write out current cell (for exclude shapes)
         OPCExportCell("openPCells_cellshapes.lua")
         ; call fill script
         path = lsprintf("%s/%s/layout/opcfill.lua" libPath cellName)
-        groupname = "opcfill"
         OPCArgs = OPCPrepareArgsForCellCreation(
             lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value)
             origin
