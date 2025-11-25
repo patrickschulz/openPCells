@@ -97,6 +97,7 @@ do_cell_test polyresistor_14 basic/polyresistor gds
 # common centroid
 do_cell_test common_centroid_01 analog/common_centroid gds
 do_cellscript_test cellscript_common_centroid_01 cellscript_common_centroid_01.lua gds
+do_cellscript_test cellscript_common_centroid_02 cellscript_common_centroid_02.lua gds
 
 # stacked_mosfet_array
 do_cell_test stacked_mosfet_array_01 basic/stacked_mosfet_array gds
