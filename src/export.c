@@ -222,17 +222,17 @@ char* P_get_lua_export_layername(struct const_vector* searchpaths, const char* e
 char* export_get_export_layername(struct const_vector* searchpaths, const char* exportname)
 {
     struct export_functions* funcs = P_get_export_functions(exportname);
+    char* techexport = NULL;
     if(funcs) // C-defined exports
     {
-        char* techexport = P_get_C_export_layername(funcs);
+        techexport = P_get_C_export_layername(funcs);
         export_destroy_functions(funcs);
-        return techexport;
     }
     else // lua-defined exports
     {
-        P_get_lua_export_layername(searchpaths, exportname);
+        techexport = P_get_lua_export_layername(searchpaths, exportname);
     }
-    return NULL;
+    return techexport;
 }
 
 static int P_check_function(lua_State* L, const char* funcname)
