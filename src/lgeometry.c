@@ -1534,7 +1534,7 @@ static int lgeometry_viabarebltr(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabarebltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabarebltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1635,7 +1635,7 @@ static int lgeometry_viapoints(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viapoints called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viapoints called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1685,7 +1685,7 @@ static int lgeometry_viabltr_xcontinuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabltr_xcontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabltr_xcontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1732,7 +1732,7 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabltr_ycontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabltr_ycontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1779,7 +1779,7 @@ static int lgeometry_viabltr_continuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabltr_continuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabltr_continuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1826,7 +1826,7 @@ static int lgeometry_viabarebltr_xcontinuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabarebltr_xcontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabarebltr_xcontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1872,7 +1872,7 @@ static int lgeometry_viabarebltr_ycontinuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabarebltr_ycontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabarebltr_ycontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1918,7 +1918,7 @@ static int lgeometry_viabarebltr_continuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabarebltr_continuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabarebltr_continuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1963,7 +1963,7 @@ static int lgeometry_contactbltr(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.contactbltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.contactbltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -2016,7 +2016,7 @@ static int lgeometry_contactbltrov(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.contactbltrov called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.contactbltrov called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -2070,7 +2070,7 @@ static int lgeometry_contactbltr2(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.contactbltr2 called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.contactbltr2 called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -2118,7 +2118,7 @@ static int lgeometry_contactbarebltr(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.contactbarebltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.contactbarebltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -2351,7 +2351,7 @@ static int lgeometry_get_side_path_points(lua_State* L)
     lcheck_check_numargs1(L, 2, "geometry.get_side_path_points");
     if(!lua_istable(L, 1))
     {
-        lua_pushstring(L, "geometry.get_side_path_points: list of points (first argument) is not a table");
+        lua_pushfstring(L, "geometry.get_side_path_points: list of points (first argument) is not a table");
         lua_error(L);
     }
     lua_len(L, 1);
