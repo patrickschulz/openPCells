@@ -139,8 +139,8 @@ local function _load_cell(state, cellname, env)
     )
     -- check if only allowed values are defined
     for funcname in pairs(env) do
-        if not util.any_of(function(v) return v == funcname end, { "config", "parameters", "layout", "check", "anchors" }) then
-            moderror(string.format("pcell: all defined global values must be one of 'parameters', 'anchors', 'layout', 'check' or 'config'. Illegal name: '%s'", funcname))
+        if not util.any_of(function(v) return v == funcname end, { "config", "parameters", "process_parameters", "layout", "check", "anchors" }) then
+            moderror(string.format("pcell: all defined global values must be one of 'config', 'parameters', 'process_parameters', 'layout', 'check' or 'anchors'. Illegal name: '%s'", funcname))
         end
     end
     return env
@@ -259,7 +259,12 @@ local function _get_parameters(state, cellname, cellargs)
         end
     end
 
-    -- (4) run parameter checks
+    -- (4) run process_parameters() function (if available)
+    if cell.funcs.process_parameters then
+        cell.funcs.process_parameters(P, explicit)
+    end
+
+    -- (5) run parameter checks
     for _, entry in ipairs(cellparams) do
         paramlib.check_constraints(entry, P[entry.name])
     end
