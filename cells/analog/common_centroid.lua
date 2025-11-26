@@ -96,7 +96,11 @@ function parameters()
         { "guardringsoiopeninnerextension", technology.get_optional_dimension("Minimum Soiopen Extension") },
         { "guardringsoiopenouterextension", technology.get_optional_dimension("Minimum Soiopen Extension") },
         { "guardringoxidetypeinnerextension", technology.get_dimension("Minimum Oxide Extension") },
-        { "guardringoxidetypeouterextension", technology.get_dimension("Minimum Oxide Extension") }
+        { "guardringoxidetypeouterextension", technology.get_dimension("Minimum Oxide Extension") },
+        { "insertglobalguardringlines", false },
+        { "connectguardringtogloballines", false, follow = "insertglobalguardringlines" },
+        { "guardringnet", "" }
+
     )
 end
 
@@ -628,7 +632,7 @@ function layout(cell, _P)
         -- FIXME: implement check in check()
     end
 
-    -- find maximum/minimum x coordinates for gate lines
+    -- calculate maximum/minimum x coordinates for gate lines
     local gatelineminx
     local gatelinemaxx
     do
@@ -846,7 +850,7 @@ function layout(cell, _P)
         end
     end
 
-    -- find maximum/minimum x coordinates for interconnect lines
+    -- calculate maximum/minimum x coordinates for interconnect lines
     local interconnectlineminx
     local interconnectlinemaxx
     do
@@ -1242,7 +1246,7 @@ function layout(cell, _P)
         end
     end
 
-    -- find maximum/minimum y coordinates for global lines
+    -- calculate maximum/minimum y coordinates for global lines
     local outputlineminy
     local outputlinemaxy
     if _P.interconnectlinepos == "inline" then
@@ -1286,6 +1290,13 @@ function layout(cell, _P)
         end
         local skipstrap = _P.usesourcestraps and _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth or 0
         outputlinemaxy = _get_dev_anchor(upperdevice, "active").t + (skipstrap + _P.interconnectlinespace + _P.interconnectlinewidth + (numupperlines - 1) * (_P.interconnectlinespace + _P.interconnectlinewidth))
+    end
+    if _P.insertglobalguardringlines then
+        local active = cell:get_area_anchor("active_all")
+        local holeheight = point.ydistance_abs(active.bl, active.tr) + 2 * guardringysep + 2 * _P.guardringwidth
+        local distance = holeheight - (outputlinemaxy - outputlineminy)
+        outputlinemaxy = outputlinemaxy + distance / 2
+        outputlineminy = outputlineminy - distance / 2
     end
 
     -- gather output lines
@@ -1517,6 +1528,18 @@ function layout(cell, _P)
                 end
             end
         end
+    end
+    if _P.insertglobalguardringlines then
+        table.insert(outputlines, 1, {
+            base = "guardring",
+            device = 0,
+            variant = 1,
+        })
+        table.insert(outputlines, {
+            base = "guardring",
+            device = 0,
+            variant = 2,
+        })
     end
     local numlines = #outputlines
     local space
@@ -1796,6 +1819,16 @@ function layout(cell, _P)
         end
     end
 
+    -- add guardring net to output lines
+    if _P.insertglobalguardringlines and _P.guardringnet ~= "" then
+        for i = 1, 2 do
+            cell:add_net_shape(_P.guardringnet,
+                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).bl,
+                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).tr
+            )
+        end
+    end
+
     -- outer guardring
     if _P.drawouterguardring then
         local active = cell:get_area_anchor("active_all")
@@ -1830,5 +1863,21 @@ function layout(cell, _P)
             guardring:get_area_anchor("innerboundary").bl,
             guardring:get_area_anchor("innerboundary").tr
         )
+        if _P.insertglobalguardringlines and _P.connectguardringtogloballines then
+            for _, segment in ipairs({ "top", "bottom" }) do
+                for i = 1, 2 do
+                    geometry.viabltr(cell, 1, _P.interconnectmetal + 1,
+                        point.create(
+                            cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).l,
+                            guardring:get_area_anchor_fmt("%ssegment", segment).b
+                        ),
+                        point.create(
+                            cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).r,
+                            guardring:get_area_anchor_fmt("%ssegment", segment).t
+                        )
+                    )
+                end
+            end
+        end
     end
 end
