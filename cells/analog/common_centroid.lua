@@ -99,8 +99,9 @@ function parameters()
         { "guardringoxidetypeouterextension", technology.get_dimension("Minimum Oxide Extension") },
         { "insertglobalguardringlines", false },
         { "connectguardringtogloballines", false, follow = "insertglobalguardringlines" },
-        { "guardringnet", "" }
-
+        { "guardringnet", "" },
+        { "annotate_globallines", false },
+        { "globallines_label_sizehint", 0 }
     )
 end
 
@@ -1825,6 +1826,28 @@ function layout(cell, _P)
             cell:add_net_shape(_P.guardringnet,
                 cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).bl,
                 cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).tr
+            )
+        end
+    end
+
+    -- add net labels for visual inspection
+    if _P.annotate_globallines then
+        for _, line in ipairs(outputlines) do
+            local anchor
+            if line.variant then
+                anchor = string.format("outputconnectline_%s%d_%d", line.base, line.device, line.variant)
+            else
+                anchor = string.format("outputconnectline_%s%d", line.base, line.device)
+            end
+            cell:add_label(
+                string.format("%s%d", line.base, line.device),
+                generics.metal(_P.interconnectmetal + 1),
+                cell:get_area_anchor_fmt(anchor).tl
+            )
+            cell:add_label(
+                string.format("%s%d", line.base, line.device),
+                generics.metal(_P.interconnectmetal + 1),
+                cell:get_area_anchor_fmt(anchor).bl
             )
         end
     end
