@@ -11,6 +11,7 @@ function parameters()
         { "channeltype", "nmos", posvals = set("nmos", "pmos") },
         { "flippedwell", false },
         { "vthtype", 1 },
+        { "drawactivedummies", false },
         { "activedummywidth", 0 },
         { "activedummyspace", 0 },
         { "powerwidth", 0 },
@@ -67,10 +68,10 @@ function layout(ccp, _P)
         fingerwidth = _P.fingerwidth,
         oxidetype = _P.oxidetype,
         mosfetmarker = _P.mosfetmarker,
-        drawtopactivedummy = true,
+        drawtopactivedummy = _P.drawactivedummies,
         topactivedummywidth = _P.activedummywidth,
         topactivedummyspace = _P.activedummyspace,
-        drawbottomactivedummy = true,
+        drawbottomactivedummy = _P.drawactivedummies,
         bottomactivedummywidth = _P.activedummywidth,
         bottomactivedummyspace = _P.activedummyspace,
         sdwidth = _P.sdwidth,
@@ -175,14 +176,16 @@ function layout(ccp, _P)
         fetmiddledummy:get_area_anchor("active").bl,
         outerfetdummy:get_area_anchor("active").tr
     )
-    leftright:add_area_anchor_bltr("topactivedummy",
-        fetmiddledummy:get_area_anchor("topactivedummy").bl,
-        fetleftrightdummy:get_area_anchor("topactivedummy").tr
-    )
-    leftright:add_area_anchor_bltr("bottomactivedummy",
-        fetmiddledummy:get_area_anchor("bottomactivedummy").bl,
-        fetleftrightdummy:get_area_anchor("bottomactivedummy").tr
-    )
+    if _P.drawactivedummies then
+        leftright:add_area_anchor_bltr("topactivedummy",
+            fetmiddledummy:get_area_anchor("topactivedummy").bl,
+            fetleftrightdummy:get_area_anchor("topactivedummy").tr
+        )
+        leftright:add_area_anchor_bltr("bottomactivedummy",
+            fetmiddledummy:get_area_anchor("bottomactivedummy").bl,
+            fetleftrightdummy:get_area_anchor("bottomactivedummy").tr
+        )
+    end
     leftright:add_area_anchor_bltr("outerdummyactive",
         outerfetdummy:get_area_anchor("active").bl,
         outerfetdummy:get_area_anchor("active").tr
@@ -208,14 +211,16 @@ function layout(ccp, _P)
         right:get_area_anchor("active").tr
     )
 
-    ccp:add_area_anchor_bltr("topactivedummy",
-        left:get_area_anchor("topactivedummy").bl,
-        right:get_area_anchor("topactivedummy").tr
-    )
-    ccp:add_area_anchor_bltr("bottomactivedummy",
-        left:get_area_anchor("bottomactivedummy").bl,
-        right:get_area_anchor("bottomactivedummy").tr
-    )
+    if _P.drawactivedummies then
+        ccp:add_area_anchor_bltr("topactivedummy",
+            left:get_area_anchor("topactivedummy").bl,
+            right:get_area_anchor("topactivedummy").tr
+        )
+        ccp:add_area_anchor_bltr("bottomactivedummy",
+            left:get_area_anchor("bottomactivedummy").bl,
+            right:get_area_anchor("bottomactivedummy").tr
+        )
+    end
     ccp:add_area_anchor_bltr("leftouterdummyactive",
         left:get_area_anchor("outerdummyactive").bl,
         left:get_area_anchor("outerdummyactive").tr
