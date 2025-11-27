@@ -1660,6 +1660,24 @@ static int ltechnology_get_even_grid(lua_State* L)
     return 1;
 }
 
+static int ltechnology_get_number_of_metals(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushstring(L, "technology.get_number_of_metals(): could not retrieve technology state");
+        lua_error(L);
+    }
+    else
+    {
+        unsigned int nummetals = technology_get_num_metals(techstate);
+        lua_pushinteger(L, nummetals);
+    }
+    return 1;
+}
+
 static int ltechnology_get_dimension(lua_State* L)
 {
     int n = lua_gettop(L);
@@ -1740,6 +1758,51 @@ static int ltechnology_get_dimension_max(lua_State* L)
     return 1;
 }
 
+static int ltechnology_get_dimension_min(lua_State* L)
+{
+    int n = lua_gettop(L);
+    int found = 0;
+    int value = INT_MAX;
+    for(int i = 1; i <= n; ++i)
+    {
+        const char* dimension = lua_tostring(L, i);
+        lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+        struct technology_state* techstate = lua_touserdata(L, -1);
+        lua_pop(L, 1); // pop techstate
+        if(!techstate)
+        {
+            lua_pushinteger(L, 0);
+            return 1;
+        }
+        else
+        {
+            if(hashmap_exists(techstate->constraints, dimension))
+            {
+                struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
+                int newval = tagged_value_get_integer(v);
+                if(newval < value)
+                {
+                    value = newval;
+                }
+                found = 1;
+            }
+        }
+    }
+    if(found)
+    {
+        lua_pushinteger(L, value);
+        return 1;
+    }
+    // FIXME: this looks ugly for multiple arguments
+    lua_concat(L, n);
+    lua_pushstring(L, "technology.get_dimension_min: '");
+    lua_rotate(L, -2, 1);
+    lua_pushstring(L, "' not found");
+    lua_concat(L, 3);
+    lua_error(L);
+    return 1;
+}
+
 static int ltechnology_get_optional_dimension(lua_State* L)
 {
     const char* dimension = lua_tostring(L, 1);
@@ -1797,8 +1860,17 @@ static int ltechnology_has_feature(lua_State* L)
 
 static int ltechnology_has_layer(lua_State* L)
 {
-    int result = lua_pcall(L, 1, 1, 0);
-    lua_pushboolean(L, result == LUA_OK);
+    if(lua_type(L, 1) == LUA_TFUNCTION)
+    {
+        int len = lua_gettop(L);
+        int result = lua_pcall(L, len - 1, 1, 0);
+        lua_pushboolean(L, result == LUA_OK);
+    }
+    else
+    {
+        lua_pushfstring(L, "technology.has_layer: expected 'generics' function as first argument, got '%s'", lua_typename(L, lua_type(L, 1)));
+        lua_error(L);
+    }
     return 1;
 }
 
@@ -1853,8 +1925,10 @@ int open_ltechnology_lib(lua_State* L)
     {
         { "get_grid",                       ltechnology_get_grid                    },
         { "get_even_grid",                  ltechnology_get_even_grid               },
+        { "get_number_of_metals",           ltechnology_get_number_of_metals        },
         { "get_dimension",                  ltechnology_get_dimension               },
         { "get_dimension_max",              ltechnology_get_dimension_max           },
+        { "get_dimension_min",              ltechnology_get_dimension_min           },
         { "get_optional_dimension",         ltechnology_get_optional_dimension      },
         { "has_feature",                    ltechnology_has_feature                 },
         { "has_metal",                      ltechnology_has_metal                   },

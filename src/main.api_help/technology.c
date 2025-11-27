@@ -41,6 +41,36 @@
     ));
 }
 
+/* technology.get_dimension_max */
+{
+    struct parameter parameters[] = {
+        { "property", STRING, NULL, "technology property name" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_dimension_max",
+        MODULE_TECHNOLOGY,
+        "Get critical technology dimensions such as minimum metal width. This is similar to technology.get_dimension, but returns the maximum value of all given properties.",
+        "function parameters()\n    pcell.add_parameters({ {\"width\", technology.get_dimension_ma(\"Minimum Gate Width\", \"Analog Gate Width\") } })\nend",
+        parameters
+    ));
+}
+
+/* technology.get_dimension_min */
+{
+    struct parameter parameters[] = {
+        { "property", STRING, NULL, "technology property name" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_dimension_min",
+        MODULE_TECHNOLOGY,
+        "Get critical technology dimensions such as minimum metal width. This is similar to technology.get_dimension, but returns the minimum value of all given properties.",
+        "function parameters()\n    pcell.add_parameters({ {\"space\", technology.get_dimension_ma(\"Minimum Gate Space\", \"Minimum Gate XSpace\") } })\nend",
+        parameters
+    ));
+}
+
 /* technology.get_optional_dimension */
 {
     struct parameter parameters[] = {
@@ -59,14 +89,15 @@
 /* technology.has_layer */
 {
     struct parameter parameters[] = {
-        { "layer", GENERICS, NULL, "generic layer which should be checked" },
+        { "layerfunction",  FUNCTION,   NULL, "generic layer function which should be called as check" },
+        { "...",            VARARGS,    NULL, "arguments to the generics layer function" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "has_layer",
         MODULE_TECHNOLOGY,
         "Check if the chosen technology supports a certain layer",
-        "if technology.has_layer(generics.other(\"gatecut\")) then\n    -- do something with gatecuts\nend",
+        "if technology.has_layer(generics.other, \"gatecut\") then\n    -- do something with gatecuts\nend",
         parameters
     ));
 }
