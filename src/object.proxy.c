@@ -42,6 +42,16 @@ void objectproxy_set_array(struct object_proxy* proxy, unsigned int xrep, unsign
     proxy->private.array_trans = transformationmatrix_create();
 }
 
+unsigned int objectproxy_get_xrep(const struct object_proxy* proxy)
+{
+    return proxy->private.xrep;
+}
+
+unsigned int objectproxy_get_yrep(const struct object_proxy* proxy)
+{
+    return proxy->private.yrep;
+}
+
 void objectproxy_translate_pt_to_array(const struct object_proxy* proxy, struct point* pt, int xindex, int yindex)
 {
     // resolve negative indices

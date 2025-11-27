@@ -10,8 +10,8 @@ struct object_common {
     struct {
         char* name;
         int isproxy;
-        int ismanaged; // FIXME: is this really a common properties? Do proxy objects ever use this?
-        int isused; // FIXME: is this really a common properties? Do proxy objects ever use this?
+        int ismanaged; // FIXME: is this really a common property? Do proxy objects ever use this?
+        int isused; // FIXME: is this really a common property? Do proxy objects ever use this?
         struct transformationmatrix* trans;
     } private;
 };

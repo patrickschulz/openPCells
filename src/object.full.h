@@ -15,14 +15,13 @@ struct object_full {
         struct vector* ports; // stores struct port*
         struct vector* labels; // like a port, but always drawn; stores struct port*
         struct hashmap* anchors; // stores struct anchor*
-        struct hashmap* anchorlines;
+        struct hashmap* anchorlines; // stores coordinate_t*
         struct vector* children; // stores struct object*
         struct vector* references; // stores struct object*
         coordinate_t* alignmentbox; // NULL or contains eight coordinates: blx, blx, trx, try for both outer (first) and inner (second)
         struct vector* boundary; // a polygon, stores struct point*
         struct hashmap* layer_boundaries; // contains polygons that store struct point*
         struct hashmap* nets; // stores struct vector*
-        size_t childcounter;
     } private;
 };
 
@@ -50,7 +49,22 @@ struct anchor* objectfull_get_anchor(const struct object_full* cell, const char*
 coordinate_t* objectfull_get_anchor_line(const struct object_full* cell, const char* name);
 
 // alignment box
+void objectfull_clear_alignment_box(struct object_full* full);
 coordinate_t* objectfull_get_alignment_box(const struct object_full* full);
+void objectfull_set_alignment_box(
+    struct object_full* full,
+    coordinate_t outerblx, coordinate_t outerbly,
+    coordinate_t outertrx, coordinate_t outertry,
+    coordinate_t innerblx, coordinate_t innerbly,
+    coordinate_t innertrx, coordinate_t innertry
+);
+void objectfull_extend_alignment_box(
+    struct object_full* full,
+    coordinate_t outerblx, coordinate_t outerbly,
+    coordinate_t outertrx, coordinate_t outertry,
+    coordinate_t innerblx, coordinate_t innerbly,
+    coordinate_t innertrx, coordinate_t innertry
+);
 
 // boundaries
 struct vector* objectfull_set_boundary(struct object_full* full, struct vector* boundary);
@@ -67,5 +81,6 @@ void objectfull_add_label(struct object_full* cell, struct port* port);
 
 // net shapes
 struct bltrshape* objectfull_add_net_shape(struct object_full* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer);
+struct vector* objectfull_get_net_shapes(const struct object_full* full, const char* netname, const struct generics* layer);
 
 #endif /* OPC_OBJECT_FULL_H */

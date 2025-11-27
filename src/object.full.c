@@ -333,9 +333,9 @@ int objectfull_add_anchor(struct object_full* full, const char* name, struct anc
 
 void objectfull_inherit_all_anchors_with_prefix(struct object_full* full, const struct object_full* other, const char* prefix)
 {
-    if(obj->private.anchors)
+    if(full->private.anchors)
     {
-        struct hashmap_const_iterator* it = hashmap_const_iterator_create(obj->private.anchors);
+        struct hashmap_const_iterator* it = hashmap_const_iterator_create(full->private.anchors);
         while(hashmap_const_iterator_is_valid(it))
         {
             const char* key = hashmap_const_iterator_key(it);
@@ -344,11 +344,11 @@ void objectfull_inherit_all_anchors_with_prefix(struct object_full* full, const 
             sprintf(newanchorname, "%s%s", prefix, key);
             if(objectanchor_is_area(anchor))
             {
-                object_inherit_area_anchor_as(full, obj, key, newanchorname);
+                object_inherit_area_anchor_as(full, full, key, newanchorname);
             }
             else
             {
-                object_inherit_anchor_as(full, obj, key, newanchorname);
+                object_inherit_anchor_as(full, full, key, newanchorname);
             }
             free(newanchorname);
             hashmap_const_iterator_next(it);
@@ -399,14 +399,20 @@ struct anchor* objectfull_get_anchor(const struct object_full* full, const char*
 
 coordinate_t* objectfull_get_anchor_line(const struct object_full* full, const char* name)
 {
-    if(hashmap_exists(obj->private.anchorlines, name))
+    if(hashmap_exists(full->private.anchorlines, name))
     {
-        return hashmap_get(obj->private.anchorlines, name);
+        return hashmap_get(full->private.anchorlines, name);
     }
     else
     {
         return NULL;
     }
+}
+
+void objectfull_clear_alignment_box(struct object_full* full)
+{
+    free(full->private.alignmentbox);
+    full->private.alignmentbox = NULL;
 }
 
 coordinate_t* objectfull_get_alignment_box(const struct object_full* full)
@@ -418,8 +424,72 @@ coordinate_t* objectfull_get_alignment_box(const struct object_full* full)
     else
     {
         coordinate_t* alignmentbox = calloc(8, sizeof(coordinate_t));
-        memcpy(alignmentbox, obj->private.alignmentbox, 8 * sizeof(coordinate_t));
+        memcpy(alignmentbox, full->private.alignmentbox, 8 * sizeof(coordinate_t));
         return alignmentbox;
+    }
+}
+
+void objectfull_set_alignment_box(
+    struct object_full* full,
+    coordinate_t outerblx, coordinate_t outerbly,
+    coordinate_t outertrx, coordinate_t outertry,
+    coordinate_t innerblx, coordinate_t innerbly,
+    coordinate_t innertrx, coordinate_t innertry
+)
+{
+    if(!full->private.alignmentbox)
+    {
+        full->private.alignmentbox = calloc(8, sizeof(coordinate_t));
+    }
+    full->private.alignmentbox[0] = outerblx;
+    full->private.alignmentbox[1] = outerbly;
+    full->private.alignmentbox[2] = outertrx;
+    full->private.alignmentbox[3] = outertry;
+    full->private.alignmentbox[4] = innerblx;
+    full->private.alignmentbox[5] = innerbly;
+    full->private.alignmentbox[6] = innertrx;
+    full->private.alignmentbox[7] = innertry;
+}
+
+void objectfull_extend_alignment_box(
+    struct object_full* full,
+    coordinate_t outerblx, coordinate_t outerbly,
+    coordinate_t outertrx, coordinate_t outertry,
+    coordinate_t innerblx, coordinate_t innerbly,
+    coordinate_t innertrx, coordinate_t innertry
+)
+{
+    if(!full->private.alignmentbox)
+    {
+        objectfull_set_alignment_box(
+            full,
+            outerblx, outerbly, outertrx, outertry,
+            innerblx, innerbly, innertrx, innertry
+        );
+    }
+    else
+    {
+        coordinate_t souterblx = cell->private.alignmentbox[0];
+        coordinate_t souterbly = cell->private.alignmentbox[1];
+        coordinate_t soutertrx = cell->private.alignmentbox[2];
+        coordinate_t soutertry = cell->private.alignmentbox[3];
+        coordinate_t sinnerblx = cell->private.alignmentbox[4];
+        coordinate_t sinnerbly = cell->private.alignmentbox[5];
+        coordinate_t sinnertrx = cell->private.alignmentbox[6];
+        coordinate_t sinnertry = cell->private.alignmentbox[7];
+        outerblx = MIN2(outerblx, souterblx);
+        outerbly = MIN2(outerbly, souterbly);
+        outertrx = MAX2(outertrx, soutertrx);
+        outertry = MAX2(outertry, soutertry);
+        innerblx = MIN2(innerblx, sinnerblx);
+        innerbly = MIN2(innerbly, sinnerbly);
+        innertrx = MAX2(innertrx, sinnertrx);
+        innertry = MAX2(innertry, sinnertry);
+        objectfull_set_alignment_box(
+            full,
+            outerblx, outerbly, outertrx, outertry,
+            innerblx, innerbly, innertrx, innertry
+        );
     }
 }
 
@@ -498,7 +568,7 @@ void objectfull_add_layer_boundary(struct object_full* full, const struct generi
     polygon_container_add(boundary, new);
 }
 
-int objectfull_has_layer_boundary(const struct object* full, const struct generics* layer)
+int objectfull_has_layer_boundary(const struct object_full* full, const struct generics* layer)
 {
     if(full->private.layer_boundaries)
     {
@@ -593,3 +663,33 @@ struct bltrshape* objectull_add_net_shape(struct object_full* full, const char* 
     vector_append(nets, netarea);
     return netarea;
 }
+
+struct vector* objectfull_get_net_shapes(const struct object_full* full, const char* netname, const struct generics* layer)
+{
+    if(!full->private.nets)
+    {
+        return NULL;
+    }
+    if(!hashmap_exists(full->private.nets, netname))
+    {
+        return NULL;
+    }
+    const struct vector* nets = hashmap_get(full->private.nets, netname);
+    struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
+    for(unsigned int i = 0; i < vector_size(nets); ++i)
+    {
+        const struct bltrshape* s = vector_get_const(nets, i);
+        int include = 1;
+        if(layer && !bltrshape_is_layer(s, layer))
+        {
+            include = 0;
+        }
+        if(include)
+        {
+            struct bltrshape* bltrshape = bltrshape_copy(s);
+            vector_append(new, bltrshape);
+        }
+    }
+    return new;
+}
+

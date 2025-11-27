@@ -601,119 +601,82 @@ void object_add_net_shape(struct object* cell, const char* netname, const struct
 struct vector* object_get_net_shapes(const struct object* cell, const char* netname, const struct generics* layer)
 {
     CHECK_FULL_OR_PROXY(cell);
-    const struct object* obj = cell;
+    struct vector* nets;
     if(object_is_proxy(cell))
     {
-        obj = cell->content.proxy.reference;
+        nets = objectfull_get_net_shapes(FULLREFERENCE(cell), netname, layer);
     }
-    if(!obj->content.full.nets)
+    else
+    {
+        nets = objectfull_get_net_shapes(FULL(cell), netname, layer);
+    }
+    if(!nets)
     {
         return NULL;
     }
-    else if(!hashmap_exists(obj->content.full.nets, netname))
+    if(object_is_child_array(cell))
+    {
+        size_t netsize = vector_size(nets); // store size here, as the vector is modified
+        for(unsigned int i = 0; i < netsize; ++i)
+        {
+            const struct bltrshape* s = vector_get_const(nets, i);
+            // start x/y indices at 1, as the first object is already represented in nets
+            for(unsigned int xindex = 1; xindex < objectproxy_get_xrep(PROXY(cell)); ++xindex)
+            {
+                for(unsigned int yindex = 1; yindex < objectproxy_get_yrep(PROXY(cell)); ++yindex)
+                {
+                    struct bltrshape* bltrshape = bltrshape_copy(s);
+                    objectbase_transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
+                    objectbase_transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
+                    objectproxy_translate_pt_to_array(PROXY(cell), bltrshape_get_bl(bltrshape), xindex, yindex);
+                    objectproxy_translate_pt_to_array(PROXY(cell), bltrshape_get_tr(bltrshape), xindex, yindex);
+                    vector_append(nets, bltrshape);
+                }
+            }
+        }
+    }
+    else
+    {
+        for(unsigned int i = 0; i < vector_size(nets); ++i)
+        {
+            struct bltrshape* bltrshape = vector_get(nets, i);
+            objectbase_transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
+            objectbase_transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
+        }
+    }
+    return nets;
+}
+
+struct vector* object_get_array_net_shapes(const struct object* cell, int xindex, int yindex, const char* netname, const struct generics* layer)
+{
+    CHECK_PROXY(cell);
+    if(!object_is_child_array(cell))
+    {
+        return NULL;
+    }
+    struct vector* nets = objectfull_get_net_shapes(FULLREFERENCE(cell), netname, layer);
+    if(!nets)
     {
         return NULL;
     }
     else
     {
-        if(object_is_child_array(cell))
+        for(unsigned int i = 0; i < vector_size(nets); ++i)
         {
-            const struct vector* nets = hashmap_get(obj->content.full.nets, netname);
-            struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
-            for(unsigned int i = 0; i < vector_size(nets); ++i)
-            {
-                const struct bltrshape* s = vector_get_const(nets, i);
-                for(unsigned int xindex = 0; xindex < cell->content.proxy.xrep; ++xindex)
-                {
-                    for(unsigned int yindex = 0; yindex < cell->content.proxy.yrep; ++yindex)
-                    {
-                        int include = 1;
-                        if(layer && !bltrshape_is_layer(s, layer))
-                        {
-                            include = 0;
-                        }
-                        if(include)
-                        {
-                            struct bltrshape* bltrshape = bltrshape_copy(s);
-                            objectbase_transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
-                            point_translate(bltrshape_get_bl(bltrshape), cell->content.proxy.xpitch * xindex, cell->content.proxy.ypitch * yindex);
-                            objectbase_transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
-                            point_translate(bltrshape_get_tr(bltrshape), cell->content.proxy.xpitch * xindex, cell->content.proxy.ypitch * yindex);
-                            vector_append(new, bltrshape);
-                        }
-                    }
-                }
-            }
-            return new;
-        }
-        else
-        {
-            const struct vector* nets = hashmap_get(obj->content.full.nets, netname);
-            struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
-            for(unsigned int i = 0; i < vector_size(nets); ++i)
-            {
-                const struct bltrshape* s = vector_get_const(nets, i);
-                int include = 1;
-                if(layer && !bltrshape_is_layer(s, layer))
-                {
-                    include = 0;
-                }
-                if(include)
-                {
-                    struct bltrshape* bltrshape = bltrshape_copy(s);
-                    objectbase_transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
-                    objectbase_transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
-                    vector_append(new, bltrshape);
-                }
-            }
-            return new;
-        }
-    }
-}
-
-struct vector* object_get_array_net_shapes(const struct object* cell, int xindex, int yindex, const char* netname, const struct generics* layer)
-{
-    if(!object_is_child_array(cell))
-    {
-        return NULL;
-    }
-    const struct object* obj = cell->content.proxy.reference;
-    if(!obj->content.full.nets)
-    {
-        return NULL;
-    }
-    else if(!hashmap_exists(obj->content.full.nets, netname))
-    {
-        return NULL;
-    }
-    const struct vector* nets = hashmap_get(obj->content.full.nets, netname);
-    struct vector* new = vector_create(vector_size(nets), bltrshape_destroy);
-    for(unsigned int i = 0; i < vector_size(nets); ++i)
-    {
-        const struct bltrshape* s = vector_get_const(nets, i);
-        int include = 1;
-        if(layer && !bltrshape_is_layer(s, layer))
-        {
-            include = 0;
-        }
-        if(include)
-        {
-            struct bltrshape* bltrshape = bltrshape_copy(s);
+            struct bltrshape* bltrshape = vector_get(nets, i);
             objectbase_transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
-            point_translate(bltrshape_get_bl(bltrshape), cell->content.proxy.xpitch * (xindex - 1), cell->content.proxy.ypitch * (yindex - 1));
             objectbase_transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
-            point_translate(bltrshape_get_tr(bltrshape), cell->content.proxy.xpitch * (xindex - 1), cell->content.proxy.ypitch * (yindex - 1));
-            vector_append(new, bltrshape);
+            objectproxy_translate_pt_to_array(PROXY(cell), bltrshape_get_bl(bltrshape), xindex, yindex);
+            objectproxy_translate_pt_to_array(PROXY(cell), bltrshape_get_tr(bltrshape), xindex, yindex);
         }
     }
-    return new;
+    return nets;
 }
-
 
 void object_clear_alignment_box(struct object* cell)
 {
-    free(cell->content.full.alignmentbox);
-    cell->content.full.alignmentbox = NULL;
+    CHECK_FULL(cell);
+    objectfull_clear_alignment_box(FULL(cell));
 }
 
 void object_set_alignment_box(
@@ -724,23 +687,23 @@ void object_set_alignment_box(
     coordinate_t innertrx, coordinate_t innertry
 )
 {
-    if(!cell->content.full.alignmentbox)
-    {
-        cell->content.full.alignmentbox = calloc(8, sizeof(coordinate_t));
-    }
-    cell->content.full.alignmentbox[0] = outerblx;
-    cell->content.full.alignmentbox[1] = outerbly;
-    cell->content.full.alignmentbox[2] = outertrx;
-    cell->content.full.alignmentbox[3] = outertry;
-    cell->content.full.alignmentbox[4] = innerblx;
-    cell->content.full.alignmentbox[5] = innerbly;
-    cell->content.full.alignmentbox[6] = innertrx;
-    cell->content.full.alignmentbox[7] = innertry;
+    CHECK_FULL(cell);
+    objectbase_transform_to_local_coordinates_xy(cell, &outerblx, &outerbly);
+    objectbase_transform_to_local_coordinates_xy(cell, &outertrx, &outertry);
+    objectbase_transform_to_local_coordinates_xy(cell, &innerblx, &innerbly);
+    objectbase_transform_to_local_coordinates_xy(cell, &innertrx, &innertry);
+    objectutil_fix_rectangle_order_xy(&outerblx, &outerbly, &outertrx, &outertry);
+    objectutil_fix_rectangle_order_xy(&innerblx, &innerbly, &innertrx, &innertry);
+    objectfull_set_alignment_box(
+        FULL(cell),
+        outerblx, outerbly, outertrx, outertry,
+        innerblx, innerbly, innertrx, innertry
+    );
 }
 
-// FIXME: this does not account for transformations, at least not really
 void object_inherit_alignment_box(struct object* cell, const struct object* other)
 {
+    // usage of the public interface takes care of all transformation
     struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
     struct point* outertr = object_get_alignmentbox_anchor_outertr(other);
     struct point* innerbl = object_get_alignmentbox_anchor_innerbl(other);
@@ -753,26 +716,17 @@ void object_inherit_alignment_box(struct object* cell, const struct object* othe
     coordinate_t innerbly = innerbl->y;
     coordinate_t innertrx = innertr->x;
     coordinate_t innertry = innertr->y;
-    if(cell->content.full.alignmentbox)
-    {
-        coordinate_t souterblx = cell->content.full.alignmentbox[0];
-        coordinate_t souterbly = cell->content.full.alignmentbox[1];
-        coordinate_t soutertrx = cell->content.full.alignmentbox[2];
-        coordinate_t soutertry = cell->content.full.alignmentbox[3];
-        coordinate_t sinnerblx = cell->content.full.alignmentbox[4];
-        coordinate_t sinnerbly = cell->content.full.alignmentbox[5];
-        coordinate_t sinnertrx = cell->content.full.alignmentbox[6];
-        coordinate_t sinnertry = cell->content.full.alignmentbox[7];
-        outerblx = MIN2(outerblx, souterblx);
-        outerbly = MIN2(outerbly, souterbly);
-        outertrx = MAX2(outertrx, soutertrx);
-        outertry = MAX2(outertry, soutertry);
-        innerblx = MIN2(innerblx, sinnerblx);
-        innerbly = MIN2(innerbly, sinnerbly);
-        innertrx = MAX2(innertrx, sinnertrx);
-        innertry = MAX2(innertry, sinnertry);
-    }
-    object_set_alignment_box(cell, outerblx, outerbly, outertrx, outertry, innerblx, innerbly, innertrx, innertry);
+    objectbase_transform_to_local_coordinates_xy(cell, &outerblx, &outerbly);
+    objectbase_transform_to_local_coordinates_xy(cell, &outertrx, &outertry);
+    objectbase_transform_to_local_coordinates_xy(cell, &innerblx, &innerbly);
+    objectbase_transform_to_local_coordinates_xy(cell, &innertrx, &innertry);
+    objectutil_fix_rectangle_order_xy(&outerblx, &outerbly, &outertrx, &outertry);
+    objectutil_fix_rectangle_order_xy(&innerblx, &innerbly, &innertrx, &innertry);
+    objectfull_extend_alignment_box(
+        FULL(cell),
+        outerblx, outerbly, outertrx, outertry,
+        innerblx, innerbly, innertrx, innertry
+    );
     point_destroy(outerbl);
     point_destroy(outertr);
     point_destroy(innerbl);
@@ -1775,3 +1729,6 @@ int object_foreach_label(const struct object* cell, label_action action, struct 
     }
     return 1;
 }
+
+// FIXME: when you reach this point you need to rename all object_ functions in this file to objectbase_
+//        and create a corresponding function in object.public.c, which calls the base function
