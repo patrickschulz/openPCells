@@ -55,6 +55,10 @@ function parameters()
         { "sdm1topext",                                                                                 0, argtype = "integer", info = "extend the source/drain metal 1 region (top). This is useful for meeting minimum area requirements for devices with small finger widths" },
         { "sdmxbotext",                                                                                 0, argtype = "integer", follow = "sdm1botext", info = "extend the inter-level (not M1, not highest metal) source/drain metal region (bottom). This is useful for meeting minimum area requirements for devices with small finger widths" },
         { "sdmxtopext",                                                                                 0, argtype = "integer", follow = "sdm1topext", info = "extend the inter-level (not M1, not highest metal) source/drain metal region (top). This is useful for meeting minimum area requirements for devices with small finger widths" },
+        { "usesdviawidthtable",                                                                         false },
+        { "sdviawidths",                                                                                {}, info = "width of source/drain vias, given as an array with one entry per metal transition" },
+        { "usesdmetalwidthtable",                                                                       false },
+        { "sdmetalwidths",                                                                              {}, info = "width of source/drain metals, given as an array with one entry per metal" },
         { "interweavevias",                                                                             false },
         { "alternateinterweaving",                                                                      false },
         { "minviaxspace",                                                                               0 },
@@ -1141,18 +1145,29 @@ function layout(transistor, _P)
         -- hole sizes are calculated without seperations, these are added in the instatiation
         local holewidth = activewidth + leftactauxext + leftactext + rightactauxext + rightactext
         local holeheight = _P.fingerwidth
+        local guardringtopext_activedummy = 0
+        local guardringbotext_activedummy = 0
+        local guardringtopext_gatestraps = 0
+        local guardringbotext_gatestraps = 0
         if _P.guardringrespectactivedummy then
+            guardringtopext_activedummy = _P.topactivedummywidth + _P.topactivedummyspace
+            guardringbotext_activedummy = _P.bottomactivedummywidth + _P.bottomactivedummyspace
             holewidth = holewidth + _P.leftactivedummywidth + _P.leftactivedummyspace + _P.rightactivedummywidth + _P.rightactivedummyspace
-            holeheight = holeheight + _P.topactivedummywidth + _P.topactivedummyspace + _P.bottomactivedummywidth + _P.bottomactivedummyspace
+            --holeheight = holeheight + _P.topactivedummywidth + _P.topactivedummyspace + _P.bottomactivedummywidth + _P.bottomactivedummyspace
         end
         if _P.guardringrespectgatestraps then
             if _P.drawtopgatestrap then
-                holeheight = holeheight + _P.topgatespace + _P.topgatewidth
+                --holeheight = holeheight + _P.topgatespace + _P.topgatewidth
+                guardringtopext_gatestraps = _P.topactivedummywidth + _P.topactivedummyspace
             end
             if _P.drawbotgatestrap then
-                holeheight = holeheight + _P.botgatespace + _P.botgatewidth
+                --holeheight = holeheight + _P.botgatespace + _P.botgatewidth
+                guardringbotext_gatestraps = _P.bottomactivedummywidth + _P.bottomactivedummyspace
             end
         end
+        local guardringtopext = math.max(guardringbotext_activedummy, guardringbotext_gatestraps)
+        local guardringbotext = math.max(guardringbotext_activedummy, guardringbotext_gatestraps)
+        holeheight = holeheight + guardringtopext + guardringbotext
         if _P.guardringrespectgateextensions then
             holeheight = math.max(holeheight, gatetry - gatebly)
         end
@@ -1178,7 +1193,8 @@ function layout(transistor, _P)
         local gtargetx = -leftactauxext
         local gtargety = 0
         if _P.guardringrespectactivedummy then
-            gtargetx = gtargetx - _P.leftactivedummywidth - _P.leftactivedummyspace, - _P.bottomactivedummywidth - _P.bottomactivedummyspace
+            gtargetx = gtargetx - _P.leftactivedummywidth - _P.leftactivedummyspace
+            gtargety = gtargety - _P.bottomactivedummywidth - _P.bottomactivedummyspace
         end
         if _P.guardringrespectgatestraps and _P.drawbotgatestrap then
             gtargety = gtargety - _P.botgatespace - _P.botgatewidth
@@ -1187,7 +1203,7 @@ function layout(transistor, _P)
         if _P.guardringrespectgateextensions then
             gtargety = math.min(gtargety, gatebly)
         end
-        guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, gtargety))
+        guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, -guardringbotext))
         guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
         transistor:merge_into(guardring)
         transistor:add_area_anchor_bltr("outerguardring",
