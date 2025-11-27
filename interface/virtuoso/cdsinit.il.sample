@@ -19,5 +19,20 @@ OPCPath = "/path/to/opc"
 ; the name of the executable (which will be 'opc' if you don't change this manually during compiling)
 OPCExec = "opc"
 
+; layout cells in virtuoso can also be exported to an opc representation.
+; as layout cells use PDK layers, the generic notation gets lost.
+; A reverse layer map can retrieve the generic layer information.
+; It is recommended to set this layermap if proper fill scripts are being used, as otherwise the exclude mechanism can not function.
+; Every layer that should have a mapping needs a so-called disembodied property list (see below)
+OPCLayerMap = list(
+    ; a disembodied property list is a list with a nil as first entry, following that key-value pairs
+    ; three keys need to be defined: layer, purpose and map. A virtuoso layer of (e.g.) list("M1" "drawing") then can be mapped to "generics.metal(1)":
+    list(nil 'layer "M1" 'purpose "drawing" 'map "generics.metal(1)")
+    ; further layers:
+    list(nil 'layer "M2" 'purpose "drawing" 'map "generics.metal(2)")
+    ; non-drawing layers can also be mapped
+    list(nil 'layer "M1" 'purpose "exclude" 'map "generics.metalexclude(1)")
+)
+
 ; lastly, we load the opc interface for virtuoso
 load(lsprintf("%s/interface/virtuoso/init.il" OPCPath))
