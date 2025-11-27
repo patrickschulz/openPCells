@@ -139,8 +139,8 @@ local function _load_cell(state, cellname, env)
     )
     -- check if only allowed values are defined
     for funcname in pairs(env) do
-        if not util.any_of(function(v) return v == funcname end, { "config", "parameters", "process_parameters", "layout", "check", "anchors" }) then
-            moderror(string.format("pcell: all defined global values must be one of 'config', 'parameters', 'process_parameters', 'layout', 'check' or 'anchors'. Illegal name: '%s'", funcname))
+        if not util.any_of(function(v) return v == funcname end, { "requirements", "config", "parameters", "process_parameters", "layout", "check", "anchors" }) then
+            moderror(string.format("pcell: all defined global values must be one of 'requirements', 'config', 'parameters', 'process_parameters', 'layout', 'check' or 'anchors'. Illegal name: '%s'", funcname))
         end
     end
     return env
@@ -491,6 +491,18 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
     local cell = _get_cell(state, cellname)
     if not cell.funcs.layout then
         error(string.format("cell '%s' has no layout definition", cellname))
+    end
+
+    -- check requirements
+    if cell.funcs.requirements then
+        local ret, msg = cell.funcs.requirements()
+        if not ret then
+            if not msg then
+                moderror(string.format("requirements check for cell '%s' failed, but no message was returned. If present, the 'check' function has to return true on success", cellname))
+            else
+                moderror(string.format("requirements check for cell '%s' failed: %s", cellname, msg))
+            end
+        end
     end
 
     local parameters = _get_parameters(state, cellname, cellargs)
