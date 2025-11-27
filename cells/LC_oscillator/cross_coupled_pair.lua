@@ -1,154 +1,159 @@
+function requirements()
+    if technology.get_number_of_metals() < 8 then
+        return false, "this cell requires a metal stack with at least 8 metals"
+    end
+    return true
+end
+
 function parameters()
     pcell.add_parameters(
-        { "gatelength", 0 },
-        { "gatespace", 0 },
-        { "gatestrapwidth", 0 },
-        { "gatestrapspace", 0 },
-        { "gateext", 0 },
-        { "sdwidth", 0 },
+        { "gatelength", technology.get_dimension("Minimum Gate Length") },
+        { "gatespace", technology.get_dimension("Minimum Gate Space", "Minimum Gate XSpace") },
+        { "gatestrapwidth", technology.get_dimension("Minimum M5 Width") },
+        { "gateext", technology.get_optional_dimension("Minimum Gate Extension") },
+        { "sdwidth", technology.get_dimension("Minimum M7 Width") },
         { "oxidetype", 1 },
         { "mosfetmarker", 1 },
         { "pvthtype", 1 },
         { "nvthtype", 1 },
-        { "activedummywidth", 0 },
+        { "drawactivedummies", false },
+        { "activedummywidth", 0, posvals = even() },
         { "activedummyspace", 0 },
-        { "powerwidth", 0 },
-        { "powerspace", 0 },
-        { "fingersperside", 4 },
-        { "pmosfingerwidth", 0 },
-        { "nmosfingerwidth", 0 },
-        { "middledummyfingers", 2 },
-        { "outerdummyfingers", 2 },
+        { "powerwidth", technology.get_dimension("Minimum M4M5 Viawidth") },
+        { "powerspace", technology.get_dimension("Minimum M5 Space") },
+        { "fingersperside", 4, posvals = even() },
+        { "pmosfingerwidth", technology.get_dimension("Analog Gate Width", "Minimum Gate Width") },
+        { "nmosfingerwidth", technology.get_dimension("Analog Gate Width", "Minimum Gate Width") },
+        { "middledummyfingersperside", 1 },
+        { "outerdummyfingers", 0 },
         { "outputoffset", 0 },
-        { "drainstrapspace", 0 },
+        { "outputminwidth", technology.get_dimension("Minimum M7M8 Viawidth") },
         { "crossingoffset", 0 },
         { "drawpsubguardring", true },
-        { "guardring_width", 0 },
-        { "guardring_xspace", 0 },
-        { "guardring_yspace", 0 },
-        { "guardring_xspacetomosfet", 0 },
-        { "guardring_yspacetomosfet", 0 },
-        { "guardring_soiopenextension", 0 },
-        { "guardring_implantextension", 0 },
-        { "guardring_wellextension", 0 },
+        { "quantize_psub_guardring", false },
+        { "psubguardring_ringwidth", technology.get_dimension("Minimum Active Contact Region Size") },
+        { "psubguardring_quantized_gridsize", technology.get_dimension("Minimum Active Contact Region Size"), follow = "psubguardring_ringwidth" },
+        { "guardring_width", technology.get_dimension("Minimum Active Contact Region Size"), posvals = even() },
+        { "guardring_xspace", technology.get_dimension("Minimum Active Space") },
+        { "guardring_yspace", technology.get_dimension("Minimum Active Space") },
+        { "guardring_xspacetomosfet", technology.get_dimension("Minimum Active Space") },
+        { "guardring_yspacetomosfet", technology.get_dimension("Minimum Active Space"), posvals = even() },
+        { "guardring_soiopenextension", technology.get_dimension("Minimum Soiopen Extension") },
+        { "guardring_implantextension", technology.get_dimension("Minimum Implant Extension") },
+        { "guardring_wellextension", technology.get_dimension("Minimum Well Extension") },
+        { "guardring_deepwelloffset", 0 },
+        { "guardring_interconnwidth", technology.get_dimension("Minimum M1 Width"), posvals = even() },
+        { "connectguardrings", true },
+        { "mindrainstrapspace", technology.get_dimension("Minimum M3 Space") + technology.get_dimension("Minimum M3 Width") + technology.get_dimension("Minimum M5 Space") },
         { "inlinedrainstrap", false },
-        { "topviawidth", 0 },
+        { "topviawidth", technology.get_dimension("Minimum M7M8 Viawidth"), posvals = even() },
         { "crossingmetal", 5 },
         { "drainmetal", 7 },
-        { "vtailshift", 0 },
-        { "vtailwidth", 0 },
+        { "outputmetal", 8 },
+        { "vtailshift", technology.get_dimension("Minimum M5 Space") },
+        { "vtailwidth", technology.get_dimension("Minimum M5 Width") },
         { "vtailmetal", 5 },
-        { "vtaillinewidth", 0 },
-        { "vtaillinespace", 0 },
+        { "vtaillinewidth", technology.get_dimension("Minimum M5 Width") },
+        { "vtaillinespace", technology.get_dimension("Minimum M5 Space") },
         { "fetpowermetal", 3 },
         { "vssmetal", 5 },
-        { "vssshift", 0 },
-        { "vsswidth", 0 },
-        { "vsslinewidth", 0 },
-        { "vsslinespace", 0 }
+        { "vssshift", technology.get_dimension("Minimum M5 Space") },
+        { "vsswidth", technology.get_dimension("Minimum M5 Width") },
+        { "vsslinewidth", technology.get_dimension("Minimum M5 Width") },
+        { "vsslinespace", technology.get_dimension("Minimum M5 Space") }
     )
 end
 
+function check(_P)
+    if _P.inlinedrainstrap then
+        return false, "'inlinedrainstrap' is currently not properly supported"
+    end
+    return true
+end
+
 function layout(ccp, _P)
-    local nfets = pcell.create_layout("analog/cross_coupled_pair", "_ccp", {
+    local drainstrapspace = (2 * _P.guardring_yspacetomosfet + _P.guardring_width) / 2 - _P.topviawidth / 2
+    if _P.drawactivedummies then
+        drainstrapspace = drainstrapspace + (_P.activedummywidth) / 2 + _P.activedummyspace
+    end
+    if drainstrapspace < _P.mindrainstrapspace then
+        drainstrapspace = _P.mindrainstrapspace
+    end
+
+    local commonoptions = {
+        gatelength = _P.gatelength,
+        gatespace = _P.gatespace,
+        fingersperside = _P.fingersperside,
+        oxidetype = _P.oxidetype,
+        gatestrapwidth = _P.gatestrapwidth,
+        sdwidth = _P.sdwidth,
+        middledummyfingersperside = _P.middledummyfingersperside,
+        outerdummyfingers = _P.outerdummyfingers,
+        mosfetmarker = _P.mosfetmarker,
+        powerwidth = _P.powerwidth,
+        powerspace = _P.powerspace,
+        inlinedrainstrap = _P.inlinedrainstrap,
+        drawactivedummies = _P.drawactivedummies,
+        activedummywidth = _P.activedummywidth,
+        activedummyspace = _P.activedummyspace,
+        drainstrapspace = drainstrapspace,
+        gateext = _P.gateext,
+        crossingoffset = _P.crossingoffset,
+        crossingmetal = _P.crossingmetal,
+        drainmetal = _P.drainmetal,
+        fetpowermetal = _P.fetpowermetal,
+    }
+
+    local nfets = pcell.create_layout("analog/cross_coupled_pair", "_ccp", util.add_options(commonoptions, {
         channeltype = "nmos",
         gatestrappos = "top",
-        fingersperside = _P.fingersperside,
         fingerwidth = _P.nmosfingerwidth,
-        middledummyfingers = _P.middledummyfingers,
-        outerdummyfingers = _P.outerdummyfingers,
-        gatelength = _P.gatelength,
-        gatespace = _P.gatespace,
-        oxidetype = _P.oxidetype,
-        mosfetmarker = _P.mosfetmarker,
         vthtype = _P.nvthtype,
-        activedummywidth = _P.activedummywidth,
-        activedummyspace = _P.activedummyspace,
-        outputoffset = _P.outputoffset,
-        gatestrapwidth = _P.gatestrapwidth,
-        gatestrapspace = _P.gatestrapspace,
-        drainstrapspace = _P.drainstrapspace,
-        powerwidth = _P.powerwidth,
-        powerspace = _P.powerspace,
-        gateext = _P.gateext,
-        sdwidth = _P.sdwidth,
-        crossingoffset = _P.crossingoffset,
-        drawpsubguardring = _P.drawpsubguardring,
-        inlinedrainstrap = _P.inlinedrainstrap,
-        topviawidth = _P.topviawidth,
-        crossingmetal = _P.crossingmetal,
-        drainmetal = _P.drainmetal,
-        fetpowermetal = _P.fetpowermetal,
-        guardring_width = _P.guardring_width,
-        guardring_xspace = _P.guardring_xspace,
-        guardring_yspace = _P.guardring_yspace,
-        guardring_xspacetomosfet = _P.guardring_xspacetomosfet,
-        guardring_yspacetomosfet = _P.guardring_yspacetomosfet,
-        guardring_wellextension = _P.guardring_wellextension,
-        guardring_implantextension = _P.guardring_implantextension,
-        guardring_soiopenextension = _P.guardring_soiopenextension,
-    })
+    }))
 
-    local pfets = pcell.create_layout("analog/cross_coupled_pair", "_ccp", {
+    local pfets = pcell.create_layout("analog/cross_coupled_pair", "_ccp", util.add_options(commonoptions, {
         channeltype = "pmos",
         gatestrappos = "bottom",
-        fingersperside = _P.fingersperside,
         fingerwidth = _P.pmosfingerwidth,
-        middledummyfingers = _P.middledummyfingers,
-        outerdummyfingers = _P.outerdummyfingers,
-        gatelength = _P.gatelength,
-        gatespace = _P.gatespace,
-        oxidetype = _P.oxidetype,
-        mosfetmarker = _P.mosfetmarker,
         vthtype = _P.pvthtype,
-        activedummywidth = _P.activedummywidth,
-        activedummyspace = _P.activedummyspace,
-        outputoffset = _P.outputoffset,
-        gatestrapwidth = _P.gatestrapwidth,
-        gatestrapspace = _P.gatestrapspace,
-        drainstrapspace = _P.drainstrapspace,
-        powerwidth = _P.powerwidth,
-        powerspace = _P.powerspace,
-        gateext = _P.gateext,
-        sdwidth = _P.sdwidth,
-        crossingoffset = _P.crossingoffset,
-        drawpsubguardring = _P.drawpsubguardring,
-        inlinedrainstrap = _P.inlinedrainstrap,
-        topviawidth = _P.topviawidth,
-        crossingmetal = _P.crossingmetal,
-        drainmetal = _P.drainmetal,
-        fetpowermetal = _P.fetpowermetal,
-        guardring_width = _P.guardring_width,
-        guardring_xspace = _P.guardring_xspace,
-        guardring_yspace = _P.guardring_yspace,
-        guardring_xspacetomosfet = _P.guardring_xspacetomosfet,
-        guardring_yspacetomosfet = _P.guardring_yspacetomosfet,
-        guardring_wellextension = _P.guardring_wellextension,
-        guardring_implantextension = _P.guardring_implantextension,
-        guardring_soiopenextension = _P.guardring_soiopenextension,
-    })
+    }))
 
     ccp:merge_into(nfets)
-    pfets:abut_area_anchor_top("bottomactivedummy", nfets, "topactivedummy")
-    pfets:translate_y(2 * _P.guardring_yspacetomosfet + _P.guardring_width + _P.activedummywidth)
+    if _P.drawactivedummies then
+        pfets:align_area_anchor_top("bottomactivedummy", nfets, "topactivedummy")
+        pfets:translate_y(2 * _P.guardring_yspacetomosfet + _P.guardring_width + _P.activedummywidth)
+    else
+        pfets:abut_area_anchor_top("active", nfets, "active")
+        pfets:translate_y(2 * _P.guardring_yspacetomosfet + _P.guardring_width)
+    end
     ccp:merge_into(pfets)
 
     -- copy active anchors for guardring alignment
     ccp:inherit_area_anchor_as(pfets, "active", "pfetactive")
-    ccp:inherit_area_anchor_as(pfets, "active", "nfetactive")
-    ccp:inherit_area_anchor_as(pfets, "topactivedummy", "pfettopactivedummy")
-    ccp:inherit_area_anchor_as(pfets, "bottomactivedummy", "pfetbottomactivedummy")
-    ccp:inherit_area_anchor_as(nfets, "topactivedummy", "nfettopactivedummy")
-    ccp:inherit_area_anchor_as(nfets, "bottomactivedummy", "nfetbottomactivedummy")
+    ccp:inherit_area_anchor_as(nfets, "active", "nfetactive")
+    if _P.drawactivedummies then
+        ccp:inherit_area_anchor_as(pfets, "topactivedummy", "pfettopactivedummy")
+        ccp:inherit_area_anchor_as(pfets, "bottomactivedummy", "pfetbottomactivedummy")
+        ccp:inherit_area_anchor_as(nfets, "topactivedummy", "nfettopactivedummy")
+        ccp:inherit_area_anchor_as(nfets, "bottomactivedummy", "nfetbottomactivedummy")
+    end
     ccp:inherit_area_anchor_as(pfets, "leftouterdummyactive", "leftouterpfetdummyactive")
     ccp:inherit_area_anchor_as(pfets, "rightouterdummyactive", "rightouterpfetdummyactive")
     ccp:inherit_area_anchor_as(nfets, "leftouterdummyactive", "leftouternfetdummyactive")
     ccp:inherit_area_anchor_as(nfets, "rightouterdummyactive", "rightouternfetdummyactive")
 
     -- output connection
+    local outputwidth = point.xdistance_abs(
+        nfets:get_area_anchor("leftdrainstrap").bl,
+        nfets:get_area_anchor("leftdrainstrap").tr
+    )
+    local outputextension = 0
+    if outputwidth - _P.outputoffset < _P.outputminwidth then
+        outputextension = _P.outputminwidth - (outputwidth - _P.outputoffset)
+    end
     ccp:add_area_anchor_bltr("leftoutput",
         point.create(
-            nfets:get_area_anchor("leftdrainstrap").l,
+            nfets:get_area_anchor("leftdrainstrap").l - outputextension,
             (nfets:get_area_anchor("leftdrainstrap").b + pfets:get_area_anchor("leftdrainstrap").t) / 2 - _P.topviawidth / 2
         ),
         point.create(
@@ -162,11 +167,11 @@ function layout(ccp, _P)
             (nfets:get_area_anchor("rightdrainstrap").b + pfets:get_area_anchor("rightdrainstrap").t) / 2 - _P.topviawidth / 2
         ),
         point.create(
-            nfets:get_area_anchor("rightdrainstrap").r,
+            nfets:get_area_anchor("rightdrainstrap").r + outputextension,
             (nfets:get_area_anchor("rightdrainstrap").b + pfets:get_area_anchor("rightdrainstrap").t) / 2 + _P.topviawidth / 2
         )
     )
-    geometry.viabltr(ccp, _P.drainmetal, 8,
+    geometry.viabltr(ccp, _P.drainmetal, _P.outputmetal,
         ccp:get_area_anchor("leftoutput").bl,
         ccp:get_area_anchor("leftoutput").tr
     )
@@ -174,7 +179,7 @@ function layout(ccp, _P)
         ccp:get_area_anchor("leftoutput").bl,
         ccp:get_area_anchor("leftoutput").tr:translate_x(_P.outputoffset)
     )
-    geometry.viabltr(ccp, _P.drainmetal, 8,
+    geometry.viabltr(ccp, _P.drainmetal, _P.outputmetal,
         ccp:get_area_anchor("rightoutput").bl,
         ccp:get_area_anchor("rightoutput").tr
     )
@@ -238,8 +243,8 @@ function layout(ccp, _P)
 
     -- bias current landing pad
     ccp:add_area_anchor_bltr("ibias",
-        ccp:get_area_anchor("ibiasin").bl:translate_y(_P.vtailshift),
-        ccp:get_area_anchor("ibiasin").br:translate_y(_P.vtailshift + _P.vtailwidth)
+        ccp:get_area_anchor("ibiasin").tl:translate_y(_P.vtailshift),
+        ccp:get_area_anchor("ibiasin").tr:translate_y(_P.vtailshift + _P.vtailwidth)
     )
     geometry.rectanglebltr(ccp, generics.metal(_P.vtailmetal),
         ccp:get_area_anchor("ibias").bl,
@@ -258,8 +263,7 @@ function layout(ccp, _P)
 
     -- vss landing pad
     ccp:add_area_anchor_bltr("vss",
-        ccp:get_area_anchor("vssin").bl:translate_y(
-            -_P.vssshift - _P.vsswidth),
+        ccp:get_area_anchor("vssin").bl:translate_y(-_P.vssshift - _P.vsswidth),
         ccp:get_area_anchor("vssin").br:translate_y(-_P.vssshift)
     )
     geometry.rectanglebltr(ccp, generics.metal(_P.vssmetal),
@@ -278,15 +282,24 @@ function layout(ccp, _P)
     )
 
     -- inner pwell guardring
+    local igbtarget
+    local igttarget
+    if _P.drawactivedummies then
+        igbtarget = "pfetbottomactivedummy"
+        igttarget = "pfettopactivedummy"
+    else
+        igbtarget = "pfetactive"
+        igttarget = "pfetactive"
+    end
     layouthelpers.place_guardring(
         ccp,
         point.create(
             ccp:get_area_anchor("leftouternfetdummyactive").l,
-            ccp:get_area_anchor("pfetbottomactivedummy").b
+            ccp:get_area_anchor(igbtarget).b
         ),
         point.create(
             ccp:get_area_anchor("rightouternfetdummyactive").r,
-            ccp:get_area_anchor("pfettopactivedummy").t
+            ccp:get_area_anchor(igttarget).t
         ),
         _P.guardring_xspacetomosfet, _P.guardring_yspacetomosfet,
         "pwellguardring_",
@@ -304,11 +317,17 @@ function layout(ccp, _P)
     )
 
     -- nwell guardring
+    local ngtarget
+    if _P.drawactivedummies then
+        ngtarget = "nfetbottomactivedummy"
+    else
+        ngtarget = "nfetactive"
+    end
     layouthelpers.place_guardring_with_hole(
         ccp,
         point.create(
             ccp:get_area_anchor("pwellguardring_outerboundary").l,
-            ccp:get_area_anchor("nfetbottomactivedummy").b
+            ccp:get_area_anchor(ngtarget).b
         ),
         point.create(
             ccp:get_area_anchor("pwellguardring_outerboundary").r,
@@ -330,7 +349,7 @@ function layout(ccp, _P)
             wellinnerextension = _P.guardring_wellextension,
             wellouterextension = _P.guardring_wellextension,
             drawdeepwell = true,
-            deepwelloffset = 150,
+            deepwelloffset = _P.guardring_deepwelloffset,
             fit = false,
         }
     )
@@ -341,30 +360,45 @@ function layout(ccp, _P)
         ccp:get_area_anchor("nwellguardring_outerboundary").tr
     )
 
-    local env = {
-        smallgroundmesh = {
-            width = 500
-        }
-    }
+    -- outer psub guardring
     if _P.drawpsubguardring then
-        layouthelpers.place_guardring_quantized(
-            ccp,
-            ccp:get_area_anchor("nwellguardring_outerboundary").bl,
-            ccp:get_area_anchor("nwellguardring_outerboundary").tr,
-            _P.guardring_xspace, _P.guardring_yspace,
-            2 * env.smallgroundmesh.width,
-            env.smallgroundmesh.width,
-            "psubguardring_",
-            {
-                ringwidth = env.smallgroundmesh.width,
-                contype = "p",
-                soiopeninnerextension = _P.guardring_soiopenextension,
-                soiopenouterextension = _P.guardring_soiopenextension,
-                implantinnerextension = _P.guardring_implantextension,
-                implantouterextension = _P.guardring_implantextension,
-                fit = true,
-            }
-        )
+        if _P.quantize_psub_guardring then
+            layouthelpers.place_guardring_quantized(
+                ccp,
+                ccp:get_area_anchor("nwellguardring_outerboundary").bl,
+                ccp:get_area_anchor("nwellguardring_outerboundary").tr,
+                _P.guardring_xspace, _P.guardring_yspace,
+                _P.psubguardring_quantized_gridsize,
+                _P.psubguardring_quantized_gridsize,
+                "psubguardring_",
+                {
+                    ringwidth = _P.psubguardring_ringwidth,
+                    contype = "p",
+                    soiopeninnerextension = _P.guardring_soiopenextension,
+                    soiopenouterextension = _P.guardring_soiopenextension,
+                    implantinnerextension = _P.guardring_implantextension,
+                    implantouterextension = _P.guardring_implantextension,
+                    fit = true,
+                }
+            )
+        else
+            layouthelpers.place_guardring(
+                ccp,
+                ccp:get_area_anchor("nwellguardring_outerboundary").bl,
+                ccp:get_area_anchor("nwellguardring_outerboundary").tr,
+                _P.guardring_xspace, _P.guardring_yspace,
+                "psubguardring_",
+                {
+                    ringwidth = _P.psubguardring_ringwidth,
+                    contype = "p",
+                    soiopeninnerextension = _P.guardring_soiopenextension,
+                    soiopenouterextension = _P.guardring_soiopenextension,
+                    implantinnerextension = _P.guardring_implantextension,
+                    implantouterextension = _P.guardring_implantextension,
+                    fit = false,
+                }
+            )
+        end
         geometry.unequal_ring_pts(ccp, generics.implant("n"),
             ccp:get_area_anchor("psubguardring_innerimplant").bl,
             ccp:get_area_anchor("psubguardring_innerimplant").tr,
@@ -379,83 +413,91 @@ function layout(ccp, _P)
         )
     end
 
+    -- alignment box without psubguardring
     if not _P.drawpsubguardring then
         ccp:clear_alignment_box()
         ccp:inherit_alignment_box(uppernwelluardring)
         ccp:inherit_alignment_box(lowernwelluardring)
     end
 
-    local connwidth = 200
-    geometry.rectanglebltr(ccp, generics.metal(1),
-        point.create(
-            ccp:get_area_anchor("psubguardring_innerboundary").l,
-            (ccp:get_area_anchor("pwellguardring_outerboundary").b + ccp:get_area_anchor("pwellguardring_outerboundary").t) / 2 - connwidth / 2
-        ),
-        point.create(
-            ccp:get_area_anchor("pwellguardring_outerboundary").l,
-            (ccp:get_area_anchor("pwellguardring_outerboundary").b + ccp:get_area_anchor("pwellguardring_outerboundary").t) / 2 + connwidth / 2
+    -- connect guardrings
+    if _P.drawpsubguardring and _P.connectguardrings then
+        geometry.rectanglebltr(ccp, generics.metal(1),
+            point.create(
+                ccp:get_area_anchor("psubguardring_innerboundary").l,
+                (ccp:get_area_anchor("pwellguardring_outerboundary").b + ccp:get_area_anchor("pwellguardring_outerboundary").t) / 2 - _P.guardring_interconnwidth / 2
+            ),
+            point.create(
+                ccp:get_area_anchor("pwellguardring_outerboundary").l,
+                (ccp:get_area_anchor("pwellguardring_outerboundary").b + ccp:get_area_anchor("pwellguardring_outerboundary").t) / 2 + _P.guardring_interconnwidth / 2
+            )
         )
-    )
-    geometry.rectanglebltr(ccp, generics.metal(1),
-        point.create(
-            ccp:get_area_anchor("pwellguardring_outerboundary").r,
-            (ccp:get_area_anchor("pwellguardring_outerboundary").b + ccp:get_area_anchor("pwellguardring_outerboundary").t) / 2 - connwidth / 2
-        ),
-        point.create(
-            ccp:get_area_anchor("psubguardring_innerboundary").r,
-            (ccp:get_area_anchor("pwellguardring_outerboundary").b + ccp:get_area_anchor("pwellguardring_outerboundary").t) / 2 + connwidth / 2
+        geometry.rectanglebltr(ccp, generics.metal(1),
+            point.create(
+                ccp:get_area_anchor("pwellguardring_outerboundary").r,
+                (ccp:get_area_anchor("pwellguardring_outerboundary").b + ccp:get_area_anchor("pwellguardring_outerboundary").t) / 2 - _P.guardring_interconnwidth / 2
+            ),
+            point.create(
+                ccp:get_area_anchor("psubguardring_innerboundary").r,
+                (ccp:get_area_anchor("pwellguardring_outerboundary").b + ccp:get_area_anchor("pwellguardring_outerboundary").t) / 2 + _P.guardring_interconnwidth / 2
+            )
         )
-    )
+    end
 
-    ccp:add_area_anchor_bltr("guardringtopsegment",
-        point.create(
-            ccp:get_area_anchor("psubguardring_outerboundary").l,
-            ccp:get_area_anchor("psubguardring_innerboundary").t
-        ),
-        point.create(
-            ccp:get_area_anchor("psubguardring_outerboundary").r,
-            ccp:get_area_anchor("psubguardring_outerboundary").t
+    -- psub guardring anchor
+    if _P.drawpsubguardring then
+        ccp:add_area_anchor_bltr("guardringtopsegment",
+            point.create(
+                ccp:get_area_anchor("psubguardring_outerboundary").l,
+                ccp:get_area_anchor("psubguardring_innerboundary").t
+            ),
+            point.create(
+                ccp:get_area_anchor("psubguardring_outerboundary").r,
+                ccp:get_area_anchor("psubguardring_outerboundary").t
+            )
         )
-    )
-    ccp:add_area_anchor_bltr("guardringbottomsegment",
-        point.create(
-            ccp:get_area_anchor("psubguardring_outerboundary").l,
-            ccp:get_area_anchor("psubguardring_outerboundary").b
-        ),
-        point.create(
-            ccp:get_area_anchor("psubguardring_outerboundary").r,
-            ccp:get_area_anchor("psubguardring_innerboundary").b
+        ccp:add_area_anchor_bltr("guardringbottomsegment",
+            point.create(
+                ccp:get_area_anchor("psubguardring_outerboundary").l,
+                ccp:get_area_anchor("psubguardring_outerboundary").b
+            ),
+            point.create(
+                ccp:get_area_anchor("psubguardring_outerboundary").r,
+                ccp:get_area_anchor("psubguardring_innerboundary").b
+            )
         )
-    )
-    ccp:add_area_anchor_bltr("guardring",
-        ccp:get_area_anchor("guardringbottomsegment").bl,
-        ccp:get_area_anchor("guardringtopsegment").tr
-    )
+        ccp:add_area_anchor_bltr("guardring",
+            ccp:get_area_anchor("guardringbottomsegment").bl,
+            ccp:get_area_anchor("guardringtopsegment").tr
+        )
+    end
 
     -- add ports (multiple ports for symmetry for layout extraction)
-    ccp:add_port("vss", generics.metalport(1), ccp:get_area_anchor("psubguardring_outerboundary").bl)
-    ccp:add_port("vss", generics.metalport(1), ccp:get_area_anchor("psubguardring_outerboundary").br)
-    ccp:add_port("vss", generics.metalport(1), ccp:get_area_anchor("psubguardring_outerboundary").tl)
-    ccp:add_port("vss", generics.metalport(1), ccp:get_area_anchor("psubguardring_outerboundary").tr)
+    if _P.drawpsubguardring then
+        ccp:add_port("vss", generics.metalport(1), ccp:get_area_anchor("psubguardring_outerboundary").bl)
+        ccp:add_port("vss", generics.metalport(1), ccp:get_area_anchor("psubguardring_outerboundary").br)
+        ccp:add_port("vss", generics.metalport(1), ccp:get_area_anchor("psubguardring_outerboundary").tl)
+        ccp:add_port("vss", generics.metalport(1), ccp:get_area_anchor("psubguardring_outerboundary").tr)
+    end
     ccp:add_port("vss", generics.metalport(_P.vssmetal),
         point.create(
             (ccp:get_area_anchor("vss").l + ccp:get_area_anchor("vss").r) / 2,
             ccp:get_area_anchor("vss").b
         )
     )
-    ccp:add_port("vtail", generics.metalport(5),
+    ccp:add_port("vtail", generics.metalport(_P.vtailmetal),
         point.create(
             (ccp:get_area_anchor("ibias").l + ccp:get_area_anchor("ibias").r) / 2,
             ccp:get_area_anchor("ibias").t
         )
     )
-    ccp:add_port("vleft", generics.metalport(8),
+    ccp:add_port("vleft", generics.metalport(_P.outputmetal),
         point.create(
             ccp:get_area_anchor("leftoutput").l,
             (ccp:get_area_anchor("leftoutput").b + ccp:get_area_anchor("leftoutput").t) / 2
         )
     )
-    ccp:add_port("vright", generics.metalport(8),
+    ccp:add_port("vright", generics.metalport(_P.outputmetal),
         point.create(
             ccp:get_area_anchor("rightoutput").r,
             (ccp:get_area_anchor("rightoutput").b + ccp:get_area_anchor("rightoutput").t) / 2
