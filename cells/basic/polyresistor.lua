@@ -108,7 +108,7 @@ function layout(resistor, _P)
     local totalpolyheight
     if _P.nyfingers > 1 then
         if _P.yspace > 0 then
-            totalpolyheight = _P.nyfingers * ypitch - _P.yspace
+            totalpolyheight = _P.nyfingers * ypitch - _P.yspace + 2 * _P.extraextension
         else
             totalpolyheight = _P.nyfingers * ypitch - _P.yspace + _P.contactheight + 2 * _P.extraextension
         end
