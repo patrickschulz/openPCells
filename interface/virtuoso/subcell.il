@@ -79,7 +79,11 @@ procedure(OPCSubCellCreateBase(cv name properties)
         )
         group
     )
-)
+) ; procedure OPCSubCellCreateBase
+
+procedure(OPCGetSubCellScriptDirectory(cv)
+    lsprintf("%s/%s/layout/opcsubgroups" cv->lib->readPath cv->cellName)
+) ; procedure OPCGetSubCellScriptDirectory
 
 procedure(OPCSubCellScriptCreateCallback()
     let(
@@ -99,7 +103,7 @@ procedure(OPCSubCellScriptCreateCallback()
                 )
                 nil
             else
-                path = lsprintf("%s/%s/layout/opcsubgroups" cv->lib->readPath cv->cellName)
+                path = OPCGetSubCellScriptDirectory(cv)
                 unless(isDir(path)
                     createDir(path)
                 )
@@ -136,7 +140,7 @@ procedure(OPCSubCellScriptCreateCallback()
     ; (4) add opcpath property
     ; (5) call opc and fill group with shapes
     ; (6) place/move group
-) ; procedure
+) ; procedure OPCSubCellScriptCreateCallback
 
 procedure(OPCSubCellCellCreateCallback()
     let(
@@ -244,5 +248,26 @@ procedure(OPCSubCellUpdate()
                 )
             )
         ) ; foreach opcgroup
+    ) ; let
+) ; procedure
+
+procedure(OPCSubCellCleanUp()
+    let(
+        (cv basepath groupnames pattern todelete)
+        cv = geGetEditCellView()
+        ; gather all groups in the current cellview
+        groupnames = mapcar(g cv->figGroups g->name) ; FIXME: check property names
+        ; collect all subcell script files
+        basepath = OPCGetSubCellScriptDirectory(cv)
+        pattern = pcreCompile("*.lua")
+        when(isDir(basepath)
+            let((subscriptfiles)
+                subscriptfiles = setof(file getDirFiles() pcreMatch(file pattern)) ; FIXME: check syntax/names
+                todelete = setof(g groupnames member(g subscriptfiles)) ; FIXME: check syntax
+            )
+        )
+        foreach(d todelete
+            deleteFile(d)
+        )
     ) ; let
 ) ; procedure

@@ -43,12 +43,14 @@ procedure(OPCCreateLayoutMenu()
                 createsubcellcell
                 editsubcellscript
                 updatesubcell
+                cleanupsubcell
                 subcellmenupulldown
             )
             createsubcellscript = hiCreateMenuItem(?name 'OPCCreateSubCellScript ?itemText "Create Sub-Cell (Cell Script)" ?callback "OPCSubCellCreateScript()")
             createsubcellcell = hiCreateMenuItem(?name 'OPCCreateSubCellCell ?itemText "Create Sub-Cell (Cell)" ?callback "OPCSubCellCreateCell()")
             editsubcellscript = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Edit Sub-Cell Script" ?callback "OPCSubCellEditScript()")
             updatesubcell = hiCreateMenuItem(?name 'OPCSubCellScript ?itemText "Update Sub-Cell" ?callback "OPCSubCellUpdate()")
+            cleanupsubcell = hiCreateMenuItem(?name 'OPCSubCellCleanUp ?itemText "Delete Unused Sub-Cell Scripts" ?callback "OPCSubCellCleanUp()")
             subcellmenupulldown = hiCreatePulldownMenu('OPCSubCellMenuPulldown "" list(createsubcellscript createsubcellcell editsubcellscript updatesubcell))
             subcellmenu = hiCreateSliderMenuItem(?name 'OPCSubCellMenu ?itemText "Sub-Cells" ?subMenu subcellmenupulldown)
         )
