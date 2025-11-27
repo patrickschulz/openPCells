@@ -709,7 +709,8 @@ static int _load_constraints(struct technology_state* techstate, const char* nam
     int ret = luaL_dofile(L, name);
     if(ret != LUA_OK)
     {
-        puts("error while loading constraints");
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "error while loading constraints:\n  %s\n", msg);
         lua_close(L);
         return 0;
     }
@@ -723,7 +724,7 @@ static int _load_constraints(struct technology_state* techstate, const char* nam
     }
     lua_pop(L, 1); // pop constraints table
     lua_close(L);
-    return 0;
+    return 1;
 }
 
 int technology_load(const struct vector* techpaths, struct technology_state* techstate, const struct const_vector* ignoredlayers)
@@ -755,7 +756,7 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
     e = _load_viadefinitions(techstate, vianame);
     if(!e.status)
     {
-        fprintf(stderr, "technology: errors while loading via definitions: %s\n", e.message);
+        fprintf(stderr, "technology: error while loading via definitions: %s\n", e.message);
         return 0;
     }
     free(vianame);
@@ -783,7 +784,12 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
         free(constraintsname);
         return 0;
     }
-    _load_constraints(techstate, constraintsname);
+    ret = _load_constraints(techstate, constraintsname);
+    if(!ret)
+    {
+        free(constraintsname);
+        return 0;
+    }
     free(constraintsname);
 
     return 1;
