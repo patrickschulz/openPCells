@@ -37,6 +37,7 @@ function parameters()
         { "extendlvsmarkery", 0 },
         { "conntype", "parallel", posvals = set("none", "parallel", "series", "custom") },
         { "customconnections", {} },
+        { "customplusminus", {} },
         { "invertseriesconnections", false },
         { "drawrotationmarker", false },
         { "resistortype", 1 },
@@ -62,6 +63,38 @@ function parameters()
         { "labelyshift", 0 },
         { "labelsizehint", 100 }
     )
+end
+
+function check(_P)
+    if _P.conntype == "custom" then
+        local plus = _P.customplusminus.plus
+        local minus = _P.customplusminus.minus
+        if
+            not plus or
+            not plus.pin or
+            not plus.x or
+            not plus.y or
+            not minus or
+            not minus.pin or
+            not minus.x or
+            not minus.y then
+            local pstr
+            if plus then
+                pstr = string.format("{ pin = %q, x = %s, y = %s }", plus.pin, plus.x, plus.y)
+            else
+                pstr = nil
+            end
+            local nstr
+            if minus then
+                nstr = string.format("{ pin = %q, x = %s, y = %s }", minus.pin, minus.x, minus.y)
+            else
+                nstr = nil
+            end
+            local str = string.format("{ plus = %s, minus = %s }", pstr, nstr)
+            return false, string.format("if custom connections are used, the plus and minus minus pins must be specified fully: customplusminus = { plus = { pin = \"minus\", x = 1, y = 1 }, minus = { pin = \"minus\", x = 5, y =2 }, got %s", str)
+        end
+    end
+    return true
 end
 
 function layout(resistor, _P)
@@ -484,7 +517,7 @@ function layout(resistor, _P)
             resistor:get_area_anchor(string.format("contact_minus_%d_%d", 1, 1)).bl,
             resistor:get_area_anchor(string.format("contact_minus_%d_%d", _P.nxfingers, 1)).tr
         )
-    else -- series
+    elseif _P.conntype == "series" then
         if _P.nxfingers % 2 == 0 then
             resistor:add_area_anchor_bltr("plus",
                 resistor:get_area_anchor(string.format("contact_minus_%d_%d", _P.nxfingers, 1)).bl,
@@ -499,6 +532,17 @@ function layout(resistor, _P)
         resistor:add_area_anchor_bltr("minus",
             resistor:get_area_anchor(string.format("contact_minus_%d_%d", 1, 1)).bl,
             resistor:get_area_anchor(string.format("contact_minus_%d_%d", 1, 1)).tr
+        )
+    else -- "custom"
+        local plusconn = _P.customplusminus.plus
+        local minusconn = _P.customplusminus.minus
+        resistor:add_area_anchor_bltr("plus",
+            resistor:get_area_anchor(string.format("contact_%s_%d_%d", plusconn.pin, plusconn.x, plusconn.y)).bl,
+            resistor:get_area_anchor(string.format("contact_%s_%d_%d", plusconn.pin, plusconn.x, plusconn.y)).tr
+        )
+        resistor:add_area_anchor_bltr("minus",
+            resistor:get_area_anchor(string.format("contact_%s_%d_%d", minusconn.pin, minusconn.x, minusconn.y)).bl,
+            resistor:get_area_anchor(string.format("contact_%s_%d_%d", minusconn.pin, minusconn.x, minusconn.y)).tr
         )
     end
     if _P.plusmetal > 1 then
