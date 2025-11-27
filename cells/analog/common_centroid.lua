@@ -33,6 +33,7 @@ function parameters()
         { "gateviawidth", technology.get_dimension("Minimum M2 Width") },
         { "fullgatevia", false },
         { "extendgatessymmetrically", false },
+        { "allow_unequal_rowshifts", false },
         { "usegateconnections", false },
         { "gateconnections", {} }, -- FIXME: this should be nil, but due to how parameters are handled internally, this is currently not supported
         { "interconnectlinepos", "inline", posvals = set("inline", "gate", "offside") },
@@ -333,6 +334,12 @@ function layout(cell, _P)
         -- keep nil to get the default value
     end
 
+    -- calculate possible row shifts for compacter layouts
+    local rowshiftcompensation = 0
+    if _P.interconnectlinepos == "offside" and _P.allow_unequal_rowshifts then
+        rowshiftcompensation = yseparation - gateline_space_occupation
+    end
+
     local rowoptions = {
         channeltype = _P.channeltype,
         oxidetype = _P.oxidetype,
@@ -543,7 +550,13 @@ function layout(cell, _P)
     -- create mosfet array
     local rows = {}
     for rownum = 1, numrows do
-        local row = util.add_options(rowoptions, {})
+        local rowshift = 0
+        if rownum % 2 == 0 then -- shift every second row
+            rowshift = -rowshiftcompensation
+        end
+        local row = util.add_options(rowoptions, {
+            shift = rowshift,
+        })
         local devicerow = _get_devices(function(device) return device.row == rownum end)
         row.devices = _make_row_devices(rownum, devicerow)
         table.insert(rows, row)
