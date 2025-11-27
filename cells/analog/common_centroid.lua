@@ -1842,12 +1842,14 @@ function layout(cell, _P)
             cell:add_label(
                 string.format("%s%d", line.base, line.device),
                 generics.metal(_P.interconnectmetal + 1),
-                cell:get_area_anchor_fmt(anchor).tl
+                cell:get_area_anchor_fmt(anchor).tl,
+                _P.globallines_label_sizehint
             )
             cell:add_label(
                 string.format("%s%d", line.base, line.device),
                 generics.metal(_P.interconnectmetal + 1),
-                cell:get_area_anchor_fmt(anchor).bl
+                cell:get_area_anchor_fmt(anchor).bl,
+                _P.globallines_label_sizehint
             )
         end
     end
