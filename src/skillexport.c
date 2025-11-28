@@ -7,8 +7,7 @@
 #include "tagged_value.h"
 #include "util.h"
 
-const unsigned int __baseunit = 1000; // virtuoso is micrometer-based. The implementation tried to make future changes possible, but this should be a power-of-ten
-const unsigned int __numdigits = 3; // digits after the decimal point. Must be log10(__baseunit)
+static unsigned int __baseunit = 1000; // virtuoso is micrometer-based. The implementation tried to make future changes possible, but this should be a power-of-ten
 static int __group = 0;
 static char* __groupname = NULL;
 static coordinate_t __labelsize = 100;
@@ -200,12 +199,13 @@ static void _write_ipart(struct export_data* data, coordinate_t num)
 
 static void _write_fpart(struct export_data* data, coordinate_t num)
 {
-    char digit1 = (((char)((num / 100) % 10)) + '0');
-    export_data_append_char(data, digit1);
-    char digit2 = (((char)((num / 10) % 10)) + '0');
-    export_data_append_char(data, digit2);
-    char digit3 = (((char)((num / 1) % 10)) + '0');
-    export_data_append_char(data, digit3);
+    unsigned int divisor = __baseunit / 10;
+    while(divisor > 0)
+    {
+        char digit = (((char)((num / divisor) % 10)) + '0');
+        export_data_append_char(data, digit);
+        divisor = divisor / 10;
+    }
 }
 
 static void _write_coordinate(struct export_data* data, coordinate_t num)
@@ -317,7 +317,20 @@ static int _set_options(const struct vector* vopt)
     while(i < vector_size(vopt))
     {
         const char* arg = vector_get_const(vopt, i);
-        if((strcmp(arg, "-L") == 0) || (strcmp(arg, "--label-size") == 0))
+        if((strcmp(arg, "-U") == 0) || (strcmp(arg, "--base-unit") == 0))
+        {
+            if(i < vector_size(vopt) - 1)
+            {
+                __baseunit = strtoul(vector_get_const(vopt, i + 1), NULL, 10);
+            }
+            else
+            {
+                fputs("SKILL export: --base-unit: argument expected\n", stderr);
+                return 0;
+            }
+            ++i;
+        }
+        else if((strcmp(arg, "-L") == 0) || (strcmp(arg, "--label-size") == 0))
         {
             if(i < vector_size(vopt) - 1)
             {

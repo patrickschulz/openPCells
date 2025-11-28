@@ -27,7 +27,14 @@ function M.set_options(opt)
     local i = 1
     while i < #opt do
         local arg = opt[i]
-        if arg == "-L" or arg == "--label-size" then
+        if arg == "-U" or arg == "--base-unit" then
+            if i < #opt then
+                __baseunit = tonumber(opt[i + 1])
+            else
+                error("SKILL export: --base-unit: argument expected")
+            end
+            i = i + 1
+        elseif arg == "-L" or arg == "--label-size" then
             if i < #opt then
                 __labelsize = opt[i + 1]
             else

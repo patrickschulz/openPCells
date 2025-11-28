@@ -400,20 +400,19 @@ static void _write_rectangle(struct export_data* data, const struct hashmap* lay
     _write_layer_unchecked(data, RECORDTYPE_BOUNDARY, layer);
 
     // XY (44 bytes)
-    double multiplier = 1e-9 / __databaseunit;
     _write_length_unchecked(data, 44);
     export_data_append_byte_unchecked(data, RECORDTYPE_XY);
     export_data_append_byte_unchecked(data, DATATYPE_FOUR_BYTE_INTEGER);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->y);
-    export_data_append_four_bytes_unchecked(data, multiplier * tr->x);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->y);
-    export_data_append_four_bytes_unchecked(data, multiplier * tr->x);
-    export_data_append_four_bytes_unchecked(data, multiplier * tr->y);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
-    export_data_append_four_bytes_unchecked(data, multiplier * tr->y);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->y);
+    export_data_append_four_bytes_unchecked(data, bl->x);
+    export_data_append_four_bytes_unchecked(data, bl->y);
+    export_data_append_four_bytes_unchecked(data, tr->x);
+    export_data_append_four_bytes_unchecked(data, bl->y);
+    export_data_append_four_bytes_unchecked(data, tr->x);
+    export_data_append_four_bytes_unchecked(data, tr->y);
+    export_data_append_four_bytes_unchecked(data, bl->x);
+    export_data_append_four_bytes_unchecked(data, tr->y);
+    export_data_append_four_bytes_unchecked(data, bl->x);
+    export_data_append_four_bytes_unchecked(data, bl->y);
 
     _write_ENDEL_unchecked(data); // 4 bytes
 }
@@ -423,15 +422,14 @@ static void _write_polygon(struct export_data* data, const struct hashmap* layer
     _write_layer(data, RECORDTYPE_BOUNDARY, RECORDTYPE_DATATYPE, layer);
 
     // XY
-    double multiplier = 1e-9 / __databaseunit;
     export_data_append_two_bytes(data, 4 + 4 * 2 * vector_size(points));
     export_data_append_byte(data, RECORDTYPE_XY);
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < vector_size(points); ++i)
     {
         const struct point* pt = vector_get_const(points, i);
-        export_data_append_four_bytes(data, multiplier * pt->x);
-        export_data_append_four_bytes(data, multiplier * pt->y);
+        export_data_append_four_bytes(data, pt->x);
+        export_data_append_four_bytes(data, pt->y);
     }
 
     _write_ENDEL(data);
@@ -498,15 +496,14 @@ static void _write_path(struct export_data* data, const struct hashmap* layer, c
     export_data_append_four_bytes(data, extension[1]);
 
     // XY
-    double multiplier = 1e-9 / __databaseunit;
     export_data_append_two_bytes(data, 4 + 4 * 2 * vector_size(points));
     export_data_append_byte(data, RECORDTYPE_XY);
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < vector_size(points); ++i)
     {
         const struct point* pt = vector_get_const(points, i);
-        export_data_append_four_bytes(data, multiplier * pt->x);
-        export_data_append_four_bytes(data, multiplier * pt->y);
+        export_data_append_four_bytes(data, pt->x);
+        export_data_append_four_bytes(data, pt->y);
     }
 
     _write_ENDEL(data);
@@ -661,12 +658,11 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     // transformation
     _write_strans_angle(data, trans);
 
-    double multiplier = 1e-9 / __databaseunit;
     _write_length(data, 12);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
-    export_data_append_four_bytes(data, point_getx(where) * multiplier);
-    export_data_append_four_bytes(data, point_gety(where) * multiplier);
+    export_data_append_four_bytes(data, point_getx(where));
+    export_data_append_four_bytes(data, point_gety(where));
 
     _write_ENDEL(data);
 }
@@ -696,24 +692,23 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     export_data_append_two_bytes(data, yrep);
 
     // XY
-    double multiplier = 1e-9 / __databaseunit;
     _write_length(data, 28);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
-    export_data_append_four_bytes(data, point_getx(where) * multiplier);
-    export_data_append_four_bytes(data, point_gety(where) * multiplier);
+    export_data_append_four_bytes(data, point_getx(where));
+    export_data_append_four_bytes(data, point_gety(where));
     // column vector
     coordinate_t xcol = xrep * xpitch;
     coordinate_t ycol = 0;
     _rotate_vector(&xcol, &ycol, array_trans);
-    export_data_append_four_bytes(data, (point_getx(where) + xcol) * multiplier);
-    export_data_append_four_bytes(data, (point_gety(where) + ycol) * multiplier);
+    export_data_append_four_bytes(data, (point_getx(where) + xcol));
+    export_data_append_four_bytes(data, (point_gety(where) + ycol));
     // row vector
     coordinate_t xrow = 0;
     coordinate_t yrow = yrep * ypitch;
     _rotate_vector(&xrow, &yrow, array_trans);
-    export_data_append_four_bytes(data, (point_getx(where) + xrow) * multiplier);
-    export_data_append_four_bytes(data, (point_gety(where) + yrow) * multiplier);
+    export_data_append_four_bytes(data, (point_getx(where) + xrow));
+    export_data_append_four_bytes(data, (point_gety(where) + yrow));
 
     _write_ENDEL(data);
 }
@@ -748,12 +743,11 @@ static void _write_port(struct export_data* data, const char* name, const struct
     }
 
     // XY
-    double multiplier = 1e-9 / __databaseunit;
     _write_length(data, 12);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
-    export_data_append_four_bytes(data, point_getx(where) * multiplier);
-    export_data_append_four_bytes(data, point_gety(where) * multiplier);
+    export_data_append_four_bytes(data, point_getx(where));
+    export_data_append_four_bytes(data, point_gety(where));
 
     // NAME
     _write_string(data, name, RECORDTYPE_STRING);
