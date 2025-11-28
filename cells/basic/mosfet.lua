@@ -197,18 +197,21 @@ function parameters()
         { "shortlocation",                                                                              "inline", posvals = set("inline", "top", "bottom") },
         { "shortspace",                                                                                 technology.get_dimension("Minimum M1 Space") },
         { "shortwidth",                                                                                 technology.get_dimension("Minimum M1 Width") },
-        { "drawleftactivedummy",                                                                        false },
-        { "leftactivedummywidth",                                                                       technology.get_optional_dimension("Minimum Active Width") },
-        { "leftactivedummyspace",                                                                       technology.get_optional_dimension("Minimum Active Width") },
-        { "drawrightactivedummy",                                                                       false },
-        { "rightactivedummywidth",                                                                      technology.get_optional_dimension("Minimum Active Width") },
-        { "rightactivedummyspace",                                                                      technology.get_optional_dimension("Minimum Active Width") },
-        { "drawtopactivedummy",                                                                         false },
-        { "topactivedummywidth",                                                                        technology.get_optional_dimension("Minimum Active Width") },
-        { "topactivedummyspace",                                                                        technology.get_optional_dimension("Minimum Active Width") },
-        { "drawbottomactivedummy",                                                                      false },
-        { "bottomactivedummywidth",                                                                     technology.get_optional_dimension("Minimum Active Width") },
-        { "bottomactivedummyspace",                                                                     technology.get_optional_dimension("Minimum Active Width") },
+        { "drawactivedummies",                                                                          false },
+        { "activedummywidth",                                                                           technology.get_optional_dimension("Minimum Active Width") },
+        { "activedummyspace",                                                                           technology.get_optional_dimension("Minimum Active Space") },
+        { "drawleftactivedummy",                                                                        false, follow = "drawactivedummies" },
+        { "leftactivedummywidth",                                                                       technology.get_optional_dimension("Minimum Active Width"), follow = "activedummywidth" },
+        { "leftactivedummyspace",                                                                       technology.get_optional_dimension("Minimum Active Space"), follow = "activedummyspace" },
+        { "drawrightactivedummy",                                                                       false, follow = "drawactivedummies" },
+        { "rightactivedummywidth",                                                                      technology.get_optional_dimension("Minimum Active Width"), follow = "activedummywidth" },
+        { "rightactivedummyspace",                                                                      technology.get_optional_dimension("Minimum Active Space"), follow = "activedummyspace" },
+        { "drawtopactivedummy",                                                                         false, follow = "drawactivedummies" },
+        { "topactivedummywidth",                                                                        technology.get_optional_dimension("Minimum Active Width"), follow = "activedummywidth" },
+        { "topactivedummyspace",                                                                        technology.get_optional_dimension("Minimum Active Space"), follow = "activedummyspace" },
+        { "drawbottomactivedummy",                                                                      false, follow = "drawactivedummies" },
+        { "bottomactivedummywidth",                                                                     technology.get_optional_dimension("Minimum Active Width"), follow = "activedummywidth" },
+        { "bottomactivedummyspace",                                                                     technology.get_optional_dimension("Minimum Active Space"), follow = "activedummyspace" },
         { "leftfloatingdummies",                                                                        0 },
         { "rightfloatingdummies",                                                                       0 },
         { "drawactive",                                                                                 true },
@@ -256,7 +259,7 @@ function parameters()
         { "topwelltapextendright",                                                                      0 },
         { "drawbotwelltap",                                                                             false },
         { "drawguardring",                                                                              false },
-        { "guardringrespectactivedummy",                                                                false },
+        { "guardringrespectactivedummies",                                                              true },
         { "guardringrespectgatestraps",                                                                 true },
         { "guardringrespectgateextensions",                                                             true },
         { "guardringwidth",                                                                             technology.get_dimension("Minimum Active Contact Region Size") },
@@ -997,7 +1000,8 @@ function layout(transistor, _P)
     -- analog marker
     if _P.drawanalogmarker then
         if _P.drawguardring then
-            if _P.guardringrespectactivedummy then
+            if _P.guardringrespectactivedummies then
+                -- FIXME: need four cases for all dummies: left/right/top/bottom
                 geometry.rectanglebltr(transistor,
                     generics.marker("analog"),
                     point.create(
@@ -1039,7 +1043,8 @@ function layout(transistor, _P)
 
     -- lvs marker
     if _P.lvsmarkerincludeguardring then
-        if _P.guardringrespectactivedummy then
+        if _P.guardringrespectactivedummies then
+            -- FIXME: need four cases for all dummies: left/right/top/bottom
             geometry.rectanglebltr(transistor,
                 generics.marker("lvs", _P.lvsmarker),
                 point.create(
@@ -1149,27 +1154,41 @@ function layout(transistor, _P)
         local guardringbotext_activedummy = 0
         local guardringtopext_gatestraps = 0
         local guardringbotext_gatestraps = 0
-        if _P.guardringrespectactivedummy then
-            guardringtopext_activedummy = _P.topactivedummywidth + _P.topactivedummyspace
-            guardringbotext_activedummy = _P.bottomactivedummywidth + _P.bottomactivedummyspace
-            holewidth = holewidth + _P.leftactivedummywidth + _P.leftactivedummyspace + _P.rightactivedummywidth + _P.rightactivedummyspace
-            --holeheight = holeheight + _P.topactivedummywidth + _P.topactivedummyspace + _P.bottomactivedummywidth + _P.bottomactivedummyspace
+        if _P.guardringrespectactivedummies then
+            if _P.drawtopactivedummy then
+                guardringtopext_activedummy = _P.topactivedummywidth + _P.topactivedummyspace
+            end
+            if _P.drawbottomactivedummy then
+                guardringbotext_activedummy = _P.bottomactivedummywidth + _P.bottomactivedummyspace
+            end
+            if _P.drawleftactivedummy then
+                guardringleftext_activedummy = _P.leftactivedummywidth + _P.leftactivedummyspace
+            end
+            if _P.drawrightactivedummy then
+                guardringbotext_activedummy = _P.rightactivedummywidth + _P.rightactivedummyspace
+            end
         end
         if _P.guardringrespectgatestraps then
             if _P.drawtopgatestrap then
-                --holeheight = holeheight + _P.topgatespace + _P.topgatewidth
-                guardringtopext_gatestraps = _P.topactivedummywidth + _P.topactivedummyspace
+                guardringtopext_gatestraps = _P.topgatespace + _P.topgatewidth
             end
             if _P.drawbotgatestrap then
-                --holeheight = holeheight + _P.botgatespace + _P.botgatewidth
-                guardringbotext_gatestraps = _P.bottomactivedummywidth + _P.bottomactivedummyspace
+                guardringbotext_gatestraps = _P.botgatespace + _P.botgatewidth
             end
         end
-        local guardringtopext = math.max(guardringbotext_activedummy, guardringbotext_gatestraps)
+        local guardringleftext = guardringbotext_activedummy
+        local guardringrightext = guardringbotext_activedummy
+        holewidth = holewidth + guardringleftext + guardringrightext
+        guardringtopext_activedummy = 0
+        guardringbotext_activedummy = 0
+        local guardringtopext = math.max(guardringtopext_activedummy, guardringtopext_gatestraps)
         local guardringbotext = math.max(guardringbotext_activedummy, guardringbotext_gatestraps)
         holeheight = holeheight + guardringtopext + guardringbotext
+        local grgateextshift = 0
         if _P.guardringrespectgateextensions then
-            holeheight = math.max(holeheight, gatetry - gatebly)
+            local newholeheight = math.max(holeheight, gatetry - gatebly)
+            grgateextshift = newholeheight - holeheight
+            holeheight = newholeheight
         end
         guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
@@ -1192,9 +1211,13 @@ function layout(transistor, _P)
         })
         local gtargetx = -leftactauxext
         local gtargety = 0
-        if _P.guardringrespectactivedummy then
-            gtargetx = gtargetx - _P.leftactivedummywidth - _P.leftactivedummyspace
-            gtargety = gtargety - _P.bottomactivedummywidth - _P.bottomactivedummyspace
+        if _P.guardringrespectactivedummies then
+            if _P.drawbottomactivedummy then
+                gtargety = gtargety - _P.bottomactivedummywidth - _P.bottomactivedummyspace
+            end
+            if _P.drawleftactivedummy then
+                gtargetx = gtargetx - _P.leftactivedummywidth - _P.leftactivedummyspace
+            end
         end
         if _P.guardringrespectgatestraps and _P.drawbotgatestrap then
             gtargety = gtargety - _P.botgatespace - _P.botgatewidth
@@ -1203,7 +1226,7 @@ function layout(transistor, _P)
         if _P.guardringrespectgateextensions then
             gtargety = math.min(gtargety, gatebly)
         end
-        guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, -guardringbotext))
+        guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, gtargety))
         guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
         transistor:merge_into(guardring)
         transistor:add_area_anchor_bltr("outerguardring",

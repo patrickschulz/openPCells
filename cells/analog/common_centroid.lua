@@ -570,7 +570,7 @@ function layout(cell, _P)
         splitgates = not _P.shortgates,
         drawguardring = _P.drawinnerguardrings,
         guardringwidth = _P.guardringwidth,
-        guardringrespectactivedummy = false,
+        guardringrespectactivedummies = false,
         guardringrespectgatestraps = false,
         guardringrespectgateextensions = false,
         guardringleftsep = guardringxsep,
