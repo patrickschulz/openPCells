@@ -261,7 +261,12 @@ local function _get_parameters(state, cellname, cellargs)
 
     -- (4) run process_parameters() function (if available)
     if cell.funcs.process_parameters then
-        cell.funcs.process_parameters(P, explicit)
+        local t = cell.funcs.process_parameters(P)
+        for k, v in pairs(t) do
+            if not explicit[k] then
+                P[k] = v
+            end
+        end
     end
 
     -- (5) run parameter checks
