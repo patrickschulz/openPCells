@@ -31,8 +31,10 @@ const struct transformationmatrix* objectcommon_get_tmatrix(const struct object_
 void objectcommon_set_tmatrix(const struct object_common* obc, struct transformationmatrix* trans);
 void objectcommon_transform_to_local_coordinates_xy(const struct object_common* cell, coordinate_t* x, coordinate_t* y);
 void objectcommon_transform_to_local_coordinates_pt(const struct object_common* cell, struct point* pt);
+void objectcommon_transform_to_local_coordinates_shape(const struct object_common* cell, struct shape* shape);
 void objectcommon_transform_to_global_coordinates_xy(const struct object_common* cell, coordinate_t* x, coordinate_t* y);
 void objectcommon_transform_to_global_coordinates_pt(const struct object_common* cell, struct point* pt);
+void objectcommon_transform_to_global_coordinates_shape(const struct object_common* cell, struct shape* pt);
 void objectcommon_move_to(struct object_common* cell, coordinate_t x, coordinate_t y);
 void objectcommon_translate(struct object_common* cell, coordinate_t x, coordinate_t y);
 void objectcommon_mirror_at_xaxis(struct object_common* cell);
@@ -42,5 +44,6 @@ void objectcommon_rotate_90_left(struct object_common* cell);
 void objectcommon_rotate_90_right(struct object_common* cell);
 void objectcommon_array_rotate_90_left(struct object_common* cell);
 void objectcommon_array_rotate_90_right(struct object_common* cell);
+void objectcommon_scale(struct object_common* cell, double factor);
 
 #endif /* OPC_OBJECT_COMMON_H */

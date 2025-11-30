@@ -81,68 +81,82 @@ void objectcommon_set_tmatrix(const struct object_common* obc, struct transforma
     obc->private.trans = trans;
 }
 
-void objectcommon_transform_to_local_coordinates_xy(const struct object_common* cell, coordinate_t* x, coordinate_t* y)
+void objectcommon_transform_to_local_coordinates_xy(const struct object_common* obc, coordinate_t* x, coordinate_t* y)
 {
-    transformationmatrix_apply_inverse_transformation_xy(cell->trans, x, y);
+    transformationmatrix_apply_inverse_transformation_xy(obc->trans, x, y);
 }
 
-void objectcommon_transform_to_local_coordinates_pt(const struct object_common* cell, struct point* pt)
+void objectcommon_transform_to_local_coordinates_pt(const struct object_common* obc, struct point* pt)
 {
-    transformationmatrix_apply_inverse_transformation(cell->trans, pt);
+    transformationmatrix_apply_inverse_transformation(obc->trans, pt);
 }
 
-void objectcommon_transform_to_global_coordinates_xy(const struct object_common* cell, coordinate_t* x, coordinate_t* y)
+void objectcommon_transform_to_local_coordinates_shape(const struct object_common* obc, struct shape* pt)
 {
-    transformationmatrix_apply_transformation_xy(cell->trans, x, y);
+    shape_apply_inverse_transformation(shape, obc->trans);
 }
 
-void objectcommon_transform_to_global_coordinates_pt(const struct object_common* cell, struct point* pt)
+void objectcommon_transform_to_global_coordinates_xy(const struct object_common* obc, coordinate_t* x, coordinate_t* y)
 {
-    transformationmatrix_apply_transformation(cell->trans, pt);
+    transformationmatrix_apply_transformation_xy(obc->trans, x, y);
 }
 
-void objectcommon_move_to(struct object_common* cell, coordinate_t x, coordinate_t y)
+void objectcommon_transform_to_global_coordinates_pt(const struct object_common* obc, struct point* pt)
 {
-    transformationmatrix_move_to(cell->trans, x, y);
+    transformationmatrix_apply_transformation(obc->trans, pt);
 }
 
-void objectcommon_translate(struct object_common* cell, coordinate_t x, coordinate_t y)
+void objectcommon_transform_to_global_coordinates_shape(const struct object_common* obc, struct shape* pt)
 {
-    transformationmatrix_translate(cell->trans, x, y);
+    shape_apply_transformation(shape, obc->trans);
 }
 
-void objectcommon_mirror_at_xaxis(struct object_common* cell)
+void objectcommon_move_to(struct object_common* obc, coordinate_t x, coordinate_t y)
 {
-    transformationmatrix_mirror_x(cell->trans);
+    transformationmatrix_move_to(obc->trans, x, y);
 }
 
-void objectcommon_mirror_at_yaxis(struct object_common* cell)
+void objectcommon_translate(struct object_common* obc, coordinate_t x, coordinate_t y)
 {
-    transformationmatrix_mirror_y(cell->trans);
+    transformationmatrix_translate(obc->trans, x, y);
 }
 
-void objectcommon_mirror_at_origin(struct object_common* cell)
+void objectcommon_mirror_at_xaxis(struct object_common* obc)
 {
-    transformationmatrix_mirror_origin(cell->trans);
+    transformationmatrix_mirror_x(obc->trans);
 }
 
-void objectcommon_rotate_90_left(struct object_common* cell)
+void objectcommon_mirror_at_yaxis(struct object_common* obc)
 {
-    transformationmatrix_rotate_90_left(cell->trans);
+    transformationmatrix_mirror_y(obc->trans);
 }
 
-void objectcommon_rotate_90_right(struct object_common* cell)
+void objectcommon_mirror_at_origin(struct object_common* obc)
 {
-    transformationmatrix_rotate_90_right(cell->trans);
+    transformationmatrix_mirror_origin(obc->trans);
 }
 
-void objectcommon_array_rotate_90_left(struct object_common* cell)
+void objectcommon_rotate_90_left(struct object_common* obc)
 {
-    transformationmatrix_rotate_90_left(cell->content.proxy.array_trans);
+    transformationmatrix_rotate_90_left(obc->trans);
 }
 
-void objectcommon_array_rotate_90_right(struct object_common* cell)
+void objectcommon_rotate_90_right(struct object_common* obc)
 {
-    transformationmatrix_rotate_90_right(cell->content.proxy.array_trans);
+    transformationmatrix_rotate_90_right(obc->trans);
 }
 
+void objectcommon_array_rotate_90_left(struct object_common* obc)
+{
+    transformationmatrix_rotate_90_left(obc->content.proxy.array_trans);
+}
+
+void objectcommon_array_rotate_90_right(struct object_common* obc)
+{
+    transformationmatrix_rotate_90_right(obc->content.proxy.array_trans);
+}
+
+void objectcommon_scale(struct object_common* obc, double factor)
+{
+    transformationmatrix_scale(obc->trans, factor);
+}

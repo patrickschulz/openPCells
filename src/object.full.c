@@ -212,10 +212,44 @@ void objectfull_remove_shape(struct object_full* full, size_t idx)
     vector_remove(full->private.shapes, idx);
 }
 
-struct shape* object_disown_shape(struct object_full* full, size_t idx)
+struct shape* objectfull_disown_shape(struct object_full* full, size_t idx)
 {
     struct shape* shape = vector_disown_element(full->private.shapes, idx);
     return shape;
+}
+
+void objectbase_foreach_shapes(struct object* full, void (*func)(struct shape*))
+{
+    if(full->private.shapes)
+    {
+        for(unsigned int i = 0; i < vector_size(full->private.shapes); ++i)
+        {
+            struct shape* shape = vector_get(full->private.shapes, i);
+            func(shape);
+        }
+    }
+}
+
+size_t objectfull_get_shapes_size(const struct object_full* full)
+{
+    if(!full->private.shapes)
+    {
+        return 0;
+    }
+    else
+    {
+        return vector_size(full->private.shapes);
+    }
+}
+
+struct shape* objectfull_get_shape(struct object_full* full, size_t idx)
+{
+    return vector_get(full->private.shapes, idx);
+}
+
+const struct shape* objectfull_get_shape_const(const struct object_full* full, size_t idx)
+{
+    return vector_get_const(full->private.shapes, idx);
 }
 
 static int _contains_reference(const struct object_full* full, const struct object* reference)
@@ -469,14 +503,14 @@ void objectfull_extend_alignment_box(
     }
     else
     {
-        coordinate_t souterblx = cell->private.alignmentbox[0];
-        coordinate_t souterbly = cell->private.alignmentbox[1];
-        coordinate_t soutertrx = cell->private.alignmentbox[2];
-        coordinate_t soutertry = cell->private.alignmentbox[3];
-        coordinate_t sinnerblx = cell->private.alignmentbox[4];
-        coordinate_t sinnerbly = cell->private.alignmentbox[5];
-        coordinate_t sinnertrx = cell->private.alignmentbox[6];
-        coordinate_t sinnertry = cell->private.alignmentbox[7];
+        coordinate_t souterblx = full->private.alignmentbox[0];
+        coordinate_t souterbly = full->private.alignmentbox[1];
+        coordinate_t soutertrx = full->private.alignmentbox[2];
+        coordinate_t soutertry = full->private.alignmentbox[3];
+        coordinate_t sinnerblx = full->private.alignmentbox[4];
+        coordinate_t sinnerbly = full->private.alignmentbox[5];
+        coordinate_t sinnertrx = full->private.alignmentbox[6];
+        coordinate_t sinnertry = full->private.alignmentbox[7];
         outerblx = MIN2(outerblx, souterblx);
         outerbly = MIN2(outerbly, souterbly);
         outertrx = MAX2(outertrx, soutertrx);
@@ -623,7 +657,7 @@ struct polygon_container* objectfull_get_layer_boundary(const struct object_full
     {
         struct polygon_container* boundary = polygon_container_create();
         coordinate_t blx, bly, trx, try;
-        object_get_minmax_xy(cell, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
+        object_get_minmax_xy(full, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
         struct simple_polygon* single_boundary = simple_polygon_create();
         simple_polygon_append(single_boundary, point_create(blx, bly));
         simple_polygon_append(single_boundary, point_create(trx, bly));
@@ -696,5 +730,53 @@ struct vector* objectfull_get_net_shapes(const struct object_full* full, const c
         }
     }
     return new;
+}
+
+coordinate_t* objectfull_get_minmax_xy(const struct object_full* full)
+{
+    coordinate_t* minmax = calloc(4, sizeof(coordinate_t)); // order: minx, miny, maxx, maxy
+    // FIXME: arrays?
+    coordinate_t minx = COORDINATE_MAX;
+    coordinate_t maxx = COORDINATE_MIN;
+    coordinate_t miny = COORDINATE_MAX;
+    coordinate_t maxy = COORDINATE_MIN;
+    if(full->private.shapes)
+    {
+        for(unsigned int i = 0; i < vector_size(full->private.shapes); ++i)
+        {
+            struct shape* S = vector_get(full->private.shapes, i);
+            coordinate_t minx_;
+            coordinate_t maxx_;
+            coordinate_t miny_;
+            coordinate_t maxy_;
+            shape_get_minmax_xy(S, &minx_, &miny_, &maxx_, &maxy_);
+            minx = MIN2(minx, minx_);
+            maxx = MAX2(maxx, maxx_);
+            miny = MIN2(miny, miny_);
+            maxy = MAX2(maxy, maxy_);
+        }
+    }
+    if(full->private.children)
+    {
+        for(unsigned int i = 0; i < vector_size(full->private.children); ++i)
+        {
+            const struct object* child = vector_get(full->private.children, i);
+            const struct object* obj = child->private.reference;
+            coordinate_t minx_, maxx_, miny_, maxy_;
+            objectbase_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_, child->trans);
+            transformationmatrix_apply_transformation_xy(full->trans, &minx_, &miny_);
+            transformationmatrix_apply_transformation_xy(full->trans, &maxx_, &maxy_);
+            _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
+            // FIXME: transformation? -> should be handled by recursive call, but check this! (construct a cell with the right transformations)
+            minx = MIN2(minx, minx_);
+            maxx = MAX2(maxx, maxx_);
+            miny = MIN2(miny, miny_);
+            maxy = MAX2(maxy, maxy_);
+        }
+    }
+    *(minmax + 0) = minx;
+    *(minmax + 1) = maxx;
+    *(minmax + 2) = miny;
+    *(minmax + 3) = maxy;
 }
 

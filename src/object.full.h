@@ -33,6 +33,10 @@ void objectfull_destroy(struct object_full* full);
 void objectfull_add_shape(struct object_full* full, struct shape* S);
 void objectfull_remove_shape(struct object_full* full, size_t idx);
 struct shape* objectfull_disown_shape(struct object_full* full, size_t idx);
+void objectfull_foreach_shapes(struct object_full* cell, void (*func)(struct shape*));
+struct shape* objectfull_get_shape(struct object_full* full, size_t idx);
+const struct shape* objectfull_get_shape_const(const struct object_full* full, size_t idx);
+size_t objectfull_get_shapes_size(const struct object_full* full);
 
 // children/references
 int objectfull_add_reference(struct object_full* full, struct object* reference);
@@ -83,5 +87,8 @@ void objectfull_add_label(struct object_full* cell, struct port* port);
 // net shapes
 struct bltrshape* objectfull_add_net_shape(struct object_full* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer);
 struct vector* objectfull_get_net_shapes(const struct object_full* full, const char* netname, const struct generics* layer);
+
+// miscellaneous helper functions
+coordinate_t* objectfull_get_minmax_xy(const struct object_full* full);
 
 #endif /* OPC_OBJECT_FULL_H */

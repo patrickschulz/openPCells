@@ -33,9 +33,24 @@ struct object {
 #define REFERENCE(obj) objectproxy_get_reference(&obj->content.proxy)
 #define FULLREFERENCE(obj) FULL(REFERENCE(obj))
 
-#define CHECK_FULL(obj) OPC_ASSERT_MSG2(objectcommon_is_full(COMMON(obj)), __func__, ": object given must be a full object")
-#define CHECK_PROXY(obj) OPC_ASSERT_MSG2(objectcommon_is_proxy(COMMON(obj)), __func__, ": object given must be a proxy object")
-#define CHECK_FULL_OR_PROXY(obj) OPC_ASSERT_MSG2(objectcommon_is_full(COMMON(obj)) || objectcommon_is_full(COMMON(obj)), __func__, ": object given must be a full object")
+#define CHECK_FULL(obj)\
+    OPC_ASSERT_MSG2(\
+        objectcommon_is_full(COMMON(obj)),\
+        __func__,\
+        ": object given must be a full object"\
+    )
+#define CHECK_PROXY(obj)\
+    OPC_ASSERT_MSG2(\
+        objectcommon_is_proxy(COMMON(obj)),\
+        __func__,\
+        ": object given must be a proxy object"\
+    )
+#define CHECK_FULL_OR_PROXY(obj)\
+    OPC_ASSERT_MSG2(\
+        objectcommon_is_full(COMMON(obj)) || objectcommon_is_proxy(COMMON(obj)),\
+        __func__,\
+        ": object given must be a full object"\
+    )
 
 static struct object* _create(const char* name)
 {
@@ -187,7 +202,6 @@ int objectbase_add_anchor(struct object* cell, const char* name, struct anchor* 
 
 void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
 {
-    CHECK_FULL(cell);
     CHECK_FULL_OR_PROXY(other);
     if(object_is_proxy(other))
     {
@@ -227,6 +241,15 @@ void objectbase_transform_to_local_coordinates(const struct object* cell, struct
     objectbase_transform_to_local_coordinates_xy(cell, &pt->x, &pt->y);
 }
 
+void objectbase_transform_to_local_coordinates_shape(const struct object* cell, struct shape* shape)
+{
+    objectcommon_transform_to_local_coordinates_shape(COMMON(cell), shape);
+    if(object_is_proxy(cell))
+    {
+        objectcommon_transform_to_local_coordinates_shape(COMMON(REFERENCE(cell)), shape);
+    }
+}
+
 void objectbase_transform_to_global_coordinates_xy(const struct object* cell, coordinate_t* x, coordinate_t* y)
 {
     objectcommon_transform_to_global_coordinates_xy(COMMON(cell), x, y);
@@ -239,6 +262,15 @@ void objectbase_transform_to_global_coordinates_xy(const struct object* cell, co
 void objectbase_transform_to_global_coordinates(const struct object* cell, struct point* pt)
 {
     objectbase_transform_to_global_coordinates_xy(cell, &pt->x, &pt->y);
+}
+
+void objectbase_transform_to_global_coordinates_shape(const struct object* cell, struct shape* shape)
+{
+    objectcommon_transform_to_global_coordinates_shape(COMMON(cell), shape);
+    if(object_is_proxy(cell))
+    {
+        objectcommon_transform_to_global_coordinates_shape(COMMON(REFERENCE(cell)), shape);
+    }
 }
 
 static int _transform_array_point_to_local_coordinates(void* v, struct generic_arg* args)
@@ -361,12 +393,27 @@ coordinate_t* objectbase_get_transformed_alignment_box(const struct object* cell
     return alignmentbox;
 }
 
+coordinate_t* objectbase_get_minmax_xy(const struct object* cell)
+{
+    coordinate_t* minmax;
+    CHECK_FULL_OR_PROXY(cell);
+    if(object_is_proxy(cell))
+    {
+        minmax = objectfull_get_minmax_xy(FULLREFERENCE(cell));
+    }
+    else
+    {
+        minmax = objectfull_get_minmax_xy(FULL(cell));
+    }
+    return minmax;
+}
+
 coordinate_t* objectbase_get_transformed_bounding_box(const struct object* cell)
 {
     const struct transformationmatrix* trans1;
     const struct transformationmatrix* trans2;
     _get_trans12(cell, &trans1, &trans2);
-    coordinate_t* boundingbox = object_get_minmax_xy(cell);
+    coordinate_t* boundingbox = objectbase_get_minmax_xy(cell);
     objectbase_transform_to_global_coordinates_xy(cell, boundingbox + 0, boundingbox + 1);
     objectbase_transform_to_global_coordinates_xy(cell, boundingbox + 2, boundingbox + 3);
     objectutil_fix_rectangle_order_xy(boundingbox + 0, boundingbox + 1, boundingbox + 2, boundingbox + 3);
@@ -970,136 +1017,79 @@ int object_move_point_y(struct object* cell, const struct point* source, const s
     return 1;
 }
 
-int object_center(struct object* cell, const struct point* target)
+int objectbase_center(struct object* cell, const struct point* target)
 {
-    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
-    struct point* outertr = object_get_alignmentbox_anchor_outertr(other);
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
     coordinate_t sourcex = 0.5 * (point_getx(outertr) - point_getx(outerbl));
     coordinate_t sourcey = 0.5 * (point_gety(outertr) - point_gety(outerbl));
     coordinate_t targetcx = 0;
     coordinate_t targetcy = 0;
     if(target)
     {
-        coordinate_t targetxc = point_getx(target);
-        coordinate_t targetyc = point_gety(target);
+        targetcx = point_getx(target);
+        targetcy = point_gety(target);
     }
     object_translate(cell, targetcx - sourcex, targetcy - sourcey);
+    return 1;
 }
 
-int object_center_x(struct object* cell, const struct point* target)
+int objectbase_center_x(struct object* cell, const struct point* target)
 {
-    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
-    struct point* outertr = object_get_alignmentbox_anchor_outertr(other);
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
     coordinate_t source = 0.5 * (point_getx(outertr) - point_getx(outerbl));
     coordinate_t targetc = 0;
     if(target)
     {
-        coordinate_t targetc = point_getx(target);
+        targetc = point_getx(target);
     }
     object_translate(cell, targetc - source, 0);
+    return 1;
 }
 
-int object_center_y(struct object* cell const struct point* target)
+int objectbase_center_y(struct object* cell, const struct point* target)
 {
-    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
-    struct point* outertr = object_get_alignmentbox_anchor_outertr(other);
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
     coordinate_t source = 0.5 * (point_gety(outertr) - point_gety(outerbl));
     coordinate_t targetc = 0;
     if(target)
     {
-        coordinate_t targetc = point_gety(target);
+        targetc = point_gety(target);
     }
     object_translate(cell, 0, targetc - source);
+    return 1;
 }
 
-void object_scale(struct object* cell, double factor)
+void objectbase_scale(struct object* cell, double factor)
 {
-    transformationmatrix_scale(cell->trans, factor);
+    CHECK_FULL_OR_PROXY(cell);
+    objectcommon_scale(COMMON(cell), factor);
 }
 
-coordinate_t* object_get_minmax_xy(const struct object* cell)
+void objectbase_foreach_shapes(struct object* cell, void (*func)(struct shape*))
 {
-    coordinate_t* minmax = calloc(4, sizeof(coordinate_t)); // order: minx, miny, maxx, maxy
-    // FIXME: arrays?
-    coordinate_t minx = COORDINATE_MAX;
-    coordinate_t maxx = COORDINATE_MIN;
-    coordinate_t miny = COORDINATE_MAX;
-    coordinate_t maxy = COORDINATE_MIN;
-    if(cell->content.full.shapes)
-    {
-        for(unsigned int i = 0; i < vector_size(cell->content.full.shapes); ++i)
-        {
-            struct shape* S = vector_get(cell->content.full.shapes, i);
-            coordinate_t minx_;
-            coordinate_t maxx_;
-            coordinate_t miny_;
-            coordinate_t maxy_;
-            shape_get_minmax_xy(S, &minx_, &miny_, &maxx_, &maxy_);
-            minx = MIN2(minx, minx_);
-            maxx = MAX2(maxx, maxx_);
-            miny = MIN2(miny, miny_);
-            maxy = MAX2(maxy, maxy_);
-        }
-    }
-    if(cell->content.full.children)
-    {
-        for(unsigned int i = 0; i < vector_size(cell->content.full.children); ++i)
-        {
-            const struct object* child = vector_get(cell->content.full.children, i);
-            const struct object* obj = child->content.proxy.reference;
-            coordinate_t minx_, maxx_, miny_, maxy_;
-            object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_, child->trans);
-            transformationmatrix_apply_transformation_xy(cell->trans, &minx_, &miny_);
-            transformationmatrix_apply_transformation_xy(cell->trans, &maxx_, &maxy_);
-            _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
-            // FIXME: transformation? -> should be handled by recursive call, but check this! (construct a cell with the right transformations)
-            minx = MIN2(minx, minx_);
-            maxx = MAX2(maxx, maxx_);
-            miny = MIN2(miny, miny_);
-            maxy = MAX2(maxy, maxy_);
-        }
-    }
-    *(minmax + 0) = minx;
-    *(minmax + 1) = maxx;
-    *(minmax + 2) = miny;
-    *(minmax + 3) = maxy;
+    CHECK_FULL(cell);
+    objectfull_foreach_shapes(FULL(cell), func);
 }
 
-void object_foreach_shapes(struct object* cell, void (*func)(struct shape*))
+size_t objectbase_get_shapes_size(const struct object* cell)
 {
-    if(cell->content.full.shapes)
-    {
-        for(unsigned int i = 0; i < vector_size(cell->content.full.shapes); ++i)
-        {
-            struct shape* shape = vector_get(cell->content.full.shapes, i);
-            func(shape);
-        }
-    }
+    CHECK_FULL(cell);
+    return objectfull_get_shapes_size(FULL(cell));
 }
 
-size_t object_get_shapes_size(const struct object* cell)
+struct shape* objectbase_get_shape(struct object* cell, size_t idx)
 {
-    if(!cell->content.full.shapes)
-    {
-        return 0;
-    }
-    else
-    {
-        return vector_size(cell->content.full.shapes);
-    }
+    CHECK_FULL(cell);
+    return objectfull_get_shape(FULL(cell), idx);
 }
 
-struct shape* object_get_shape(struct object* cell, size_t idx)
+const struct shape* objectbase_get_shape_const(const struct object* cell, size_t idx)
 {
-    return vector_get(cell->content.full.shapes, idx);
-}
-
-struct shape* object_get_transformed_shape(const struct object* cell, size_t idx)
-{
-    struct shape* shape = vector_get(cell->content.full.shapes, idx);
-    struct shape* new = shape_copy(shape);
-    shape_apply_transformation(new, cell->trans);
-    return new;
+    CHECK_FULL(cell);
+    return objectfull_get_shape_const(FULL(cell), idx);
 }
 
 static void _rasterize_curves(struct shape* shape)
@@ -1118,16 +1108,12 @@ void object_rasterize_curves(struct object* cell)
 
 static void _get_all_shapes_helper(const struct object* cell, const struct generics* layer, size_t maxlevel, struct vector* shapes)
 {
-    for(size_t i = 0; i < object_get_shapes_size(cell); ++i)
+    for(size_t i = 0; i < objectbase_get_shapes_size(cell); ++i)
     {
-        struct shape* shape = object_get_transformed_shape(cell, i);
+        const struct shape* shape = objectbase_get_shape_const(cell, i);
         if(shape_is_layer(shape, layer))
         {
-            vector_append(shapes, shape);
-        }
-        else
-        {
-            shape_destroy(shape);
+            vector_append(shapes, shape_to_polygon(shape));
         }
     }
     struct child_iterator* it = object_create_child_iterator(cell);
@@ -1142,9 +1128,9 @@ static void _get_all_shapes_helper(const struct object* cell, const struct gener
 
 static struct vector* _get_all_shapes(const struct object* cell, const struct generics* layer, size_t maxlevel)
 {
-    struct vector* shapes = vector_create(64, shape_destroy);
-    _get_all_shapes_helper(cell, layer, maxlevel, shapes);
-    return shapes;
+    struct vector* outlines = vector_create(64, polygon_container_destroy);
+    _get_all_shapes_helper(cell, layer, maxlevel, outlines);
+    return outlines;
 }
 
 struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics* layer)
@@ -1188,7 +1174,7 @@ static void _get_transformation_correction(const struct object* cell, coordinate
     }
     else
     {
-        object_get_minmax_xy(obj, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix
+        objectbase_get_minmax_xy(obj, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix
     }
     coordinate_t x = 0;
     coordinate_t y = 0;
@@ -1743,3 +1729,6 @@ int object_foreach_label(const struct object* cell, label_action action, struct 
 
 // FIXME: when you reach this point you need to rename all object_ functions in this file to objectbase_
 //        and create a corresponding function in object.public.c, which calls the base function
+//        From the list of used objectbase_ functions in object.public.c it can also be determined which
+//        functions require a CHECK_FULL/CHECK_FULL_OR_PROXY at the beginning. Some functions are called
+//        frequently, it might be wise to just check in the top-level calling functions.

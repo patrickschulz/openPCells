@@ -972,26 +972,31 @@ struct object* object_add_child_array(struct object* cell, struct object* child,
 // ************************************************************************************************************************ 
 void object_add_raw_shape(struct object* cell, struct shape* S)
 {
-    CHECK_FULL(cell, "object_add_raw_shape");
     objectbase_add_shape(FULL(cell), S);
 }
 
 void object_add_shape(struct object* cell, struct shape* S)
 {
-    CHECK_FULL(cell, "object_add_shape");
     object_add_raw_shape(cell, S);
     shape_apply_inverse_transformation(S, objectcommon_get_tmatrix(COMMON(cell)));
 }
 
 void object_remove_shape(struct object* cell, size_t idx)
 {
-    CHECK_FULL(cell, "object_remove_shape");
     objectfull_remove_shape(FULL(cell), idx);
 }
 
 struct shape* object_disown_shape(struct object* cell, size_t idx)
 {
-    CHECK_FULL(cell, "object_disown_shape");
     return objectfull_disown_shape(FULL(cell), idx);
+}
+
+struct shape* object_get_transformed_shape(const struct object* cell, size_t idx)
+{
+    const struct shape* shape = objectbase_get_shape_const(cell, idx);
+    struct shape* new = shape_copy(shape);
+    objectbase_transform_to_local_coordinates_shape(cell, new);
+    shape_apply_transformation(new, cell->trans);
+    return new;
 }
 
