@@ -118,6 +118,15 @@ struct vector* geometry_calculate_viabltr(
     coordinate_t widthclass
 );
 
+struct vector* geometry_calculate_viabltr2(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t minxspace, coordinate_t minyspace,
+    coordinate_t widthclass
+);
+
 int geometry_viabltr(
     struct object* cell,
     struct technology_state* techstate,
@@ -137,6 +146,15 @@ int geometry_viabltrov(
     const struct point* bl2, const struct point* tr2
 );
 
+int geometry_viabltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t widthclass
+);
+
 int geometry_viabarebltr(
     struct object* cell,
     struct technology_state* techstate,
@@ -154,6 +172,15 @@ int geometry_viabarebltrov(
     int metal1, int metal2,
     const struct point* bl1, const struct point* tr1,
     const struct point* bl2, const struct point* tr2
+);
+
+int geometry_viabarebltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t widthclass
 );
 
 int geometry_viapoints(

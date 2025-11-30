@@ -1305,6 +1305,50 @@ static int _calculate_viabltr(
     return 1;
 }
 
+static int _calculate_viabltr2(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1,
+    coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2,
+    coordinate_t minxspace, coordinate_t minyspace,
+    coordinate_t widthclass,
+    struct vector* result
+)
+{
+    metal1 = technology_resolve_metal(techstate, metal1);
+    metal2 = technology_resolve_metal(techstate, metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    if(metal2 - metal1 != 1)
+    {
+        return 0;
+    }
+    struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1);
+    struct via_definition* fallback = technology_get_via_fallback(techstate, metal1);
+    if(!viadefs)
+    {
+        return 0;
+    }
+    ucoordinate_t width1 = trx1 - blx1;
+    ucoordinate_t height1 = try1 - bly1;
+    ucoordinate_t width2 = trx2 - blx2;
+    ucoordinate_t height2 = try2 - bly2;
+    unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
+    struct via_definition* entry = _get_rectangular_arrayzation2(width1, height1, width2, height2, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, minxspace, minyspace, widthclass);
+    if(!entry)
+    {
+        return 0;
+    }
+    const struct generics* cutlayer = generics_create_viacut(techstate, metal1, metal2);
+    struct viaarray* array = _make_via_array(MIN2(width1, width2), MIN2(height1, height2), entry->width, entry->height, viaxrep, viayrep, viaxpitch, viaypitch, cutlayer);
+    vector_append(result, array);
+    return 1;
+}
+
 static int _viabltr(
     struct object* cell,
     struct technology_state* techstate,
@@ -1357,6 +1401,60 @@ static int _viabltr(
         {
             _rectanglebltr(cell, generics_create_metal(techstate, i), blx, bly, trx, try);
         }
+    }
+    return ret;
+}
+
+static int _viabltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1,
+    coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2,
+    coordinate_t minxspace, coordinate_t minyspace,
+    int bare,
+    coordinate_t widthclass
+)
+{
+    (void) minxspace, minyspace;
+    metal1 = technology_resolve_metal(techstate, metal1);
+    metal2 = technology_resolve_metal(techstate, metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    if(metal2 - metal1 != 1)
+    {
+        return 0;
+    }
+    int ret = 1;
+    struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1);
+    struct via_definition* fallback = technology_get_via_fallback(techstate, metal1);
+    if(!viadefs)
+    {
+        return 0;
+    }
+    const struct generics* viacutlayer = generics_create_viacut(techstate, metal1, metal2);
+    if(!viacutlayer)
+    {
+        puts("no viacutlayer defined");
+        return 0;
+    }
+    ret = ret && _via_contact_bltr2(cell,
+        viadefs, fallback,
+        viacutlayer,
+        blx1, bly1, trx1, try1,
+        blx2, bly2, trx2, try2,
+        0, 0, // TODO: minxspace, minyspace
+        widthclass,
+        technology_is_create_via_arrays(techstate)
+    );
+    if(!bare)
+    {
+        _rectanglebltr(cell, generics_create_metal(techstate, metal1), blx1, bly1, trx1, try1);
+        _rectanglebltr(cell, generics_create_metal(techstate, metal2), blx2, bly2, trx2, try2);
     }
     return ret;
 }
@@ -1430,6 +1528,20 @@ struct vector* geometry_calculate_viabltr(
     return result;
 }
 
+struct vector* geometry_calculate_viabltr2(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t minxspace, coordinate_t minyspace,
+    coordinate_t widthclass
+)
+{
+    struct vector* result = vector_create(1, free);
+    _calculate_viabltr2(techstate, metal1, metal2, bl1->x, bl1->y, tr1->x, tr1->y, bl2->x, bl2->y, tr2->x, tr2->y, minxspace, minyspace, widthclass, result);
+    return result;
+}
+
 int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     int bare = 0;
@@ -1447,6 +1559,19 @@ int geometry_viabltrov(struct object* cell, struct technology_state* techstate, 
     );
 }
 
+int geometry_viabltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t widthclass
+)
+{
+    int bare = 0;
+    return _viabltr2(cell, techstate, metal1, metal2, bl1->x, bl1->y, tr1->x, tr1->y, bl2->x, bl2->y, tr2->x, tr2->y, 0, 0, bare, widthclass);
+}
+
 int geometry_viabarebltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     int bare = 1;
@@ -1461,6 +1586,19 @@ int geometry_viabarebltrov(struct object* cell, struct technology_state* techsta
         bl1->x, bl1->y, tr1->x, tr1->y,
         bl2->x, bl2->y, tr2->x, tr2->y,
         bare
+    );
+}
+
+int geometry_viabarebltr2(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl1, const struct point* tr1, const struct point* bl2, const struct point* tr2, coordinate_t widthclass)
+{
+    int bare = 1;
+    return _viabltr2(cell, techstate,
+        metal1, metal2,
+        bl1->x, bl1->y, tr1->x, tr1->y,
+        bl2->x, bl2->y, tr2->x, tr2->y,
+        0, 0,
+        bare,
+        widthclass
     );
 }
 
