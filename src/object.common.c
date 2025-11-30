@@ -100,3 +100,49 @@ void objectcommon_transform_to_global_coordinates_pt(const struct object_common*
 {
     transformationmatrix_apply_transformation(cell->trans, pt);
 }
+
+void objectcommon_move_to(struct object_common* cell, coordinate_t x, coordinate_t y)
+{
+    transformationmatrix_move_to(cell->trans, x, y);
+}
+
+void objectcommon_translate(struct object_common* cell, coordinate_t x, coordinate_t y)
+{
+    transformationmatrix_translate(cell->trans, x, y);
+}
+
+void objectcommon_mirror_at_xaxis(struct object_common* cell)
+{
+    transformationmatrix_mirror_x(cell->trans);
+}
+
+void objectcommon_mirror_at_yaxis(struct object_common* cell)
+{
+    transformationmatrix_mirror_y(cell->trans);
+}
+
+void objectcommon_mirror_at_origin(struct object_common* cell)
+{
+    transformationmatrix_mirror_origin(cell->trans);
+}
+
+void objectcommon_rotate_90_left(struct object_common* cell)
+{
+    transformationmatrix_rotate_90_left(cell->trans);
+}
+
+void objectcommon_rotate_90_right(struct object_common* cell)
+{
+    transformationmatrix_rotate_90_right(cell->trans);
+}
+
+void objectcommon_array_rotate_90_left(struct object_common* cell)
+{
+    transformationmatrix_rotate_90_left(cell->content.proxy.array_trans);
+}
+
+void objectcommon_array_rotate_90_right(struct object_common* cell)
+{
+    transformationmatrix_rotate_90_right(cell->content.proxy.array_trans);
+}
+

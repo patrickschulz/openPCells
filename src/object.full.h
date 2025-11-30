@@ -65,6 +65,7 @@ void objectfull_extend_alignment_box(
     coordinate_t innerblx, coordinate_t innerbly,
     coordinate_t innertrx, coordinate_t innertry
 );
+int objectfull_has_alignment_box(const struct object_full* full);
 
 // boundaries
 struct vector* objectfull_set_boundary(struct object_full* full, struct vector* boundary);

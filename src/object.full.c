@@ -493,6 +493,11 @@ void objectfull_extend_alignment_box(
     }
 }
 
+int objectfull_has_alignment_box(const struct object_full* full)
+{
+    return full->private.alignmentbox ? 1 : 0;;
+}
+
 struct vector* objectfull_set_boundary(struct object_full* full, struct vector* boundary)
 {
     if(full->private.boundary)

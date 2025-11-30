@@ -735,15 +735,20 @@ void object_inherit_alignment_box(struct object* cell, const struct object* othe
 
 static void _alignment_box_include_xy(struct object* cell, coordinate_t x, coordinate_t y, int include_x, int include_y)
 {
-    transformationmatrix_apply_inverse_transformation_xy(cell->trans, &x, &y);
-    coordinate_t souterblx = cell->content.full.alignmentbox[0];
-    coordinate_t souterbly = cell->content.full.alignmentbox[1];
-    coordinate_t soutertrx = cell->content.full.alignmentbox[2];
-    coordinate_t soutertry = cell->content.full.alignmentbox[3];
-    coordinate_t sinnerblx = cell->content.full.alignmentbox[4];
-    coordinate_t sinnerbly = cell->content.full.alignmentbox[5];
-    coordinate_t sinnertrx = cell->content.full.alignmentbox[6];
-    coordinate_t sinnertry = cell->content.full.alignmentbox[7];
+    CHECK_FULL(cell);
+    objectbase_transform_to_global_coordinates_xy(cell, &x, &y);
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
+    struct point* innerbl = object_get_alignmentbox_anchor_innerbl(cell);
+    struct point* innertr = object_get_alignmentbox_anchor_innertr(cell);
+    coordinate_t souterblx = outerbl->x;
+    coordinate_t souterbly = outerbl->y;
+    coordinate_t soutertrx = outertr->x;
+    coordinate_t soutertry = outertr->y;
+    coordinate_t sinnerblx = innerbl->x;
+    coordinate_t sinnerbly = innerbl->y;
+    coordinate_t sinnertrx = innertr->x;
+    coordinate_t sinnertry = innertr->y;
     coordinate_t outerblx, outertrx, innerblx, innertrx;
     coordinate_t outerbly, outertry, innerbly, innertry;
     if(include_x)
@@ -779,11 +784,12 @@ static void _alignment_box_include_xy(struct object* cell, coordinate_t x, coord
 
 void object_alignment_box_include_point(struct object* cell, const struct point* pt)
 {
+    CHECK_FULL(cell);
     if(object_is_proxy(cell))
     {
         return;
     }
-    if(cell->content.full.alignmentbox)
+    if(objectfull_has_alignment_box(FULL(cell)))
     {
         // copy coordinates as they are transformed
         coordinate_t x = pt->x;
@@ -799,11 +805,12 @@ void object_alignment_box_include_point(struct object* cell, const struct point*
 
 void object_alignment_box_include_x(struct object* cell, coordinate_t x)
 {
+    CHECK_FULL(cell);
     if(object_is_proxy(cell))
     {
         return;
     }
-    if(cell->content.full.alignmentbox)
+    if(objectfull_has_alignment_box(FULL(cell)))
     {
         _alignment_box_include_xy(cell, x, 0, 1, 0); // include only x
     }
@@ -816,11 +823,12 @@ void object_alignment_box_include_x(struct object* cell, coordinate_t x)
 
 void object_alignment_box_include_y(struct object* cell, coordinate_t y)
 {
+    CHECK_FULL(cell);
     if(object_is_proxy(cell))
     {
         return;
     }
-    if(cell->content.full.alignmentbox)
+    if(objectfull_has_alignment_box(FULL(cell)))
     {
         _alignment_box_include_xy(cell, 0, y, 0, 1); // include only y
     }
@@ -837,85 +845,88 @@ int object_extend_alignment_box(struct object* cell,
     coordinate_t extinnerblx, coordinate_t extinnerbly,
     coordinate_t extinnertrx, coordinate_t extinnertry)
 {
-    if(!cell->content.full.alignmentbox)
-    {
-        return 0;
-    }
-    cell->content.full.alignmentbox[0] += extouterblx;
-    cell->content.full.alignmentbox[1] += extouterbly;
-    cell->content.full.alignmentbox[2] += extoutertrx;
-    cell->content.full.alignmentbox[3] += extoutertry;
-    cell->content.full.alignmentbox[4] += extinnerblx;
-    cell->content.full.alignmentbox[5] += extinnerbly;
-    cell->content.full.alignmentbox[6] += extinnertrx;
-    cell->content.full.alignmentbox[7] += extinnertry;
-    return 1;
+    CHECK_FULL(cell);
+    struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
+    struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
+    struct point* innerbl = object_get_alignmentbox_anchor_innerbl(cell);
+    struct point* innertr = object_get_alignmentbox_anchor_innertr(cell);
+    coordinate_t outerblx = outerbl->x + extouterblx;
+    coordinate_t outerbly = outerbl->y + extouterbly;
+    coordinate_t outertrx = outertr->x + extoutertrx;
+    coordinate_t outertry = outertr->y + extoutertry;
+    coordinate_t innerblx = innerbl->x + extinnerblx;
+    coordinate_t innerbly = innerbl->y + extinnerbly;
+    coordinate_t innertrx = innertr->x + extinnertrx;
+    coordinate_t innertry = innertr->y + extinnertry;
+    object_set_alignment_box(cell, outerblx, outerbly, outertrx, outertry, innerblx, innerbly, innertrx, innertry);
 }
 
-void object_move_to(struct object* cell, coordinate_t x, coordinate_t y)
+void objectbase_move_to(struct object* cell, coordinate_t x, coordinate_t y)
 {
-    transformationmatrix_move_to(cell->trans, x, y);
+    objectcommon_move_to(COMMON(cell), x, y);
 }
 
-void object_translate(struct object* cell, coordinate_t x, coordinate_t y)
+void objectbase_translate(struct object* cell, coordinate_t x, coordinate_t y)
 {
-    transformationmatrix_translate(cell->trans, x, y);
+    objectcommon_translate(COMMON(cell), x, y);
 }
 
-void object_reset_translation(struct object* cell)
+void objectbase_reset_translation(struct object* cell)
 {
-    object_move_to(cell, 0, 0);
+    objectbase_move_to(cell, 0, 0);
 }
 
-void object_translate_x(struct object* cell, coordinate_t x)
+void objectbase_translate_x(struct object* cell, coordinate_t x)
 {
-    object_translate(cell, x, 0);
+    objectbase_translate(cell, x, 0);
 }
 
-void object_translate_y(struct object* cell, coordinate_t y)
+void objectbase_translate_y(struct object* cell, coordinate_t y)
 {
-    object_translate(cell, 0, y);
+    objectbase_translate(cell, 0, y);
 }
 
-void object_mirror_at_xaxis(struct object* cell)
+void objectbase_mirror_at_xaxis(struct object* cell)
 {
-    transformationmatrix_mirror_x(cell->trans);
+    objectcommon_mirror_at_xaxis(COMMON(cell));
 }
 
-void object_mirror_at_yaxis(struct object* cell)
+void objectbase_mirror_at_yaxis(struct object* cell)
 {
-    transformationmatrix_mirror_y(cell->trans);
+    objectcommon_mirror_at_yaxis(COMMON(cell));
 }
 
-void object_mirror_at_origin(struct object* cell)
+void objectbase_mirror_at_origin(struct object* cell)
 {
-    transformationmatrix_mirror_origin(cell->trans);
+    objectcommon_mirror_at_origin(COMMON(cell));
 }
 
-void object_rotate_90_left(struct object* cell)
+void objectbase_rotate_90_left(struct object* cell)
 {
-    transformationmatrix_rotate_90_left(cell->trans);
+    objectcommon_rotate_90_left(COMMON(cell));
 }
 
-void object_rotate_90_right(struct object* cell)
+void objectbase_rotate_90_right(struct object* cell)
 {
-    transformationmatrix_rotate_90_right(cell->trans);
+    objectcommon_rotate_90_right(COMMON(cell));
 }
 
-void object_array_rotate_90_left(struct object* cell)
+void objectbase_array_rotate_90_left(struct object* cell)
 {
-    transformationmatrix_rotate_90_left(cell->content.proxy.array_trans);
+    objectcommon_array_rotate_90_left(COMMON(cell));
 }
 
-void object_array_rotate_90_right(struct object* cell)
+void objectbase_array_rotate_90_right(struct object* cell)
 {
-    transformationmatrix_rotate_90_right(cell->content.proxy.array_trans);
+    objectcommon_array_rotate_90_right(COMMON(cell));
 }
 
+/*
 void object_apply_other_transformation(struct object* cell, const struct transformationmatrix* trans)
 {
     transformationmatrix_chain_inline(cell->trans, trans);
 }
+*/
 
 int object_move_x(struct object* cell, coordinate_t source, coordinate_t target)
 {
@@ -959,7 +970,7 @@ int object_move_point_y(struct object* cell, const struct point* source, const s
     return 1;
 }
 
-int object_center(struct object* cell const struct point* target)
+int object_center(struct object* cell, const struct point* target)
 {
     struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
     struct point* outertr = object_get_alignmentbox_anchor_outertr(other);
@@ -975,7 +986,7 @@ int object_center(struct object* cell const struct point* target)
     object_translate(cell, targetcx - sourcex, targetcy - sourcey);
 }
 
-int object_center_x(struct object* cell const struct point* target)
+int object_center_x(struct object* cell, const struct point* target)
 {
     struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
     struct point* outertr = object_get_alignmentbox_anchor_outertr(other);

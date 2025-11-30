@@ -33,5 +33,14 @@ void objectcommon_transform_to_local_coordinates_xy(const struct object_common* 
 void objectcommon_transform_to_local_coordinates_pt(const struct object_common* cell, struct point* pt);
 void objectcommon_transform_to_global_coordinates_xy(const struct object_common* cell, coordinate_t* x, coordinate_t* y);
 void objectcommon_transform_to_global_coordinates_pt(const struct object_common* cell, struct point* pt);
+void objectcommon_move_to(struct object_common* cell, coordinate_t x, coordinate_t y);
+void objectcommon_translate(struct object_common* cell, coordinate_t x, coordinate_t y);
+void objectcommon_mirror_at_xaxis(struct object_common* cell);
+void objectcommon_mirror_at_yaxis(struct object_common* cell);
+void objectcommon_mirror_at_origin(struct object_common* cell);
+void objectcommon_rotate_90_left(struct object_common* cell);
+void objectcommon_rotate_90_right(struct object_common* cell);
+void objectcommon_array_rotate_90_left(struct object_common* cell);
+void objectcommon_array_rotate_90_right(struct object_common* cell);
 
 #endif /* OPC_OBJECT_COMMON_H */
