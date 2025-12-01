@@ -174,8 +174,8 @@ echo "writing src/_config.h"
 cat > src/_config.h << EOF
 /*
  * This file is auto-generated.
- * Do not edit it.
- * If it needs to be adapted, call configure.sh with the right switches.
+ * The paths are set via switches in configure.sh, but you can also directly edit this file.
+ * Executing configure.sh again will overwrite changes here.
  */
 #ifndef OPC_CONFIG_H
 #define OPC_CONFIG_H
