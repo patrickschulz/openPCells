@@ -17,6 +17,7 @@ function parameters()
         { "gatestrapspace", technology.get_dimension("Minimum M1 Width") },
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Width") },
+        { "extraspace", 0 },
         { "oxidetype", 1 },
         { "connect_gates", false },
         { "continuous_upper_gate_strap", true },
@@ -28,8 +29,6 @@ function parameters()
 end
 
 function layout(cell, _P)
-    dprint(_P.sdwidth)
-    dprint(_P.gatestrapwidth)
     local source = pcell.create_layout("basic/mosfet", "_source", {
         oxidetype = _P.oxidetype,
         fingers = _P.sourcefingers,
@@ -44,7 +43,7 @@ function layout(cell, _P)
         drainmetal = 2,
         connectdrain = true,
         connectdrainwidth = _P.sdstrapwidth,
-        connectdrainspace = _P.gatestrapwidth + 2 * _P.gatestrapspace,
+        connectdrainspace = _P.gatestrapwidth + 2 * _P.gatestrapspace + _P.extraspace / 2,
         drawtopgate = true,
         topgatewidth = _P.gatestrapwidth,
         topgatespace = _P.gatestrapspace,
@@ -62,7 +61,7 @@ function layout(cell, _P)
         sourcemetal = 2,
         connectsource = true,
         connectsourcewidth = _P.sdstrapwidth,
-        connectsourcespace = _P.gatestrapwidth + 2 * _P.gatestrapspace,
+        connectsourcespace = _P.gatestrapwidth + 2 * _P.gatestrapspace + _P.extraspace / 2,
         drainmetal = _P.outputmetal,
         connectdrain = true,
         connectdrainwidth = _P.outputwidth,
