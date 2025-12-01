@@ -212,6 +212,13 @@ function check(_P)
         end
         -- FIXME: check if connected nets exist
     end
+    -- rudimentary check that the table is formatted properly
+    -- should catch errors like connectgatetosourcedrain = { gate = 1, target = "drain2" } (missing surrounding braces)
+    for k, v in pairs(_P.connectgatetosourcedrain) do
+        if type(k) == "string" then
+            return false, "the 'connectgatetosourcedrain' table is not formatted properly, did you forget surrounding braces?"
+        end
+    end
     if _P.drainordermanual then
         for i = 1, numdevices do
             if not util.any_of(i, _P.drainorder) then
