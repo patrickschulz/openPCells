@@ -159,6 +159,21 @@ function check(_P)
             end
         end
     end
+    if not _P.equalgatenets and _P.usegateconnections then
+        for i = 1, numdevices do
+            local found = false
+            for _, connections in ipairs(_P.gateconnections) do
+                for _, entry in ipairs(connections) do
+                    if i == entry then
+                        found = true
+                    end
+                end
+            end
+            if not found then
+                return false, string.format("when gate connections are used, every gate connection must be specified. Missing gate connection: %d", i)
+            end
+        end
+    end
     if numdevices < 2 then
         return false, "the pattern definition does not contain more than one device"
     end
