@@ -238,11 +238,16 @@ function check(_P)
     -- check that all nets are present in globallines
     if _P.usegloballines then
         for _, pin in ipairs({ "gate", "drain", "source" }) do
+            local pinnettable = util.clone_array_predicate(_P.globallines, function(entry) return entry.pin == pin end)
+            local pnets = util.foreach(pinnettable, function(e) return e.net end)
             for _, net in ipairs(nets[pin]) do
-                local pinnettable = util.clone_array_predicate(_P.globallines, function(entry) return entry.pin == pin end)
-                local pnets = util.foreach(pinnettable, function(e) return e.net end)
                 if not util.any_of(net, pnets) then
                     return false, string.format("when global line nets are specified manually ('usegloballines'), all required nets must be present in 'globallines'. Missing net: '%s%d'", pin, net)
+                end
+            end
+            for _, net in ipairs(pnets) do
+                if not util.any_of(net, nets[pin]) then
+                    return false, string.format("when global line nets are specified manually ('usegloballines'), only the required nets must be present in 'globallines'. Specified unknown net net: '%s%d'", pin, net)
                 end
             end
         end
