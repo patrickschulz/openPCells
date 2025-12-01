@@ -319,7 +319,7 @@
     ));
 }
 
-/* layouthelpers.place_vlines */
+/* layouthelpers.place_vlines_numsets */
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to place lines in" },
@@ -332,10 +332,73 @@
         { NULL }
     };
     vector_append(entries, _make_api_entry(
+        "place_vlines_numsets",
+        MODULE_LAYOUTHELPERS,
+        "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
+        "local netshapes = layouthelpers.place_vlines_numsets(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, -- width\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names \n    4 -- number of sets)",
+        parameters
+    ));
+}
+
+/* layouthelpers.place_vlines */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place lines in" },
+        { "bl",             POINT,      NULL, "bottom-left boundary corner" },
+        { "tr",             POINT,      NULL, "top-right boundary corner" },
+        { "layer",          GENERICS,   NULL, "metal layer for lines" },
+        { "width",          INTEGER,    NULL, "width of lines" },
+        { "space",          INTEGER,    NULL, "space of lines" },
+        { "netnames",       TABLE,      NULL, "table with netnames (one line per set and net)" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
         "place_vlines",
         MODULE_LAYOUTHELPERS,
-        "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr> }",
-        "local netshapes = layouthelpers.place_vlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, -- width\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names \n    4 -- number of sets)",
+        "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the available space, and the width and space. This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
+        "local netshapes = layouthelpers.place_vlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names)",
+        parameters
+    ));
+}
+
+/* layouthelpers.place_hlines_numsets */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place lines in" },
+        { "bl",             POINT,      NULL, "bottom-left boundary corner" },
+        { "tr",             POINT,      NULL, "top-right boundary corner" },
+        { "layer",          GENERICS,   NULL, "metal layer for lines" },
+        { "height",         INTEGER,    NULL, "height of lines" },
+        { "netnames",       TABLE,      NULL, "table with netnames (one line per set and net)" },
+        { "numsets",        INTEGER,    NULL, "number of line sets to place (one line per set and net)" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_hlines_numsets",
+        MODULE_LAYOUTHELPERS,
+        "Create horizontal lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
+        "local netshapes = layouthelpers.place_hlines_numsets(cell,\n    point.create(0, 0), point.create(4000, 10000) -- target area,\n    generics.metal(5), -- layer\n    400, -- height\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names \n    4 -- number of sets)",
+        parameters
+    ));
+}
+
+/* layouthelpers.place_hlines */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place lines in" },
+        { "bl",             POINT,      NULL, "bottom-left boundary corner" },
+        { "tr",             POINT,      NULL, "top-right boundary corner" },
+        { "layer",          GENERICS,   NULL, "metal layer for lines" },
+        { "height",         INTEGER,    NULL, "height of lines" },
+        { "space",          INTEGER,    NULL, "space of lines" },
+        { "netnames",       TABLE,      NULL, "table with netnames (one line per set and net)" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "place_hlines",
+        MODULE_LAYOUTHELPERS,
+        "Create horizontal lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the available space, and the height and space. This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
+        "local netshapes = layouthelpers.place_hlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- height/space\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names)",
         parameters
     ));
 }
