@@ -8,7 +8,7 @@ procedure(OPCConvertPtsToNanometer(pts)
 
 procedure(OPCFormatLayer(layer purpose)
     let((mapping)
-        mapping = if(boundp('OPCLayerMap && OPCLayerMap
+        mapping = if(boundp('OPCLayerMap) && OPCLayerMap
             then
                 setof(entry OPCLayerMap (entry->layer == layer) && (entry->purpose == purpose))
             else
