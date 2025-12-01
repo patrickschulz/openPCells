@@ -905,6 +905,7 @@ function layout(cell, _P)
     end
 
     -- create interconnect lines
+    local interconnectlines = {}
     if _P.interconnectlinepos == "inline" then
         for rownum = 1, numrows do
             local anchor
@@ -959,6 +960,7 @@ function layout(cell, _P)
                     cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, linelabel).bl,
                     cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, linelabel).tr
                 )
+                table.insert(interconnectlines, { rownum = rownum, net = linelabel })
             end
         end
     elseif _P.interconnectlinepos == "gate" then
@@ -968,7 +970,8 @@ function layout(cell, _P)
             local leftdevice = doublerowdevices[1]
             local rightdevice = doublerowdevices[numinstancesperrow]
             for line, index in ipairs(devindices) do
-                cell:add_area_anchor_bltr(string.format("interconnectline_%d_%s", rownum, string.format("drain%d", index)),
+                local net = string.format("drain%d", index)
+                cell:add_area_anchor_bltr(string.format("interconnectline_%d_%s", rownum, net),
                     point.create(
                         interconnectlineminx,
                         _get_dev_anchor(leftdevice, "active").t + interconnectline_offset + _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth + _P.interconnectlinespace + (line - 1) * (_P.interconnectlinespace + _P.interconnectlinewidth)
@@ -979,9 +982,10 @@ function layout(cell, _P)
                     )
                 )
                 geometry.rectanglebltr(cell, generics.metal(_P.interconnectmetal),
-                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", index)).bl,
-                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", index)).tr
+                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, net).bl,
+                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, net).tr
                 )
+                table.insert(interconnectlines, { rownum = rownum, net = net })
             end
         end
     else -- "offside"
@@ -1032,6 +1036,7 @@ function layout(cell, _P)
                         cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, linelabel).bl,
                         cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, linelabel).tr
                     )
+                    table.insert(interconnectlines, { rownum = rownum, net = linelabel })
                 end
             end
         end
@@ -1801,12 +1806,24 @@ function layout(cell, _P)
     for rownum = 1, numrows do
         local devices = _get_active_devices(function(device) return device.row == rownum end)
         for _, device in ipairs(devices) do
-            geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
-                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).bl,
-                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).tr,
-                cell:get_area_anchor_fmt("outputconnectline_%s", string.format("drain%d", device.device)).bl,
-                cell:get_area_anchor_fmt("outputconnectline_%s", string.format("drain%d", device.device)).tr
-            )
+            local lines = util.clone_array_predicate(outputlines, function(e) return e.base == "drain" and e.device == device.device end)
+            if #lines > 1 then -- multiple output lines, use variant field
+                for _, line in ipairs(lines) do
+                    geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
+                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).bl,
+                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).tr,
+                        cell:get_area_anchor_fmt("outputconnectline_%s_%d", string.format("drain%d", device.device), line.variant).bl,
+                        cell:get_area_anchor_fmt("outputconnectline_%s_%d", string.format("drain%d", device.device), line.variant).tr
+                    )
+                end
+            else
+                geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
+                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).bl,
+                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).tr,
+                    cell:get_area_anchor_fmt("outputconnectline_%s", string.format("drain%d", device.device)).bl,
+                    cell:get_area_anchor_fmt("outputconnectline_%s", string.format("drain%d", device.device)).tr
+                )
+            end
         end
     end
 
