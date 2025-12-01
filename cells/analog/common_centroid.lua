@@ -101,6 +101,8 @@ function parameters()
         { "insertglobalguardringlines", false },
         { "connectguardringtogloballines", false, follow = "insertglobalguardringlines" },
         { "guardringnet", "" },
+        { "annotate_interconnectlines", false },
+        { "interconnectlines_label_sizehint", 0 },
         { "annotate_globallines", false },
         { "globallines_label_sizehint", 0 }
     )
@@ -1843,7 +1845,26 @@ function layout(cell, _P)
         end
     end
 
-    -- add net labels for visual inspection
+    -- add net labels for visual inspection (interconnect lines)
+    if _P.annotate_interconnectlines then
+        for _, line in ipairs(interconnectlines) do
+            local anchor = string.format("interconnectline_%d_%s", line.rownum, line.net)
+            cell:add_label(
+                string.format("%s", line.net),
+                generics.metal(_P.interconnectmetal),
+                cell:get_area_anchor_fmt(anchor).br,
+                _P.interconnectlines_label_sizehint
+            )
+            cell:add_label(
+                string.format("%s", line.net),
+                generics.metal(_P.interconnectmetal),
+                cell:get_area_anchor_fmt(anchor).bl,
+                _P.interconnectlines_label_sizehint
+            )
+        end
+    end
+
+    -- add net labels for visual inspection (global lines)
     if _P.annotate_globallines then
         for _, line in ipairs(outputlines) do
             local anchor
