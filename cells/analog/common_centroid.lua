@@ -1343,8 +1343,10 @@ function layout(cell, _P)
         local active = cell:get_area_anchor("active_all")
         local holeheight = point.ydistance_abs(active.bl, active.tr) + 2 * guardringysep + 2 * _P.guardringwidth
         local distance = holeheight - (outputlinemaxy - outputlineminy)
-        outputlinemaxy = outputlinemaxy + distance / 2
-        outputlineminy = outputlineminy - distance / 2
+        if distance > 0 then
+            outputlinemaxy = outputlinemaxy + distance / 2
+            outputlineminy = outputlineminy - distance / 2
+        end
     end
 
     -- gather output lines
