@@ -101,6 +101,7 @@ OBJS:= \
 	technology.o \
 	terminal.o \
 	transformationmatrix.o \
+	tuple.o \
 	union.o \
 	util_cmodule.o \
 	util.o \
@@ -451,6 +452,7 @@ technology.o: technology.c technology.h lua/lua.h \
 terminal.o: terminal.c terminal.h
 transformationmatrix.o: transformationmatrix.c \
  transformationmatrix.h point.h
+tuple.o: tuple.c tuple.h
 union.o: union.c union.h point.h vector.h shape.h \
  polygon.h technology.h lua/lua.h lua/luaconf.h \
  hashmap.h transformationmatrix.h

@@ -6,6 +6,7 @@
 
 #include "bltrshape.h"
 #include "helpers.h"
+#include "tuple.h"
 #include "util.h"
 
 #define OBJECT_DEFAULT_SHAPES_SIZE 32
@@ -149,7 +150,7 @@ struct object {
             struct vector* references; // stores struct object*
             coordinate_t* alignmentbox; // NULL or contains eight coordinates: blx, blx, trx, try for both outer (first) and inner (second)
             struct vector* boundary; // a polygon, stores struct point*
-            struct hashmap* layer_boundaries; // contains polygons that store struct point*
+            struct vector* layer_boundaries; // contains polygons that store struct point*, together with generics* in a tuple
             struct hashmap* nets; // stores struct vector*
             size_t childcounter;
         } full;
@@ -355,16 +356,23 @@ struct object* object_copy(const struct object* cell)
         // layer boundaries
         if(cell->content.full.layer_boundaries)
         {
-            new->content.full.layer_boundaries = hashmap_create(polygon_container_destroy);
-            struct hashmap_iterator* lbit = hashmap_iterator_create(cell->content.full.layer_boundaries);
-            while(hashmap_iterator_is_valid(lbit))
+            new->content.full.layer_boundaries = vector_create(2, tuple2_destroy);
+            struct vector_iterator* lbit = vector_iterator_create(cell->content.full.layer_boundaries);
+            while(vector_iterator_is_valid(lbit))
             {
-                const char* key = hashmap_iterator_key(lbit);
-                struct polygon_container* polygon_container = hashmap_iterator_value(lbit);
-                hashmap_insert(new->content.full.layer_boundaries, key, polygon_container_copy(polygon_container));
-                hashmap_iterator_next(lbit);
+                struct tuple2* tuple = vector_iterator_get(lbit);
+                const struct generics* key = tuple->first;
+                struct polygon_container* polygon_container = tuple->second;
+                struct tuple2* tnew = tuple2_create(
+                    (void*) key,
+                    NULL,
+                    polygon_container_copy(polygon_container),
+                    polygon_container_destroy
+                );
+                vector_append(new->content.full.layer_boundaries, tnew);
+                vector_iterator_next(lbit);
             }
-            hashmap_iterator_destroy(lbit);
+            vector_iterator_destroy(lbit);
         }
 
         // nets
@@ -442,7 +450,7 @@ void object_destroy(void* cellv)
         // layer boundaries
         if(cell->content.full.layer_boundaries)
         {
-            hashmap_destroy(cell->content.full.layer_boundaries);
+            vector_destroy(cell->content.full.layer_boundaries);
         }
     }
     else // isproxy
@@ -1985,33 +1993,60 @@ void object_set_boundary(struct object* cell, struct vector* boundary)
     vector_const_iterator_destroy(it);
 }
 
+static int _compare_layer_boundary(const void* v, const void* extraarg)
+{
+    const struct tuple2* tuple = v;
+    const struct generics* layer = extraarg;
+    if(tuple->first == layer)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 void object_set_empty_layer_boundary(struct object* cell, const struct generics* layer)
 {
     if(!cell->content.full.layer_boundaries)
     {
-        cell->content.full.layer_boundaries = hashmap_create(polygon_container_destroy);
+        cell->content.full.layer_boundaries = vector_create(2, tuple2_destroy);
     }
-    if(hashmap_exists(cell->content.full.layer_boundaries, (const char*)layer))
+    int index = vector_find_comp(cell->content.full.layer_boundaries, _compare_layer_boundary, layer);
+    struct tuple2* tuple;
+    if(index != -1)
     {
-        struct polygon_container* boundary = hashmap_get(cell->content.full.layer_boundaries, (const char*)layer);
-        polygon_container_destroy(boundary);
+        tuple = vector_get(cell->content.full.layer_boundaries, index);
+        polygon_container_destroy(tuple->second);
     }
-    struct polygon_container* boundary = polygon_container_create_empty();
-    hashmap_insert(cell->content.full.layer_boundaries, (const char*)layer, boundary);
+    else
+    {
+        tuple = tuple2_create((void*)layer, NULL, NULL, polygon_container_destroy); // fill second later
+        vector_append(cell->content.full.layer_boundaries, tuple);
+    }
+    // create new polygon container, either the old one was destroyed or there was none
+    tuple->second = polygon_container_create_empty();
 }
 
 void object_add_layer_boundary(struct object* cell, const struct generics* layer, struct simple_polygon* new)
 {
     if(!cell->content.full.layer_boundaries)
     {
-        cell->content.full.layer_boundaries = hashmap_create(polygon_container_destroy);
+        cell->content.full.layer_boundaries = vector_create(2, tuple2_destroy);
     }
-    if(!hashmap_exists(cell->content.full.layer_boundaries, (const char*)layer))
+    int index = vector_find_comp(cell->content.full.layer_boundaries, _compare_layer_boundary, layer);
+    struct tuple2* tuple;
+    if(index != -1)
     {
-        struct polygon_container* polygon_container = polygon_container_create();
-        hashmap_insert(cell->content.full.layer_boundaries, (const char*)layer, polygon_container);
+        tuple = vector_get(cell->content.full.layer_boundaries, index);
     }
-    struct polygon_container* boundary = hashmap_get(cell->content.full.layer_boundaries, (const char*)layer);
+    else
+    {
+        tuple = tuple2_create((void*)layer, NULL, polygon_container_create(), polygon_container_destroy);
+        vector_append(cell->content.full.layer_boundaries, tuple);
+    }
+    struct polygon_container* boundary = tuple->second;
     // transform points to local coordinates
     struct simple_polygon_iterator* it = simple_polygon_iterator_create(new);
     while(simple_polygon_iterator_is_valid(it))
@@ -2144,7 +2179,8 @@ int object_has_layer_boundary(const struct object* cell, const struct generics* 
     {
         if(cell->content.proxy.reference->content.full.layer_boundaries)
         {
-            return hashmap_exists(cell->content.proxy.reference->content.full.layer_boundaries, (const char*)layer);
+            int index = vector_find_comp(cell->content.proxy.reference->content.full.layer_boundaries, _compare_layer_boundary, layer);
+            return index != -1;
         }
         else
         {
@@ -2155,7 +2191,8 @@ int object_has_layer_boundary(const struct object* cell, const struct generics* 
     {
         if(cell->content.full.layer_boundaries)
         {
-            return hashmap_exists(cell->content.full.layer_boundaries, (const char*)layer);
+            int index = vector_find_comp(cell->content.full.layer_boundaries, _compare_layer_boundary, layer);
+            return index != -1;
         }
         else
         {
@@ -2172,9 +2209,11 @@ struct polygon_container* object_get_layer_boundary(const struct object* cell, c
         {
             return polygon_container_create_empty();
         }
-        struct polygon_container* cellboundary = hashmap_get(cell->content.proxy.reference->content.full.layer_boundaries, (const char*)layer);
-        if(cellboundary)
+        int index = vector_find_comp(cell->content.proxy.reference->content.full.layer_boundaries, _compare_layer_boundary, layer);
+        if(index != -1)
         {
+            struct tuple2* tuple = vector_get(cell->content.proxy.reference->content.full.layer_boundaries, index);
+            struct polygon_container* cellboundary = tuple->second;
             if(polygon_container_is_empty(cellboundary))
             {
                 return polygon_container_create_empty();
@@ -2223,9 +2262,11 @@ struct polygon_container* object_get_layer_boundary(const struct object* cell, c
         {
             return polygon_container_create_empty();
         }
-        struct polygon_container* cellboundary = hashmap_get(cell->content.full.layer_boundaries, (const char*)layer);
-        if(cellboundary)
+        int index = vector_find_comp(cell->content.full.layer_boundaries, _compare_layer_boundary, layer);
+        if(index != -1)
         {
+            struct tuple2* tuple = vector_get(cell->content.full.layer_boundaries, index);
+            struct polygon_container* cellboundary = tuple->second;
             if(polygon_container_is_empty(cellboundary))
             {
                 return polygon_container_create_empty();
