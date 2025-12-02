@@ -1861,10 +1861,14 @@ static void _fill_netshape_table(lua_State* L, const char* netname, struct bltrs
 
 static int lobject_get_net_shapes(lua_State* L)
 {
-    lcheck_check_numargs1(L, 3, "object.get_net_shapes");
+    lcheck_check_numargs2(L, 2, 3, "object.get_net_shapes");
     struct lobject* cell = lobject_check(L, 1);
     const char* netname = luaL_checkstring(L, 2);
-    const struct generics* layer = lua_touserdata(L, 3);
+    const struct generics* layer = NULL;
+    if(lua_gettop(L) == 3)
+    {
+        layer = lua_touserdata(L, 3);
+    }
     struct vector* netshapes = object_get_net_shapes(lobject_get_const(cell), netname, layer);
     lua_newtable(L);
     if(netshapes)
