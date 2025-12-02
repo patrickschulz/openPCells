@@ -120,3 +120,6 @@ do_cellscript_test cellscript_anchor cellscript_anchor.lua gds --draw-all-anchor
 
 # cellscript test for ports
 do_cellscript_test cellscript_port cellscript_port.lua gds
+
+# cellscript test for transformation corrections
+do_cellscript_test cellscript_transformation_correction cellscript_transformation_correction.lua gds
