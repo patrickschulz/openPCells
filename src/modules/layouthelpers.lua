@@ -276,6 +276,71 @@ function M.place_vlines(cell, bl, tr, layer, width, space, netnames)
     return netshapes
 end
 
+function M.place_vlines_excludes(cell, bl, tr, layer, width, space, netnames, excludes)
+    check.set_next_function_name("layouthelpers.place_vlines_excludes")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg_func(2, "bl", "point", bl, point.is_point)
+    check.arg_func(3, "tr", "point", bl, point.is_point)
+    check.arg_optional(4, "layer", "userdata", layer)
+    check.arg(5, "width", "number", width)
+    check.arg(6, "space", "number", space)
+    check.arg_optional(7, "netnames", "table", netnames)
+    check.arg_optional(8, "excludes", "table", excludes)
+    local netshapes = {}
+    local stop = tr:getx()
+    local totalwidth = point.xdistance_abs(tr, bl);
+    local offset = (totalwidth - totalwidth // (width + space) * (width + space) + space) / 2;
+    local i = 1
+    -- find line blockages
+    local blockages = {}
+    for _, exclude in ipairs(excludes) do
+        table.insert(blockages, {
+            xl = util.polygon_xmin(exclude),
+            xr = util.polygon_xmax(exclude),
+            yb = util.polygon_ymin(exclude),
+            yt = util.polygon_ymax(exclude)
+        })
+    end
+    local x = bl:getx() + offset
+    while x < stop do
+        local ypts = {}
+        local lasty = bl:gety()
+        for _, b in ipairs(blockages) do
+            if b.xl <= x and b.xr >= x then
+                table.insert(ypts, {
+                    y1 = lasty,
+                    y2 = b.yb
+                })
+                lasty = b.yt
+            end
+        end
+        -- add last point, also solves the case when there are no blockages
+        table.insert(ypts, {
+            y1 = lasty,
+            y2 = tr:gety()
+        })
+        for _, pt in ipairs(ypts) do
+            local plbl = point.create(
+                x,
+                pt.y1
+            )
+            local pltr = point.create(
+                x + width,
+                pt.y2
+            )
+            geometry.rectanglebltr(cell, layer, plbl, pltr)
+            if netnames then
+                local numnets = #netnames
+                local netname = netnames[((i - 1) % numnets) + 1]
+                table.insert(netshapes, { net = netname, bl = plbl, tr = pltr, layer = layer })
+            end
+        end
+        x = x + width + space
+        i = i + 1
+    end
+    return netshapes
+end
+
 function M.place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)
     local numnets = #netnames
     local width, height, space, offset, numlines = geometry.rectanglehlines_numlines_height_settings(
@@ -334,6 +399,71 @@ function M.place_hlines(cell, bl, tr, layer, height, space, netnames)
             local netname = netnames[((i - 1) % numnets) + 1]
             table.insert(netshapes, { net = netname, bl = plbl, tr = pltr, layer = layer })
         end
+    end
+    return netshapes
+end
+
+function M.place_hlines_excludes(cell, bl, tr, layer, height, space, netnames, excludes)
+    check.set_next_function_name("layouthelpers.place_hlines_excludes")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg_func(2, "bl", "point", bl, point.is_point)
+    check.arg_func(3, "tr", "point", bl, point.is_point)
+    check.arg_optional(4, "layer", "userdata", layer)
+    check.arg(5, "height", "number", height)
+    check.arg(6, "space", "number", space)
+    check.arg_optional(7, "netnames", "table", netnames)
+    check.arg_optional(8, "excludes", "table", excludes)
+    local netshapes = {}
+    local stop = tr:gety()
+    local totalheight = point.ydistance_abs(tr, bl);
+    local offset = (totalheight - totalheight // (height + space) * (height + space) + space) / 2;
+    local i = 1
+    -- find line blockages
+    local blockages = {}
+    for _, exclude in ipairs(excludes) do
+        table.insert(blockages, {
+            xl = util.polygon_xmin(exclude),
+            xr = util.polygon_xmax(exclude),
+            yb = util.polygon_ymin(exclude),
+            yt = util.polygon_ymax(exclude)
+        })
+    end
+    local y = bl:gety() + offset
+    while y < stop do
+        local xpts = {}
+        local lastx = bl:getx()
+        for _, b in ipairs(blockages) do
+            if b.yb <= y and b.yt >= y then
+                table.insert(xpts, {
+                    x1 = lastx,
+                    x2 = b.xl
+                })
+                lastx = b.xr
+            end
+        end
+        -- add last point, also solves the case when there are no blockages
+        table.insert(xpts, {
+            x1 = lastx,
+            x2 = tr:getx()
+        })
+        for _, pt in ipairs(xpts) do
+            local plbl = point.create(
+                pt.x1,
+                y
+            )
+            local pltr = point.create(
+                pt.x2,
+                y + height
+            )
+            geometry.rectanglebltr(cell, layer, plbl, pltr)
+            if netnames then
+                local numnets = #netnames
+                local netname = netnames[((i - 1) % numnets) + 1]
+                table.insert(netshapes, { net = netname, bl = plbl, tr = pltr, layer = layer })
+            end
+        end
+        y = y + height + space
+        i = i + 1
     end
     return netshapes
 end
