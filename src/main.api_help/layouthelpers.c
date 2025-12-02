@@ -349,13 +349,23 @@
         { "layer",          GENERICS,   NULL, "metal layer for lines" },
         { "width",          INTEGER,    NULL, "width of lines" },
         { "space",          INTEGER,    NULL, "space of lines" },
-        { "netnames",       TABLE,      NULL, "table with netnames (one line per set and net)" },
+        { "netnames",       TABLE,      NULL, "table with netnames (one line net)" },
+        { "excludes",       TABLE,      NULL, "table with polygon excludes" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "place_vlines",
         MODULE_LAYOUTHELPERS,
-        "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the available space, and the width and space. This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
+        "Create vertical lines in a cell on a given layer. "
+        "The target area is given as well as the width of the placed lines. "
+        "The number of placed lines is calculated from the available area and the width and space. "
+        "Additionally a table with exclude polygons can be given. "
+        "No lines will be drawn in these excludes. "
+        "Note that the minimum fitting rectangle around the polygon is used, not the polygon itself. "
+        "This might result in too pessimistic line placement. "
+        "However, as most geometries are rectangles, in general this will work quite well. "
+        "This function returns a table with a net target entry for every line, where one entry looks like this: "
+        "{ net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
         "local netshapes = layouthelpers.place_vlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names)",
         parameters
     ));
@@ -389,16 +399,26 @@
         { "bl",             POINT,      NULL, "bottom-left boundary corner" },
         { "tr",             POINT,      NULL, "top-right boundary corner" },
         { "layer",          GENERICS,   NULL, "metal layer for lines" },
-        { "height",         INTEGER,    NULL, "height of lines" },
+        { "width",          INTEGER,    NULL, "width of lines" },
         { "space",          INTEGER,    NULL, "space of lines" },
-        { "netnames",       TABLE,      NULL, "table with netnames (one line per set and net)" },
+        { "netnames",       TABLE,      NULL, "table with netnames (one line net)" },
+        { "excludes",       TABLE,      NULL, "table with polygon excludes" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "place_hlines",
         MODULE_LAYOUTHELPERS,
-        "Create horizontal lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the available space, and the height and space. This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "local netshapes = layouthelpers.place_hlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- height/space\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names)",
+        "Create horizontal lines in a cell on a given layer. "
+        "The target area is given as well as the width of the placed lines. "
+        "The number of placed lines is calculated from the available area and the height and space. "
+        "Additionally a table with exclude polygons can be given. "
+        "No lines will be drawn in these excludes. "
+        "Note that the minimum fitting rectangle around the polygon is used, not the polygon itself. "
+        "This might result in too pessimistic line placement. "
+        "However, as most geometries are rectangles, in general this will work quite well. "
+        "This function returns a table with a net target entry for every line, where one entry looks like this: "
+        "{ net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
+        "local netshapes = layouthelpers.place_hlines(cell,\n    point.create(0, 0), point.create(4000, 10000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names)",
         parameters
     ));
 }
@@ -409,8 +429,8 @@
         { "cell",           OBJECT,     NULL, "cell to place lines in" },
         { "metal1",         INTEGER,    NULL, "lowest/highest metal" },
         { "metal2",         INTEGER,    NULL, "highest/lowest metal" },
-        { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr> }" },
-        { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr> }" },
+        { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
+        { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netfilter",      INTEGER,    NULL, "optional table containing nets that should be connected. If not given, all matching nets are conneted" },
         { "allowfail",      BOOLEAN,    NULL, "allow failing vias. If not given, all vias area created, if the overlap is too small an error is raised" },
         { NULL }
@@ -430,8 +450,8 @@
         { "cell",           OBJECT,     NULL, "cell to place lines in" },
         { "metal1",         INTEGER,    NULL, "lowest/highest metal" },
         { "metal2",         INTEGER,    NULL, "highest/lowest metal" },
-        { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr> }" },
-        { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr> }" },
+        { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
+        { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netfilter",      INTEGER,    NULL, "optional table containing nets that should be connected. If not given, all matching nets are conneted" },
         { "allowfail",      BOOLEAN,    NULL, "allow failing vias. If not given, all vias area created, if the overlap is too small an error is raised" },
         { NULL }
