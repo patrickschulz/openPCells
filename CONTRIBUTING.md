@@ -44,6 +44,7 @@ Especially with HTML-based stuff (cell display, searchable documentation) I coul
 * solid tech file assistant
 * technology files for:
     x skywater130
+    x IHP SG13G2
     x freePDK45
     x freePDK15
     x open GF180 or generic 180 nm
@@ -51,7 +52,7 @@ Especially with HTML-based stuff (cell display, searchable documentation) I coul
 * improve handling of error messages deep in a call stack
 * proper and thorough testing
 * pcell module implementation mostly in C, lua only as an interface
-* properly support pcells written in C (required pcell module C implementation)
+* properly support pcells written in C (requires pcell module C implementation)
 
 ## Important Types
 There are a few types that are used throughout the project.
