@@ -42,6 +42,11 @@ void objectproxy_set_array(struct object_proxy* proxy, unsigned int xrep, unsign
     proxy->private.array_trans = transformationmatrix_create();
 }
 
+const struct transformationmatrix* objectproxy_get_array_tmatrix(const object_proxy* proxy)
+{
+    return proxy->private.array_trans;
+}
+
 unsigned int objectproxy_get_xrep(const struct object_proxy* proxy)
 {
     return proxy->private.xrep;

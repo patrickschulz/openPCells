@@ -73,7 +73,7 @@ void shape_curve_add_arc_segment(struct shape* shape, double startangle, double 
 void shape_curve_add_cubic_bezier_segment(struct shape* shape, const struct point* cpt1, const struct point* cpt2, const struct point* endpt);
 
 // conversion to polygon (e.g. for layer boundaries)
-struct simple_polygon* shape_to_polygon(struct shape* shape);
+struct simple_polygon* shape_to_polygon(const struct shape* shape);
 
 int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y);
 

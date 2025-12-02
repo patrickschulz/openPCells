@@ -355,22 +355,32 @@ static void _get_trans12(const struct object* cell, const struct transformationm
     }
 }
 
+coordinate_t* objectbase_get_untransformed_alignment_box(const struct object* cell)
+{
+    CHECK_FULL_OR_PROXY(cell);
+    coordinate_t* alignmentbox;
+    if(object_is_proxy(cell))
+    {
+        alignmentbox = objectfull_get_alignment_box(FULLREFERENCE(cell));
+    }
+    else
+    {
+        alignmentbox = objectfull_get_alignment_box(FULL(cell));
+    }
+    return alignmentbox; // can be NULL
+}
+
 coordinate_t* objectbase_get_transformed_alignment_box(const struct object* cell)
 {
     CHECK_FULL_OR_PROXY(cell);
-    const struct transformationmatrix* trans1;
-    const struct transformationmatrix* trans2;
-    _get_trans12(cell, &trans1, &trans2);
-    const struct object* obj;
-    if(object_is_proxy(cell))
-    {
-        obj = objectproxy_get_reference(PROXY(cell));
-    }
-    coordinate_t* alignmentbox = objectfull_get_alignment_box(FULL(obj));
+    coordinate_t* alignmentbox = objectbase_get_untransformed_bounding_box(cell);
     if(!alignmentbox)
     {
         return NULL;
     }
+    const struct transformationmatrix* trans1;
+    const struct transformationmatrix* trans2;
+    _get_trans12(cell, &trans1, &trans2);
     for(unsigned int i = 0; i < 4; ++i)
     {
         transformationmatrix_apply_transformation_xy(trans1, alignmentbox + 0 + i * 2, alignmentbox + 1 + i * 2);
@@ -1148,29 +1158,29 @@ struct polygon_container* object_get_shape_outlines(const struct object* cell, c
 
 const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell)
 {
-    return cell->trans;
+    return objectcommon_get_tmatrix(COMMON(cell));
 }
 
 const struct transformationmatrix* object_get_array_transformation_matrix(const struct object* cell)
 {
-    return cell->content.proxy.array_trans;
+    if(!object_is_child_array(cell))
+    {
+        return NULL;
+    }
+    return objectproxy_get_array_tmatrix(PROXY(cell));
 }
 
 static void _get_transformation_correction(const struct object* cell, coordinate_t* cx, coordinate_t* cy)
 {
-    const struct object* obj = cell;
-    if(object_is_proxy(cell))
-    {
-        obj = cell->content.proxy.reference;
-    }
+    coordinate_t* ab = objectbase_get_untransformed_alignment_box(cell);
     coordinate_t blx, bly, trx, try;
-    // FIXME: fix for alignmentbox with eight coordinates
-    if(obj->content.full.alignmentbox)
+    if(ab)
     {
-        blx = obj->content.full.alignmentbox[0];
-        bly = obj->content.full.alignmentbox[1];
-        trx = obj->content.full.alignmentbox[2];
-        try = obj->content.full.alignmentbox[3];
+        // FIXME: fix for alignmentbox with eight coordinates
+        blx = ab[0];
+        bly = ab[1];
+        trx = ab[2];
+        try = ab[3];
     }
     else
     {

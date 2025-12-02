@@ -24,6 +24,9 @@ void objectproxy_destroy(struct object_proxy* proxy);
 const struct object* objectproxy_get_reference(const struct object_proxy* proxy);
 void objectproxy_set_array(struct object_proxy* proxy, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch);
 
+// access to array transformation
+const struct transformationmatrix* objectproxy_get_array_tmatrix(const struct object_proxy* proxy);
+
 // handle array translation
 unsigned int objectproxy_get_xrep(const struct object_proxy* proxy);
 unsigned int objectproxy_get_yrep(const struct object_proxy* proxy);

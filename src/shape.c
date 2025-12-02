@@ -979,7 +979,7 @@ void shape_curve_add_cubic_bezier_segment(struct shape* shape, const struct poin
     vector_append(curve->segments, segment);
 }
 
-struct simple_polygon* shape_to_polygon(struct shape* shape)
+struct simple_polygon* shape_to_polygon(const struct shape* shape)
 {
     switch(shape->type)
     {
