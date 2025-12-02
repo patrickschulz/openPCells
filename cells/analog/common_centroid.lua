@@ -1867,7 +1867,12 @@ function layout(cell, _P)
             anchorname = netname
         end
         if _P.sourcenets[netname] then
-            cell:add_net_shape(_P.sourcenets[netname], cell:get_area_anchor(anchorname).bl, cell:get_area_anchor(anchorname).tr)
+            cell:add_net_shape(
+                _P.sourcenets[netname],
+                cell:get_area_anchor(anchorname).bl,
+                cell:get_area_anchor(anchorname).tr,
+                generics.metal(_P.interconnectmetal + 1)
+            )
         end
     end
 
@@ -1876,7 +1881,8 @@ function layout(cell, _P)
         if _P.drainnets[i] then
             cell:add_net_shape(_P.drainnets[i],
                 cell:get_area_anchor_fmt("outputconnectline_drain%d", i).bl,
-                cell:get_area_anchor_fmt("outputconnectline_drain%d", i).tr
+                cell:get_area_anchor_fmt("outputconnectline_drain%d", i).tr,
+                generics.metal(_P.interconnectmetal + 1)
             )
         end
     end
@@ -1886,7 +1892,8 @@ function layout(cell, _P)
         for i = 1, 2 do
             cell:add_net_shape(_P.guardringnet,
                 cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).bl,
-                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).tr
+                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).tr,
+                generics.metal(_P.interconnectmetal + 1)
             )
         end
     end
