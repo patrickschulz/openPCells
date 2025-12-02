@@ -149,10 +149,7 @@ function layout(grid, _P)
     -- anchors
     local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
     local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2) or 0
-    grid:add_anchor("lowerleftv",
-        point.create(xoffset,              yoffset - _P.mvextb),
-        point.create(xoffset + _P.mvwidth, yoffset + _P.mvextt + _P.mhlines * (_P.mhwidth + _P.mhspace))
-    )
+    grid:add_anchor("lowerleftv", point.create(xoffset, yoffset - _P.mvextb))
 
     -- alignment box
     if _P.centergrid then
