@@ -16,7 +16,7 @@ local target = {
 
 geometry.rectanglebltr(cell, generics.outline(), target.bl, target.tr)
 
-local hnets = layouthelpers.place_hlines_excludes(
+local hnets = layouthelpers.place_hlines(
     cell,
     target.bl, target.tr,
     generics.metal(1),
@@ -25,7 +25,7 @@ local hnets = layouthelpers.place_hlines_excludes(
     m1excludes
 )
 
-local vnets = layouthelpers.place_vlines_excludes(
+local vnets = layouthelpers.place_vlines(
     cell,
     target.bl, target.tr,
     generics.metal(2),
