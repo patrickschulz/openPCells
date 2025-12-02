@@ -240,43 +240,7 @@ function M.place_vlines_numsets(cell, bl, tr, layer, width, netnames, numsets)
     return netshapes
 end
 
-function M.place_vlines(cell, bl, tr, layer, width, space, netnames)
-    check.set_next_function_name("layouthelpers.place_vlines")
-    check.arg_func(1, "cell", "object", cell, object.is_object)
-    check.arg_func(2, "bl", "point", bl, point.is_point)
-    check.arg_func(3, "tr", "point", bl, point.is_point)
-    check.arg_optional(4, "layer", "userdata", layer)
-    check.arg(5, "width", "number", width)
-    check.arg(6, "space", "number", space)
-    check.arg_optional(7, "netnames", "table", netnames)
-    local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(
-        bl, tr,
-        width, space
-    )
-    if space < 0 then
-        error("layouthelpers.place_vlines: the given lines constraints yield a negative line spacing. Increase the area size, or decrease the the line width/space")
-    end
-    local netshapes = {}
-    for i = 1, numlines do
-        local plbl = point.create(
-            bl:getx() + offset + (i - 1) * (width + space),
-            bl:gety()
-        )
-        local pltr = point.create(
-            bl:getx() + offset + (i - 1) * (width + space) + width,
-            bl:gety() + height
-        )
-        geometry.rectanglebltr(cell, layer, plbl, pltr)
-        if netnames then
-            local numnets = #netnames
-            local netname = netnames[((i - 1) % numnets) + 1]
-            table.insert(netshapes, { net = netname, bl = plbl, tr = pltr, layer = layer })
-        end
-    end
-    return netshapes
-end
-
-function M.place_vlines_excludes(cell, bl, tr, layer, width, space, netnames, excludes)
+function M.place_vlines(cell, bl, tr, layer, width, space, netnames, excludes)
     check.set_next_function_name("layouthelpers.place_vlines_excludes")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -367,43 +331,7 @@ function M.place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)
     return netshapes
 end
 
-function M.place_hlines(cell, bl, tr, layer, height, space, netnames)
-    check.set_next_function_name("layouthelpers.place_hlines")
-    check.arg_func(1, "cell", "object", cell, object.is_object)
-    check.arg_func(2, "bl", "point", bl, point.is_point)
-    check.arg_func(3, "tr", "point", bl, point.is_point)
-    check.arg_optional(4, "layer", "userdata", layer)
-    check.arg(5, "height", "number", height)
-    check.arg(6, "space", "number", space)
-    check.arg_optional(7, "netnames", "table", netnames)
-    local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(
-        bl, tr,
-        height, space
-    )
-    if numlines < 1 then
-        error("layouthelpers.place_hlines: the given lines constraints yield no placeable lines. Increase the area size, or decrease the line height/space")
-    end
-    local netshapes = {}
-    for i = 1, numlines do
-        local plbl = point.create(
-            bl:getx(),
-            bl:gety() + offset + (i - 1) * (height + space)
-        )
-        local pltr = point.create(
-            bl:getx() + width,
-            bl:gety() + offset + (i - 1) * (height + space) + height
-        )
-        geometry.rectanglebltr(cell, layer, plbl, pltr)
-        if netnames then
-            local numnets = #netnames
-            local netname = netnames[((i - 1) % numnets) + 1]
-            table.insert(netshapes, { net = netname, bl = plbl, tr = pltr, layer = layer })
-        end
-    end
-    return netshapes
-end
-
-function M.place_hlines_excludes(cell, bl, tr, layer, height, space, netnames, excludes)
+function M.place_hlines(cell, bl, tr, layer, height, space, netnames, excludes)
     check.set_next_function_name("layouthelpers.place_hlines_excludes")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
