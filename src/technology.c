@@ -1370,6 +1370,25 @@ int technology_resolve_metal(const struct technology_state* techstate, int metal
     }
 }
 
+int technology_metal_layer_to_index(const struct technology_state* techstate, const struct generics* metallayer)
+{
+    (void)techstate;
+    const char* name = metallayer->name;
+    if(name[0] == 'M')
+    {
+        ++name;
+        int index = 0;
+        while(*name)
+        {
+            index *= 10;
+            index += *name - '0';
+            ++name;
+        }
+        return index;
+    }
+    return 0;
+}
+
 static int _is_mpmetal(const void* value, const void* comp)
 {
     int m = *((int*)comp);
@@ -1896,6 +1915,22 @@ static int ltechnology_resolve_metal(lua_State* L)
     return 1;
 }
 
+static int ltechnology_metal_layer_to_index(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(lua_type(L, 1) != LUA_TLIGHTUSERDATA)
+    {
+        lua_pushfstring(L, "expected a generic layer at argument #%d, got %s", 1, lua_typename(L, lua_type(L, 1)));
+        lua_error(L);
+    }
+    const struct generics* metallayer = lua_touserdata(L, 1);
+    int metalindex = technology_metal_layer_to_index(techstate, metallayer);
+    lua_pushinteger(L, metalindex);
+    return 1;
+}
+
 static int ltechnology_has_multiple_patterning(lua_State* L)
 {
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
@@ -1934,6 +1969,7 @@ int open_ltechnology_lib(lua_State* L)
         { "has_metal",                      ltechnology_has_metal                   },
         { "has_layer",                      ltechnology_has_layer                   },
         { "resolve_metal",                  ltechnology_resolve_metal               },
+        { "metal_layer_to_index",           ltechnology_metal_layer_to_index        },
         { "has_multiple_patterning",        ltechnology_has_multiple_patterning     },
         { "multiple_patterning_number",     ltechnology_multiple_patterning_number  },
         { NULL,                             NULL                                    }

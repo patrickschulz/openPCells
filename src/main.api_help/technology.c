@@ -162,6 +162,21 @@
     ));
 }
 
+/* technology.metal_layer_to_index */
+{
+    struct parameter parameters[] = {
+        { "layer", GENERICS, NULL, "metal layer to be mapped to its index" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "metal_layer_to_index",
+        MODULE_TECHNOLOGY,
+        "retrieve the numeric index of a metal layer. The function always returns positive indices. If a non-metal layer is given, the function returns 0.",
+        "local metalindex = technology.metal_layer_to_index(generics.metal(2)) -- 2",
+        parameters
+    ));
+}
+
 /* technology.list_techpaths */
 {
     struct parameter parameters[] = {
