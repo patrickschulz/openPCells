@@ -218,7 +218,7 @@ struct shape* objectfull_disown_shape(struct object_full* full, size_t idx)
     return shape;
 }
 
-void objectbase_foreach_shapes(struct object* full, void (*func)(struct shape*))
+void objectfull_foreach_shapes(struct object* full, void (*func)(struct shape*))
 {
     if(full->private.shapes)
     {
@@ -283,6 +283,23 @@ void objectfull_add_proxy(struct object_full* full, struct object* proxy)
         full->private.references = vector_create(OBJECT_DEFAULT_REFERENCES_SIZE, object_destroy);
     }
     vector_append(full->private.children, proxy);
+}
+
+typedef int (*child_action)(struct object* child, struct generic_arg* extraargs);
+int objectfull_foreach_children(struct object_full* full, child_action, struct generic_arg* extraargs)
+{
+    if(full->private.children)
+    {
+        for(size_t i = 0; i < vector_size(full->private.children); ++i)
+        {
+            struct object* child = vector_get(full->private.children, i);
+            int ret = child_action(child, extraargs);
+            if(!ret)
+            {
+                return 0;
+            }
+        }
+    }
 }
 
 void objectfull_merge_into(struct object_full* fulltarget, const struct object_full* fullsource, int merge_ports)

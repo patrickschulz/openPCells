@@ -373,7 +373,7 @@ coordinate_t* objectbase_get_untransformed_alignment_box(const struct object* ce
 coordinate_t* objectbase_get_transformed_alignment_box(const struct object* cell)
 {
     CHECK_FULL_OR_PROXY(cell);
-    coordinate_t* alignmentbox = objectbase_get_untransformed_bounding_box(cell);
+    coordinate_t* alignmentbox = objectbase_get_untransformed_alignment_box(cell);
     if(!alignmentbox)
     {
         return NULL;
@@ -403,7 +403,7 @@ coordinate_t* objectbase_get_transformed_alignment_box(const struct object* cell
     return alignmentbox;
 }
 
-coordinate_t* objectbase_get_minmax_xy(const struct object* cell)
+coordinate_t* objectbase_get_untransformed_minmax_xy(const struct object* cell)
 {
     coordinate_t* minmax;
     CHECK_FULL_OR_PROXY(cell);
@@ -415,6 +415,13 @@ coordinate_t* objectbase_get_minmax_xy(const struct object* cell)
     {
         minmax = objectfull_get_minmax_xy(FULL(cell));
     }
+    return minmax;
+}
+
+coordinate_t* objectbase_get_minmax_xy(const struct object* cell)
+{
+    coordinate_t* minmax = objectbase_get_untransformed_minmax_xy(cell);
+    // FIXME: transformation
     return minmax;
 }
 
@@ -1181,80 +1188,82 @@ static void _get_transformation_correction(const struct object* cell, coordinate
         bly = ab[1];
         trx = ab[2];
         try = ab[3];
+        free(ab);
     }
     else
     {
-        objectbase_get_minmax_xy(obj, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix
+        coordinate_t* minmaxxy = objectbase_get_untransformed_minmax_xy(cell);
+        blx = minmaxxy[0];
+        bly = minmaxxy[1];
+        trx = minmaxxy[2];
+        try = minmaxxy[3];
+        free(minmaxxy);
     }
     coordinate_t x = 0;
     coordinate_t y = 0;
-    transformationmatrix_apply_transformation_xy(cell->trans, &x, &y);
+    // only apply first-level transformation
+    // FIXME: why? It was like this and that worked, but check
+    objectcommon_transform_to_global_coordinates_xy(COMMON(cell), &x, &y);
     *cx = blx + trx + 2 * x;
     *cy = bly + try + 2 * y;
 }
 
-static void _flipx(struct object* cell, int ischild)
+static int _flipx(struct object* cell, struct generic_arg* args)
 {
+    int ischild = args_get_int(args, 1);
     coordinate_t cx, cy;
     _get_transformation_correction(cell, &cx, &cy);
-    transformationmatrix_mirror_y(cell->trans);
+    objectbase_mirror_at_yaxis(cell);
     if(!ischild)
     {
         object_translate(cell, cx, 0);
     }
     if(!object_is_proxy(cell))
     {
-        if(cell->content.full.children)
-        {
-            for(unsigned int i = 0; i < vector_size(cell->content.full.children); ++i)
-            {
-                _flipx(vector_get(cell->content.full.children, i), 1);
-            }
-        }
+        struct generic_arg childargs[] = {
+            { .type = ARG_INT, .content.i = 1 },
+            { .type = ARG_END }
+        };
+        objectfull_foreach_children(FULL(cell), _flipx, childargs);
     }
 }
 
 void object_flipx(struct object* cell)
 {
-    _flipx(cell, 0);
+    struct generic_arg args[] = {
+        { .type = ARG_INT, .content.i = 0 },
+        { .type = ARG_END }
+    };
+    _flipx(cell, args);
 }
 
-static void _flipy(struct object* cell, int ischild)
+static int _flipy(struct object* cell, struct generic_arg* args)
 {
+    int ischild = args_get_int(args, 1);
     coordinate_t cx, cy;
     _get_transformation_correction(cell, &cx, &cy);
-    transformationmatrix_mirror_x(cell->trans);
+    objectbase_mirror_at_xaxis(cell);
     if(!ischild)
     {
         object_translate(cell, 0, cy);
     }
     if(!object_is_proxy(cell))
     {
-        if(cell->content.full.children)
-        {
-            for(unsigned int i = 0; i < vector_size(cell->content.full.children); ++i)
-            {
-                _flipy(vector_get(cell->content.full.children, i), 1);
-            }
-        }
+        struct generic_arg childargs[] = {
+            { .type = ARG_INT, .content.i = 1 },
+            { .type = ARG_END }
+        };
+        objectfull_foreach_children(FULL(cell), _flipy, childargs);
     }
 }
 
 void object_flipy(struct object* cell)
 {
-    _flipy(cell, 0);
-}
-
-void object_apply_transformation(struct object* cell)
-{
-    if(cell->content.full.shapes)
-    {
-        for(unsigned int i = 0; i < vector_size(cell->content.full.shapes); ++i)
-        {
-            struct shape* shape = vector_get(cell->content.full.shapes, i);
-            shape_apply_transformation(shape, cell->trans);
-        }
-    }
+    struct generic_arg args[] = {
+        { .type = ARG_INT, .content.i = 0 },
+        { .type = ARG_END }
+    };
+    _flipy(cell, args);
 }
 
 void object_transform_point(const struct object* cell, struct point* pt)

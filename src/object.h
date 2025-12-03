@@ -203,7 +203,6 @@ int object_center(struct object* cell, const struct point* target);
 int object_center_x(struct object* cell, const struct point* target);
 int object_center_y(struct object* cell, const struct point* target);
 void object_scale(struct object* cell, double factor);
-void object_apply_transformation(struct object* cell);
 void object_transform_point(const struct object* cell, struct point* pt);
 void object_apply_other_transformation(struct object* cell, const struct transformationmatrix* trans);
 

@@ -41,6 +41,8 @@ size_t objectfull_get_shapes_size(const struct object_full* full);
 // children/references
 int objectfull_add_reference(struct object_full* full, struct object* reference);
 void objectfull_add_proxy(struct object_full* full, struct object* proxy);
+typedef int (*child_action)(struct object* child, struct generic_arg* extraargs);
+int objectfull_foreach_children(struct object_full* cell, child_action, struct generic_arg* extraargs);
 
 // merging
 void objectfull_merge_into(struct object_full* cell, const struct object_full* other, int merge_ports);
