@@ -1416,7 +1416,8 @@ static int _viabltr2(
     coordinate_t widthclass
 )
 {
-    (void) minxspace, minyspace;
+    (void) minxspace;
+    (void) minyspace;
     metal1 = technology_resolve_metal(techstate, metal1);
     metal2 = technology_resolve_metal(techstate, metal2);
     if(metal1 > metal2)
