@@ -240,21 +240,22 @@ function M.place_vlines_numsets(cell, bl, tr, layer, width, netnames, numsets)
     return netshapes
 end
 
-function M.place_vlines(cell, bl, tr, layer, width, space, netnames, excludes)
-    check.set_next_function_name("layouthelpers.place_vlines_excludes")
+function M.place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, excludes)
+    check.set_next_function_name("layouthelpers.place_hlines_excludes")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
     check.arg_func(3, "tr", "point", bl, point.is_point)
     check.arg_optional(4, "layer", "userdata", layer)
     check.arg(5, "width", "number", width)
     check.arg(6, "space", "number", space)
-    check.arg_optional(7, "netnames", "table", netnames)
-    check.arg_optional(8, "excludes", "table", excludes)
+    check.arg(7, "minheight", "number", minheight)
+    check.arg_optional(8, "netnames", "table", netnames)
+    check.arg_optional(9, "excludes", "table", excludes)
     local netshapes = {}
     local stop = tr:getx()
     local totalwidth = point.xdistance_abs(tr, bl);
     local offset = (totalwidth - totalwidth // (width + space) * (width + space) + space) / 2;
-    local i = 1
+    local netcounter = 1
     -- find line blockages
     local blockages = {}
     for _, exclude in ipairs(excludes) do
@@ -268,15 +269,34 @@ function M.place_vlines(cell, bl, tr, layer, width, space, netnames, excludes)
     local x = bl:getx() + offset
     while x < stop do
         local ypts = {}
-        local lasty = bl:gety()
+        -- collect all ybreaks
+        local ybreaks = {}
         for _, b in ipairs(blockages) do
             if b.xl <= x and b.xr >= x then
-                table.insert(ypts, {
-                    y1 = lasty,
-                    y2 = b.yb
-                })
-                lasty = b.yt
+                table.insert(ybreaks, { start = b.yb, stop = b.yt })
             end
+        end
+        -- process overlaps and insert line points
+        table.sort(ybreaks, function(lhs, rhs) return lhs.start < rhs.start end)
+        local i = 1
+        local lasty = bl:gety()
+        while i <= #ybreaks do
+            local ystart = ybreaks[i].start
+            local ystop = ybreaks[i].stop
+            for j = i + 1, #ybreaks do
+                if ybreaks[j].start < ystop then
+                    ystop = ybreaks[j].stop
+                    i = i + 1
+                else
+                    break
+                end
+            end
+            i = i + 1
+            table.insert(ypts, {
+                y1 = lasty,
+                y2 = ystart
+            })
+            lasty = ystop
         end
         -- add last point, also solves the case when there are no blockages
         table.insert(ypts, {
@@ -284,26 +304,35 @@ function M.place_vlines(cell, bl, tr, layer, width, space, netnames, excludes)
             y2 = tr:gety()
         })
         for _, pt in ipairs(ypts) do
-            local plbl = point.create(
-                x,
-                pt.y1
-            )
-            local pltr = point.create(
-                x + width,
-                pt.y2
-            )
-            geometry.rectanglebltr(cell, layer, plbl, pltr)
-            if netnames then
-                local numnets = #netnames
-                local netname = netnames[((i - 1) % numnets) + 1]
-                table.insert(netshapes, { net = netname, bl = plbl, tr = pltr, layer = layer })
+            -- clip to boundary
+            pt.y1 = math.max(pt.y1, bl:gety())
+            pt.y2 = math.min(pt.y2, tr:gety())
+            -- check for illegal (out-of-range) points
+            if
+                pt.y1 < pt.y2 and
+                (pt.y2 - pt.y1) > minheight then
+                local plbl = point.create(
+                    x,
+                    pt.y1
+                )
+                local pltr = point.create(
+                    x + width,
+                    pt.y2
+                )
+                geometry.rectanglebltr(cell, layer, plbl, pltr)
+                if netnames then
+                    local numnets = #netnames
+                    local netname = netnames[((netcounter - 1) % numnets) + 1]
+                    table.insert(netshapes, { net = netname, bl = plbl, tr = pltr, layer = layer })
+                end
             end
         end
         x = x + width + space
-        i = i + 1
+        netcounter = netcounter + 1
     end
     return netshapes
 end
+
 
 function M.place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)
     local numnets = #netnames
@@ -331,7 +360,7 @@ function M.place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)
     return netshapes
 end
 
-function M.place_hlines(cell, bl, tr, layer, height, space, netnames, excludes)
+function M.place_hlines(cell, bl, tr, layer, height, space, minwidth, netnames, excludes)
     check.set_next_function_name("layouthelpers.place_hlines_excludes")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -339,13 +368,14 @@ function M.place_hlines(cell, bl, tr, layer, height, space, netnames, excludes)
     check.arg_optional(4, "layer", "userdata", layer)
     check.arg(5, "height", "number", height)
     check.arg(6, "space", "number", space)
-    check.arg_optional(7, "netnames", "table", netnames)
-    check.arg_optional(8, "excludes", "table", excludes)
+    check.arg(7, "minwidth", "number", minwidth)
+    check.arg_optional(8, "netnames", "table", netnames)
+    check.arg_optional(9, "excludes", "table", excludes)
     local netshapes = {}
     local stop = tr:gety()
     local totalheight = point.ydistance_abs(tr, bl);
     local offset = (totalheight - totalheight // (height + space) * (height + space) + space) / 2;
-    local i = 1
+    local netcounter = 1
     -- find line blockages
     local blockages = {}
     for _, exclude in ipairs(excludes) do
@@ -359,15 +389,34 @@ function M.place_hlines(cell, bl, tr, layer, height, space, netnames, excludes)
     local y = bl:gety() + offset
     while y < stop do
         local xpts = {}
-        local lastx = bl:getx()
+        -- collect all xbreaks
+        local xbreaks = {}
         for _, b in ipairs(blockages) do
             if b.yb <= y and b.yt >= y then
-                table.insert(xpts, {
-                    x1 = lastx,
-                    x2 = b.xl
-                })
-                lastx = b.xr
+                table.insert(xbreaks, { start = b.xl, stop = b.xr })
             end
+        end
+        -- process overlaps and insert line points
+        table.sort(xbreaks, function(lhs, rhs) return lhs.start < rhs.start end)
+        local i = 1
+        local lastx = bl:getx()
+        while i <= #xbreaks do
+            local xstart = xbreaks[i].start
+            local xstop = xbreaks[i].stop
+            for j = i + 1, #xbreaks do
+                if xbreaks[j].start < xstop then
+                    xstop = xbreaks[j].stop
+                    i = i + 1
+                else
+                    break
+                end
+            end
+            i = i + 1
+            table.insert(xpts, {
+                x1 = lastx,
+                x2 = xstart
+            })
+            lastx = xstop
         end
         -- add last point, also solves the case when there are no blockages
         table.insert(xpts, {
@@ -375,28 +424,36 @@ function M.place_hlines(cell, bl, tr, layer, height, space, netnames, excludes)
             x2 = tr:getx()
         })
         for _, pt in ipairs(xpts) do
-            local plbl = point.create(
-                pt.x1,
-                y
-            )
-            local pltr = point.create(
-                pt.x2,
-                y + height
-            )
-            geometry.rectanglebltr(cell, layer, plbl, pltr)
-            if netnames then
-                local numnets = #netnames
-                local netname = netnames[((i - 1) % numnets) + 1]
-                table.insert(netshapes, { net = netname, bl = plbl, tr = pltr, layer = layer })
+            -- clip to boundary
+            pt.x1 = math.max(pt.x1, bl:getx())
+            pt.x2 = math.min(pt.x2, tr:getx())
+            -- check for illegal (out-of-range) points
+            if 
+                pt.x1 < pt.x2 and
+                pt.x2 - pt.x1 >= minwidth then
+                local plbl = point.create(
+                    pt.x1,
+                    y
+                )
+                local pltr = point.create(
+                    pt.x2,
+                    y + height
+                )
+                geometry.rectanglebltr(cell, layer, plbl, pltr)
+                if netnames then
+                    local numnets = #netnames
+                    local netname = netnames[((netcounter - 1) % numnets) + 1]
+                    table.insert(netshapes, { net = netname, bl = plbl, tr = pltr, layer = layer })
+                end
             end
         end
         y = y + height + space
-        i = i + 1
+        netcounter = netcounter + 1
     end
     return netshapes
 end
 
-function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, allowfail)
+function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, noallowfail)
     for i1 = 1, #netshapes1 do
         local connect = true
         if netfilter then
@@ -412,12 +469,12 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, a
                         netshapes2[i2].bl, netshapes2[i2].tr
                     )
                     if r then
-                        if allowfail then
+                        if noallowfail then
+                            geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
+                        else
                             if geometry.check_viabltr(metal1, metal2, r.bl, r.tr) then
                                 geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
                             end
-                        else
-                            geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
                         end
                     end
                 end
