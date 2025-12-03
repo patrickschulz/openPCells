@@ -453,7 +453,7 @@ function M.place_hlines(cell, bl, tr, layer, height, space, minwidth, netnames, 
     return netshapes
 end
 
-function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, noallowfail)
+function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, nocheck)
     for i1 = 1, #netshapes1 do
         local connect = true
         if netfilter then
@@ -469,12 +469,9 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, n
                         netshapes2[i2].bl, netshapes2[i2].tr
                     )
                     if r then
-                        if noallowfail then
+                        local create = nocheck or geometry.check_viabltr(metal1, metal2, r.bl, r.tr)
+                        if create then
                             geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
-                        else
-                            if geometry.check_viabltr(metal1, metal2, r.bl, r.tr) then
-                                geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
-                            end
                         end
                     end
                 end
@@ -483,7 +480,7 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, n
     end
 end
 
-function M.place_unequal_net_vias(cell, metal1, metal2, netshapes1, netshapes2, allowfail)
+function M.place_unequal_net_vias(cell, metal1, metal2, netshapes1, netshapes2, nocheck)
     for i1 = 1, #netshapes1 do
         for i2 = 1, #netshapes2 do
             local r = util.rectangle_intersection(
@@ -491,11 +488,8 @@ function M.place_unequal_net_vias(cell, metal1, metal2, netshapes1, netshapes2, 
                 netshapes2[i2].bl, netshapes2[i2].tr
             )
             if r then
-                if allowfail then
-                    if geometry.check_viabltr(metal1, metal2, r.bl, r.tr) then
-                        geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
-                    end
-                else
+                local create = nocheck or geometry.check_viabltr(metal1, metal2, r.bl, r.tr)
+                if create then
                     geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
                 end
             end

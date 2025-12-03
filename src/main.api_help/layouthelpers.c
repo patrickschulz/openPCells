@@ -432,13 +432,19 @@
         { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netfilter",      INTEGER,    NULL, "optional table containing nets that should be connected. If not given, all matching nets are conneted" },
-        { "allowfail",      BOOLEAN,    NULL, "allow failing vias. If not given, all vias area created, if the overlap is too small an error is raised" },
+        { "nocheck",        BOOLEAN,    NULL, "don't chec vias. If not given, all vias area created, if the overlap is too small an error is raised" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "place_vias",
         MODULE_LAYOUTHELPERS,
-        "Create vias in a cell connecting net shapes on different metal layers. This function creates vias between the given layers. If not net filter is given, all netshapes with matching nets are connected. If a table array with string items is given, only shapes on nets in that array are connected. 'allowfail' makes the function non-failing: when there are small overlaps without a legal via arrayzation, the function raises an error per default (as internall geometry.viabltr is used). With 'allowfail' == true the legality of the overlap for via generation is checked first and skipped if it would fial.",
+        "Create vias in a cell connecting net shapes on different metal layers."
+        "This function creates vias between the given layers."
+        "If not net filter is given, all netshapes with matching nets are connected."
+        "If a table array with string items is given, only shapes on nets in that array are connected."
+        "'nocheck' might cause the function to raise an error:"
+        "when there are small overlaps without a legal via arrayzation, the function raises an error (as internall geometry.viabltr is used)."
+        "With 'nocheck' == false (the default) the legality of the overlap for via generation is checked first and skipped if it would fail.",
         "layouthelpers.place_vias(cell,\n    1, 4, -- metal layers\n    netshapes1, netshapes2, -- netshapes\n    { \"VSS\" \"BIAS\" }, -- net filter)",
         parameters
     ));
@@ -459,7 +465,14 @@
     vector_append(entries, _make_api_entry(
         "place_unequal_vias",
         MODULE_LAYOUTHELPERS,
-        "Create vias in a cell connecting net shapes on different metal layers and different nets. This function creates vias between the given layers. As this function creates vias between all shapes, only the net shapes should be given that need to be connected (this function shorts different nets). This behaviour is different than layouthelpers.place_vias, where only shapes on equal nets are connected. 'nocheck' might cause the function to raise an error: when there are small overlaps without a legal via arrayzation, the function raises an error (as internall geometry.viabltr is used). With 'nocheck' == false (the default) the legality of the overlap for via generation is checked first and skipped if it would fail.",
+        "Create vias in a cell connecting net shapes on different metal layers and different nets."
+        "This function creates vias between the given layers."
+        "As this function creates vias between all shapes, only the net shapes should be given that need to be connected."
+        "(This function shorts different nets)."
+        "This behaviour is different than layouthelpers.place_vias, where only shapes on equal nets are connected."
+        "'nocheck' might cause the function to raise an error:"
+        "when there are small overlaps without a legal via arrayzation, the function raises an error (as internall geometry.viabltr is used)."
+        "With 'nocheck' == false (the default) the legality of the overlap for via generation is checked first and skipped if it would fail.",
         "layouthelpers.place_unequal_vias(cell,\n    1, 4, -- metal layers\n    netshapes1, netshapes2)",
         parameters
     ));
