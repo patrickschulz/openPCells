@@ -497,11 +497,11 @@ function check(_P)
     if _P.sdmetalwidth < _P.sdwidth then
         return false, string.format("sdmetalwidth must not be smaller than sdwidth (%d vs. %d)", _P.sdmetalwidth, _P.sdwidth)
     end
-    if _P.sourcesize < 0 or _P.sourcesize > _P.fingerwidth then
-        return false, string.format("sourcesize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.sourcesize, _P.fingerwidth)
+    if _P.sourcesize < 0 then
+        return false, string.format("sourcesize (%d) can not be negative", _P.sourcesize)
     end
     if _P.drainsize < 0 then
-        return false, string.format("drainsize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.drainsize, _P.fingerwidth)
+        return false, string.format("drainsize (%d) can not be negative", _P.drainsize)
     end
     if _P.sourceviasize < 0 then
         return false, string.format("sourceviasize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.sourceviasize, _P.fingerwidth)
