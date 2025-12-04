@@ -1680,25 +1680,23 @@ function layout(cell, _P)
                     end
                     local numlines = #lines
                     for line, index in ipairs(lines) do
-                        if _P.globalgatelinesincenter then
+                        local gateoutputlines = util.clone_array_predicate(outputlines,
+                            function(e)
+                                return e.base == "gate" and e.device == index
+                            end
+                        )
+                        for _, outputline in ipairs(gateoutputlines) do
+                            local netname
+                            if outputline.variant then
+                                netname = string.format("gate%d_%d", index, outputline.variant)
+                            else
+                                netname = string.format("gate%d", index)
+                            end
                             geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
                                 cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).bl,
                                 cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).tr,
-                                cell:get_area_anchor_fmt("outputconnectline_%s", string.format("gate%d", index)).bl,
-                                cell:get_area_anchor_fmt("outputconnectline_%s", string.format("gate%d", index)).tr
-                            )
-                        else
-                            geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
-                                cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).bl,
-                                cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).tr,
-                                cell:get_area_anchor_fmt("outputconnectline_%s", string.format("gate%dleft", index)).bl,
-                                cell:get_area_anchor_fmt("outputconnectline_%s", string.format("gate%dleft", index)).tr
-                            )
-                            geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
-                                cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).bl,
-                                cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).tr,
-                                cell:get_area_anchor_fmt("outputconnectline_%s", string.format("gate%dright", index)).bl,
-                                cell:get_area_anchor_fmt("outputconnectline_%s", string.format("gate%dright", index)).tr
+                                cell:get_area_anchor_fmt("outputconnectline_%s", netname).bl,
+                                cell:get_area_anchor_fmt("outputconnectline_%s", netname).tr
                             )
                         end
                     end
