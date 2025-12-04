@@ -97,6 +97,10 @@ do_cell_test polyresistor_12 basic/polyresistor gds
 do_cell_test polyresistor_13 basic/polyresistor gds
 do_cell_test polyresistor_14 basic/polyresistor gds
 
+# inverter
+do_cell_test inverter_01 analog/inverter gds
+do_cell_test inverter_02 analog/inverter gds
+
 # common centroid
 do_cell_test common_centroid_01 analog/common_centroid gds
 do_cellscript_test cellscript_common_centroid_01 cellscript_common_centroid_01.lua gds
