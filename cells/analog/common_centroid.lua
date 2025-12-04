@@ -1727,34 +1727,6 @@ function layout(cell, _P)
                             cell:get_area_anchor_fmt("outputconnectline_%s", netname).tr
                         )
                     end
-                    --[[
-                    if _P.multiplesourcelines then
-                        local numlines
-                        if _P.groupoutputlines then
-                            -- numhalflines must be used here, because for an odd number of devices there can be one source line more
-                            local numhalflines = (numdevices % 2 == 1) and ((numdevices + 1) / 2) or (numdevices / 2)
-                            numlines = 2 * numhalflines
-                        else
-                            numlines = numdevices
-                        end
-
-                        for i = 1, numlines do -- iterate over variants
-                            geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
-                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").bl,
-                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").tr,
-                                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).bl,
-                                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).tr
-                            )
-                        end
-                    else
-                        geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
-                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").bl,
-                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").tr,
-                            cell:get_area_anchor_fmt("outputconnectline_%s", "source0").bl,
-                            cell:get_area_anchor_fmt("outputconnectline_%s", "source0").tr
-                        )
-                    end
-                    --]]
                 end
             end
         else -- not _P.equalsourcenets
