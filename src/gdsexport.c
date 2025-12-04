@@ -730,7 +730,7 @@ static void _write_port(struct export_data* data, const char* name, const struct
     char sizedata[8];
     if(sizehint > 0)
     {
-        double value = sizehint / 1000;
+        double value = (double)sizehint / __userunit;
         _number_to_gdsfloat(value, 8, sizedata);
     }
     else
