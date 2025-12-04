@@ -932,7 +932,7 @@ function layout(cmos, _P)
         cmos:merge_into(welltap)
         geometry.rectanglebltr(cmos, generics.well(_P.pmosflippedwell and "p" or "n"),
             point.create(
-                math.max(
+                math.min(
                     leftnmoswell.tl:getx(),
                     welltap:get_area_anchor("well").l
                 ),
