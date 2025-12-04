@@ -240,6 +240,49 @@ function M.place_vlines_numsets(cell, bl, tr, layer, width, netnames, numsets)
     return netshapes
 end
 
+local function _calculate_line_breaks(xy, size, cstart, cstop, blockages)
+    local pts = {}
+    -- collect all breaks
+    local breaks = {}
+    for _, b in ipairs(blockages) do
+        if 
+            xy + size > b.c1 and xy < b.c2
+        then
+            table.insert(breaks, { start = b.start, stop = b.stop })
+        end
+    end
+    -- process overlaps and insert line points
+    table.sort(breaks, function(lhs, rhs) return lhs.start < rhs.start end)
+    local i = 1
+    local lastc = cstart
+    while i <= #breaks do
+        local start = breaks[i].start
+        local stop = breaks[i].stop
+        for j = i + 1, #breaks do
+            if breaks[j].start < stop then
+                if breaks[j].stop > stop then
+                    stop = breaks[j].stop
+                end
+                i = i + 1
+            else
+                break
+            end
+        end
+        i = i + 1
+        table.insert(pts, {
+            c1 = lastc,
+            c2 = start
+        })
+        lastc = stop
+    end
+    -- add last point, also solves the case when there are no blockages
+    table.insert(pts, {
+        c1 = lastc,
+        c2 = cstop
+    })
+    return pts
+end
+
 function M.place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, excludes)
     check.set_next_function_name("layouthelpers.place_hlines_excludes")
     check.arg_func(1, "cell", "object", cell, object.is_object)
@@ -258,66 +301,34 @@ function M.place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, 
     local netcounter = 1
     -- find line blockages
     local blockages = {}
-    for _, exclude in ipairs(excludes) do
-        table.insert(blockages, {
-            xl = util.polygon_xmin(exclude),
-            xr = util.polygon_xmax(exclude),
-            yb = util.polygon_ymin(exclude),
-            yt = util.polygon_ymax(exclude)
-        })
+    if excludes then
+        for _, exclude in ipairs(excludes) do
+            table.insert(blockages, {
+                c1      = util.polygon_xmin(exclude),
+                c2      = util.polygon_xmax(exclude),
+                start   = util.polygon_ymin(exclude),
+                stop    = util.polygon_ymax(exclude)
+            })
+        end
     end
     local x = bl:getx() + offset
     while x < stop do
-        local ypts = {}
-        -- collect all ybreaks
-        local ybreaks = {}
-        for _, b in ipairs(blockages) do
-            if b.xl <= x and b.xr >= x then
-                table.insert(ybreaks, { start = b.yb, stop = b.yt })
-            end
-        end
-        -- process overlaps and insert line points
-        table.sort(ybreaks, function(lhs, rhs) return lhs.start < rhs.start end)
-        local i = 1
-        local lasty = bl:gety()
-        while i <= #ybreaks do
-            local ystart = ybreaks[i].start
-            local ystop = ybreaks[i].stop
-            for j = i + 1, #ybreaks do
-                if ybreaks[j].start < ystop then
-                    ystop = ybreaks[j].stop
-                    i = i + 1
-                else
-                    break
-                end
-            end
-            i = i + 1
-            table.insert(ypts, {
-                y1 = lasty,
-                y2 = ystart
-            })
-            lasty = ystop
-        end
-        -- add last point, also solves the case when there are no blockages
-        table.insert(ypts, {
-            y1 = lasty,
-            y2 = tr:gety()
-        })
+        local ypts = _calculate_line_breaks(x, width, bl:gety(), tr:gety(), blockages)
         for _, pt in ipairs(ypts) do
             -- clip to boundary
-            pt.y1 = math.max(pt.y1, bl:gety())
-            pt.y2 = math.min(pt.y2, tr:gety())
+            pt.c1 = math.max(pt.c1, bl:gety())
+            pt.c2 = math.min(pt.c2, tr:gety())
             -- check for illegal (out-of-range) points
             if
-                pt.y1 < pt.y2 and
-                (pt.y2 - pt.y1) > minheight then
+                pt.c1 < pt.c2 and
+                (pt.c2 - pt.c1) > minheight then
                 local plbl = point.create(
                     x,
-                    pt.y1
+                    pt.c1
                 )
                 local pltr = point.create(
                     x + width,
-                    pt.y2
+                    pt.c2
                 )
                 geometry.rectanglebltr(cell, layer, plbl, pltr)
                 if netnames then
@@ -378,65 +389,33 @@ function M.place_hlines(cell, bl, tr, layer, height, space, minwidth, netnames, 
     local netcounter = 1
     -- find line blockages
     local blockages = {}
-    for _, exclude in ipairs(excludes) do
-        table.insert(blockages, {
-            xl = util.polygon_xmin(exclude),
-            xr = util.polygon_xmax(exclude),
-            yb = util.polygon_ymin(exclude),
-            yt = util.polygon_ymax(exclude)
-        })
+    if excludes then
+        for _, exclude in ipairs(excludes) do
+            table.insert(blockages, {
+                start   = util.polygon_xmin(exclude),
+                stop    = util.polygon_xmax(exclude),
+                c1      = util.polygon_ymin(exclude),
+                c2      = util.polygon_ymax(exclude)
+            })
+        end
     end
     local y = bl:gety() + offset
     while y < stop do
-        local xpts = {}
-        -- collect all xbreaks
-        local xbreaks = {}
-        for _, b in ipairs(blockages) do
-            if b.yb <= y and b.yt >= y then
-                table.insert(xbreaks, { start = b.xl, stop = b.xr })
-            end
-        end
-        -- process overlaps and insert line points
-        table.sort(xbreaks, function(lhs, rhs) return lhs.start < rhs.start end)
-        local i = 1
-        local lastx = bl:getx()
-        while i <= #xbreaks do
-            local xstart = xbreaks[i].start
-            local xstop = xbreaks[i].stop
-            for j = i + 1, #xbreaks do
-                if xbreaks[j].start < xstop then
-                    xstop = xbreaks[j].stop
-                    i = i + 1
-                else
-                    break
-                end
-            end
-            i = i + 1
-            table.insert(xpts, {
-                x1 = lastx,
-                x2 = xstart
-            })
-            lastx = xstop
-        end
-        -- add last point, also solves the case when there are no blockages
-        table.insert(xpts, {
-            x1 = lastx,
-            x2 = tr:getx()
-        })
+        local xpts = _calculate_line_breaks(y, height, bl:getx(), tr:getx(), blockages)
         for _, pt in ipairs(xpts) do
             -- clip to boundary
-            pt.x1 = math.max(pt.x1, bl:getx())
-            pt.x2 = math.min(pt.x2, tr:getx())
+            pt.c1 = math.max(pt.c1, bl:getx())
+            pt.c2 = math.min(pt.c2, tr:getx())
             -- check for illegal (out-of-range) points
             if 
-                pt.x1 < pt.x2 and
-                pt.x2 - pt.x1 >= minwidth then
+                pt.c1 < pt.c2 and
+                pt.c2 - pt.c1 >= minwidth then
                 local plbl = point.create(
-                    pt.x1,
+                    pt.c1,
                     y
                 )
                 local pltr = point.create(
-                    pt.x2,
+                    pt.c2,
                     y + height
                 )
                 geometry.rectanglebltr(cell, layer, plbl, pltr)
@@ -930,6 +909,19 @@ function M.collect_gridlines(t, cells, anchorname)
         if not found then
             table.insert(t, { bl = bl:copy(), tr = tr:copy() })
         end
+    end
+end
+
+function M.annotate_netshapes(cell, netshapes, sizehint)
+    for _, netshape in ipairs(netshapes) do
+        local blx = netshape.bl:getx()
+        local bly = netshape.bl:gety()
+        local trx = netshape.tr:getx()
+        local try = netshape.tr:gety()
+        cell:add_label(netshape.net, netshape.layer, point.create(blx, bly), sizehint)
+        cell:add_label(netshape.net, netshape.layer, point.create(blx, try), sizehint)
+        cell:add_label(netshape.net, netshape.layer, point.create(trx, bly), sizehint)
+        cell:add_label(netshape.net, netshape.layer, point.create(trx, try), sizehint)
     end
 end
 
