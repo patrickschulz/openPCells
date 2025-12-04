@@ -478,3 +478,21 @@
     ));
 }
 
+/* layouthelpers.annotate_netshapes */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL, "cell to place net labels in" },
+        { "netshapes",      TABLE,      NULL, "table with net targets: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
+        { "sizehint",       INTEGER,    NULL, "size hint for the labels" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "annotate_netshapes",
+        MODULE_LAYOUTHELPERS,
+        "Create labels on every given net shape in the table, on all four corners"
+        "Useful for e.g. creating bigger interconnect grids",
+        "layouthelpers.annotate_netshapes(cell, netshapes, 200)",
+        parameters
+    ));
+}
+
