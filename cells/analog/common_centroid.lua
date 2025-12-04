@@ -1660,7 +1660,7 @@ function layout(cell, _P)
                         )
                     end
                 end
-            else
+            else -- not _P.equalgatenets
                 --[[
                 local numgatelines
                 if _P.usegateconnections then
