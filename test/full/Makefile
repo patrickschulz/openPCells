@@ -1,7 +1,8 @@
 .PHONY: all
 all:
-	sh run.sh
+	@rm -f test_*.gds
+	@sh run.sh
 
 .PHONY: clean
 clean:
-	rm -f test_*.gds
+	@rm -f test_*.gds
