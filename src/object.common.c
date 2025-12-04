@@ -19,6 +19,11 @@ void objectcommon_set_name(struct object_common* obc, const char* name)
     }
 }
 
+int objectcommon_is_pseudo(const struct object_common* obc)
+{
+    return obc->private.name == NULL;
+}
+
 void objectcommon_set_managed(struct object_common* obc, int ismanaged)
 {
     obc->private.ismanaged = ismanaged;

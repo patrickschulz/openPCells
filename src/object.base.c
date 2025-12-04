@@ -1266,28 +1266,37 @@ void object_flipy(struct object* cell)
     _flipy(cell, args);
 }
 
-void object_transform_point(const struct object* cell, struct point* pt)
+void objectbase_transform_point(const struct object* cell, struct point* pt)
 {
-    transformationmatrix_apply_transformation(cell->trans, pt);
+    objectcommon_transform_to_global_coordinates_xy(COMMON(cell), &pt->x, &pt->y);
 }
 
-int object_is_pseudo(const struct object* cell)
+int objectbase_is_pseudo(const struct object* cell)
 {
-    return cell->name == NULL;
+    return objectcommon_is_pseudo(COMMON(cell));
 }
 
-int object_is_proxy(const struct object* cell)
+int objectbase_is_proxy(const struct object* cell)
 {
-    return cell->isproxy;
+    return objectcommon_is_proxy(COMMON(cell));
 }
 
-int object_has_shapes(const struct object* cell)
+int objectbase_has_shapes(const struct object* cell)
 {
-    return cell->content.full.shapes ? !vector_empty(cell->content.full.shapes) : 0;
+    CHECK_FULL_OR_PROXY(cell);
+    if(object_is_proxy(cell))
+    {
+        return 0;
+    }
+    else
+    {
+        return objectfull_get_shapes_size(FULL(cell)) > 0;
+    }
 }
 
-int object_has_layer_flat(const struct object* cell, const struct generics* layer)
+int objectbase_has_layer_flat(const struct object* cell, const struct generics* layer)
 {
+    CHECK_FULL_OR_PROXY(cell);
     const struct object* obj = cell;
     if(object_is_proxy(cell))
     {

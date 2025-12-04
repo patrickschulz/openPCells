@@ -19,6 +19,7 @@ struct object_common {
 void objectcommon_initialize(struct object_common* obc);
 void objectcommon_destroy(struct object_common* obc);
 void objectcommon_set_name(struct object_common* obc, const char* name);
+int objectcommon_is_pseudo(const struct object_common* obc);
 void objectcommon_set_managed(struct object_common* obc, int ismanaged);
 int objectcommon_is_managed(const struct object_common* obc);
 void objectcommon_set_used(struct object_common* obc, int isused);
