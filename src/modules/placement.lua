@@ -86,7 +86,7 @@ function placement.create_floorplan_fixed_rows(circuit, utilization, numrows)
     return options
 end
 
-function _sanitize_rows(rows)
+local function _sanitize_rows(rows)
     for row = #rows, 1, -1 do
         if #rows[row] == 0 then
             table.remove(rows, row)
