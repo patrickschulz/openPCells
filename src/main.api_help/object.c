@@ -191,22 +191,6 @@
         parameters
     ));
 }
-/* object.add_anchor */
-{
-    struct parameter parameters[] = {
-        { "cell",   OBJECT, NULL, "object to which an anchor should be added" },
-        { "name",   STRING, NULL, "name of the anchor" },
-        { "where",  POINT,  NULL, "location of the anchor" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "add_anchor",
-        MODULE_OBJECT,
-        "add an anchor to an object",
-        "cell:add_anchor(\"output\", point.create(200, -20))",
-        parameters
-    ));
-}
 
 /* object.place_bottom_origin */
 {
@@ -1093,21 +1077,6 @@
     ));
 }
 
-/* object.flatten */
-{
-    struct parameter parameters[] = {
-        { "cell",      OBJECT, NULL, "Object which should be flattened" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "flatten",
-        MODULE_OBJECT,
-        "resolve the cell by placing all shapes from all children in the parent cell. This does not change the original object and creates a copy.",
-        "cell:flatten()\ncell:copy():flatten()",
-        parameters
-    ));
-}
-
 /* object.flipx */
 {
     struct parameter parameters[] = {
@@ -1414,6 +1383,25 @@
         "get_net_shapes",
         MODULE_OBJECT,
         "return a table which contains rectangular netshape entries of all shapes on a given net. Useful for instance for automatic placement of via from a power grid. The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }. If the 'layer' parameter is non-nil, only shapes on the given layer are returned.",
+        "cell:get_net_shapes(\"vdd\")\ncell:get_net_shapes(\"vss\", generics.metal(4))",
+        parameters
+    ));
+}
+
+/* object.get_array_net_shapes */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "object to get the shape outlines from" },
+        { "xindex",     INTEGER,    NULL, "x-index" },
+        { "yindex",     INTEGER,    NULL, "y-index" },
+        { "netname",    STRING,     NULL, "net name of added shape" },
+        { "layer",      GENERICS,   NULL, "optional layer filter" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_array_net_shapes",
+        MODULE_OBJECT,
+        "return a table which contains rectangular netshape entries of all shapes on a given net. Useful for instance for automatic placement of via from a power grid. The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }. If the 'layer' parameter is non-nil, only shapes on the given layer are returned. This function retrieves the netshape of a specific instance of a child array.",
         "cell:get_net_shapes(\"vdd\")\ncell:get_net_shapes(\"vss\", generics.metal(4))",
         parameters
     ));
@@ -1746,6 +1734,57 @@
     ));
 }
 
+/* object.center */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT, NULL,   "cell which should be moved" },
+        { "source",     POINT,  NULL,   "optional target point" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "center",
+        MODULE_OBJECT,
+        "translate (move) the object so that the cell center lies on the target (default: (0, 0)). "
+        "The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
+        "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
+        parameters
+    ));
+}
+
+/* object.center_x */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT, NULL,   "cell which should be moved" },
+        { "source",     POINT,  NULL,   "optional target point" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "center_x",
+        MODULE_OBJECT,
+        "translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in x-direction. "
+        "The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
+        "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
+        parameters
+    ));
+}
+
+/* object.center_y */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT, NULL,   "cell which should be moved" },
+        { "source",     POINT,  NULL,   "optional target point" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "center_y",
+        MODULE_OBJECT,
+        "translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in y-direction. "
+        "The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
+        "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
+        parameters
+    ));
+}
+
 /* object.add_child */
 {
     struct parameter parameters[] = {
@@ -1896,7 +1935,7 @@
         { NULL }
     };
     vector_append(entries, _make_api_entry(
-        "rotate_90_right",
+        "array_rotate_90_right",
         MODULE_OBJECT,
         "rotate the entire object array 90 degrees clockwise with respect to the origin",
         "cell:array_rotate_90_right()",

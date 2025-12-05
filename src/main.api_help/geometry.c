@@ -212,7 +212,7 @@
     vector_append(entries, _make_api_entry(
         "rectanglevlines_settings",
         MODULE_GEOMETRY,
-        "Calculate the geometries of vertical lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglevlines, but it does not actually create the lines. It return the width, heigh, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
+        "Calculate the geometries of vertical lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglevlines, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
         "local width, height, space, offset, numlines = geometry.rectanglevlines_settings(point.create(-100, -100), point(100, 100), 20, 1)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100 + offset, -100, numlines, 1, width + space, 0)",
         parameters
     ));
@@ -232,8 +232,26 @@
     vector_append(entries, _make_api_entry(
         "rectanglevlines_width_space_settings",
         MODULE_GEOMETRY,
-        "Calculate the geometries of vertical lines to fill a rectangular area with a given width and spacing. This function is like geometry.rectanglevlines_width_space, but it does not actually create the lines. It return the width, heigh, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
+        "Calculate the geometries of vertical lines to fill a rectangular area with a given width and spacing. This function is like geometry.rectanglevlines_width_space, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
         "local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(point.create(-100, -100), point(100, 100), 20, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100 + offset, -100, numlines, 1, width + space, 0)",
+        parameters
+    ));
+}
+
+/* geometry.rectanglevlines_numlines_width_settings */
+{
+    struct parameter parameters[] = {
+        { "pt1",        POINT,      NULL,   "First corner point of the target area" },
+        { "pt2",        POINT,      NULL,   "Second corner point of the target area" },
+        { "numlines",   INTEGER,    NULL,   "Number of lines to be generated" },
+        { "width",      INTEGER,    NULL,   "Width target of lines to be generated" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "rectanglevlines_numlines_width_settings",
+        MODULE_GEOMETRY,
+        "Calculate the geometries of vertical lines to fill a rectangular area with a given number of lines and width. The function returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
+        "local width, height, space, offset, numlines = geometry.rectanglehlines_width_space_settings(point.create(-100, -100), point(100, 100), 4, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
         parameters
     ));
 }
@@ -292,7 +310,7 @@
     vector_append(entries, _make_api_entry(
         "rectanglehlines_settings",
         MODULE_GEOMETRY,
-        "Calculate the geometries of horizontal lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglehlines, but it does not actually create the lines. It return the width, heigh, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
+        "Calculate the geometries of horizontal lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglehlines, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
         "local width, height, space, offset, numlines = geometry.rectanglehlines_settings(point.create(-100, -100), point(100, 100), 20, 1)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
         parameters
     ));
@@ -312,8 +330,26 @@
     vector_append(entries, _make_api_entry(
         "rectanglehlines_height_space_settings",
         MODULE_GEOMETRY,
-        "Calculate the geometries of horizontal lines to fill a rectangular area with a given width and spacing. This function is like geometry.rectanglehlines_width_space, but it does not actually create the lines. It return the width, heigh, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
+        "Calculate the geometries of horizontal lines to fill a rectangular area with a given height and spacing. This function is like geometry.rectanglehlines_width_space, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
         "local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(point.create(-100, -100), point(100, 100), 20, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
+        parameters
+    ));
+}
+
+/* geometry.rectanglehlines_numlines_height_settings */
+{
+    struct parameter parameters[] = {
+        { "pt1",        POINT,      NULL,   "First corner point of the target area" },
+        { "pt2",        POINT,      NULL,   "Second corner point of the target area" },
+        { "numlines",   INTEGER,    NULL,   "Number of lines to be generated" },
+        { "height",     INTEGER,    NULL,   "Height target of lines to be generated" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "rectanglehlines_numlines_height_settings",
+        MODULE_GEOMETRY,
+        "Calculate the geometries of horizontal lines to fill a rectangular area with a given number of lines and height. The function returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
+        "local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(point.create(-100, -100), point(100, 100), 4, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
         parameters
     ));
 }
@@ -610,7 +646,7 @@
         { NULL }
     };
     vector_append(entries, _make_api_entry(
-        "path_3_polygon",
+        "path_3y_polygon",
         MODULE_GEOMETRY,
         "Like geometry.path_3y, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
         "geometry.path_3y_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
@@ -792,6 +828,27 @@
     ));
 }
 
+/* geometry.calculate_viabltr2 */
+{
+    struct parameter parameters[] = {
+        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl1",        POINT,      NULL,   "Bottom-left point of the first metal rectangular shape" },
+        { "tr1",        POINT,      NULL,   "Top-right point of the first metal rectangular shape" },
+        { "bl2",        POINT,      NULL,   "Bottom-left point of the second metal rectangular shape" },
+        { "tr2",        POINT,      NULL,   "Top-right point of the second metal rectangular shape" },
+        { "properties", TABLE,      NULL,   "optional properties table" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "calculate_viabltr",
+        MODULE_GEOMETRY,
+        "Calculates possible via arrayzation in an area and returns a table with the results. Internally, the same functions as for direct creation of vias is used, so the same results can be obtained. The table contains tables with the following items (one per solution): \"layer\" (the via cut layer), \"width\" and \"height\" of the to-be-drawn cuts, \"xrep\" and \"yrep\" (repetition in x and y of the cuts), \"xspace\" and \"yspace\" (spacing of the contacts), and \"xoffset\" and \"yoffset\" (x/y offset with regard to array placement, for instance for geometry.rectanglearray). This function is like viabltr2, where two regions are given, with possibly-different sizes. Note though that only consecutive metals can be given (with a difference of 1).",
+        "local via = geometry.calculate_viabltr(1, 3, point.create(-100, -20), point.create(100, 20))",
+        parameters
+    ));
+}
+
 /* geometry.viabltr */
 {
     struct parameter parameters[] = {
@@ -830,6 +887,35 @@
         MODULE_GEOMETRY,
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. Similar to geometry.rectanglepoints, the order o the points does not matter, any corner points of the rectangle can be given. Special properties can be passed to the via generation function: 'xcontinuous' (create vias that can be abutted in x-direction, boolean), 'ycontinuous' (create vias that can be abutted in y-direction, boolean), 'minxspace' (minimum x space), 'minyspace' (minimum y space), 'equal_pitch' (use equal spacing in both x- and y-direction, boolean) and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. This is useful to solve DRC issues. Numeric parameter)",
         "geometry.viapoints(cell, 1, 3, point.create(100, 20), point.create(-100, -20))",
+        parameters
+    ));
+}
+
+/* geometry.viabltr2 */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl1",            POINT,      NULL,   "Bottom-left point of the first metal rectangular shape" },
+        { "tr1",            POINT,      NULL,   "Top-right point of the first metal rectangular shape" },
+        { "bl2",            POINT,      NULL,   "Bottom-left point of the second metal rectangular shape" },
+        { "tr2",            POINT,      NULL,   "Top-right point of the second metal rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), widthclass (create cut array for a region of a different width than the given target area)" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "viabltr",
+        MODULE_GEOMETRY,
+        "Create vias (single or stack) in a rectangular area with the given corner points in cell. "
+        "Two regions are given, one for each metal. "
+        "This allows vias with tighter spacing, as lower metals might require less enclosure around the via cuts. "
+        "The usage of this function only makes sense if contacts are defined with '[x/y]enclosure[1/2], instead of unnumbered enclosures. "
+        "Special properties can be passed to the via generation function: "
+        "'minxspace' (minimum x space), 'minyspace' (minimum y space), and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. "
+        "This is useful to solve DRC issues. Numeric parameter)",
+        "geometry.viabltr2(cell, 1, 3, point.create(-100, -20), point.create(100, 20), point.create(-150, -50), point.create(150, 50))",
         parameters
     ));
 }
@@ -1003,6 +1089,51 @@
     ));
 }
 
+/* geometry.viabarebltrov */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl1",            POINT,      NULL,   "Bottom-left point of the first metal rectangular shape" },
+        { "tr1",            POINT,      NULL,   "Top-right point of the first metal rectangular shape" },
+        { "bl2",            POINT,      NULL,   "Bottom-left point of the second metal rectangular shape" },
+        { "tr2",            POINT,      NULL,   "Top-right point of the second metal rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "viabarebltrov",
+        MODULE_GEOMETRY,
+        "Like viabltrov, but only create via cuts, not the metals.",
+        "geometry.viabarebltrov(cell,\n    1, 2,\n    point.create(-20, -100),\n    point.create(20, 100)\n    point.create(-100, -20)\n    point.create(100, 20)\n)",
+        parameters
+    ));
+}
+
+/* geometry.viabarebltr2 */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL,   "Object in which the via is created" },
+        { "firstmetal",     INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",      INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl1",            POINT,      NULL,   "Bottom-left point of the first metal rectangular shape" },
+        { "tr1",            POINT,      NULL,   "Top-right point of the first metal rectangular shape" },
+        { "bl2",            POINT,      NULL,   "Bottom-left point of the second metal rectangular shape" },
+        { "tr2",            POINT,      NULL,   "Top-right point of the second metal rectangular shape" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), widthclass (create cut array for a region of a different width than the given target area)" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "viabltr",
+        MODULE_GEOMETRY,
+        "Like geometry.viabltr2, but only create the via cuts, not the metal regions.",
+        "geometry.viabarebltr2(cell, 1, 3, point.create(-100, -20), point.create(100, 20), point.create(-150, -50), point.create(150, 50))",
+        parameters
+    ));
+}
+
 /* geometry.contactbltr */
 {
     struct parameter parameters[] = {
@@ -1040,6 +1171,28 @@
         MODULE_GEOMETRY,
         "Create contacts defined by the overlap of two rectangular areas. With this approach enclosure rules can be satisfied for both layers (FEOL and metal), even though the overlap is technically too small to allow for contact generation (where geometry.contactbltr would fail). This allows for contacts in highly constrained regions, but it is more restrictive than the geometry.contactbltr family. This function does not support any of the additional parameters (e.g. xcontinuous).",
         "geometry.contactbltrov(cell,\n    \"gate\",\n    point.create(-20, -100),\n    point.create(20, 100)\n    point.create(-100, -20)\n    point.create(100, 20)\n)\n",
+        parameters
+    ));
+}
+
+/* geometry.contactbltr2 */
+{
+    struct parameter parameters[] = {
+        { "cell",           OBJECT,     NULL,   "Object in which the contact is created" },
+        { "region",         STRING,     NULL,   "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
+        { "bl1",            POINT,      NULL,   "Bottom-left point of the rectangular FEOL region" },
+        { "tr1",            POINT,      NULL,   "Top-right point of the rectangular FEOL region" },
+        { "bl2",            POINT,      NULL,   "Bottom-left point of the rectangular metal 1 region" },
+        { "tr2",            POINT,      NULL,   "Top-right point of the rectangular metal 1 region" },
+        { "debugstring",    POINT,      NULL,   "Optional string displayed for debugging when the contact creation fails" },
+        { "options",        TABLE,      NULL,   "Optional table with additional contact options. Possible keys: minxspace (set minimum cut space in x-direction), minyspace (set minimum cut space in y-direction), widthclass (create cut array for a region of a different width than the given target area)" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "contactbltr2",
+        MODULE_GEOMETRY,
+        "Create contacts in a rectangular area with the given corner points in cell. This function supports unequal target regions for the FEOL layer and the metal 1 layer. The usage of this function only makes sense if contacts are defined with '[x/y]enclosure[1/2], instead of unnumbered enclosures.",
+        "geometry.contactbltr2(cell, \"sourcedrain\", point.create(-20, -250), point.create(20, 500), point.create(-10, -220), point.create(10, 400))",
         parameters
     ));
 }
@@ -1217,18 +1370,18 @@
     ));
 }
 
-/* geometry.path_2x_polygon */
+/* geometry.offset_polygon_points */
 {
     struct parameter parameters[] = {
-        { "pts",    POINTLIST,  NULL,   "List of points that make up the path" },
-        { "width",  INTEGER,    NULL,   "Width of the path" },
+        { "pts",    POINTLIST,  NULL,   "List of points that make up the polygon" },
+        { "offset", INTEGER,    NULL,   "Offset value" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
-        "path_points_to_polygon",
+        "offset_polygon_points",
         MODULE_GEOMETRY,
-        "Get the edge points of a path given by the center points and the width. This function does not create any shapes. The result of this function can be put into geometry.polygon to create the path shape.",
-        "geometry.path_points_to_polygon({ point.create(0, 0), point.create(1000, 0) }, 50)",
+        "Create a table with new polygon points by offsetting (moving the edges towards the outside or inside).",
+        "geometry.offset_polygon_points(polygonpts, 200)",
         parameters
     ));
 }

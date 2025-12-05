@@ -450,7 +450,7 @@
     ));
 }
 
-/* layouthelpers.place_unequal_vias */
+/* layouthelpers.place_unequal_net_vias */
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to place lines in" },
@@ -463,7 +463,7 @@
         { NULL }
     };
     vector_append(entries, _make_api_entry(
-        "place_unequal_vias",
+        "place_unequal_net_vias",
         MODULE_LAYOUTHELPERS,
         "Create vias in a cell connecting net shapes on different metal layers and different nets."
         "This function creates vias between the given layers."
