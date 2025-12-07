@@ -496,3 +496,25 @@
     ));
 }
 
+/* layouthelpers.connect_area_anchor */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "cell to place net labels in" },
+        { "layer",      GENERICS,   NULL, "layer for the created shape" },
+        { "width",      INTEGER,    NULL, "width of connection path" },
+        { "anchor1",    INTEGER,    NULL, "first area anchor for connection" },
+        { "anchor2",    INTEGER,    NULL, "second area anchor for connection" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "connect_area_anchor",
+        MODULE_LAYOUTHELPERS,
+        "Create a connection between two given area anchors. "
+        "This function is currently very basic and only exists for testing purposes. "
+        "Its interface is likely to change as well as its function. "
+        "It will create a working (and often also DRC-clean) connection, so it should be somewhat usable.",
+        "layouthelpers.connect_area_anchor(cell, generics.metal(3), 500, cell:get_area_anchor(\"anchor1\"), cell:get_area_anchor(\"anchor2\"))",
+        parameters
+    ));
+}
+
