@@ -87,9 +87,11 @@ OBJS:= \
 	main.tutorial.o \
 	main.import.o \
 	netlist.o \
-	object.base.o \
 	object.anchors.o \
+	object.base.o \
+	object.full.o \
 	object.ports.o \
+	object.proxy.o \
 	object.public.o \
 	object.util.o \
 	object.o \

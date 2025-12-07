@@ -2,7 +2,9 @@
 
 #include <stdlib.h>
 
+#define OPC_OBJECT_IMPLEMENTATION
 #include "object.util.h"
+#undef OPC_OBJECT_IMPLEMENTATION
 
 struct anchor {
     union {

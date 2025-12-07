@@ -37,12 +37,22 @@ void objectfull_foreach_shapes(struct object_full* cell, void (*func)(struct sha
 struct shape* objectfull_get_shape(struct object_full* full, size_t idx);
 const struct shape* objectfull_get_shape_const(const struct object_full* full, size_t idx);
 size_t objectfull_get_shapes_size(const struct object_full* full);
+struct vector* objectfull_get_shapes(struct object_full* full);
+const struct vector* objectfull_get_shapes_const(const struct object_full* full);
+const struct vector* objectfull_get_shapes_const(const struct object_full* full);
+int objectfull_has_layer_flat(const struct object_full* full, const struct generics* layer);
+int objectfull_has_layer(const struct object_full* full, const struct generics* layer);
 
 // children/references
 int objectfull_add_reference(struct object_full* full, struct object* reference);
 void objectfull_add_proxy(struct object_full* full, struct object* proxy);
 typedef int (*child_action)(struct object* child, struct generic_arg* extraargs);
 int objectfull_foreach_children(struct object_full* cell, child_action, struct generic_arg* extraargs);
+int objectfull_has_children(const struct object_full* cell);
+struct vector* objectfull_get_children(const struct object_full* full);
+const struct vector* objectfull_get_children_const(const struct object_full* full);
+struct vector* objectfull_get_references(const struct object_full* full);
+const struct vector* objectfull_get_references_const(const struct object_full* full);
 
 // merging
 void objectfull_merge_into(struct object_full* cell, const struct object_full* other, int merge_ports);
@@ -53,6 +63,7 @@ void objectfull_inherit_all_anchors_with_prefix(struct object_full* cell, const 
 int objectfull_add_anchor_line_xy(struct object_full* full, const char* name, coordinate_t c, int xory);
 struct anchor* objectfull_get_anchor(const struct object_full* cell, const char* name);
 coordinate_t* objectfull_get_anchor_line(const struct object_full* cell, const char* name);
+int objectfull_foreach_anchor(const struct object_full* cell, const struct transformationmatrix* trans, anchor_action action, struct generic_arg* extraargs);
 
 // alignment box
 void objectfull_clear_alignment_box(struct object_full* full);
@@ -85,6 +96,9 @@ struct polygon_container* objectfull_get_layer_boundary(const struct object_full
 // ports and labels
 void objectfull_add_port(struct object_full* cell, struct port* port);
 void objectfull_add_label(struct object_full* cell, struct port* port);
+int objectfull_has_ports(const struct object_full* cell);
+int objectfull_foreach_port(const struct object_full* cell, const struct transformationmatrix* trans, port_action action, struct generic_arg* extraargs);
+int objectfull_foreach_label(const struct object_full* cell, const struct transformationmatrix* trans, label_action action, struct generic_arg* extraargs);
 
 // net shapes
 struct bltrshape* objectfull_add_net_shape(struct object_full* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer);
@@ -92,5 +106,8 @@ struct vector* objectfull_get_net_shapes(const struct object_full* full, const c
 
 // miscellaneous helper functions
 coordinate_t* objectfull_get_minmax_xy(const struct object_full* full);
+void objectfull_flatten_inline(struct object_full* full);
+struct const_vector* objectfull_collect_references(const struct object_full* cell);
+struct vector* objectfull_collect_references_mutable(struct object_full* cell);
 
 #endif /* OPC_OBJECT_FULL_H */

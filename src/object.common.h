@@ -19,6 +19,7 @@ struct object_common {
 void objectcommon_initialize(struct object_common* obc);
 void objectcommon_destroy(struct object_common* obc);
 void objectcommon_set_name(struct object_common* obc, const char* name);
+const char* objectcommon_get_name(const struct object_common* obc);
 int objectcommon_is_pseudo(const struct object_common* obc);
 void objectcommon_set_managed(struct object_common* obc, int ismanaged);
 int objectcommon_is_managed(const struct object_common* obc);
@@ -26,6 +27,7 @@ void objectcommon_set_used(struct object_common* obc, int isused);
 int objectcommon_is_used(const struct object_common* obc);
 void objectcommon_set_proxy(struct object_common* obc, int isproxy);
 int objectcommon_is_proxy(const struct object_common* obc);
+int objectcommon_is_array(const struct object_common* obc);
 int objectcommon_is_full(const struct object_common* obc);
 void objectcommon_copy_to(const struct object_common* obc, struct object_common* new);
 const struct transformationmatrix* objectcommon_get_tmatrix(const struct object_common* obc);

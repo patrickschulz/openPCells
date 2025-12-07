@@ -5,6 +5,9 @@
 #ifndef OPC_OBJECT_ANCHORS_H
 #define OPC_OBJECT_ANCHORS_H
 
+#include "object.h"
+#include "point.h"
+
 struct anchor;
 
 struct anchor* objectanchor_create_regular(coordinate_t x, coordinate_t y);

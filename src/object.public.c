@@ -10,8 +10,9 @@
 #include <string.h>
 
 #define OPC_OBJECT_IMPLEMENTATION
-#include "object.base.h"
 #include "object.anchors.h"
+#include "object.base.h"
+#include "object.util.h"
 #undef OPC_OBJECT_IMPLEMENTATION
 
 #include "helpers.h"
@@ -250,7 +251,7 @@ struct point* object_get_array_anchor(const struct object* cell, int xindex, int
 
 struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base)
 {
-    return objectbase_get_array_area_anchor(cell, xindex, yindex, name);
+    return objectbase_get_array_area_anchor(cell, xindex, yindex, base);
 }
 
 coordinate_t* object_get_anchor_line_x(const struct object* cell, const char* name)
@@ -972,31 +973,26 @@ struct object* object_add_child_array(struct object* cell, struct object* child,
 // ************************************************************************************************************************ 
 void object_add_raw_shape(struct object* cell, struct shape* S)
 {
-    objectbase_add_shape(FULL(cell), S);
+    objectbase_add_raw_shape(cell, S);
 }
 
 void object_add_shape(struct object* cell, struct shape* S)
 {
-    object_add_raw_shape(cell, S);
-    shape_apply_inverse_transformation(S, objectcommon_get_tmatrix(COMMON(cell)));
+    objectbase_add_shape(cell, S);
 }
 
 void object_remove_shape(struct object* cell, size_t idx)
 {
-    objectfull_remove_shape(FULL(cell), idx);
+    objectbase_remove_shape(cell, idx);
 }
 
 struct shape* object_disown_shape(struct object* cell, size_t idx)
 {
-    return objectfull_disown_shape(FULL(cell), idx);
+    return objectbase_disown_shape(cell, idx);
 }
 
 struct shape* object_get_transformed_shape(const struct object* cell, size_t idx)
 {
-    const struct shape* shape = objectbase_get_shape_const(cell, idx);
-    struct shape* new = shape_copy(shape);
-    objectbase_transform_to_local_coordinates_shape(cell, new);
-    shape_apply_transformation(new, cell->trans);
-    return new;
+    return objectbase_get_transformed_shape(cell, idx);
 }
 

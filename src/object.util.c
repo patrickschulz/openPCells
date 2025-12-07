@@ -1,4 +1,6 @@
+#define OPC_OBJECT_IMPLEMENTATION
 #include "object.util.h"
+#undef OPC_OBJECT_IMPLEMENTATION
 
 static void _swap_coordinates(coordinate_t* c1, coordinate_t* c2)
 {

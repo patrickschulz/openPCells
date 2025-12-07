@@ -67,14 +67,14 @@ static struct object* _create(const char* name)
     return obj;
 }
 
-struct object* object_create(const char* name)
+struct object* objectbase_create(const char* name)
 {
     struct object* obj = _create(name);
     objectcommon_set_proxy(COMMON(obj), 0);
     return obj;
 }
 
-struct object* object_create_pseudo(void)
+struct object* objectbase_create_pseudo(void)
 {
     struct object* obj = _create(NULL);
     objectcommon_set_proxy(COMMON(obj), 0);
@@ -90,7 +90,7 @@ struct object* objectbase_create_proxy(const char* name, struct object* referenc
     return obj;
 }
 
-struct object* object_copy(const struct object* cell)
+struct object* objectbase_copy(const struct object* cell)
 {
     struct object* new = _create(NULL); // name is copied in objectcommon_copy_to
     if(!new)
@@ -110,7 +110,7 @@ struct object* object_copy(const struct object* cell)
     return new;
 }
 
-void object_destroy(void* cellv)
+void objectbase_destroy(void* cellv)
 {
     struct object* cell = cellv;
     if(objectcommon_is_proxy(COMMON(cell)))
@@ -125,7 +125,7 @@ void object_destroy(void* cellv)
     free(cell);
 }
 
-void object_set_name(struct object* cell, const char* name)
+void objectbase_set_name(struct object* cell, const char* name)
 {
     objectcommon_set_name(COMMON(cell), name);
 }
@@ -133,6 +133,22 @@ void object_set_name(struct object* cell, const char* name)
 void objectbase_add_raw_shape(struct object* cell, struct shape* S)
 {
     objectfull_add_shape(FULL(cell), S);
+}
+
+void objectbase_add_shape(struct object* cell, struct shape* S)
+{
+    objectfull_add_shape(FULL(cell), S);
+    shape_apply_inverse_transformation(S, objectcommon_get_tmatrix(COMMON(cell)));
+}
+
+void objectbase_remove_shape(struct object* cell, size_t idx)
+{
+    objectfull_remove_shape(FULL(cell), idx);
+}
+
+struct shape* objectbase_disown_shape(struct object* cell, size_t idx)
+{
+    return objectfull_disown_shape(FULL(cell), idx);
 }
 
 void objectbase_set_managed(struct object* reference)
@@ -179,14 +195,14 @@ void objectbase_set_array(struct object* cell, unsigned int xrep, unsigned int y
     objectproxy_set_array(PROXY(cell), xrep, yrep, xpitch, ypitch);
 }
 
-void object_merge_into(struct object* cell, const struct object* other)
+void objectbase_merge_into(struct object* cell, const struct object* other)
 {
     CHECK_FULL(cell);
     CHECK_FULL(other);
     objectfull_merge_into(FULL(cell), FULL(other), 0);
 }
 
-void object_merge_into_with_ports(struct object* cell, const struct object* other)
+void objectbase_merge_into_with_ports(struct object* cell, const struct object* other)
 {
     CHECK_FULL(cell);
     CHECK_FULL(other);
@@ -200,7 +216,7 @@ int objectbase_add_anchor(struct object* cell, const char* name, struct anchor* 
     return 1;
 }
 
-void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
+void objectbase_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
 {
     CHECK_FULL_OR_PROXY(other);
     if(object_is_proxy(other))
@@ -213,14 +229,14 @@ void object_inherit_all_anchors_with_prefix(struct object* cell, const struct ob
     }
 }
 
-int object_add_anchor_line_x(struct object* cell, const char* name, coordinate_t c)
+int objectbase_add_anchor_line_x(struct object* cell, const char* name, coordinate_t c)
 {
     CHECK_FULL(cell);
     objectfull_add_anchor_line_xy(FULL(cell), name, c, 0);
     return 1;
 }
 
-int object_add_anchor_line_y(struct object* cell, const char* name, coordinate_t c)
+int objectbase_add_anchor_line_y(struct object* cell, const char* name, coordinate_t c)
 {
     CHECK_FULL(cell);
     objectfull_add_anchor_line_xy(FULL(cell), name, c, 1);
@@ -534,7 +550,7 @@ void objectbase_inherit_boundary(struct object* cell, const struct object* other
     objectbase_set_boundary(cell, boundary);
 }
 
-int object_has_boundary(const struct object* cell)
+int objectbase_has_boundary(const struct object* cell)
 {
     if(object_is_proxy(cell))
     {
@@ -570,7 +586,7 @@ void objectbase_add_layer_boundary(struct object* cell, const struct generics* l
     simple_polygon_iterator_destroy(it);
 }
 
-void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer)
+void objectbase_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer)
 {
     struct polygon_container* boundary = object_get_layer_boundary(othercell, layer);
     struct polygon_container_iterator* it = polygon_container_iterator_create(boundary);
@@ -585,7 +601,7 @@ void object_inherit_layer_boundary(struct object* cell, const struct object* oth
     polygon_container_destroy(boundary);
 }
 
-int object_has_layer_boundary(const struct object* cell, const struct generics* layer)
+int objectbase_has_layer_boundary(const struct object* cell, const struct generics* layer)
 {
     if(object_is_proxy(cell))
     {
@@ -597,7 +613,7 @@ int object_has_layer_boundary(const struct object* cell, const struct generics* 
     }
 }
 
-struct polygon_container* object_get_layer_boundary(const struct object* cell, const struct generics* layer)
+struct polygon_container* objectbase_get_layer_boundary(const struct object* cell, const struct generics* layer)
 {
     CHECK_FULL_OR_PROXY(cell);
     struct polygon_container* boundary = NULL;
@@ -616,7 +632,7 @@ struct polygon_container* object_get_layer_boundary(const struct object* cell, c
     return boundary;
 }
 
-void object_add_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
+void objectbase_add_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
 {
     CHECK_FULL(cell);
     if(!generics_is_empty(layer))
@@ -627,7 +643,7 @@ void object_add_port(struct object* cell, const char* name, const struct generic
     }
 }
 
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint)
+void objectbase_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint)
 {
     CHECK_FULL(cell);
     int shift = 0;
@@ -644,7 +660,7 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
     }
 }
 
-void object_add_label(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
+void objectbase_add_label(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
 {
     CHECK_FULL(cell);
     if(!generics_is_empty(layer))
@@ -655,14 +671,14 @@ void object_add_label(struct object* cell, const char* name, const struct generi
     }
 }
 
-void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer)
+void objectbase_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer)
 {
     struct bltrshape* netarea = objectfull_add_net_shape(FULL(cell), netname, bl, tr, layer);
     objectbase_transform_to_local_coordinates(cell, bltrshape_get_bl(netarea));
     objectbase_transform_to_local_coordinates(cell, bltrshape_get_tr(netarea));
 }
 
-struct vector* object_get_net_shapes(const struct object* cell, const char* netname, const struct generics* layer)
+struct vector* objectbase_get_net_shapes(const struct object* cell, const char* netname, const struct generics* layer)
 {
     CHECK_FULL_OR_PROXY(cell);
     struct vector* nets;
@@ -711,7 +727,7 @@ struct vector* object_get_net_shapes(const struct object* cell, const char* netn
     return nets;
 }
 
-struct vector* object_get_array_net_shapes(const struct object* cell, int xindex, int yindex, const char* netname, const struct generics* layer)
+struct vector* objectbase_get_array_net_shapes(const struct object* cell, int xindex, int yindex, const char* netname, const struct generics* layer)
 {
     CHECK_PROXY(cell);
     if(!object_is_child_array(cell))
@@ -737,13 +753,13 @@ struct vector* object_get_array_net_shapes(const struct object* cell, int xindex
     return nets;
 }
 
-void object_clear_alignment_box(struct object* cell)
+void objectbase_clear_alignment_box(struct object* cell)
 {
     CHECK_FULL(cell);
     objectfull_clear_alignment_box(FULL(cell));
 }
 
-void object_set_alignment_box(
+void objectbase_set_alignment_box(
     struct object* cell,
     coordinate_t outerblx, coordinate_t outerbly,
     coordinate_t outertrx, coordinate_t outertry,
@@ -765,7 +781,7 @@ void object_set_alignment_box(
     );
 }
 
-void object_inherit_alignment_box(struct object* cell, const struct object* other)
+void objectbase_inherit_alignment_box(struct object* cell, const struct object* other)
 {
     // usage of the public interface takes care of all transformation
     struct point* outerbl = object_get_alignmentbox_anchor_outerbl(other);
@@ -846,7 +862,7 @@ static void _alignment_box_include_xy(struct object* cell, coordinate_t x, coord
     object_set_alignment_box(cell, outerblx, outerbly, outertrx, outertry, innerblx, innerbly, innertrx, innertry);
 }
 
-void object_alignment_box_include_point(struct object* cell, const struct point* pt)
+void objectbase_alignment_box_include_point(struct object* cell, const struct point* pt)
 {
     CHECK_FULL(cell);
     if(object_is_proxy(cell))
@@ -867,7 +883,7 @@ void object_alignment_box_include_point(struct object* cell, const struct point*
     }
 }
 
-void object_alignment_box_include_x(struct object* cell, coordinate_t x)
+void objectbase_alignment_box_include_x(struct object* cell, coordinate_t x)
 {
     CHECK_FULL(cell);
     if(object_is_proxy(cell))
@@ -885,7 +901,7 @@ void object_alignment_box_include_x(struct object* cell, coordinate_t x)
     }
 }
 
-void object_alignment_box_include_y(struct object* cell, coordinate_t y)
+void objectbase_alignment_box_include_y(struct object* cell, coordinate_t y)
 {
     CHECK_FULL(cell);
     if(object_is_proxy(cell))
@@ -903,7 +919,7 @@ void object_alignment_box_include_y(struct object* cell, coordinate_t y)
     }
 }
 
-int object_extend_alignment_box(struct object* cell,
+int objectbase_extend_alignment_box(struct object* cell,
     coordinate_t extouterblx, coordinate_t extouterbly,
     coordinate_t extoutertrx, coordinate_t extoutertry,
     coordinate_t extinnerblx, coordinate_t extinnerbly,
@@ -985,50 +1001,43 @@ void objectbase_array_rotate_90_right(struct object* cell)
     objectcommon_array_rotate_90_right(COMMON(cell));
 }
 
-/*
-void object_apply_other_transformation(struct object* cell, const struct transformationmatrix* trans)
-{
-    transformationmatrix_chain_inline(cell->trans, trans);
-}
-*/
-
-int object_move_x(struct object* cell, coordinate_t source, coordinate_t target)
+int objectbase_move_x(struct object* cell, coordinate_t source, coordinate_t target)
 {
     object_translate(cell, target - source, 0);
     return 1;
 }
 
-int object_move_y(struct object* cell, coordinate_t source, coordinate_t target)
+int objectbase_move_y(struct object* cell, coordinate_t source, coordinate_t target)
 {
     object_translate(cell, 0, target - source);
     return 1;
 }
 
-int object_move_point(struct object* cell, const struct point* source, const struct point* target)
+int objectbase_move_point(struct object* cell, const struct point* source, const struct point* target)
 {
     object_translate(cell, target->x - source->x, target->y - source->y);
     return 1;
 }
 
-int object_move_point_to_origin(struct object* cell, const struct point* target)
+int objectbase_move_point_to_origin(struct object* cell, const struct point* target)
 {
     object_translate(cell, target->x, target->y);
     return 1;
 }
 
-int object_move_point_to_origin_xy(struct object* cell, coordinate_t x, coordinate_t y)
+int objectbase_move_point_to_origin_xy(struct object* cell, coordinate_t x, coordinate_t y)
 {
     object_translate(cell, x, y);
     return 1;
 }
 
-int object_move_point_x(struct object* cell, const struct point* source, const struct point* target)
+int objectbase_move_point_x(struct object* cell, const struct point* source, const struct point* target)
 {
     object_translate(cell, target->x - source->x, 0);
     return 1;
 }
 
-int object_move_point_y(struct object* cell, const struct point* source, const struct point* target)
+int objectbase_move_point_y(struct object* cell, const struct point* source, const struct point* target)
 {
     object_translate(cell, 0, target->y - source->y);
     return 1;
@@ -1109,6 +1118,15 @@ const struct shape* objectbase_get_shape_const(const struct object* cell, size_t
     return objectfull_get_shape_const(FULL(cell), idx);
 }
 
+struct shape* objectbase_get_transformed_shape(const struct object* cell, size_t idx)
+{
+    const struct shape* shape = objectbase_get_shape_const(cell, idx);
+    struct shape* new = shape_copy(shape);
+    objectbase_transform_to_local_coordinates_shape(cell, new);
+    shape_apply_transformation(new, objectcommon_get_tmatrix(COMMON(cell)));
+    return new;
+}
+
 static void _rasterize_curves(struct shape* shape)
 {
     if(!shape_is_curve(shape))
@@ -1118,7 +1136,7 @@ static void _rasterize_curves(struct shape* shape)
     shape_rasterize_curve_inline(shape);
 }
 
-void object_rasterize_curves(struct object* cell)
+void objectbase_rasterize_curves(struct object* cell)
 {
     object_foreach_shapes(cell, _rasterize_curves);
 }
@@ -1150,7 +1168,7 @@ static struct vector* _get_all_shapes(const struct object* cell, const struct ge
     return outlines;
 }
 
-struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics* layer)
+struct polygon_container* objectbase_get_shape_outlines(const struct object* cell, const struct generics* layer)
 {
     struct polygon_container* container = polygon_container_create();
     struct vector* shapes = _get_all_shapes(cell, layer, 0);
@@ -1163,12 +1181,12 @@ struct polygon_container* object_get_shape_outlines(const struct object* cell, c
     return container;
 }
 
-const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell)
+const struct transformationmatrix* objectbase_get_transformation_matrix(const struct object* cell)
 {
     return objectcommon_get_tmatrix(COMMON(cell));
 }
 
-const struct transformationmatrix* object_get_array_transformation_matrix(const struct object* cell)
+const struct transformationmatrix* objectbase_get_array_transformation_matrix(const struct object* cell)
 {
     if(!object_is_child_array(cell))
     {
@@ -1228,7 +1246,7 @@ static int _flipx(struct object* cell, struct generic_arg* args)
     }
 }
 
-void object_flipx(struct object* cell)
+void objectbase_flipx(struct object* cell)
 {
     struct generic_arg args[] = {
         { .type = ARG_INT, .content.i = 0 },
@@ -1257,7 +1275,7 @@ static int _flipy(struct object* cell, struct generic_arg* args)
     }
 }
 
-void object_flipy(struct object* cell)
+void objectbase_flipy(struct object* cell)
 {
     struct generic_arg args[] = {
         { .type = ARG_INT, .content.i = 0 },
@@ -1297,257 +1315,138 @@ int objectbase_has_shapes(const struct object* cell)
 int objectbase_has_layer_flat(const struct object* cell, const struct generics* layer)
 {
     CHECK_FULL_OR_PROXY(cell);
-    const struct object* obj = cell;
     if(object_is_proxy(cell))
     {
-        obj = cell->content.proxy.reference;
-    }
-    if(obj->content.full.shapes)
-    {
-        struct vector_iterator* it = vector_iterator_create(obj->content.full.shapes);
-        while(vector_iterator_is_valid(it))
-        {
-            struct shape* shape = vector_iterator_get(it);
-            if(shape_is_layer(shape, layer))
-            {
-                return 1;
-            }
-            vector_iterator_next(it);
-        }
-        vector_iterator_destroy(it);
-    }
-    return 0;
-}
-
-int object_has_layer(const struct object* cell, const struct generics* layer)
-{
-    const struct object* obj = cell;
-    if(object_is_proxy(cell))
-    {
-        obj = cell->content.proxy.reference;
-    }
-    if(object_has_layer_flat(obj, layer))
-    {
-        return 1;
-    }
-    if(obj->content.full.children)
-    {
-        struct vector_iterator* it = vector_iterator_create(obj->content.full.children);
-        while(vector_iterator_is_valid(it))
-        {
-            struct object* object = vector_iterator_get(it);
-            if(object_has_layer(object, layer))
-            {
-                return 1;
-            }
-            vector_iterator_next(it);
-        }
-        vector_iterator_destroy(it);
-    }
-    return 0;
-}
-
-int object_has_children(const struct object* cell)
-{
-    return cell->content.full.children ? !vector_empty(cell->content.full.children) : 0;
-}
-
-int object_has_ports(const struct object* cell)
-{
-    return cell->content.full.ports ? !vector_empty(cell->content.full.ports) : 0;
-}
-
-int object_is_empty(const struct object* cell)
-{
-    return !object_has_shapes(cell) && !object_has_children(cell) && !object_has_ports(cell);
-}
-
-int object_is_used(const struct object* cell)
-{
-    return cell->isused;
-}
-
-int object_is_child_array(const struct object* cell)
-{
-    return cell->isproxy && cell->content.proxy.isarray;
-}
-
-int object_has_alignmentbox(const struct object* cell)
-{
-    if(object_is_proxy(cell))
-    {
-        return cell->content.proxy.reference->content.full.alignmentbox != NULL;
+        return objectfull_has_layer_flat(FULLREFERENCE(cell), layer);
     }
     else
     {
-        return cell->content.full.alignmentbox != NULL;
+        return objectfull_has_layer_flat(FULL(cell), layer);
     }
 }
 
-const char* object_get_name(const struct object* cell)
+int objectbase_has_layer(const struct object* cell, const struct generics* layer)
 {
-    return cell->name;
-}
-
-const char* object_get_child_reference_name(const struct object* child)
-{
-    return child->content.proxy.reference->name;
-}
-
-void object_flatten_inline(struct object* cell, int flattenports)
-{
-    // add shapes and flatten children (recursive)
-    if(cell->content.full.children)
+    CHECK_FULL_OR_PROXY(cell);
+    if(object_is_proxy(cell))
     {
-        for(unsigned int i = 0; i < vector_size(cell->content.full.children); ++i)
-        {
-            struct object* child = vector_get(cell->content.full.children, i);
-            const struct object* reference = child->content.proxy.reference;
-            struct object* flat = object_flatten(reference, flattenports);
-            if(flat->content.full.shapes)
-            {
-                size_t size = vector_size(flat->content.full.shapes);
-                while(size > 0)
-                {
-                    struct shape* S = object_disown_shape(flat, size - 1);
-                    --size;
-                    shape_apply_transformation(S, flat->trans);
-                    shape_apply_transformation(S, child->trans);
-                    for(unsigned int ix = 1; ix <= child->content.proxy.xrep; ++ix)
-                    {
-                        for(unsigned int iy = 1; iy <= child->content.proxy.yrep; ++iy)
-                        {
-                            struct shape* copy = shape_copy(S);
-                            shape_translate(copy, (ix - 1) * child->content.proxy.xpitch, (iy - 1) * child->content.proxy.ypitch);
-                            object_add_raw_shape(cell, copy);
-                        }
-                    }
-                    shape_destroy(S);
-                }
-            }
-            if(flat->content.full.labels)
-            {
-                for(unsigned int p = 0; p < vector_size(flat->content.full.labels); ++p)
-                {
-                    struct port* label = vector_get(flat->content.full.labels, p);
-                    struct port* newlabel = objectport_copy(label);
-                    objectport_transform_to_global_coordinates(newlabel, flat->trans);
-                    objectport_transform_to_global_coordinates(newlabel, child->trans);
-                    _add_port(cell, newlabel);
-                }
-            }
-            if(flattenports)
-            {
-                if(flat->content.full.ports)
-                {
-                    for(unsigned int p = 0; p < vector_size(flat->content.full.ports); ++p)
-                    {
-                        struct port* port = vector_get(flat->content.full.ports, p);
-                        struct port* newport = objectport_copy(port);
-                        objectport_transform_to_global_coordinates(newport, flat->trans);
-                        objectport_transform_to_global_coordinates(newport, child->trans);
-                        _add_port(cell, newport);
-                    }
-                }
-            }
-            object_destroy(flat);
-        }
-        vector_destroy(cell->content.full.children);
-        cell->content.full.children = NULL;
-        vector_destroy(cell->content.full.references);
-        cell->content.full.references = NULL;
+        return objectfull_has_layer(FULLREFERENCE(cell), layer);
+    }
+    else
+    {
+        return objectfull_has_layer(FULL(cell), layer);
     }
 }
 
-struct object* object_flatten(const struct object* cell, int flattenports)
+int objectbase_has_children(const struct object* cell)
+{
+    CHECK_FULL(cell);
+    return objectfull_has_children(FULL(cell));
+}
+
+int objectbase_has_ports(const struct object* cell)
+{
+    CHECK_FULL(cell);
+    return objectfull_has_ports(FULL(cell));
+}
+
+int objectbase_is_empty(const struct object* cell)
+{
+    CHECK_FULL(cell);
+    return !object_has_shapes(cell) && !object_has_children(cell) && !object_has_ports(cell);
+}
+
+int objectbase_is_used(const struct object* cell)
+{
+    return objectcommon_is_used(COMMON(cell));
+}
+
+int objectbase_is_child_array(const struct object* cell)
+{
+    return objectcommon_is_proxy(COMMON(cell)) && objectproxy_is_array(PROXY(cell));
+}
+
+int objectbase_has_alignmentbox(const struct object* cell)
+{
+    if(object_is_proxy(cell))
+    {
+        return objectfull_has_alignment_box(FULLREFERENCE(cell));
+    }
+    else
+    {
+        return objectfull_has_alignment_box(FULL(cell));
+    }
+}
+
+const char* objectbase_get_name(const struct object* cell)
+{
+    return objectcommon_get_name(COMMON(cell));
+}
+
+const char* objectbase_get_child_reference_name(const struct object* child)
+{
+    return object_get_name(REFERENCE(child));
+}
+
+void objectbase_flatten_inline(struct object* cell, int flattenports)
+{
+    CHECK_FULL(cell);
+    objectfull_flatten_inline(FULL(cell));
+}
+
+struct object* objectbase_flatten(const struct object* cell, int flattenports)
 {
     struct object* new = object_copy(cell);
     object_flatten_inline(new, flattenports);
     return new;
 }
 
-unsigned int object_get_child_xrep(const struct object* cell)
+unsigned int objectbase_get_child_xrep(const struct object* cell)
 {
-    return cell->content.proxy.xrep;
+    CHECK_PROXY(cell);
+    return objectproxy_get_xrep(PROXY(cell));
 }
 
-unsigned int object_get_child_yrep(const struct object* cell)
+unsigned int objectbase_get_child_yrep(const struct object* cell)
 {
-    return cell->content.proxy.yrep;
+    CHECK_PROXY(cell);
+    return objectproxy_get_yrep(PROXY(cell));
 }
 
-coordinate_t object_get_child_xpitch(const struct object* cell)
+coordinate_t objectbase_get_child_xpitch(const struct object* cell)
 {
-    return cell->content.proxy.xpitch;
+    CHECK_PROXY(cell);
+    return objectproxy_get_xpitch(PROXY(cell));
 }
 
-coordinate_t object_get_child_ypitch(const struct object* cell)
+coordinate_t objectbase_get_child_ypitch(const struct object* cell)
 {
-    return cell->content.proxy.ypitch;
+    CHECK_PROXY(cell);
+    return objectproxy_get_ypitch(PROXY(cell));
 }
 
-static void _collect_references(const struct object* cell, struct const_vector* references)
+struct const_vector* objectbase_collect_references(const struct object* cell)
 {
-    if(cell->content.full.references)
-    {
-        struct vector_const_iterator* it = vector_const_iterator_create(cell->content.full.references);
-        while(vector_const_iterator_is_valid(it))
-        {
-            const struct object* ref = vector_const_iterator_get(it);
-            _collect_references(ref, references);
-            const_vector_append(references, ref);
-            vector_const_iterator_next(it);
-        }
-        vector_const_iterator_destroy(it);
-    }
+    CHECK_FULL(cell);
+    return objectfull_collect_references(FULL(cell));
 }
 
-struct const_vector* object_collect_references(const struct object* cell)
+struct vector* objectbase_collect_references_mutable(struct object* cell)
 {
-    struct const_vector* references = const_vector_create(8);
-    _collect_references(cell, references);
-    return references;
+    CHECK_FULL(cell);
+    return objectfull_collect_references_mutable(FULL(cell));
 }
-
-static void _collect_references_mutable(const struct object* cell, struct vector* references)
-{
-    if(cell->content.full.references)
-    {
-        struct vector_iterator* it = vector_iterator_create(cell->content.full.references);
-        while(vector_iterator_is_valid(it))
-        {
-            struct object* ref = vector_iterator_get(it);
-            _collect_references_mutable(ref, references);
-            vector_append(references, ref);
-            vector_iterator_next(it);
-        }
-        vector_iterator_destroy(it);
-    }
-}
-
-struct vector* object_collect_references_mutable(struct object* cell)
-{
-    struct vector* references = vector_create(8, NULL);
-    _collect_references_mutable(cell, references);
-    return references;
-}
-
-/*
-const char* object_get_identifier(const struct object* cell)
-{
-    return cell->identifier;
-}
-*/
 
 struct shape_iterator {
     const struct vector* shapes;
     size_t index;
 };
 
-struct shape_iterator* object_create_shape_iterator(const struct object* cell)
+struct shape_iterator* objectbase_create_shape_iterator(const struct object* cell)
 {
+    CHECK_FULL(cell);
     struct shape_iterator* it = malloc(sizeof(*it));
-    it->shapes = cell->content.full.shapes;
+    it->shapes = objectfull_get_shapes_const(FULL(cell));
     it->index = 0;
     return it;
 }
@@ -1585,10 +1484,11 @@ struct child_iterator {
     size_t index;
 };
 
-struct child_iterator* object_create_child_iterator(const struct object* cell)
+struct child_iterator* objectbase_create_child_iterator(const struct object* cell)
 {
+    CHECK_FULL(cell);
     struct child_iterator* it = malloc(sizeof(*it));
-    it->children = cell->content.full.children;
+    it->children = objectfull_get_children_const(FULL(cell));
     it->index = 0;
     return it;
 }
@@ -1626,10 +1526,11 @@ struct reference_iterator {
     size_t index;
 };
 
-struct reference_iterator* object_create_reference_iterator(const struct object* cell)
+struct reference_iterator* objectbase_create_reference_iterator(const struct object* cell)
 {
+    CHECK_FULL(cell);
     struct reference_iterator* it = malloc(sizeof(*it));
-    it->references = cell->content.full.references;
+    it->references = objectfull_get_references_const(FULL(cell));
     it->index = 0;
     return it;
 }
@@ -1667,10 +1568,10 @@ struct mutable_reference_iterator {
     size_t index;
 };
 
-struct mutable_reference_iterator* object_create_mutable_reference_iterator(struct object* cell)
+struct mutable_reference_iterator* objectbase_create_mutable_reference_iterator(struct object* cell)
 {
     struct mutable_reference_iterator* it = malloc(sizeof(*it));
-    it->references = cell->content.full.references;
+    it->references = objectfull_get_references(FULL(cell));
     it->index = 0;
     return it;
 }
@@ -1702,61 +1603,21 @@ void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it)
     free(it);
 }
 
-int object_foreach_anchor(const struct object* cell, anchor_action action, struct generic_arg* extraargs)
+int objectbase_foreach_anchor(const struct object* cell, anchor_action action, struct generic_arg* extraargs)
 {
-    if(cell->content.full.anchors)
-    {
-        struct hashmap_const_iterator* it = hashmap_const_iterator_create(cell->content.full.anchors);
-        while(hashmap_const_iterator_is_valid(it))
-        {
-            const char* name = hashmap_const_iterator_key(it);
-            const struct anchor* anchor = hashmap_const_iterator_value(it);
-            if(!objectanchor_call(anchor, name, cell->trans, action, extraargs))
-            {
-                hashmap_const_iterator_destroy(it);
-                return 0;
-            }
-            hashmap_const_iterator_next(it);
-        }
-        hashmap_const_iterator_destroy(it);
-    }
+    CHECK_FULL(cell);
+    objectfull_foreach_anchor(FULL(cell), objectcommon_get_tmatrix(COMMON(cell)), action, extraargs);
     return 1;
 }
 
-int object_foreach_port(const struct object* cell, port_action action, struct generic_arg* extraargs)
+int objectbase_foreach_port(const struct object* cell, port_action action, struct generic_arg* extraargs)
 {
-    if(cell->content.full.ports)
-    {
-        for(size_t i = 0; i < vector_size(cell->content.full.ports); ++i)
-        {
-            const struct port* port = vector_get_const(cell->content.full.ports, i);
-            if(!objectport_call_port(port, cell->trans, action, extraargs))
-            {
-                return 0;
-            }
-        }
-    }
+    objectfull_foreach_port(FULL(cell), objectcommon_get_tmatrix(COMMON(cell)), action, extraargs);
     return 1;
 }
 
-int object_foreach_label(const struct object* cell, label_action action, struct generic_arg* extraargs)
+int objectbase_foreach_label(const struct object* cell, label_action action, struct generic_arg* extraargs)
 {
-    if(cell->content.full.labels)
-    {
-        for(size_t i = 0; i < vector_size(cell->content.full.labels); ++i)
-        {
-            const struct port* label = vector_get_const(cell->content.full.labels, i);
-            if(!objectport_call_label(label, cell->trans, action, extraargs))
-            {
-                return 0;
-            }
-        }
-    }
+    objectfull_foreach_label(FULL(cell), objectcommon_get_tmatrix(COMMON(cell)), action, extraargs);
     return 1;
 }
-
-// FIXME: when you reach this point you need to rename all object_ functions in this file to objectbase_
-//        and create a corresponding function in object.public.c, which calls the base function
-//        From the list of used objectbase_ functions in object.public.c it can also be determined which
-//        functions require a CHECK_FULL/CHECK_FULL_OR_PROXY at the beginning. Some functions are called
-//        frequently, it might be wise to just check in the top-level calling functions.

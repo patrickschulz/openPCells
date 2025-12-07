@@ -42,6 +42,11 @@ void objectproxy_set_array(struct object_proxy* proxy, unsigned int xrep, unsign
     proxy->private.array_trans = transformationmatrix_create();
 }
 
+int objectproxy_is_array(const struct object_proxy* proxy)
+{
+    return proxy->private.isarray;
+}
+
 const struct transformationmatrix* objectproxy_get_array_tmatrix(const object_proxy* proxy)
 {
     return proxy->private.array_trans;
@@ -55,6 +60,16 @@ unsigned int objectproxy_get_xrep(const struct object_proxy* proxy)
 unsigned int objectproxy_get_yrep(const struct object_proxy* proxy)
 {
     return proxy->private.yrep;
+}
+
+coordinate_t objectproxy_get_xpitch(const struct object_proxy* proxy)
+{
+    return proxy->private.xpitch;
+}
+
+coordinate_t objectproxy_get_ypitch(const struct object_proxy* proxy)
+{
+    return proxy->private.yrpitch;
 }
 
 void objectproxy_translate_pt_to_array(const struct object_proxy* proxy, struct point* pt, int xindex, int yindex)
