@@ -977,7 +977,7 @@ static int _write_cell_elements(struct export_writer* writer, const struct objec
     /* ports */
     if(write_ports && object_has_ports(cell))
     {
-        int ret = _write_ports(writer, cell, leftdelim, rightdelim);
+        ret = _write_ports(writer, cell, leftdelim, rightdelim);
         if(!ret)
         {
             return 0;

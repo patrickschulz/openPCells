@@ -1772,14 +1772,14 @@ static int lobject_get_shape_outlines(lua_State* L)
         {
             // gather points
             struct vector* pts = vector_create(8, point_destroy);
-            struct simple_polygon_iterator* pit = simple_polygon_iterator_create(single_boundary);
-            while(simple_polygon_iterator_is_valid(pit))
+            struct simple_polygon_iterator* spit = simple_polygon_iterator_create(single_boundary);
+            while(simple_polygon_iterator_is_valid(spit))
             {
-                const struct point* pt = simple_polygon_iterator_get(pit);
+                const struct point* pt = simple_polygon_iterator_get(spit);
                 vector_append(pts, point_copy(pt));
-                simple_polygon_iterator_next(pit);
+                simple_polygon_iterator_next(spit);
             }
-            simple_polygon_iterator_destroy(pit);
+            simple_polygon_iterator_destroy(spit);
             // add offset
             // FIXME: this should be done in the object C interface
             struct vector* offsetpoly = geometry_offset_polygon_points(pts, offset);

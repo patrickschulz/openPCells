@@ -368,10 +368,10 @@ int cmdoptions_add_alias(struct cmdoptions* options, const char* long_aliased_id
     struct mode* basemode = _get_basemode(options);
     for(i = 0; i < basemode->entries_size; ++i)
     {
-        struct entry* entry = basemode->entries[i];
-        if(entry->what == OPTION)
+        struct entry* e = basemode->entries[i];
+        if(e->what == OPTION)
         {
-            struct option* option = entry->value;
+            struct option* option = e->value;
             if(strcmp(option->long_identifier, long_aliased_identifier) == 0)
             {
                 alias = option;

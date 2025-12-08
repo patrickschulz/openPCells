@@ -526,9 +526,9 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
             size_t num_layers = lua_tointeger(L, -1);
             lua_pop(L, 1);
             lookup->layers = const_vector_create(num_layers);
-            for(size_t i = 0; i < num_layers; ++i)
+            for(size_t j = 0; j < num_layers; ++j)
             {
-                lua_rawgeti(L, -1, i + 1);
+                lua_rawgeti(L, -1, j + 1);
                 const_vector_append(lookup->layers, lua_touserdata(L, -1));
                 lua_pop(L, 1);
             }
@@ -570,9 +570,9 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
             size_t excludes_len = lua_tointeger(L, -1);
             lua_pop(L, 1);
             layerexclude->excludes = polygon_container_create();
-            for(size_t i = 1; i <= excludes_len; ++i)
+            for(size_t j = 1; j <= excludes_len; ++j)
             {
-                lua_rawgeti(L, -1, i);
+                lua_rawgeti(L, -1, j);
                 struct simple_polygon* exclude = lutil_create_simple_polygon(L, -1);
                 polygon_container_add(layerexclude->excludes, exclude);
                 lua_pop(L, 1);
@@ -590,9 +590,9 @@ int lplacement_place_within_layer_boundaries(lua_State* L)
             size_t num_layers = lua_tointeger(L, -1);
             lua_pop(L, 1);
             layerexclude->layers = const_vector_create(num_layers);
-            for(size_t i = 0; i < num_layers; ++i)
+            for(size_t j = 0; j < num_layers; ++j)
             {
-                lua_rawgeti(L, -1, i + 1);
+                lua_rawgeti(L, -1, j + 1);
                 const_vector_append(layerexclude->layers, lua_touserdata(L, -1));
                 lua_pop(L, 1);
             }

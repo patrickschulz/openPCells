@@ -193,7 +193,7 @@ char* P_get_lua_export_layername(struct const_vector* searchpaths, const char* e
                 lua_getfield(L, -1, "get_techexport");
                 if(!lua_isnil(L, -1))
                 {
-                    int ret = lua_pcall(L, 0, 1, 0);
+                    ret = lua_pcall(L, 0, 1, 0);
                     if(ret != LUA_OK)
                     {
                         fprintf(stderr, "error while calling get_techexport: %s\n", lua_tostring(L, -1));

@@ -3691,25 +3691,25 @@ const struct point* anchor_iterator_anchor(struct anchor_iterator* it)
     // get anchor through object methods for proper transformation
     if(_anchor_is_area(anchor))
     {
-        struct point* anchor = object_get_area_anchor(it->object, key);
+        struct point* pt = object_get_area_anchor(it->object, key);
         if(it->container)
         {
             free(it->container);
         }
         it->container = malloc(2 * sizeof(*it->container));
-        memcpy(it->container, anchor, 2 * sizeof(*it->container));
-        free(anchor);
+        memcpy(it->container, pt, 2 * sizeof(*it->container));
+        free(pt);
     }
     else
     {
-        struct point* anchor = object_get_anchor(it->object, key);
+        struct point* pt = object_get_anchor(it->object, key);
         if(it->container)
         {
             free(it->container);
         }
         it->container = malloc(sizeof(*it->container));
-        memcpy(it->container, anchor, sizeof(*it->container));
-        free(anchor);
+        memcpy(it->container, pt, sizeof(*it->container));
+        free(pt);
     }
     return it->container;
 }

@@ -1530,8 +1530,8 @@ static int _read_structure(
                 struct const_vector_iterator* it = const_vector_iterator_create(cellnames);
                 while(const_vector_iterator_is_valid(it))
                 {
-                    const char* cellname = const_vector_iterator_get(it);
-                    fprintf(cellfile, "    env.references[\"%s\"] = cell:create_object_handle(pcell.create_layout_env(\"%s/%s\", \"%s\", nil, env))\n", cellname, importname, cellname, cellname); // FIXME: gds has no instance names, is this a problem?
+                    const char* cellrefname = const_vector_iterator_get(it);
+                    fprintf(cellfile, "    env.references[\"%s\"] = cell:create_object_handle(pcell.create_layout_env(\"%s/%s\", \"%s\", nil, env))\n", cellrefname, importname, cellrefname, cellrefname); // FIXME: gds has no instance names, is this a problem?
                     const_vector_iterator_next(it);
                 }
                 const_vector_iterator_destroy(it);

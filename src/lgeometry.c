@@ -250,10 +250,10 @@ static int lgeometry_path_manhatten(lua_State* L)
     struct vector* points = vector_create(numpoints, point_destroy);
 
     lua_rawgeti(L, 3, 1);
-    struct lpoint* pt = lpoint_checkpoint(L, -1);
-    vector_append(points, point_create(lpoint_get(pt)->x, lpoint_get(pt)->y));
-    //coordinate_t lastx = lpoint_get(pt)->x;
-    coordinate_t lasty = lpoint_get(pt)->y;
+    struct lpoint* startpt = lpoint_checkpoint(L, -1);
+    vector_append(points, point_create(lpoint_get(startpt)->x, lpoint_get(startpt)->y));
+    //coordinate_t lastx = lpoint_get(startpt)->x;
+    coordinate_t lasty = lpoint_get(startpt)->y;
     lua_pop(L, 1);
 
     for(unsigned int i = 2; i <= len; ++i)

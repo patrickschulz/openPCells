@@ -206,10 +206,10 @@ static void _update_net_positions(struct block* block)
     for(unsigned int i = 0; i < block->num_cells; ++i)
     {
         struct cell* c = block->cells + i;
-        for(unsigned int i = 0; i < c->base.num_conns; ++i)
+        for(unsigned int j = 0; j < c->base.num_conns; ++j)
         {
-            struct net* net = c->base.nets[i];
-            unsigned int pinoffset = c->base.pinoffset[i];
+            struct net* net = c->base.nets[j];
+            unsigned int pinoffset = c->base.pinoffset[j];
             net->xmin = MIN2(net->xmin, c->pos_x + pinoffset);
             net->xmax = MAX2(net->xmax, c->pos_x+ pinoffset);
             net->ymin = MIN2(net->ymin, c->pos_y);
