@@ -625,6 +625,7 @@ void main_API_search(const char* name)
             }
         }
     }
+    const_vector_destroy(found_entries);
     _destroy_api_entries(entries);
 }
 
