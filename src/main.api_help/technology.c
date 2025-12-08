@@ -86,6 +86,21 @@
     ));
 }
 
+/* technology.has_feature */
+{
+    struct parameter parameters[] = {
+        { "feature", STRING, NULL, "feature to be queried" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "has_feature",
+        MODULE_TECHNOLOGY,
+        "Check if the chosen technology supports a certain feature. Currently available features: 'has_gatecut', 'allow_poly_routing', 'is_soi'",
+        "if technology.has_feature(\"has_gatecut\") then\n    -- do something with gatecuts\nend",
+        parameters
+    ));
+}
+
 /* technology.has_layer */
 {
     struct parameter parameters[] = {
@@ -173,6 +188,20 @@
         MODULE_TECHNOLOGY,
         "retrieve the numeric index of a metal layer. The function always returns positive indices. If a non-metal layer is given, the function returns 0.",
         "local metalindex = technology.metal_layer_to_index(generics.metal(2)) -- 2",
+        parameters
+    ));
+}
+
+/* technology.get_number_of_metals */
+{
+    struct parameter parameters[] = {
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_number_of_metals",
+        MODULE_TECHNOLOGY,
+        "get the number of metals in the layer stack. This value is given in the configuration file of a technology node",
+        "local nummetals = technology.get_number_of_metals()",
         parameters
     ));
 }
