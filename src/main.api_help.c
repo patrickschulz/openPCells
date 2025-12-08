@@ -40,27 +40,48 @@ static int _is_func_exact(const char* tocheck, const char* func, const char* mod
 
 static int _is_func_match(const char* tocheck, const char* func, const char* module)
 {
-    /*
-    if(module)
+    const char* dot = strchr(tocheck, '.');
+    const char* tocheck_module;
+    const char* tocheck_func;
+    char* tocheck_module_buf = NULL;
+    char* tocheck_func_buf = NULL;
+    if(dot) // tocheck has module name
     {
-        char* fullname = malloc(strlen(func) + strlen(module) + 1 + 1); // extra +1: '.'
-        sprintf(fullname, "%s.%s", module, func);
-        int match = (strstr(tocheck, func) != NULL) || (strstr(tocheck, fullname) != NULL);
-        free(fullname);
-        return match;
+        size_t idx = dot - tocheck;
+        tocheck_module_buf = malloc(idx + 1);
+        *tocheck_module_buf = 0; // start with emtpy string
+        strncat(tocheck_module_buf, tocheck, idx);
+        size_t funclen = strlen(tocheck) - idx - 1; // -1: '.'
+        tocheck_func_buf = malloc(funclen + 1);
+        *tocheck_func_buf = 0; // start with emtpy string
+        strncat(tocheck_func_buf, tocheck + idx + 1, funclen);
+        tocheck_module = tocheck_module_buf;
+        tocheck_func = tocheck_func_buf;
     }
     else
     {
-        return (strstr(tocheck, func) != NULL);
+        tocheck_module = tocheck;
+        tocheck_func = tocheck;
     }
-    */
-    const char* ffound = strstr(func, tocheck);
+    const char* ffound = strstr(func, tocheck_func);
     const char* mfound = NULL;
     if(module)
     {
-        mfound = strstr(module, tocheck);
+        mfound = strstr(module, tocheck_module);
     }
-    return ffound || mfound;
+    if(dot)
+    {
+        free(tocheck_module_buf);
+        free(tocheck_func_buf);
+    }
+    if(dot)
+    {
+        return ffound && mfound;
+    }
+    else
+    {
+        return ffound || mfound;
+    }
 }
 
 struct parameter {
