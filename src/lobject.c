@@ -677,6 +677,13 @@ static int lobject_create_object_handle(lua_State* L)
     lcheck_check_numargs1(L, 2, "object.create_object_handle");
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* reference = lobject_check(L, 2);
+    // use lobject_get_unchecked for reference instead of lobject_get, as this function needs non-constant objects but can be called on objects there were already added as children
+    struct object* o_reference = lobject_get_unchecked(reference);
+    if(object_is_proxy(o_reference))
+    {
+        lua_pushstring(L, "object.create_object_handle: can't add proxy objects, only full objects");
+        lua_error(L);
+    }
     struct object* handle = object_create_handle(lobject_get(L, cell), lobject_get(L, reference));
     lobject_adapt_non_owning(L, handle);
     lobject_disown(reference); // memory is now handled by cell
@@ -693,8 +700,14 @@ static int lobject_add_child(lua_State* L)
     }
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* child = lobject_check(L, 2);
-    const char* name = luaL_checkstring(L, 3);
     // use lobject_get_unchecked for child instead of lobject_get, as this function needs non-constant objects but can be called on objects there were already added as children
+    struct object* o_child = lobject_get_unchecked(child);
+    if(object_is_proxy(o_child))
+    {
+        lua_pushstring(L, "object.add_child: can't add proxy objects, only full objects");
+        lua_error(L);
+    }
+    const char* name = luaL_checkstring(L, 3);
     struct object* proxy = object_add_child(lobject_get(L, cell), lobject_get_unchecked(child), name);
     if(!proxy)
     {
@@ -711,6 +724,13 @@ static int lobject_add_child_array(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* child = lobject_check(L, 2);
+    // use lobject_get_unchecked for child instead of lobject_get, as this function needs non-constant objects but can be called on objects there were already added as children
+    struct object* o_child = lobject_get_unchecked(child);
+    if(object_is_proxy(o_child))
+    {
+        lua_pushstring(L, "object.add_child_array: can't add proxy objects, only full objects");
+        lua_error(L);
+    }
     const char* name = luaL_checkstring(L, 3);
     unsigned xrep = luaL_checkinteger(L, 4);
     unsigned yrep = luaL_checkinteger(L, 5);
