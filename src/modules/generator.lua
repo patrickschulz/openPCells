@@ -215,6 +215,18 @@ function M.analog(file, devices, placement, nets)
             error(string.format("generator.analog: placement entry has unknown 'what' type: '%s'", entry.what))
         end
     end
+    -- placement for unspecified devices
+    _newline(lines)
+    _section(lines, "placement (unspecified devices)")
+    do
+        local lastdevice
+        for _, device in ipairs(devices) do
+            if lastdevice then
+                table.insert(lines, string.format("%s:place_right(%s)", device.name, lastdevice.name))
+            end
+            lastdevice = device
+        end
+    end
     -- merging
     _newline(lines)
     _section(lines, "merging")

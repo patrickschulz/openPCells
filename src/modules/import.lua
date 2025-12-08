@@ -1,5 +1,65 @@
 local M = {}
 
+local function _print_kv(k, v, indentstr)
+    local vfmt
+    if type(v) == "string" then
+        vfmt = "%s"
+    elseif type(v) == "number" then
+        if math.tointeger(v) then
+            vfmt = "%d"
+        else
+            vfmt = "%g"
+        end
+    else
+        vfmt = "%s"
+    end
+    local fmt = string.format("%%s%%s = %s", vfmt)
+    print(string.format(fmt, indentstr, k, v))
+end
+
+function M.report_netlist(netlist)
+    print("****************************************************************************************************")
+    print("netlist report")
+    print("****************************************************************************************************")
+    local devices = {}
+    for _, subcircuit in ipairs(netlist) do
+        print(string.format("start subcircuit: %s", subcircuit.name))
+        for _, instance in ipairs(subcircuit) do
+            print(string.format("instance (%s): %s %s", instance.identifier, instance.type, instance.model))
+            print("  parameters:")
+            for k, v in pairs(instance.parameters) do
+                _print_kv(k, v, "    ")
+            end
+            print("  connections:")
+            for k, v in pairs(instance.connections) do
+                _print_kv(k, v, "    ")
+            end
+            print("----------------------------------")
+        end
+        print(string.format("end subcircuit: %s", subcircuit.name))
+    end
+    print("****************************************************************************************************")
+end
+
+function M.report_devices(devices)
+    print("****************************************************************************************************")
+    print("devices report")
+    print("****************************************************************************************************")
+    for _, device in ipairs(devices) do
+        print(string.format("device (%s): %s", device.name, device.cell))
+        print("  parameters:")
+        for k, v in pairs(device.parameters) do
+            _print_kv(k, v, "    ")
+        end
+        print("  connections:")
+        for k, v in pairs(device.connections) do
+            _print_kv(k, v, "    ")
+        end
+        print("----------------------------------")
+    end
+    print("****************************************************************************************************")
+end
+
 local function _connections_match(c1, c2, connections)
     for _, c in ipairs(connections) do
         if c1[c] ~= c2[c] then
@@ -110,15 +170,30 @@ function M.map_netlist_devices(netlist, devicemap, verbose)
     return devices
 end
 
-function M.check(devices, placement)
+function M.extract_routes(netlist, dontroute)
+end
+
+local function _check(devices, placement, warn_not_abort)
     local searchfunc = function(pentry, name)
         return pentry.object == name
     end
     for _, device in ipairs(devices) do
         if not util.find_predicate(placement, searchfunc, device.name) then
-            error(string.format("import.check: placement plan is not complete. No entry for device '%s'.", device.name))
+            if warn_not_abort then
+                print(string.format("import.check: placement plan is not complete. No entry for device '%s'.", device.name))
+            else
+                error(string.format("import.check: placement plan is not complete. No entry for device '%s'.", device.name))
+            end
         end
     end
+end
+
+function M.check_warn(devices, placement)
+    _check(devices, placement, true)
+end
+
+function M.check_abort(devices, placement)
+    _check(devices, placement, false)
 end
 
 -- default device mappings (factories)
