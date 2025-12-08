@@ -3,10 +3,7 @@
 #define OPC_OBJECT_IMPLEMENTATION
 #include "object.anchors.h"
 #include "object.base.h"
-#include "object.common.h"
-#include "object.full.h"
 #include "object.ports.h"
-#include "object.proxy.h"
 #include "object.util.h"
 #undef OPC_OBJECT_IMPLEMENTATION
 
@@ -19,39 +16,6 @@
 #include "helpers.h"
 #include "util.h"
 
-struct object {
-    struct object_common common;
-    union {
-        struct object_proxy proxy; // proxy objects (light handles to children)
-        struct object_full full; // full objects
-    } content;
-};
-
-#define COMMON(obj) &obj->common
-#define PROXY(obj) &obj->content.proxy
-#define FULL(obj) &obj->content.full
-#define REFERENCE(obj) objectproxy_get_reference(&obj->content.proxy)
-#define FULLREFERENCE(obj) FULL(REFERENCE(obj))
-
-#define CHECK_FULL(obj)\
-    OPC_ASSERT_MSG2(\
-        objectcommon_is_full(COMMON(obj)),\
-        __func__,\
-        ": object given must be a full object"\
-    )
-#define CHECK_PROXY(obj)\
-    OPC_ASSERT_MSG2(\
-        objectcommon_is_proxy(COMMON(obj)),\
-        __func__,\
-        ": object given must be a proxy object"\
-    )
-#define CHECK_FULL_OR_PROXY(obj)\
-    OPC_ASSERT_MSG2(\
-        objectcommon_is_full(COMMON(obj)) || objectcommon_is_proxy(COMMON(obj)),\
-        __func__,\
-        ": object given must be a full object"\
-    )
-
 static struct object* _create(const char* name)
 {
     struct object* obj = malloc(sizeof(*obj));
@@ -62,7 +26,6 @@ static struct object* _create(const char* name)
     memset(obj, 0, sizeof(*obj));
     objectcommon_initialize(COMMON(obj));
     objectcommon_set_name(COMMON(obj), name);
-    objectcommon_set_managed(COMMON(obj), 0);
     objectcommon_set_used(COMMON(obj), 1);
     return obj;
 }
@@ -71,6 +34,7 @@ struct object* objectbase_create(const char* name)
 {
     struct object* obj = _create(name);
     objectcommon_set_proxy(COMMON(obj), 0);
+    objectfull_set_managed(FULL(obj), 0);
     return obj;
 }
 
@@ -78,6 +42,7 @@ struct object* objectbase_create_pseudo(void)
 {
     struct object* obj = _create(NULL);
     objectcommon_set_proxy(COMMON(obj), 0);
+    objectfull_set_managed(FULL(obj), 0);
     return obj;
 }
 
@@ -153,7 +118,7 @@ struct shape* objectbase_disown_shape(struct object* cell, size_t idx)
 
 void objectbase_set_managed(struct object* reference)
 {
-    objectcommon_set_managed(COMMON(reference), 1);
+    objectfull_set_managed(FULL(reference), 1);
 }
 
 void objectbase_set_unused(struct object* reference)

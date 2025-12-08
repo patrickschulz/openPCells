@@ -5,6 +5,9 @@
 #ifndef OPC_OBJECT_BASE_H
 #define OPC_OBJECT_BASE_H
 
+#include "object.common.h"
+#include "object.full.h"
+#include "object.proxy.h"
 #include "object.anchors.h"
 
 // alignmentbox access macros

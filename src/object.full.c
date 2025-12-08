@@ -1,5 +1,6 @@
 #define OPC_OBJECT_IMPLEMENTATION
 #include "object.anchors.h"
+#include "object.def.h"
 #include "object.full.h"
 #undef OPC_OBJECT_IMPLEMENTATION
 
@@ -145,6 +146,8 @@ void objectfull_copy_to(const struct object_full* full, struct object_full* new)
         }
         hashmap_iterator_destroy(netit);
     }
+
+    new->private.ismanaged = full->private.ismanaged;
 }
 
 void objectfull_destroy(struct object_full* full)
@@ -316,6 +319,16 @@ static int _contains_reference(const struct object_full* full, const struct obje
     return vector_find_flat(full->private.references, reference) != -1;
 }
 
+void objectfull_set_managed(struct object_full* full, int ismanaged)
+{
+    full->private.ismanaged = ismanaged;
+}
+
+int objectfull_is_managed(const struct object_full* full)
+{
+    return full->private.ismanaged;
+}
+
 int objectfull_add_reference(struct object_full* full, struct object* reference)
 {
     if(!full->private.children)
@@ -323,7 +336,8 @@ int objectfull_add_reference(struct object_full* full, struct object* reference)
         full->private.children = vector_create(OBJECT_DEFAULT_CHILDREN_SIZE, object_destroy);
         full->private.references = vector_create(OBJECT_DEFAULT_REFERENCES_SIZE, object_destroy);
     }
-    if(!reference->ismanaged && !_contains_reference(full, reference))
+    struct object_full* rf = FULL(reference);
+    if(!rf->private.ismanaged && !_contains_reference(full, reference))
     {
         vector_append(full->private.references, reference);
         return 1;
@@ -344,15 +358,14 @@ void objectfull_add_proxy(struct object_full* full, struct object* proxy)
     vector_append(full->private.children, proxy);
 }
 
-typedef int (*child_action)(struct object* child, struct generic_arg* extraargs);
-int objectfull_foreach_children(struct object_full* full, child_action, struct generic_arg* extraargs)
+int objectfull_foreach_children(struct object_full* full, child_action action, struct generic_arg* extraargs)
 {
     if(full->private.children)
     {
         for(size_t i = 0; i < vector_size(full->private.children); ++i)
         {
             struct object* child = vector_get(full->private.children, i);
-            int ret = child_action(child, extraargs);
+            int ret = action(child, extraargs);
             if(!ret)
             {
                 return 0;
@@ -386,16 +399,15 @@ const struct vector* objectfull_get_references_const(const struct object_full* f
     return full->private.references;
 }
 
-void objectfull_merge_into(struct object_full* fulltarget, const struct object_full* fullsource, int merge_ports)
+void objectfull_merge_into(struct object_full* fulltarget, const struct object_full* fullsource, const struct transformationmatrix* sourcetrans, int merge_ports)
 {
     if(fullsource->private.shapes)
     {
         for(unsigned int i = 0; i < vector_size(fullsource->private.shapes); ++i)
         {
             struct shape* shape = shape_copy(vector_get(fullsource->private.shapes, i));
-            object_add_raw_shape(fulltarget, shape);
-            shape_apply_transformation(shape, fullsource->trans);
-            shape_apply_inverse_transformation(shape, fulltarget->trans);
+            objectfull_add_shape(fulltarget, shape);
+            shape_apply_transformation(shape, sourcetrans);
         }
     }
     if(fullsource->private.children)
@@ -665,7 +677,6 @@ struct vector* objectfull_set_boundary(struct object_full* full, struct vector* 
     {
         const struct point* pt = vector_const_iterator_get(it);
         struct point* newpt = point_copy(pt);
-        transformationmatrix_apply_inverse_transformation(full->trans, newpt);
         vector_append(cullell->private.boundary, newpt);
         vector_const_iterator_next(it);
     }
@@ -819,7 +830,7 @@ int objectfull_foreach_port(const struct object_full* cell, const struct transfo
         for(size_t i = 0; i < vector_size(cell->content.full.ports); ++i)
         {
             const struct port* port = vector_get_const(cell->content.full.ports, i);
-            if(!objectport_call_port(port, cell->trans, action, extraargs))
+            if(!objectport_call_port(port, trans, action, extraargs))
             {
                 return 0;
             }
@@ -834,7 +845,7 @@ int objectfull_foreach_label(const struct object_full* cell, const struct transf
         for(size_t i = 0; i < vector_size(cell->content.full.labels); ++i)
         {
             const struct port* label = vector_get_const(cell->content.full.labels, i);
-            if(!objectport_call_label(label, cell->trans, action, extraargs))
+            if(!objectport_call_label(label, trans, action, extraargs))
             {
                 return 0;
             }

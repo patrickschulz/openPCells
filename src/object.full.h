@@ -22,6 +22,7 @@ struct object_full {
         struct vector* boundary; // a polygon, stores struct point*
         struct hashmap* layer_boundaries; // contains polygons that store struct point*
         struct hashmap* nets; // stores struct vector*
+        int ismanaged; // poor-mans shared pointer, required to avoid double-free when using object handles
     } private;
 };
 
@@ -44,6 +45,8 @@ int objectfull_has_layer_flat(const struct object_full* full, const struct gener
 int objectfull_has_layer(const struct object_full* full, const struct generics* layer);
 
 // children/references
+void objectfull_set_managed(struct object_full* full, int ismanaged);
+int objectfull_is_managed(const struct object_full* full);
 int objectfull_add_reference(struct object_full* full, struct object* reference);
 void objectfull_add_proxy(struct object_full* full, struct object* proxy);
 typedef int (*child_action)(struct object* child, struct generic_arg* extraargs);

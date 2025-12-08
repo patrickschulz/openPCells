@@ -24,16 +24,6 @@ int objectcommon_is_pseudo(const struct object_common* obc)
     return obc->private.name == NULL;
 }
 
-void objectcommon_set_managed(struct object_common* obc, int ismanaged)
-{
-    obc->private.ismanaged = ismanaged;
-}
-
-int objectcommon_is_managed(const struct object_common* obc)
-{
-    return obc->private.ismanaged;
-}
-
 void objectcommon_set_used(struct object_common* obc, int isused)
 {
     obc->private.isused = isused;
@@ -63,7 +53,6 @@ void objectcommon_copy_to(const struct object_common* obc, struct object_common*
 {
     new->private.name = util_strdup(obc->private.name);
     new->private.isproxy = obc->private.isproxy;
-    new->private.ismanaged = obc->private.ismanaged;
     new->private.isused = obc->private.isused;
     transformationmatrix_destroy(new->private.trans);
     new->private.trans = transformationmatrix_copy_to(obc->private.trans);

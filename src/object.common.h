@@ -10,7 +10,6 @@ struct object_common {
     struct {
         char* name;
         int isproxy;
-        int ismanaged; // FIXME: is this really a common property? Do proxy objects ever use this?
         int isused; // FIXME: is this really a common property? Do proxy objects ever use this?
         struct transformationmatrix* trans;
     } private;
@@ -21,8 +20,6 @@ void objectcommon_destroy(struct object_common* obc);
 void objectcommon_set_name(struct object_common* obc, const char* name);
 const char* objectcommon_get_name(const struct object_common* obc);
 int objectcommon_is_pseudo(const struct object_common* obc);
-void objectcommon_set_managed(struct object_common* obc, int ismanaged);
-int objectcommon_is_managed(const struct object_common* obc);
 void objectcommon_set_used(struct object_common* obc, int isused);
 int objectcommon_is_used(const struct object_common* obc);
 void objectcommon_set_proxy(struct object_common* obc, int isproxy);
