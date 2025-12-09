@@ -34,4 +34,12 @@ function M.arg_func(index, argname, typename, arg, func)
     end
 end
 
+function M.arg_options_table(options, keys)
+    for k in pairs(options) do
+        if not util.any_of(k, keys) then
+            error(string.format("options table must contain only allowed keys (one of { %s }), illegal key: '%s'", util.tconcatfmt(keys, ", ", "'%s'"), k))
+        end
+    end
+end
+
 return M
