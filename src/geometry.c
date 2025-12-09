@@ -1160,7 +1160,7 @@ static int _via_contact_bltrov(
     );
     if(!ov)
     {
-        return 0;
+        return !makearray; // no existing overlap is not a failure with disabled via arrayzation
     }
     if(makearray)
     {
