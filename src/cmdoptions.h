@@ -57,6 +57,7 @@ const void* cmdoptions_get_argument_short(struct cmdoptions* options, char short
 const void* cmdoptions_mode_get_argument_short(struct cmdoptions* options, const char* modename, char short_identifier);
 const void* cmdoptions_get_argument_long(struct cmdoptions* options, const char* long_identifier);
 const void* cmdoptions_mode_get_argument_long(struct cmdoptions* options, const char* modename, const char* long_identifier);
+int cmdoptions_no_positional_parameters(const struct cmdoptions* options);
 const char** cmdoptions_get_positional_parameters(const struct cmdoptions* options);
 
 #endif /* OPC_CMDOPTS_H */

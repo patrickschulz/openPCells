@@ -618,6 +618,14 @@ int main(int argc, const char* const * argv)
     }
 
     // should not trigger
+    if(!cmdoptions_no_positional_parameters(cmdoptions))
+    {
+        fputs("illegal additional positional parameters present\n", stderr);
+        returnvalue = 1;
+        goto DESTROY_CONFIG;
+    }
+
+    // should not trigger
     cmdoptions_assert_all_options_checked(cmdoptions);
 
     // should not reach here
