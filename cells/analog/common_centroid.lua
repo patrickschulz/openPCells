@@ -10,6 +10,7 @@ function parameters()
         { "xseparation", 0 },
         { "gatelength",  technology.get_dimension("Minimum Gate Length") },
         { "gatespace", technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space") },
+        { "matchgateextensions", true },
         { "gatemetal",  1 },
         { "gatelinemetal",  2 },
         { "usesourcestraps", false },
@@ -354,9 +355,13 @@ function layout(cell, _P)
     local guardringysep = math.max(_P.guardringminysep, (yseparation_needed - _P.guardringwidth) / 2)
 
     local gateext
-    if _P.extendgatessymmetrically then
-        if _P.gatestrapsincenter and not _P.drawinnerguardrings then
-            gateext = (yseparation + _P.gatestrapwidth) / 2
+    if _P.matchgateextensions then
+        if _P.extendgatessymmetrically then
+            if _P.gatestrapsincenter and not _P.drawinnerguardrings then
+                gateext = (yseparation + _P.gatestrapwidth) / 2
+            else
+                gateext = _P.gatestrapspace + _P.gatestrapwidth
+            end
         else
             gateext = _P.gatestrapspace + _P.gatestrapwidth
         end
