@@ -632,15 +632,6 @@ int main(int argc, const char* const * argv)
     fputs("no cell given\n", stderr);
     returnvalue = 1;
 
-    if(stdoutp)
-    {
-        close(stdoutp);
-    }
-    if(stderrp)
-    {
-        close(stderrp);
-    }
-
     // clean up states
 DESTROY_CONFIG: ;
     {
@@ -654,6 +645,14 @@ DESTROY_CONFIG: ;
         vector_destroy(ignoredlayers);
     }
     hashmap_destroy(config);
+    if(stdoutp)
+    {
+        close(stdoutp);
+    }
+    if(stderrp)
+    {
+        close(stderrp);
+    }
 DESTROY_CMDOPTIONS:
     cmdoptions_destroy(cmdoptions);
     return returnvalue;
