@@ -21,4 +21,7 @@ return {
     ["Minimum M3 Space"]                            = 400,
     ["Minimum M4 Width"]                            = 600,
     ["Minimum M4 Space"]                            = 600,
+    ["Minimum M1M2 Viawidth"]                       = 260,
+    ["Minimum M2M3 Viawidth"]                       = 260,
+    ["Minimum M3M4 Viawidth"]                       = 260,
 }
