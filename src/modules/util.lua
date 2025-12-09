@@ -886,3 +886,11 @@ function util.uniq(t)
     end
     return results
 end
+
+function util.tconcatfmt(t, sep, fmt)
+    local strt = {}
+    for i = 1, #t do
+        table.insert(strt, string.format(fmt, t[i]))
+    end
+    return table.concat(strt, sep);
+end
