@@ -106,6 +106,25 @@ function parameters()
     )
 end
 
+function process_parameters(_P)
+    local t = {}
+    if _P.gatelinemetal > 1 then
+        t.gatelinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.gatelinemetal - 1, _P.gatelinemetal))
+    else
+        t.gatelinewidth = technology.get_dimension("Minimum M1 Width")
+    end
+    if _P.gatelinemetal > 1 then
+        t.gatelineviawidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.gatelinemetal - 1, _P.gatelinemetal))
+    end
+    if _P.interconnectmetal > 1 then
+        t.interconnectlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal - 1, _P.interconnectmetal))
+    else
+        t.interconnectlinewidth = technology.get_dimension("Minimum M1 Width")
+    end
+    t.outputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
+    return t
+end
+
 function check(_P)
     if #_P.pattern % 2 == 1 then
         return false, "the pattern contains an odd number of rows. There might be a use case for this, but the current implementation does not support this"
