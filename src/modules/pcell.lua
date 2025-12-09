@@ -263,6 +263,9 @@ local function _get_parameters(state, cellname, cellargs)
     if cell.funcs.process_parameters then
         local t = cell.funcs.process_parameters(P)
         for k, v in pairs(t) do
+            if not Pset[k] then
+                error(string.format("'process_parameters' set the parameter '%s', but this has no matching parameter in cell '%s', maybe it was spelled wrong?", k, cellname))
+            end
             if not explicit[k] then
                 P[k] = v
             end
