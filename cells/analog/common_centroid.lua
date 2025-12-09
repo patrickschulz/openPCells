@@ -863,7 +863,8 @@ function layout(cell, _P)
                                             _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
                                         ) + _P.gatelineviawidth / 2 + shift,
                                         _get_dev_anchor(device, string.format("%sgatestrap", gate)).t
-                                    )
+                                    ),
+                                    string.format("gate strap via for gate line:\n    x parameters: gatelineviawidth (%d)\n    y parameters: gatestrapwidth (%d)", _P.gatelineviawidth, _P.gatestrapwidth)
                                 )
                             end
                             -- connect to gate line
@@ -881,7 +882,8 @@ function layout(cell, _P)
                                         _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
                                     ) + _P.gatelineviawidth / 2 + shift,
                                     cell:get_area_anchor_fmt("gateline_%d_%d", rownum, _map_device_index_to_gate(device.device)).t
-                                )
+                                ),
+                                string.format("gate strap to gate line conncetion:\n    x parameters: gatelineviawidth (%d)\n    y parameters: gatelinewidth (%d)", _P.gatelineviawidth, _P.gatelinewidth)
                             )
                         end
                     end
@@ -1052,7 +1054,8 @@ function layout(cell, _P)
                                     _get_dev_anchor(device, string.format("sourcedrain%d", finger)).bl,
                                     _get_dev_anchor(device, string.format("sourcedrain%d", finger)).tr,
                                     cell:get_area_anchor_fmt("interconnectline_%d_source0", rownum).bl,
-                                    cell:get_area_anchor_fmt("interconnectline_%d_source0", rownum).tr
+                                    cell:get_area_anchor_fmt("interconnectline_%d_source0", rownum).tr,
+                                    string.format("source/drain to source interconnect lines:\n    x1 parameters: sdwidth (%d)\n    y1 parameters: fingerwidth (%d)\n    x2 parameters: (fullwidth)\n    y2 parameters: interconnectlinewidth (%d)", _P.sdwidth, _P.fingerwidth, _P.interconnectlinewidth)
                                 )
                             end
                         end
@@ -1716,7 +1719,8 @@ function layout(cell, _P)
                             cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").bl,
                             cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").tr,
                             cell:get_area_anchor_fmt("outputconnectline_%s", netname).bl,
-                            cell:get_area_anchor_fmt("outputconnectline_%s", netname).tr
+                            cell:get_area_anchor_fmt("outputconnectline_%s", netname).tr,
+                            string.format("source interconnect lines to output lines:\n    x1 parameters: (fullwidth)\n    y1 parameters: interconnectlinewidth (%d)\n    x2 parameters: outputlinewidth (%d)\n    y2 parameters: (fullheight)", _P.interconnectlinewidth, _P.outputlinewidth)
                         )
                     end
                 end
