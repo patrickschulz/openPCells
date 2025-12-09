@@ -73,7 +73,6 @@ function parameters()
         { "connectdummies", true },
         { "connectdummysources", true },
         { "connectdummiestointernalnet", false },
-        { "outerdummiesasdiode", false },
         { "extendalltop", 0 },
         { "extendallbottom", 0 },
         { "extendallleft", 0 },
@@ -205,7 +204,7 @@ function check(_P)
     if _P.connectdummygatestoactive and not _P.equalgatenets then
         return false, "if dummy gates are connected to active gates, all gates have to be on the same net (equalgatenets == true)"
     end
-    if not _P.connectdummygatestoactive and _P.connectgatesonbothsides and (_P.innerdummies > 0 or _P.outerdummies > 0) then
+    if not _P.connectdummygatestoactive and _P.connectgatesonbothsides and (_P.outerdummies > 0) then
         return false, "if gates are connected on both sides, dummy gates must be connected to the active gates"
     end
     if not _P.equalgatenets and _P.gatemetal == _P.gatelinemetal then
@@ -458,6 +457,25 @@ function layout(cell, _P)
         connectdrainboth = _P.connectdummysources,
     })
 
+    -- add outer dummies to pattern
+    local pattern = {}
+    for _, rowpattern in ipairs(_P.pattern) do
+        local row = {}
+        -- add outer dummies (left)
+        for i = 1, _P.outerdummies do
+            table.insert(row, 0)
+        end
+        -- add active devices
+        for _, device in ipairs(rowpattern) do
+            table.insert(row, device)
+        end
+        -- add outer dummies (right)
+        for i = 1, _P.outerdummies do
+            table.insert(row, 0)
+        end
+        table.insert(pattern, row)
+    end
+
     local namelookup = {}
     local function _get_device_name(devicenum)
         if not namelookup[devicenum] then
@@ -468,7 +486,7 @@ function layout(cell, _P)
     end
     -- generate all sub-devices
     local devicetable = {}
-    for rownum, rowpattern in ipairs(_P.pattern) do -- don't use activepattern here as dummies should be generated
+    for rownum, rowpattern in ipairs(pattern) do -- don't use activepattern here as dummies should be generated
         for column, devicenum in ipairs(rowpattern) do
             local index = _get_device_name(devicenum)
             table.insert(devicetable, {
@@ -522,22 +540,6 @@ function layout(cell, _P)
     -- prepare mosfet rows
     local function _make_row_devices(rownum, devicerow)
         local devices = {}
-        table.insert(devices,
-            util.add_options(dummyoptions, {
-                name = string.format("outerleftdummy_%d", rownum),
-                fingers = _P.outerdummies,
-                gatelength = _P.outerdummygatelength,
-                drawtopgate = _P.connectgatesonbothsides or (rownum % 2 == 0),
-                drawbotgate = _P.connectgatesonbothsides or (rownum % 2 == 1),
-                shortdevice = _P.connectdummiestointernalnet or (not _P.connectdummysources and (_P.outerdummies > 1)),
-                shortsourcegate = _P.outerdummies == 1,
-                shortlocation = (rownum % 2 == 0) and "top" or "bottom",
-                shortdevicerightoffset = _P.connectdummiestointernalnet and 0 or 1,
-                topgaterightextension = -_P.gatelength,
-                drainmetal = _P.outerdummiesasdiode and 1 or _P.sourcemetal,
-                sourcemetal = _P.outerdummiesasdiode and 1 or _P.sourcemetal,
-            })
-        )
         local connectsourceinverse
         if _P.sourcestrapsinside then
             connectsourceinverse = ((_P.channeltype == "pmos") and (rownum % 2 == 0)) or ((_P.channeltype == "nmos") and (rownum % 2 == 1))
@@ -582,22 +584,6 @@ function layout(cell, _P)
                 )
             end
         end
-        table.insert(devices,
-            util.add_options(dummyoptions, {
-                name = string.format("outerrightdummy_%d", rownum),
-                fingers = _P.outerdummies,
-                gatelength = _P.outerdummygatelength,
-                drawtopgate = _P.connectgatesonbothsides or (rownum % 2 == 0),
-                drawbotgate = _P.connectgatesonbothsides or (rownum % 2 == 1),
-                shortdevice = _P.connectdummiestointernalnet or (not _P.connectdummysources and (_P.outerdummies > 1)),
-                shortdraingate = _P.outerdummies == 1,
-                shortlocation = (rownum % 2 == 0) and "top" or "bottom",
-                shortdeviceleftoffset = _P.connectdummiestointernalnet and 0 or 1,
-                topgateleftextension = -_P.gatelength,
-                drainmetal = _P.outerdummiesasdiode and 1 or _P.sourcemetal,
-                sourcemetal = _P.outerdummiesasdiode and 1 or _P.sourcemetal,
-            })
-        )
         return devices
     end
 
@@ -649,27 +635,6 @@ function layout(cell, _P)
 
     local _get_dev_anchor = function(device, where)
         return cell:get_area_anchor_fmt("M_%d_%d_%d_%s", device.device, device.row, device.index, where)
-    end
-
-    -- connect outer and inner dummies
-    if not _P.connectdummygatestoactive then
-        if _P.outerdummies > 0 then
-            for rownum = 1, numrows do
-                local gate = (rownum % 2 == 0) and "top" or "bot"
-                geometry.rectanglebltr(cell, generics.metal(1),
-                    cell:get_area_anchor_fmt("outerleftdummy_%d_%sgatestrap", rownum, gate).br,
-                    cell:get_area_anchor_fmt("outerrightdummy_%d_%sgatestrap", rownum, gate).tl
-                )
-            end
-        elseif _P.innerdummies > 0 then
-            for rownum = 1, numrows do
-                local gate = (rownum % 2 == 0) and "top" or "bot"
-                geometry.rectanglebltr(cell, generics.metal(1),
-                    cell:get_area_anchor_fmt("innerdummy_%d_%d_%sgatestrap", rownum, 1, gate).br,
-                    cell:get_area_anchor_fmt("innerdummy_%d_%d_%sgatestrap", rownum, numinstancesperrow - 1, gate).tl
-                )
-            end
-        end
     end
 
     local function _get_uniq_row_devices(rownum)
