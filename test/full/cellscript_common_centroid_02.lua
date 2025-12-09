@@ -47,7 +47,6 @@ local cc = pcell.create_layout("analog/common_centroid", "_common_centroid", {
     grouporder = "source_inside",
     gatestrapsincenter = false,
     connectgatesonbothsides = false,
-    innerdummies = 0,
     outerdummies = 0,
     extendalltop = 200,
     extendallbottom = 200,

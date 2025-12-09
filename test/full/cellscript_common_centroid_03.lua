@@ -25,7 +25,6 @@ local commonoptions = {
     guardringfilloxidetype = true,
     shortgates = false,
     shortdummies = true,
-    innerdummies = 0,
     outerdummies = 0,
     extendalltop = 200,
     extendallbottom = 200,

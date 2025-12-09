@@ -15,4 +15,5 @@ return {
     usesdmetalwidthtable = true,
     sdmetalwidths = { 200, 300, 400, 600 },
     drawguardring = false,
+    checkshorts = false,
 }

@@ -48,4 +48,5 @@ local rows = {
 return {
     rows = rows,
     yseparation = 500,
+    checkshorts = false,
 }

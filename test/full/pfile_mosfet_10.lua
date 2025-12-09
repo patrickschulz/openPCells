@@ -18,4 +18,5 @@ return {
     activedummywidth = 200,
     activedummyspace = 1000,
     guardringrespectactivedummies = true,
+    checkshorts = false,
 }

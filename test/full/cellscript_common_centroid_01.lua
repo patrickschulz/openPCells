@@ -32,7 +32,6 @@ local commonoptions = {
     guardringminysep = 1000,
     shortgates = false,
     shortdummies = true,
-    innerdummies = 0,
     outerdummies = 0,
     extendalltop = 200,
     extendallbottom = 200,

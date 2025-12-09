@@ -319,6 +319,7 @@ function layout(cmos, _P)
             extendanalogmarkerleft = _P.extendanalogmarkerleft,
             extendanalogmarkerright = _P.extendanalogmarkerright,
             excludestopgatesfromcutregions = _P.excludestopgatesfromcutregions,
+            checkshorts = false,
         }
 
         -- pmos

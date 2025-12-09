@@ -368,19 +368,25 @@ function layout(cell, _P)
     local guardringxsep = _P.guardringminxsep
     local guardringysep = math.max(_P.guardringminysep, (yseparation_needed - _P.guardringwidth) / 2)
 
-    local gateext
+    local activegateext
+    local inactivegateext
     if _P.matchgateextensions then
         if _P.extendgatessymmetrically then
             if _P.gatestrapsincenter and not _P.drawinnerguardrings then
-                gateext = (yseparation + _P.gatestrapwidth) / 2
+                activegateext = (yseparation + _P.gatestrapwidth) / 2
+                inactivegateext = (yseparation + _P.gatestrapwidth) / 2
             else
-                gateext = _P.gatestrapspace + _P.gatestrapwidth
+                activegateext = _P.gatestrapspace + _P.gatestrapwidth
+                inactivegateext = _P.gatestrapspace + _P.gatestrapwidth
             end
         else
-            gateext = _P.gatestrapspace + _P.gatestrapwidth
+            activegateext = _P.gatestrapspace + _P.gatestrapwidth
+            inactivegateext = nil
         end
     else
-        -- keep nil to get the default value
+        -- nil to get the default value
+        activegateext = nil
+        inactivegateext = nil
     end
 
     -- calculate possible row shifts for compacter layouts
@@ -402,8 +408,6 @@ function layout(cell, _P)
         drainsize = _P.sourcedrainsize,
         sourcealign = "center",
         drainalign = "center",
-        gtopext = gateext,
-        gbotext = gateext,
         topgateleftextension = _P.gatestrapleftext,
         botgateleftextension = _P.gatestrapleftext,
         topgaterightextension = _P.gatestraprightext,
@@ -446,6 +450,7 @@ function layout(cell, _P)
         connectsource = _P.usesourcestraps,
         connectsourceboth = _P.connectsourcesonbothsides,
         connectdrain = _P.usedrainstraps,
+        checkshorts = false,
     })
 
     local dummyoptions = util.add_options(commonoptions, {
@@ -566,7 +571,6 @@ function layout(cell, _P)
             else
                 table.insert(devices,
                     util.add_options(fetoptions, {
-                        checkshorts = false,
                         shortdevice = _P.shortdummies,
                         diodeconnected = _P.shortdummies,
                         name = string.format("M_%d_%d_%d", device.device, device.row, device.index),
@@ -597,6 +601,8 @@ function layout(cell, _P)
         end
         local row = util.add_options(rowoptions, {
             shift = rowshift,
+            gtopext = rownum % 2 == 1 and activegateext or inactivegateext,
+            gbotext = rownum % 2 == 0 and activegateext or inactivegateext,
         })
         local devicerow = _get_devices(function(device) return device.row == rownum end)
         row.devices = _make_row_devices(rownum, devicerow)

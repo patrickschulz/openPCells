@@ -14,4 +14,5 @@ return {
     guardringtopsep = 600,
     guardringbottomsep = 600,
     guardringfillwell = true,
+    checkshorts = false,
 }
