@@ -291,7 +291,8 @@ function parameters()
         { "leftpolylines",                                                                              {} },
         { "rightpolylines",                                                                             {} },
         { "drawrotationmarker",                                                                         false },
-        { "drawanalogmarker",                                                                           false }
+        { "drawanalogmarker",                                                                           false },
+        { "checkshorts",                                                                                true }
     )
 end
 
@@ -520,6 +521,15 @@ function check(_P)
     end
     if _P.drainstraptopmetal < _P.drainendmetal then
         return false, string.format("the drain strap top metal must be larger than or equal to the drain end metal, got %d and %d", _P.drainstraptopmetal, _P.drainendmetal)
+    end
+    if _P.checkshorts then
+        if _P.sourcemetal == _P.topgatemetal then
+            if _P.topgatespace <= _P.connectsourcewidth + _P.connectsourcespace then
+                return false, string.format("if source and gate metals are equal the straps must be apart from each other to avoid shorts")
+            end
+        end
+        if _P.drainmetal == _P.topgatemetal then
+        end
     end
     if _P.shortdevice and ((_P.sourcesize % 2) ~= (_P.sdwidth % 2)) then
         return false, string.format("sourcesize and sdwidth must both be even or odd when shortdevice is true (%d vs. %d)", _P.sourcesize, _P.sdwidth)

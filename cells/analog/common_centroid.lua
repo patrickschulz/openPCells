@@ -566,6 +566,7 @@ function layout(cell, _P)
             else
                 table.insert(devices,
                     util.add_options(fetoptions, {
+                        checkshorts = false,
                         shortdevice = _P.shortdummies,
                         diodeconnected = _P.shortdummies,
                         name = string.format("M_%d_%d_%d", device.device, device.row, device.index),
