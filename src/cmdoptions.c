@@ -183,11 +183,11 @@ int cmdoptions_assert_all_options_checked(const struct cmdoptions* options)
                 {
                     if(option->long_identifier)
                     {
-                        fprintf(stderr, "option '--%s' was no checked\n", option->long_identifier);
+                        fprintf(stderr, "option '--%s' was not checked\n", option->long_identifier);
                     }
                     else
                     {
-                        fprintf(stderr, "option '-%c' was no checked\n", option->short_identifier);
+                        fprintf(stderr, "option '-%c' was not checked\n", option->short_identifier);
                     }
                     return 0;
                 }
