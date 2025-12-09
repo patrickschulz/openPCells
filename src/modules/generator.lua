@@ -140,6 +140,7 @@ function M.analog(file, devices, placement, nets)
     -- placement
     _newline(lines)
     _section(lines, "placement")
+    table.insert(lines, "local placementskip = technology.get_optional_dimension(\"Placementskip\")")
     local group = stack.create()
     local allgroups = 0
     local groupcontent = stack.create()
@@ -153,23 +154,34 @@ function M.analog(file, devices, placement, nets)
         elseif entry.what == "abut" then
             local x
             local y
+            local xskip
+            local yskip
             if entry.where == "top" then
                 x = "align_center_x"
                 y = "abut_top"
+                xskip = "placementskip"
+                yskip = "0"
             elseif entry.where == "bottom" then
                 x = "align_center_x"
                 y = "abut_bottom"
+                xskip = "-placementskip"
+                yskip = "0"
             elseif entry.where == "left" then
                 x = "abut_left"
                 y = "align_center_y"
+                xskip = "0"
+                yskip = "-placementskip"
             elseif entry.where == "right" then
                 x = "abut_right"
                 y = "align_center_y"
+                xskip = "0"
+                yskip = "placementskip"
             else
                 error(string.format("generator.analog: placement entry has unknown 'where' type: '%s'", entry.where))
             end
             table.insert(lines, string.format("%s:%s(%s)", entry.object, x, entry.reference))
             table.insert(lines, string.format("%s:%s(%s)", entry.object, y, entry.reference))
+            table.insert(lines, string.format("%s:translate(%s, %s)", entry.object, xskip, yskip))
             if groupcontent:peek() then
                 table.insert(groupcontent:top(), entry.object)
             end
@@ -223,6 +235,7 @@ function M.analog(file, devices, placement, nets)
         for _, device in ipairs(devices) do
             if lastdevice then
                 table.insert(lines, string.format("%s:place_right(%s)", device.name, lastdevice.name))
+                table.insert(lines, string.format("%s:translate(%s, %s)", device.name, "placementskip", 0))
             end
             lastdevice = device
         end

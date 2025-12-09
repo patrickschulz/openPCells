@@ -173,27 +173,37 @@ end
 function M.extract_routes(netlist, dontroute)
 end
 
-local function _check(devices, placement, warn_not_abort)
+function M.check(devices, placement, options)
+    check.set_next_function_name("import.check")
+    check.arg(1, "devices", "table", devices)
+    check.arg(2, "place", "table", placement)
+    check.arg(3, "options", "table", options)
+    check.arg_options_table(options, { "devices", "placement" })
     local searchfunc = function(pentry, name)
         return pentry.object == name
     end
     for _, device in ipairs(devices) do
         if not util.find_predicate(placement, searchfunc, device.name) then
-            if warn_not_abort then
-                print(string.format("import.check: placement plan is not complete. No entry for device '%s'.", device.name))
-            else
-                error(string.format("import.check: placement plan is not complete. No entry for device '%s'.", device.name))
+            local str = string.format("import.check: placement plan is not complete. No entry for device '%s'.", device.name)
+            if options.devices == "warn" then
+                print(str)
+            else -- "error"
+                error(str)
             end
         end
     end
-end
-
-function M.check_warn(devices, placement)
-    _check(devices, placement, true)
-end
-
-function M.check_abort(devices, placement)
-    _check(devices, placement, false)
+    for _, entry in ipairs(placement) do
+        if entry.object then
+            if not util.any_of(function(device) return entry.object == device.name end, devices) then
+                local str = string.format("import.check: placement plan contains references to unknown devices. No device named '%s'.", entry.object)
+                if options.placement == "warn" then
+                    print(str)
+                else -- "error"
+                    error(str)
+                end
+            end
+        end
+    end
 end
 
 -- default device mappings (factories)
