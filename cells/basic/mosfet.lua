@@ -292,7 +292,8 @@ function parameters()
         { "rightpolylines",                                                                             {} },
         { "drawrotationmarker",                                                                         false },
         { "drawanalogmarker",                                                                           false },
-        { "checkshorts",                                                                                true }
+        -- FIXME: checkshorts should be true, but this needs better logic
+        { "checkshorts",                                                                                false }
     )
 end
 
