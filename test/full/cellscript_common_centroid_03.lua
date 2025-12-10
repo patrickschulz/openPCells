@@ -8,6 +8,7 @@ local commonoptions = {
     equalgatenets = false,
     gatestrapwidth = 340,
     gatestrapspace = 340,
+    gatefeedlinewidth = 400,
     gatelinewidth = 400,
     gatelinespace = 400,
     gatelineviawidth = 400,

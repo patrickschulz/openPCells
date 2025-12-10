@@ -31,6 +31,7 @@ local cc = pcell.create_layout("analog/common_centroid", "_common_centroid", {
     gatestrapspace = 340,
     gatestrapleftext = 0,
     gatestraprightext = 0,
+    gatefeedlinewidth = 340,
     gatelinewidth = 340,
     gatelinespace = 340,
     gatelineviawidth = 340,
