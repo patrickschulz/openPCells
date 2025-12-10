@@ -1749,6 +1749,25 @@ static int lobject_get_layer_boundary(lua_State* L)
     return 1;
 }
 
+static int lobject_get_layer_occupation(lua_State* L)
+{
+    lcheck_check_numargs1(L, 2, "object.get_layer_boundary");
+    struct lobject* cell = lobject_check(L, 1);
+    const struct generics* layer = lua_touserdata(L, 2);
+    struct bltrshape* bltrshape = object_get_layer_occupation(lobject_get(L, cell), layer);
+    lua_newtable(L);
+    /* bl */
+    lpoint_create_internal_pt(L, bltrshape_get_bl(bltrshape));
+    lua_setfield(L, -2, "bl");
+    /* tr */
+    lpoint_create_internal_pt(L, bltrshape_get_tr(bltrshape));
+    lua_setfield(L, -2, "tr");
+    /* layer */
+    lua_pushlightuserdata(L, (void*) bltrshape_get_layer(bltrshape));
+    lua_setfield(L, -2, "layer");
+    return 1;
+}
+
 static int lobject_get_shape_outlines(lua_State* L)
 {
     lcheck_check_numargs2(L, 2, 3, "object.get_shape_outlines");
@@ -2062,6 +2081,7 @@ int open_lobject_lib(lua_State* L)
         { "get_boundary",                           lobject_get_boundary                        },
         { "has_layer_boundary",                     lobject_has_layer_boundary                  },
         { "get_layer_boundary",                     lobject_get_layer_boundary                  },
+        { "get_layer_occupation",                   lobject_get_layer_occupation                },
         { "get_shape_outlines",                     lobject_get_shape_outlines                  },
         { "add_net_shape",                          lobject_add_net_shape                       },
         { "mark_area_anchor_as_net",                lobject_mark_area_anchor_as_net             },

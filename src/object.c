@@ -2309,6 +2309,26 @@ struct polygon_container* object_get_layer_boundary(const struct object* cell, c
     }
 }
 
+struct bltrshape* object_get_layer_occupation(const struct object* cell, const struct generics* layer)
+{
+    if(object_is_proxy(cell))
+    {
+        coordinate_t blx, bly, trx, try;
+        object_get_minmax_xy_layer(cell->content.proxy.reference, &blx, &bly, &trx, &try, NULL, layer); // no extra transformation matrix (FIXME: is this correct?)
+        transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
+        transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
+        return bltrshape_create_xy(blx, bly, trx, try, layer);
+    }
+    else
+    {
+        coordinate_t blx, bly, trx, try;
+        object_get_minmax_xy_layer(cell, &blx, &bly, &trx, &try, NULL, layer); // no extra transformation matrix (FIXME: is this correct?)
+        transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
+        transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
+        return bltrshape_create_xy(blx, bly, trx, try, layer);
+    }
+}
+
 static void _add_port(struct object* cell, struct port* port)
 {
     if(!cell->content.full.ports)
@@ -2877,6 +2897,64 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
             const struct object* obj = child->content.proxy.reference;
             coordinate_t minx_, maxx_, miny_, maxy_;
             object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_, child->trans);
+            transformationmatrix_apply_transformation_xy(cell->trans, &minx_, &miny_);
+            transformationmatrix_apply_transformation_xy(cell->trans, &maxx_, &maxy_);
+            _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
+            // FIXME: transformation? -> should be handled by recursive call, but check this! (construct a cell with the right transformations)
+            minx = MIN2(minx, minx_);
+            maxx = MAX2(maxx, maxx_);
+            miny = MIN2(miny, miny_);
+            maxy = MAX2(maxy, maxy_);
+        }
+    }
+    *minxp = minx;
+    *maxxp = maxx;
+    *minyp = miny;
+    *maxyp = maxy;
+}
+
+void object_get_minmax_xy_layer(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp, const struct transformationmatrix* extratrans, const struct generics* layer)
+{
+    // FIXME: arrays?
+    coordinate_t minx = COORDINATE_MAX;
+    coordinate_t maxx = COORDINATE_MIN;
+    coordinate_t miny = COORDINATE_MAX;
+    coordinate_t maxy = COORDINATE_MIN;
+    if(cell->content.full.shapes)
+    {
+        for(unsigned int i = 0; i < vector_size(cell->content.full.shapes); ++i)
+        {
+            struct shape* S = vector_get(cell->content.full.shapes, i);
+            if(shape_is_layer(S, layer))
+            {
+                coordinate_t minx_;
+                coordinate_t maxx_;
+                coordinate_t miny_;
+                coordinate_t maxy_;
+                shape_get_minmax_xy(S, &minx_, &miny_, &maxx_, &maxy_);
+                transformationmatrix_apply_transformation_xy(cell->trans, &minx_, &miny_);
+                transformationmatrix_apply_transformation_xy(cell->trans, &maxx_, &maxy_);
+                if(extratrans)
+                {
+                    transformationmatrix_apply_transformation_xy(extratrans, &minx_, &miny_);
+                    transformationmatrix_apply_transformation_xy(extratrans, &maxx_, &maxy_);
+                }
+                _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
+                minx = MIN2(minx, minx_);
+                maxx = MAX2(maxx, maxx_);
+                miny = MIN2(miny, miny_);
+                maxy = MAX2(maxy, maxy_);
+            }
+        }
+    }
+    if(cell->content.full.children)
+    {
+        for(unsigned int i = 0; i < vector_size(cell->content.full.children); ++i)
+        {
+            const struct object* child = vector_get(cell->content.full.children, i);
+            const struct object* obj = child->content.proxy.reference;
+            coordinate_t minx_, maxx_, miny_, maxy_;
+            object_get_minmax_xy_layer(obj, &minx_, &miny_, &maxx_, &maxy_, child->trans, layer);
             transformationmatrix_apply_transformation_xy(cell->trans, &minx_, &miny_);
             transformationmatrix_apply_transformation_xy(cell->trans, &maxx_, &maxy_);
             _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);

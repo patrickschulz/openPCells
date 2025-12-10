@@ -1318,6 +1318,22 @@
     ));
 }
 
+/* object.get_layer_occupation */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,     NULL, "object to get the boundary from" },
+        { "layer",  GENERICS,   NULL, "layer" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_layer_occupation",
+        MODULE_OBJECT,
+        "Retrieve the extreme points of the overall layer occupation (including the sub-cells) of the given cell. This function returns a table with a bottom-left ('bl') and a top-right ('tr') point. This function does not depend on any existing layer boundaries, it always computes to real occupation. This might or might not be desirable, if precise control over the layer occupation is required it is recommended to use layer boundaries. This function is potentially slow, as it traverses the entire cell hierarchy and compares every shape layer to the given layer.",
+        "local occupation = cell:get_layer_occupation(generics.metal(1))\nlayouthelpers.place_guardring(cell, occupation.bl, occupation.tr (...))",
+        parameters
+    ));
+}
+
 /* object.get_shape_outlines */
 {
     struct parameter parameters[] = {

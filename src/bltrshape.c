@@ -17,6 +17,15 @@ struct bltrshape* bltrshape_create(const struct point* bl, const struct point* t
     return bltrshape;
 }
 
+struct bltrshape* bltrshape_create_xy(coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, const struct generics* layer)
+{
+    struct bltrshape* bltrshape = malloc(sizeof(*bltrshape));
+    bltrshape->bl = point_create(blx, bly);
+    bltrshape->tr = point_create(trx, try);
+    bltrshape->layer = layer;
+    return bltrshape;
+}
+
 void bltrshape_destroy(void* v)
 {
     struct bltrshape* bltrshape = v;

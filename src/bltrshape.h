@@ -7,6 +7,7 @@
 struct bltrshape;
 
 struct bltrshape* bltrshape_create(const struct point* bl, const struct point* tr, const struct generics* layer);
+struct bltrshape* bltrshape_create_xy(coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, const struct generics* layer);
 void bltrshape_destroy(void* v);
 void* bltrshape_copy(const void* v); /* const void* v because it is used as copy constructor */
 struct point* bltrshape_get_bl(const struct bltrshape* bltrshape);

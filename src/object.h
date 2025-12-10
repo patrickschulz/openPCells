@@ -133,6 +133,7 @@ int object_has_boundary(const struct object* cell);
 struct vector* object_get_boundary(const struct object* cell);
 int object_has_layer_boundary(const struct object* cell, const struct generics* layer);
 struct polygon_container* object_get_layer_boundary(const struct object* cell, const struct generics* layer);
+struct bltrshape* object_get_layer_occupation(const struct object* cell, const struct generics* layer);
 void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer);
 
 // ports
@@ -176,6 +177,12 @@ void object_get_minmax_xy(
     const struct object* cell,
     coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp,
     const struct transformationmatrix* extratrans
+);
+void object_get_minmax_xy_layer(
+    const struct object* cell,
+    coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp,
+    const struct transformationmatrix* extratrans,
+    const struct generics* layer
 );
 void object_width_height_alignmentbox(const struct object* cell, ucoordinate_t* width, ucoordinate_t* height);
 
