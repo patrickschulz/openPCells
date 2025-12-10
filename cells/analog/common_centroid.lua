@@ -28,9 +28,10 @@ function parameters()
         { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
         { "gatestrapleftext", 0 },
         { "gatestraprightext", 0 },
+        { "gatefeedlinewidth", technology.get_dimension("Minimum M1 Width") },
         { "gatelinewidth", technology.get_dimension("Minimum M2 Width") },
         { "gatelinespace", technology.get_dimension("Minimum M2 Space") },
-        { "gatelineviawidth", technology.get_dimension("Minimum M2 Width") },
+        { "gatelineviawidth", technology.get_dimension("Minimum M1M2 Viawidth") },
         { "gatelineviapitch", 0 },
         { "fullgatevia", false },
         { "extendgatessymmetrically", false },
@@ -107,6 +108,7 @@ end
 
 function process_parameters(_P)
     local t = {}
+    t.gatefeedlinewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.gatemetal))
     if _P.gatelinemetal > 1 then
         t.gatelinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.gatelinemetal - 1, _P.gatelinemetal))
     else
@@ -776,11 +778,11 @@ function layout(cell, _P)
                             )
                             geometry.rectanglepoints(cell, generics.metal(_P.gatemetal),
                                 point.create(
-                                    0.5 * (anchor.l + anchor.r) - _P.gatelinewidth / 2,
+                                    0.5 * (anchor.l + anchor.r) - _P.gatefeedlinewidth / 2,
                                     anchor[target1]
                                 ),
                                 point.create(
-                                    0.5 * (anchor.l + anchor.r) + _P.gatelinewidth / 2,
+                                    0.5 * (anchor.l + anchor.r) + _P.gatefeedlinewidth / 2,
                                     cell:get_area_anchor_fmt("gateline_%d", rownum)[target2]
                                 )
                             )
@@ -831,14 +833,14 @@ function layout(cell, _P)
                                     0.5 * (
                                         _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
                                         _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
-                                    ) - _P.gatelinewidth / 2 + shift,
+                                    ) - _P.gatefeedlinewidth / 2 + shift,
                                     cell:get_area_anchor_fmt("gateline_%d_%d", rownum, _map_device_index_to_gate(device.device)).b
                                 ),
                                 point.create(
                                     0.5 * (
                                         _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
                                         _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
-                                    ) + _P.gatelinewidth / 2 + shift,
+                                    ) + _P.gatefeedlinewidth / 2 + shift,
                                     _get_dev_anchor(device, string.format("%sgatestrap", gate)).t
                                 )
                             )
