@@ -802,7 +802,7 @@ function layout(cell, _P)
                         end
                     end
                 end
-            else
+            else -- not _P.equalgatenets
                 for colnum = 1, numinstancesperrow do
                     local lowerdevice = _get_active_device(function(device) return (device.row == 2 * rownum - 1) and (device.column == colnum) end)
                     local upperdevice = _get_active_device(function(device) return (device.row == 2 * rownum)     and (device.column == colnum) end)
@@ -1098,7 +1098,7 @@ function layout(cell, _P)
                                         cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, "source0").tr
                                     )
                                 end
-                            else
+                            else -- even row
                                 geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
                                     point.create(
                                         _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
@@ -1263,7 +1263,7 @@ function layout(cell, _P)
                                 cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).tr
                             )
                         end
-                    else
+                    else -- odd row
                         geometry.rectanglebltr(cell, generics.metal(_P.drainmetal),
                             point.create(
                                 _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
