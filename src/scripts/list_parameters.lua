@@ -1,15 +1,18 @@
 -- FIXME: output cell parameters AFTER parameters have been processed in order to respect value changes in pfiles
 -- FIXME: is args.generictech currently used and supported?
 local params = pcell.parameters(args.cell, cellargs, args.generictech)
-local paramformat = args.parametersformat or "%n (%a)\t\t%i"
+local paramformat = args.parametersformat or "%n (%a) (default: %v)\t\t%i"
 local printlist = {}
 for _, P in ipairs(params) do
-    local doprint = true
-    if args.parameternames then
-        doprint = util.any_of(function(name) return string.match(P.name, name) ~= nil end, args.parameternames)
-    end
-    if doprint then
-        table.insert(printlist, P)
+    table.insert(printlist, P)
+end
+if args.parameternames then -- filter for matching parameters
+    for _, name in ipairs(args.parameternames) do
+        for i = #printlist, 1, -1 do -- iterate backwards for easier element removal
+            if not string.match(printlist[i].name, name) then
+                table.remove(printlist, i)
+            end
+        end
     end
 end
 for _, P in ipairs(printlist) do
