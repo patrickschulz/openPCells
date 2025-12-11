@@ -1503,8 +1503,20 @@ static int _viabltrov(
     );
     if(!bare)
     {
-        _rectanglebltr(cell, generics_create_metal(techstate, metal1), blx1, bly1, trx1, try1);
-        _rectanglebltr(cell, generics_create_metal(techstate, metal2), blx2, bly2, trx2, try2);
+        coordinate_t blx;
+        coordinate_t bly;
+        coordinate_t trx;
+        coordinate_t try;
+        int ov = _calculate_overlap(
+            blx1, bly1, trx1, try1,
+            blx2, bly2, trx2, try2,
+            &blx, &bly, &trx, &try
+        );
+        if(ov)
+        {
+            _rectanglebltr(cell, generics_create_metal(techstate, metal1), blx, bly, trx, try);
+            _rectanglebltr(cell, generics_create_metal(techstate, metal2), blx, bly, trx, try);
+        }
     }
     return ret;
 }
