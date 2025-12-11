@@ -675,15 +675,15 @@ function layout(cell, _P)
         -- FIXME: implement check in check()
     end
 
-    -- calculate maximum/minimum x coordinates for gate lines
-    local gatelineminx
-    local gatelinemaxx
+    -- calculate maximum/minimum x coordinates for gate/interconnect lines
+    local interconnectlineminx
+    local interconnectlinemaxx
     do
         local row1devices = _get_devices(function(device) return device.row == 1 end)
         local leftdevice = row1devices[1]
         local rightdevice = row1devices[#row1devices]
-        gatelineminx = _get_dev_anchor(leftdevice, "active").l
-        gatelinemaxx = _get_dev_anchor(rightdevice, "active").r
+        interconnectlineminx = _get_dev_anchor(leftdevice, "sourcedrainmetal1").l - (_P.interconnectlineviawidth - _P.sdwidth) / 2
+        interconnectlinemaxx = _get_dev_anchor(rightdevice, "sourcedrainmetal-1").r + (_P.interconnectlineviawidth - _P.sdwidth) / 2
     end
 
     -- create gate lines
@@ -703,11 +703,11 @@ function layout(cell, _P)
             cell:add_area_anchor_bltr(string.format("gateline_%d", rownum),
                 point.create(
                     _get_dev_anchor(leftlowerdevice, "active").l,
-                    gatelineminx,
+                    interconnectlineminx,
                     _get_dev_anchor(leftlowerdevice, "active").t + gateline_center - _P.gatelinewidth / 2
                 ),
                 point.create(
-                    gatelinemaxx,
+                    interconnectlinemaxx,
                     _get_dev_anchor(rightlowerdevice, "active").t + gateline_center + _P.gatelinewidth / 2
                 )
             )
@@ -729,11 +729,11 @@ function layout(cell, _P)
                 local yshift = -(numlines - 1) / 2 * (_P.gatelinespace + _P.gatelinewidth) + (line - 1) * (_P.gatelinespace + _P.gatelinewidth)
                 cell:add_area_anchor_bltr(string.format("gateline_%d_%d", rownum, index),
                     point.create(
-                        gatelineminx,
+                        interconnectlineminx,
                         _get_dev_anchor(leftlowerdevice, "active").t + gateline_center + yshift - _P.gatelinewidth / 2
                     ),
                     point.create(
-                        gatelinemaxx,
+                        interconnectlinemaxx,
                         _get_dev_anchor(rightlowerdevice, "active").t + gateline_center + yshift + _P.gatelinewidth / 2
                     )
                 )
@@ -893,17 +893,6 @@ function layout(cell, _P)
                 end
             end
         end
-    end
-
-    -- calculate maximum/minimum x coordinates for interconnect lines
-    local interconnectlineminx
-    local interconnectlinemaxx
-    do
-        local row1devices = _get_devices(function(device) return device.row == 1 end)
-        local leftdevice = row1devices[1]
-        local rightdevice = row1devices[#row1devices]
-        interconnectlineminx = _get_dev_anchor(leftdevice, "active").l
-        interconnectlinemaxx = _get_dev_anchor(rightdevice, "active").r
     end
 
     -- create interconnect lines
