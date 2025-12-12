@@ -261,6 +261,8 @@ function parameters()
         { "guardringrespectactivedummies",                                                              true },
         { "guardringrespectgatestraps",                                                                 true },
         { "guardringrespectgateextensions",                                                             true },
+        { "guardringrespectsourcestraps",                                                               true },
+        { "guardringrespectdrainstraps",                                                                true },
         { "guardringwidth",                                                                             technology.get_dimension("Minimum Active Contact Region Size") },
         { "guardringsep",                                                                               technology.get_dimension("Minimum Active Space") },
         { "guardringleftsep",                                                                           technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
@@ -281,6 +283,7 @@ function parameters()
         { "guardringsoiopenouterextension",                                                             technology.get_optional_dimension("Minimum Soiopen Extension") },
         { "guardringoxidetypeinnerextension",                                                           technology.get_dimension("Minimum Oxide Extension") },
         { "guardringoxidetypeouterextension",                                                           technology.get_dimension("Minimum Oxide Extension") },
+        { "connectguardringtosource",                                                                   false },
         { "botwelltapwidth",                                                                            technology.get_dimension("Minimum M1 Width") },
         { "botwelltapspace",                                                                            technology.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                                                       0 },
@@ -1186,8 +1189,14 @@ function layout(transistor, _P)
         local holeheight = _P.fingerwidth
         local guardringtopext_activedummy = 0
         local guardringbotext_activedummy = 0
+        local guardringtopext_gateextensions = 0
+        local guardringbotext_gateextensions = 0
         local guardringtopext_gatestraps = 0
         local guardringbotext_gatestraps = 0
+        local guardringtopext_sourcestraps = 0
+        local guardringbotext_sourcestraps = 0
+        local guardringtopext_drainstraps = 0
+        local guardringbotext_drainstraps = 0
         if _P.guardringrespectactivedummies then
             if _P.drawtopactivedummy then
                 guardringtopext_activedummy = _P.topactivedummywidth + _P.topactivedummyspace
@@ -1202,12 +1211,45 @@ function layout(transistor, _P)
                 guardringbotext_activedummy = _P.rightactivedummywidth + _P.rightactivedummyspace
             end
         end
+        if _P.guardringrespectgateextensions then
+            guardringtopext_gateextensions = gatetry - _P.fingerwidth
+            guardringbotext_gateextensions = -gatebly
+        end
         if _P.guardringrespectgatestraps then
             if _P.drawtopgatestrap then
-                guardringtopext_gatestraps = _P.topgatespace + _P.topgatewidth
+                guardringtopext_gatestraps = _P.topgatespace + _P.topgatewidth + _P.topgatepolytopextension
             end
             if _P.drawbotgatestrap then
-                guardringbotext_gatestraps = _P.botgatespace + _P.botgatewidth
+                guardringbotext_gatestraps = _P.botgatespace + _P.botgatewidth + _P.botgatepolybottomextension
+            end
+        end
+        if _P.guardringrespectsourcestraps then
+            if _P.drawsourceconnections and not _P.connectsourceinline then
+                if _P.channeltype == "nmos" then
+                    if _P.connectsourceinverse then
+                        if _P.connectsourceboth then
+                            guardringbotext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
+                        end
+                        guardringtopext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
+                    else -- not _P.connectsourceinverse
+                        guardringbotext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
+                        if _P.connectsourceboth then
+                            guardringtopext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
+                        end
+                    end
+                else -- _P.channeltype == "pmos"
+                    if _P.connectsourceinverse then
+                        guardringbotext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
+                        if _P.connectsourceboth then
+                            guardringtopext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
+                        end
+                    else -- not _P.connectsourceinverse
+                        if _P.connectsourceboth then
+                            guardringbotext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
+                        end
+                        guardringtopext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
+                    end
+                end
             end
         end
         local guardringleftext = guardringbotext_activedummy
@@ -1215,15 +1257,9 @@ function layout(transistor, _P)
         holewidth = holewidth + guardringleftext + guardringrightext
         guardringtopext_activedummy = 0
         guardringbotext_activedummy = 0
-        local guardringtopext = math.max(guardringtopext_activedummy, guardringtopext_gatestraps)
-        local guardringbotext = math.max(guardringbotext_activedummy, guardringbotext_gatestraps)
+        local guardringtopext = math.max(guardringtopext_activedummy, guardringtopext_gateextensions, guardringtopext_gatestraps, guardringtopext_sourcestraps, guardringtopext_drainstraps)
+        local guardringbotext = math.max(guardringbotext_activedummy, guardringbotext_gateextensions, guardringbotext_gatestraps, guardringbotext_sourcestraps, guardringbotext_drainstraps)
         holeheight = holeheight + guardringtopext + guardringbotext
-        local grgateextshift = 0
-        if _P.guardringrespectgateextensions then
-            local newholeheight = math.max(holeheight, gatetry - gatebly)
-            grgateextshift = newholeheight - holeheight
-            holeheight = newholeheight
-        end
         guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             ringwidth = _P.guardringwidth,
@@ -1244,22 +1280,7 @@ function layout(transistor, _P)
             soiopenouterextension = _P.guardringsoiopenouterextension,
         })
         local gtargetx = -leftactauxext
-        local gtargety = 0
-        if _P.guardringrespectactivedummies then
-            if _P.drawbottomactivedummy then
-                gtargety = gtargety - _P.bottomactivedummywidth - _P.bottomactivedummyspace
-            end
-            if _P.drawleftactivedummy then
-                gtargetx = gtargetx - _P.leftactivedummywidth - _P.leftactivedummyspace
-            end
-        end
-        if _P.guardringrespectgatestraps and _P.drawbotgatestrap then
-            gtargety = gtargety - _P.botgatespace - _P.botgatewidth
-        end
-        -- FIXME: respect source/drain straps
-        if _P.guardringrespectgateextensions then
-            gtargety = math.min(gtargety, gatebly)
-        end
+        local gtargety = -guardringbotext
         guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, gtargety))
         guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
         transistor:merge_into(guardring)
@@ -1271,6 +1292,20 @@ function layout(transistor, _P)
             guardring:get_area_anchor("innerboundary").bl,
             guardring:get_area_anchor("innerboundary").tr
         )
+        -- FIXME: very rudimentaty, does not check properly for source metals, location of source straps etc.
+        if _P.connectguardringtosource then
+            local sourceanchor = transistor:get_area_anchor("sourcestrap")
+            geometry.rectanglebltr(transistor, generics.metal(1),
+                point.create(
+                    0.5 * (sourceanchor.l + sourceanchor.r) - _P.connectsourcewidth / 2,
+                    transistor:get_area_anchor("innerguardring").b
+                ),
+                point.create(
+                    0.5 * (sourceanchor.l + sourceanchor.r) + _P.connectsourcewidth / 2,
+                    sourceanchor.b
+                )
+            )
+        end
     end
 
     -- gate contacts
