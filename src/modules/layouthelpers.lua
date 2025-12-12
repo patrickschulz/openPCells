@@ -529,14 +529,7 @@ function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
     if anchorprefix then
-        cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
+        cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
 end
 
@@ -570,14 +563,7 @@ function M.place_guardring_quantized(cell, bl, tr, xspace, yspace, basexsize, ba
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
     if anchorprefix then
-        cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
+        cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
 end
 
@@ -614,14 +600,7 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
     if anchorprefix then
-        cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
+        cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
 end
 
@@ -664,14 +643,7 @@ function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xsp
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
     if anchorprefix then
-        cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
+        cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
 end
 
@@ -708,14 +680,7 @@ function M.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, an
     cell:merge_into(guardring1)
     cell:inherit_alignment_box(guardring1)
     if anchorprefix1 then
-        cell:inherit_area_anchor_as(guardring1, "outerboundary", string.format("%souterboundary", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "innerboundary", string.format("%sinnerboundary", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "outerwell", string.format("%souterwell", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "innerwell", string.format("%sinnerwell", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "outerimplant", string.format("%souterimplant", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "innerimplant", string.format("%sinnerimplant", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "outersoiopen", string.format("%soutersoiopen", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "innersoiopen", string.format("%sinnersoiopen", anchorprefix1))
+        cell:inherit_all_anchors_with_prefix(guardring1, anchorprefix1)
     end
     local guardring2 = pcell.create_layout(
         "auxiliary/guardring",
@@ -737,14 +702,7 @@ function M.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, an
     cell:merge_into(guardring2)
     cell:inherit_alignment_box(guardring2)
     if anchorprefix2 then
-        cell:inherit_area_anchor_as(guardring2, "outerboundary", string.format("%souterboundary", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "innerboundary", string.format("%sinnerboundary", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "outerwell", string.format("%souterwell", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "innerwell", string.format("%sinnerwell", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "outerimplant", string.format("%souterimplant", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "innerimplant", string.format("%sinnerimplant", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "outersoiopen", string.format("%soutersoiopen", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "innersoiopen", string.format("%sinnersoiopen", anchorprefix2))
+        cell:inherit_all_anchors_with_prefix(guardring2, anchorprefix2)
     end
 end
 
@@ -768,10 +726,7 @@ function M.place_welltap(cell, bl, tr, anchorprefix, options)
     cell:merge_into(welltap)
     cell:inherit_alignment_box(welltap)
     if anchorprefix then
-        cell:inherit_area_anchor_as(welltap, "boundary", string.format("%sboundary", anchorprefix))
-        cell:inherit_area_anchor_as(welltap, "well", string.format("%swell", anchorprefix))
-        cell:inherit_area_anchor_as(welltap, "implant", string.format("%simplant", anchorprefix))
-        cell:inherit_area_anchor_as(welltap, "soiopen", string.format("%ssoiopen", anchorprefix))
+        cell:inherit_all_anchors_with_prefix(welltap, anchorprefix)
     end
 end
 
