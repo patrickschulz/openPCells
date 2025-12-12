@@ -1,7 +1,7 @@
 function parameters()
     pcell.add_parameters(
         { "pattern", { { 1, 2, 1 }, { 2, 1, 2 } } },
-        { "channeltype", "pmos" },
+        { "channeltype", "nmos" },
         { "vthtype", 1 },
         { "oxidetype", 1 },
         { "flippedwell", false },
