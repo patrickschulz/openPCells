@@ -682,8 +682,9 @@ function layout(cell, _P)
         local row1devices = _get_devices(function(device) return device.row == 1 end)
         local leftdevice = row1devices[1]
         local rightdevice = row1devices[#row1devices]
-        interconnectlineminx = _get_dev_anchor(leftdevice, "sourcedrainmetal1").l - (_P.interconnectlineviawidth - _P.sdwidth) / 2
-        interconnectlinemaxx = _get_dev_anchor(rightdevice, "sourcedrainmetal-1").r + (_P.interconnectlineviawidth - _P.sdwidth) / 2
+        local icvextension = math.max(_P.interconnectlineviawidth, _P.sdwidth)
+        interconnectlineminx = _get_dev_anchor(leftdevice, "sourcedrainmetal1").l - (icvextension - _P.sdwidth) / 2
+        interconnectlinemaxx = _get_dev_anchor(rightdevice, "sourcedrainmetal-1").r + (icvextension - _P.sdwidth) / 2
     end
 
     -- create gate lines
