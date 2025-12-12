@@ -5,18 +5,48 @@ function M.connect_area_anchor(cell, layer, width, anchor1, anchor2)
     local x1r, y1t = anchor1.tr:unwrap()
     local x2l, y2b = anchor2.bl:unwrap()
     local x2r, y2t = anchor2.tr:unwrap()
-    if y2b > y1t then
-        geometry.path_3y(cell, layer,
-            point.create(0.5 * (x1l + x1r), y1t),
-            point.create(0.5 * (x2l + x2r), y2b),
-            width, 0.5
-        )
-    elseif y1b > y2t then
-        geometry.path_3y(cell, layer,
-            point.create(0.5 * (x2l + x2r), y2t),
-            point.create(0.5 * (x1l + x1r), y1b),
-            width, 0.5
-        )
+    if x1l >= x2l and x1r <= x2r then
+        if y1b > y2t then
+            geometry.path(cell, layer, {
+                    point.create(0.5 * (x1l + x1r), y1b),
+                    point.create(0.5 * (x1l + x1r), y2t),
+                }, width
+            )
+        else
+            geometry.path(cell, layer, {
+                    point.create(0.5 * (x1l + x1r), y2b),
+                    point.create(0.5 * (x1l + x1r), y1t),
+                }, width
+            )
+        end
+    elseif x2l >= x1l and x2r <= x1r then
+        if y1b > y2t then
+            geometry.path(cell, layer, {
+                    point.create(0.5 * (x2l + x2r), y1b),
+                    point.create(0.5 * (x2l + x2r), y2t),
+                }, width
+            )
+        else
+            geometry.path(cell, layer, {
+                    point.create(0.5 * (x2l + x2r), y2b),
+                    point.create(0.5 * (x2l + x2r), y1t),
+                }, width
+            )
+        end
+    else -- FIXME: add more conditions
+        if y2b > y1t then
+            geometry.path_3y(cell, layer,
+                point.create(0.5 * (x1l + x1r), y1t),
+                point.create(0.5 * (x2l + x2r), y2b),
+                width, 0.5
+            )
+        elseif y1b > y2t then
+            geometry.path_3y(cell, layer,
+                point.create(0.5 * (x2l + x2r), y2t),
+                point.create(0.5 * (x1l + x1r), y1b),
+                width, 0.5
+            )
+        end
     end
 end
 
