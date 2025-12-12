@@ -24,7 +24,7 @@ function parameters()
         { "innerimplantspace",                              0 },
         { "drawoxidetype",                                  true },
         { "oxidetype",                                      1 },
-        { "filloxidetype",                                  false },
+        { "filloxidetype",                                  true },
         { "oxidetypeinnerextension",                        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallinner" },
         { "oxidetypeouterextension",                        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallouter" },
         { "fillwell",                                       true },
@@ -34,7 +34,7 @@ function parameters()
         { "fillwellholeoffsetleft",                         0 },
         { "fillwellholeoffsetright",                        0 },
         { "drawdeepwell",                                   false },
-        { "deepwelloffset",                                 0 },
+        { "deepwelloffset",                                 technology.get_optional_dimension("Deep Well Offset") },
         { "fit",                                            false },
         { "failifnotfit",                                   false }
     )
