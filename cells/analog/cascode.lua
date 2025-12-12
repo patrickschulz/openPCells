@@ -1,5 +1,9 @@
 function parameters()
     pcell.add_parameters(
+        { "channeltype", "nmos" },
+        { "vthtype", 1 },
+        { "oxidetype", 1 },
+        { "flippedwell", false },
         { "sourcefingers", 2, posvals = even() },
         { "sourcewidth", technology.get_dimension("Minimum Active Width", "Minimum Active YWidth") },
         { "sourcelength", technology.get_dimension("Minimum Gate Length") },
@@ -8,6 +12,7 @@ function parameters()
         { "cascodewidth", technology.get_dimension("Minimum Active Width", "Minimum Active YWidth") },
         { "cascodelength", technology.get_dimension("Minimum Gate Length") },
         { "cascodegatespace", technology.get_dimension("Minimum Gate Space", "Minimum Gate XSpace") },
+        { "interconnectmetal", 2 },
         { "outputmetal", 1 },
         { "outputwidth", technology.get_dimension_max("Minimum M1 Width") },
         { "sdwidth", technology.get_dimension_max("Minimum M1 Width", "Minimum Source/Drain Contact Region Size") },
@@ -18,13 +23,12 @@ function parameters()
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Width") },
         { "extraspace", 0 },
-        { "oxidetype", 1 },
         { "connect_gates", false },
         { "continuous_upper_gate_strap", true },
         { "continuous_lower_gate_strap", true },
         { "diodeconnected", false },
         { "gateext", 0 },
-        { "actext", 0 }
+        { "actext", technology.get_optional_dimension("Minimum Device Minimum Active Extension") }
     )
 end
 
@@ -40,14 +44,14 @@ function layout(cell, _P)
         connectsource = true,
         connectsourcewidth = _P.powerwidth,
         connectsourcespace = _P.powerspace,
-        drainmetal = 2,
+        drainmetal = _P.interconnectmetal,
         connectdrain = true,
         connectdrainwidth = _P.sdstrapwidth,
         connectdrainspace = _P.gatestrapwidth + 2 * _P.gatestrapspace + _P.extraspace / 2,
         drawtopgate = true,
         topgatewidth = _P.gatestrapwidth,
         topgatespace = _P.gatestrapspace,
-        extendall = _P.gatestrapwidth + 2 * _P.gatestrapspace,
+        extendalltop = _P.gatestrapwidth + 2 * _P.gatestrapspace,
         topgatepolytopbottomextension = _P.gateext,
         actext = _P.actext,
     })
@@ -58,7 +62,7 @@ function layout(cell, _P)
         gatespace = _P.cascodegatespace,
         fingerwidth = _P.cascodewidth,
         sdwidth = _P.sdwidth,
-        sourcemetal = 2,
+        sourcemetal = _P.interconnectmetal,
         connectsource = true,
         connectsourcewidth = _P.sdstrapwidth,
         connectsourcespace = _P.gatestrapwidth + 2 * _P.gatestrapspace + _P.extraspace / 2,
@@ -69,7 +73,7 @@ function layout(cell, _P)
         drawbotgate = true,
         botgatewidth = _P.gatestrapwidth,
         botgatespace = _P.gatestrapspace,
-        extendall = _P.gatestrapwidth + 2 * _P.gatestrapspace,
+        extendallbottom = _P.gatestrapwidth + 2 * _P.gatestrapspace,
         botgatepolytopbottomextension = _P.gateext,
         actext = _P.actext,
         diodeconnected = _P.diodeconnected,
@@ -91,12 +95,6 @@ function layout(cell, _P)
             )
         )
     end
-    -- alignment box
-    cell:inherit_alignment_box(source)
-    cell:inherit_alignment_box(cascode)
-    -- anchors
-    cell:inherit_area_anchor_as(source, "sourcestrap", "power")
-    cell:inherit_area_anchor_as(cascode, "drainstrap", "output")
     -- continuous gate strap
     if _P.continuous_upper_gate_strap then
         geometry.rectanglebltr(cell, generics.metal(1),
@@ -123,4 +121,12 @@ function layout(cell, _P)
             )
         )
     end
+
+    -- alignment box
+    cell:inherit_alignment_box(source)
+    cell:inherit_alignment_box(cascode)
+
+    -- anchors
+    cell:inherit_area_anchor_as(source, "sourcestrap", "power")
+    cell:inherit_area_anchor_as(cascode, "drainstrap", "output")
 end
