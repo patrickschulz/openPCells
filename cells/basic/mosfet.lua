@@ -485,6 +485,10 @@ end
 
 function process_parameters(_P)
     local t = {}
+    t.connectsourcewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.sourcemetal))
+    t.connectsourcespace = technology.get_dimension(string.format("Minimum M%d Space", _P.sourcemetal))
+    t.connectdrainwidth = technology.get_dimension(string.format("Minimum M%d Width", _P.drainmetal))
+    t.connectdrainspace = technology.get_dimension(string.format("Minimum M%d Space", _P.drainmetal))
     if _P.usesdmetalwidthtable then
         t.connectsourcewidth = _P.sdmetalwidths[_P.sourceendmetal]
         t.connectdrainwidth = _P.sdmetalwidths[_P.drainendmetal]
