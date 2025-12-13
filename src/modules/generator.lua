@@ -122,6 +122,7 @@ function M.analog(file, devices, placement, nets)
     _newline(lines)
     _section(lines, "devices")
     for _, device in ipairs(devices) do
+        table.insert(lines, string.format("-- * %s *", device.name))
         table.insert(lines, "-- nets:")
         for k, v in pairs(device.connections) do
             table.insert(lines, string.format("--  %s = %s", k, v))
@@ -134,6 +135,15 @@ function M.analog(file, devices, placement, nets)
                 table.insert(paramt, string.format("%s = %q", k, v))
             end
         end
+        -- set source/drain metals (FIXME: only for testing, this should be done somewhere else)
+        table.insert(paramt, string.format("sourcemetal = %d", 2))
+        table.insert(paramt, string.format("drainmetal = %d", 2))
+        -- add nets to source/drain/gate
+        table.insert(paramt, string.format("gatenet = \"%s\"", device.connections["gate"]))
+        table.insert(paramt, string.format("drainnet = \"%s\"", device.connections["drain"]))
+        table.insert(paramt, string.format("sourcenet = \"%s\"", device.connections["source"]))
+        -- add instance name
+        table.insert(paramt, string.format("instancename = \"%s\"", device.name))
         local fmt = "local %s = pcell.create_layout(\"basic/mosfet\", \"_%s\", {\n    %s\n})"
         table.insert(lines, string.format(fmt, device.name, device.name, table.concat(paramt, ",\n    ")))
     end

@@ -61,12 +61,21 @@ function M.report_devices(devices)
 end
 
 local function _connections_match(c1, c2, connections)
-    for _, c in ipairs(connections) do
-        if c1[c] ~= c2[c] then
+    for _, term in ipairs(connections) do
+        if c1[term] ~= c2[term] then
             return false
         end
     end
     return true
+end
+
+local function _connections_match_set(c1, c2, connections)
+    for _, term in ipairs(connections) do
+        if c1[term[1]] == c2[term[2]] then
+            return true
+        end
+    end
+    return false
 end
 
 local function _parameters_match(p1, p2, ignore)
@@ -85,7 +94,10 @@ local function _can_merge_mosfet(m1, m2)
     -- all connections have to be the same
     local c1 = m1.connections
     local c2 = m2.connections
-    if not _connections_match(m1.connections, m2.connections, { "gate", "drain", "source", "bulk" }) then
+    if not _connections_match(m1.connections, m2.connections, { "gate", "bulk", }) then
+        return false
+    end
+    if not _connections_match_set(m1.connections, m2.connections, { { "source", "drain" }, { "drain", "source" } }) then
         return false
     end
     if not _parameters_match(m1.parameters, m2.parameters, { "fingers", "fingerwidth" }) then
@@ -147,6 +159,7 @@ function M.map_netlist_devices(netlist, devicemap, verbose)
             })
         end
     end
+    local nummerged = 0
     for idx1 = 1, #devices do
         local idx2 = idx1 + 1
         while true do
@@ -159,6 +172,7 @@ function M.map_netlist_devices(netlist, devicemap, verbose)
                     print(string.format("merge devices %s and %s", devices[idx1].name, devices[idx2].name))
                 end
                 _do_merge(devices[idx1], devices[idx2])
+                nummerged = nummerged + 1
                 table.remove(devices, idx2)
             else
                 -- only increment if device was not merged.
@@ -166,6 +180,9 @@ function M.map_netlist_devices(netlist, devicemap, verbose)
                 idx2 = idx2 + 1
             end
         end
+    end
+    if verbose then
+        print(string.format("merged %d devices", nummerged))
     end
     return devices
 end
@@ -231,6 +248,7 @@ M.maps.mosfet = function(t)
             connectsource = true,
             connectdrain = true,
             drawtopgate = true,
+            drawguardring = true,
         },
         map_netlist_parameters = _map_mosfet_parameters,
     }
