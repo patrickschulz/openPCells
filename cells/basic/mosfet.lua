@@ -296,7 +296,10 @@ function parameters()
         { "drawrotationmarker",                                                                         false },
         { "drawanalogmarker",                                                                           false },
         -- FIXME: checkshorts should be true, but this needs better logic
-        { "checkshorts",                                                                                false }
+        { "checkshorts",                                                                                false },
+        { "gatenet",                                                                                    nil, info = "add net identification to gate straps" },
+        { "sourcenet",                                                                                  nil, info = "add net identification to source straps" },
+        { "drainnet",                                                                                   nil, info = "add net identification to drain straps" }
     )
 end
 
@@ -1353,6 +1356,9 @@ function layout(transistor, _P)
         local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.topgaterightextension, _P.fingerwidth + _P.topgatespace + _P.topgatewidth)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
+        if rawget(_P, "gatenet") then
+            transistor:mark_area_anchor_as_net("topgatestrap", _P.gatenet, generics.metal(_P.topgatemetal))
+        end
         if _P.allow_poly_connections then
             geometry.rectanglebltr(transistor, generics.gate(),
                 point.create(bl:getx() + _P.topgateleftextension - _P.topgatepolyleftextension, bl:gety() - _P.topgatepolybottomextension),
@@ -1404,6 +1410,9 @@ function layout(transistor, _P)
         local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.botgaterightextension, -_P.botgatespace)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
+        if rawget(_P, "gatenet") then
+            transistor:mark_area_anchor_as_net("botgatestrap", _P.gatenet, generics.metal(_P.topgatemetal))
+        end
         if _P.allow_poly_connections then
             geometry.rectanglebltr(transistor, generics.gate(),
                 point.create(bl:getx() + _P.botgateleftextension - _P.botgatepolyleftextension, gatebly - _P.botgatepolybottomextension),
@@ -1988,6 +1997,9 @@ function layout(transistor, _P)
                 point.create(blx - shift - leftext, bly),
                 point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly + _P.connectsourcewidth)
             )
+            if rawget(_P, "sourcenet") then
+                transistor:mark_area_anchor_as_net("sourcestrap", sourcenet, generics.metal(_P.sourcestraptopmetal))
+            end
         else -- not _P.connectsourceinline
             local bly1, bly2
             if _P.channeltype == "nmos" then
@@ -2045,12 +2057,18 @@ function layout(transistor, _P)
                 point.create(blx - shift - leftext, bly1),
                 point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly1 + _P.connectsourcewidth)
             )
+            if rawget(_P, "sourcenet") then
+                transistor:mark_area_anchor_as_net("sourcestrap", sourcenet, generics.metal(_P.sourcestraptopmetal))
+            end
             if _P.connectsourceboth then
                 -- other anchor
                 transistor:add_area_anchor_bltr("othersourcestrap",
                     point.create(blx - shift - _P.connectsourceotherleftext, bly2),
                     point.create(trx - shift + _P.connectsourceotherrightext + sourcemetalwidths[_P.sourceendmetal], bly2 + _P.connectsourceotherwidth)
                 )
+                if rawget(_P, "sourcenet") then
+                    transistor:mark_area_anchor_as_net("othersourcestrap", sourcenet, generics.metal(_P.sourcestraptopmetal))
+                end
                 if bly1 < bly2 then
                     transistor:add_area_anchor_bltr("uppersourcestrap",
                         point.create(blx - shift - leftext, bly2),
@@ -2180,6 +2198,9 @@ function layout(transistor, _P)
                 point.create(blx - shift - leftext, bly),
                 point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly + _P.connectdrainwidth)
             )
+            if rawget(_P, "drainnet") then
+                transistor:mark_area_anchor_as_net("drainstrap", drainnet, generics.metal(_P.drainstraptopmetal))
+            end
         else
             local bly1, bly2
             if _P.channeltype == "nmos" then
@@ -2222,12 +2243,18 @@ function layout(transistor, _P)
                 point.create(blx - shift - leftext, bly1),
                 point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly1 + _P.connectdrainwidth)
             )
+            if rawget(_P, "drainnet") then
+                transistor:mark_area_anchor_as_net("drainstrap", drainnet, generics.metal(_P.drainstraptopmetal))
+            end
             -- other anchor
             if _P.connectdrainboth then
                 transistor:add_area_anchor_bltr("otherdrainstrap",
                     point.create(blx - shift - _P.connectdrainotherleftext, bly2),
                     point.create(trx - shift + _P.connectdrainotherrightext + drainmetalwidths[_P.drainendmetal], bly2 + _P.connectdrainotherwidth)
                 )
+                if rawget(_P, "drainnet") then
+                    transistor:mark_area_anchor_as_net("otherdrainstrap", drainnet, generics.metal(_P.drainstraptopmetal))
+                end
                 if bly1 < bly2 then
                     transistor:add_area_anchor_bltr("upperdrainstrap",
                         point.create(blx - shift - leftext, bly2),
