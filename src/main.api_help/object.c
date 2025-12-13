@@ -501,16 +501,17 @@
 /* object.add_label */
 {
     struct parameter parameters[] = {
-        { "cell",   OBJECT,   NULL, "object to which a port should be added" },
-        { "name",   STRING,   NULL, "name of the port" },
-        { "layer",  GENERICS, NULL, "layer of the port" },
-        { "where",  POINT,    NULL, "location of the port" },
+        { "cell",       OBJECT,     NULL, "object to which a label should be added" },
+        { "name",       STRING,     NULL, "name of the label" },
+        { "layer",      GENERICS,   NULL, "layer of the label" },
+        { "where",      POINT,      NULL, "location of the label" },
+        { "sizehint",   INTEGER,    NULL, "sizehint for the label" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "add_label",
         MODULE_OBJECT,
-        "add a label to a cell. Works like add_anchor, but additionally a layer is expected. This is different from add_port in that it expresses intent for labels that are not connectivity-related (as opposed to ports)",
+        "add a label to a cell. Works like add_anchor, but additionally a layer is expected. This is different from add_port in that it expresses intent for labels that are not connectivity-related (as opposed to ports). A size hint can be given, which might be processed by the export.",
         "cell:add_label(\"0.8\", generics.other(\"M1voltagelabelhigh\"), point.create(100, 0))",
         parameters
     ));
@@ -519,16 +520,17 @@
 /* object.add_port */
 {
     struct parameter parameters[] = {
-        { "cell",   OBJECT,   NULL, "object to which a port should be added" },
-        { "name",   STRING,   NULL, "name of the port" },
-        { "layer",  GENERICS, NULL, "layer of the port" },
-        { "where",  POINT,    NULL, "location of the port" },
+        { "cell",       OBJECT,     NULL, "object to which a port should be added" },
+        { "name",       STRING,     NULL, "name of the port" },
+        { "layer",      GENERICS,   NULL, "layer of the port" },
+        { "where",      POINT,      NULL, "location of the port" },
+        { "sizehint",   INTEGER,    NULL, "sizehint for the port" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "add_port",
         MODULE_OBJECT,
-        "add a port to a cell. Works like add_anchor, but additionally a layer is expected",
+        "add a port to a cell. Works like add_anchor, but additionally a layer is expected. A size hint can be given, which might be processed by the export.",
         "cell:add_port(\"vdd\", generics.metalport(2), point.create(100, 0))",
         parameters
     ));
@@ -537,16 +539,17 @@
 /* object.add_port_with_anchor */
 {
     struct parameter parameters[] = {
-        { "cell",   OBJECT,   NULL, "object to which a port should be added" },
-        { "name",   STRING,   NULL, "name of the port" },
-        { "layer",  GENERICS, NULL, "layer of the port" },
-        { "where",  POINT,    NULL, "location of the port" },
+        { "cell",       OBJECT,     NULL, "object to which a port should be added" },
+        { "name",       STRING,     NULL, "name of the port" },
+        { "layer",      GENERICS,   NULL, "layer of the port" },
+        { "where",      POINT,      NULL, "location of the port" },
+        { "sizehint",   INTEGER,    NULL, "sizehint for the port" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "add_port_with_anchor",
         MODULE_OBJECT,
-        "add a port to a cell. Works like add_anchor, but additionally a layer is expected. This function also adds an anchor to the cell (named like the port)",
+        "add a port to a cell. Works like add_anchor, but additionally a layer is expected. This function also adds an anchor to the cell (named like the port). A size hint can be given, which might be processed by the export.",
         "cell:add_port_with_anchor(\"vdd\", generics.metalport(2), point.create(100, 0))",
         parameters
     ));
