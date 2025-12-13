@@ -299,7 +299,10 @@ function parameters()
         { "checkshorts",                                                                                false },
         { "gatenet",                                                                                    nil, info = "add net identification to gate straps" },
         { "sourcenet",                                                                                  nil, info = "add net identification to source straps" },
-        { "drainnet",                                                                                   nil, info = "add net identification to drain straps" }
+        { "drainnet",                                                                                   nil, info = "add net identification to drain straps" },
+        { "netlabelsizehint",                                                                           technology.get_optional_dimension("Default Label Size") },
+        { "instancename",                                                                               nil, info = "draw an instance name in a non-physical text layer. This has no relevance for the device, it is merely a identification/debugging help for layouting." },
+        { "instancelabelsizehint",                                                                      technology.get_optional_dimension("Default Label Size"), info = "Label size hint for instance label." }
     )
 end
 
@@ -1358,6 +1361,13 @@ function layout(transistor, _P)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
         if rawget(_P, "gatenet") then
             transistor:mark_area_anchor_as_net("topgatestrap", _P.gatenet, generics.metal(_P.topgatemetal))
+            transistor:add_label(_P.gatenet, generics.metal(_P.topgatemetal),
+                point.create(
+                    0.5 * (transistor:get_area_anchor("topgatestrap").l + transistor:get_area_anchor("topgatestrap").r),
+                    0.5 * (transistor:get_area_anchor("topgatestrap").b + transistor:get_area_anchor("topgatestrap").t)
+                ),
+                _P.netlabelsizehint
+            )
         end
         if _P.allow_poly_connections then
             geometry.rectanglebltr(transistor, generics.gate(),
@@ -1412,6 +1422,13 @@ function layout(transistor, _P)
         transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
         if rawget(_P, "gatenet") then
             transistor:mark_area_anchor_as_net("botgatestrap", _P.gatenet, generics.metal(_P.topgatemetal))
+            transistor:add_label(_P.gatenet, generics.metal(_P.botgatemetal),
+                point.create(
+                    0.5 * (transistor:get_area_anchor("botgatestrap").l + transistor:get_area_anchor("botgatestrap").r),
+                    0.5 * (transistor:get_area_anchor("botgatestrap").b + transistor:get_area_anchor("botgatestrap").t)
+                ),
+                _P.netlabelsizehint
+            )
         end
         if _P.allow_poly_connections then
             geometry.rectanglebltr(transistor, generics.gate(),
@@ -1998,7 +2015,14 @@ function layout(transistor, _P)
                 point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly + _P.connectsourcewidth)
             )
             if rawget(_P, "sourcenet") then
-                transistor:mark_area_anchor_as_net("sourcestrap", sourcenet, generics.metal(_P.sourcestraptopmetal))
+                transistor:mark_area_anchor_as_net("sourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
+                transistor:add_label(_P.sourcenet, generics.metal(_P.sourcestraptopmetal),
+                    point.create(
+                        0.5 * (transistor:get_area_anchor("sourcestrap").l + transistor:get_area_anchor("sourcestrap").r),
+                        0.5 * (transistor:get_area_anchor("sourcestrap").b + transistor:get_area_anchor("sourcestrap").t)
+                    ),
+                    _P.netlabelsizehint
+                )
             end
         else -- not _P.connectsourceinline
             local bly1, bly2
@@ -2058,7 +2082,14 @@ function layout(transistor, _P)
                 point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly1 + _P.connectsourcewidth)
             )
             if rawget(_P, "sourcenet") then
-                transistor:mark_area_anchor_as_net("sourcestrap", sourcenet, generics.metal(_P.sourcestraptopmetal))
+                transistor:mark_area_anchor_as_net("sourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
+                transistor:add_label(_P.sourcenet, generics.metal(_P.sourcestraptopmetal),
+                    point.create(
+                        0.5 * (transistor:get_area_anchor("sourcestrap").l + transistor:get_area_anchor("sourcestrap").r),
+                        0.5 * (transistor:get_area_anchor("sourcestrap").b + transistor:get_area_anchor("sourcestrap").t)
+                    ),
+                    _P.netlabelsizehint
+                )
             end
             if _P.connectsourceboth then
                 -- other anchor
@@ -2067,7 +2098,14 @@ function layout(transistor, _P)
                     point.create(trx - shift + _P.connectsourceotherrightext + sourcemetalwidths[_P.sourceendmetal], bly2 + _P.connectsourceotherwidth)
                 )
                 if rawget(_P, "sourcenet") then
-                    transistor:mark_area_anchor_as_net("othersourcestrap", sourcenet, generics.metal(_P.sourcestraptopmetal))
+                    transistor:mark_area_anchor_as_net("othersourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
+                    transistor:add_label(_P.sourcenet, generics.metal(_P.sourcestraptopmetal),
+                        point.create(
+                            0.5 * (transistor:get_area_anchor("othersourcestrap").l + transistor:get_area_anchor("othersourcestrap").r),
+                            0.5 * (transistor:get_area_anchor("othersourcestrap").b + transistor:get_area_anchor("othersourcestrap").t)
+                        ),
+                        _P.netlabelsizehint
+                    )
                 end
                 if bly1 < bly2 then
                     transistor:add_area_anchor_bltr("uppersourcestrap",
@@ -2199,7 +2237,14 @@ function layout(transistor, _P)
                 point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly + _P.connectdrainwidth)
             )
             if rawget(_P, "drainnet") then
-                transistor:mark_area_anchor_as_net("drainstrap", drainnet, generics.metal(_P.drainstraptopmetal))
+                transistor:mark_area_anchor_as_net("drainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
+                transistor:add_label(_P.drainnet, generics.metal(_P.drainstraptopmetal),
+                    point.create(
+                        0.5 * (transistor:get_area_anchor("drainstrap").l + transistor:get_area_anchor("drainstrap").r),
+                        0.5 * (transistor:get_area_anchor("drainstrap").b + transistor:get_area_anchor("drainstrap").t)
+                    ),
+                    _P.netlabelsizehint
+                )
             end
         else
             local bly1, bly2
@@ -2244,7 +2289,14 @@ function layout(transistor, _P)
                 point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly1 + _P.connectdrainwidth)
             )
             if rawget(_P, "drainnet") then
-                transistor:mark_area_anchor_as_net("drainstrap", drainnet, generics.metal(_P.drainstraptopmetal))
+                transistor:mark_area_anchor_as_net("drainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
+                transistor:add_label(_P.drainnet, generics.metal(_P.drainstraptopmetal),
+                    point.create(
+                        0.5 * (transistor:get_area_anchor("drainstrap").l + transistor:get_area_anchor("drainstrap").r),
+                        0.5 * (transistor:get_area_anchor("drainstrap").b + transistor:get_area_anchor("drainstrap").t)
+                    ),
+                    _P.netlabelsizehint
+                )
             end
             -- other anchor
             if _P.connectdrainboth then
@@ -2253,7 +2305,14 @@ function layout(transistor, _P)
                     point.create(trx - shift + _P.connectdrainotherrightext + drainmetalwidths[_P.drainendmetal], bly2 + _P.connectdrainotherwidth)
                 )
                 if rawget(_P, "drainnet") then
-                    transistor:mark_area_anchor_as_net("otherdrainstrap", drainnet, generics.metal(_P.drainstraptopmetal))
+                    transistor:mark_area_anchor_as_net("otherdrainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
+                    transistor:add_label(_P.drainnet, generics.metal(_P.drainstraptopmetal),
+                        point.create(
+                            0.5 * (transistor:get_area_anchor("otherdrainstrap").l + transistor:get_area_anchor("otherdrainstrap").r),
+                            0.5 * (transistor:get_area_anchor("otherdrainstrap").b + transistor:get_area_anchor("otherdrainstrap").t)
+                        ),
+                        _P.netlabelsizehint
+                    )
                 end
                 if bly1 < bly2 then
                     transistor:add_area_anchor_bltr("upperdrainstrap",
@@ -2494,5 +2553,15 @@ function layout(transistor, _P)
         transistor:get_area_anchor(string.format("sourcedrainactive%d", _P.fingers + 1)).bl,
         transistor:get_area_anchor(string.format("sourcedrainactive%d", _P.fingers + 1)).tr
     )
+
+    -- instance name
+    if rawget(_P, "instancename") then
+        transistor:add_label(
+            _P.instancename,
+            generics.other("text"),
+            point.create(0, 0),
+            _P.instancelabelsizehint
+        )
+    end
 end
 
