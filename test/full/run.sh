@@ -80,6 +80,7 @@ do_cell_test mosfet_09 basic/mosfet gds
 do_cell_test mosfet_10 basic/mosfet gds
 do_cell_test mosfet_11 basic/mosfet gds
 do_cell_test mosfet_12 basic/mosfet gds
+do_cell_test mosfet_13 basic/mosfet gds
 
 # polyresistor
 do_cell_test polyresistor_01 basic/polyresistor gds
