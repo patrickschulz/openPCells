@@ -188,6 +188,24 @@ function M.map_netlist_devices(netlist, devicemap, verbose)
 end
 
 function M.extract_routes(netlist, dontroute)
+    local routes = {}
+    for _, subcircuit in ipairs(netlist) do
+        for _, instance in ipairs(subcircuit) do
+            for k, net in pairs(instance.connections) do
+                if not util.any_of(net, dontroute) then
+                    -- use an array here to keep net order equal during design iteration
+                    local _, route = util.find_predicate(routes, function(r) return r.net == net end)
+                    if not route then
+                        route = { net = net, pins = {} }
+                        table.insert(routes, route)
+                    end
+                    table.insert(route.pins, { instance = instance.identifier, pin = k })
+                end
+            end
+        end
+        print(string.format("end subcircuit: %s", subcircuit.name))
+    end
+    return routes
 end
 
 function M.check(devices, placement, options)

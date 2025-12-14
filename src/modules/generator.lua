@@ -113,11 +113,11 @@ local function _newline(lines)
     table.insert(lines, "")
 end
 
-function M.analog(file, devices, placement, nets)
+function M.analog(file, devices, placement, routes)
     local lines = {}
     -- start cellscript
     _section(lines, "top-level cell")
-    table.insert(lines, "local cell = object.create(\"cell\")")
+    table.insert(lines, "local toplevel = object.create(\"toplevel\")")
     -- device creation
     _newline(lines)
     _section(lines, "devices")
@@ -254,19 +254,28 @@ function M.analog(file, devices, placement, nets)
     _newline(lines)
     _section(lines, "merging")
     for _, device in ipairs(devices) do
-        table.insert(lines, string.format("cell:merge_into(%s)", device.name))
+        table.insert(lines, string.format("toplevel:merge_into(%s)", device.name))
     end
-    --[[
-    for _, device in ipairs(devices) do
-        table.insert(lines, string.format("cell:merge_into(%s)", device.name))
-    end
-    --]]
     _newline(lines)
     _section(lines, "routing")
+    table.insert(lines, "local routes = {")
+    for _, route in ipairs(routes) do
+        for i = 2, #route.pins do
+            table.insert(lines, string.format("    -- %s:", route.net))
+            table.insert(lines, "    {")
+            table.insert(lines, string.format("        startmetal = %d,", 1))
+            table.insert(lines, string.format("        startpt = %s:get_area_anchor(\"%s\").bl,", route.pins[i - 1].instance, route.pins[i - 1].pin))
+            table.insert(lines, string.format("        endpt = %s:get_area_anchor(\"%s\").bl,", route.pins[i].instance, route.pins[i].pin))
+            table.insert(lines, string.format("        width = %d,", 200))
+            table.insert(lines, "    },")
+        end
+    end
+    table.insert(lines, "}")
+    table.insert(lines, string.format("routing.route_custom(toplevel, routes)")) 
     -- end cellscript
     _newline(lines)
     _section(lines, "final return")
-    table.insert(lines, "return cell")
+    table.insert(lines, "return toplevel")
     file:write(table.concat(lines, '\n'))
 end
 

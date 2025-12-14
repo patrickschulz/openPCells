@@ -221,4 +221,10 @@ function M.route(cell, routes, width, numinnerroutes, pnumtracks, nnumtracks, xg
     end
 end
 
+function M.route_custom(cell, routes)
+    for _, route in ipairs(routes) do
+        geometry.path_3x(cell, generics.metal(route.startmetal), route.startpt, route.endpt, route.width, 0.5)
+    end
+end
+
 return M
