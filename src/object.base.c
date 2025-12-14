@@ -3,6 +3,7 @@
 #define OPC_OBJECT_IMPLEMENTATION
 #include "object.anchors.h"
 #include "object.base.h"
+#include "object.def.h"
 #include "object.ports.h"
 #include "object.util.h"
 #undef OPC_OBJECT_IMPLEMENTATION

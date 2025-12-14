@@ -58,7 +58,7 @@ struct vector* objectfull_get_references(const struct object_full* full);
 const struct vector* objectfull_get_references_const(const struct object_full* full);
 
 // merging
-void objectfull_merge_into(struct object_full* cell, const struct object_full* other, int merge_ports);
+void objectfull_merge_into(struct object_full* fulltarget, const struct object_full* fullsource, const struct transformationmatrix* sourcetrans, int merge_ports);
 
 // anchors and anchorlines
 int objectfull_add_anchor(struct object_full* full, const char* name, struct anchor* anchor);

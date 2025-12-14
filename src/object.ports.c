@@ -39,12 +39,12 @@ struct port* objectport_copy(const struct port* port)
     return newport;
 }
 
-void objectport_transform_to_global_coordinates(struct port* port, struct transformationmatrix* trans)
+void objectport_transform_to_global_coordinates(struct port* port, const struct transformationmatrix* trans)
 {
     transformationmatrix_apply_transformation(trans, port->where);
 }
 
-void objectport_transform_to_cell_coordinates(struct port* port, struct transformationmatrix* trans)
+void objectport_transform_to_cell_coordinates(struct port* port, const struct transformationmatrix* trans)
 {
     transformationmatrix_apply_inverse_transformation(trans, port->where);
 }

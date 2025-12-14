@@ -399,6 +399,8 @@ const struct vector* objectfull_get_references_const(const struct object_full* f
     return full->private.references;
 }
 
+// this function is messed up and does not correspond well to the new partitioned object module structure.
+// It *might* be better to implement this in object.base.c, with proper access functions
 void objectfull_merge_into(struct object_full* fulltarget, const struct object_full* fullsource, const struct transformationmatrix* sourcetrans, int merge_ports)
 {
     if(fullsource->private.shapes)
@@ -410,6 +412,8 @@ void objectfull_merge_into(struct object_full* fulltarget, const struct object_f
             shape_apply_transformation(shape, sourcetrans);
         }
     }
+    // FIXME:
+    /*
     if(fullsource->private.children)
     {
         // * add_child expects an object that will be owned by the fulltarget
@@ -422,28 +426,29 @@ void objectfull_merge_into(struct object_full* fulltarget, const struct object_f
         for(size_t i = 0; i < vector_size(fullsource->private.children); ++i)
         {
             const struct object* child = vector_get_const(fullsource->private.children, i);
-            int index = const_vector_find_flat(used_cell_references, child->private.reference);
+            int index = const_vector_find_flat(used_cell_references, REFERENCE(child));
             if(index == -1)
             {
-                const_vector_append(used_cell_references, child->private.reference);
-                vector_append(new_cell_references, object_copy(child->private.reference));
+                const_vector_append(used_cell_references, REFERENCE(child));
+                vector_append(new_cell_references, object_copy(REFERENCE(child)));
                 index = vector_size(new_cell_references) - 1;
             }
-            struct object* newchild = object_add_child(fulltarget, vector_get(new_cell_references, index), child->name);
+            struct object* newchild = objectfull_add_child(fulltarget, vector_get(new_cell_references, index), object_get_name(child));
             object_apply_other_transformation(newchild, child->trans);
             // FIXME: transformation
         }
         const_vector_destroy(used_cell_references);
         vector_destroy(new_cell_references);
     }
+    */
     if(fullsource->private.labels)
     {
         for(unsigned int i = 0; i < vector_size(fullsource->private.labels); ++i)
         {
             struct port* label = vector_get(fullsource->private.labels, i);
             struct port* newlabel = objectport_copy(label);
-            objectport_transform_to_global_coordinates(newlabel, fullsource->trans);
-            objectport_transform_to_cell_coordinates(newlabel, fulltarget->trans);
+            objectport_transform_to_global_coordinates(newlabel, sourcetrans);
+            //objectport_transform_to_cell_coordinates(newlabel, fulltarget->trans);
             _add_label(fulltarget, newlabel);
         }
     }
@@ -453,8 +458,8 @@ void objectfull_merge_into(struct object_full* fulltarget, const struct object_f
         {
             struct port* port = vector_get(fullsource->private.ports, i);
             struct port* newport = objectport_copy(port);
-            objectport_transform_to_global_coordinates(newport, fullsource->trans);
-            objectport_transform_to_cell_coordinates(newport, fulltarget->trans);
+            objectport_transform_to_global_coordinates(newport, sourcetrans);
+            //objectport_transform_to_cell_coordinates(newport, fulltarget->trans);
             _add_port(fulltarget, newport);
         }
     }
