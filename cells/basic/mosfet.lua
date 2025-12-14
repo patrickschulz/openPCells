@@ -2554,6 +2554,25 @@ function layout(transistor, _P)
         transistor:get_area_anchor(string.format("sourcedrainactive%d", _P.fingers + 1)).tr
     )
 
+    --[[
+    -- pins
+    if _P.fingers > 0 then
+        -- prioritize top gate strap if both are present
+        -- FIXME: this does not really make sense, but pins are just new as I'm writing this comment
+        if _P.drawtopgatestrap then
+            transistor:add_pin_from_area_anchor("gate", "topgatestrap")
+        elseif _P.drawbotgatestrap then
+            transistor:add_pin_from_area_anchor("gate", "botgatestrap")
+        end
+        if _P.drawdrainstrap then
+            transistor:add_pin_from_area_anchor("drain", "drainstrap")
+        end
+        if _P.drawsourcestrap then
+            transistor:add_pin_from_area_anchor("source", "sourcestrap")
+        end
+    end
+    --]]
+
     -- instance name
     if rawget(_P, "instancename") then
         transistor:add_label(
