@@ -271,7 +271,7 @@ function parameters()
         { "guardringbottomsep",                                                                         technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
         { "guardringsegments",                                                                          { "left", "right", "top", "bottom" } },
         { "guardringfillimplant",                                                                       false },
-        { "guardringfillwell",                                                                          false },
+        { "guardringfillwell",                                                                          false, follow = "flippedwell" },
         { "guardringdrawoxidetype",                                                                     true },
         { "guardringfilloxidetype",                                                                     true },
         { "guardringoxidetype",                                                                         1, follow = "oxidetype" },
