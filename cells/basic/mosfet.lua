@@ -284,6 +284,7 @@ function parameters()
         { "guardringoxidetypeinnerextension",                                                           technology.get_dimension("Minimum Oxide Extension") },
         { "guardringoxidetypeouterextension",                                                           technology.get_dimension("Minimum Oxide Extension") },
         { "connectguardringtosource",                                                                   false },
+        { "guardringconnectionmethod",                                                                  "strap", posvals = set("strap", "individual") },
         { "botwelltapwidth",                                                                            technology.get_dimension("Minimum M1 Width") },
         { "botwelltapspace",                                                                            technology.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                                                       0 },
@@ -582,6 +583,13 @@ function check(_P)
         for i = 1, _P.drainstraptopmetal do
             if not _P.sdmetalwidths[i] then
                 return false, string.format("when 'usesdmetalwidthtable' is true, 'sdmetalwidths' needs to define widths for all used metals, up to '_P.drainstraptopmetal' (%d). Missing entry for metal %d", _P.drainstraptopmetal, i)
+            end
+        end
+    end
+    if _P.connectguardringtosource then
+        if _P.guardringconnectionmethod == "strap" then
+            if _P.connectsourceinline or (_P.connectsourceinverse and not _P.connectsourceboth) then
+                return false, "'connectguardringtosource' (with method == 'strap') can only be used when there is a regular, non-inversed source strap (also no inline source connections). This might change in the future, but the current detection logic is simple. However, the current implementation should work for many cases."
             end
         end
     end
@@ -1190,132 +1198,6 @@ function layout(transistor, _P)
             (_P.botwelltapextendright - _P.botwelltapextendleft) / 2,
             -_P.botwelltapwidth - _P.botwelltapspace
         ))
-    end
-
-    local guardring -- variable needs to be visible for alignment box setting
-    if _P.drawguardring then
-        -- hole sizes are calculated without seperations, these are added in the instatiation
-        local holewidth = activewidth + leftactauxext + leftactext + rightactauxext + rightactext
-        local holeheight = _P.fingerwidth
-        local guardringtopext_activedummy = 0
-        local guardringbotext_activedummy = 0
-        local guardringtopext_gateextensions = 0
-        local guardringbotext_gateextensions = 0
-        local guardringtopext_gatestraps = 0
-        local guardringbotext_gatestraps = 0
-        local guardringtopext_sourcestraps = 0
-        local guardringbotext_sourcestraps = 0
-        local guardringtopext_drainstraps = 0
-        local guardringbotext_drainstraps = 0
-        if _P.guardringrespectactivedummies then
-            if _P.drawtopactivedummy then
-                guardringtopext_activedummy = _P.topactivedummywidth + _P.topactivedummyspace
-            end
-            if _P.drawbottomactivedummy then
-                guardringbotext_activedummy = _P.bottomactivedummywidth + _P.bottomactivedummyspace
-            end
-            if _P.drawleftactivedummy then
-                guardringleftext_activedummy = _P.leftactivedummywidth + _P.leftactivedummyspace
-            end
-            if _P.drawrightactivedummy then
-                guardringbotext_activedummy = _P.rightactivedummywidth + _P.rightactivedummyspace
-            end
-        end
-        if _P.guardringrespectgateextensions then
-            guardringtopext_gateextensions = gatetry - _P.fingerwidth
-            guardringbotext_gateextensions = -gatebly
-        end
-        if _P.guardringrespectgatestraps then
-            if _P.drawtopgatestrap then
-                guardringtopext_gatestraps = _P.topgatespace + _P.topgatewidth + _P.topgatepolytopextension
-            end
-            if _P.drawbotgatestrap then
-                guardringbotext_gatestraps = _P.botgatespace + _P.botgatewidth + _P.botgatepolybottomextension
-            end
-        end
-        if _P.guardringrespectsourcestraps then
-            if _P.drawsourceconnections and not _P.connectsourceinline then
-                if _P.channeltype == "nmos" then
-                    if _P.connectsourceinverse then
-                        if _P.connectsourceboth then
-                            guardringbotext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
-                        end
-                        guardringtopext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
-                    else -- not _P.connectsourceinverse
-                        guardringbotext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
-                        if _P.connectsourceboth then
-                            guardringtopext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
-                        end
-                    end
-                else -- _P.channeltype == "pmos"
-                    if _P.connectsourceinverse then
-                        guardringbotext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
-                        if _P.connectsourceboth then
-                            guardringtopext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
-                        end
-                    else -- not _P.connectsourceinverse
-                        if _P.connectsourceboth then
-                            guardringbotext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
-                        end
-                        guardringtopext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
-                    end
-                end
-            end
-        end
-        local guardringleftext = guardringbotext_activedummy
-        local guardringrightext = guardringbotext_activedummy
-        holewidth = holewidth + guardringleftext + guardringrightext
-        guardringtopext_activedummy = 0
-        guardringbotext_activedummy = 0
-        local guardringtopext = math.max(guardringtopext_activedummy, guardringtopext_gateextensions, guardringtopext_gatestraps, guardringtopext_sourcestraps, guardringtopext_drainstraps)
-        local guardringbotext = math.max(guardringbotext_activedummy, guardringbotext_gateextensions, guardringbotext_gatestraps, guardringbotext_sourcestraps, guardringbotext_drainstraps)
-        holeheight = holeheight + guardringtopext + guardringbotext
-        guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
-            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
-            ringwidth = _P.guardringwidth,
-            holewidth = holewidth + _P.guardringleftsep + _P.guardringrightsep,
-            holeheight = holeheight + _P.guardringtopsep + _P.guardringbottomsep,
-            drawsegments = _P.guardringsegments,
-            fillwell = _P.guardringfillwell,
-            fillinnerimplant = true,
-            innerimplantpolarity = _P.channeltype == "nmos" and "n" or "p",
-            drawoxidetype = _P.guardringdrawoxidetype,
-            filloxidetype = _P.guardringfilloxidetype,
-            oxidetype = _P.guardringoxidetype,
-            wellinnerextension = _P.guardringwellinnerextension,
-            wellouterextension = _P.guardringwellouterextension,
-            implantinnerextension = _P.guardringimplantinnerextension,
-            implantouterextension = _P.guardringimplantouterextension,
-            soiopeninnerextension = _P.guardringsoiopeninnerextension,
-            soiopenouterextension = _P.guardringsoiopenouterextension,
-        })
-        local gtargetx = -leftactauxext
-        local gtargety = -guardringbotext
-        guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, gtargety))
-        guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
-        transistor:merge_into(guardring)
-        transistor:add_area_anchor_bltr("outerguardring",
-            guardring:get_area_anchor("outerboundary").bl,
-            guardring:get_area_anchor("outerboundary").tr
-        )
-        transistor:add_area_anchor_bltr("innerguardring",
-            guardring:get_area_anchor("innerboundary").bl,
-            guardring:get_area_anchor("innerboundary").tr
-        )
-        -- FIXME: very rudimentaty, does not check properly for source metals, location of source straps etc.
-        if _P.connectguardringtosource then
-            local sourceanchor = transistor:get_area_anchor("sourcestrap")
-            geometry.rectanglebltr(transistor, generics.metal(1),
-                point.create(
-                    0.5 * (sourceanchor.l + sourceanchor.r) - _P.connectsourcewidth / 2,
-                    transistor:get_area_anchor("innerguardring").b
-                ),
-                point.create(
-                    0.5 * (sourceanchor.l + sourceanchor.r) + _P.connectsourcewidth / 2,
-                    sourceanchor.b
-                )
-            )
-        end
     end
 
     -- gate contacts
@@ -2516,6 +2398,160 @@ function layout(transistor, _P)
         end
     end
 
+    -- guardring
+    local guardring -- variable needs to be visible for alignment box setting
+    if _P.drawguardring then
+        -- hole sizes are calculated without seperations, these are added in the instatiation
+        local holewidth = activewidth + leftactauxext + leftactext + rightactauxext + rightactext
+        local holeheight = _P.fingerwidth
+        local guardringtopext_activedummy = 0
+        local guardringbotext_activedummy = 0
+        local guardringtopext_gateextensions = 0
+        local guardringbotext_gateextensions = 0
+        local guardringtopext_gatestraps = 0
+        local guardringbotext_gatestraps = 0
+        local guardringtopext_sourcestraps = 0
+        local guardringbotext_sourcestraps = 0
+        local guardringtopext_drainstraps = 0
+        local guardringbotext_drainstraps = 0
+        if _P.guardringrespectactivedummies then
+            if _P.drawtopactivedummy then
+                guardringtopext_activedummy = _P.topactivedummywidth + _P.topactivedummyspace
+            end
+            if _P.drawbottomactivedummy then
+                guardringbotext_activedummy = _P.bottomactivedummywidth + _P.bottomactivedummyspace
+            end
+            if _P.drawleftactivedummy then
+                guardringleftext_activedummy = _P.leftactivedummywidth + _P.leftactivedummyspace
+            end
+            if _P.drawrightactivedummy then
+                guardringbotext_activedummy = _P.rightactivedummywidth + _P.rightactivedummyspace
+            end
+        end
+        if _P.guardringrespectgateextensions then
+            guardringtopext_gateextensions = gatetry - _P.fingerwidth
+            guardringbotext_gateextensions = -gatebly
+        end
+        if _P.guardringrespectgatestraps then
+            if _P.drawtopgatestrap then
+                guardringtopext_gatestraps = _P.topgatespace + _P.topgatewidth + _P.topgatepolytopextension
+            end
+            if _P.drawbotgatestrap then
+                guardringbotext_gatestraps = _P.botgatespace + _P.botgatewidth + _P.botgatepolybottomextension
+            end
+        end
+        if _P.guardringrespectsourcestraps then
+            if _P.drawsourceconnections and not _P.connectsourceinline then
+                if _P.channeltype == "nmos" then
+                    if _P.connectsourceinverse then
+                        if _P.connectsourceboth then
+                            guardringbotext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
+                        end
+                        guardringtopext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
+                    else -- not _P.connectsourceinverse
+                        guardringbotext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
+                        if _P.connectsourceboth then
+                            guardringtopext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
+                        end
+                    end
+                else -- _P.channeltype == "pmos"
+                    if _P.connectsourceinverse then
+                        guardringbotext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
+                        if _P.connectsourceboth then
+                            guardringtopext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
+                        end
+                    else -- not _P.connectsourceinverse
+                        if _P.connectsourceboth then
+                            guardringbotext_sourcestraps = _P.connectsourceotherspace + _P.connectsourceotherwidth
+                        end
+                        guardringtopext_sourcestraps = _P.connectsourcespace + _P.connectsourcewidth
+                    end
+                end
+            end
+        end
+        local guardringleftext = guardringbotext_activedummy
+        local guardringrightext = guardringbotext_activedummy
+        holewidth = holewidth + guardringleftext + guardringrightext
+        guardringtopext_activedummy = 0
+        guardringbotext_activedummy = 0
+        local guardringtopext = math.max(guardringtopext_activedummy, guardringtopext_gateextensions, guardringtopext_gatestraps, guardringtopext_sourcestraps, guardringtopext_drainstraps)
+        local guardringbotext = math.max(guardringbotext_activedummy, guardringbotext_gateextensions, guardringbotext_gatestraps, guardringbotext_sourcestraps, guardringbotext_drainstraps)
+        holeheight = holeheight + guardringtopext + guardringbotext
+        guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
+            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+            ringwidth = _P.guardringwidth,
+            holewidth = holewidth + _P.guardringleftsep + _P.guardringrightsep,
+            holeheight = holeheight + _P.guardringtopsep + _P.guardringbottomsep,
+            drawsegments = _P.guardringsegments,
+            fillwell = _P.guardringfillwell,
+            fillinnerimplant = true,
+            innerimplantpolarity = _P.channeltype == "nmos" and "n" or "p",
+            drawoxidetype = _P.guardringdrawoxidetype,
+            filloxidetype = _P.guardringfilloxidetype,
+            oxidetype = _P.guardringoxidetype,
+            wellinnerextension = _P.guardringwellinnerextension,
+            wellouterextension = _P.guardringwellouterextension,
+            implantinnerextension = _P.guardringimplantinnerextension,
+            implantouterextension = _P.guardringimplantouterextension,
+            soiopeninnerextension = _P.guardringsoiopeninnerextension,
+            soiopenouterextension = _P.guardringsoiopenouterextension,
+        })
+        local gtargetx = -leftactauxext
+        local gtargety = -guardringbotext
+        guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, gtargety))
+        guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
+        transistor:merge_into(guardring)
+        transistor:add_area_anchor_bltr("outerguardring",
+            guardring:get_area_anchor("outerboundary").bl,
+            guardring:get_area_anchor("outerboundary").tr
+        )
+        transistor:add_area_anchor_bltr("innerguardring",
+            guardring:get_area_anchor("innerboundary").bl,
+            guardring:get_area_anchor("innerboundary").tr
+        )
+        -- FIXME: very rudimentaty, does not check properly for source metals, location of source straps etc.
+        if _P.connectguardringtosource then
+            if _P.guardringconnectionmethod == "strap" then
+                local sourceanchor = transistor:get_area_anchor("sourcestrap")
+                geometry.rectanglebltr(transistor, generics.metal(_P.sourcestraptopmetal),
+                    point.create(
+                        0.5 * (sourceanchor.l + sourceanchor.r) - _P.connectsourcewidth / 2,
+                        transistor:get_area_anchor("innerguardring").b
+                    ),
+                    point.create(
+                        0.5 * (sourceanchor.l + sourceanchor.r) + _P.connectsourcewidth / 2,
+                        sourceanchor.b
+                    )
+                )
+                if _P.sourcestraptopmetal > 1 then
+                    geometry.viabltr(transistor, 1, _P.sourcestraptopmetal,
+                        point.create(
+                            0.5 * (sourceanchor.l + sourceanchor.r) - _P.connectsourcewidth / 2,
+                            transistor:get_area_anchor("outerguardring").b
+                        ),
+                        point.create(
+                            0.5 * (sourceanchor.l + sourceanchor.r) + _P.connectsourcewidth / 2,
+                            transistor:get_area_anchor("innerguardring").b
+                        )
+                    )
+                end
+            else -- "individual"
+                for i = 1, _P.fingers + 1, 2 do
+                    local sourceanchor = transistor:get_area_anchor_fmt("sourcedrain%d", i)
+                    geometry.rectanglebltr(transistor, generics.metal(1),
+                        point.create(
+                            0.5 * (sourceanchor.l + sourceanchor.r) - _P.connectsourcewidth / 2,
+                            transistor:get_area_anchor("innerguardring").b
+                        ),
+                        point.create(
+                            0.5 * (sourceanchor.l + sourceanchor.r) + _P.connectsourcewidth / 2,
+                            sourceanchor.b
+                        )
+                    )
+                end
+            end
+        end
+    end
 
     -- anchors for source drain active regions
     for i = 1, _P.fingers + 1 do
