@@ -2511,41 +2511,42 @@ function layout(transistor, _P)
         )
         -- FIXME: very rudimentaty, does not check properly for source metals, location of source straps etc.
         if _P.connectguardringtosource then
+            local target = _P.channeltype == "nmos" and "b" or "t"
             if _P.guardringconnectionmethod == "strap" then
                 local sourceanchor = transistor:get_area_anchor("sourcestrap")
-                geometry.rectanglebltr(transistor, generics.metal(_P.sourcestraptopmetal),
+                geometry.rectanglepoints(transistor, generics.metal(_P.sourcestraptopmetal),
                     point.create(
                         0.5 * (sourceanchor.l + sourceanchor.r) - _P.connectsourcewidth / 2,
-                        transistor:get_area_anchor("innerguardring").b
+                        transistor:get_area_anchor("innerguardring")[target]
                     ),
                     point.create(
                         0.5 * (sourceanchor.l + sourceanchor.r) + _P.connectsourcewidth / 2,
-                        sourceanchor.b
+                        sourceanchor[target]
                     )
                 )
                 if _P.sourcestraptopmetal > 1 then
-                    geometry.viabltr(transistor, 1, _P.sourcestraptopmetal,
+                    geometry.viapoints(transistor, 1, _P.sourcestraptopmetal,
                         point.create(
                             0.5 * (sourceanchor.l + sourceanchor.r) - _P.connectsourcewidth / 2,
-                            transistor:get_area_anchor("outerguardring").b
+                            transistor:get_area_anchor("outerguardring")[target]
                         ),
                         point.create(
                             0.5 * (sourceanchor.l + sourceanchor.r) + _P.connectsourcewidth / 2,
-                            transistor:get_area_anchor("innerguardring").b
+                            transistor:get_area_anchor("innerguardring")[target]
                         )
                     )
                 end
             else -- "individual"
                 for i = 1, _P.fingers + 1, 2 do
                     local sourceanchor = transistor:get_area_anchor_fmt("sourcedrain%d", i)
-                    geometry.rectanglebltr(transistor, generics.metal(1),
+                    geometry.rectanglepoints(transistor, generics.metal(1),
                         point.create(
                             0.5 * (sourceanchor.l + sourceanchor.r) - _P.connectsourcewidth / 2,
-                            transistor:get_area_anchor("innerguardring").b
+                            transistor:get_area_anchor("innerguardring")[target]
                         ),
                         point.create(
                             0.5 * (sourceanchor.l + sourceanchor.r) + _P.connectsourcewidth / 2,
-                            sourceanchor.b
+                            sourceanchor[target]
                         )
                     )
                 end
