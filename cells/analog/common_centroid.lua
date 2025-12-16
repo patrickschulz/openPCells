@@ -376,6 +376,7 @@ function layout(cell, _P)
     local guardringxsep = _P.guardringminxsep
     local guardringysep = math.max(_P.guardringminysep, (yseparation_needed - _P.guardringwidth) / 2)
 
+    -- active extension
     local activegateext
     local inactivegateext
     if _P.matchgateextensions then
