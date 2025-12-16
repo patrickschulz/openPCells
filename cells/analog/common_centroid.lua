@@ -149,6 +149,11 @@ function check(_P)
             end
         end
     end
+
+    if _P.equalgatenets and _P.usegateconnections then
+        return false, "'equalgatenets' and 'usegateconnections' must not be true at the same time"
+    end
+
     -- gather nets for later checks
     local nets = {
         gate = {},
