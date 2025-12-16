@@ -295,10 +295,10 @@ function layout(cell, _P)
     end
     local numrows = #activepattern
     local numinstancesperrow = #(_P.pattern[1]) -- total number of *instances* in a row (e.g. 0ABBAABBA0 -> 10, includes dummies)
-    local numdevicesperrow = {} -- total number of devices in a row (e.g. ABBBBA   -> 2
-                               --                                         CAABBC   -> 3
-                               --                                         CAABBC   -> 3
-                               --                                         ABBBBA   -> 2)
+    local numdevicespersinglerow = {} -- total number of devices in a row (e.g. ABBBBA   -> 2
+                                      --                                        CAABBC   -> 3
+                                      --                                        CAABBC   -> 3
+                                      --                                        ABBBBA   -> 2)
     -- in the pattern, a '0' denotes a dummy, this does *not* count as a device
     local numdevices = 0 -- total number of devices (e.g. 0ABBA0
                          --                               0CCDD0
@@ -315,17 +315,75 @@ function layout(cell, _P)
         for i in pairs(rowdevices) do
             count = count + 1
         end
-        numdevicesperrow[i] = count
+        numdevicespersinglerow[i] = count
     end
     local maxnumdevicespersinglerow = 0
-    for rownum = 1, #numdevicesperrow do
+    for rownum = 1, #numdevicespersinglerow do
         maxnumdevicespersinglerow = math.max(maxnumdevicespersinglerow, #util.uniq(activepattern[rownum]))
     end
     -- the maximum of different devices in a double row
-    local maxnumdevicesperdoublerow = 0
-    for rownum = 1, #numdevicesperrow - 1, 2 do
-        maxnumdevicesperdoublerow = math.max(maxnumdevicesperdoublerow, #util.uniq(util.merge_tables(activepattern[rownum], activepattern[rownum + 1])))
+    local numdevicesperdoublerow = {}
+    for rownum = 1, #numdevicespersinglerow - 1, 2 do
+        numdevicesperdoublerow[rownum] = #util.uniq(util.merge_tables(activepattern[rownum], activepattern[rownum + 1]))
     end
+    local maxnumdevicesperdoublerow = util.max(numdevicesperdoublerow)
+
+    -- collect gate/source/drain lines per row
+    -- FIXME: these should respect 'equalgatenets', 'gateconnections', 'equalsourcenets' etc.
+    local gatelinesperrow = {}
+    local drainlinesperrow = {}
+    local sourcelinesperrow = {}
+    for i = 1, numrows do
+        gatelinesperrow[i] = numdevicespersinglerow[i]
+        drainlinesperrow[i] = numdevicespersinglerow[i]
+        if _P.equalsourcenets then
+            sourcelinesperrow[i] = 1
+        else
+            sourcelinesperrow[i] = numdevicespersinglerow[1]
+        end
+    end
+
+    -- calculate required minimum row space for every row
+    -- every row gets their own source/drain lines, gate lines are shared between two rows ('doublerow')
+    -- as gate lines are shared, they are referenced to the lower row, so all odd rows
+    local rowshifts = {}
+    rowshifts[1] = 0
+    for row = 2, numrows do -- skip first row, no shift needed
+        if row % 2 == 0 then -- gate line row shifts only apply to even rows
+            local numdoublerowdevices = numdevicesperdoublerow[row - 1]
+            local gateline_space_occupation =
+                2 * _P.gatestrapspace + 2 * _P.gatestrapwidth
+                + (numdoublerowdevices + 1) * _P.gatelinespace + numdoublerowdevices * _P.gatelinewidth
+            rowshifts[row] = gateline_space_occupation
+        else -- odd row
+            local numlowerrowdevices = numdevicespersinglerow[row - 1]
+            local numlowerlines
+            if _P.equalsourcenets then
+                numlowerlines = numlowerrowdevices + 1
+            else
+                numlowerlines = 2 * numlowerrowdevices
+            end
+            local numupperrowdevices = numdevicespersinglerow[row]
+            local numupperlines
+            if _P.equalsourcenets then
+                numupperlines = numupperrowdevices + 1
+            else
+                numupperlines = 2 * numupperrowdevices
+            end
+            local interconnectline_space_occupation = - _P.interconnectlinespace -- correct for one additional space
+                + (numlowerlines + 1) * _P.interconnectlinespace + numlowerlines * _P.interconnectlinewidth
+                + (numupperlines + 1) * _P.interconnectlinespace + numupperlines * _P.interconnectlinewidth
+            rowshifts[row] = interconnectline_space_occupation
+        end
+    end
+    local maxrowshift = util.max(rowshifts)
+    if not _P.allow_unequal_rowshifts then
+        for row = 1, numrows do
+            rowshifts[row] = maxrowshift
+        end
+    end
+
+    -- calculate space occupation for gate lines
     local maxnumgatelines
     if _P.equalgatenets then
         maxnumgatelines = 1
@@ -341,6 +399,14 @@ function layout(cell, _P)
     if _P.usesourcestraps and _P.sourcestrapsinside then
         gateline_space_occupation = gateline_space_occupation + 2 * (_P.sourcedrainstrapwidth + _P.sourcedrainstrapspace)
     end
+
+    -- calculate space occupation for interconnect lines
+    local maxnuminterconnectlines
+    do
+        local numsourcelines = util.max(sourcelinesperrow)
+        local numdrainlines = util.max(drainlinesperrow)
+        maxnuminterconnectlines = 2 * (numsourcelines + numdrainlines)
+    end
     local interconnectline_space_occupation
     if _P.interconnectlinepos == "inline" then
         interconnectline_space_occupation = 0
@@ -350,22 +416,14 @@ function layout(cell, _P)
         if numrows == 2 then -- 'offside' lines are outside of the array, no spacing requirements here
             interconnectline_space_occupation = 0
         else
-            if _P.equalsourcenets then
-                local numlines = 2 * maxnumdevicespersinglerow
-                if not _P.usesourcestraps then
-                    numlines = numlines + 2
-                end
-                interconnectline_space_occupation = (numlines + 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
-            else
-                local numlines = 0
-                for rownum = 2, numrows - 1, 2 do
-                    local l = 2 * (numdevicesperrow[rownum] + numdevicesperrow[rownum + 1])
-                    numlines = math.max(numlines, l)
-                end
-                interconnectline_space_occupation = (numlines + 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
-            end
+            local numsourcelines = util.max(sourcelinesperrow)
+            local numdrainlines = util.max(drainlinesperrow)
+            local numlines = 2 * (numsourcelines + numdrainlines)
+            interconnectline_space_occupation = (numlines + 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
         end
     end
+
+    -- calculate row y separation based on gate/interconnect line space occupation
     local yseparation_needed = math.max(interconnectline_space_occupation, gateline_space_occupation)
     if _P.drawinnerguardrings then
         yseparation = 0
@@ -396,12 +454,6 @@ function layout(cell, _P)
         -- nil to get the default value
         activegateext = nil
         inactivegateext = nil
-    end
-
-    -- calculate possible row shifts for compacter layouts
-    local rowshiftcompensation = 0
-    if _P.interconnectlinepos == "offside" and _P.allow_unequal_rowshifts then
-        rowshiftcompensation = yseparation - gateline_space_occupation
     end
 
     local rowoptions = {
@@ -604,10 +656,7 @@ function layout(cell, _P)
     -- create mosfet array
     local rows = {}
     for rownum = 1, numrows do
-        local rowshift = 0
-        if rownum % 2 == 0 then -- shift every second row
-            rowshift = -rowshiftcompensation
-        end
+        local rowshift = rowshifts[rownum]
         local row = util.add_options(rowoptions, {
             shift = rowshift,
             gtopext = rownum % 2 == 1 and activegateext or inactivegateext,
@@ -621,7 +670,7 @@ function layout(cell, _P)
         rows = rows,
         drawimplant = not (_P.guardringfillimplant and (_P.drawinnerguardrings or _P.drawouterguardring)),
         xseparation = _P.xseparation,
-        yseparation = yseparation,
+        yseparation = 0, -- yseparation is given manually with rowshifts
         autoskip = true,
         splitgates = not _P.shortgates,
         drawguardring = _P.drawinnerguardrings,
