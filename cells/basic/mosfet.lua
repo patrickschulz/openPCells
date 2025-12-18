@@ -735,6 +735,12 @@ function layout(transistor, _P)
             point.create(gatetrx + (_P.fingers - i) * gatepitch, gatetry)
         )
     end
+    transistor:add_area_anchor_bltr("gateboundingbox",
+        point.create(gateblx, gatebly),
+        point.create(gatetrx + _P.fingers * gatepitch, gatetry)
+    )
+    transistor:add_anchor_line_y("gatetop", gatetry)
+    transistor:add_anchor_line_y("gatebottom", gatebly)
     transistor:add_area_anchor_bltr(
         "leftgate",
         point.create(gateblx + (1 - 1) * gatepitch, gatebly),
