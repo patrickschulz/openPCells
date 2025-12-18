@@ -139,8 +139,8 @@ local function _load_cell(state, cellname, env)
     )
     -- check if only allowed values are defined
     for funcname in pairs(env) do
-        if not util.any_of(function(v) return v == funcname end, { "requirements", "config", "parameters", "process_parameters", "layout", "check", "anchors" }) then
-            moderror(string.format("pcell: all defined global values must be one of 'requirements', 'config', 'parameters', 'process_parameters', 'layout', 'check' or 'anchors'. Illegal name: '%s'", funcname))
+        if not util.any_of(function(v) return v == funcname end, { "info", "requirements", "config", "parameters", "process_parameters", "layout", "check", "anchors" }) then
+            moderror(string.format("pcell: all defined global values must be one of 'info', 'requirements', 'config', 'parameters', 'process_parameters', 'layout', 'check' or 'anchors'. Illegal name: '%s'", funcname))
         end
     end
     return env
@@ -618,6 +618,15 @@ function pcell.create_layout_from_script(scriptpath, args, cellenv)
         return cell
     else
         error(string.format("cellscript '%s' could not be opened", scriptpath))
+    end
+end
+
+function pcell.info(cellname)
+    local cell = _get_cell(state, cellname)
+    if cell.funcs.info then
+        print(cell.funcs.info())
+    else
+        print(string.format("no info function available for '%s'", cellname))
     end
 end
 
