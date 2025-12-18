@@ -1477,30 +1477,29 @@ static int _viabltrov(
         metal1 = metal2;
         metal2 = tmp;
     }
-    if(metal2 - metal1 != 1)
-    {
-        return 0;
-    }
     int ret = 1;
-    struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1);
-    struct via_definition* fallback = technology_get_via_fallback(techstate, metal1);
-    if(!viadefs)
+    for(int i = metal1; i < metal2; ++i)
     {
-        return 0;
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1);
+        struct via_definition* fallback = technology_get_via_fallback(techstate, metal1);
+        if(!viadefs)
+        {
+            return 0;
+        }
+        const struct generics* viacutlayer = generics_create_viacut(techstate, metal1, metal2);
+        if(!viacutlayer)
+        {
+            puts("no viacutlayer defined");
+            return 0;
+        }
+        ret = ret && _via_contact_bltrov(cell,
+            viadefs, fallback,
+            viacutlayer,
+            blx1, bly1, trx1, try1,
+            blx2, bly2, trx2, try2,
+            technology_is_create_via_arrays(techstate)
+        );
     }
-    const struct generics* viacutlayer = generics_create_viacut(techstate, metal1, metal2);
-    if(!viacutlayer)
-    {
-        puts("no viacutlayer defined");
-        return 0;
-    }
-    ret = ret && _via_contact_bltrov(cell,
-        viadefs, fallback,
-        viacutlayer,
-        blx1, bly1, trx1, try1,
-        blx2, bly2, trx2, try2,
-        technology_is_create_via_arrays(techstate)
-    );
     if(!bare)
     {
         coordinate_t blx;
@@ -1514,8 +1513,10 @@ static int _viabltrov(
         );
         if(ov)
         {
-            _rectanglebltr(cell, generics_create_metal(techstate, metal1), blx, bly, trx, try);
-            _rectanglebltr(cell, generics_create_metal(techstate, metal2), blx, bly, trx, try);
+            for(int i = metal1; i <= metal2; ++i)
+            {
+                _rectanglebltr(cell, generics_create_metal(techstate, i), blx, bly, trx, try);
+            }
         }
     }
     return ret;
