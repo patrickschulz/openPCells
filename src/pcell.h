@@ -21,6 +21,7 @@ void pcell_append_cellpath(struct pcell_state*, const char* path);
 
 void pcell_append_pfile(struct pcell_state* pcell_state, const char* pfile);
 
+void pcell_show_cell_info(struct pcell_state* pcell_state, const char* cellname);
 void pcell_list_cellpaths(const struct pcell_state* pcell_state);
 void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat);
 void pcell_list_parameters(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* parametersformat, struct const_vector* parameternames);

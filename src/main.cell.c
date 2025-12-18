@@ -94,6 +94,19 @@ static void _prepare_cellpaths(struct pcell_state* pcell_state, struct cmdoption
     pcell_append_cellpath(pcell_state, OPC_CELL_PATH "/cells");
 }
 
+void main_show_cell_info(const char* cellname, struct cmdoptions* cmdoptions, struct hashmap* config)
+{
+    struct pcell_state* pcell_state = pcell_initialize_state();
+    if(!pcell_state)
+    {
+        fputs("could not initialize pcell state\n", stderr);
+    }
+    _prepare_cellpaths(pcell_state, cmdoptions, config);
+
+    pcell_show_cell_info(pcell_state, cellname);
+    pcell_destroy_state(pcell_state);
+}
+
 void main_list_cells_cellpaths(struct cmdoptions* cmdoptions, struct hashmap* config)
 {
     struct pcell_state* pcell_state = pcell_initialize_state();

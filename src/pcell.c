@@ -307,6 +307,25 @@ void pcell_append_cellpath(struct pcell_state* pcell_state, const char* path)
     vector_append(pcell_state->cellpaths, util_strdup(path));
 }
 
+void pcell_show_cell_info(struct pcell_state* pcell_state, const char* cellname)
+{
+    lua_State* L = _prepare_layout_generation(pcell_state, NULL);
+
+    // assemble cell arguments
+    lua_newtable(L);
+    // cell name
+    lua_pushstring(L, cellname);
+    lua_setfield(L, -2, "cell");
+    lua_setglobal(L, "args");
+
+    int retval = script_call_show_cell_info(L);
+    if(retval != LUA_OK)
+    {
+        puts("error while running show_cell_info.lua");
+    }
+    lua_close(L);
+}
+
 void pcell_list_cellpaths(const struct pcell_state* pcell_state)
 {
     for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)

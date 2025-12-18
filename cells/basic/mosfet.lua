@@ -1,3 +1,24 @@
+function info()
+    local lines = {
+        "This cell implements a metal-oxide-semiconductor (MOS) transistor.",
+        "It is the basic building block of CMOS circuits and used by various other opc cells such as 'basic/cmos' or 'basic/stacked_mosfet_array'.",
+        "This cell is also useful on its own and meant to be employed for implementing single transistors.",
+        "It tries to mimic typical pcell behaviour often found for elementary MOSFET devices in PDKs, so it can connect source/drain regions, draw multiple fingers, gate straps, guardrings etc.",
+        "This cell features more than 250 parameters, but most of them are only required for special cases.",
+        "If the technology files are set up properly, a simple call with parameters like",
+        "{",
+        "    channeltype = \"nmos\",",
+        "    oxidetype = 2,",
+        "    gatelength = 200,",
+        "    gatespace = 200,",
+        "    fingerwidth = 1500,",
+        "    fingers = 8,",
+        "}",
+        "shoud be sufficient for a DRC-clean transistor."
+    }
+    return table.concat(lines, "\n")
+end
+
 function parameters()
     pcell.add_parameters(
         { "channeltype(Channel Type)",                                                                  "nmos", posvals = set("nmos", "pmos"), info = "polarity of the mosfet. Can be either 'nmos' or 'pmos'." },

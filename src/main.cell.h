@@ -4,6 +4,12 @@
 #include "cmdoptions.h"
 #include "hashmap.h"
 
+void main_show_cell_info(
+    const char* cellname,
+    struct cmdoptions* cmdoptions,
+    struct hashmap* config
+);
+
 void main_list_cells_cellpaths(
     struct cmdoptions* cmdoptions,
     struct hashmap* config

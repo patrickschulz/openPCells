@@ -167,6 +167,7 @@ _scriptmanager.c: _embed_compiled_lua_file scripts/*.lua
 	@echo '#include "_scriptmanager.h"' > __scriptmanager.c
 	@echo '#include <stddef.h>' >> __scriptmanager.c
 	@echo '#include "main.functions.h"' >> __scriptmanager.c
+	./_embed_compiled_lua_file --script scripts/show_cell_info.lua script_call show_cell_info __scriptmanager.c
 	./_embed_compiled_lua_file --script scripts/list_cells.lua script_call list_cells __scriptmanager.c
 	./_embed_compiled_lua_file --script scripts/list_parameters.lua script_call list_parameters __scriptmanager.c
 	./_embed_compiled_lua_file --script scripts/list_anchors.lua script_call list_anchors __scriptmanager.c
@@ -178,6 +179,7 @@ _scriptmanager.h:
 	@echo '#ifndef OPC_SCRIPTMANAGER_H' > __scriptmanager.h
 	@echo '#define OPC_SCRIPTMANAGER_H' >> __scriptmanager.h
 	@echo '#include "lua/lua.h"' >> __scriptmanager.h
+	@echo 'int script_call_show_cell_info(lua_State* L);' >> __scriptmanager.h
 	@echo 'int script_call_list_cells(lua_State* L);' >> __scriptmanager.h
 	@echo 'int script_call_list_parameters(lua_State* L);' >> __scriptmanager.h
 	@echo 'int script_call_list_anchors(lua_State* L);' >> __scriptmanager.h

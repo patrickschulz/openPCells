@@ -553,6 +553,14 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CONFIG;
     }
 
+    // cell-info
+    if(cmdoptions_was_provided_long(cmdoptions, "cell-info"))
+    {
+        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell-info");
+        main_show_cell_info(cellname, cmdoptions, config);
+        goto DESTROY_CONFIG;
+    }
+
     // list + listcellpaths
     if(cmdoptions_was_provided_long(cmdoptions, "list-cellpaths") ||
        cmdoptions_was_provided_long(cmdoptions, "list"))
