@@ -1007,13 +1007,10 @@ struct simple_polygon* shape_to_polygon(struct shape* shape)
         }
         case PATH:
         {
+            // resolved paths can be rectangles or polygons
             struct shape* new = shape_resolve_path(shape);
-            struct simple_polygon* simple_polygon = simple_polygon_create();
-            struct polygon_shape* polygon = new->content;
-            for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
-            {
-                simple_polygon_append(simple_polygon, point_copy(vector_get(polygon->points, i)));
-            }
+            struct simple_polygon* simple_polygon = shape_to_polygon(new);
+            shape_destroy(new);
             return simple_polygon;
         }
     }
