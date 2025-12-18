@@ -1,4 +1,5 @@
 return {
+    ["Default Label Size"]                          = 200,
     ["Minimum Active Width"]                        = 200,
     ["Minimum Source/Drain Contact Region Size"]    = 280,
     ["Minimum Active Contact Region Size"]          = 280,
