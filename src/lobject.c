@@ -1751,9 +1751,13 @@ static int lobject_get_layer_boundary(lua_State* L)
 
 static int lobject_get_layer_occupation(lua_State* L)
 {
-    lcheck_check_numargs1(L, 2, "object.get_layer_boundary");
+    lcheck_check_numargs2(L, 1, 2, "object.get_layer_boundary");
     struct lobject* cell = lobject_check(L, 1);
-    const struct generics* layer = lua_touserdata(L, 2);
+    const struct generics* layer = NULL;
+    if(lua_gettop(L) > 2)
+    {
+        layer = lua_touserdata(L, 2);
+    }
     struct bltrshape* bltrshape = object_get_layer_occupation(lobject_get(L, cell), layer);
     lua_newtable(L);
     /* bl */

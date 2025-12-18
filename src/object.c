@@ -2925,7 +2925,7 @@ void object_get_minmax_xy_layer(const struct object* cell, coordinate_t* minxp, 
         for(unsigned int i = 0; i < vector_size(cell->content.full.shapes); ++i)
         {
             struct shape* S = vector_get(cell->content.full.shapes, i);
-            if(shape_is_layer(S, layer))
+            if(!layer || shape_is_layer(S, layer))
             {
                 coordinate_t minx_;
                 coordinate_t maxx_;
