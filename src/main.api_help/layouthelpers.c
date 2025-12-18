@@ -335,7 +335,7 @@
         "place_vlines_numsets",
         MODULE_LAYOUTHELPERS,
         "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "local netshapes = layouthelpers.place_vlines_numsets(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, -- width\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names \n    4 -- number of sets)",
+        "local netshapes = layouthelpers.place_vlines_numsets(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, -- width\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
         parameters
     ));
 }
@@ -349,6 +349,7 @@
         { "layer",          GENERICS,   NULL, "metal layer for lines" },
         { "width",          INTEGER,    NULL, "width of lines" },
         { "space",          INTEGER,    NULL, "space of lines" },
+        { "minheight",      INTEGER,    NULL, "minimum height of lines" },
         { "netnames",       TABLE,      NULL, "table with netnames (one line net)" },
         { "excludes",       TABLE,      NULL, "table with polygon excludes" },
         { NULL }
@@ -364,9 +365,11 @@
         "Note that the minimum fitting rectangle around the polygon is used, not the polygon itself. "
         "This might result in too pessimistic line placement. "
         "However, as most geometries are rectangles, in general this will work quite well. "
+        "As excludes can cause short lines to be created, the 'minheight' parameter restricts the creation of too small lines. "
+        "This can be 0 (zero), then all possible lines will be created. "
         "This function returns a table with a net target entry for every line, where one entry looks like this: "
         "{ net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "local netshapes = layouthelpers.place_vlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names)",
+        "local netshapes = layouthelpers.place_vlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
         parameters
     ));
 }
@@ -387,7 +390,7 @@
         "place_hlines_numsets",
         MODULE_LAYOUTHELPERS,
         "Create horizontal lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "local netshapes = layouthelpers.place_hlines_numsets(cell,\n    point.create(0, 0), point.create(4000, 10000) -- target area,\n    generics.metal(5), -- layer\n    400, -- height\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names \n    4 -- number of sets)",
+        "local netshapes = layouthelpers.place_hlines_numsets(cell,\n    point.create(0, 0), point.create(4000, 10000) -- target area,\n    generics.metal(5), -- layer\n    400, -- height\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
         parameters
     ));
 }
@@ -401,6 +404,7 @@
         { "layer",          GENERICS,   NULL, "metal layer for lines" },
         { "width",          INTEGER,    NULL, "width of lines" },
         { "space",          INTEGER,    NULL, "space of lines" },
+        { "minwidth",       INTEGER,    NULL, "minimum width of lines" },
         { "netnames",       TABLE,      NULL, "table with netnames (one line net)" },
         { "excludes",       TABLE,      NULL, "table with polygon excludes" },
         { NULL }
@@ -416,9 +420,11 @@
         "Note that the minimum fitting rectangle around the polygon is used, not the polygon itself. "
         "This might result in too pessimistic line placement. "
         "However, as most geometries are rectangles, in general this will work quite well. "
+        "As excludes can cause short lines to be created, the 'minwidth' parameter restricts the creation of too small lines. "
+        "This can be 0 (zero), then all possible lines will be created. "
         "This function returns a table with a net target entry for every line, where one entry looks like this: "
         "{ net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "local netshapes = layouthelpers.place_hlines(cell,\n    point.create(0, 0), point.create(4000, 10000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\" \"VSS\" \"BIAS\" }, -- net names)",
+        "local netshapes = layouthelpers.place_hlines(cell,\n    point.create(0, 0), point.create(4000, 10000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
         parameters
     ));
 }
