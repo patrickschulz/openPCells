@@ -845,12 +845,13 @@ function layout(cell, _P)
         local holeheight = math.max(holeheight_active, holeheight_gate)
         -- FIXME: this works for symmetric arrays, but can be extended easily to support non-symmetric arrays
         local outerguardringysep
-        local outerguardringyshift = 0
+        local outerguardringyshift
         if _P.interconnectlinepos == "offside" then
             outerguardringysep = math.max(2 * _P.guardringminysep, firstrowinterconnectline_space_occupation + lastrowinterconnectline_space_occupation)
             outerguardringyshift = 0.5 * (lastrowinterconnectline_space_occupation - firstrowinterconnectline_space_occupation)
         else
-            outerguardringysep = _P.guardringminysep
+            outerguardringysep = 2 * _P.guardringminysep
+            outerguardringyshift = 0
         end
         guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
