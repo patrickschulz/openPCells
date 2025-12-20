@@ -112,7 +112,9 @@ function parameters()
         { "lines_label_sizehint", technology.get_optional_dimension("Default Label Size") },
         { "gatelines_label_sizehint", technology.get_optional_dimension("Default Label Size"), follow = "lines_label_sizehint" },
         { "interconnectlines_label_sizehint", technology.get_optional_dimension("Default Label Size"), follow = "lines_label_sizehint" },
-        { "globallines_label_sizehint", technology.get_optional_dimension("Default Label Size"), follow = "lines_label_sizehint" }
+        { "globallines_label_sizehint", technology.get_optional_dimension("Default Label Size"), follow = "lines_label_sizehint" },
+        { "instancename", nil },
+        { "instancelabelsizehint", technology.get_optional_dimension("Default Label Size") }
     )
 end
 
@@ -1776,5 +1778,15 @@ function layout(cell, _P)
                 )
             end
         end
+    end
+
+    -- instance name
+    if rawget(_P, "instancename") then
+        cell:add_label(
+            _P.instancename,
+            generics.other("text"),
+            cell:get_alignment_anchor("outerbl"),
+            _P.instancelabelsizehint
+        )
     end
 end
