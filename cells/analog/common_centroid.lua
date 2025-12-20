@@ -845,8 +845,10 @@ function layout(cell, _P)
         local holeheight = math.max(holeheight_active, holeheight_gate)
         -- FIXME: this works for symmetric arrays, but can be extended easily to support non-symmetric arrays
         local outerguardringysep
+        local outerguardringyshift = 0
         if _P.interconnectlinepos == "offside" then
-            outerguardringysep = math.max(_P.guardringminysep, math.max(firstrowinterconnectline_space_occupation, lastrowinterconnectline_space_occupation))
+            outerguardringysep = math.max(2 * _P.guardringminysep, firstrowinterconnectline_space_occupation + lastrowinterconnectline_space_occupation)
+            outerguardringyshift = 0.5 * (lastrowinterconnectline_space_occupation - firstrowinterconnectline_space_occupation)
         else
             outerguardringysep = _P.guardringminysep
         end
@@ -854,7 +856,7 @@ function layout(cell, _P)
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             ringwidth = _P.guardringwidth,
             holewidth = holewidth + 2 * guardringxsep,
-            holeheight = holeheight + 2 * outerguardringysep,
+            holeheight = holeheight + outerguardringysep,
             fillwell = _P.guardringfillwell,
             fillinnerimplant = _P.guardringfillimplant,
             innerimplantpolarity = _P.channeltype == "nmos" and "n" or "p",
@@ -875,7 +877,7 @@ function layout(cell, _P)
                 math.min(active.bl:gety(), lowergateboundingbox.bl:gety())
             )
         )
-        guardring:translate(-guardringxsep, -outerguardringysep)
+        guardring:translate(-guardringxsep, -0.5 * outerguardringysep + outerguardringyshift)
         cell:merge_into(guardring)
         cell:add_area_anchor_bltr("outerguardring",
             guardring:get_area_anchor("outerboundary").bl,
