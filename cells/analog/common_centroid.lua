@@ -79,6 +79,7 @@ function parameters()
         { "connectdummies", true },
         { "connectdummysources", true },
         { "connectdummiestointernalnet", false },
+        { "allow_single_device", false },
         { "extendalltop", 0 },
         { "extendallbottom", 0 },
         { "extendallleft", 0 },
@@ -160,6 +161,23 @@ function check(_P)
                 hasdummies = true
             end
         end
+    end
+
+    -- check whether devices are specified continuously
+    local devices = {}
+    for device = 1, numdevices do
+        for _, row in ipairs(_P.pattern) do
+            if util.any_of(device, row) then
+                devices[device] = true
+            end
+        end
+        if not devices[device] then
+            return false, "devices must be specified continuously, starting at 1"
+        end
+    end
+
+    if numdevices < 2 and not _P.allow_single_device then
+        return false, "the array must contain more than one active device (unless 'allow_single_device' is true)"
     end
 
     if _P.equalgatenets and _P.usegateconnections then
