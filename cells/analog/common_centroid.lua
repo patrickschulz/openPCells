@@ -359,7 +359,9 @@ function check(_P)
             local pnets = util.foreach(pinnettable, function(e) return e.net end)
             for _, net in ipairs(nets[pin]) do
                 if not util.any_of(net, pnets) then
-                    return false, string.format("when global line nets are specified manually ('usegloballines'), all required nets must be present in 'globallines'. Missing net: '%s%d'", pin, net)
+                    if pin ~= "gate" or #_P.pattern > 2 then
+                        return false, string.format("when global line nets are specified manually ('usegloballines'), all required nets must be present in 'globallines'. Missing net: '%s%d'", pin, net)
+                    end
                 end
             end
             for _, net in ipairs(pnets) do
