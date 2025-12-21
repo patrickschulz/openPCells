@@ -890,7 +890,25 @@
         "fit_lines_width_grid",
         MODULE_UTIL,
         "Calculate the spacing of a given number of lines of a certain width that should fit in a region. This function can take a grid and will decrement the space until it fits on the grid",
-        "util.fit_lines_lower(10000, 1000, 8) -- 285\nutil.fit_lines_lower(10000, 1000, 8, 10) -- 280",
+        "util.fit_lines_width_grid(10000, 1000, 8) -- 285\nutil.fit_lines_width_grid(10000, 1000, 8, 10) -- 280",
+        parameters
+    ));
+}
+
+/* util.fit_lines_fullwidth_grid(total, width, numlines, grid) */
+{
+    struct parameter parameters[] = {
+        { "total",      INTEGER,    NULL, "full region size" },
+        { "fullwidth",  INTEGER,    NULL, "full combined width of all lines to fit" },
+        { "numlines",   INTEGER,    NULL, "number of lines to fit" },
+        { "grid",       INTEGER,    "1",  "optional grid" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "fit_lines_fullwidth_grid",
+        MODULE_UTIL,
+        "Calculate the spacing of a given number of lines of a certain width that should fit in a region. This function can take a grid and will decrement the space until it fits on the grid. This function is different than util.fit_lines_width_grid in that it does not take the width of an individual line but the combined width of all lines. This is useful when spacing for lines with unequal widths should be calculated.",
+        "util.fit_lines_fullwidth_grid(10000, 8000, 8) -- 285\nutil.fit_lines_lower(10000, 10000, 8, 10) -- 280",
         parameters
     ));
 }
