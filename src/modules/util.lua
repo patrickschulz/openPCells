@@ -835,7 +835,10 @@ function util.foreach(t, f, ...)
     check.arg(2, "f", "function", f)
     local new = {}
     for _, e in ipairs(t) do
-        table.insert(new, f(e, ...))
+        local res = table.pack(f(e, ...))
+        for i = 1, res.n do
+            table.insert(new, res[i])
+        end
     end
     return new
 end
