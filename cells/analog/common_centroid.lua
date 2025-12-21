@@ -1598,18 +1598,31 @@ function layout(cell, _P)
     end
 
     -- connect interconnect lines (source) to output lines
-    local sourceoutputlines = util.clone_array_predicate(outputlines, function(e) return e.base == "source" end)
     if not _P.usesourcestraps then
         for rownum = 1, numrows do
-            local devices = _get_active_devices(function(device) return device.row == rownum end)
-            for _, device in ipairs(devices) do
-                local sourceline = _map_device_index_to_source(device.device)
-                geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
-                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).bl,
-                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).tr,
-                    cell:get_area_anchor_fmt("outputconnectline_%s", string.format("source%d", sourceline)).bl,
-                    cell:get_area_anchor_fmt("outputconnectline_%s", string.format("source%d", sourceline)).tr
+            local devindices = _get_uniq_row_devices_single(rownum)
+            local lines = util.uniq(util.foreach(devindices, _map_device_index_to_source))
+            for line, index in ipairs(lines) do
+                local sourceoutputlines = util.clone_array_predicate(outputlines,
+                    function(e)
+                        return e.base == "source" and e.device == index
+                    end
                 )
+                for _, outputline in ipairs(sourceoutputlines) do
+                    local netname = string.format("source%d", index)
+                    local identifier
+                    if outputline.variant then
+                        identifier = string.format("%s_%d", netname, outputline.variant)
+                    else
+                        identifier = netname
+                    end
+                    geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
+                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, netname).bl,
+                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, netname).tr,
+                        cell:get_area_anchor_fmt("outputconnectline_%s", identifier).bl,
+                        cell:get_area_anchor_fmt("outputconnectline_%s", identifier).tr
+                    )
+                end
             end
         end
     else -- _P.usesourcestraps
@@ -1692,21 +1705,24 @@ function layout(cell, _P)
     end
 
     -- add source nets to output lines
-    for _, line in ipairs(sourceoutputlines) do
-        local netname = string.format("%s%d", line.base, line.device)
-        local anchorname
-        if line.variant then
-            anchorname = string.format("%s_%d", netname, line.variant)
-        else
-            anchorname = netname
-        end
-        if _P.sourcenets[netname] then
-            cell:add_net_shape(
-                _P.sourcenets[netname],
-                cell:get_area_anchor(anchorname).bl,
-                cell:get_area_anchor(anchorname).tr,
-                generics.metal(_P.interconnectmetal + 1)
-            )
+    do
+        local sourceoutputlines = util.clone_array_predicate(outputlines, function(e) return e.base == "source" end)
+        for _, line in ipairs(sourceoutputlines) do
+            local netname = string.format("%s%d", line.base, line.device)
+            local anchorname
+            if line.variant then
+                anchorname = string.format("%s_%d", netname, line.variant)
+            else
+                anchorname = netname
+            end
+            if _P.sourcenets[netname] then
+                cell:add_net_shape(
+                    _P.sourcenets[netname],
+                    cell:get_area_anchor(anchorname).bl,
+                    cell:get_area_anchor(anchorname).tr,
+                    generics.metal(_P.interconnectmetal + 1)
+                )
+            end
         end
     end
 
