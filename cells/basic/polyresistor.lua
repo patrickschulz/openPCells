@@ -278,16 +278,17 @@ function layout(resistor, _P)
     end
     -- implant
     if _P.implant_coverall then
-        geometry.rectanglebltr(resistor, generics.implant(_P.implanttype),
-            point.create(
-                (1 - 1) * (_P.width + _P.xspace) - _P.extendimplantx,
-                -_P.extendimplanty
-            ),
-            point.create(
-                (_P.nxfingers + _P.leftdummies + _P.rightdummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendimplantx,
-                totalpolyheight + _P.extendimplanty
+        if not _P.drawguardring then
+            geometry.rectanglebltr(resistor, generics.implant(_P.implanttype),
+                point.create(
+                    (1 - 1) * (_P.width + _P.xspace) - _P.extendimplantx,
+                    -_P.extendimplanty
+                ),
+                point.create(
+                    (_P.nxfingers + _P.leftdummies + _P.rightdummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendimplantx,
+                    totalpolyheight + _P.extendimplanty
+                )
             )
-        )
     else
         for _, anchor in ipairs(allanchors) do
             geometry.rectanglebltr(resistor, generics.implant(_P.implanttype),
