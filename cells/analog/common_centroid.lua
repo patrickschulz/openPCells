@@ -1376,9 +1376,8 @@ function layout(cell, _P)
     local outertargetwidth = point.xdistance_abs(obbbl, obbtr)
     local innertargetwidth = point.xdistance_abs(ibbbl, ibbtr)
     local targetwidth = 0.5 * (outertargetwidth + innertargetwidth)
-    local outputline_center = 0.5 * outertargetwidth
 
-    -- create output lines
+    -- fill output lines table
     if _P.usegloballines then
         -- build variant lookup table
         local variantnum = {}
@@ -1502,14 +1501,36 @@ function layout(cell, _P)
             variant = 2,
         })
     end
+
+    -- add output lines width
+    util.foreach(
+        outputlines,
+        function(line)
+            if line.base == "source" then
+                line.width = _P.sourceoutputlinewidth
+            elseif line.base == "drain" then
+                line.width = _P.drainoutputlinewidth
+            elseif line.base == "gate" then
+                line.width = _P.gateoutputlinewidth
+            else -- line.base == "guardring"
+                line.width = _P.guardringoutputlinewidth
+            end
+        end
+    )
+
+    -- create output lines
     local numlines = #outputlines
+    local all_lines_width = util.sum(util.foreach(outputlines, function(line) return line.width end))
     local space
     if _P.spreadoutputlines then
-        space = util.fit_lines_width_grid(targetwidth, _P.outputlinewidth, numlines, technology.get_even_grid())
+        space = util.fit_lines_fullwidth_grid(targetwidth, all_lines_width, numlines, technology.get_even_grid())
     else
         space = _P.outputlinespace
     end
+    local outputline_start = 0.5 * outertargetwidth - (all_lines_width + (numlines - 1) * space) / 2
+    --local outputline_start = obbbl:getx()
     -- create output lines and add anchors
+    local shift = 0
     for lineindex, line in ipairs(outputlines) do
         local identifier
         local netname
@@ -1521,14 +1542,15 @@ function layout(cell, _P)
         local identifier = string.format("outputconnectline_%s", netname)
         cell:add_area_anchor_bltr(identifier,
             point.create(
-                obbbl:getx() + outputline_center - (numlines * _P.outputlinewidth + (numlines - 1) * space) / 2 + (lineindex - 1) * (space + _P.outputlinewidth),
+                obbbl:getx() + outputline_start + shift,
                 outputlineminy - _P.outputlinebotextend
             ),
             point.create(
-                obbbl:getx() + outputline_center - (numlines * _P.outputlinewidth + (numlines - 1) * space) / 2 + _P.outputlinewidth + (lineindex - 1) * (space + _P.outputlinewidth),
+                obbbl:getx() + outputline_start + shift + line.width,
                 outputlinemaxy + _P.outputlinetopextend
             )
         )
+        shift = shift + line.width + space
         geometry.rectanglebltr(cell, generics.metal(_P.interconnectmetal + 1),
             cell:get_area_anchor(identifier).bl,
             cell:get_area_anchor(identifier).tr
