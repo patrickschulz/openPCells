@@ -1199,51 +1199,34 @@ function layout(cell, _P)
                 for _, device in ipairs(devices) do
                     local sourceline = _map_device_index_to_source(device.device)
                     for finger = 1, _P.fingers + 1, 2 do
+                        local icvextension = math.max(_P.interconnectlineviawidth, _P.sdwidth)
+                        local sdanchor = _get_dev_anchor(device, string.format("sourcedrain%d", finger))
+                        local ytop
+                        local ybottom
                         if rownum % 2 == 1 then
-                            geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
-                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).b
-                                ),
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).b
-                                )
-                            )
-                            geometry.viabltrov(cell, _P.sourcemetal, _P.interconnectmetal,
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
-                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).b
-                                ),
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).b
-                                ),
-                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).bl,
-                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).tr
-                            )
+                            ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).b
+                            ytop = sdanchor.b
                         else
-                            geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).t
-                                ),
-                                point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
-                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).t
-                                )
-                            )
+                            ybottom = sdanchor.t
+                            ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).t
+                        end
+                        geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
+                            point.create(sdanchor.l, ybottom),
+                            point.create(sdanchor.r, ytop)
+                        )
+                        if _P.sourcemetal ~= _P.interconnectmetal then
                             geometry.viabltrov(cell, _P.sourcemetal, _P.interconnectmetal,
                                 point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).l,
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).t
+                                    0.5 * (sdanchor.l + sdanchor.r) - icvextension / 2,
+                                    ybottom
                                 ),
                                 point.create(
-                                    _get_dev_anchor(device, string.format("sourcedrain%d", finger)).r,
-                                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).t
+                                    0.5 * (sdanchor.l + sdanchor.r) + icvextension / 2,
+                                    ytop
                                 ),
                                 cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).bl,
-                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).tr
+                                cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).tr,
+                                string.format("source to interconnect line conncetion:\n    x parameters: max of interconnectlineviawidth/sdwidth (%d)\n    y parameters: interconnectlinewidth (%d)", icvextension, _P.interconnectlinewidth)
                             )
                         end
                     end
