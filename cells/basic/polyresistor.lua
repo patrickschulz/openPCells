@@ -289,6 +289,7 @@ function layout(resistor, _P)
                     totalpolyheight + _P.extendimplanty
                 )
             )
+        end
     else
         for _, anchor in ipairs(allanchors) do
             geometry.rectanglebltr(resistor, generics.implant(_P.implanttype),
