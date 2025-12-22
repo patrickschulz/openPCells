@@ -1838,6 +1838,23 @@
     ));
 }
 
+/* object.set_origin */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,     NULL, "cell to be moved" },
+        { "x",      INTEGER,    NULL, "x coordinate (can be a point, in this case x and y are taken from this point)" },
+        { "y",      INTEGER,    NULL, "y coordinate" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "set_origin",
+        MODULE_OBJECT,
+        "Sets the origin of the cell to the given position. This is an absolute movement.",
+        "cell:set_origin(100, 200)",
+        parameters
+    ));
+}
+
 /* object.move_x */
 {
     struct parameter parameters[] = {

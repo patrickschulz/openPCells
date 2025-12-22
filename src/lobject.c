@@ -242,6 +242,29 @@ static int lobject_move_to(lua_State* L)
     return 1;
 }
 
+static int lobject_set_origin(lua_State* L)
+{
+    lcheck_check_numargs2(L, 2, 3, "object.set_origin");
+    int n = lua_gettop(L);
+    struct lobject* cell = lobject_check(L, 1);
+    if(n == 2)
+    {
+        struct lpoint* pt = lpoint_checkpoint(L, 2);
+        coordinate_t x = lpoint_get(pt)->x;
+        coordinate_t y = lpoint_get(pt)->y;
+        object_set_origin(lobject_get(L, cell), x, y);
+        lua_rotate(L, 1, 1);
+    }
+    else
+    {
+        coordinate_t x = lpoint_checkcoordinate(L, 2, "x");
+        coordinate_t y = lpoint_checkcoordinate(L, 3, "y");
+        object_set_origin(lobject_get(L, cell), x, y);
+        lua_rotate(L, 1, 2);
+    }
+    return 1;
+}
+
 static int lobject_reset_translation(lua_State* L)
 {
     lcheck_check_numargs1(L, 1, "object.reset_translation");
@@ -2005,6 +2028,7 @@ int open_lobject_lib(lua_State* L)
         { "extend_alignment_box_xy_symmetrical",    lobject_extend_alignment_box_xy_symmetrical },
         { "width_height_alignmentbox",              lobject_width_height_alignmentbox           },
         { "move_to",                                lobject_move_to                             },
+        { "set_origin",                             lobject_set_origin                          },
         { "reset_translation",                      lobject_reset_translation                   },
         { "translate",                              lobject_translate                           },
         { "translate_x",                            lobject_translate_x                         },
