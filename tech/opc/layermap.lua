@@ -15,6 +15,14 @@ return {
             debug = { layer = "_special" },
         }
     },
+    text = {
+        name = "text",
+        layer = {
+            gds = { layer = 234, purpose = 0 },
+            SKILL = { layer = "text", purpose = "drawing" },
+            debug = { layer = "text" },
+        }
+    },
     active = {
         name = "active",
         layer = {
