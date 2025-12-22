@@ -6,6 +6,7 @@ local commonoptions = {
     vthtype = 1,
     oxidetype = 2,
     flippedwell = false,
+    allow_unequal_rowshifts = true,
     fingers = 2,
     sdwidth = 340,
     gatestrapwidth = 340,
@@ -31,13 +32,8 @@ local commonoptions = {
     guardringfilloxidetype = true,
     guardringminxsep = 1000,
     guardringminysep = 1000,
-    shortgates = false,
-    shortdummies = true,
-    outerdummies = 0,
-    extendalltop = 200,
-    extendallbottom = 200,
-    extendallleft = 200,
-    extendallright = 200,
+    insertglobalguardringlines = true,
+    annotate_lines = true,
 }
 
 -- nmos source
@@ -65,7 +61,7 @@ local nmossource = pcell.create_layout("analog/common_centroid", "_nmossource", 
     interconnectmetal = 2,
     usegateconnections = true,
     gateconnections = { { 1, 2, 5 }, { 3, 4 }, { 6, 7 } },
-    sourcenets = { source0 = "gnd" },
+    sourcenets = { source1 = "gnd" },
 }))
 cell:merge_into(nmossource)
 
@@ -94,7 +90,24 @@ local nmoscascode = pcell.create_layout("analog/common_centroid", "_nmoscascode"
     sourcemetal = 1,
     drainmetal = 1,
     interconnectmetal = 2,
-    usesourcestraps = false,
+    usegloballines = true,
+    globallines = {
+        { pin = "drain", net = 4 },
+        { pin = "drain", net = 2 },
+        { pin = "source", net = 1 },
+        { pin = "drain", net = 6 },
+        { pin = "drain", net = 1 },
+        { pin = "source", net = 2 },
+        { pin = "source", net = 3 },
+        { pin = "source", net = 4 },
+        { pin = "source", net = 5 },
+        { pin = "drain", net = 7 },
+        { pin = "drain", net = 3 },
+        { pin = "drain", net = 5 },
+        { pin = "source", net = 6 },
+        { pin = "source", net = 7 },
+        { pin = "gate", net = 1 },
+    },
 }))
 nmoscascode:place_top(nmossource)
 nmoscascode:align_center_x(nmossource)
@@ -120,15 +133,15 @@ local nmospair = pcell.create_layout("analog/common_centroid", "_nmospair", util
     sourcemetal = 1,
     drainmetal = 1,
     interconnectmetal = 2,
-    usesourcestraps = true,
-    sourcestrapsinside = true,
     groupoutputlines = true,
     grouporder = "source_inside",
+    usesourcestraps = true,
+    sourcestrapsinside = true,
     multiplesourcelines = false,
 }))
 nmospair:place_top(nmoscascode)
 nmospair:align_right(nmoscascode)
-nmospair:translate_y(2000)
+nmospair:translate_y(4000)
 cell:merge_into(nmospair)
 
 -- pmos pair
@@ -140,7 +153,7 @@ local pmospair = pcell.create_layout("analog/common_centroid", "_pmospair", util
     channeltype = "pmos",
     fingers = 4,
     fingerwidth = 1250,
-    equalgatenets = true,
+    equalgatenets = false,
     gatelength = 1000,
     gatespace = 540,
     gatestrapsincenter = false,
@@ -149,15 +162,15 @@ local pmospair = pcell.create_layout("analog/common_centroid", "_pmospair", util
     sourcemetal = 1,
     drainmetal = 1,
     interconnectmetal = 2,
-    usesourcestraps = true,
-    sourcestrapsinside = true,
     groupoutputlines = true,
     grouporder = "source_inside",
+    usesourcestraps = true,
+    sourcestrapsinside = true,
     multiplesourcelines = false,
 }))
 pmospair:place_top(nmoscascode)
 pmospair:align_left(nmoscascode)
-pmospair:translate_y(2000)
+pmospair:translate_y(4000)
 cell:merge_into(pmospair)
 
 -- pmos cascode
@@ -188,7 +201,7 @@ local pmoscascode = pcell.create_layout("analog/common_centroid", "_pmoscascode"
 }))
 pmoscascode:place_top(nmospair)
 pmoscascode:align_center_x(nmoscascode)
-pmoscascode:translate_y(2000)
+pmoscascode:translate_y(4000)
 cell:merge_into(pmoscascode)
 
 -- pmos source
@@ -218,7 +231,7 @@ local pmossource = pcell.create_layout("analog/common_centroid", "_pmossource", 
     interconnectmetal = 2,
     usegateconnections = true,
     gateconnections = { { 1, 2, 5 }, { 3, 4 }, { 6, 7 } },
-    sourcenets = { source0 = "vdd" },
+    sourcenets = { source1 = "vdd" },
 }))
 pmossource:place_top(pmoscascode)
 pmossource:align_center_x(nmossource)
@@ -230,12 +243,12 @@ cell:merge_into(pmossource)
 -- nmos source to cascode
 local connections = {
     { net = 1, position = 0.5 },
-    { net = 2, position = 0.5 },
-    { net = 3, position = 0.5 },
-    { net = 4, position = 0.5 },
-    { net = 5, position = 0.75 },
-    { net = 6, position = 0.5 },
-    { net = 7, position = 0.25 },
+    { net = 2, position = 0.7 },
+    { net = 3, position = 0.3 },
+    { net = 4, position = 0.3 },
+    { net = 5, position = 0.7 },
+    { net = 6, position = 0.7 },
+    { net = 7, position = 0.3 },
 }
 for _, c in ipairs(connections) do
     geometry.path_3y(cell, generics.metal(3),
@@ -269,10 +282,10 @@ geometry.path_3y(cell, generics.metal(3),
     ),
     point.create(
         0.5 * (
-            nmospair:get_area_anchor("source0").l +
-            nmospair:get_area_anchor("source0").r
+            nmospair:get_area_anchor("source1").l +
+            nmospair:get_area_anchor("source1").r
         ),
-        nmospair:get_area_anchor("source0").b
+        nmospair:get_area_anchor("source1").b
     ),
     outputlinewidth,
     0.5
@@ -280,8 +293,8 @@ geometry.path_3y(cell, generics.metal(3),
 
 -- nmos cascode to pmos inputpair
 for _, c in ipairs({
-        --{ n = 4, p = 1, },
-        --{ n = 6, p = 2 }
+        { n = 4, p = 1, },
+        { n = 6, p = 2 }
     }) do
     geometry.path_3y(cell, generics.metal(3),
         point.create(
@@ -314,10 +327,10 @@ geometry.path_3y(cell, generics.metal(3),
     ),
     point.create(
         0.5 * (
-            pmospair:get_area_anchor("source0").l +
-            pmospair:get_area_anchor("source0").r
+            pmospair:get_area_anchor("source1").l +
+            pmospair:get_area_anchor("source1").r
         ),
-        pmospair:get_area_anchor("source0").t
+        pmospair:get_area_anchor("source1").t
     ),
     outputlinewidth,
     0.5

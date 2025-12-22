@@ -26,11 +26,8 @@ local commonoptions = {
     guardringfilloxidetype = true,
     shortgates = false,
     shortdummies = true,
-    outerdummies = 0,
-    extendalltop = 200,
-    extendallbottom = 200,
-    extendallleft = 200,
-    extendallright = 200,
+    allow_unequal_rowshifts = true,
+    annotate_lines = true,
 }
 
 -- nmos input pair
@@ -47,12 +44,19 @@ local inputpair = pcell.create_layout("analog/common_centroid", "_inputpair", ut
     fullgatevia = true,
     gatelineviapitch = 800,
     guardringminxsep = 500,
-    guardringminysep = 800,
+    guardringminysep = 400,
     equalsourcenets = true,
     interconnectlinewidth = 1000,
     outputlinewidth = 2000,
     interconnectlinepos = "inline",
-    grouporder = "drain_inside",
+    usegloballines = true,
+    globallines = {
+        { pin = "source", net = 1 },
+        { pin = "drain", net = 1 },
+        { pin = "drain", net = 2 },
+        { pin = "source", net = 1 },
+    },
+    instancename = "inputpair",
 }))
 cell:merge_into(inputpair)
 
@@ -82,13 +86,28 @@ local pmoscrossing = pcell.create_layout("analog/common_centroid", "_pmoscrossin
     },
     gatelineviapitch = 1000,
     guardringminxsep = 800,
-    guardringminysep = 4000,
+    guardringminysep = 400,
     spreadinterconnectlines = true,
     interconnectlinewidth = 400,
+    usegloballines = true,
+    globallines = {
+        { pin = "gate", net = 1 },
+        { pin = "source", net = 1 },
+        { pin = "source", net = 1 },
+        { pin = "source", net = 1 },
+        { pin = "drain", net = 5 },
+        { pin = "drain", net = 4 },
+        { pin = "drain", net = 1 },
+        { pin = "drain", net = 2 },
+        { pin = "drain", net = 3 },
+        { pin = "drain", net = 6 },
+        { pin = "source", net = 1 },
+        { pin = "source", net = 1 },
+        { pin = "source", net = 1 },
+        { pin = "gate", net = 2 },
+    },
     outputlinewidth = 1000,
-    grouporder = "drain_inside",
-    drainordermanual = true,
-    drainorder = { 5, 4, 1, 2, 3, 6 },
+    instancename = "pmoscrossing",
 }))
 pmoscrossing:place_top(inputpair)
 pmoscrossing:align_center_x(inputpair)
@@ -111,10 +130,11 @@ local nmoscascode = pcell.create_layout("analog/common_centroid", "nmoscascode",
     sdm1ext = 100,
     equalgatenets = true,
     guardringminxsep = 500,
-    guardringminysep = 3200,
+    guardringminysep = 400,
     grouporder = "drain_inside",
     interconnectlinewidth = 400,
     outputlinewidth = 2000,
+    instancename = "nmoscascode",
 }))
 nmoscascode:place_bottom(inputpair)
 nmoscascode:align_center_x(inputpair)
@@ -135,11 +155,12 @@ local nmossource = pcell.create_layout("analog/common_centroid", "nmossource", u
     fullgatevia = true,
     sdm1ext = 100,
     guardringminxsep = 500,
-    guardringminysep = 2400,
+    guardringminysep = 400,
     interconnectlinewidth = 400,
     outputlinewidth = 2000,
-    insertglobalgateline = true,
+    insertglobalgatelines = true,
     globalgatelinesincenter = true,
+    instancename = "nmossource",
 }))
 nmossource:place_bottom(nmoscascode)
 nmossource:align_center_x(nmoscascode)
@@ -161,9 +182,10 @@ local nmosleftrightsource = pcell.create_layout("analog/common_centroid", "nmosl
     sdm1ext = 100,
     connectgatetosourcedrain = { { gate = 1, target = "drain1" } },
     guardringminxsep = 500,
-    guardringminysep = 2400,
+    guardringminysep = 400,
     interconnectlinewidth = 400,
     outputlinewidth = 1000,
+    instancename = "nmosleftrightsource",
 }))
 nmosleftrightsource:place_bottom(nmossource)
 nmosleftrightsource:align_center_x(nmossource)
@@ -181,10 +203,10 @@ geometry.path_3y(cell, generics.metal(3),
     ),
     point.create(
         0.5 * (
-            inputpair:get_area_anchor("source0_1").l +
-            inputpair:get_area_anchor("source0_1").r
+            inputpair:get_area_anchor("source1_1").l +
+            inputpair:get_area_anchor("source1_1").r
         ),
-        inputpair:get_area_anchor("source0_1").b
+        inputpair:get_area_anchor("source1_1").b
     ),
     2000,
     0.5
@@ -199,10 +221,10 @@ geometry.path_3y(cell, generics.metal(3),
     ),
     point.create(
         0.5 * (
-            inputpair:get_area_anchor("source0_2").l +
-            inputpair:get_area_anchor("source0_2").r
+            inputpair:get_area_anchor("source1_2").l +
+            inputpair:get_area_anchor("source1_2").r
         ),
-        inputpair:get_area_anchor("source0_2").b
+        inputpair:get_area_anchor("source1_2").b
     ),
     2000,
     0.5
@@ -249,10 +271,10 @@ geometry.path_3y(cell, generics.metal(3),
 geometry.path_3y(cell, generics.metal(3),
     point.create(
         0.5 * (
-            nmossource:get_area_anchor("gate0").l +
-            nmossource:get_area_anchor("gate0").r
+            nmossource:get_area_anchor("gate1").l +
+            nmossource:get_area_anchor("gate1").r
         ),
-        nmossource:get_area_anchor("gate0").t
+        nmossource:get_area_anchor("gate1").t
     ),
     point.create(
         0.5 * (

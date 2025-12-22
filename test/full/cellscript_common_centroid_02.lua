@@ -44,15 +44,9 @@ local cc = pcell.create_layout("analog/common_centroid", "_common_centroid", {
     outputlinewidth = 2000,
     outputlinetopextend = 0,
     outputlinebotextend = 0,
-    groupoutputlines = true,
-    grouporder = "source_inside",
     gatestrapsincenter = false,
     connectgatesonbothsides = false,
-    outerdummies = 0,
-    extendalltop = 200,
-    extendallbottom = 200,
-    extendallleft = 200,
-    extendallright = 200,
+    annotate_lines = true,
 })
 
 cell:merge_into(cc)

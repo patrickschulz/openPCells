@@ -54,6 +54,9 @@ function do_cellscript_test()
     fi
 }
 
+# tech/via test
+do_cellscript_test cellscript_tech_vias cellscript_tech_vias.lua gds
+
 # cmos
 do_cell_test cmos_01 basic/cmos gds
 
@@ -110,6 +113,9 @@ do_cellscript_test cellscript_common_centroid_01 cellscript_common_centroid_01.l
 do_cellscript_test cellscript_common_centroid_02 cellscript_common_centroid_02.lua gds
 do_cellscript_test cellscript_common_centroid_03 cellscript_common_centroid_03.lua gds
 do_cellscript_test cellscript_common_centroid_04 cellscript_common_centroid_04.lua gds
+do_cellscript_test cellscript_common_centroid_05 cellscript_common_centroid_05.lua gds
+do_cellscript_test cellscript_common_centroid_06 cellscript_common_centroid_06.lua gds
+do_cellscript_test cellscript_common_centroid_07 cellscript_common_centroid_07.lua gds
 
 # stacked_mosfet_array
 do_cell_test stacked_mosfet_array_01 basic/stacked_mosfet_array gds
