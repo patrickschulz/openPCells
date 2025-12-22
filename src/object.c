@@ -2742,7 +2742,7 @@ void object_set_origin(struct object* cell, coordinate_t x, coordinate_t y)
 
 void object_move_origin(struct object* cell, coordinate_t x, coordinate_t y)
 {
-    transformationmatrix_translate(cell->trans, -x, -y);
+    transformationmatrix_translate(cell->trans, x, y);
 }
 
 void object_reset_translation(struct object* cell)
