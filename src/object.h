@@ -191,6 +191,7 @@ const struct transformationmatrix* object_get_transformation_matrix(const struct
 const struct transformationmatrix* object_get_array_transformation_matrix(const struct object* cell);
 void object_move_to(struct object* cell, coordinate_t x, coordinate_t y);
 void object_set_origin(struct object* cell, coordinate_t x, coordinate_t y);
+void object_move_origin(struct object* cell, coordinate_t x, coordinate_t y);
 void object_reset_translation(struct object* cell);
 void object_translate(struct object* cell, coordinate_t x, coordinate_t y);
 void object_translate_x(struct object* cell, coordinate_t x);

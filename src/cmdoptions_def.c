@@ -21,7 +21,8 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "append-parameter-file", MULTI_ARGS,
 cmdoptions_add_alias(cmdoptions, "append-parameter-file", 'p', "pfile", "synonym for --append-parameter-file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-pfiles", NO_ARG, "disable reading of any parameter files");
 cmdoptions_add_option_default(cmdoptions, 'f', "filename", SINGLE_ARG, "openPCells", "specify output filename for export. The name should be specified without an extension (such as '.gds'), as the export types add their specific extension to the filename, this is especially useful when using more than one export type");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "origin", SINGLE_ARG, "origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parentheses)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "origin", SINGLE_ARG, "set origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parentheses)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "relative-origin", SINGLE_ARG, "move origin of cell (translate the origin by the shift specified). This option expects a point input, e.g. '(10, 10)' (with parentheses). This switch is often preferable over --origin, which overrides the origin set in the toplevel cell internally.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "translate", SINGLE_ARG, "move cell by (x, y). This option expects a point input, e.g. '(10, 10)' (with parentheses)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "orientation", SINGLE_ARG, "orientation of cell (possible values: 0 (regular), fx (flip x), fy (flip y), fxy (flip x and y))");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "scale", SINGLE_ARG, "scale factor for all shapes");

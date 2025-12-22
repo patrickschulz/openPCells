@@ -212,6 +212,23 @@ static void _move_origin(struct object* toplevel, struct cmdoptions* cmdoptions)
     }
 }
 
+static void _move_origin_relative(struct object* toplevel, struct cmdoptions* cmdoptions)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "relative-origin"))
+    {
+        const char* arg = cmdoptions_get_argument_long(cmdoptions, "relative-origin");
+        int x, y;
+        if(!_parse_point(arg, &x, &y))
+        {
+            fprintf(stderr, "could not parse translation '%s'\n", arg);
+        }
+        else
+        {
+            object_move_origin(toplevel, x, y);
+        }
+    }
+}
+
 static void _translate(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "translate"))
@@ -635,6 +652,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     }
 
     _move_origin(toplevel, cmdoptions);
+    _move_origin_relative(toplevel, cmdoptions);
     _translate(toplevel, cmdoptions);
     _scale(toplevel, cmdoptions);
 

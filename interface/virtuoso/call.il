@@ -22,7 +22,7 @@ procedure(OPCPrepareArgsForCellCreation(args origin @key (useOrigin t) (groupnam
     if(useOrigin
         then
             OPCArgs = lsprintf(
-                "--technology %s --export %s --origin '(%d, %d)' --ignore-malformed-shapes --resolve-path-extensions %s -X '-L %f'"
+                "--technology %s --export %s --relative-origin '(%d, %d)' --ignore-malformed-shapes --resolve-path-extensions %s -X '-L %f'"
                 OPCTech exporttype
                 fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin))
                 args
