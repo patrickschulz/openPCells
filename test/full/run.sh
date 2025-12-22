@@ -137,3 +137,6 @@ do_cellscript_test cellscript_port cellscript_port.lua gds
 
 # cellscript test for transformation corrections
 do_cellscript_test cellscript_transformation_correction cellscript_transformation_correction.lua gds
+
+# cellscript test for automatic line/via placement
+do_cellscript_test cellscript_line_place_via cellscript_line_place_via.lua gds
