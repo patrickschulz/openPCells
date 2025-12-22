@@ -207,7 +207,7 @@ function util.offset_polygon(polygon, offset)
     return geometry.offset_polygon_points(polygon, offset)
 end
 
-function util.rectangle_intersection(bl1, tr1, bl2, tr2)
+function util.rectangle_intersection(bl1, tr1, bl2, tr2, onlyfull)
     check.set_next_function_name("util.rectangle_intersection")
     check.arg_func(1, "bl1", "point", bl1, point.is_point)
     check.arg_func(2, "tr1", "point", tr1, point.is_point)
@@ -226,10 +226,21 @@ function util.rectangle_intersection(bl1, tr1, bl2, tr2)
     local trx = math.min(tr1x, tr2x)
     local try = math.min(tr1y, tr2y)
     if trx > blx and try > bly then
-        return {
-            bl = point.create(blx, bly),
-            tr = point.create(trx, try),
-        }
+        if not onlyfull then
+            success = true
+        else -- full intersection
+            if
+                (blx1 <= blx2 and trx1 >= trx2 and bly2 <= bly1 and try2 >= try1) or
+                (blx2 <= blx1 and trx2 >= trx1 and bly1 <= bly2 and try1 >= try2) then
+                success = true
+            end
+        end
+        if success then
+            return {
+                bl = point.create(blx, bly),
+                tr = point.create(trx, try),
+            }
+        end
     end
     return nil
 end

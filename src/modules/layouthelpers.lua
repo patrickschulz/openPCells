@@ -462,7 +462,7 @@ function M.place_hlines(cell, bl, tr, layer, height, space, minwidth, netnames, 
     return netshapes
 end
 
-function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, nocheck)
+function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, onlyfull, nocheck)
     for i1 = 1, #netshapes1 do
         local connect = true
         if netfilter then
@@ -475,7 +475,8 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, n
                 if netshapes1[i1].net == netshapes2[i2].net then
                     local r = util.rectangle_intersection(
                         netshapes1[i1].bl, netshapes1[i1].tr,
-                        netshapes2[i2].bl, netshapes2[i2].tr
+                        netshapes2[i2].bl, netshapes2[i2].tr,
+                        onlyfull
                     )
                     if r then
                         local create = nocheck or geometry.check_viabltr(metal1, metal2, r.bl, r.tr)
@@ -489,12 +490,13 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, n
     end
 end
 
-function M.place_unequal_net_vias(cell, metal1, metal2, netshapes1, netshapes2, nocheck)
+function M.place_unequal_net_vias(cell, metal1, metal2, netshapes1, netshapes2, onlyfull, nocheck)
     for i1 = 1, #netshapes1 do
         for i2 = 1, #netshapes2 do
             local r = util.rectangle_intersection(
                 netshapes1[i1].bl, netshapes1[i1].tr,
-                netshapes2[i2].bl, netshapes2[i2].tr
+                netshapes2[i2].bl, netshapes2[i2].tr,
+                onlyfull
             )
             if r then
                 local create = nocheck or geometry.check_viabltr(metal1, metal2, r.bl, r.tr)

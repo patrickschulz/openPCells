@@ -438,7 +438,8 @@
         { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netfilter",      INTEGER,    NULL, "optional table containing nets that should be connected. If not given, all matching nets are conneted" },
-        { "nocheck",        BOOLEAN,    NULL, "don't chec vias. If not given, all vias area created, if the overlap is too small an error is raised" },
+        { "onlyfull",       BOOLEAN,    NULL, "only place vias where a full overlap exists (where one shape defines x and the other one defines y)" },
+        { "nocheck",        BOOLEAN,    NULL, "don't check vias. If not given, all vias area created, if the overlap is too small an error is raised" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
@@ -465,7 +466,8 @@
         { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netfilter",      INTEGER,    NULL, "optional table containing nets that should be connected. If not given, all nets are connected" },
-        { "nocheck",        BOOLEAN,    NULL, "don't chec vias. If not given, all vias area created, if the overlap is too small an error is raised" },
+        { "onlyfull",       BOOLEAN,    NULL, "only place vias where a full overlap exists (where one shape defines x and the other one defines y)" },
+        { "nocheck",        BOOLEAN,    NULL, "don't check vias. If not given, all vias area created, if the overlap is too small an error is raised" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
