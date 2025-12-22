@@ -230,8 +230,8 @@ function util.rectangle_intersection(bl1, tr1, bl2, tr2, onlyfull)
             success = true
         else -- full intersection
             if
-                (blx1 <= blx2 and trx1 >= trx2 and bly2 <= bly1 and try2 >= try1) or
-                (blx2 <= blx1 and trx2 >= trx1 and bly1 <= bly2 and try1 >= try2) then
+                (bl1x <= bl2x and tr1x >= tr2x and bl2y <= bl1y and tr2y >= tr1y) or
+                (bl2x <= bl1x and tr2x >= tr1x and bl1y <= bl2y and tr1y >= tr2y) then
                 success = true
             end
         end
