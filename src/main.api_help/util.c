@@ -810,6 +810,24 @@
     ));
 }
 
+/* util.reduce(coordinate, grid) */
+{
+    struct parameter parameters[] = {
+        { "table",      TABLE,      NULL, "table (array-like)" },
+        { "function",   FUNCTION,   NULL, "function to be applied to the elements" },
+        { "initial",    ANY,        NULL, "initial value for the calculation" },
+        { "...",        VARARGS,    NULL, "additional arguments passed to function" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "reduce",
+        MODULE_UTIL,
+        "apply a function to every element of a given table. Return a scalar result of these calls. An initial value must be given (e.g. '0' for numeric operations). This sets the type of the result. Additional arguments can be passed to the function.",
+        "util.reduce({ 1, 2, 3 }, function(lhs, rhs) return lhs + rhs end, 0) -- 6",
+        parameters
+    ));
+}
+
 /* util.find(coordinate, grid) */
 {
     struct parameter parameters[] = {

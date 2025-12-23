@@ -854,6 +854,17 @@ function util.foreach(t, f, ...)
     return new
 end
 
+function util.reduce(t, f, initial, ...)
+    check.set_next_function_name("util.reduce")
+    check.arg(1, "t", "table", t)
+    check.arg(2, "f", "function", f)
+    local value = initial
+    for _, e in ipairs(t) do
+        value = f(value, e, ...)
+    end
+    return value
+end
+
 function util.fit_lines_upper(total, size, space)
     check.set_next_function_name("util.fit_lines_upper")
     check.arg(1, "total", "number", total)
