@@ -2561,6 +2561,35 @@ function layout(transistor, _P)
                 end
             end
         end
+        if _P.guardringrespectdrainstraps then
+            if _P.drawdrainconnections and not _P.connectdraininline then
+                if _P.channeltype == "nmos" then
+                    if _P.connectdraininverse then
+                        if _P.connectdrainboth then
+                            guardringtopext_drainstraps = _P.connectdrainotherspace + _P.connectdrainotherwidth
+                        end
+                        guardringbotext_drainstraps = _P.connectdrainspace + _P.connectdrainwidth
+                    else -- not _P.connectdraininverse
+                        guardringtopext_drainstraps = _P.connectdrainspace + _P.connectdrainwidth
+                        if _P.connectdrainboth then
+                            guardringbotext_drainstraps = _P.connectdrainotherspace + _P.connectdrainotherwidth
+                        end
+                    end
+                else -- _P.channeltype == "pmos"
+                    if _P.connectdraininverse then
+                        guardringtopext_drainstraps = _P.connectdrainspace + _P.connectdrainwidth
+                        if _P.connectdrainboth then
+                            guardringbotext_drainstraps = _P.connectdrainotherspace + _P.connectdrainotherwidth
+                        end
+                    else -- not _P.connectdraininverse
+                        if _P.connectdrainboth then
+                            guardringtopext_drainstraps = _P.connectdrainotherspace + _P.connectdrainotherwidth
+                        end
+                        guardringbotext_drainstraps = _P.connectdrainspace + _P.connectdrainwidth
+                    end
+                end
+            end
+        end
         local guardringleftext = guardringbotext_activedummy
         local guardringrightext = guardringbotext_activedummy
         holewidth = holewidth + guardringleftext + guardringrightext
