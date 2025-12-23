@@ -1,3 +1,34 @@
+function info()
+    local lines = {
+        "This cell implements a common-centroid array of several MOSFET devices.",
+        "The local nets (source/drain/gate) are distributed in rows via so-called gate/interconnect lines and the connected between rows by global/output lines.",
+        "The device pattern is given with numeric indices starting at one, so a typical differential pair could be represented by { { 1, 2 }, { 2, 1 } }, where every inner table represents one row.",
+        "The property of every device can then be controlled via cell parameters such as gatelength, fingerwidth etc.",
+        "The inner nets can also be shorted together, when for instance one of the devices is in a diode-connected configuration, or when several sources are connected together. These connections are controlled via 'sourceconnections' and 'connectgatetosourcedrain'.",
+        "A typical cell configuration could look like this:",
+        "{",
+        "    pattern = {",
+        "        { 1, 1, 2, 2, },",
+        "        { 2, 2, 1, 1, },",
+        "    },",
+        "    channeltype = \"nmos\",",
+        "    oxidetype = 2,",
+        "    gatelength = 200,",
+        "    gatespace = 200,",
+        "    fingerwidth = 1500,",
+        "    fingers = 2, -- per device",
+        "}",
+        "",
+        "The pattern can currently be anything (almost, it needs to have an even number of rows), no checks for actual common-centroid arrays are done.",
+        "This might change in the future, but currently the user is responsible for proper placement.",
+        "",
+        "The rows spacing is typically given by the number of interconnect lines, in arrays with many devices the row spacing can get quite large.",
+        "The parameter 'allow_unequal_rowshifts' can reduce this spacing.",
+        "Per default it is 'false', although (with proper pattern specification) it should be safe to set to 'true' in most cases.",
+    }
+    return table.concat(lines, "\n")
+end
+
 function parameters()
     pcell.add_parameters(
         { "pattern", { { 1, 2, 1 }, { 2, 1, 2 } } },
