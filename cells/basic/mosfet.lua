@@ -97,6 +97,7 @@ function parameters()
         { "rightendgatespace(Right End Gate Space)",                                                    0, follow = "gatespace" },
         { "drawtopgate(Draw Top Gate Contact)",                                                         false, info = "draw gate contacts on the upper side of the active region. The contact region width is the gate length, the height is 'topgatewidth'. The space to the active region is 'topgatespace'." },
         { "drawtopgatestrap(Draw Top Gate Strap)",                                                      false, follow = "drawtopgate", info = "Connect all top gate contacts by a metal strap. Follows 'drawtopgate'." },
+        { "topgateadjustforsdstraps",                                                                   false },
         { "topgatewidth(Top Gate Width)",                                                               technology.get_dimension("Minimum Gate Contact Region Size"), argtype = "integer", info = "Width of the metal strap connecting all top gate contacts." },
         { "topgateleftextension(Top Gate Left Extension)",                                              0, info = "Left extension of top gate metal strap. Positive values extend the strap on the left side beyond (to the left) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
         { "topgaterightextension(Top Gate Right Extension)",                                            0, info = "Right extension of top gate metal strap. Positive values extend the strap on the right side beyond (to the right) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
@@ -106,6 +107,7 @@ function parameters()
         { "topgatecontinuousvia(Top Gate Continuous Via)",                                              false, info = "Make the drawn via of the top gate metal strap a continuous via." },
         { "drawbotgate(Draw Bottom Gate Contact)",                                                      false, info = "draw gate contacts on the upper side of the active region. The contact region width is the gate length, the height is 'topgatewidth'. The space to the active region is 'topgatespace'." },
         { "drawbotgatestrap(Draw Bottom Gate Strap)",                                                   false, follow = "drawbotgate" },
+        { "botgateadjustforsdstraps",                                                                   false },
         { "botgatewidth(Bottom Gate Width)",                                                            technology.get_dimension("Minimum Gate Contact Region Size"), argtype = "integer", info = "Width of the metal strap connecting all bottom gate contacts." },
         { "botgateleftextension(Bottom Gate Left Extension)",                                           0, info = "Left extension of bottom gate metal strap. Positive values extend the strap on the left side beyond (to the left) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
         { "botgaterightextension(Bottom Gate Right Extension)",                                         0, info = "Right extension of bottom gate metal strap. Positive values extend the strap on the right side beyond (to the right) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
@@ -139,7 +141,7 @@ function parameters()
         { "drawlastsourcevia(Draw Last Source Via)",                                                    true, info = "Draw a via on the last source region (counted from the left). This switch can be useful when connecting dummies to other devices." },
         { "connectsource(Connect Source)",                                                              false, info = "Connect all parallel source regions by a metal strap. This strap either lies outside or inside of the active region (see parameter 'connectsourceinline'). For nMOS devices, the outer source strap is below the active region, for pMOS devices the outer source strap is above the active region. This can be changed with 'connectsourceinverse')." },
         { "drawsourcestrap(Draw Source Strap)",                                                         false, follow = "connectsource", info = "Draw the source strap. This parameter follows 'connectsource', so per default the source strap is drawn. This parameter is useful when the source strap (or what it should connect to) is drawn by some other structures." },
-        { "drawsourceconnections(Draw Source Connections)",                                             false, follow = "connectsource", info = "Draw the connections to the source strap. This parameter follows 'connectsource', so per default the connections between the source regions and the source strap are drawn. This parameter is rarely useful, only in situations where the source strap is now used but the source is connected." },
+        { "drawsourceconnections(Draw Source Connections)",                                             false, follow = "connectsource", info = "Draw the connections to the source strap. This parameter follows 'connectsource', so per default the connections between the source regions and the source strap are drawn. This parameter is rarely useful, only in situations where the source strap is not used but the source is connected." },
         { "connectsourceboth(Connect Source on Both Sides)",                                            false, info = "Connect the source on both sides of the active region. The \"other\" source strap is controlled by the connectsourceother* parameters, which all follow the main connectsource* parameters. This means that per default the \"other\" source strap mirrors the main one." },
         { "connectsourcewidth(Source Rails Metal Width)",                                               technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
         { "connectsourcespace(Source Rails Metal Space)",                                               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
@@ -625,8 +627,71 @@ function layout(transistor, _P)
     local rightactauxext = _P.endrightwithgate and (-(_P.gatespace + _P.sdwidth) / 2 + _P.rightendgatespace + _P.rightendgatelength / 2) or 0
     local activewidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + _P.leftfloatingdummies * gatepitch + _P.rightfloatingdummies * gatepitch
 
-    local topgateshift = enable(_P.drawtopgate, _P.topgatespace + _P.topgatewidth)
-    local botgateshift = enable(_P.drawbotgate, _P.botgatespace + _P.botgatewidth)
+    -- calculate gate/gate strap space extensions due to source/drain straps
+    local topgatesdstrapspace = 0
+    if _P.drawtopgate then
+        if _P.channeltype == "nmos" then
+            if _P.drawdrainconnections and not _P.connectdraininverse then
+                local space = _P.connectdrainspace + _P.connectdrainwidth
+                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+            end
+            if _P.drawsourceconnections and _P.connectsourceinverse then
+                local space = _P.connectsourcespace + _P.connectsourcewidth
+                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+            end
+            if _P.drawsourceconnections and _P.connectsourceboth then
+                local space = _P.connectsourceotherspace + _P.connectsourceotherwidth
+                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+            end
+        else -- _P.channeltype == "pmos"
+            if _P.drawsourceconnections and not _P.connectsourceinverse then
+                local space = _P.connectsourcespace + _P.connectsourcewidth
+                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+            end
+            if _P.drawdrainconnections and _P.connectdraininverse then
+                local space = _P.connectdrainspace + _P.connectdrainwidth
+                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+            end
+            if _P.drawdrainconnections and _P.connectdrainboth then
+                local space = _P.connectdrainotherspace + _P.connectdrainotherwidth
+                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+            end
+        end
+    end
+    local botgatesdstrapspace = 0
+    if _P.drawbotgate then
+        if _P.channeltype == "nmos" then
+            if _P.drawsourceconnections and not _P.connectsourceinverse then
+                botgatesdstrapspace = _P.connectsourcespace + _P.connectsourcewidth
+            end
+            if _P.drawdrainconnections and _P.connectdraininverse then
+                local space = _P.connectdrainspace + _P.connectdrainwidth
+                botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+            end
+            if _P.drawdrainconnections and _P.connectdrainboth then
+                local space = _P.connectdrainotherspace + _P.connectdrainotherwidth
+                botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+            end
+        else -- _P.channeltype == "pmos"
+            if _P.drawdrainconnections and not _P.connectdraininverse then
+                botgatesdstrapspace = _P.connectdrainspace + _P.connectdrainwidth
+            end
+            if _P.drawsourceconnections and _P.connectsourceinverse then
+                local space = _P.connectsourcespace + _P.connectsourcewidth
+                botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+            end
+            if _P.drawsourceconnections and _P.connectsourceboth then
+                local space = _P.connectsourceotherspace + _P.connectsourceotherwidth
+                botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+            end
+        end
+    end
+
+    local topgatespace = _P.topgatespace + enable(_P.topgateadjustforsdstraps, topgatesdstrapspace)
+    local botgatespace = _P.botgatespace + enable(_P.botgateadjustforsdstraps, botgatesdstrapspace)
+
+    local topgateshift = enable(_P.drawtopgate, topgatespace + _P.topgatewidth)
+    local botgateshift = enable(_P.drawbotgate, botgatespace + _P.botgatewidth)
     local gateaddtop = math.max(_P.gtopext, topgateshift) + _P.gtopextadd
     local gateaddbottom = math.max(_P.gbotext, botgateshift) + _P.gbotextadd
     if _P.gatetopabsoluteheight > 0 then
@@ -1234,10 +1299,10 @@ function layout(transistor, _P)
         if _P.allow_poly_connections then
             contactfun(transistor,
                 gatecontacttype,
-                point.create(gateblx + (1 - 1) * gatepitch, _P.fingerwidth + _P.topgatespace - _P.topgatepolybottomextension),
-                point.create(gatetrx + (_P.fingers - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth + _P.topgatepolytopextension),
-                point.create(gateblx + (1 - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
-                point.create(gatetrx + (_P.fingers - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth),
+                point.create(gateblx + (1 - 1) * gatepitch, _P.fingerwidth + topgatespace - _P.topgatepolybottomextension),
+                point.create(gatetrx + (_P.fingers - 1) * gatepitch, _P.fingerwidth + topgatespace + _P.topgatewidth + _P.topgatepolytopextension),
+                point.create(gateblx + (1 - 1) * gatepitch, _P.fingerwidth + topgatespace),
+                point.create(gatetrx + (_P.fingers - 1) * gatepitch, _P.fingerwidth + topgatespace + _P.topgatewidth),
                 string.format(
                     "top gate contact:\n    x parameters: gatelength (%d)\n    y parameters: topgatewidth (%d)",
                     _P.gatelength, _P.topgatewidth
@@ -1247,25 +1312,25 @@ function layout(transistor, _P)
             for i = 1, _P.fingers do
                 contactfun(transistor,
                     gatecontacttype,
-                    point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace - _P.topgatepolybottomextension),
-                    point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth + _P.topgatepolytopextension),
-                    point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
-                    point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth),
+                    point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace - _P.topgatepolybottomextension),
+                    point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace + _P.topgatewidth + _P.topgatepolytopextension),
+                    point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace),
+                    point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace + _P.topgatewidth),
                     string.format(
                         "top gate contact:\n    x parameters: gatelength (%d)\n    y parameters: topgatewidth (%d)",
                         _P.gatelength, _P.topgatewidth
                     )
                 )
                 transistor:add_area_anchor_bltr(string.format("topgate%d", i),
-                    point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace),
-                    point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + _P.topgatespace + _P.topgatewidth)
+                    point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace),
+                    point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace + _P.topgatewidth)
                 )
             end
         end
     end
     if _P.fingers > 0 and _P.drawtopgatestrap then
-        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.topgateleftextension, _P.fingerwidth + _P.topgatespace)
-        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.topgaterightextension, _P.fingerwidth + _P.topgatespace + _P.topgatewidth)
+        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.topgateleftextension, _P.fingerwidth + topgatespace)
+        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.topgaterightextension, _P.fingerwidth + topgatespace + _P.topgatewidth)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
         if rawget(_P, "gatenet") then
@@ -1301,32 +1366,32 @@ function layout(transistor, _P)
         if _P.allow_poly_connections then
             contactfun(transistor,
                 gatecontacttype,
-                point.create(gateblx + (1 - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth - _P.botgatepolybottomextension),
-                point.create(gatetrx + (_P.fingers - 1) * gatepitch, -_P.botgatespace + _P.botgatepolytopextension),
-                point.create(gateblx + (1 - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
-                point.create(gatetrx + (_P.fingers - 1) * gatepitch, -_P.botgatespace),
+                point.create(gateblx + (1 - 1) * gatepitch, -botgatespace - _P.botgatewidth - _P.botgatepolybottomextension),
+                point.create(gatetrx + (_P.fingers - 1) * gatepitch, -botgatespace + _P.botgatepolytopextension),
+                point.create(gateblx + (1 - 1) * gatepitch, -botgatespace - _P.botgatewidth),
+                point.create(gatetrx + (_P.fingers - 1) * gatepitch, -botgatespace),
                 string.format("bot gate contact:\n    x parameters: gatelength (%d)\n    y parameters: botgatewidth (%d)", _P.gatelength, _P.botgatewidth)
             )
         else
             for i = 1, _P.fingers do
                 contactfun(transistor,
                     gatecontacttype,
-                    point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth - _P.botgatepolybottomextension),
-                    point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace + _P.botgatepolytopextension),
-                    point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
-                    point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace),
+                    point.create(gateblx + (i - 1) * gatepitch, -botgatespace - _P.botgatewidth - _P.botgatepolybottomextension),
+                    point.create(gatetrx + (i - 1) * gatepitch, -botgatespace + _P.botgatepolytopextension),
+                    point.create(gateblx + (i - 1) * gatepitch, -botgatespace - _P.botgatewidth),
+                    point.create(gatetrx + (i - 1) * gatepitch, -botgatespace),
                     string.format("bot gate contact:\n    x parameters: gatelength (%d)\n    y parameters: botgatewidth (%d)", _P.gatelength, _P.botgatewidth)
                 )
                 transistor:add_area_anchor_bltr(string.format("botgate%d", i),
-                    point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
-                    point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace)
+                    point.create(gateblx + (i - 1) * gatepitch, -botgatespace - _P.botgatewidth),
+                    point.create(gatetrx + (i - 1) * gatepitch, -botgatespace)
                 )
             end
         end
     end
     if _P.fingers > 0 and _P.drawbotgatestrap then
-        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.botgateleftextension, -_P.botgatespace - _P.botgatewidth)
-        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.botgaterightextension, -_P.botgatespace)
+        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.botgateleftextension, -botgatespace - _P.botgatewidth)
+        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.botgaterightextension, -botgatespace)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
         if rawget(_P, "gatenet") then
@@ -2461,10 +2526,10 @@ function layout(transistor, _P)
         end
         if _P.guardringrespectgatestraps then
             if _P.drawtopgatestrap then
-                guardringtopext_gatestraps = _P.topgatespace + _P.topgatewidth + _P.topgatepolytopextension
+                guardringtopext_gatestraps = topgatespace + _P.topgatewidth + _P.topgatepolytopextension
             end
             if _P.drawbotgatestrap then
-                guardringbotext_gatestraps = _P.botgatespace + _P.botgatewidth + _P.botgatepolybottomextension
+                guardringbotext_gatestraps = botgatespace + _P.botgatewidth + _P.botgatepolybottomextension
             end
         end
         if _P.guardringrespectsourcestraps then

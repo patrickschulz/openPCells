@@ -71,6 +71,7 @@ do_cell_test guardring_02 auxiliary/guardring gds
 do_cell_test ldmos_01 basic/ldmos gds
 
 # mosfet
+do_cellscript_test cellscript_mosfet_01 cellscript_mosfet_01.lua gds
 do_cell_test mosfet_01 basic/mosfet gds
 do_cell_test mosfet_02 basic/mosfet gds
 do_cell_test mosfet_03 basic/mosfet gds
