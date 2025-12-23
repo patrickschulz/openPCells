@@ -37,9 +37,9 @@ function parameters()
         { "extendgatessymmetrically", false },
         { "allow_unequal_rowshifts", false },
         { "usegateconnections", false },
-        { "gateconnections", {} }, -- FIXME: this should be nil, but due to how parameters are handled internally, this is currently not supported
+        { "gateconnections", {} },
         { "usesourceconnections", false },
-        { "sourceconnections", {} }, -- FIXME: this should be nil, but due to how parameters are handled internally, this is currently not supported
+        { "sourceconnections", {} },
         { "interconnectlinepos", "offside", posvals = set("offside", "gate", "inline") },
         { "spreadinterconnectlines", true },
         { "interconnectlinewidth", technology.get_dimension("Minimum M2 Width") },
@@ -68,9 +68,9 @@ function parameters()
         { "grouporder", "drain_inside", posvals = set("drain_inside", "source_inside") },
         { "usegloballines", false },
         { "globallines", {} },
-        { "sourcenets", {} }, -- FIXME: this should be nil, but due to how parameters are handled internally, this is currently not supported
-        { "drainnets", {} }, -- FIXME: this should be nil, but due to how parameters are handled internally, this is currently not supported
-        { "connectgatetosourcedrain", {} }, -- FIXME: this should be nil, but due to how parameters are handled internally, this is currently not supported
+        { "sourcenets", {} },
+        { "drainnets", {} },
+        { "connectgatetosourcedrain", {} },
         { "diodeconnected", {} },
         { "shortdummies", false, follow = "drawinnerguardrings" },
         { "outerdummies", 0 },
@@ -845,7 +845,6 @@ function layout(cell, _P)
         local holeheight_gate = point.ydistance_abs(lowergateboundingbox.bl, uppergateboundingbox.tr)
         local holewidth = math.max(holewidth_active, holewidth_gate)
         local holeheight = math.max(holeheight_active, holeheight_gate)
-        -- FIXME: this works for symmetric arrays, but can be extended easily to support non-symmetric arrays
         local outerguardringysep
         local outerguardringyshift
         if _P.interconnectlinepos == "offside" then
