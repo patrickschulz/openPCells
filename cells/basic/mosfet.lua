@@ -1259,7 +1259,7 @@ function layout(transistor, _P)
         (_P.wellaligntopwithactive and _P.fingerwidth or gatetry)
             + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
     )
-    if _P.drawwell then
+    if _P.drawwell and not _P.drawguardring then
         geometry.rectanglebltr(transistor,
             generics.well(_P.flippedwell and
                 (_P.channeltype == "nmos" and "n" or "p") or
@@ -2604,7 +2604,8 @@ function layout(transistor, _P)
             holewidth = holewidth + _P.guardringleftsep + _P.guardringrightsep,
             holeheight = holeheight + _P.guardringtopsep + _P.guardringbottomsep,
             drawsegments = _P.guardringsegments,
-            fillwell = _P.guardringfillwell,
+            drawwell = _P.drawwell,
+            fillwell = not _P.flippedwell or _P.guardringfillwell,
             fillinnerimplant = true,
             innerimplantpolarity = _P.channeltype == "nmos" and "n" or "p",
             drawoxidetype = _P.guardringdrawoxidetype,
