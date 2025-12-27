@@ -527,7 +527,6 @@ void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
                 putchar(' ');
             }
             puts(element->name);
-            putchar('\n');
         }
         vector_iterator_next(it);
     }
