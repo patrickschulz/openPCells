@@ -838,7 +838,7 @@
     vector_append(entries, _make_api_entry(
         "find",
         MODULE_UTIL,
-        "find a value in an array. This function returns the index of that value and the value itself",
+        "find a value in an array. This function returns the index of that value and the value itself. If multiple values match, only the first one is returned.",
         "util.find({ 3, 4, 5 }, 4) -- 2, 4",
         parameters
     ));
@@ -855,7 +855,7 @@
     vector_append(entries, _make_api_entry(
         "find_predicate",
         MODULE_UTIL,
-        "Like util.find, but call a function to do the comparison. The function is called with every one of the values, but not the index.",
+        "Like util.find, but call a function to do the comparison. The function is called with every one of the values, but not the index. If multiple values match, only the first one is returned.",
         "util.find({ 3, 4, 5 }, function(value) return value == 4 end) -- 2, 4\nlocal target = 4\nutil.find({ 3, 4, 5 }, function(value, t) return value == t end, target) -- 2, 4\n",
         parameters
     ));
