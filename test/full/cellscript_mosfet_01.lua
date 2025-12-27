@@ -91,6 +91,21 @@ nmos7:align_bottom(nmos6)
 nmos7:place_right(nmos6)
 cell:merge_into(nmos7)
 
+local nmos8 = pcell.create_layout("basic/mosfet", "nmos8", util.add_options(commonopts, {
+    channeltype = "nmos",
+    drawbotgate = true,
+    connectsource = true,
+    connectsourceboth = true,
+    connectdrain = true,
+    connectdrainboth = true,
+    connectdrainleftext = 200,
+    connectdrainrightext = 200,
+    instancename = "nmos8",
+}))
+nmos8:align_bottom(nmos7)
+nmos8:place_right(nmos7)
+cell:merge_into(nmos8)
+
 local pmos1 = pcell.create_layout("basic/mosfet", "pmos1", util.add_options(commonopts, {
     channeltype = "pmos",
     drawtopgate = true,
@@ -175,5 +190,20 @@ local pmos7 = pcell.create_layout("basic/mosfet", "pmos7", util.add_options(comm
 pmos7:align_bottom(pmos6)
 pmos7:place_right(pmos6)
 cell:merge_into(pmos7)
+
+local pmos8 = pcell.create_layout("basic/mosfet", "pmos8", util.add_options(commonopts, {
+    channeltype = "pmos",
+    drawbotgate = true,
+    connectsource = true,
+    connectsourceboth = true,
+    connectsourceleftext = 200,
+    connectsourcerightext = 200,
+    connectdrain = true,
+    connectdrainboth = true,
+    instancename = "pmos8",
+}))
+pmos8:align_bottom(pmos7)
+pmos8:place_right(pmos7)
+cell:merge_into(pmos8)
 
 return cell
