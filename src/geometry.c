@@ -1734,7 +1734,8 @@ static int _contactbltr2(
     const char* region,
     coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1,
     coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    int bare
 )
 {
     struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
@@ -1759,28 +1760,31 @@ static int _contactbltr2(
         widthclass,
         technology_is_create_via_arrays(techstate)
     );
-    const struct generics* feollayer = NULL;
-    if(strcmp(region, "gate") == 0)
+    if(!bare)
     {
-        feollayer = generics_create_gate(techstate);
+        const struct generics* feollayer = NULL;
+        if(strcmp(region, "gate") == 0)
+        {
+            feollayer = generics_create_gate(techstate);
+        }
+        else if(strcmp(region, "poly") == 0)
+        {
+            feollayer = generics_create_gate(techstate);
+        }
+        else if(strcmp(region, "active") == 0)
+        {
+            feollayer = generics_create_active(techstate);
+        }
+        else if(strcmp(region, "sourcedrain") == 0)
+        {
+            feollayer = generics_create_active(techstate);
+        }
+        if(feollayer)
+        {
+            _rectanglebltr(cell, feollayer, blx1, bly1, trx1, try1);
+        }
+        _rectanglebltr(cell, generics_create_metal(techstate, 1), blx2, bly2, trx2, try2);
     }
-    else if(strcmp(region, "poly") == 0)
-    {
-        feollayer = generics_create_gate(techstate);
-    }
-    else if(strcmp(region, "active") == 0)
-    {
-        feollayer = generics_create_active(techstate);
-    }
-    else if(strcmp(region, "sourcedrain") == 0)
-    {
-        feollayer = generics_create_active(techstate);
-    }
-    if(feollayer)
-    {
-        _rectanglebltr(cell, feollayer, blx1, bly1, trx1, try1);
-    }
-    _rectanglebltr(cell, generics_create_metal(techstate, 1), blx2, bly2, trx2, try2);
     return ret;
 }
 
@@ -1867,13 +1871,36 @@ int geometry_contactbltr2(
     coordinate_t widthclass
 )
 {
+    int bare = 0;
     return _contactbltr2(
         cell,
         techstate,
         region,
         bl1->x, bl1->y, tr1->x, tr1->y,
         bl2->x, bl2->y, tr2->x, tr2->y,
-        widthclass
+        widthclass,
+        bare
+    );
+}
+
+int geometry_contactbarebltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    const char* region,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t widthclass
+)
+{
+    int bare = 1;
+    return _contactbltr2(
+        cell,
+        techstate,
+        region,
+        bl1->x, bl1->y, tr1->x, tr1->y,
+        bl2->x, bl2->y, tr2->x, tr2->y,
+        widthclass,
+        bare
     );
 }
 

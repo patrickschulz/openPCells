@@ -221,6 +221,15 @@ int geometry_contactbltr2(
     coordinate_t widthclass
 );
 
+int geometry_contactbarebltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    const char* region,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t widthclass
+);
+
 int geometry_contactbarebltr(
     struct object* cell,
     struct technology_state* techstate,
