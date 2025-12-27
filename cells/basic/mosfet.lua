@@ -2496,14 +2496,22 @@ function layout(transistor, _P)
         -- hole sizes are calculated without seperations, these are added in the instatiation
         local holewidth = activewidth + leftactauxext + leftactext + rightactauxext + rightactext
         local holeheight = _P.fingerwidth
+        local guardringleftext_activedummy = 0
+        local guardringrightext_activedummy = 0
         local guardringtopext_activedummy = 0
         local guardringbotext_activedummy = 0
         local guardringtopext_gateextensions = 0
         local guardringbotext_gateextensions = 0
+        local guardringleftext_gatestraps = 0
+        local guardringrightext_gatestraps = 0
         local guardringtopext_gatestraps = 0
         local guardringbotext_gatestraps = 0
+        local guardringleftext_sourcestraps = 0
+        local guardringrightext_sourcestraps = 0
         local guardringtopext_sourcestraps = 0
         local guardringbotext_sourcestraps = 0
+        local guardringleftext_drainstraps = 0
+        local guardringrightext_drainstraps = 0
         local guardringtopext_drainstraps = 0
         local guardringbotext_drainstraps = 0
         if _P.guardringrespectactivedummies then
@@ -2517,7 +2525,7 @@ function layout(transistor, _P)
                 guardringleftext_activedummy = _P.leftactivedummywidth + _P.leftactivedummyspace
             end
             if _P.drawrightactivedummy then
-                guardringbotext_activedummy = _P.rightactivedummywidth + _P.rightactivedummyspace
+                guardringrightext_activedummy = _P.rightactivedummywidth + _P.rightactivedummyspace
             end
         end
         if _P.guardringrespectgateextensions then
@@ -2531,6 +2539,8 @@ function layout(transistor, _P)
             if _P.drawbotgatestrap then
                 guardringbotext_gatestraps = botgatespace + _P.botgatewidth + _P.botgatepolybottomextension
             end
+            guardringleftext_gatestraps = _P.topgateleftextension
+            guardringrightext_gatestraps = _P.topgaterightextension
         end
         if _P.guardringrespectsourcestraps then
             if _P.drawsourceconnections and not _P.connectsourceinline then
@@ -2560,6 +2570,8 @@ function layout(transistor, _P)
                     end
                 end
             end
+            guardringleftext_sourcestraps = math.max(_P.connectsourceleftext, _P.connectsourceotherleftext)
+            guardringrightext_sourcestraps = math.max(_P.connectsourcerightext, _P.connectsourceotherrightext)
         end
         if _P.guardringrespectdrainstraps then
             if _P.drawdrainconnections and not _P.connectdraininline then
@@ -2589,14 +2601,36 @@ function layout(transistor, _P)
                     end
                 end
             end
+            guardringleftext_drainstraps = math.max(_P.connectdrainleftext, _P.connectdrainotherleftext)
+            guardringrightext_drainstraps = math.max(_P.connectdrainrightext, _P.connectdrainotherrightext)
         end
-        local guardringleftext = guardringbotext_activedummy
-        local guardringrightext = guardringbotext_activedummy
+        local guardringleftext = math.max(
+            guardringleftext_activedummy,
+            guardringleftext_gatestraps,
+            guardringleftext_sourcestraps,
+            guardringleftext_drainstraps
+        )
+        local guardringrightext = math.max(
+            guardringrightext_activedummy,
+            guardringrightext_gatestraps,
+            guardringrightext_sourcestraps,
+            guardringrightext_drainstraps
+        )
+        local guardringtopext = math.max(
+            guardringtopext_activedummy,
+            guardringtopext_gateextensions,
+            guardringtopext_gatestraps,
+            guardringtopext_sourcestraps,
+            guardringtopext_drainstraps
+        )
+        local guardringbotext = math.max(
+            guardringbotext_activedummy,
+            guardringbotext_gateextensions,
+            guardringbotext_gatestraps,
+            guardringbotext_sourcestraps,
+            guardringbotext_drainstraps
+        )
         holewidth = holewidth + guardringleftext + guardringrightext
-        guardringtopext_activedummy = 0
-        guardringbotext_activedummy = 0
-        local guardringtopext = math.max(guardringtopext_activedummy, guardringtopext_gateextensions, guardringtopext_gatestraps, guardringtopext_sourcestraps, guardringtopext_drainstraps)
-        local guardringbotext = math.max(guardringbotext_activedummy, guardringbotext_gateextensions, guardringbotext_gatestraps, guardringbotext_sourcestraps, guardringbotext_drainstraps)
         holeheight = holeheight + guardringtopext + guardringbotext
         guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
@@ -2618,7 +2652,7 @@ function layout(transistor, _P)
             soiopeninnerextension = _P.guardringsoiopeninnerextension,
             soiopenouterextension = _P.guardringsoiopenouterextension,
         })
-        local gtargetx = -leftactauxext
+        local gtargetx = -guardringleftext
         local gtargety = -guardringbotext
         guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, gtargety))
         guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
