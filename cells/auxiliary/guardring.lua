@@ -27,6 +27,7 @@ function parameters()
         { "filloxidetype",                                  true },
         { "oxidetypeinnerextension",                        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallinner" },
         { "oxidetypeouterextension",                        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallouter" },
+        { "drawwell",                                       true },
         { "fillwell",                                       true },
         { "fillwelldrawhole",                               false },
         { "fillwellholeoffsettop",                          0 },
@@ -371,7 +372,7 @@ function layout(guardring, _P)
     end
 
     -- well
-    if _P.contype ~= "none" then
+    if _P.drawwell and _P.contype ~= "none" then
         if _P.fillwell then
             if _P.fillwelldrawhole then
                 geometry.unequal_ring_pts(guardring, generics.well(_P.contype),
