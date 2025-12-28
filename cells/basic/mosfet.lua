@@ -1521,7 +1521,7 @@ function layout(transistor, _P)
                 local metaltr = point.create(shift + _P.sdwidth, sourceoffset + _P.sourcesize)
                 local debugstr = string.format("source/drain contacts:\n    x parameters: sdwidth (%d)\n    y parameters: sourcesize (%d)", _P.sdwidth, _P.sourcesize)
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
-                    geometry.contactbltr2(transistor, contacttype, activebl, activetr, metalbl, metaltr, debugstr)
+                    geometry.contactbarebltr2(transistor, contacttype, activebl, activetr, metalbl, metaltr, debugstr)
                     if _P.drawsourcevia and _P.sourceviametal > 1 and
                         not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         for metal = 1, _P.sourceviametal - 1 do
@@ -1668,18 +1668,20 @@ function layout(transistor, _P)
                         point.create(shift - sourcemetalshifts[1], sourceoffset - _P.sdm1botext),
                         point.create(shift + sourcemetalwidths[1] - sourcemetalshifts[1], sourceoffset + _P.sourcesize + _P.sdm1topext)
                     )
-                    -- inter-level metals
-                    for metal = 2, _P.sourceviametal - 1 do
-                        geometry.rectanglebltr(transistor, generics.metal(metal),
-                            point.create(shift - sourcemetalshifts[metal], sourceviaoffset - _P.sdmxbotext),
-                            point.create(shift + sourcemetalwidths[metal] - sourcemetalshifts[metal], sourceviaoffset + _P.sourceviasize + _P.sdmxtopext)
+                    if _P.sourceviametal > 1 then
+                        -- inter-level metals
+                        for metal = 2, _P.sourceviametal - 1 do
+                            geometry.rectanglebltr(transistor, generics.metal(metal),
+                                point.create(shift - sourcemetalshifts[metal], sourceviaoffset - _P.sdmxbotext),
+                                point.create(shift + sourcemetalwidths[metal] - sourcemetalshifts[metal], sourceviaoffset + _P.sourceviasize + _P.sdmxtopext)
+                            )
+                        end
+                        -- top via metal
+                        geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
+                            point.create(shift - sourcemetalshifts[_P.sourceviametal], sourceviaoffset),
+                            point.create(shift + sourcemetalwidths[_P.sourceviametal] - sourcemetalshifts[_P.sourceviametal], sourceviaoffset + _P.sourceviasize)
                         )
                     end
-                    -- top via metal
-                    geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
-                        point.create(shift - sourcemetalshifts[_P.sourceviametal], sourceviaoffset),
-                        point.create(shift + sourcemetalwidths[_P.sourceviametal] - sourcemetalshifts[_P.sourceviametal], sourceviaoffset + _P.sourceviasize)
-                    )
                 end
                 -- anchors
                 transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i), metalbl, metaltr)
@@ -1703,7 +1705,7 @@ function layout(transistor, _P)
                 local metalbl = point.create(shift, drainoffset)
                 local metaltr = point.create(shift + _P.sdwidth, drainoffset + _P.drainsize)
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
-                    geometry.contactbltr2(
+                    geometry.contactbarebltr2(
                         transistor, contacttype, activebl, activetr, metalbl, metaltr,
                         string.format(
                             "drain contact:\n    x parameters: sdwidth (%d)\n    y parameters: drainsize (%d)",
@@ -1826,17 +1828,19 @@ function layout(transistor, _P)
                         point.create(shift - drainmetalshifts[1], drainoffset - _P.sdm1botext),
                         point.create(shift + drainmetalwidths[1] - drainmetalshifts[1], drainoffset + _P.drainsize + _P.sdm1topext)
                     )
-                    -- inter-level metals
-                    for metal = 2, _P.drainviametal - 1 do
-                        geometry.rectanglebltr(transistor, generics.metal(metal),
-                            point.create(shift - drainmetalshifts[metal], drainviaoffset - _P.sdmxbotext),
-                            point.create(shift + drainmetalwidths[metal] - drainmetalshifts[metal], drainviaoffset + _P.drainviasize + _P.sdmxtopext)
+                    if _P.drainviametal > 1 then
+                        -- inter-level metals
+                        for metal = 2, _P.drainviametal - 1 do
+                            geometry.rectanglebltr(transistor, generics.metal(metal),
+                                point.create(shift - drainmetalshifts[metal], drainviaoffset - _P.sdmxbotext),
+                                point.create(shift + drainmetalwidths[metal] - drainmetalshifts[metal], drainviaoffset + _P.drainviasize + _P.sdmxtopext)
+                            )
+                        end
+                        geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
+                            point.create(shift - drainmetalshifts[_P.drainviametal], drainviaoffset),
+                            point.create(shift + drainmetalwidths[_P.drainviametal] - drainmetalshifts[_P.drainviametal], drainviaoffset + _P.drainviasize)
                         )
                     end
-                    geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
-                        point.create(shift - drainmetalshifts[_P.drainviametal], drainviaoffset),
-                        point.create(shift + drainmetalwidths[_P.drainviametal] - drainmetalshifts[_P.drainviametal], drainviaoffset + _P.drainviasize)
-                    )
                 end
                 -- anchors
                 transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i), metalbl, metaltr)
