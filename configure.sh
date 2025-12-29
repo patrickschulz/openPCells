@@ -166,7 +166,7 @@ targets:
 	@echo "doc:        build the documentation"
 	@echo "opc.1:      create the manpage"
 	@echo "clean:      clean build files"
-	@echo "cleanall:   clean build files and configures files (like this Makefile)"
+	@echo "cleanall:   clean build and configure files (including the the generated Makefile, need to run ./configure.sh again)"
 EOF
 
 # create config.h
