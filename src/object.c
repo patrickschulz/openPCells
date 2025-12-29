@@ -2173,6 +2173,28 @@ struct vector* object_get_boundary(const struct object* cell)
     return boundary;
 }
 
+struct point** object_get_bounding_box(const struct object* cell)
+{
+    struct point** boundary = malloc(2 * sizeof(*boundary));
+    if(object_is_proxy(cell))
+    {
+        coordinate_t blx, bly, trx, try;
+        object_get_minmax_xy(cell->content.proxy.reference, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
+        transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
+        transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
+        boundary[0] = point_create(blx, bly);
+        boundary[1] = point_create(trx, try);
+    }
+    else
+    {
+        coordinate_t blx, bly, trx, try;
+        object_get_minmax_xy(cell, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
+        boundary[0] = point_create(blx, bly);
+        boundary[1] = point_create(trx, try);
+    }
+    return boundary;
+}
+
 int object_has_layer_boundary(const struct object* cell, const struct generics* layer)
 {
     if(object_is_proxy(cell))

@@ -131,6 +131,7 @@ void object_add_layer_boundary(struct object* cell, const struct generics* layer
 void object_inherit_boundary(struct object* cell, const struct object* othercell);
 int object_has_boundary(const struct object* cell);
 struct vector* object_get_boundary(const struct object* cell);
+struct point** object_get_bounding_box(const struct object* cell);
 int object_has_layer_boundary(const struct object* cell, const struct generics* layer);
 struct polygon_container* object_get_layer_boundary(const struct object* cell, const struct generics* layer);
 struct bltrshape* object_get_layer_occupation(const struct object* cell, const struct generics* layer);

@@ -1725,6 +1725,22 @@ static int lobject_get_boundary(lua_State* L)
     return 1;
 }
 
+static int lobject_get_bounding_box(lua_State* L)
+{
+    lcheck_check_numargs1(L, 1, "object.get_bounding_box");
+    struct lobject* cell = lobject_check(L, 1);
+    struct point** boundary = object_get_bounding_box(lobject_get(L, cell));
+    lua_newtable(L);
+    lpoint_create_internal_pt(L, boundary[0]);
+    lua_setfield(L, -2, "bl");
+    lpoint_create_internal_pt(L, boundary[1]);
+    lua_setfield(L, -2, "tr");
+    point_destroy(boundary[0]);
+    point_destroy(boundary[1]);
+    free(boundary);
+    return 1;
+}
+
 static int lobject_has_layer_boundary(lua_State* L)
 {
     lcheck_check_numargs1(L, 2, "object.has_layer_boundary");
@@ -2107,6 +2123,7 @@ int open_lobject_lib(lua_State* L)
         { "has_layer",                              lobject_has_layer                           },
         { "has_boundary",                           lobject_has_boundary                        },
         { "get_boundary",                           lobject_get_boundary                        },
+        { "get_bounding_box",                       lobject_get_bounding_box                    },
         { "has_layer_boundary",                     lobject_has_layer_boundary                  },
         { "get_layer_boundary",                     lobject_get_layer_boundary                  },
         { "get_layer_occupation",                   lobject_get_layer_occupation                },

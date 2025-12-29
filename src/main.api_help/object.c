@@ -1305,6 +1305,21 @@
     ));
 }
 
+/* object.get_bounding_box */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,  NULL, "object to get the boundary from" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "get_bounding_box",
+        MODULE_OBJECT,
+        "Retrieve the rectangular bounding box of an object. This is different from object.get_boundary as it is always the true computed bounding box (the possibly present object boundary is not used) and the result is returned as a table describing a rectangle (with 'bl' and 'tr' entries).",
+        "local boundary = cell:get_bounding_box()",
+        parameters
+    ));
+}
+
 /* object.get_layer_boundary */
 {
     struct parameter parameters[] = {
