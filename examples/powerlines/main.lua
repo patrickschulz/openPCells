@@ -1,6 +1,6 @@
 local cell = object.create("cell")
 
--- place shape that should not be covered
+-- place shapes that should not be covered
 geometry.rectanglebltr(cell, generics.metal(1), point.create(4000, 1000), point.create(6000, 2000))
 geometry.rectanglebltr(cell, generics.metal(1), point.create(8000, 1000), point.create(9000, 2000))
 geometry.rectanglebltr(cell, generics.metal(1), point.create(4000, 2000), point.create(6000, 3000))
@@ -16,6 +16,7 @@ geometry.rectanglebltr(cell, generics.metal(2), point.create(1000, 8000), point.
 geometry.rectanglebltr(cell, generics.metal(2), point.create(1000, 12000), point.create(2000, 13000))
 geometry.rectanglebltr(cell, generics.metal(2), point.create(3000, 2000), point.create(4000, 3000))
 geometry.rectanglebltr(cell, generics.metal(2), point.create(3000, 3500), point.create(4000, 4000))
+geometry.path(cell, generics.metal(2), { point.create(4500, 3500), point.create(4500, 4500), point.create(6500, 4500), point.create(6500, 7000) }, 200)
 
 local m1excludes = cell:get_shape_outlines(generics.metal(1), 200)
 local m2excludes = cell:get_shape_outlines(generics.metal(2), 200)
