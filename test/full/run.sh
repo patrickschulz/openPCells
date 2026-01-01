@@ -142,5 +142,8 @@ do_cellscript_test cellscript_transformation_correction cellscript_transformatio
 # cellscript test for automatic line/via placement
 do_cellscript_test cellscript_line_place_via cellscript_line_place_via.lua gds
 
+# power lines placement test
+do_cellscript_test cellscript_powerlines cellscript_powerlines.lua gds
+
 # cellscript test for bounding box
 do_cellscript_test cellscript_bounding_box cellscript_bounding_box.lua gds

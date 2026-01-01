@@ -148,6 +148,114 @@ function util.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
     }
 end
 
+function util.is_rectilinear_polygon(polygon)
+    for i = 2, #polygon do
+        local pt1 = polygon[i - 1]
+        local pt2 = polygon[i]
+        if pt1.x ~= pt2.x and pt1.y ~= pt2.y then
+            return false
+        end
+    end
+    return true
+end
+
+--[[
+Split rectilinear polygon algorithm (only works on rectilinear polygons):
+
+    Pk: the leftmost point with the smallest Y-coordinate.
+    Pl: the leftmost point except Pk with the smallest Y-coordinate.
+    Pm: the leftmost point with the smallest Y-coordinate among the set of points satisfying Pk.x <= x < Pl.x && Pk.y < y
+    F(x, y): if the point array contains (x, y), remove (x, y) from the point array, otherwise add (x, y) into the point array.
+
+while (polygon is not empty) {
+    Find Pk, Pl, Pm.
+    Form the rectangle: <Pk, (Pl.x, Pm.y)>
+    F(Pk)
+    F(Pl)
+    F(Pk.x, Pm.y)
+    F(Pl.x, Pm.y)
+}
+--]]
+
+-- helper function 'F' for split_rectilinear_polygon (srp)
+local function _srp_F(polygon, pt)
+    local idx
+    for i, ppt in ipairs(polygon) do
+        if ppt:getx() == pt:getx() and ppt:gety() == pt:gety() then
+            idx = i
+            break
+        end
+    end
+    if idx then
+        table.remove(polygon, idx)
+    else
+        table.insert(polygon, pt)
+    end
+end
+
+function util.split_rectilinear_polygon(p)
+    if not util.is_rectilinear_polygon(p) then
+        return nil
+    end
+    -- copy polygon as it is modified
+    local polygon = {}
+    for _, pt in ipairs(p) do
+        table.insert(polygon, pt:copy())
+    end
+    local rectangles = {}
+    while #polygon > 1 do
+        -- find Pk
+        local Pk
+        for _, pt in ipairs(polygon) do
+            if not Pk then
+                Pk = pt
+            else
+                if (pt:gety() < Pk:gety()) or
+                   (pt:gety() == Pk:gety()) and (pt:getx() < Pk:getx()) then
+                    Pk = pt
+                end
+            end
+        end
+        -- find Pl
+        local Pl
+        for _, pt in ipairs(polygon) do
+            if pt ~= Pk then
+                if not Pl then
+                    Pl = pt
+                else
+                    if (pt:gety() < Pl:gety()) or
+                       (pt:gety() == Pl:gety()) and (pt:getx() < Pl:getx()) then
+                        Pl = pt
+                    end
+                end
+            end
+        end
+        -- find Pm
+        -- Pk:getx() <= Pm:getx() < Pl:getx() && Pk:gety() < Pm:gety()
+        local Pm
+        for _, pt in ipairs(polygon) do
+            if pt:getx() >= Pk:getx() and pt:getx() < Pl:getx() and pt:gety() > Pk:gety() then
+                if not Pm then
+                    Pm = pt
+                else
+                    if pt:gety() < Pm:gety() then
+                        Pm = pt
+                    end
+                end
+            end
+        end
+        table.insert(rectangles, {
+            pt1 = point.create(Pk:getx(), Pk:gety()),
+            pt2 = point.create(Pl:getx(), Pm:gety()),
+        })
+        _srp_F(polygon, Pk)
+        _srp_F(polygon, Pl)
+        _srp_F(polygon, point.create(Pk:getx(), Pm:gety()))
+        _srp_F(polygon, point.create(Pl:getx(), Pm:gety()))
+    end
+    return rectangles
+end
+
 function util.fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext, xmultiple, ymultiple)
     check.set_next_function_name("util.fit_rectangular_polygon")
     check.arg_func(1, "bl", "point", bl, point.is_point)

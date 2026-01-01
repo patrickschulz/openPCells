@@ -608,6 +608,36 @@
     ));
 }
 
+/* util.is_rectilinear_polygon(polygon) */
+{
+    struct parameter parameters[] = {
+        { "polygon", POINTLIST, NULL, "polygon" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "is_rectilinear_polygon",
+        MODULE_UTIL,
+        "Check whether a given polygon is rectilinear (has only angles of 90 degrees)",
+        "util.is_rectilinear_polygon(polygon)",
+        parameters
+    ));
+}
+
+/* util.split_rectilinear_polygon(polygon) */
+{
+    struct parameter parameters[] = {
+        { "polygon", POINTLIST, NULL, "polygon" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "split_rectilinear_polygon",
+        MODULE_UTIL,
+        "Split a rectilinear polygon into non-overlapping rectangles. This function returns a table with one entry per rectangle. The rectangles are represented by something like '{ pt1 = point.create(...), pt2 = point.create(...) }'. The function checks whether the polygon is actually rectilinear and does not do anything in case it is not.",
+        "local rectangles = util.split_rectilinear_polygon(polygon)",
+        parameters
+    ));
+}
+
 /* util.fit_rectangular_polygon(value, ratio) */
 {
     struct parameter parameters[] = {

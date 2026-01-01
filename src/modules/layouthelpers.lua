@@ -333,12 +333,24 @@ function M.place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, 
     local blockages = {}
     if excludes then
         for _, exclude in ipairs(excludes) do
-            table.insert(blockages, {
-                c1      = util.polygon_xmin(exclude),
-                c2      = util.polygon_xmax(exclude),
-                start   = util.polygon_ymin(exclude),
-                stop    = util.polygon_ymax(exclude)
-            })
+            if util.is_rectilinear_polygon(exclude) then
+                local excluderects = util.split_rectilinear_polygon(exclude)
+                for _, rect in ipairs(excluderects) do
+                    table.insert(blockages, {
+                        c1      = math.min(rect.pt1:getx(), rect.pt2:getx()),
+                        c2      = math.max(rect.pt1:getx(), rect.pt2:getx()),
+                        start   = math.min(rect.pt1:gety(), rect.pt2:gety()),
+                        stop    = math.max(rect.pt1:gety(), rect.pt2:gety()),
+                    })
+                end
+            else
+                table.insert(blockages, {
+                    c1      = util.polygon_xmin(exclude),
+                    c2      = util.polygon_xmax(exclude),
+                    start   = util.polygon_ymin(exclude),
+                    stop    = util.polygon_ymax(exclude)
+                })
+            end
         end
     end
     local x = bl:getx() + offset
