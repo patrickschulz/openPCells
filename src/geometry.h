@@ -96,6 +96,13 @@ int geometry_check_viabltr(
     coordinate_t widthclass
 );
 
+int geometry_check_viabltrov(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2
+);
+
 struct viaarray {
     ucoordinate_t width;
     ucoordinate_t height;

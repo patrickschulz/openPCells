@@ -1140,6 +1140,69 @@ static int _calculate_overlap(
     return 1;
 }
 
+static int _check_via_contact_bltrov(
+    struct via_definition** viadefs, struct via_definition* fallback,
+    coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1,
+    coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2
+)
+{
+    coordinate_t blx;
+    coordinate_t bly;
+    coordinate_t trx;
+    coordinate_t try;
+    int ov = _calculate_overlap(
+        blx1, bly1, trx1, try1,
+        blx2, bly2, trx2, try2,
+        &blx, &bly, &trx, &try
+    );
+    if(!ov)
+    {
+        return 0;
+    }
+    unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
+    struct via_definition* entry = _get_rectangular_arrayzation_overlap(
+        blx1, bly1, trx1, try1,
+        blx2, bly2, trx2, try2,
+        blx, bly, trx, try,
+        viadefs, fallback,
+        &viaxrep, &viayrep, &viaxpitch, &viaypitch
+    );
+    return entry != NULL;
+}
+
+static int _check_viabltrov(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1,
+    coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2
+)
+{
+    metal1 = technology_resolve_metal(techstate, metal1);
+    metal2 = technology_resolve_metal(techstate, metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    int ret = 1;
+    for(int i = metal1; i < metal2; ++i)
+    {
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1);
+        if(!viadefs)
+        {
+            return 0;
+        }
+        ret = ret && _check_via_contact_bltrov(
+            viadefs,
+            NULL, // don't use fallbacks
+            blx1, bly1, trx1, try1,
+            blx2, bly2, trx2, try2
+        );
+    }
+    return ret;
+}
+
 static int _via_contact_bltrov(
     struct object* cell,
     struct via_definition** viadefs, struct via_definition* fallback,
@@ -1560,6 +1623,11 @@ int geometry_viabltr(struct object* cell, struct technology_state* techstate, in
 {
     int bare = 0;
     return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+}
+
+int geometry_check_viabltrov(struct technology_state* techstate, int metal1, int metal2, const struct point* bl1, const struct point* tr1, const struct point* bl2, const struct point* tr2)
+{
+    return _check_viabltrov(techstate, metal1, metal2, bl1->x, bl1->y, tr1->x, tr1->y, bl2->x, bl2->y, tr2->x, tr2->y);
 }
 
 int geometry_viabltrov(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl1, const struct point* tr1, const struct point* bl2, const struct point* tr2)

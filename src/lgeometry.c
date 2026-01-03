@@ -1352,12 +1352,12 @@ void _get_viacontact_properties(lua_State* L, int idx, int* xcont, int* ycont, c
 
 static int lgeometry_check_viabltr(lua_State* L)
 {
-    lcheck_check_numargs2(L, 4, 5, "geometry.viabltr");
+    lcheck_check_numargs2(L, 4, 5, "geometry.check_viabltr");
     int metal1 = luaL_checkinteger(L, 1);
     int metal2 = luaL_checkinteger(L, 2);
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
-    _check_rectangle_points(L, bl, tr, "geometry.viabltr");
+    _check_rectangle_points(L, bl, tr, "geometry.check_viabltr");
     int xcont = 0;
     int ycont = 0;
     coordinate_t minxspace = 0;
@@ -1369,6 +1369,25 @@ static int lgeometry_check_viabltr(lua_State* L)
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     int res = geometry_check_viabltr(techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
+    lua_pushboolean(L, res);
+    return 1;
+}
+
+static int lgeometry_check_viabltrov(lua_State* L)
+{
+    lcheck_check_numargs1(L, 6, "geometry.check_viabltrov");
+    int metal1 = luaL_checkinteger(L, 1);
+    int metal2 = luaL_checkinteger(L, 2);
+    struct lpoint* bl1 = lpoint_checkpoint(L, 3);
+    struct lpoint* tr1 = lpoint_checkpoint(L, 4);
+    struct lpoint* bl2 = lpoint_checkpoint(L, 5);
+    struct lpoint* tr2 = lpoint_checkpoint(L, 6);
+    _check_rectangle_points(L, bl1, tr1, "geometry.check_viabltrov");
+    _check_rectangle_points(L, bl2, tr2, "geometry.check_viabltrov");
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_check_viabltrov(techstate, metal1, metal2, lpoint_get(bl1), lpoint_get(tr1), lpoint_get(bl2), lpoint_get(tr2));
     lua_pushboolean(L, res);
     return 1;
 }
@@ -2785,6 +2804,7 @@ int open_lgeometry_lib(lua_State* L)
         { "path_points_xy",                             lgeometry_path_points_xy                                        },
         { "path_points_yx",                             lgeometry_path_points_yx                                        },
         { "check_viabltr",                              lgeometry_check_viabltr                                         },
+        { "check_viabltrov",                            lgeometry_check_viabltrov                                       },
         { "calculate_viabltr",                          lgeometry_calculate_viabltr                                     },
         { "calculate_viabltr2",                         lgeometry_calculate_viabltr2                                    },
         { "viabltr",                                    lgeometry_viabltr                                               },

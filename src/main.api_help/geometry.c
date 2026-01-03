@@ -809,6 +809,26 @@
     ));
 }
 
+/* geometry.check_viabltrov */
+{
+    struct parameter parameters[] = {
+        { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+        { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+        { "bl1",        POINT,      NULL,   "Bottom-left point of the first metal rectangular shape" },
+        { "tr1",        POINT,      NULL,   "Top-right point of the first metal rectangular shape" },
+        { "bl2",        POINT,      NULL,   "Bottom-left point of the second metal rectangular shape" },
+        { "tr2",        POINT,      NULL,   "Top-right point of the second metal rectangular shape" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "check_viabltrov",
+        MODULE_GEOMETRY,
+        "Check whether an overlap via can be created. This is essentially a dry-run of geometry.viabltrov(). It is useful for cells that (for instance) place vias on the intersections of vertical and horizontal powerlines with non-matching pitch. Here it can occur that a via is built only on a partial overlap, making the creation fail. As this does not actually create a via, a cell as target is not present as function parameter.",
+        "geometry.check_viabltrov(1, 3, point.create(-100, -20), point.create(100, 20), point.create(-20, -100), point.create(20, 100))",
+        parameters
+    ));
+}
+
 /* geometry.calculate_viabltr */
 {
     struct parameter parameters[] = {
