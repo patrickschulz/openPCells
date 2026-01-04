@@ -165,7 +165,6 @@ function process_parameters(_P)
     else
         t.interconnectlinewidth = technology.get_dimension("Minimum M1 Width")
     end
-    t.outputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     t.gateoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     t.sourceoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     t.drainoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
