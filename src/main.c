@@ -570,10 +570,10 @@ int main(int argc, const char* const * argv)
     }
 
     // cell parameters (only names)
-    if(cmdoptions_was_provided_long(cmdoptions, "parameters-name"))
+    if(cmdoptions_was_provided_long(cmdoptions, "parameters"))
     {
         // cell name
-        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters-name");
+        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters");
         // parameter format
         const char* parametersformat = "%n";
         // parameter names
@@ -583,10 +583,10 @@ int main(int argc, const char* const * argv)
     }
 
     // cell parameters
-    if(cmdoptions_was_provided_long(cmdoptions, "parameters"))
+    if(cmdoptions_was_provided_long(cmdoptions, "parameters-list"))
     {
         // cell name
-        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters");
+        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters-list");
         // parameter format
         const char* parametersformat = cmdoptions_get_argument_long(cmdoptions, "parameters-format");
         // parameter names
