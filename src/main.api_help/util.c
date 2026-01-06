@@ -85,7 +85,7 @@
         "polygon_xmin",
         MODULE_UTIL,
         "retrieve the minimum x-value of all points of a polygon",
-        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal xmin = util.polygon_xmin(polygon) -- -50",
+        "local value = util.polygon_xmin({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- -100",
         parameters
     ));
 }
@@ -100,7 +100,7 @@
         "polygon_xmax",
         MODULE_UTIL,
         "retrieve the maximum x-value of all points of a polygon",
-        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal xmax = util.polygon_xmax(polygon) -- 50",
+        "local value = util.polygon_xmax({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 200",
         parameters
     ));
 }
@@ -115,7 +115,7 @@
         "polygon_ymin",
         MODULE_UTIL,
         "retrieve the minimum y-value of all points of a polygon",
-        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal ymin = util.polygon_ymin(polygon) -- -50",
+        "local value = util.polygon_ymin({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 0",
         parameters
     ));
 }
@@ -130,7 +130,7 @@
         "polygon_ymax",
         MODULE_UTIL,
         "retrieve the maximum y-value of all points of a polygon",
-        "local polygon = util.rectangle_to_polygon(\n    point.create(-50, -50),\n    point.create(50, 50)\n)\nlocal ymax = util.polygon_ymax(polygon) -- 50",
+        "local value = util.polygon_ymax({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 200",
         parameters
     ));
 }
