@@ -63,7 +63,20 @@ static int _is_func_match(const char* tocheck, const char* func, const char* mod
         tocheck_module = tocheck;
         tocheck_func = tocheck;
     }
-    const char* ffound = strstr(func, tocheck_func);
+    const char* ffound;
+    // if the search is <module>.<function>, match the beginning of the function name
+    if(dot)
+    {
+        ffound = strstr(func, tocheck_func);
+        if(ffound != func)
+        {
+            ffound = NULL;
+        }
+    }
+    else
+    {
+        ffound = strstr(func, tocheck_func);
+    }
     const char* mfound = NULL;
     if(module)
     {
