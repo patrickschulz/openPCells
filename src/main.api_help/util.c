@@ -1026,3 +1026,20 @@
         parameters
     ));
 }
+
+/* util.tconcatfmt(t, sep, fmt) */
+{
+    struct parameter parameters[] = {
+        { "t",      TABLE,      NULL,   "array-like table" },
+        { "sep",    STRING,     NULL,   "separator between elements" },
+        { "fmt",    STRING,     NULL,   "format specification for each element" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "tconcatfmt",
+        MODULE_UTIL,
+        "Create a string representation of the array elements of a table. Similar to table.concat, but this allows to specify a format for every element. util.tconcatfmt(t, sep, \"%s\") is equivalent to table.concat(t, sep).",
+        "local str = util.tconcatfmt(t, \", \", \"<%s>\")",
+        parameters
+    ));
+}
