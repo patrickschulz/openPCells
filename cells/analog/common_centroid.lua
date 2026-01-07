@@ -954,6 +954,7 @@ function layout(cell, _P)
     local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
         rows = rows,
         drawimplant = not (_P.guardringfillimplant and (_P.drawinnerguardrings or _P.drawouterguardring)),
+        drawoxidetype = not (_P.guardringfilloxidetype and (_P.drawinnerguardrings or _P.drawouterguardring)),
         drawwell = _P.flippedwell or not (_P.guardringfillwell and (_P.drawinnerguardrings or _P.drawouterguardring)),
         xseparation = _P.xseparation,
         yseparation = 0, -- yseparation is given manually with rowshifts

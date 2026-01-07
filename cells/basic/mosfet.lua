@@ -28,6 +28,7 @@ function parameters()
         { "implantalignrightwithactive",                                                                false, follow = "implantalignwithactive", info = "set reference point for implant right extensions. If this is false, the implant right extension is autmatically calculated so that the implant covers the right gates. With this option enabled, the implant right extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
         { "implantaligntopwithactive",                                                                  false, follow = "implantalignwithactive", info = "set reference point for implant top extensions. If this is false, the implant top extension is autmatically calculated so that the implant covers the top part of all gates. With this option enabled, the implant top extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
         { "implantalignbottomwithactive",                                                               false, follow = "implantalignwithactive", info = "set reference point for implant bottom extensions. If this is false, the implant bottom extension is autmatically calculated so that the implant covers the bottom part of all gates. With this option enabled, the implant bottom extension is referenced to the active region. This is useful for having precise control over the implant extensions marker extensions in mosfet arrays with varying gate heights" },
+        { "drawoxidetype",                                                                              true, info = "switch to enable/disable oxidetype drawing. Typically this should be enabled, as a missing oxidetype might cause the LVS to misinterpret the device. However, in certain situations manual drawing of the oxidetype can be beneficial." },
         { "oxidetype(Oxide Thickness Type)",                                                            1, argtype = "integer", posvals = interval(1, inf), info = "oxide thickness index of the gate. This is a numeric index, starting from 1 (the default). The interpretation of this is up to the technology file" },
         { "oxidetypealignwithactive",                                                                   false, info = "set reference points for oxide thickness marker extensions. If this is false, the oxide thickness marker extensions are autmatically calculated so that the oxide thickness marker covers all gates. With this option enabled, the oxide thickness marker extensions are referenced to the active region. This is useful for having precise control over the oxide thickness marker extensions in mosfet arrays with varying gate heights. This option sets left/right/top/bottom alignment, the dedicated switches can be used for more fine-grained control." },
         { "oxidetypealignleftwithactive",                                                               false, follow = "oxidetypealignwithactive", info = "set reference point for oxide thickness marker left extensions. If this is false, the oxide thickness marker left extension is autmatically calculated so that the oxide thickness marker covers the left gates. With this option enabled, the oxide thickness marker left extension is referenced to the active region. This is useful for having precise control over the oxide thickness marker extensions in mosfet arrays with varying gate heights" },
@@ -1115,25 +1116,27 @@ function layout(transistor, _P)
     transistor:add_area_anchor_bltr("implant", implantbl, implanttr)
 
     -- oxide thickness
-    geometry.rectanglebltr(transistor,
-        generics.oxide(_P.oxidetype),
-        point.create(
-            _P.oxidetypealignleftwithactive and
-                -leftactauxext - _P.extendoxidetypeleft or
-                -leftactauxext - _P.extendoxidetypeleft,
-            _P.oxidetypealignbottomwithactive and
-                -_P.extendoxidetypebottom or
-                gatebly - _P.extendoxidetypebottom
-        ),
-        point.create(
-            _P.oxidetypealignrightwithactive and
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight or
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight,
-            _P.oxidetypealigntopwithactive and
-                _P.fingerwidth + _P.extendoxidetypetop or
-                gatetry + _P.extendoxidetypetop
+    if _P.drawoxidetype then
+        geometry.rectanglebltr(transistor,
+            generics.oxide(_P.oxidetype),
+            point.create(
+                _P.oxidetypealignleftwithactive and
+                    -leftactauxext - _P.extendoxidetypeleft or
+                    -leftactauxext - _P.extendoxidetypeleft,
+                _P.oxidetypealignbottomwithactive and
+                    -_P.extendoxidetypebottom or
+                    gatebly - _P.extendoxidetypebottom
+            ),
+            point.create(
+                _P.oxidetypealignrightwithactive and
+                    activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight or
+                    activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight,
+                _P.oxidetypealigntopwithactive and
+                    _P.fingerwidth + _P.extendoxidetypetop or
+                    gatetry + _P.extendoxidetypetop
+            )
         )
-    )
+    end
 
     -- rotation marker
     if _P.drawrotationmarker then
