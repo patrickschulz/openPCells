@@ -268,7 +268,7 @@
 {
     struct parameter parameters[] = {
         { "main",   TABLE,  NULL,   "array-like table (target), will be modified" },
-        { "t",      TABLE,  NULL,   "array-like table (source)" }
+        { "t",      TABLE,  NULL,   "array-like table (source)" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
