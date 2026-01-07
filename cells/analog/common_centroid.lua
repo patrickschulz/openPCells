@@ -71,7 +71,7 @@ function parameters()
         { "allow_odd_rows", false },
         { "allow_unequal_rowshifts", false },
         { "usegateconnections", false },
-        { "gateconnections", {} },
+        { "gateconnections", {}, info = "Connect gates of several devices. This allows finer control over the gate connections of arrays than 'equalgatenets'. The parameter value should be a table with several entries, where every entry is a table with numeric indices that correspond to devices that are connected. Every entry represents one connection, so devices should not be present in multiple entries. 'equalgatenets' can be mimicked by gateconnections = { { 1, 2, 3, ... } }, the standard non-equal-gate-nets configuration (one gate net per device) is represented by gateconnections = { { 1 }, { 2 }, { 3 }, ... }. A possible configuration that makes sense could be gateconnections = { { 1, 2 }, { 3, 4, 5 } }. Use this parameter together with 'usegateconnections = true', otherwise it is ignored." },
         { "usesourceconnections", false },
         { "sourceconnections", {} },
         { "usedrainconnections", false },
