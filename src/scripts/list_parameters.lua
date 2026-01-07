@@ -45,11 +45,19 @@ end
 -- print parameters according to format
 if #printlist == 1 then -- only one parameter, list additional info
     local P = printlist[1]
-    if P.info then
-        print(string.format("%s (%s, %s): %s", P.name, P.argtype, P.value, P.info))
-    else
-        print(string.format("%s (%s, %s)", P.name, P.argtype, P.value))
+    local t = {}
+    table.insert(t, string.format("%s", P.name))
+    local vt = {}
+    table.insert(vt, string.format("%s", P.argtype))
+    table.insert(vt, string.format("%q", P.value))
+    if P.posvals then
+        table.insert(vt, string.format("%s(%s)", P.posvals.type, util.tconcatfmt(P.posvals.values, ", ", "\"%s\"")))
     end
+    table.insert(t, " (" .. table.concat(vt, ", ") .. ")")
+    if P.info then
+        table.insert(t, string.format("\n-> %s", P.info))
+    end
+    print(table.concat(t))
 else
     for _, P in ipairs(printlist) do
         local paramstr = string.gsub(paramformat, "%%%a", { 
@@ -60,7 +68,7 @@ else
             ["%i"] = P.info or "",
             ["%r"] = tostring(P.readonly),
             ["%o"] = P.posvals and P.posvals.type or "everything",
-            ["%s"] = (P.posvals and P.posvals.values) and table.concat(P.posvals.values, ";") or ""
+            ["%p"] = (P.posvals and P.posvals.values) and table.concat(P.posvals.values, ";") or ""
         })
         print(paramstr)
     end
