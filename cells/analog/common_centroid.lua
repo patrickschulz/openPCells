@@ -850,42 +850,27 @@ function layout(cell, _P)
             connectsourceinverse = ((_P.channeltype == "pmos") and (rownum % 2 == 1)) or ((_P.channeltype == "nmos") and (rownum % 2 == 0))
         end
         for deviceindex, device in ipairs(devicerow) do
+            local devopts = util.add_options(fetoptions, {
+                name = string.format("M_%d_%d_%d", device.device, device.row, device.index),
+                fingers = _P.fingers,
+                drawtopgate = _P.connectgatesonbothsides or (rownum % 2 == 1),
+                drawbotgate = _P.connectgatesonbothsides or (rownum % 2 == 0),
+                sdm1botext = (rownum % 2 == 1) and _P.sdm1ext or 0,
+                sdm1topext = (rownum % 2 == 0) and _P.sdm1ext or 0,
+                connectsourceinverse = connectsourceinverse,
+                connectdraininverse = ((_P.channeltype == "pmos") and (rownum % 2 == 1)) or ((_P.channeltype == "nmos") and (rownum % 2 == 0)),
+                connectdrainleftext = (_P.fingers == 2) and (_P.interconnectviapitch + _P.interconnectlinewidth - _P.sdwidth) / 2 or 0,
+                connectdrainrightext = (_P.fingers == 2) and (_P.interconnectviapitch + _P.interconnectlinewidth - _P.sdwidth) / 2 or 0,
+            })
             if device.device ~= 0 then
-                table.insert(devices,
-                    util.add_options(fetoptions, {
-                        name = string.format("M_%d_%d_%d", device.device, device.row, device.index),
-                        fingers = _P.fingers,
-                        drawtopgate = _P.connectgatesonbothsides or (rownum % 2 == 1),
-                        drawbotgate = _P.connectgatesonbothsides or (rownum % 2 == 0),
-                        sdm1botext = (rownum % 2 == 1) and _P.sdm1ext or 0,
-                        sdm1topext = (rownum % 2 == 0) and _P.sdm1ext or 0,
-                        connectsourceinverse = connectsourceinverse,
-                        connectdraininverse = ((_P.channeltype == "pmos") and (rownum % 2 == 1)) or ((_P.channeltype == "nmos") and (rownum % 2 == 0)),
-                        diodeconnected = util.any_of(device.device, _P.diodeconnected),
-                        connectdrainleftext = (_P.fingers == 2) and (_P.interconnectviapitch + _P.interconnectlinewidth - _P.sdwidth) / 2 or 0,
-                        connectdrainrightext = (_P.fingers == 2) and (_P.interconnectviapitch + _P.interconnectlinewidth - _P.sdwidth) / 2 or 0,
-                    })
-                )
+                devopts.diodeconnected = util.any_of(device.device, _P.diodeconnected)
             else
-                table.insert(devices,
-                    util.add_options(fetoptions, {
-                        shortdevice = _P.shortdummies,
-                        diodeconnected = _P.shortdummies,
-                        name = string.format("M_%d_%d_%d", device.device, device.row, device.index),
-                        fingers = _P.fingers,
-                        drawtopgate = _P.connectgatesonbothsides or (rownum % 2 == 1),
-                        drawbotgate = _P.connectgatesonbothsides or (rownum % 2 == 0),
-                        sdm1botext = (rownum % 2 == 1) and _P.sdm1ext or 0,
-                        sdm1topext = (rownum % 2 == 0) and _P.sdm1ext or 0,
-                        connectsourceinverse = connectsourceinverse,
-                        connectdraininverse = ((_P.channeltype == "pmos") and (rownum % 2 == 1)) or ((_P.channeltype == "nmos") and (rownum % 2 == 0)),
-                        connectdrainleftext = (_P.fingers == 2) and (_P.interconnectviapitch + _P.interconnectlinewidth - _P.sdwidth) / 2 or 0,
-                        connectdrainrightext = (_P.fingers == 2) and (_P.interconnectviapitch + _P.interconnectlinewidth - _P.sdwidth) / 2 or 0,
-                        drainmetal = 1,
-                        sourcemetal = 1,
-                    })
-                )
+                devopts.shortdevice = _P.shortdummies
+                devopts.diodeconnected = _P.shortdummies
+                devopts.drainmetal = 1
+                devopts.sourcemetal = 1
             end
+            table.insert(devices, devopts)
         end
         return devices
     end
