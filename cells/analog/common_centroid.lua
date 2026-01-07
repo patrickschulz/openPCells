@@ -681,6 +681,16 @@ function layout(cell, _P)
                 interconnectline_space_occupation = - _P.interconnectlinespace -- correct for one additional space
                     + (numlowerlines + 1) * _P.interconnectlinespace + numlowerlines * _P.interconnectlinewidth
                     + (numupperlines + 1) * _P.interconnectlinespace + numupperlines * _P.interconnectlinewidth
+            elseif _P.interconnectlinepos == "gate" then
+                if _P.usesourcestraps and not _P.sourcestrapsinside then
+                    local numsourcenets = #util.uniq(util.foreach(util.range(1, numdevices), _map_device_index_to_source))
+                    -- FIXME: this checks across all rows, only check specific involved rows
+                    if numsourcenets > 1 then
+                        interconnectline_space_occupation = 2 * _P.sourcedrainstrapwidth + 3 * _P.sourcedrainstrapspace
+                    else
+                        interconnectline_space_occupation = _P.sourcedrainstrapwidth + 2 * _P.sourcedrainstrapspace
+                    end
+                end
             end
             rowshifts[row] = interconnectline_space_occupation
         end
@@ -1302,7 +1312,14 @@ function layout(cell, _P)
             if #devindices > 0 then -- check for dummy-only rows
                 local leftdevice = singlerowdevices[1]
                 local rightdevice = singlerowdevices[#singlerowdevices]
-                local skipstrap = (_P.usesourcestraps and not _P.sourcestrapsinside) and _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth or 0
+                local skipstrap = 0
+                if _P.usesourcestraps then
+                    if _P.interconnectlinepos == "offside" and not _P.sourcestrapsinside then
+                        skipstrap = _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth
+                    elseif _P.interconnectlinepos == "gate" and _P.sourcestrapsinside then
+                        skipstrap = _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth
+                    end
+                end
                 local lines = {}
                 -- add source lines
                 if not _P.usesourcestraps then
@@ -1813,40 +1830,34 @@ function layout(cell, _P)
             end
         end
     else -- _P.usesourcestraps
-        if _P.equalsourcenets then
+        local numsourcenets = #util.uniq(util.foreach(util.range(1, numdevices), _map_device_index_to_source))
+        if numsourcenets == 1 then
+            local sourceoutputlines = util.clone_array_predicate(outputlines,
+                function(e)
+                    return e.base == "source" and e.device == 1
+                end
+            )
             for rownum = 1, numrows do
                 local alldevices = _get_devices(function(device) return device.row == rownum end)
                 local leftdevice = alldevices[1]
                 local rightdevice = alldevices[numinstancesperrow]
-                --[[ FIXME: this is old and not compatible with the new parameters
-                if not _P.groupoutputlines and _P.multiplesourcelines then
-                    for i = 1, numdevices do -- iterate over variants
-                        geometry.viabltr(cell, _P.sourcemetal, _P.interconnectmetal + 1,
-                            point.create(
-                                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).l,
-                                _get_dev_anchor(leftdevice, "sourcestrap").b
-                            ),
-                            point.create(
-                                cell:get_area_anchor_fmt("outputconnectline_%s_%d", "source0", i).r,
-                                _get_dev_anchor(rightdevice, "sourcestrap").t
-                            )
-                        )
+                for _, outputline in ipairs(sourceoutputlines) do
+                    local netname = string.format("source%d", 1)
+                    local identifier
+                    if outputline.variant then
+                        identifier = string.format("%s_%d", netname, outputline.variant)
+                    else
+                        identifier = netname
                     end
-                else
-                    geometry.viabltr(cell, _P.sourcemetal, _P.interconnectmetal + 1,
-                        point.create(
-                            cell:get_area_anchor_fmt("outputconnectline_%s", "source0").l,
-                            _get_dev_anchor(leftdevice, "sourcestrap").b
-                        ),
-                        point.create(
-                            cell:get_area_anchor_fmt("outputconnectline_%s", "source0").r,
-                            _get_dev_anchor(rightdevice, "sourcestrap").t
-                        )
+                    geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
+                        _get_dev_anchor(leftdevice, "sourcestrap").bl,
+                        _get_dev_anchor(rightdevice, "sourcestrap").tr,
+                        cell:get_area_anchor_fmt("outputconnectline_%s", identifier).bl,
+                        cell:get_area_anchor_fmt("outputconnectline_%s", identifier).tr
                     )
                 end
-                --]]
             end
-        else -- not _P.equalsourcenets
+        else -- numsourcenets > 1
             -- this can not be reliable connected, hence it is caught in check()
         end
     end
