@@ -75,7 +75,7 @@ function parameters()
         { "sourceconnections", {} },
         { "usedrainconnections", false },
         { "drainconnections", {} },
-        { "interconnectlinepos", "offside", posvals = set("offside", "gate", "inline") },
+        { "interconnectlinepos", "offside", posvals = set("offside", "gate", "inline"), info = "Set the position of the interconnect lines. 'offside' places them at the other side of the transistors (with respect to the gate lines), 'gate' puts both gate and interconnect lines between double-row devices, 'inline' places the lines on top of the transistors (which works only well for a few devices or large finger widths. 'offside' is usually the best option." },
         { "spreadinterconnectlines", true },
         { "interconnectlinewidth", technology.get_dimension("Minimum M2 Width") },
         { "interconnectlinespace", technology.get_dimension("Minimum M2 Space") },
