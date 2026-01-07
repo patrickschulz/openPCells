@@ -66,6 +66,7 @@ function parameters()
         { "gatelineviawidth", technology.get_dimension("Minimum M1M2 Viawidth") },
         { "gatelineviapitch", 0 },
         { "fullgatevia", false },
+        { "gatepos", "doublerow", posvals = set("doublerow", "bottom", "top") },
         { "extendgatessymmetrically", false },
         { "allow_odd_rows", false },
         { "allow_unequal_rowshifts", false },
@@ -1090,10 +1091,6 @@ function layout(cell, _P)
         local rightlowerdevice = lowerdevices[numinstancesperrow]
         local leftupperdevice = upperdevices[1]
         local rightupperdevice = upperdevices[numinstancesperrow]
-        local gateline_center = 0.5 * point.ydistance_abs(
-            _get_dev_anchor(leftupperdevice, "active").bl,
-            _get_dev_anchor(leftlowerdevice, "active").tl
-        )
         local devindices = _get_uniq_row_devices_double(rownum)
         local lines = {}
         for _, di in ipairs(devindices) do
@@ -1103,8 +1100,13 @@ function layout(cell, _P)
             end
         end
         local numlines = #lines
+        local yshiftbase = -(numlines - 1) / 2 * (_P.gatelinespace + _P.gatelinewidth)
+        local gateline_center = 0.5 * point.ydistance_abs(
+            _get_dev_anchor(leftupperdevice, "active").bl,
+            _get_dev_anchor(leftlowerdevice, "active").tl
+        ) + yshiftbase
         for line, index in ipairs(lines) do
-            local yshift = -(numlines - 1) / 2 * (_P.gatelinespace + _P.gatelinewidth) + (line - 1) * (_P.gatelinespace + _P.gatelinewidth)
+            local yshift = (line - 1) * (_P.gatelinespace + _P.gatelinewidth)
             cell:add_area_anchor_bltr(string.format("gateline_%d_%d", rownum, index),
                 point.create(
                     interconnectlineminx,
