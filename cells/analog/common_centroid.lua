@@ -460,7 +460,7 @@ function check(_P)
     if _P.interconnectlinepos == "offside" and _P.sourcemetal == _P.interconnectmetal then
         return false, "the source metal can not be on the same layer as the interconncect line metal"
     end
-    if not _P.equalsourcenets and not ((_P.xseparation > 0) or _P.drawinnerguardrings) then
+    if #nets.source > 1 and not ((_P.xseparation > 0) or _P.drawinnerguardrings) then
         return false, "if source nets are not equal, the xseparation between devices can not be 0 or inner guard rings must be present"
     end
     if #_P.connectgatetosourcedrain ~= 0 then
