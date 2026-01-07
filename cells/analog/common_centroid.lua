@@ -32,6 +32,7 @@ end
 function parameters()
     pcell.add_parameters(
         { "pattern", { { 1, 2, 1 }, { 2, 1, 2 } }, info = "pattern specification of the common centroid array. For every row a table should be specified, individual devices are indicated by a numeric index, starting at 1. These indices later also correspond to the net numbers (e.g. device 2 -> gate2/source2/drain2). The indices must be consecutive, for instance { { 1, 2, 4 } } is not allowed. Dummy/filler devices can be specified by '0', these devices are controlled via the '*dummy*' parameters." },
+        { "minimum_row_shift", 0 },
         { "channeltype", "nmos" },
         { "vthtype", 1 },
         { "oxidetype", 1 },
@@ -154,6 +155,14 @@ end
 
 function process_parameters(_P)
     local t = {}
+    -- calculate minimum row shift (needed if no interconnect lines are drawn between rows)
+    t.minimum_row_shift = math.max(
+        technology.get_optional_dimension("Minimum Active Space"),
+        math.max(
+            technology.get_optional_dimension("Minimum Gate Space"),
+            technology.get_optional_dimension("Minimum Gate XSpace")
+        ) + 2 * technology.get_optional_dimension("Minimum Gate Extension")
+    )
     t.gatefeedlinewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.gatemetal))
     if _P.gatelinemetal > 1 then
         t.gatelinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.gatelinemetal - 1, _P.gatelinemetal))
@@ -432,6 +441,12 @@ function check(_P)
     if _P.interconnectlinepos == "offside" and _P.usesourcestraps and not _P.sourcestrapsinside and _P.sourcemetal == _P.drainmetal then
         return false, "if interconnectlines are positioned 'offside' and source straps are used, the drain and source connections can not be on the same metal"
     end
+    if _P.interconnectlinepos == "gate" and _P.sourcemetal == _P.gatemetal then
+        return false, "if interconnectlines are positioned 'gate', the source metal can not be equal to the gate metal"
+    end
+    if _P.interconnectlinepos == "gate" and _P.drainmetal == _P.gatemetal then
+        return false, "if interconnectlines are positioned 'gate', the drain metal can not be equal to the gate metal"
+    end
     if _P.gatemetal == _P.interconnectmetal + 1 then
         return false, "the drain metal can not be on the same layer as the output line metal"
     end
@@ -600,38 +615,79 @@ function layout(cell, _P)
         if row % 2 == 0 then -- gate line row shifts only apply to even rows
             local doublerowdevices = util.merge_tables(activepattern[row - 1], activepattern[row])
             local numgates = #util.uniq(util.foreach(doublerowdevices, _map_device_index_to_gate))
-            local gateline_space_occupation =
-                2 * _P.gatestrapspace + 2 * _P.gatestrapwidth
-                + (numgates + 1) * _P.gatelinespace + numgates * _P.gatelinewidth
+            local gatestrap_space_occupation = 0
+            if _P.interconnectlinepos ~= "gate" then
+                gatestrap_space_occupation = 2 * _P.gatestrapspace + 2 * _P.gatestrapwidth
+            end
+            local gateline_space_occupation = (numgates + 1) * _P.gatelinespace + numgates * _P.gatelinewidth
+            local sourcestrap_space_occupation = 0
             if _P.usesourcestraps and _P.sourcestrapsinside then
-                gateline_space_occupation = gateline_space_occupation + 2 * (_P.sourcedrainstrapwidth + _P.sourcedrainstrapspace)
+                sourcestrap_space_occupation = 2 * (_P.sourcedrainstrapwidth + _P.sourcedrainstrapspace)
             end
-            rowshifts[row] = gateline_space_occupation
+            local interconnectline_space_occupation = 0
+            if _P.interconnectlinepos == "gate" then
+                local lowerrowdevices = activepattern[row - 1]
+                local numlowersourcelines
+                if _P.usesourcestraps then
+                    numlowersourcelines = 0
+                else
+                    numlowersourcelines = #util.uniq(util.foreach(lowerrowdevices, _map_device_index_to_source))
+                end
+                local numlowerdrainlines = #util.uniq(util.foreach(lowerrowdevices, _map_device_index_to_drain))
+                local numlowerlines = numlowersourcelines + numlowerdrainlines
+                local upperrowdevices = activepattern[row]
+                local numuppersourcelines
+                if _P.usesourcestraps then
+                    numuppersourcelines = 0
+                else
+                    numuppersourcelines = #util.uniq(util.foreach(upperrowdevices, _map_device_index_to_source))
+                end
+                local numupperdrainlines = #util.uniq(util.foreach(upperrowdevices, _map_device_index_to_drain))
+                local numupperlines = numuppersourcelines + numupperdrainlines
+                interconnectline_space_occupation = - _P.interconnectlinespace -- correct for one additional space
+                    + (numlowerlines + 1) * _P.interconnectlinespace + numlowerlines * _P.interconnectlinewidth
+                    + (numupperlines + 1) * _P.interconnectlinespace + numupperlines * _P.interconnectlinewidth
+            end
+            rowshifts[row] =
+                sourcestrap_space_occupation +
+                gatestrap_space_occupation +
+                gateline_space_occupation +
+                interconnectline_space_occupation
         else -- odd row
-            local lowerrowdevices = activepattern[row - 1]
-            local numlowersourcelines
-            if _P.usesourcestraps then
-                numlowersourcelines = 0
-            else
-                numlowersourcelines = #util.uniq(util.foreach(lowerrowdevices, _map_device_index_to_source))
+            local interconnectline_space_occupation = 0
+            if _P.interconnectlinepos == "offside" then
+                local lowerrowdevices = activepattern[row - 1]
+                local numlowersourcelines
+                if _P.usesourcestraps then
+                    numlowersourcelines = 0
+                else
+                    numlowersourcelines = #util.uniq(util.foreach(lowerrowdevices, _map_device_index_to_source))
+                end
+                local numlowerdrainlines = #util.uniq(util.foreach(lowerrowdevices, _map_device_index_to_drain))
+                local numlowerlines = numlowersourcelines + numlowerdrainlines
+                local upperrowdevices = activepattern[row]
+                local numuppersourcelines
+                if _P.usesourcestraps then
+                    numuppersourcelines = 0
+                else
+                    numuppersourcelines = #util.uniq(util.foreach(upperrowdevices, _map_device_index_to_source))
+                end
+                local numupperdrainlines = #util.uniq(util.foreach(upperrowdevices, _map_device_index_to_drain))
+                local numupperlines = numuppersourcelines + numupperdrainlines
+                interconnectline_space_occupation = - _P.interconnectlinespace -- correct for one additional space
+                    + (numlowerlines + 1) * _P.interconnectlinespace + numlowerlines * _P.interconnectlinewidth
+                    + (numupperlines + 1) * _P.interconnectlinespace + numupperlines * _P.interconnectlinewidth
             end
-            local numlowerdrainlines = #util.uniq(util.foreach(lowerrowdevices, _map_device_index_to_drain))
-            local numlowerlines = numlowersourcelines + numlowerdrainlines
-            local upperrowdevices = activepattern[row]
-            local numuppersourcelines
-            if _P.usesourcestraps then
-                numuppersourcelines = 0
-            else
-                numuppersourcelines = #util.uniq(util.foreach(upperrowdevices, _map_device_index_to_source))
-            end
-            local numupperdrainlines = #util.uniq(util.foreach(upperrowdevices, _map_device_index_to_drain))
-            local numupperlines = numuppersourcelines + numupperdrainlines
-            local interconnectline_space_occupation = - _P.interconnectlinespace -- correct for one additional space
-                + (numlowerlines + 1) * _P.interconnectlinespace + numlowerlines * _P.interconnectlinewidth
-                + (numupperlines + 1) * _P.interconnectlinespace + numupperlines * _P.interconnectlinewidth
             rowshifts[row] = interconnectline_space_occupation
         end
     end
+    -- fix zero-shift rows
+    for row = 1, numrows do
+        if rowshifts[row] == 0 then
+            rowshifts[row] = _P.minimum_row_shift
+        end
+    end
+    -- apply maximum row shift to all rows (unless 'allow_unequal_rowshifts' is true)
     local maxrowshift = util.max(rowshifts)
     if not _P.allow_unequal_rowshifts then
         for row = 1, numrows do
@@ -1214,41 +1270,26 @@ function layout(cell, _P)
                 table.insert(interconnectlines, { rownum = rownum, net = linelabel })
             end
         end
-    elseif _P.interconnectlinepos == "gate" then
-        for rownum = 1, math.floor((numrows + 1) / 2) do
-            local devindices = _get_uniq_row_devices_double(rownum)
-            local doublerowdevices = _get_active_devices(function(device) return device.row == 2 * rownum - 1 or device.row == 2 * rownum end)
-            local leftdevice = doublerowdevices[1]
-            local rightdevice = doublerowdevices[numinstancesperrow]
-            for line, index in ipairs(devindices) do
-                local net = string.format("drain%d", index)
-                cell:add_area_anchor_bltr(string.format("interconnectline_%d_%s", rownum, net),
-                    point.create(
-                        interconnectlineminx,
-                        _get_dev_anchor(leftdevice, "active").t + _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth + _P.interconnectlinespace + (line - 1) * (_P.interconnectlinespace + _P.interconnectlinewidth)
-                    ),
-                    point.create(
-                        interconnectlinemaxx,
-                        _get_dev_anchor(rightdevice, "active").t + _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth + _P.interconnectlinespace + _P.interconnectlinewidth + (line - 1) * (_P.interconnectlinespace + _P.interconnectlinewidth)
-                    )
-                )
-                geometry.rectanglebltr(cell, generics.metal(_P.interconnectmetal),
-                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, net).bl,
-                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, net).tr
-                )
-                table.insert(interconnectlines, { rownum = rownum, net = net })
-            end
-        end
-    else -- "offside"
+    else -- "gate" or "offside"
         for rownum = 1, numrows do
             local anchor
             local sign
-            if rownum % 2 == 1 then
-                anchor = "b"
-                sign = -1
-            else
-                anchor = "t"
-                sign = 1
+            if _P.interconnectlinepos == "gate" then
+                if rownum % 2 == 1 then
+                    anchor = "t"
+                    sign = 1
+                else
+                    anchor = "b"
+                    sign = -1
+                end
+            else -- _P.interconnectlinepos == "offside"
+                if rownum % 2 == 1 then
+                    anchor = "b"
+                    sign = -1
+                else
+                    anchor = "t"
+                    sign = 1
+                end
             end
             local devindices = _get_uniq_row_devices_single(rownum)
             local singlerowdevices = _get_active_devices(function(device) return device.row == rownum end)
@@ -1307,14 +1348,21 @@ function layout(cell, _P)
                     end
                 end
             end
-        elseif _P.interconnectlinepos == "gate" then
-        else -- "offside"
+        else -- "gate" or "offside"
             for rownum = 1, numrows do
                 local anchor
-                if rownum % 2 == 1 then
-                    anchor = "b"
+                if _P.interconnectlinepos == "gate" then
+                    if rownum % 2 == 1 then
+                        anchor = "t"
+                    else
+                        anchor = "b"
+                    end
                 else
-                    anchor = "t"
+                    if rownum % 2 == 1 then
+                        anchor = "b"
+                    else
+                        anchor = "t"
+                    end
                 end
                 local devices = _get_active_devices(function(device) return device.row == rownum end)
                 for _, device in ipairs(devices) do
@@ -1324,12 +1372,22 @@ function layout(cell, _P)
                         local sdanchor = _get_dev_anchor(device, string.format("sourcedrain%d", finger))
                         local ytop
                         local ybottom
-                        if rownum % 2 == 1 then
-                            ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).b
-                            ytop = sdanchor.b
+                        if _P.interconnectlinepos == "gate" then
+                            if rownum % 2 == 1 then
+                                ybottom = sdanchor.t
+                                ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).t
+                            else
+                                ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).b
+                                ytop = sdanchor.b
+                            end
                         else
-                            ybottom = sdanchor.t
-                            ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).t
+                            if rownum % 2 == 1 then
+                                ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).b
+                                ytop = sdanchor.b
+                            else
+                                ybottom = sdanchor.t
+                                ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).t
+                            end
                         end
                         geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
                             point.create(sdanchor.l, ybottom),
@@ -1374,14 +1432,21 @@ function layout(cell, _P)
                 end
             end
         end
-    elseif _P.interconnectlinepos == "gate" then
     else -- "offside"
         for rownum = 1, numrows do
             local anchor
-            if rownum % 2 == 1 then
-                anchor = "b"
+            if _P.interconnectlinepos == "gate" then
+                if rownum % 2 == 1 then
+                    anchor = "t"
+                else
+                    anchor = "b"
+                end
             else
-                anchor = "t"
+                if rownum % 2 == 1 then
+                    anchor = "b"
+                else
+                    anchor = "t"
+                end
             end
             local devices = _get_active_devices(function(device) return device.row == rownum end)
             for _, device in ipairs(devices) do
@@ -1391,12 +1456,22 @@ function layout(cell, _P)
                     local sdanchor = _get_dev_anchor(device, string.format("sourcedrain%d", finger))
                     local ytop
                     local ybottom
-                    if rownum % 2 == 1 then
-                        ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).b
-                        ytop = sdanchor.b
+                    if _P.interconnectlinepos == "gate" then
+                        if rownum % 2 == 1 then
+                            ybottom = sdanchor.t
+                            ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).t
+                        else
+                            ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).b
+                            ytop = sdanchor.b
+                        end
                     else
-                        ybottom = sdanchor.t
-                        ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).t
+                        if rownum % 2 == 1 then
+                            ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).b
+                            ytop = sdanchor.b
+                        else
+                            ybottom = sdanchor.t
+                            ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).t
+                        end
                     end
                     geometry.rectanglebltr(cell, generics.metal(_P.drainmetal),
                         point.create(sdanchor.l, ybottom),
