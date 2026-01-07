@@ -506,9 +506,9 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
         local ret, msg = cell.funcs.requirements()
         if not ret then
             if not msg then
-                moderror(string.format("requirements check for cell '%s' failed, but no message was returned. If present, the 'check' function has to return true on success", cellname))
+                moderror(string.format("requirements check for cell '%s' (%s) failed, but no message was returned. If present, the 'check' function has to return true on success", cellname, tostring(obj)))
             else
-                moderror(string.format("requirements check for cell '%s' failed: %s", cellname, msg))
+                moderror(string.format("requirements check for cell '%s' (%s) failed: %s", cellname, tostring(obj), msg))
             end
         end
     end
@@ -520,9 +520,9 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
         local ret, msg = cell.funcs.check(parameters)
         if not ret then
             if not msg then
-                moderror(string.format("parameter check for cell '%s' failed, but no message was returned. If present, the 'check' function has to return true on success", cellname))
+                moderror(string.format("parameter check for cell '%s' (%s) failed, but no message was returned. If present, the 'check' function has to return true on success", cellname, tostring(obj)))
             else
-                moderror(string.format("parameter check for cell '%s' failed: %s", cellname, msg))
+                moderror(string.format("parameter check for cell '%s' (%s) failed: %s", cellname, tostring(obj), msg))
             end
         end
     end
