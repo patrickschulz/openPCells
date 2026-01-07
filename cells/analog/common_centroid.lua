@@ -31,7 +31,7 @@ end
 
 function parameters()
     pcell.add_parameters(
-        { "pattern", { { 1, 2, 1 }, { 2, 1, 2 } } },
+        { "pattern", { { 1, 2, 1 }, { 2, 1, 2 } }, info = "pattern specification of the common centroid array. For every row a table should be specified, individual devices are indicated by a numeric index, starting at 1. These indices later also correspond to the net numbers (e.g. device 2 -> gate2/source2/drain2). The indices must be consecutive, for instance { { 1, 2, 4 } } is not allowed. Dummy/filler devices can be specified by '0', these devices are controlled via the '*dummy*' parameters." },
         { "channeltype", "nmos" },
         { "vthtype", 1 },
         { "oxidetype", 1 },
