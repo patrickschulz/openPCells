@@ -51,7 +51,7 @@ function parameters()
         { "interconnectmetal", 2 },
         { "sourcemetal", 1 },
         { "equalsourcenets", true },
-        { "multiplesourcelines", true },
+        { "equaldrainnets", false },
         { "sdwidth", technology.get_dimension("Minimum Source/Drain Contact Region Size") },
         { "sdm1ext", 0 },
         { "fingers", 2, posvals = even() },
@@ -71,6 +71,8 @@ function parameters()
         { "gateconnections", {} },
         { "usesourceconnections", false },
         { "sourceconnections", {} },
+        { "usedrainconnections", false },
+        { "drainconnections", {} },
         { "interconnectlinepos", "offside", posvals = set("offside", "gate", "inline") },
         { "spreadinterconnectlines", true },
         { "interconnectlinewidth", technology.get_dimension("Minimum M2 Width") },
@@ -224,6 +226,46 @@ function check(_P)
         return false, "'equalsourcenets' and 'usesourceconnections' must not be true at the same time"
     end
 
+    -- check that (when 'usesourceconnections' is used):
+    -- * all devices are present
+    -- * no device is present more than once
+    if _P.usesourceconnections then
+        local connected_devices = {}
+        for _, entry in ipairs(_P.sourceconnections) do
+            for _, index in ipairs(entry) do
+                if connected_devices[index] then
+                    return false, string.format("when source connections are used, no device must be present more than once. Spurious device: %d", index)
+                end
+                connected_devices[index] = true
+            end
+        end
+        for index = 1, numdevices do
+            if not connected_devices[index] then
+                return false, string.format("when source connections are used, all devices must be present. Missing device: %d", index)
+            end
+        end
+    end
+
+    -- check that (when 'usedrainconnections' is used):
+    -- * all devices are present
+    -- * no device is present more than once
+    if _P.usedrainconnections then
+        local connected_devices = {}
+        for _, entry in ipairs(_P.drainconnections) do
+            for _, index in ipairs(entry) do
+                if connected_devices[index] then
+                    return false, string.format("when drain connections are used, no device must be present more than once. Spurious device: %d", index)
+                end
+                connected_devices[index] = true
+            end
+        end
+        for index = 1, numdevices do
+            if not connected_devices[index] then
+                return false, string.format("when drain connections are used, all devices must be present. Missing device: %d", index)
+            end
+        end
+    end
+
     -- copied from layout(), there might be a better (but still convenient) way
     -- I don't want to pass all parameters, hence this should be a closure
     local function _map_device_index_to_source(device)
@@ -242,6 +284,22 @@ function check(_P)
         -- FIXME: implement check in check()
         cellerror(string.format("common_centroid: source lookup with unknown device/configuration (device: %d, configuration: equalsourcenets = %s, usesourceconnections = %s)", device, _P.equalsourcenets and "true" or "false", _P.usesourceconnections and "true" or "false"))
     end
+    local function _map_device_index_to_drain(device)
+        if _P.equaldrainnets then
+            return 1
+        elseif _P.usedrainconnections then
+            for i, entry in ipairs(_P.drainconnections) do
+                if util.any_of(device, entry) then
+                    return i
+                end
+            end
+        else
+            return device
+        end
+        -- should not reach here
+        -- FIXME: implement check in check()
+        cellerror(string.format("common_centroid: drain lookup with unknown device/configuration (device: %d, configuration: equaldrainnets = %s, usedrainconnections = %s)", device, _P.equaldrainnets and "true" or "false", _P.usedrainconnections and "true" or "false"))
+    end
 
     local sourceconnections = {}
     if _P.equalsourcenets then
@@ -252,6 +310,18 @@ function check(_P)
     else -- regular source nets
         for i = 1, numdevices do
             table.insert(sourceconnections, i)
+        end
+    end
+
+    local drainconnections = {}
+    if _P.equaldrainnets then
+    elseif _P.usedrainconnections then
+        for _, net in ipairs(util.uniq(util.foreach(util.range(1, numdevices), _map_device_index_to_drain))) do
+            table.insert(drainconnections, i)
+        end
+    else -- regular drain nets
+        for i = 1, numdevices do
+            table.insert(drainconnections, i)
         end
     end
 
@@ -266,8 +336,8 @@ function check(_P)
         table.insert(nets.source, net)
     end
     -- insert drain nets
-    for i = 1, numdevices do
-        table.insert(nets.drain, i)
+    for _, net in ipairs(util.uniq(util.foreach(util.range(1, numdevices), _map_device_index_to_drain))) do
+        table.insert(nets.drain, net)
     end
     -- insert gate nets
     if _P.equalgatenets then
@@ -314,6 +384,23 @@ function check(_P)
             end
             if not found then
                 return false, string.format("when source connections are used, every source connection must be specified. Missing source connection: %d", i)
+            end
+        end
+    end
+
+    -- check for unspecified drain connections
+    if _P.usedrainconnections then
+        for i = 1, numdevices do
+            local found = false
+            for _, connections in ipairs(_P.drainconnections) do
+                for _, entry in ipairs(connections) do
+                    if i == entry then
+                        found = true
+                    end
+                end
+            end
+            if not found then
+                return false, string.format("when drain connections are used, every drain connection must be specified. Missing drain connection: %d", i)
             end
         end
     end
@@ -485,6 +572,23 @@ function layout(cell, _P)
         cellerror(string.format("common_centroid: source lookup with unknown device/configuration (device: %d, configuration: equalsourcenets = %s, usesourceconnections = %s)", device, _P.equalsourcenets and "true" or "false", _P.usesourceconnections and "true" or "false"))
     end
 
+    local function _map_device_index_to_drain(device)
+        if _P.equaldrainnets then
+            return 1
+        elseif _P.usedrainconnections then
+            for i, entry in ipairs(_P.drainconnections) do
+                if util.any_of(device, entry) then
+                    return i
+                end
+            end
+        else
+            return device
+        end
+        -- should not reach here
+        -- FIXME: implement check in check()
+        cellerror(string.format("common_centroid: drain lookup with unknown device/configuration (device: %d, configuration: equaldrainnets = %s, usedrainconnections = %s)", device, _P.equaldrainnets and "true" or "false", _P.usedrainconnections and "true" or "false"))
+    end
+
     -- calculate required minimum row space for every row
     -- every row gets their own source/drain lines, gate lines are shared between two rows ('doublerow')
     -- as gate lines are shared, they are referenced to the lower row, so all odd rows
@@ -510,7 +614,7 @@ function layout(cell, _P)
             else
                 numlowersourcelines = #util.uniq(util.foreach(lowerrowdevices, _map_device_index_to_source))
             end
-            local numlowerdrainlines = #util.uniq(lowerrowdevices)
+            local numlowerdrainlines = #util.uniq(util.foreach(lowerrowdevices, _map_device_index_to_drain))
             local numlowerlines = numlowersourcelines + numlowerdrainlines
             local upperrowdevices = activepattern[row]
             local numuppersourcelines
@@ -519,7 +623,7 @@ function layout(cell, _P)
             else
                 numuppersourcelines = #util.uniq(util.foreach(upperrowdevices, _map_device_index_to_source))
             end
-            local numupperdrainlines = #util.uniq(upperrowdevices)
+            local numupperdrainlines = #util.uniq(util.foreach(upperrowdevices, _map_device_index_to_drain))
             local numupperlines = numuppersourcelines + numupperdrainlines
             local interconnectline_space_occupation = - _P.interconnectlinespace -- correct for one additional space
                 + (numlowerlines + 1) * _P.interconnectlinespace + numlowerlines * _P.interconnectlinewidth
@@ -546,7 +650,7 @@ function layout(cell, _P)
         else
             numsourcelines = #util.uniq(util.foreach(firstrowdevices, _map_device_index_to_source))
         end
-        local numdrainlines = #util.uniq(firstrowdevices)
+        local numdrainlines = #util.uniq(util.foreach(firstrowdevices, _map_device_index_to_drain))
         local numlines = numsourcelines + numdrainlines
         local interconnectline_space_occupation = 0 -- no space correction here (as opposed to other odd rows)
             + (numlines + 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
@@ -560,7 +664,7 @@ function layout(cell, _P)
         else
             numsourcelines = #util.uniq(util.foreach(lastrowdevices, _map_device_index_to_source))
         end
-        local numdrainlines = #util.uniq(lastrowdevices)
+        local numdrainlines = #util.uniq(util.foreach(lastrowdevices, _map_device_index_to_drain))
         local numlines = numsourcelines + numdrainlines
         local interconnectline_space_occupation = 0 -- no space correction here (as opposed to other odd rows)
             + (numlines + 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
@@ -1095,7 +1199,8 @@ function layout(cell, _P)
                 end
             end
             -- add drain lines
-            for line, num in ipairs(devnums) do
+            local drainlines = util.uniq(util.foreach(devnums, _map_device_index_to_drain))
+            for _, num in ipairs(drainlines) do
                 table.insert(lines, string.format("drain%d", num))
             end
             local numlines = #lines
@@ -1174,7 +1279,8 @@ function layout(cell, _P)
                     end
                 end
                 -- add drain lines
-                for line, num in ipairs(devindices) do
+                local drainlines = util.uniq(util.foreach(devindices, _map_device_index_to_drain))
+                for _, num in ipairs(drainlines) do
                     table.insert(lines, string.format("drain%d", num))
                 end
                 for line, linelabel in ipairs(lines) do
@@ -1270,12 +1376,13 @@ function layout(cell, _P)
             for rownum = 1, numrows do
                 local devices = _get_active_devices(function(device) return device.row == rownum end)
                 for _, device in ipairs(devices) do
+                    local drainline = _map_device_index_to_drain(device.device)
                     for finger = 2, _P.fingers + 1, 2 do
                         geometry.viabltrov(cell, _P.drainmetal, _P.interconnectmetal,
                             _get_dev_anchor(device, string.format("sourcedrain%d", finger)).bl,
                             _get_dev_anchor(device, string.format("sourcedrain%d", finger)).tr,
-                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).bl,
-                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).tr
+                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).bl,
+                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).tr
                         )
                     end
                 end
@@ -1292,17 +1399,18 @@ function layout(cell, _P)
             end
             local devices = _get_active_devices(function(device) return device.row == rownum end)
             for _, device in ipairs(devices) do
+                local drainline = _map_device_index_to_drain(device.device)
                 for finger = 2, _P.fingers + 1, 2 do
                     local icvextension = math.max(_P.interconnectlineviawidth, _P.sdwidth)
                     local sdanchor = _get_dev_anchor(device, string.format("sourcedrain%d", finger))
                     local ytop
                     local ybottom
                     if rownum % 2 == 1 then
-                        ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).b
+                        ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).b
                         ytop = sdanchor.b
                     else
                         ybottom = sdanchor.t
-                        ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).t
+                        ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).t
                     end
                     geometry.rectanglebltr(cell, generics.metal(_P.drainmetal),
                         point.create(sdanchor.l, ybottom),
@@ -1318,8 +1426,8 @@ function layout(cell, _P)
                                 0.5 * (sdanchor.l + sdanchor.r) + icvextension / 2,
                                 ytop
                             ),
-                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).bl,
-                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).tr,
+                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).bl,
+                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).tr,
                             string.format("drain to interconnect line conncetion:\n    x parameters: max of interconnectlineviawidth/sdwidth (%d)\n    y parameters: interconnectlinewidth (%d)", icvextension, _P.interconnectlinewidth)
                         )
                     end
@@ -1433,7 +1541,7 @@ function layout(cell, _P)
             })
         end
         -- drain lines
-        local numdrainlines = numdevices
+        local numdrainlines = #util.uniq(util.foreach(util.range(1, numdevices), _map_device_index_to_drain))
         for i = 1, numdrainlines do
             table.insert(outputlinespre.drain, {
                 base = "drain",
@@ -1678,24 +1786,27 @@ function layout(cell, _P)
 
     -- connect interconnect lines (drains) to output lines
     for rownum = 1, numrows do
-        local devices = _get_active_devices(function(device) return device.row == rownum end)
-        for _, device in ipairs(devices) do
-            local lines = util.clone_array_predicate(outputlines, function(e) return e.base == "drain" and e.device == device.device end)
-            if #lines > 1 then -- multiple output lines, use variant field
-                for _, line in ipairs(lines) do
-                    geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
-                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).bl,
-                        cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).tr,
-                        cell:get_area_anchor_fmt("outputconnectline_%s_%d", string.format("drain%d", device.device), line.variant).bl,
-                        cell:get_area_anchor_fmt("outputconnectline_%s_%d", string.format("drain%d", device.device), line.variant).tr
-                    )
+        local devindices = _get_uniq_row_devices_single(rownum)
+        local lines = util.uniq(util.foreach(devindices, _map_device_index_to_drain))
+        for line, index in ipairs(lines) do
+            local drainoutputlines = util.clone_array_predicate(outputlines,
+                function(e)
+                    return e.base == "drain" and e.device == index
                 end
-            else
+            )
+            for _, outputline in ipairs(drainoutputlines) do
+                local netname = string.format("drain%d", index)
+                local identifier
+                if outputline.variant then
+                    identifier = string.format("%s_%d", netname, outputline.variant)
+                else
+                    identifier = netname
+                end
                 geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
-                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).bl,
-                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", device.device)).tr,
-                    cell:get_area_anchor_fmt("outputconnectline_%s", string.format("drain%d", device.device)).bl,
-                    cell:get_area_anchor_fmt("outputconnectline_%s", string.format("drain%d", device.device)).tr
+                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, netname).bl,
+                    cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, netname).tr,
+                    cell:get_area_anchor_fmt("outputconnectline_%s", identifier).bl,
+                    cell:get_area_anchor_fmt("outputconnectline_%s", identifier).tr
                 )
             end
         end

@@ -137,7 +137,6 @@ local nmospair = pcell.create_layout("analog/common_centroid", "_nmospair", util
     grouporder = "source_inside",
     usesourcestraps = true,
     sourcestrapsinside = true,
-    multiplesourcelines = false,
 }))
 nmospair:place_top(nmoscascode)
 nmospair:align_right(nmoscascode)
@@ -166,7 +165,6 @@ local pmospair = pcell.create_layout("analog/common_centroid", "_pmospair", util
     grouporder = "source_inside",
     usesourcestraps = true,
     sourcestrapsinside = true,
-    multiplesourcelines = false,
 }))
 pmospair:place_top(nmoscascode)
 pmospair:align_left(nmoscascode)
