@@ -66,6 +66,7 @@ function parameters()
         { "gatelineviapitch", 0 },
         { "fullgatevia", false },
         { "extendgatessymmetrically", false },
+        { "allow_odd_rows", false },
         { "allow_unequal_rowshifts", false },
         { "usegateconnections", false },
         { "gateconnections", {} },
@@ -175,7 +176,7 @@ function process_parameters(_P)
 end
 
 function check(_P)
-    if #_P.pattern % 2 == 1 then
+    if not _P.allow_odd_rows and (#_P.pattern % 2 == 1) then
         return false, "the pattern contains an odd number of rows. There might be a use case for this, but the current implementation does not support this"
     end
     for i = 2, #_P.pattern do
