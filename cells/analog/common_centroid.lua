@@ -103,7 +103,7 @@ function parameters()
         { "groupoutputlines", false },
         { "grouporder", "drain_inside", posvals = set("drain_inside", "source_inside") },
         { "usegloballines", false },
-        { "globallines", {} },
+        { "globallines", {}, info = "Specify the global lines order manually. If used, this table must at least contain an entry for every net (gate, drain and source). The syntax for every line specification is '{ pin = <pin>, net = <numeric index> }'. A possible specification could be: '{ { pin = \"gate\", net = 1 }, { pin = \"gate\", net = 2 }, { pin = \"source\", net = 2 }, { pin = \"drain\", net = 1 }, { pin = \"drain\", net = 2 }, { pin = \"source\", net = 2 } }. Global lines can also be specified more than once, for low-ohmic connections or spreading of global lines. This will change internal anchors (appends _1, _2, etc.), which might change how global lines can be connected automatically. This parameter must be used with 'usegloballines', otherwise it is ignored." },
         { "sourcenets", {} },
         { "drainnets", {} },
         { "connectgatetosourcedrain", {} },
