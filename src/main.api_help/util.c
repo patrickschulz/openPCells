@@ -264,6 +264,22 @@
     ));
 }
 
+/* util.insert_table(main, t) */
+{
+    struct parameter parameters[] = {
+        { "main",   TABLE,  NULL,   "array-like table (target), will be modified" },
+        { "t",      TABLE,  NULL,   "array-like table (source)" }
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "insert_table",
+        MODULE_UTIL,
+        "create a copy of the point array with the order of points reversed",
+        "local t = { 1, 2, 3 }\nutil.insert_table(t, { 4, 5, 6 }) -- t is now { 1, 2, 3, 4, 5, 6 }",
+        parameters
+    ));
+}
+
 /* util.reverse(pts) */
 {
     struct parameter parameters[] = {

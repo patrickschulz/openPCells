@@ -465,6 +465,15 @@ function util.merge_tables(t1, t2)
     return new
 end
 
+function util.insert_table(main, t)
+    check.set_next_function_name("util.insert_table")
+    check.arg(1, "main", "table", main)
+    check.arg(2, "t", "table", t)
+    for i = 1, #t do
+        table.insert(main, t[i])
+    end
+end
+
 function util.reverse(pts)
     check.set_next_function_name("util.reverse")
     check.arg(1, "pts", "table", pts)
