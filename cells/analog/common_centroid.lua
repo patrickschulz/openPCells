@@ -1083,7 +1083,7 @@ function layout(cell, _P)
     -- create gate lines
     local gatelines = {}
     for rownum = 1, math.floor((numrows + 1) / 2) do
-        -- gate lines cover all devices, not only active devices
+        -- gate lines cover all devices, not only active devices (use _get_device, not _get_active_device)
         local lowerdevices = _get_devices(function(device) return device.row == 2 * rownum - 1 end)
         local upperdevices = _get_devices(function(device) return device.row == 2 * rownum end)
         local leftlowerdevice = lowerdevices[1]
