@@ -439,6 +439,9 @@ function check(_P)
     if _P.drawinnerguardrings and _P.gatelinemetal == 1 then
         return false, "if guard rings are present, gate lines can not be on metal 1 (gatelinemetal)"
     end
+    if _P.insertglobalguardringlines and not _P.drawouterguardring then
+        return false, "global guardring lines can only be inserted when an outer guardring is present"
+    end
     if _P.interconnectlinepos == "offside" and _P.usesourcestraps and not _P.sourcestrapsinside and _P.sourcemetal == _P.drainmetal then
         return false, "if interconnectlines are positioned 'offside' and source straps are used, the drain and source connections can not be on the same metal"
     end
