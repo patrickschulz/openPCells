@@ -327,6 +327,22 @@
     ));
 }
 
+/* util.rep(num, value) */
+{
+    struct parameter parameters[] = {
+        { "num",    INTEGER, NULL, "number of repetitions" },
+        { "value",  ANY,     NULL, "value which should be repeated. Can be anything, but probably most useful with strings or numbers" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "rep",
+        MODULE_UTIL,
+        "create an array-like table with one entry repeated N times. This is useful, for example, for specifying gate contacts for basic/cmos.",
+        "local gatecontactpos = util.rep(4, 0) -- { 0, 0, 0, 0 }",
+        parameters
+    ));
+}
+
 /* util.range(lower, upper, incr) */
 {
     struct parameter parameters[] = {

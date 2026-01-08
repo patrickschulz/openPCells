@@ -653,6 +653,17 @@ function util.intersection_ab(P, Q)
 end
 --]]
 
+function util.rep(num, value)
+    check.set_next_function_name("util.rep")
+    check.arg(1, "num", "number", num)
+    local t = {}
+    for i = 1, num do
+        t[i] = value
+    end
+    return t
+end
+
+
 function util.range(lower, upper, incr)
     check.set_next_function_name("util.range")
     check.arg(1, "lower", "number", lower)
