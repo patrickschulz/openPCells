@@ -139,8 +139,20 @@ local function _load_cell(state, cellname, env)
     )
     -- check if only allowed values are defined
     for funcname in pairs(env) do
-        if not util.any_of(function(v) return v == funcname end, { "info", "requirements", "config", "parameters", "process_parameters", "layout", "check", "anchors" }) then
-            moderror(string.format("pcell: all defined global values must be one of 'info', 'requirements', 'config', 'parameters', 'process_parameters', 'layout', 'check' or 'anchors'. Illegal name: '%s'", funcname))
+        local allowed_functions = {
+            "info",
+            "requirements",
+            "config",
+            "parameters",
+            "process_parameters",
+            "prepare",
+            "check",
+            "anchors",
+            "layout",
+        }
+        if not util.any_of(function(v) return v == funcname end, allowed_functions) then
+            local str = util.tconcatfmt(allowed_functions, ", ", "'%s'")
+            moderror(string.format("pcell: all defined global values must be one of %s. Illegal name: '%s'", str, funcname))
         end
     end
     return env
@@ -515,9 +527,15 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
 
     local parameters = _get_parameters(state, cellname, cellargs)
 
+    -- run prepare() function (if available) to set cell state
+    local cellstate = nil
+    if cell.funcs.prepare then
+        cellstate = cell.funcs.prepare(parameters)
+    end
+
     -- check parameters
     if cell.funcs.check then
-        local ret, msg = cell.funcs.check(parameters)
+        local ret, msg = cell.funcs.check(parameters, cellstate)
         if not ret then
             if not msg then
                 moderror(string.format("parameter check for cell '%s' (%s) failed, but no message was returned. If present, the 'check' function has to return true on success", cellname, tostring(obj)))
@@ -527,7 +545,7 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
         end
     end
 
-    cell.funcs.layout(obj, parameters, env)
+    cell.funcs.layout(obj, parameters, env, cellstate)
     if explicitlib then
         state.libnamestacks:pop()
     end
