@@ -961,6 +961,8 @@ function layout(cell, _P, _env, state)
         guardringwellouterextension = _P.guardringwellouterextension,
         guardringimplantinnerextension = _P.guardringimplantinnerextension,
         guardringimplantouterextension = _P.guardringimplantouterextension,
+        guardringoxidetypeinnerextension = _P.guardringoxidetypeinnerextension,
+        guardringoxidetypeouterextension = _P.guardringoxidetypeouterextension,
         guardringsoiopeninnerextension = _P.guardringsoiopeninnerextension,
         guardringsoiopenouterextension = _P.guardringsoiopenouterextension,
     })
@@ -1049,6 +1051,8 @@ function layout(cell, _P, _env, state)
             wellouterextension = _P.guardringwellouterextension,
             implantinnerextension = _P.guardringimplantinnerextension,
             implantouterextension = _P.guardringimplantouterextension,
+            oxidetypeinnerextension = _P.guardringoxidetypeinnerextension,
+            oxidetypeouterextension = _P.guardringoxidetypeouterextension,
             soiopeninnerextension = _P.guardringsoiopeninnerextension,
             soiopenouterextension = _P.guardringsoiopenouterextension,
         })
