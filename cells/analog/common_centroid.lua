@@ -80,6 +80,7 @@ function parameters()
         { "spreadinterconnectlines", true },
         { "interconnectlinewidth", technology.get_dimension("Minimum M2 Width") },
         { "interconnectlinespace", technology.get_dimension("Minimum M2 Space") },
+        { "interconnectlineextension", 0, info = "extend interconnect lines beyond their minimum x-values. This is useful for allowing for more enclosure around placed vias at the edges of the array." },
         { "interconnectlineviawidth", technology.get_dimension("Minimum M1M2 Viawidth") },
         { "interconnectviapitch", technology.get_optional_dimension("Minimum M2 Pitch") },
         { "spreadoutputlines", true },
@@ -1078,7 +1079,7 @@ function layout(cell, _P, _env, state)
         local row1devices = state._get_devices(function(device) return device.row == 1 end)
         local leftdevice = row1devices[1]
         local rightdevice = row1devices[#row1devices]
-        local icvextension = math.max(_P.interconnectlineviawidth, _P.sdwidth)
+        local icvextension = math.max(_P.interconnectlineextension, _P.interconnectlineviawidth, _P.sdwidth)
         interconnectlineminx = _get_dev_anchor(leftdevice, "sourcedrainmetal1").l - (icvextension - _P.sdwidth) / 2
         interconnectlinemaxx = _get_dev_anchor(rightdevice, "sourcedrainmetal-1").r + (icvextension - _P.sdwidth) / 2
     end
