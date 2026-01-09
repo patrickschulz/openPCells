@@ -1,3 +1,7 @@
+procedure(OPCConvertCoordToNanometer(c)
+    fix(c * 1000)
+)
+
 procedure(OPCAddPtsOffset(pts x y)
 	mapcar(lambda( (pt) xCoord(pt) + x:yCoord(pt) + y) pts)
 )
@@ -48,6 +52,19 @@ procedure(OPCWritePolygon(file cellname layer purpose pts)
 	)
 )
 
+procedure(OPCWritePath(file cellname layer purpose pts width)
+	let(
+		(
+		)
+        fprintf(file "geometry.path(%s, %s, { %s }, %d)\n"
+            cellname
+            OPCFormatLayer(layer purpose)
+            buildString(mapcar(lambda( (pt) lsprintf("point.create(%d, %d)" xCoord(pt) yCoord(pt))) pts) ", ")
+            width
+        )
+	)
+)
+
 procedure(OPCWriteLabel(file cellname layer purpose name pt)
 	let(
 		(
@@ -66,6 +83,7 @@ procedure(OPCWriteShape(file cellname shape x y)
         case(shape->objType
             ("rect" OPCWriteRectangle(file cellname shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y))))
             ("polygon" OPCWritePolygon(file cellname shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y))))
+            ("path" OPCWritePath(file cellname shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y)) OPCConvertCoordToNanometer(shape->width)))
             ("label" OPCWriteLabel(file cellname shape->layerName shape->purpose shape->theLabel car(OPCConvertPtsToNanometer(OPCAddPtsOffset(list(shape->xy) x y)))))
         )
     )
@@ -116,6 +134,7 @@ procedure(OPCWriteCell(file cell x y)
     foreach(via cell->vias
         OPCWriteVia(file cell->cellName via y y)
     )
+    ; FIXME: check for mosaics
     foreach(inst cell->instances
         ; FIXME: check if object was already exported
         OPCWriteCell(file inst->master inst->master->cellName x + xCoord(inst->xy) y + yCoord(inst->xy))
@@ -130,8 +149,18 @@ procedure(OPCWriteCellFlat(file cell cellname x y)
     foreach(via cell->vias
         OPCWriteVia(file cellname via y y)
     )
+    ; FIXME: this does not respect instance orientation
     foreach(inst cell->instances
-        OPCWriteCellFlat(file inst->master cellname x + xCoord(inst->xy) y + yCoord(inst->xy))
+        if(inst->columns
+            then ; is array
+                for(xi 1 inst->columns
+                    for(yi 1 inst->rows
+                        OPCWriteCellFlat(file inst->master cellname x + xCoord(inst->xy) + (xi - 1) * inst->uX y + yCoord(inst->xy) + (yi - 1) * inst->uY)
+                    )
+                )
+            else
+                OPCWriteCellFlat(file inst->master cellname x + xCoord(inst->xy) y + yCoord(inst->xy))
+        )
     )
 )
 
