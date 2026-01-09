@@ -32,10 +32,10 @@ end
 function parameters()
     pcell.add_parameters(
         { "pattern", { { 1, 2, 1 }, { 2, 1, 2 } }, info = "pattern specification of the common centroid array. For every row a table should be specified, individual devices are indicated by a numeric index, starting at 1. These indices later also correspond to the net numbers (e.g. device 2 -> gate2/source2/drain2). The indices must be consecutive, for instance { { 1, 2, 4 } } is not allowed. Dummy/filler devices can be specified by '0', these devices are controlled via the '*dummy*' parameters." },
-        { "minimum_row_shift", 0 },
-        { "channeltype", "nmos" },
-        { "vthtype", 1 },
-        { "oxidetype", 1 },
+        { "minimum_row_shift", 0, info = "Minimum row shift between device rows (active-to-active spacing) where no other spacing constraints are present. In the default settings this does not happen, but with the 'gate' interconnect lines placement method for instance there are no metal lines between odd-even rows. This value is set to accomodate minimum spacing requirements between gates and active regions, but can be modified with this parameter." },
+        { "channeltype", "nmos", posvals = set("nmos", "pmos"), info = "Channel type of the array devices ('nmos' or 'pmos')." },
+        { "vthtype", 1, info = "Threshold voltage type of the array devices." },
+        { "oxidetype", 1, info = "Oxide type of the array devices." },
         { "flippedwell", false },
         { "fingerwidth", technology.get_dimension("Minimum Gate Width") },
         { "sourcedrainsize", technology.get_dimension("Minimum Gate Width"), follow = "fingerwidth" },
