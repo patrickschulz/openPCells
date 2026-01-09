@@ -524,6 +524,13 @@ function process_parameters(_P)
         t.connectsourcewidth = _P.sdmetalwidths[_P.sourceendmetal]
         t.connectdrainwidth = _P.sdmetalwidths[_P.drainendmetal]
     end
+    -- FIXME: also include drainviametal, take maximum distance
+    if _P.topgatemetal < _P.sourceviametal then
+        t.topgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.topgatemetal))
+    end
+    if _P.botgatemetal < _P.sourceviametal then
+        t.botgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.botgatemetal))
+    end
     return t
 end
 
