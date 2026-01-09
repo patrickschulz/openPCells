@@ -1264,11 +1264,11 @@ function layout(cell, _P, _env, state)
             for line, linelabel in ipairs(lines) do
                 cell:add_area_anchor_points(string.format("interconnectline_%d_%s", rownum, linelabel),
                     point.create(
-                        cell:get_area_anchor_fmt("outeralignmentbox_%d_%d", rownum, 1).l,
+                        interconnectlineminx,
                         _get_dev_anchor(leftdevice, "active")[anchor] + sign * (interconnectline_center - (numlines * _P.interconnectlinewidth + (numlines - 1) * space) / 2 + (line - 1) * (space + _P.interconnectlinewidth))
                     ),
                     point.create(
-                        cell:get_area_anchor_fmt("outeralignmentbox_%d_%d", rownum, state.numinstancesperrow).r,
+                        interconnectlinemaxx,
                         _get_dev_anchor(leftdevice, "active")[anchor] + sign * (interconnectline_center - (numlines * _P.interconnectlinewidth + (numlines - 1) * space) / 2 + _P.interconnectlinewidth + (line - 1) * (space + _P.interconnectlinewidth))
                     )
                 )
@@ -1356,17 +1356,10 @@ function layout(cell, _P, _env, state)
                     local sourceline = state._map_device_index_to_source(device.device)
                     for finger = 1, _P.fingers + 1, 2 do
                         local anchor = _get_dev_anchor(device, string.format("sourcedrain%d", finger))
+                        local lineanchor = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline))
                         geometry.viabltrov(cell, _P.sourcemetal, _P.interconnectmetal,
-                            point.create(
-                                anchor.bl:getx() - _P.interconnectlineextension,
-                                anchor.bl:gety()
-                            ),
-                            point.create(
-                                anchor.tr:getx() + _P.interconnectlineextension,
-                                anchor.tr:gety()
-                            ),
-                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).bl,
-                            cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).tr
+                            anchor.bl, anchor.tr,
+                            lineanchor.bl, lineanchor.tr
                         )
                     end
                 end
