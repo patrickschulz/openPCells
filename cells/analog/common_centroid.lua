@@ -1358,11 +1358,11 @@ function layout(cell, _P, _env, state)
                         local anchor = _get_dev_anchor(device, string.format("sourcedrain%d", finger))
                         geometry.viabltrov(cell, _P.sourcemetal, _P.interconnectmetal,
                             point.create(
-                                anchor.bl:getx() - _P.interconnectlineextension
+                                anchor.bl:getx() - _P.interconnectlineextension,
                                 anchor.bl:gety()
                             ),
                             point.create(
-                                anchor.tr:getx() + _P.interconnectlineextension
+                                anchor.tr:getx() + _P.interconnectlineextension,
                                 anchor.tr:gety()
                             ),
                             cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).bl,
