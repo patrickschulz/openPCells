@@ -1355,9 +1355,16 @@ function layout(cell, _P, _env, state)
                 for _, device in ipairs(devices) do
                     local sourceline = state._map_device_index_to_source(device.device)
                     for finger = 1, _P.fingers + 1, 2 do
+                        local anchor = _get_dev_anchor(device, string.format("sourcedrain%d", finger))
                         geometry.viabltrov(cell, _P.sourcemetal, _P.interconnectmetal,
-                            _get_dev_anchor(device, string.format("sourcedrain%d", finger)).bl,
-                            _get_dev_anchor(device, string.format("sourcedrain%d", finger)).tr,
+                            point.create(
+                                anchor.bl:getx() - _P.interconnectlineextension
+                                anchor.bl:gety()
+                            ),
+                            point.create(
+                                anchor.tr:getx() + _P.interconnectlineextension
+                                anchor.tr:gety()
+                            ),
                             cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).bl,
                             cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).tr
                         )
