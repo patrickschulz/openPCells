@@ -54,6 +54,26 @@ function do_cellscript_test()
     fi
 }
 
+# args:
+# 1: basename
+# 2: cellscript filename
+# 3: export type
+# 4: extra arguments
+function do_cellscript_failtest()
+{
+    if [ ! -x ${opcexec} ]; then
+        printf "\033[1;31mopc is not available: test %s (%s)\n\033[0m" ${1} ${2}
+        return
+    fi
+    ${opcexec} ${commonargs} ${4} --export ${3} --technology opc --cellscript ${2} --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
+    if [ $? -eq 0 ]; then
+        printf "\033[1;31mcellscript fail test failed (cellscript should raise an error): %s (%s)\n\033[0m" ${1} ${2}
+        echo
+    else
+        printf "\033[1;32mcellscript fail test succeeded: %s (%s)\n\033[0m" ${1} ${2}
+    fi
+}
+
 # tech/via test
 do_cellscript_test cellscript_tech_vias cellscript_tech_vias.lua gds
 
@@ -152,3 +172,7 @@ do_cellscript_test cellscript_powerlines cellscript_powerlines.lua gds
 
 # cellscript test for bounding box
 do_cellscript_test cellscript_bounding_box cellscript_bounding_box.lua gds
+
+# cellscript test for overlap vias
+do_cellscript_test cellscript_overlap_via cellscript_overlap_via.lua gds
+do_cellscript_failtest cellscript_overlap_via cellscript_overlap_via_fail.lua gds

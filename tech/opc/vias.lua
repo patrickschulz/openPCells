@@ -20,6 +20,8 @@ return {
     viaM1M2 = {
         entries = {
             { width = 100, height = 100, xspace = 200, yspace = 200, xenclosure = 50, yenclosure = 50 },
+            { width = 100, height = 100, xspace = 200, yspace = 200, xenclosure = 20, yenclosure = 80 },
+            { width = 100, height = 100, xspace = 200, yspace = 200, xenclosure = 80, yenclosure = 20 },
         },
         fallback = { width = 50, height = 50 },
     },

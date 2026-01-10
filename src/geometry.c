@@ -629,23 +629,61 @@ static void _fit_via_xy(
     int* yrep_result, unsigned int* yspace_result
 )
 {
-    int xfit1a = ((int)(trx1 - blx1) + (int)xspace - 2 * encl1) / ((int)cutwidth + (int)xspace);
-    int yfit1a = ((int)(try1 - bly1) + (int)yspace - 2 * encl2) / ((int)cutheight + (int)yspace);
-    int xfit2a = ((int)(trx2 - blx2) + (int)xspace - 2 * encl2) / ((int)cutwidth + (int)xspace);
-    int yfit2a = ((int)(try2 - bly2) + (int)yspace - 2 * encl1) / ((int)cutheight + (int)yspace);
-    int xfit1b = ((int)(trx1 - blx1) + (int)xspace - 2 * encl2) / ((int)cutwidth + (int)xspace);
-    int yfit1b = ((int)(try1 - bly1) + (int)yspace - 2 * encl1) / ((int)cutheight + (int)yspace);
-    int xfit2b = ((int)(trx2 - blx2) + (int)xspace - 2 * encl1) / ((int)cutwidth + (int)xspace);
-    int yfit2b = ((int)(try2 - bly2) + (int)yspace - 2 * encl2) / ((int)cutheight + (int)yspace);
-    if(
-        (xfit1a > 0 && yfit1a > 0 && xfit2a > 0 && yfit2a > 0) ||
-        (xfit1a > 0 && yfit1a > 0 && xfit2b > 0 && yfit2b > 0) ||
-        (xfit1b > 0 && yfit1b > 0 && xfit2a > 0 && yfit2a > 0) ||
-        (xfit1b > 0 && yfit1b > 0 && xfit2b > 0 && yfit2b > 0)
-    )
+    // this function workings:
+    // * calculate symmetric extra extensions in all directions
+    //   (the MIN2 catches cases where the line is slightly shifted to one side, asymmetrically.)
+    // * calculate x/y cut repetitions for all possible cases
+    //   (one enclosure in x-direction, one in y-direction)
+    // * combine the four cases (1a-2a, 1a-2b etc.) by minimum, which strips off
+    //   excess cuts that are actually outside of the overlap region
+    // * find the pair that gives maximum cuts (minimum resistance)
+    // * if a pair has a product of larger than 0, a via is possible in the overlap
+    int extraxext1 = MIN2(trx1 - trx, blx - blx1);
+    int extrayext1 = MIN2(try1 - try, bly - bly1);
+    int extraxext2 = MIN2(trx2 - trx, blx - blx2);
+    int extrayext2 = MIN2(try2 - try, bly - bly2);
+    int xrep1a = ((int)(trx - blx + 2 * extraxext1) + (int)xspace - 2 * encl1) / ((int)cutwidth + (int)xspace);
+    int yrep1a = ((int)(try - bly + 2 * extrayext1) + (int)yspace - 2 * encl2) / ((int)cutheight + (int)yspace);
+    int xrep2a = ((int)(trx - blx + 2 * extraxext2) + (int)xspace - 2 * encl2) / ((int)cutwidth + (int)xspace);
+    int yrep2a = ((int)(try - bly + 2 * extrayext2) + (int)yspace - 2 * encl1) / ((int)cutheight + (int)yspace);
+    int xrep1b = ((int)(trx - blx + 2 * extraxext1) + (int)xspace - 2 * encl2) / ((int)cutwidth + (int)xspace);
+    int yrep1b = ((int)(try - bly + 2 * extrayext1) + (int)yspace - 2 * encl1) / ((int)cutheight + (int)yspace);
+    int xrep2b = ((int)(trx - blx + 2 * extraxext2) + (int)xspace - 2 * encl1) / ((int)cutwidth + (int)xspace);
+    int yrep2b = ((int)(try - bly + 2 * extrayext2) + (int)yspace - 2 * encl2) / ((int)cutheight + (int)yspace);
+    int xreps[4] = {
+        // cross 'a-a'
+        MIN2(xrep1a, xrep2a),
+        // cross 'a-b'
+        MIN2(xrep1a, xrep2b),
+        // cross 'b-a'
+        MIN2(xrep1b, xrep2a),
+        // cross 'b-b'
+        MIN2(xrep1b, xrep2b),
+    };
+    int yreps[4] = {
+        // cross 'a-a'
+        MIN2(yrep1a, yrep2a),
+        // cross 'a-b'
+        MIN2(yrep1a, yrep2b),
+        // cross 'b-a'
+        MIN2(yrep1b, yrep2a),
+        // cross 'b-b'
+        MIN2(yrep1b, yrep2b),
+    };
+    // get maximum for minimum resistance
+    int xrep = xreps[0];
+    int yrep = yreps[0];
+    for(int i = 1; i < 4; ++i)
     {
-        unsigned int xrep = ((trx - blx) + xspace) / (cutwidth + xspace);
-        unsigned int yrep = ((try - bly) + yspace) / (cutheight + yspace);
+        if(xreps[i] * yreps[i] > xrep * yrep)
+        {
+            xrep = xreps[i];
+            yrep = yreps[i];
+        }
+    }
+    // found via, return result
+    if(xrep > 0 && yrep > 0)
+    {
         *xrep_result = xrep;
         *xspace_result = xspace;
         *yrep_result = yrep;
