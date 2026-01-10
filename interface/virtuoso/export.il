@@ -81,15 +81,46 @@ procedure(OPCWriteLabel(file cellname layer purpose name pt)
 procedure(OPCWriteShape(file cellname shape x y)
     unless(shape->layerName == "instance"
         case(shape->objType
-            ("rect" OPCWriteRectangle(file cellname shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y))))
-            ("polygon" OPCWritePolygon(file cellname shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y))))
-            ("path" OPCWritePath(file cellname shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y)) OPCConvertCoordToNanometer(shape->width)))
-            ("pathSeg" 
-                foreach(object shape->route->objects
-                    OPCWritePath(file cellname object->layerName object->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(list(object->beginPt x y)) OPCConvertCoordToNanometer(object->width)))
+            ("rect"
+                OPCWriteRectangle(file
+                    cellname
+                    shape->layerName shape->purpose
+                    OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y))
                 )
             )
-            ("label" OPCWriteLabel(file cellname shape->layerName shape->purpose shape->theLabel car(OPCConvertPtsToNanometer(OPCAddPtsOffset(list(shape->xy) x y)))))
+            ("polygon"
+                OPCWritePolygon(file
+                    cellname
+                    shape->layerName shape->purpose
+                    OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y))
+                )
+            )
+            ("path"
+                OPCWritePath(file
+                    cellname
+                    shape->layerName shape->purpose
+                    OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y))
+                    OPCConvertCoordToNanometer(shape->width)
+                )
+            )
+            ("pathSeg" 
+                foreach(object shape->route->objects
+                    OPCWritePath(file
+                        cellname
+                        object->layerName object->purpose
+                        OPCConvertPtsToNanometer(OPCAddPtsOffset(list(object->beginPt object->endPt) x y))
+                        OPCConvertCoordToNanometer(object->width)
+                    )
+                )
+            )
+            ("label"
+                OPCWriteLabel(file
+                    cellname
+                    shape->layerName shape->purpose
+                    shape->theLabel
+                    car(OPCConvertPtsToNanometer(OPCAddPtsOffset(list(shape->xy) x y)))
+                )
+            )
         )
     )
 )
