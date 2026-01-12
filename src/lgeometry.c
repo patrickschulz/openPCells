@@ -1711,10 +1711,10 @@ static int lgeometry_viabarebltrov(lua_State* L)
     struct lpoint* bl2 = lpoint_checkpoint(L, 6);
     struct lpoint* tr2 = lpoint_checkpoint(L, 7);
     const char* debugstring = lua_tostring(L, 8);
-#ifdef opc_lint
+#ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushfstring(L, "geometry.viabarebltrov called without debug string (object: \"%s\")", object_get_name(lobject_get_const(celL)));
+        lua_pushfstring(L, "geometry.viabarebltrov called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1765,7 +1765,7 @@ static int lgeometry_viabarebltr2(lua_State* L)
     struct lpoint* bl2 = lpoint_checkpoint(L, 6);
     struct lpoint* tr2 = lpoint_checkpoint(L, 7);
     const char* debugstring = lua_tostring(L, 8);
-#ifdef opc_lint
+#ifdef OPC_LINT
     if(!debugstring)
     {
         lua_pushfstring(L, "geometry.viabarebltr2 called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
