@@ -569,12 +569,14 @@ function check(_P)
         return false, string.format("the drain strap top metal must be larger than or equal to the drain end metal, got %d and %d", _P.drainstraptopmetal, _P.drainendmetal)
     end
     if _P.checkshorts then
-        if _P.sourcemetal == _P.topgatemetal then
-            if _P.topgatespace <= _P.connectsourcewidth + _P.connectsourcespace then
-                return false, string.format("if source and gate metals are equal the straps must be apart from each other to avoid shorts")
+        if _P.drawtopgate then
+            if _P.sourcemetal == _P.topgatemetal then
+                if _P.topgatespace <= _P.connectsourcewidth + _P.connectsourcespace then
+                    return false, string.format("if source and gate metals are equal the straps must be apart from each other to avoid shorts (topgatespace: %d > connectsourcewidth: %d + connectsourcespace: %d", _P.topgatespace, _P.connectsourcewidth, _P.connectsourcespace)
+                end
             end
-        end
-        if _P.drainmetal == _P.topgatemetal then
+            if _P.drainmetal == _P.topgatemetal then
+            end
         end
     end
     if _P.shortdevice and ((_P.sourcesize % 2) ~= (_P.sdwidth % 2)) then
