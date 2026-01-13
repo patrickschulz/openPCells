@@ -1787,6 +1787,10 @@ function layout(transistor, _P)
                                             point.create(
                                                 shift + drainmetalwidths[_P.drainviametal] - drainmetalshifts[_P.drainviametal],
                                                 splitdrainviaoffset
+                                            ),
+                                            string.format(
+                                                "drain split via:\n    x parameters: drainmetalwidth 1 (%d) / drainmetalwidth 2 (%d)\n    y parameters: splitdrainviasize (%d)",
+                                                drainmetalwidths[_P.drainviametal - 1], drainmetalwidths[_P.drainviametal], splitdrainviasize
                                             )
                                         )
                                         geometry.viabarebltr2(transistor, _P.drainviametal - 1, _P.drainviametal,
@@ -1805,6 +1809,10 @@ function layout(transistor, _P)
                                             point.create(
                                                 shift + drainmetalwidths[_P.drainviametal] - drainmetalshifts[_P.drainviametal],
                                                 splitdrainviaoffset + _P.connectdrainwidth + splitdrainviasize
+                                            ),
+                                            string.format(
+                                                "drain split via:\n    x parameters: drainmetalwidth 1 (%d) / drainmetalwidth 2\n    y parameters: splitdrainviasize (%d)",
+                                                drainmetalwidths[_P.drainviametal - 1], drainmetalwidths[_P.drainviametal], splitdrainviasize
                                             )
                                         )
                                     else
