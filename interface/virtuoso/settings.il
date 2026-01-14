@@ -248,7 +248,7 @@ procedure(OPCCreateSettingsForm()
         hiCreateLayoutForm(
             'OPCSettingsForm
             "OPC Settings"
-            topgridk
+            topgrid
             ?buttonLayout 'OKCancel
         )
     ) ; let
