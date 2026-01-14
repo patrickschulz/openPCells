@@ -177,6 +177,9 @@ do_cellscript_test cellscript_bounding_box cellscript_bounding_box.lua gds
 do_cellscript_test cellscript_overlap_via cellscript_overlap_via.lua gds
 do_cellscript_failtest cellscript_overlap_via cellscript_overlap_via_fail.lua gds
 
+# cell test for analog/cascode
+do_cell_test cascode_01 analog/cascode gds
+
 # test for label size
 do_cellscript_test cellscript_labeltest cellscript_labeltest.lua gds
 
