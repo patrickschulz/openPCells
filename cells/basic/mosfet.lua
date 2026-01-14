@@ -129,9 +129,9 @@ function parameters()
         { "simulatemissinggatecut",                                                                     false, info = "Draw the gates with gate cuts as if the technology had no gate cuts (this splits the gates). This is only useful for technologies that support gate cuts." },
         { "drawsourcedrain(Draw Source/Drain Contacts)",                                                "both", posvals = set("both", "source", "drain", "none"), info = "Control which source/drain contacts are drawn. The possible values are 'both' (source and drain), 'source', 'drain' or 'none'. More fine-grained control can be obtained by the parameter 'excludesourcedraincontacts'." },
         { "excludesourcedraincontacts(Exclude Source/Drain Contacts)",                                  {}, argtype = "table", info = "Define which source/drain contacts get drawn. Set 'drawsourcedrain' to 'both' to use this effectively. The argument to this parameter should be a table with numeric indices. The source/drain regions are enumerated with the left-most starting at 1." },
-        { "sourcesize(Source Size)",                                                                    technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fingerwidth", info = "Size of the source contact regions. This parameter follows 'fingerwidth', so per default the contact regions have the width of a transistor finger. For 'sourcesize', only values between 0 and 'fingerwidth' are allowed. If the size is smaller than 'fingerwidth', the source contact alignment ('sourcealign') is relevant." },
+        { "sourcesize(Source Size)",                                                                    technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fingerwidth", info = "Size of the source contact regions. This parameter follows 'fingerwidth', so per default the contact regions have the width of a transistor finger. 'sourcesize' can be larger than 'fingerwidth'. If the size is smaller than 'fingerwidth', the source contact alignment ('sourcealign') is relevant." },
         { "sourceviasize(Source Via Size)",                                                             technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize", info = "Same as 'sourcesize', but for source vias." },
-        { "drainsize(Drain Size)",                                                                      technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fingerwidth", info = "Size of the drain contact regions. This parameter follows 'fingerwidth', so per default the contact regions have the width of a transistor finger. For 'drainsize', only values between 0 and 'fingerwidth' are allowed., If the size is smaller than 'fingerwidth', the drain contact alignment ('drainalign') is relevant." },
+        { "drainsize(Drain Size)",                                                                      technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fingerwidth", info = "Size of the drain contact regions. This parameter follows 'fingerwidth', so per default the contact regions have the width of a transistor finger. 'drainsize' can be larger than 'fingerwidth'., If the size is smaller than 'fingerwidth', the drain contact alignment ('drainalign') is relevant." },
         { "drainviasize(Drain Via Size)",                                                               technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize", info = "Same as 'drainsize', but for drain vias." },
         { "sourcealign(Source Alignment)",                                                              "bottom", posvals = set("top", "bottom", "center"), info = "Alignment of the source contacts. Only relevant when source contacts are smaller than 'fingerwidth' (see 'sourcesize'). Possible values: 'top' (source contacts grow down from the top into the active region) and 'bottom' (source contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
         { "sourceviaalign(Source Via Alignment)",                                                       "bottom", posvals = set("top", "bottom", "center"), follow = "sourcealign" },
@@ -1531,8 +1531,14 @@ function layout(transistor, _P)
                 local activetr = point.create(shift + _P.actext + _P.sdwidth, sourceoffset + _P.sourcesize)
                 local metalbl = point.create(shift, sourceoffset)
                 local metaltr = point.create(shift + _P.sdwidth, sourceoffset + _P.sourcesize)
-                local debugstr = string.format("source/drain contacts:\n    x parameters: sdwidth (%d)\n    y parameters: sourcesize (%d)", _P.sdwidth, _P.sourcesize)
+                local debugstr = string.format(
+                    "source/drain contacts:\n    x parameters: sdwidth (%d)\n    y parameters: sourcesize (%d)",
+                    _P.sdwidth, _P.sourcesize
+                )
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
+                    if _P.sourcesize > _P.fingerwidth then
+                        geometry.rectanglebltr(transistor, generics.active(), activebl, activetr)
+                    end
                     geometry.contactbarebltr2(transistor, contacttype, activebl, activetr, metalbl, metaltr, debugstr)
                     if _P.drawsourcevia and _P.sourceviametal > 1 and
                         not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
@@ -1716,14 +1722,15 @@ function layout(transistor, _P)
                 local activetr = point.create(shift + _P.actext + _P.sdwidth, drainoffset + _P.drainsize)
                 local metalbl = point.create(shift, drainoffset)
                 local metaltr = point.create(shift + _P.sdwidth, drainoffset + _P.drainsize)
+                local debugstr = string.format(
+                    "drain contact:\n    x parameters: sdwidth (%d)\n    y parameters: drainsize (%d)",
+                    _P.sdwidth, _P.drainsize
+                )
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
-                    geometry.contactbarebltr2(
-                        transistor, contacttype, activebl, activetr, metalbl, metaltr,
-                        string.format(
-                            "drain contact:\n    x parameters: sdwidth (%d)\n    y parameters: drainsize (%d)",
-                            _P.sdwidth, _P.drainsize
-                        )
-                    )
+                    if _P.drainsize > _P.fingerwidth then
+                        geometry.rectanglebltr(transistor, generics.active(), activebl, activetr)
+                    end
+                    geometry.contactbarebltr2(transistor, contacttype, activebl, activetr, metalbl, metaltr, debugstr)
                     if _P.drawdrainvia and _P.drainviametal > 1 and
                         not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         for metal = 1, _P.drainviametal - 1 do
