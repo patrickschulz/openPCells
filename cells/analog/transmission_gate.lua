@@ -31,19 +31,21 @@ function layout(tgate, _P)
         connectdrain = true,
         connectdrainwidth = _P.sdwidth,
         connectdrainspace = _P.sdspace,
-        connectdrainmetal = 2,
+        drainmetal = 2,
         drawdrainvia = true,
         drawguardring = true,
         guardringwidth = _P.guardringwidth,
-        guardringxsep = guardringxsep,
-        guardringysep = guardringysep,
+        guardringleftsep = guardringxsep,
+        guardringrightsep = guardringxsep,
+        guardringtopsep = guardringysep,
+        guardringbottomsep = guardringysep,
         guardringsegments = { "top", "bottom", "left", "right" },
         drawtopgate = true,
-        topgatestrspace = _P.sdwidth + 2 * _P.sdspace,
-        topgatestrwidth = _P.gatestrapwidth,
+        topgatespace = _P.sdwidth + 2 * _P.sdspace,
+        topgatewidth = _P.gatestrapwidth,
         drawbotgate = true,
-        botgatestrspace = _P.sdwidth + 2 * _P.sdspace,
-        botgatestrwidth = _P.gatestrapwidth,
+        botgatespace = _P.sdwidth + 2 * _P.sdspace,
+        botgatewidth = _P.gatestrapwidth,
     }
     local pmos = pcell.create_layout("basic/mosfet", "pmos", util.add_options(baseopt, {
         channeltype = "pmos",
@@ -51,14 +53,14 @@ function layout(tgate, _P)
         fingerwidth = _P.pwidth,
         vthtype = _P.pmosvthtype,
         flippedwell = _P.pmosflippedwell,
-    })
+    }))
     local nmos = pcell.create_layout("basic/mosfet", "nmos", util.add_options(baseopt, {
         channeltype = "nmos",
         fingers = _P.fingers,
         fingerwidth = _P.nwidth,
         vthtype = _P.nmosvthtype,
         flippedwell = _P.nmosflippedwell,
-    })
+    }))
     pmos:abut_area_anchor_top("outerguardring", nmos, "outerguardring")
     pmos:translate(0, _P.sdwidth + 2 * _P.powerspace)
     tgate:merge_into(pmos)

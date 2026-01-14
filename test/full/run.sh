@@ -176,3 +176,6 @@ do_cellscript_test cellscript_bounding_box cellscript_bounding_box.lua gds
 # cellscript test for overlap vias
 do_cellscript_test cellscript_overlap_via cellscript_overlap_via.lua gds
 do_cellscript_failtest cellscript_overlap_via cellscript_overlap_via_fail.lua gds
+
+# basic tests for cells/analog
+do_cell_test transmission_gate analog/transmission_gate gds
