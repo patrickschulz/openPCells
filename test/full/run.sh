@@ -179,3 +179,4 @@ do_cellscript_failtest cellscript_overlap_via cellscript_overlap_via_fail.lua gd
 
 # basic tests for cells/analog
 do_cell_test transmission_gate analog/transmission_gate gds
+do_cell_test vertical_inverter analog/vertical_inverter gds
