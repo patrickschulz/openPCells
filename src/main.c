@@ -526,9 +526,17 @@ int main(int argc, const char* const * argv)
         }
         const char* dimension = cmdoptions_get_argument_long(cmdoptions, "get-dimension");
         struct tagged_value* v = technology_get_dimension(techstate, dimension);
-        tagged_value_print(v);
-        putchar('\n');
-        tagged_value_destroy(v);
+        if(v)
+        {
+            tagged_value_print(v);
+            putchar('\n');
+            tagged_value_destroy(v);
+        }
+        else
+        {
+            printf("could not find technology dimension '%s' in technology '%s'\n", dimension, techname);
+            returnvalue = 1;
+        }
         goto DESTROY_CONFIG;
     }
 
