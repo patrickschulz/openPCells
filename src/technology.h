@@ -6,6 +6,7 @@
 #include "lua/lua.h"
 
 #include "hashmap.h"
+#include "tagged_value.h"
 #include "vector.h"
 
 // public struct declarations
