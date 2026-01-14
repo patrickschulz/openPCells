@@ -3,14 +3,15 @@ foreach(
     list(
         "backup"
         "call"
+        "cells"
         "edit_update"
         "export"
         "fill"
         "menu"
         "misc"
+        "powergrid"
         "settings"
         "subcell"
-        "cells"
     )
     load(lsprintf("%s/interface/virtuoso/%s.il" OPCPath file))
 )

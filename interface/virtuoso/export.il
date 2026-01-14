@@ -37,6 +37,15 @@ procedure(OPCWriteRectangle(file cellname layer purpose bBox)
             xCoord(car(bBox)) yCoord(car(bBox))
             xCoord(cadr(bBox)) yCoord(cadr(bBox))
         )
+        when(net
+            fprintf(file "%s:add_net_shape(\"%s\", point.create(%d, %d), point.create(%d, %d), %s)\n",
+                cellname
+                net->name
+                xCoord(car(bBox)) yCoord(car(bBox))
+                xCoord(cadr(bBox)) yCoord(cadr(bBox))
+                OPCFormatLayer(layer purpose)
+            )
+        )
 	)
 )
 
@@ -86,6 +95,7 @@ procedure(OPCWriteShape(file cellname shape x y)
                     cellname
                     shape->layerName shape->purpose
                     OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y))
+                    shape->net ; support for net shapes on rectangles
                 )
             )
             ("polygon"
@@ -200,11 +210,14 @@ procedure(OPCWriteCellFlat(file cell cellname x y)
     )
 )
 
-procedure(OPCExportCell(filename)
+procedure(OPCExportGetFilename(filename)
+    if(filename filename "openPCells_export.lua")
+)
+
+procedure(OPCExportWriteCell(path)
     let(
         (
             (cv geGetEditCellView())
-            (path if(filename filename "openPCells_export.lua"))
             file
         )
         file = outfile(path "w")
@@ -215,18 +228,23 @@ procedure(OPCExportCell(filename)
     )
 )
 
+procedure(OPCExportCell(filename)
+    let(
+        (
+            (cv geGetEditCellView())
+            (path if(filename filename "openPCells_export.lua"))
+        )
+        OPCExportWriteCell(path)
+    )
+)
+
 procedure(OPCHiExportCell(filename)
     let(
         (
             (cv geGetEditCellView())
             (path if(filename filename "openPCells_export.lua"))
-            file
         )
-        file = outfile(path "w")
-        fprintf(file "local %s = object.create(\"%s\")\n" cv->cellName cv->cellName)
-        OPCWriteCellFlat(file cv cv->cellName 0 0)
-        fprintf(file "return %s\n" cv->cellName)
-        close(file)
+        OPCExportWriteCell(path)
         hiDisplayAppDBox(
             ?name        'OPCInfoDialog
             ?dboxBanner  "openPCells"

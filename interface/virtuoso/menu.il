@@ -12,6 +12,7 @@ procedure(OPCCreateLayoutMenu()
             designmenu
             subcellmenu
             cellmenu
+            powergridmenu
             fillmenu
         )
         ; basic information
@@ -73,6 +74,23 @@ procedure(OPCCreateLayoutMenu()
         ; export cell
         export = hiCreateMenuItem(?name 'OPCExport ?itemText "Export Cell" ?callback "OPCHiExportCell(nil)")
 
+        ; power grid
+        let(
+            (
+                editpowergridscript
+                runpowergridscript
+                deletepowergridgroup
+                deletepowergridscript
+                powergridmenupulldown
+            )
+            editpowergridscript = hiCreateMenuItem(?name 'OPCEditPowergridScript ?itemText "Edit Powergrid Script" ?callback "OPCPowergridEditScript()")
+            runpowergridscript = hiCreateMenuItem(?name 'OPCPowergridScriptRun ?itemText "Run Powergrid Script" ?callback "OPCUpdatePowergridCallback()")
+            deletepowergridgroup = hiCreateMenuItem(?name 'OPCPowergridDeleteGroup ?itemText "Delete Powergrid Shapes" ?callback "OPCDeletePowergridGroup()")
+            deletepowergridscript = hiCreateMenuItem(?name 'OPCPowergridScriptDelete ?itemText "Delete Powergrid Script" ?callback "OPCDeletePowergridScript()")
+            powergridmenupulldown = hiCreatePulldownMenu('OPCPowergridMenuPulldown "" list(editpowergridscript runpowergridscript deletepowergridgroup deletepowergridscript))
+            powergridmenu = hiCreateSliderMenuItem(?name 'OPCPowergridMenu ?itemText "Powergrid" ?subMenu powergridmenupulldown)
+        )
+
         ; fill cell
         let(
             (
@@ -114,6 +132,8 @@ procedure(OPCCreateLayoutMenu()
             subcellmenu
             SEP
             cellmenu
+            SEP
+            powergridmenu
             SEP
             fillmenu
             SEP
