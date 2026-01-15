@@ -514,6 +514,15 @@ function anchors()
     )
 end
 
+local function _get_metal_width(metal)
+    local metalstr = string.format("Minimum M%d Width", metal)
+        local viastr
+    if metal > 1 then
+        viastr = string.format("Minimum M%dM%d Viawidth", metal - 1, metal)
+    end
+    return technology.get_dimension_max(metalstr, viastr)
+end
+
 function process_parameters(_P)
     local t = {}
     t.connectsourcewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.sourcemetal))
@@ -525,6 +534,7 @@ function process_parameters(_P)
         t.connectdrainwidth = _P.sdmetalwidths[_P.drainendmetal]
     end
     -- FIXME: also include drainviametal, take maximum distance
+    t.topgatewidth = math.max(technology.get_dimension("Minimum Gate Contact Region Size"), _get_metal_width(_P.topgatemetal))
     if _P.topgatemetal < _P.sourceviametal then
         t.topgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.topgatemetal))
     end
