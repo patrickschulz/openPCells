@@ -1699,25 +1699,26 @@ static int ltechnology_get_number_of_metals(lua_State* L)
 
 static int ltechnology_get_dimension(lua_State* L)
 {
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushinteger(L, 0);
+        return 1;
+    }
     int n = lua_gettop(L);
     for(int i = 1; i <= n; ++i)
     {
-        const char* dimension = lua_tostring(L, i);
-        lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-        struct technology_state* techstate = lua_touserdata(L, -1);
-        lua_pop(L, 1); // pop techstate
-        if(!techstate)
+        if(!lua_isnil(L, i)) // if properties are generated in cells, they might be nil
         {
-            lua_pushinteger(L, 0);
-            return 1;
-        }
-        else
-        {
-            if(hashmap_exists(techstate->constraints, dimension))
+            const char* dimension = lua_tostring(L, i);
+            struct tagged_value* v = technology_get_dimension(techstate, dimension);
+            if(v)
             {
-                struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
                 int value = tagged_value_get_integer(v);
                 lua_pushinteger(L, value);
+                tagged_value_destroy(v);
                 return 1;
             }
         }
@@ -1734,34 +1735,32 @@ static int ltechnology_get_dimension(lua_State* L)
 
 static int ltechnology_get_dimension_max(lua_State* L)
 {
-    int n = lua_gettop(L);
     int found = 0;
     int value = INT_MIN;
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushinteger(L, 0);
+        return 1;
+    }
+    int n = lua_gettop(L);
     for(int i = 1; i <= n; ++i)
     {
-        if(!lua_isnil(L, i))
+        if(!lua_isnil(L, i)) // if properties are generated in cells, they might be nil
         {
             const char* dimension = lua_tostring(L, i);
-            lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-            struct technology_state* techstate = lua_touserdata(L, -1);
-            lua_pop(L, 1); // pop techstate
-            if(!techstate)
+            struct tagged_value* v = technology_get_dimension(techstate, dimension);
+            if(v)
             {
-                lua_pushinteger(L, 0);
-                return 1;
-            }
-            else
-            {
-                if(hashmap_exists(techstate->constraints, dimension))
+                int newval = tagged_value_get_integer(v);
+                tagged_value_destroy(v);
+                if(newval > value)
                 {
-                    struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
-                    int newval = tagged_value_get_integer(v);
-                    if(newval > value)
-                    {
-                        value = newval;
-                    }
-                    found = 1;
+                    value = newval;
                 }
+                found = 1;
             }
         }
     }
@@ -1782,26 +1781,27 @@ static int ltechnology_get_dimension_max(lua_State* L)
 
 static int ltechnology_get_dimension_min(lua_State* L)
 {
-    int n = lua_gettop(L);
     int found = 0;
-    int value = INT_MAX;
+    int value = INT_MIN;
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushinteger(L, 0);
+        return 1;
+    }
+    int n = lua_gettop(L);
     for(int i = 1; i <= n; ++i)
     {
-        const char* dimension = lua_tostring(L, i);
-        lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-        struct technology_state* techstate = lua_touserdata(L, -1);
-        lua_pop(L, 1); // pop techstate
-        if(!techstate)
+        if(!lua_isnil(L, i)) // if properties are generated in cells, they might be nil
         {
-            lua_pushinteger(L, 0);
-            return 1;
-        }
-        else
-        {
-            if(hashmap_exists(techstate->constraints, dimension))
+            const char* dimension = lua_tostring(L, i);
+            struct tagged_value* v = technology_get_dimension(techstate, dimension);
+            if(v)
             {
-                struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
                 int newval = tagged_value_get_integer(v);
+                tagged_value_destroy(v);
                 if(newval < value)
                 {
                     value = newval;
@@ -1827,6 +1827,11 @@ static int ltechnology_get_dimension_min(lua_State* L)
 
 static int ltechnology_get_optional_dimension(lua_State* L)
 {
+    if(lua_gettop(L) < 2)
+    {
+        lua_pushstring(L, "technology.get_optional_dimension: must receive at least two arguments (the last parameter is the default value)");
+        lua_error(L);
+    }
     const char* dimension = lua_tostring(L, 1);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
@@ -1836,22 +1841,33 @@ static int ltechnology_get_optional_dimension(lua_State* L)
         lua_pushinteger(L, 0);
         return 1;
     }
-    else
+    int n = lua_gettop(L);
+    if(!lua_isinteger(L, -1))
     {
-        if(hashmap_exists(techstate->constraints, dimension))
+        lua_pushfstring(L, "technology.get_optional_dimension: last argument must be a number, got %s", lua_typename(L, lua_type(L, -1)));
+        lua_error(L);
+    }
+    int value = luaL_checkinteger(L, -1); // last value is the default fall-back value
+    for(int i = 1; i <= n; ++i)
+    {
+        if(!lua_isnil(L, i)) // if properties are generated in cells, they might be nil
         {
-            struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
-            int value = tagged_value_get_integer(v);
-            lua_pushinteger(L, value);
-            return 1;
-        }
-        else
-        {
-            lua_pushinteger(L, 0);
+            if(hashmap_exists(techstate->constraints, dimension))
+            {
+                struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
+                value = tagged_value_get_integer(v);
+                break;
+            }
+            struct tagged_value* v = technology_get_dimension(techstate, dimension);
+            if(v)
+            {
+                value = tagged_value_get_integer(v);
+                tagged_value_destroy(v);
+                break;
+            }
         }
     }
-    // return default value if property was not found
-    lua_pushvalue(L, 2);
+    lua_pushinteger(L, value);
     return 1;
 }
 

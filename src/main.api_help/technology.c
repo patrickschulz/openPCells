@@ -29,13 +29,13 @@
 /* technology.get_dimension */
 {
     struct parameter parameters[] = {
-        { "property", STRING, NULL, "technology property name" },
+        { "properties...", VARARGS, NULL, "technology property name, multiple can be given (including nil)" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "get_dimension",
         MODULE_TECHNOLOGY,
-        "Get critical technology dimensions such as minimum metal width. Predominantly used in pcell parameter definitions, but not necessarily restricted to that. There is a small set of technology properties that are used in the standard opc cells, but there is currently no proper definitions of the supported fields. See basic/mosfet and basic/cmos for examples",
+        "Get critical technology dimensions such as minimum metal width. Predominantly used in pcell parameter definitions, but not necessarily restricted to that. There is a small set of technology properties that are used in the standard opc cells, but there is currently no proper definitions of the supported fields. See basic/mosfet and basic/cmos for examples. This function can be given multiple look-up strings, the first one that is found will be returned. If the maximum of several properties is required, use 'technology.get_dimension_max()'. For convenience, this function can also process 'nil' parameters, which will simply be ignored.",
         "function parameters()\n    pcell.add_parameters({ {\"width\", technology.get_dimension(\"Minimum M1 Width\") } })\nend",
         parameters
     ));
@@ -44,7 +44,7 @@
 /* technology.get_dimension_max */
 {
     struct parameter parameters[] = {
-        { "property", STRING, NULL, "technology property name" },
+        { "properties...", VARARGS, NULL, "technology property name, multiple can be given (including nil)" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
@@ -59,7 +59,7 @@
 /* technology.get_dimension_min */
 {
     struct parameter parameters[] = {
-        { "property", STRING, NULL, "technology property name" },
+        { "properties...", VARARGS, NULL, "technology property name, multiple can be given (including nil)" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
@@ -74,13 +74,13 @@
 /* technology.get_optional_dimension */
 {
     struct parameter parameters[] = {
-        { "property", STRING, NULL, "technology property name" },
+        { "properties...", VARARGS, NULL, "technology property name, multiple can be given (including nil)" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "get_optional_dimension",
         MODULE_TECHNOLOGY,
-        "Like get_dimension, but this function does not raise an error if the dimension was not found but simply return 0.",
+        "Like get_dimension, but this function does not raise an error if the dimension was not found but simply returns 0.",
         "function parameters()\n    pcell.add_parameters({ {\"width\", technology.get_optional_dimension(\"Minimum M1 Width\") } })\nend",
         parameters
     ));
