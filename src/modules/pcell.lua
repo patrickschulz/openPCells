@@ -274,6 +274,9 @@ local function _get_parameters(state, cellname, cellargs)
     -- (4) run process_parameters() function (if available)
     if cell.funcs.process_parameters then
         local t = cell.funcs.process_parameters(P)
+        if not t or type(t) ~= "table" then
+            moderror(string.format("'process_parameters' for cell '%s' ran, but no table was returned. If present, the 'process_parameters' function has to return a table with updated parameter values.", cellname))
+        end
         for k, v in pairs(t) do
             if not Pset[k] then
                 error(string.format("'process_parameters' set the parameter '%s', but this has no matching parameter in cell '%s', maybe it was spelled wrong?", k, cellname))
