@@ -288,6 +288,7 @@ function layout(cmos, _P)
     if _P.drawtransistors then
         -- common transistor options
         local baseopt = {
+            fingers = 1,
             gatelength = _P.gatelength,
             gatespace = _P.gatespace,
             actext = _P.actext,
