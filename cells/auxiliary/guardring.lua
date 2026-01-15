@@ -14,8 +14,8 @@ function parameters()
         { "wellouterextension",                             technology.get_dimension("Minimum Well Extension"), follow = "extendallouter" },
         { "drawsoiopen",                                    true, },
         { "fillsoiopen",                                    false },
-        { "soiopeninnerextension",                          technology.get_optional_dimension("Minimum Soiopen Extension") , follow = "extendallinner" },
-        { "soiopenouterextension",                          technology.get_optional_dimension("Minimum Soiopen Extension") , follow = "extendallouter" },
+        { "soiopeninnerextension",                          technology.get_optional_dimension("Minimum Soiopen Extension", 0) , follow = "extendallinner" },
+        { "soiopenouterextension",                          technology.get_optional_dimension("Minimum Soiopen Extension", 0) , follow = "extendallouter" },
         { "implantinnerextension",                          technology.get_dimension("Minimum Implant Extension"), follow = "extendallinner" },
         { "implantouterextension",                          technology.get_dimension("Minimum Implant Extension"), follow = "extendallouter" },
         { "drawimplant",                                    true },
@@ -35,7 +35,7 @@ function parameters()
         { "fillwellholeoffsetleft",                         0 },
         { "fillwellholeoffsetright",                        0 },
         { "drawdeepwell",                                   false },
-        { "deepwelloffset",                                 technology.get_optional_dimension("Deep Well Offset") },
+        { "deepwelloffset",                                 technology.get_optional_dimension("Deep Well Offset", 0) },
         { "fit",                                            false },
         { "failifnotfit",                                   false }
     )

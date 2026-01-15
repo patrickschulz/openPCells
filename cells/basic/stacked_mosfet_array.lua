@@ -40,8 +40,8 @@ function parameters()
         { "guardringwellouterextension", technology.get_dimension("Minimum Well Extension") },
         { "guardringimplantinnerextension", technology.get_dimension("Minimum Implant Extension") },
         { "guardringimplantouterextension", technology.get_dimension("Minimum Implant Extension") },
-        { "guardringsoiopeninnerextension", technology.get_optional_dimension("Minimum Soiopen Extension") },
-        { "guardringsoiopenouterextension", technology.get_optional_dimension("Minimum Soiopen Extension") },
+        { "guardringsoiopeninnerextension", technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "guardringsoiopenouterextension", technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
         { "guardringoxidetypeinnerextension", technology.get_dimension("Minimum Oxide Extension") },
         { "guardringoxidetypeouterextension", technology.get_dimension("Minimum Oxide Extension") },
         { "checkshorts", true }

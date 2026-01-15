@@ -86,7 +86,7 @@ function parameters()
         { "interconnectlinespace", technology.get_dimension("Minimum M2 Space") },
         { "interconnectlineextension", 0, info = "extend interconnect lines beyond their minimum x-values. This is useful for allowing for more enclosure around placed vias at the edges of the array." },
         { "interconnectlineviawidth", technology.get_dimension("Minimum M1M2 Viawidth") },
-        { "interconnectviapitch", technology.get_optional_dimension("Minimum M2 Pitch") },
+        { "interconnectviapitch", technology.get_optional_dimension("Minimum M2 Pitch", 0) },
         { "spreadoutputlines", true },
         { "outputlinewidth", technology.get_dimension("Minimum M3 Width") },
         { "outputlinespace", technology.get_dimension("Minimum M3 Space") },
@@ -130,10 +130,10 @@ function parameters()
         { "extendoxidetypebottom",                  technology.get_dimension("Minimum Oxide Extension"), follow = "extendallbottom" },
         { "extendoxidetypeleft",                    technology.get_dimension("Minimum Oxide Extension"), follow = "extendallleft" },
         { "extendoxidetyperight",                   technology.get_dimension("Minimum Oxide Extension"), follow = "extendallright" },
-        { "extendvthtypetop",                       technology.get_optional_dimension("Minimum Vthtype Extension"), follow = "extendalltop" },
-        { "extendvthtypebottom",                    technology.get_optional_dimension("Minimum Vthtype Extension"), follow = "extendallbottom" },
-        { "extendvthtypeleft",                      technology.get_optional_dimension("Minimum Vthtype Extension"), follow = "extendallleft" },
-        { "extendvthtyperight",                     technology.get_optional_dimension("Minimum Vthtype Extension"), follow = "extendallright" },
+        { "extendvthtypetop",                       technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendalltop" },
+        { "extendvthtypebottom",                    technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallbottom" },
+        { "extendvthtypeleft",                      technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallleft" },
+        { "extendvthtyperight",                     technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallright" },
         { "extendimplanttop",                       technology.get_dimension("Minimum Implant Extension"), follow = "extendalltop" },
         { "extendimplantbottom",                    technology.get_dimension("Minimum Implant Extension"), follow = "extendallbottom" },
         { "extendimplantleft",                      technology.get_dimension("Minimum Implant Extension"), follow = "extendallleft" },
@@ -156,8 +156,8 @@ function parameters()
         { "guardringwellouterextension", technology.get_dimension("Minimum Well Extension") },
         { "guardringimplantinnerextension", technology.get_dimension("Minimum Implant Extension") },
         { "guardringimplantouterextension", technology.get_dimension("Minimum Implant Extension") },
-        { "guardringsoiopeninnerextension", technology.get_optional_dimension("Minimum Soiopen Extension") },
-        { "guardringsoiopenouterextension", technology.get_optional_dimension("Minimum Soiopen Extension") },
+        { "guardringsoiopeninnerextension", technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "guardringsoiopenouterextension", technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
         { "guardringoxidetypeinnerextension", technology.get_dimension("Minimum Oxide Extension") },
         { "guardringoxidetypeouterextension", technology.get_dimension("Minimum Oxide Extension") },
         { "insertglobalguardringlines", false },
@@ -167,12 +167,12 @@ function parameters()
         { "annotate_gatelines", true, follow = "annotate_lines" },
         { "annotate_interconnectlines", true, follow = "annotate_lines" },
         { "annotate_globallines", true, follow = "annotate_lines" },
-        { "lines_label_sizehint", technology.get_optional_dimension("Default Label Size") },
-        { "gatelines_label_sizehint", technology.get_optional_dimension("Default Label Size"), follow = "lines_label_sizehint" },
-        { "interconnectlines_label_sizehint", technology.get_optional_dimension("Default Label Size"), follow = "lines_label_sizehint" },
-        { "globallines_label_sizehint", technology.get_optional_dimension("Default Label Size"), follow = "lines_label_sizehint" },
+        { "lines_label_sizehint", technology.get_optional_dimension("Default Label Size", 0) },
+        { "gatelines_label_sizehint", technology.get_optional_dimension("Default Label Size", 0), follow = "lines_label_sizehint" },
+        { "interconnectlines_label_sizehint", technology.get_optional_dimension("Default Label Size", 0), follow = "lines_label_sizehint" },
+        { "globallines_label_sizehint", technology.get_optional_dimension("Default Label Size", 0), follow = "lines_label_sizehint" },
         { "instancename", nil },
-        { "instancelabelsizehint", technology.get_optional_dimension("Default Label Size") }
+        { "instancelabelsizehint", technology.get_optional_dimension("Default Label Size", 0) }
     )
 end
 
@@ -180,11 +180,11 @@ function process_parameters(_P)
     local t = {}
     -- calculate minimum row shift (needed if no interconnect lines are drawn between rows)
     t.minimum_row_shift = math.max(
-        technology.get_optional_dimension("Minimum Active Space"),
+        technology.get_optional_dimension("Minimum Active Space", 0),
         math.max(
-            technology.get_optional_dimension("Minimum Gate Space"),
-            technology.get_optional_dimension("Minimum Gate XSpace")
-        ) + 2 * technology.get_optional_dimension("Minimum Gate Extension")
+            technology.get_optional_dimension("Minimum Gate Space", 0),
+            technology.get_optional_dimension("Minimum Gate XSpace", 0)
+        ) + 2 * technology.get_optional_dimension("Minimum Gate Extension", 0)
     )
     t.gatefeedlinewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.gatemetal))
     if _P.gatelinemetal > 1 then
