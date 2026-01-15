@@ -816,7 +816,7 @@ function layout(cell, _P, _env, state)
         vthtype = _P.vthtype,
         vthtypealignwithactive = _P.vthtypealignwithactive,
         flippedwell = _P.flippedwell,
-        wellalignwithactive = P.wellalignwithactive,
+        wellalignwithactive = _P.wellalignwithactive,
         gatelength = _P.gatelength,
         gatespace = _P.gatespace,
         width = _P.fingerwidth,
