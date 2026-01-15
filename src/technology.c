@@ -1739,26 +1739,29 @@ static int ltechnology_get_dimension_max(lua_State* L)
     int value = INT_MIN;
     for(int i = 1; i <= n; ++i)
     {
-        const char* dimension = lua_tostring(L, i);
-        lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-        struct technology_state* techstate = lua_touserdata(L, -1);
-        lua_pop(L, 1); // pop techstate
-        if(!techstate)
+        if(!lua_isnil(L, i))
         {
-            lua_pushinteger(L, 0);
-            return 1;
-        }
-        else
-        {
-            if(hashmap_exists(techstate->constraints, dimension))
+            const char* dimension = lua_tostring(L, i);
+            lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+            struct technology_state* techstate = lua_touserdata(L, -1);
+            lua_pop(L, 1); // pop techstate
+            if(!techstate)
             {
-                struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
-                int newval = tagged_value_get_integer(v);
-                if(newval > value)
+                lua_pushinteger(L, 0);
+                return 1;
+            }
+            else
+            {
+                if(hashmap_exists(techstate->constraints, dimension))
                 {
-                    value = newval;
+                    struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
+                    int newval = tagged_value_get_integer(v);
+                    if(newval > value)
+                    {
+                        value = newval;
+                    }
+                    found = 1;
                 }
-                found = 1;
             }
         }
     }
