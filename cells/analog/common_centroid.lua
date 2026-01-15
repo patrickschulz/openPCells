@@ -38,7 +38,7 @@ function parameters()
         { "vthtype", 1, info = "Threshold voltage type of the array devices." },
         { "vthtypealignwithactive", false },
         { "oxidetype", 1, info = "Oxide type of the array devices." },
-        { "oxidetypealignwithactive", },
+        { "oxidetypealignwithactive", false },
         { "flippedwell", false },
         { "wellalignwithactive", false },
         { "fingerwidth", technology.get_dimension("Minimum Gate Width") },
