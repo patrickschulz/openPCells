@@ -10,7 +10,7 @@ function parameters()
         { "gatelength", technology.get_dimension("Minimum Gate Length") },
         { "gatespace", technology.get_dimension("Minimum Gate Space", "Minimum Gate XSpace") },
         { "gatestrapwidth", technology.get_dimension("Minimum M5 Width") },
-        { "gateext", technology.get_optional_dimension("Minimum Gate Extension") },
+        { "gateext", technology.get_optional_dimension("Minimum Gate Extension", 0) },
         { "sdwidth", technology.get_dimension("Minimum M7 Width") },
         { "oxidetype", 1 },
         { "mosfetmarker", 1 },
@@ -44,7 +44,7 @@ function parameters()
         { "guardring_deepwelloffset", 0 },
         { "guardring_interconnwidth", technology.get_dimension("Minimum M1 Width"), posvals = even() },
         { "connectguardrings", true },
-        { "mindrainstrapspace", technology.get_dimension("Minimum M3 Space") + technology.get_dimension("Minimum M3 Width") + technology.get_dimension("Minimum M5 Space") },
+        { "mindrainstrapspace", technology.get_dimension("Minimum M3 Space") },
         { "inlinedrainstrap", false },
         { "topviawidth", technology.get_dimension("Minimum M7M8 Viawidth"), posvals = even() },
         { "crossingmetal", 5 },
@@ -106,14 +106,12 @@ function layout(ccp, _P)
 
     local nfets = pcell.create_layout("analog/cross_coupled_pair", "_ccp", util.add_options(commonoptions, {
         channeltype = "nmos",
-        gatestrappos = "top",
         fingerwidth = _P.nmosfingerwidth,
         vthtype = _P.nvthtype,
     }))
 
     local pfets = pcell.create_layout("analog/cross_coupled_pair", "_ccp", util.add_options(commonoptions, {
         channeltype = "pmos",
-        gatestrappos = "bottom",
         fingerwidth = _P.pmosfingerwidth,
         vthtype = _P.pvthtype,
     }))
@@ -186,56 +184,6 @@ function layout(ccp, _P)
     geometry.rectanglebltr(ccp, generics.metal(_P.drainmetal),
         ccp:get_area_anchor("rightoutput").bl:translate_x(-_P.outputoffset),
         ccp:get_area_anchor("rightoutput").tr
-    )
-
-    -- extra drain metal and vias
-    geometry.rectanglebltr(ccp, generics.metal(_P.crossingmetal - 1),
-        nfets:get_area_anchor("leftdrainstrap").bl,
-        nfets:get_area_anchor("leftdrainstrap").tr
-    )
-    geometry.rectanglebltr(ccp, generics.metal(_P.crossingmetal - 1),
-        pfets:get_area_anchor("leftdrainstrap").bl,
-        pfets:get_area_anchor("leftdrainstrap").tr
-    )
-    geometry.rectanglebltr(ccp, generics.metal(_P.crossingmetal),
-        nfets:get_area_anchor("leftdrainstrap").bl,
-        nfets:get_area_anchor("leftdrainstrap").tr
-    )
-    geometry.rectanglebltr(ccp, generics.metal(_P.crossingmetal),
-        pfets:get_area_anchor("leftdrainstrap").bl,
-        pfets:get_area_anchor("leftdrainstrap").tr
-    )
-    geometry.viabltr(ccp, _P.crossingmetal - 1, _P.drainmetal,
-        nfets:get_area_anchor("leftdrainstrap").bl,
-        nfets:get_area_anchor("leftdrainstrap").tr
-    )
-    geometry.viabltr(ccp, _P.crossingmetal - 1, _P.drainmetal,
-        pfets:get_area_anchor("leftdrainstrap").bl,
-        pfets:get_area_anchor("leftdrainstrap").tr
-    )
-    geometry.rectanglebltr(ccp, generics.metal(_P.crossingmetal - 1),
-        nfets:get_area_anchor("rightdrainstrap").bl,
-        nfets:get_area_anchor("rightdrainstrap").tr
-    )
-    geometry.rectanglebltr(ccp, generics.metal(_P.crossingmetal - 1),
-        pfets:get_area_anchor("rightdrainstrap").bl,
-        pfets:get_area_anchor("rightdrainstrap").tr
-    )
-    geometry.rectanglebltr(ccp, generics.metal(_P.crossingmetal),
-        nfets:get_area_anchor("rightdrainstrap").bl,
-        nfets:get_area_anchor("rightdrainstrap").tr
-    )
-    geometry.rectanglebltr(ccp, generics.metal(_P.crossingmetal),
-        pfets:get_area_anchor("rightdrainstrap").bl,
-        pfets:get_area_anchor("rightdrainstrap").tr
-    )
-    geometry.viabltr(ccp, _P.crossingmetal - 1, _P.drainmetal,
-        nfets:get_area_anchor("rightdrainstrap").bl,
-        nfets:get_area_anchor("rightdrainstrap").tr
-    )
-    geometry.viabltr(ccp, _P.crossingmetal - 1, _P.drainmetal,
-        pfets:get_area_anchor("rightdrainstrap").bl,
-        pfets:get_area_anchor("rightdrainstrap").tr
     )
 
     ccp:inherit_area_anchor_as(pfets, "common", "ibiasin")
