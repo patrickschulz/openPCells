@@ -74,6 +74,11 @@ function do_cellscript_failtest()
     fi
 }
 
+#######################################################
+# Every cell test should have an '_00' test
+# with an empty pfile ('return {}')
+#######################################################
+
 # tech/via test
 do_cellscript_test cellscript_tech_vias cellscript_tech_vias.lua gds
 
@@ -92,6 +97,7 @@ do_cell_test ldmos_01 basic/ldmos gds
 
 # mosfet
 do_cellscript_test cellscript_mosfet_01 cellscript_mosfet_01.lua gds
+do_cell_test mosfet_00 basic/mosfet gds
 do_cell_test mosfet_01 basic/mosfet gds
 do_cell_test mosfet_02 basic/mosfet gds
 do_cell_test mosfet_03 basic/mosfet gds
