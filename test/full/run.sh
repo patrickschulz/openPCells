@@ -134,6 +134,10 @@ do_cell_test polyresistor_14 basic/polyresistor gds
 do_cell_test inverter_01 analog/inverter gds
 do_cell_test inverter_02 analog/inverter gds
 
+# inverter chain
+do_cell_test inverter_chain_00 analog/inverter_chain gds
+do_cell_test inverter_chain_01 analog/inverter_chain gds
+
 # common centroid
 do_cell_test common_centroid_01 analog/common_centroid gds
 do_cell_test common_centroid_02 analog/common_centroid gds
