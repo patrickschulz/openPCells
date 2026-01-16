@@ -27,4 +27,10 @@ return {
     ["Minimum M1M2 Viawidth"]                       = 260,
     ["Minimum M2M3 Viawidth"]                       = 260,
     ["Minimum M3M4 Viawidth"]                       = 400,
+    ["Minimum M4M5 Viawidth"]                       = 700,
+    ["Minimum M5M6 Viawidth"]                       = 900,
+    ["Minimum M6M7 Viawidth"]                       = 2500,
+    ["Minimum M7M8 Viawidth"]                       = 6000,
+    ["Minimum M8M9 Viawidth"]                       = 6000,
+    ["Minimum M9M10 Viawidth"]                      = 11000,
 }

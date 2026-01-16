@@ -39,7 +39,7 @@ return {
     },
     viaM4M5 = {
         entries = {
-            { width = 500, height = 500, xspace = 1000, yspace = 1000, xenclosure = 200, yenclosure = 200 },
+            { width = 500, height = 500, xspace = 1000, yspace = 1000, xenclosure = 100, yenclosure = 100 },
         },
         fallback = { width = 250, height = 250 },
     },
