@@ -195,6 +195,11 @@ do_cell_test moscap_04 analog/moscap gds
 # cell test for analog/cross_coupled_pair
 do_cell_test cross_coupled_pair_01 analog/cross_coupled_pair gds
 
+# cell test for analog/currentmirror
+do_cell_test currentmirror_00 analog/currentmirror gds
+do_cell_test currentmirror_01 analog/currentmirror gds
+do_cell_test currentmirror_02 analog/currentmirror gds
+
 # test for label size
 do_cellscript_test cellscript_labeltest cellscript_labeltest.lua gds
 
