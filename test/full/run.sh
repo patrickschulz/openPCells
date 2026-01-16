@@ -180,6 +180,9 @@ do_cellscript_failtest cellscript_overlap_via cellscript_overlap_via_fail.lua gd
 # cell test for analog/cascode
 do_cell_test cascode_01 analog/cascode gds
 
+# cell test for analog/cross_coupled_pair
+do_cell_test cross_coupled_pair_01 analog/cross_coupled_pair gds
+
 # test for label size
 do_cellscript_test cellscript_labeltest cellscript_labeltest.lua gds
 
