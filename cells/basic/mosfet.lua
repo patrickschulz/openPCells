@@ -1930,10 +1930,10 @@ function layout(transistor, _P)
                 if sourceoffset + _P.sourcesize < _P.fingerwidth + _P.connectsourcespace then -- don't draw connections if they are malformed
                     if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         if _P.restrictsourcemetalstostrap then
-                            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceendmetal]
-                            geometry.rectanglebltr(transistor, generics.metal(_P.sourceendmetal),
+                            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceviametal]
+                            geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
                                 point.create(shift, sourceoffset + _P.sourcesize),
-                                point.create(shift + sourcemetalwidths[_P.sourceendmetal], _P.fingerwidth + _P.connectsourcespace)
+                                point.create(shift + sourcemetalwidths[_P.sourceviametal], _P.fingerwidth + _P.connectsourcespace)
                             )
                         else
                             for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
@@ -1950,10 +1950,10 @@ function layout(transistor, _P)
                     if -_P.connectsourceotherspace < sourceoffset then -- don't draw connections if they are malformed
                         if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                             if _P.restrictsourcemetalstostrap then
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceendmetal]
-                                geometry.rectanglebltr(transistor, generics.metal(_P.sourceendmetal),
+                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceviametal]
+                                geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
                                     point.create(shift, -_P.connectsourceotherspace),
-                                    point.create(shift + sourcemetalwidths[_P.sourceendmetal], sourceoffset)
+                                    point.create(shift + sourcemetalwidths[_P.sourceviametal], sourceoffset)
                                 )
                             else
                                 for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
@@ -1971,10 +1971,10 @@ function layout(transistor, _P)
                 if -_P.connectsourcespace < sourceoffset then -- don't draw connections if they are malformed
                     if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         if _P.restrictsourcemetalstostrap then
-                            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceendmetal]
-                            geometry.rectanglebltr(transistor, generics.metal(_P.sourceendmetal),
+                            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceviametal]
+                            geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
                                 point.create(shift, -_P.connectsourcespace),
-                                point.create(shift + sourcemetalwidths[_P.sourceendmetal], sourceoffset)
+                                point.create(shift + sourcemetalwidths[_P.sourceviametal], sourceoffset)
                             )
                         else
                             for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
@@ -1991,10 +1991,10 @@ function layout(transistor, _P)
                     if sourceoffset + _P.sourcesize < _P.fingerwidth + _P.connectsourceotherspace then -- don't draw connections if they are malformed
                         if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                             if _P.restrictsourcemetalstostrap then
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceendmetal]
-                                geometry.rectanglebltr(transistor, generics.metal(_P.sourceendmetal),
+                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceviametal]
+                                geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
                                     point.create(shift, sourceoffset + _P.sourcesize),
-                                    point.create(shift + sourcemetalwidths[_P.sourceendmetal], _P.fingerwidth + _P.connectsourceotherspace)
+                                    point.create(shift + sourcemetalwidths[_P.sourceviametal], _P.fingerwidth + _P.connectsourceotherspace)
                                 )
                             else
                                 for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
@@ -2044,10 +2044,24 @@ function layout(transistor, _P)
                         point.create(trx - shift + rightext + sourcemetalwidths[sourcemetal], bly + _P.connectsourcewidth)
                     )
                 end
+                for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal - 1 do
+                    local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
+                    local shift2 = (_P.gatespace + sourcemetalwidths[sourcemetal + 1]) / 2
+                    geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
+                        point.create(blx - shift1 - leftext, bly),
+                        point.create(trx - shift1 + rightext + sourcemetalwidths[sourcemetal], bly + _P.connectsourcewidth),
+                        point.create(blx - shift2 - leftext, bly),
+                        point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly + _P.connectsourcewidth)
+                    )
+                end
                 if _P.sourceendmetal < _P.sourcestraptopmetal then
                     for sourcemetal = _P.sourceendmetal, _P.sourcestraptopmetal - 1 do
                         local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
                         local shift2 = (_P.gatespace + sourcemetalwidths[sourcemetal + 1]) / 2
+                        geometry.rectanglebltr(transistor, generics.metal(sourcemetal + 1),
+                            point.create(blx - shift2 - leftext, bly),
+                            point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly + sourcemetalwidths[sourcemetal + 1])
+                        )
                         geometry.viabarebltr2(transistor, sourcemetal, sourcemetal + 1,
                             point.create(blx - shift1 - leftext, bly),
                             point.create(trx - shift1 + rightext + sourcemetalwidths[sourcemetal], bly + _P.connectsourcewidth),
@@ -2100,12 +2114,32 @@ function layout(transistor, _P)
                         point.create(blx - shift - leftext, bly1),
                         point.create(trx - shift + rightext + sourcemetalwidths[sourcemetal], bly1 + _P.connectsourcewidth)
                     )
+                    for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal - 1 do
+                        local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
+                        local shift2 = (_P.gatespace + sourcemetalwidths[sourcemetal + 1]) / 2
+                        geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
+                            point.create(blx - shift1 - leftext, bly1),
+                            point.create(trx - shift1 + rightext + sourcemetalwidths[sourcemetal], bly1 + _P.connectsourcewidth),
+                            point.create(blx - shift2 - leftext, bly1),
+                            point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly1 + _P.connectsourcewidth)
+                        )
+                    end
                     if _P.connectsourceboth then
                         -- other strap
                         geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
                             point.create(blx - shift - _P.connectsourceotherleftext, bly2),
                             point.create(trx - shift + _P.connectsourceotherrightext + sourcemetalwidths[sourcemetal], bly2 + _P.connectsourceotherwidth)
                         )
+                        for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal - 1 do
+                            local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
+                            local shift2 = (_P.gatespace + sourcemetalwidths[sourcemetal + 1]) / 2
+                            geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
+                                point.create(blx - shift1 - leftext, bly2),
+                                point.create(trx - shift1 + rightext + sourcemetalwidths[sourcemetal], bly2 + _P.connectsourcewidth),
+                                point.create(blx - shift2 - leftext, bly2),
+                                point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly2 + _P.connectsourcewidth)
+                            )
+                        end
                     end
                 end
                 -- additional vias to higher metal on source strap
@@ -2122,6 +2156,23 @@ function layout(transistor, _P)
                         point.create(blx - shift2 - leftext, bly1),
                         point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly1 + _P.connectsourcewidth)
                     )
+                end
+                -- additional vias to higher metal on other source strap
+                if _P.connectsourceboth then
+                    for sourcemetal = _P.sourceendmetal, _P.sourcestraptopmetal - 1 do
+                        local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
+                        local shift2 = (_P.gatespace + sourcemetalwidths[sourcemetal + 1]) / 2
+                        geometry.rectanglebltr(transistor, generics.metal(sourcemetal + 1),
+                            point.create(blx - shift2 - leftext, bly2),
+                            point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly2 + sourcemetalwidths[sourcemetal + 1])
+                        )
+                        geometry.viabarebltr2(transistor, sourcemetal, sourcemetal + 1,
+                            point.create(blx - shift1 - leftext, bly2),
+                            point.create(trx - shift1 + rightext + sourcemetalwidths[sourcemetal], bly2 + _P.connectsourcewidth),
+                            point.create(blx - shift2 - leftext, bly2),
+                            point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly2 + _P.connectsourcewidth)
+                        )
+                    end
                 end
             end
             -- main anchor
@@ -2197,10 +2248,10 @@ function layout(transistor, _P)
                 if -_P.connectdrainspace < conndrainoffset then -- don't draw connections if they are malformed
                     if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         if _P.restrictdrainmetalstostrap then
-                            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainendmetal]
-                            geometry.rectanglebltr(transistor, generics.metal(_P.drainendmetal),
+                            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainviametal]
+                            geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
                                 point.create(shift, -_P.connectdrainspace),
-                                point.create(shift + drainmetalwidths[_P.drainendmetal], conndrainoffset)
+                                point.create(shift + drainmetalwidths[_P.drainviametal], conndrainoffset)
                             )
                         else
                             for drainmetal = _P.drainstartmetal, _P.drainendmetal do
@@ -2217,10 +2268,10 @@ function layout(transistor, _P)
                     if conndrainoffset + conndraintop < _P.fingerwidth + _P.connectdrainotherspace then -- don't draw connections if they are malformed
                        if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                             if _P.restrictdrainmetalstostrap then
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainendmetal]
-                                geometry.rectanglebltr(transistor, generics.metal(_P.drainendmetal),
+                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainviametal]
+                                geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
                                     point.create(shift, conndrainoffset + conndraintop),
-                                    point.create(shift + drainmetalwidths[_P.drainendmetal], _P.fingerwidth + _P.connectdrainotherspace)
+                                    point.create(shift + drainmetalwidths[_P.drainviametal], _P.fingerwidth + _P.connectdrainotherspace)
                                 )
                             else
                                 for drainmetal = _P.drainstartmetal, _P.drainendmetal do
@@ -2238,10 +2289,10 @@ function layout(transistor, _P)
                 if conndrainoffset + conndraintop < _P.fingerwidth + _P.connectdrainspace then -- don't draw connections if they are malformed
                    if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         if _P.restrictdrainmetalstostrap then
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainendmetal]
-                                geometry.rectanglebltr(transistor, generics.metal(_P.drainendmetal),
+                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainviametal]
+                                geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
                                     point.create(shift, conndrainoffset + conndraintop),
-                                    point.create(shift + drainmetalwidths[_P.drainendmetal], _P.fingerwidth + _P.connectdrainspace)
+                                    point.create(shift + drainmetalwidths[_P.drainviametal], _P.fingerwidth + _P.connectdrainspace)
                                 )
                         else
                             for drainmetal = _P.drainstartmetal, _P.drainendmetal do
@@ -2258,10 +2309,10 @@ function layout(transistor, _P)
                     if -_P.connectdrainotherspace < conndrainoffset then -- don't draw connections if they are malformed
                         if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                             if _P.restrictdrainmetalstostrap then
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainendmetal]
-                                geometry.rectanglebltr(transistor, generics.metal(_P.drainendmetal),
+                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainviametal]
+                                geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
                                     point.create(shift, -_P.connectdrainotherspace),
-                                    point.create(shift + drainmetalwidths[_P.drainendmetal], conndrainoffset)
+                                    point.create(shift + drainmetalwidths[_P.drainviametal], conndrainoffset)
                                 )
                             else
                                 for drainmetal = _P.drainstartmetal, _P.drainendmetal do
@@ -2304,12 +2355,40 @@ function layout(transistor, _P)
                 end
             end
             if _P.drawdrainstrap then
+                -- main strap
                 for drainmetal = _P.drainstartmetal, _P.drainendmetal do
                     local shift = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
                     geometry.rectanglebltr(transistor, generics.metal(drainmetal),
                         point.create(blx - shift - leftext, bly),
                         point.create(trx - shift + rightext + drainmetalwidths[drainmetal], bly + _P.connectdrainwidth)
                     )
+                end
+                for drainmetal = _P.drainstartmetal, _P.drainendmetal - 1 do
+                    local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
+                    local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
+                    geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
+                        point.create(blx - shift1 - leftext, bly),
+                        point.create(trx - shift1 + rightext + drainmetalwidths[drainmetal], bly + _P.connectdrainwidth),
+                        point.create(blx - shift2 - leftext, bly),
+                        point.create(trx - shift2 + rightext + drainmetalwidths[drainmetal + 1], bly + _P.connectdrainwidth)
+                    )
+                end
+                -- additional vias to higher metal on drain strap
+                if _P.drainendmetal < _P.drainstraptopmetal then
+                    for drainmetal = _P.drainendmetal, _P.drainstraptopmetal - 1 do
+                        local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
+                        local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
+                        geometry.rectanglebltr(transistor, generics.metal(drainmetal + 1),
+                            point.create(blx - shift2 - leftext, bly),
+                            point.create(trx - shift2 + rightext + sourcemetalwidths[drainmetal + 1], bly + sourcemetalwidths[drainmetal + 1])
+                        )
+                        geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
+                            point.create(blx - shift1 - leftext, bly),
+                            point.create(trx - shift1 + rightext + drainmetalwidths[drainmetal], bly + _P.connectdrainwidth),
+                            point.create(blx - shift2 - leftext, bly),
+                            point.create(trx - shift2 + rightext + drainmetalwidths[drainmetal + 1], bly + _P.connectdrainwidth)
+                        )
+                    end
                 end
             end
             local shift = (_P.gatespace + drainmetalwidths[_P.drainendmetal]) / 2
@@ -2327,7 +2406,7 @@ function layout(transistor, _P)
                     _P.netlabelsizehint
                 )
             end
-        else
+        else -- not _P.connectdraininline
             local bly1, bly2
             if _P.channeltype == "nmos" then
                 if _P.connectdraininverse then
@@ -2354,12 +2433,66 @@ function layout(transistor, _P)
                         point.create(blx - shift - leftext, bly1),
                         point.create(trx - shift + rightext + drainmetalwidths[drainmetal], bly1 + _P.connectdrainwidth)
                     )
+                    for drainmetal = _P.drainstartmetal, _P.drainendmetal - 1 do
+                        local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
+                        local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
+                        geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
+                            point.create(blx - shift1 - leftext, bly1),
+                            point.create(trx - shift1 + rightext + drainmetalwidths[drainmetal], bly1 + _P.connectdrainwidth),
+                            point.create(blx - shift2 - leftext, bly1),
+                            point.create(trx - shift2 + rightext + drainmetalwidths[drainmetal + 1], bly1 + _P.connectdrainwidth)
+                        )
+                    end
+                    -- additional vias to higher metal on drain strap
+                    if _P.drainendmetal < _P.drainstraptopmetal then
+                        for drainmetal = _P.drainendmetal, _P.drainstraptopmetal - 1 do
+                            local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
+                            local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
+                            geometry.rectanglebltr(transistor, generics.metal(drainmetal + 1),
+                                point.create(blx - shift2 - leftext, bly1),
+                                point.create(trx - shift2 + rightext + sourcemetalwidths[drainmetal + 1], bly1 + sourcemetalwidths[drainmetal + 1])
+                            )
+                            geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
+                                point.create(blx - shift1 - leftext, bly1),
+                                point.create(trx - shift1 + rightext + drainmetalwidths[drainmetal], bly1 + _P.connectdrainwidth),
+                                point.create(blx - shift2 - leftext, bly1),
+                                point.create(trx - shift2 + rightext + drainmetalwidths[drainmetal + 1], bly1 + _P.connectdrainwidth)
+                            )
+                        end
+                    end
                     if _P.connectdrainboth then
                         -- other strap
                         geometry.rectanglebltr(transistor, generics.metal(drainmetal),
                             point.create(blx - shift - _P.connectdrainotherleftext, bly2),
                             point.create(trx - shift + _P.connectdrainotherrightext + drainmetalwidths[drainmetal], bly2 + _P.connectdrainotherwidth)
                         )
+                        for drainmetal = _P.drainstartmetal, _P.drainendmetal - 1 do
+                            local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
+                            local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
+                            geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
+                                point.create(blx - shift1 - leftext, bly2),
+                                point.create(trx - shift1 + rightext + drainmetalwidths[drainmetal], bly2 + _P.connectdrainwidth),
+                                point.create(blx - shift2 - leftext, bly2),
+                                point.create(trx - shift2 + rightext + drainmetalwidths[drainmetal + 1], bly2 + _P.connectdrainwidth)
+                            )
+                        end
+                        -- additional vias to higher metal on drain strap
+                        if _P.drainendmetal < _P.drainstraptopmetal then
+                            for drainmetal = _P.drainendmetal, _P.drainstraptopmetal - 1 do
+                                local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
+                                local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
+                                geometry.rectanglebltr(transistor, generics.metal(drainmetal + 1),
+                                    point.create(blx - shift2 - leftext, bly2),
+                                    point.create(trx - shift2 + rightext + sourcemetalwidths[drainmetal + 1], bly2 + sourcemetalwidths[drainmetal + 1])
+                                )
+                                geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
+                                    point.create(blx - shift1 - leftext, bly2),
+                                    point.create(trx - shift1 + rightext + drainmetalwidths[drainmetal], bly2 + _P.connectdrainwidth),
+                                    point.create(blx - shift2 - leftext, bly2),
+                                    point.create(trx - shift2 + rightext + drainmetalwidths[drainmetal + 1], bly2 + _P.connectdrainwidth)
+                                )
+                            end
+                        end
                     end
                 end
             end
@@ -2414,9 +2547,9 @@ function layout(transistor, _P)
                         point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly1 + _P.connectdrainwidth)
                     )
                 end
-            end
-        end
-    end
+            end -- connect both drains
+        end -- _P.connectdraininline
+    end -- fingers > 0
 
     -- extra source/drain straps (unconnected, useful for arrays)
     local maxmetalextension = math.max(drainmetalwidths[_P.drainendmetal], sourcemetalwidths[_P.sourceendmetal])
