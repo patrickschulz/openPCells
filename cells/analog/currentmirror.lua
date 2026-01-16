@@ -9,6 +9,8 @@ function parameters()
         { "oxidetype", 1 },
         { "flippedwell", false },
         { "fingerwidth", technology.get_dimension("Minimum Gate Width") },
+        { "diodefingerwidth", technology.get_dimension("Minimum Gate Width"), follow = "fingerwidth" },
+        { "sourcefingerwidth", technology.get_dimension("Minimum Gate Width"), follow = "fingerwidth" },
         { "sourcedrainsize", technology.get_dimension("Minimum Gate Width"), follow = "fingerwidth" },
         { "gatelength",  technology.get_dimension("Minimum Gate Length") },
         { "gatespace", technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space") },
@@ -34,8 +36,8 @@ function parameters()
         { "guardringwellouterextension", technology.get_dimension("Minimum Well Extension") },
         { "guardringimplantinnerextension", technology.get_dimension("Minimum Implant Extension") },
         { "guardringimplantouterextension", technology.get_dimension("Minimum Implant Extension") },
-        { "guardringsoiopeninnerextension", technology.get_optional_dimension("Minimum Soiopen Extension") },
-        { "guardringsoiopenouterextension", technology.get_optional_dimension("Minimum Soiopen Extension") },
+        { "guardringsoiopeninnerextension", technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "guardringsoiopenouterextension", technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
         { "guardringoxidetypeinnerextension", technology.get_dimension("Minimum Oxide Extension") },
         { "guardringoxidetypeouterextension", technology.get_dimension("Minimum Oxide Extension") }
     )
@@ -43,10 +45,17 @@ end
 
 function check(_P)
     if _P.stackmethod == "horizontal" then
-        return false, string.format("ofingers must be a multiple of 4, got %d", _P.ofingers)
-    else -- _P.stackmethod == "vertical"
         if _P.ofingers ~= _P.ifingers then
-            return false, string.format("input and output fingers must be equal when the stacking is vertical (got: %d and %d)", _P.ofingers, _P.ifingers)
+        end
+    else -- _P.stackmethod == "vertical"
+        if _P.diodefingerwidth ~= _P.sourcefingerwidth then
+            return
+                false,
+                string.format(
+                    "input and output finger widths must be equal when the stacking is horizontal (got: %d and %d)",
+                    _P.diodefingerwidth,
+                    _P.sourcefingerwidth
+                )
         end
     end
     return true
@@ -61,14 +70,12 @@ function layout(currentmirror, _P)
         gatelength = _P.gatelength,
         gatespace = _P.gatespace,
         sourcemetal = 1,
-        connectsourceboth = false,
+        connectsource = true,
         connectsourcewidth = _P.sourcedrainstrapwidth,
         connectsourcespace = _P.sourcedrainstrapspace,
         connectdrainwidth = _P.sourcedrainstrapwidth,
-        connectdrainspace = _P.sourcedrainstrapspace,
         drawtopgate = _P.channeltype == "nmos",
         drawbotgate = _P.channeltype == "pmos",
-        fingerwidth = _P.fingerwidth,
         sdwidth = _P.sdwidth,
         sourcesize = _P.sourcedrainsize,
         drainsize = _P.sourcedrainsize,
@@ -78,17 +85,22 @@ function layout(currentmirror, _P)
         topgaterightextension = _P.gatestraprightext,
         botgateleftextension = _P.gatestrapleftext,
         botgaterightextension = _P.gatestraprightext,
-    })
+    }
     local diode = pcell.create_layout("basic/mosfet", "diode", util.add_options(baseopt, {
         fingers = _P.ifingers,
+        fingerwidth = _P.diodefingerwidth,
         diodeconnected = true,
         connectdrain = _P.diodemetal > 1,
         drainmetal = _P.diodemetal,
+        connectdrainspace = _P.sourcedrainstrapspace,
     }))
     local sourcehalf = pcell.create_layout("basic/mosfet", "sourcehalf", util.add_options(baseopt, {
         fingers = _P.ofingers / 2,
+        fingerwidth = _P.sourcefingerwidth,
         drainmetal = _P.outputmetal,
         connectdrain = true,
+        connectdrainspace = _P.sourcedrainstrapspace
+                          + enable(_P.diodemetal > 1, _P.sourcedrainstrapwidth + _P.sourcedrainstrapspace),
     }))
     if _P.stackmethod == "horizontal" then
         local leftsource = sourcehalf:copy()
