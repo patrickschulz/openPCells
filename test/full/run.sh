@@ -216,6 +216,9 @@ do_cell_test vertical_inverter_00 analog/vertical_inverter gds
 # cell test for analog/ringoscillator
 do_cell_test ringoscillator_00 analog/ringoscillator gds
 
+# cell test for analog/current_starved_ringoscillator
+do_cell_test current_starved_ringoscillator_00 analog/current_starved_ringoscillator gds
+
 # test for label size
 do_cellscript_test cellscript_labeltest cellscript_labeltest.lua gds
 
