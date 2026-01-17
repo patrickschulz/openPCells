@@ -204,9 +204,16 @@ do_cell_test currentmirror_00 analog/currentmirror gds
 do_cell_test currentmirror_01 analog/currentmirror gds
 do_cell_test currentmirror_02 analog/currentmirror gds
 
+# cell test for analog/self_biased_inverter
+do_cell_test self_biased_inverter_00 analog/self_biased_inverter gds
+
+# cell test for analog/transmission_gate
+do_cell_test transmission_gate_00 analog/transmission_gate gds
+
+# cell test for analog/vertical_inverter
+do_cell_test vertical_inverter_00 analog/vertical_inverter gds
+
 # test for label size
 do_cellscript_test cellscript_labeltest cellscript_labeltest.lua gds
 
 # basic tests for cells/analog
-do_cell_test transmission_gate analog/transmission_gate gds
-do_cell_test vertical_inverter analog/vertical_inverter gds
