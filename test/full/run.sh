@@ -222,6 +222,9 @@ do_cell_test current_starved_ringoscillator_00 analog/current_starved_ringoscill
 # cell test for analog/5T_OTA
 do_cell_test 5T_OTA_00 analog/5T_OTA gds
 
+# cell test for analog/schmitttrigger
+do_cell_test schmitttrigger_00 analog/schmitttrigger gds
+
 # test for label size
 do_cellscript_test cellscript_labeltest cellscript_labeltest.lua gds
 
