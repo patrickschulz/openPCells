@@ -244,6 +244,7 @@ function layout(sbinv, _P)
     sbinv:inherit_alignment_box(resistor_lower)
 
     -- connect resistors
+    -- FIXME: use a few variables and (greatly) shorten this mess
     if _P.resistorplacement == "right" then
         if _P.connectinverse then
             geometry.rectanglebltr(sbinv, generics.metal(_P.gatemetal),
