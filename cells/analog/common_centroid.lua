@@ -44,7 +44,7 @@ function parameters()
         { "fingerwidth", technology.get_dimension("Minimum Gate Width") },
         { "sourcedrainsize", technology.get_dimension("Minimum Gate Width"), follow = "fingerwidth" },
         { "xseparation", 0 },
-        { "gatelength",  technology.get_dimension("Minimum Gate Length") },
+        { "gatelength", technology.get_dimension("Minimum Gate Length") },
         { "gatespace", technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space") },
         { "matchgateextensions", true },
         { "gatemetal",  1 },
