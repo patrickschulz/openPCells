@@ -213,6 +213,9 @@ do_cell_test transmission_gate_00 analog/transmission_gate gds
 # cell test for analog/vertical_inverter
 do_cell_test vertical_inverter_00 analog/vertical_inverter gds
 
+# cell test for analog/ringoscillator
+do_cell_test ringoscillator_00 analog/ringoscillator gds
+
 # test for label size
 do_cellscript_test cellscript_labeltest cellscript_labeltest.lua gds
 
