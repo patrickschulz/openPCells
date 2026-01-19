@@ -225,6 +225,9 @@ do_cell_test 5T_OTA_00 analog/5T_OTA gds
 # cell test for analog/schmitttrigger
 do_cell_test schmitttrigger_00 analog/schmitttrigger gds
 
+# cell test for analog/stacked_ringoscillator
+do_cell_test stacked_ringoscillator_00 analog/stacked_ringoscillator gds
+
 # test for label size
 do_cellscript_test cellscript_labeltest cellscript_labeltest.lua gds
 
