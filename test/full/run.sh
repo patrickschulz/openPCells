@@ -231,4 +231,5 @@ do_cell_test stacked_ringoscillator_00 analog/stacked_ringoscillator gds
 # test for label size
 do_cellscript_test cellscript_labeltest cellscript_labeltest.lua gds
 
-# basic tests for cells/analog
+# cell test for analog/strongARM_comparator
+do_cell_test strongARM_comparator_00 analog/strongARM_comparator gds
