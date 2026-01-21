@@ -1597,12 +1597,8 @@ function layout(cell, _P, _env, state)
     end
     if _P.drawouterguardring and _P.insertglobalguardringlines then
         local guardringboundary = cell:get_area_anchor("outerguardring")
-        local holeheight = point.ydistance_abs(guardringboundary.bl, guardringboundary.tr)
-        local distance = holeheight - (outputlinemaxy - outputlineminy)
-        if distance > 0 then
-            outputlinemaxy = outputlinemaxy + distance / 2
-            outputlineminy = outputlineminy - distance / 2
-        end
+        outputlinemaxy = math.max(outputlinemaxy, guardringboundary.tr:gety())
+        outputlineminy = math.min(outputlineminy, guardringboundary.bl:gety())
     end
 
     -- gather output lines
