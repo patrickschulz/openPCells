@@ -597,7 +597,7 @@ function check(_P, state)
     if _P.interconnectlinepos == "gate" and _P.drainmetal == _P.gatemetal then
         return false, "if interconnectlines are positioned 'gate', the drain metal can not be equal to the gate metal"
     end
-    
+
     -- check for shorts between gate and output lines
     if _P.gatemetal == _P.interconnectmetal + 1 then
         return false, "the drain metal can not be on the same layer as the output line metal"
@@ -1094,7 +1094,7 @@ function layout(cell, _P, _env, state)
             soiopenouterextension = _P.guardringsoiopenouterextension,
         })
         guardring:move_point_x(guardring:get_area_anchor("innerboundary").bl, active.bl)
-        guardring:move_point_y(guardring:get_area_anchor("innerboundary").bl, 
+        guardring:move_point_y(guardring:get_area_anchor("innerboundary").bl,
             point.create(
                 0, -- dont'care
                 math.min(active.bl:gety(), lowergateboundingbox.bl:gety())
