@@ -425,11 +425,6 @@ function check(_P, state)
         return false, "'equaldrainnets' and 'usedrainconnections' must not be true at the same time"
     end
 
-    -- FIXME: this should check the actual nets, not '_P.equalgatenets'
-    if _P.shortgates and not _P.equalgatenets then
-        return false, "gates can not be shorted ('shortgates' == true) when gate nets are not equal ('equalgatenets' == false)"
-    end
-
     -- check that (when 'usesourceconnections' is used):
     -- * all devices are present
     -- * no device is present more than once
@@ -487,6 +482,11 @@ function check(_P, state)
     -- insert drain nets
     for _, net in ipairs(util.uniq(util.foreach(util.range(1, state.numdevices), state._map_device_index_to_drain))) do
         table.insert(nets.drain, net)
+    end
+
+    -- check shorted gates (not possible with multiple gate nets)
+    if _P.shortgates and #nets.gate > 1 then
+        return false, "gates can not be shorted ('shortgates' == true) when not all gate nets equal"
     end
 
     -- check for unspecified gate connections
