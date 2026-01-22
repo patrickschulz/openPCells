@@ -392,6 +392,13 @@ function check(_P, state)
         end
     end
 
+    -- check gate position for an odd number of rows
+    if #_P.pattern % 2 == 1 then
+        if _P.gatepos == "doublerow" then
+            return false, "if the pattern contains an odd number of rows, the gate position must be 'top' or 'bottom'."
+        end
+    end
+
     -- check whether devices are specified continuously
     local devices = {}
     for device = 1, state.numdevices do
@@ -556,6 +563,11 @@ function check(_P, state)
     -- check number of gate nets when gate straps are in center
     if _P.gatestrapsincenter and #nets.gate > 1 then
         return false, "gate straps can not be placed in the center when there is more than one gate net"
+    end
+
+    -- check gate position when gate straps are in center
+    if _P.gatestrapsincenter and _P.gatepos ~= "doublerow" then
+        return false, "gate straps can not be placed in the center when the gate placement is not 'doublerow'."
     end
 
     -- check shorts between gates and inner guardrings
