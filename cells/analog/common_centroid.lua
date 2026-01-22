@@ -709,10 +709,10 @@ end
 
 function layout(cell, _P, _env, state)
     local activepattern = state.activepattern
+
     -- calculate required minimum row space for every row
     -- every row gets their own source/drain lines, gate lines are shared between two rows ('doublerow')
     -- as gate lines are shared, they are referenced to the lower row, so all odd rows
-    -- FIXME: this calculation has 'offside' placement of interconnect lines in mind, check/fix for other placement methods
     local rowshifts = {}
     rowshifts[1] = 0
     for row = 2, state.numrows do -- skip first row, no shift needed
