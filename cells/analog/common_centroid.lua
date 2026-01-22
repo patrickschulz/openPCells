@@ -915,12 +915,21 @@ function layout(cell, _P, _env, state)
         else
             connectsourceinverse = ((_P.channeltype == "pmos") and (rownum % 2 == 1)) or ((_P.channeltype == "nmos") and (rownum % 2 == 0))
         end
+        local drawtopgate
+        local drawbotgate
+        if _P.gatepos == "doublerow" then
+            drawtopgate = _P.connectgatesonbothsides or (rownum % 2 == 1)
+            drawbotgate = _P.connectgatesonbothsides or (rownum % 2 == 0)
+        else
+            drawtopgate = _P.gatepos == "top"
+            drawbotgate = _P.gatepos == "bottom"
+        end
         for deviceindex, device in ipairs(devicerow) do
             local devopts = util.add_options(fetoptions, {
                 name = string.format("M_%d_%d_%d", device.device, device.row, device.index),
                 fingers = _P.fingers,
-                drawtopgate = _P.connectgatesonbothsides or (rownum % 2 == 1),
-                drawbotgate = _P.connectgatesonbothsides or (rownum % 2 == 0),
+                drawtopgate = drawtopgate,
+                drawbotgate = drawbotgate,
                 topgatespace = gatespace[rownum],
                 botgatespace = gatespace[rownum],
                 sdm1botext = (rownum % 2 == 1) and _P.sdm1ext or 0,
@@ -972,10 +981,19 @@ function layout(cell, _P, _env, state)
         if _P.drawinnerguardrings then
             rowshift = 0
         end
+        local gtopext
+        local gbotext
+        if _P.gatepos == "doublerow" then
+            gtopext = rownum % 2 == 1 and activegateext or inactivegateext
+            gbotext = rownum % 2 == 0 and activegateext or inactivegateext
+        else
+            gtopext = (_P.gatepos == "top") and activegateext or inactivegateext
+            gbotext = (_P.gatepos == "bottom") and activegateext or inactivegateext
+        end
         local row = util.add_options(rowoptions, {
             shift = rowshift,
-            gtopext = rownum % 2 == 1 and activegateext or inactivegateext,
-            gbotext = rownum % 2 == 0 and activegateext or inactivegateext,
+            gtopext = gtopext,
+            gbotext = gbotext,
         })
         local devicerow = state._get_devices(function(device) return device.row == rownum end)
         row.devices = _make_row_devices(rownum, devicerow)
@@ -1198,7 +1216,12 @@ function layout(cell, _P, _env, state)
                 for i = 1, 2 do
                     local device = devices[i]
                     if device then
-                        local gate = (i % 2 == 1) and "top" or "bot"
+                        local gate
+                        if _P.gatepos == "doublerow" then
+                            gate = (i % 2 == 1) and "top" or "bot"
+                        else
+                            gate = (_P.gatepos == "top") and "top" or "bot"
+                        end
                         local shiftamount
                         if _P.gatelineviapitch > 0 then
                             shiftamount = _P.gatelineviapitch
@@ -1333,20 +1356,20 @@ function layout(cell, _P, _env, state)
             local anchor
             local sign
             if _P.interconnectlinepos == "gate" then
-                if rownum % 2 == 1 then
-                    anchor = "t"
-                    sign = 1
+                if _P.gatepos == "doublerow" then
+                    anchor = (rownum % 2 == 1) and "t" or "b"
+                    sign = (rownum % 2 == 1) and 1 or -1
                 else
-                    anchor = "b"
-                    sign = -1
+                    anchor = (_P.gatepos == "top") and "t" or "b"
+                    sign = (_P.gatepos == "top") and 1 or -1
                 end
             else -- _P.interconnectlinepos == "offside"
-                if rownum % 2 == 1 then
-                    anchor = "b"
-                    sign = -1
+                if _P.gatepos == "doublerow" then
+                    anchor = (rownum % 2 == 1) and "b" or "t"
+                    sign = (rownum % 2 == 1) and -1 or 1
                 else
-                    anchor = "t"
-                    sign = 1
+                    anchor = (_P.gatepos == "top") and "b" or "t"
+                    sign = (_P.gatepos == "top") and -1 or 1
                 end
             end
             local devindices = state._get_uniq_row_devices_single(rownum)
