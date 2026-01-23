@@ -3,16 +3,18 @@ function parameters()
         { "numbits", 8 },
         { "numregs", 8 },
         { "nummerge", 2 },
-        { "hmetal", 3 },
+        { "hmetal", 1 },
         { "hwidth", technology.get_dimension("Minimum M1 Width") },
         { "hspace", technology.get_dimension("Minimum M1 Space") },
+        { "hext", 0 },
         { "hposition", "right", posvals = set("left", "right") },
-        { "vmetal", 4 },
+        { "vmetal", 2 },
         { "vwidth", technology.get_dimension("Minimum M2 Width") },
         { "vspace", technology.get_dimension("Minimum M2 Space") },
+        { "vext", 0 },
         { "vposition", "top", posvals = set("bottom", "top") },
         { "viamode", "horizontal", posvals = set("horizontal", "vertical") },
-        { "viaext", 400 },
+        { "viaext", technology.get_dimension_max("Minimum M1 Width", "Minimum M2 Width") },
         { "shift_bus_for_vias", true }
     )
 end
@@ -23,6 +25,7 @@ function process_parameters(_P)
     t.hspace = technology.get_dimension(string.format("Minimum M%d Space", _P.hmetal))
     t.vwidth = technology.get_dimension(string.format("Minimum M%d Width", _P.vmetal))
     t.vspace = technology.get_dimension(string.format("Minimum M%d Space", _P.vmetal))
+    t.viaext = technology.get_dimension_max(string.format("Minimum M%d Width", _P.hmetal), string.format("Minimum M%d Width", _P.vmetal))
     return t
 end
 
@@ -34,12 +37,13 @@ function check(_P)
 end
 
 function layout(bus, _P)
-    local totalvsize = _P.nummerge * _P.numregs * _P.numbits * (_P.vwidth + _P.vspace)
+    local totalvsize = _P.nummerge * _P.numregs * _P.numbits * (_P.vwidth + _P.vspace) - _P.vspace
     if _P.shift_bus_for_vias then
         totalvsize = totalvsize + (_P.nummerge - 1) * (_P.vwidth + _P.vspace)
     end
-    local totalhsize = _P.nummerge * _P.numregs * _P.numbits * (_P.hwidth + _P.hspace)
+    local totalhsize = _P.nummerge * _P.numregs * _P.numbits * (_P.hwidth + _P.hspace) - _P.hspace
     local lefttop_or_rightbottom = _P.hposition == "left" and _P.vposition == "top"
+
     -- vertical lines
     for merge = 1, _P.nummerge do
         local mergexshift = (merge - 1) * _P.numregs * _P.numbits * (_P.vwidth + _P.vspace)
@@ -57,18 +61,19 @@ function layout(bus, _P)
                 local yshift = mergeyshift + regyshift + bityshift
                 if _P.vposition == "bottom" then
                     geometry.rectanglebltr(bus, generics.metal(_P.vmetal),
-                        point.create(xshift, 0),
+                        point.create(xshift, -_P.vext),
                         point.create(xshift + _P.vwidth, yshift + _P.hwidth)
                     )
                 else -- _P.vposition == "top"
                     geometry.rectanglebltr(bus, generics.metal(_P.vmetal),
                         point.create(xshift, yshift + _P.hwidth),
-                        point.create(xshift + _P.vwidth, totalhsize)
+                        point.create(xshift + _P.vwidth, totalhsize + _P.vext)
                     )
                 end
             end
         end
     end
+
     -- horizontal lines
     for merge = 1, _P.nummerge do
         local mergexshift = (merge - 1) * _P.numregs * _P.numbits * (_P.vwidth + _P.vspace)
@@ -86,13 +91,13 @@ function layout(bus, _P)
                 local yshift = mergeyshift + regyshift + bityshift
                 if _P.hposition == "left" then
                     geometry.rectanglebltr(bus, generics.metal(_P.hmetal),
-                        point.create(-2000, yshift),
+                        point.create(0 - _P.hext, yshift),
                         point.create(xshift + _P.vwidth, yshift + _P.hwidth)
                     )
                 else -- _P.hposition == "right"
                     geometry.rectanglebltr(bus, generics.metal(_P.hmetal),
                         point.create(xshift + _P.vwidth, yshift),
-                        point.create(totalvsize, yshift + _P.hwidth)
+                        point.create(totalvsize + _P.hext, yshift + _P.hwidth)
                     )
                 end
             end
