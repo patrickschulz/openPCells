@@ -3,52 +3,98 @@ function parameters()
         { "numbits", 8 },
         { "numregs", 8 },
         { "nummerge", 2 },
-        { "hmetal", 1 },
+        { "hmetal", 3 },
         { "hwidth", technology.get_dimension("Minimum M1 Width") },
         { "hspace", technology.get_dimension("Minimum M1 Space") },
-        { "vmetal", 2 },
+        { "hposition", "right", posvals = set("left", "right") },
+        { "vmetal", 4 },
         { "vwidth", technology.get_dimension("Minimum M2 Width") },
         { "vspace", technology.get_dimension("Minimum M2 Space") },
-        { "viaext", 200 }
+        { "vposition", "top", posvals = set("bottom", "top") },
+        { "viamode", "horizontal", posvals = set("horizontal", "vertical") },
+        { "viaext", 400 },
+        { "shift_bus_for_vias", true }
     )
 end
 
+function process_parameters(_P)
+    local t = {}
+    t.hwidth = technology.get_dimension(string.format("Minimum M%d Width", _P.hmetal))
+    t.hspace = technology.get_dimension(string.format("Minimum M%d Space", _P.hmetal))
+    t.vwidth = technology.get_dimension(string.format("Minimum M%d Width", _P.vmetal))
+    t.vspace = technology.get_dimension(string.format("Minimum M%d Space", _P.vmetal))
+    return t
+end
+
+function check(_P)
+    if not _P.shift_bus_for_vias then
+        return false, "'shift_bus_for_vias == false' is currently not supported"
+    end
+    return true
+end
+
 function layout(bus, _P)
+    local totalvsize = _P.nummerge * _P.numregs * _P.numbits * (_P.vwidth + _P.vspace)
+    if _P.shift_bus_for_vias then
+        totalvsize = totalvsize + (_P.nummerge - 1) * (_P.vwidth + _P.vspace)
+    end
+    local totalhsize = _P.nummerge * _P.numregs * _P.numbits * (_P.hwidth + _P.hspace)
+    local lefttop_or_rightbottom = _P.hposition == "left" and _P.vposition == "top"
     -- vertical lines
     for merge = 1, _P.nummerge do
         local mergexshift = (merge - 1) * _P.numregs * _P.numbits * (_P.vwidth + _P.vspace)
-        local mergeyshift = (merge - 1) * (_P.vwidth + _P.vspace)
+        if _P.shift_bus_for_vias then
+            mergexshift = mergexshift + (merge - 1) * 2 * _P.viaext
+        end
+        local mergeyshift = (merge - 1) * (_P.hwidth + _P.hspace)
         for reg = 1, _P.numregs do
             local regxshift = (reg - 1) * _P.numbits * (_P.vwidth + _P.vspace)
-            local regyshift = _P.nummerge * (reg - 1) * _P.numbits * (_P.vwidth + _P.vspace)
+            local regyshift = _P.nummerge * (reg - 1) * _P.numbits * (_P.hwidth + _P.hspace)
             for bit = 1, _P.numbits do
                 local bitxshift = (bit - 1) * (_P.vwidth + _P.vspace)
-                local bityshift = _P.nummerge * (bit - 1) * (_P.vwidth + _P.vspace)
+                local bityshift = _P.nummerge * (bit - 1) * (_P.hwidth + _P.hspace)
                 local xshift = mergexshift + regxshift + bitxshift
                 local yshift = mergeyshift + regyshift + bityshift
-                geometry.rectanglebltr(bus, generics.metal(_P.vmetal),
-                    point.create(xshift, -2000),
-                    point.create(xshift + _P.vwidth, yshift + _P.vwidth)
-                )
+                if _P.vposition == "bottom" then
+                    geometry.rectanglebltr(bus, generics.metal(_P.vmetal),
+                        point.create(xshift, 0),
+                        point.create(xshift + _P.vwidth, yshift + _P.hwidth)
+                    )
+                else -- _P.vposition == "top"
+                    geometry.rectanglebltr(bus, generics.metal(_P.vmetal),
+                        point.create(xshift, yshift + _P.hwidth),
+                        point.create(xshift + _P.vwidth, totalhsize)
+                    )
+                end
             end
         end
     end
     -- horizontal lines
     for merge = 1, _P.nummerge do
         local mergexshift = (merge - 1) * _P.numregs * _P.numbits * (_P.vwidth + _P.vspace)
-        local mergeyshift = (merge - 1) * (_P.vwidth + _P.vspace)
+        if _P.shift_bus_for_vias then
+            mergexshift = mergexshift + (merge - 1) * 2 * _P.viaext
+        end
+        local mergeyshift = (merge - 1) * (_P.hwidth + _P.hspace)
         for reg = 1, _P.numregs do
-            local regxshift = (reg - 1) * _P.numbits * (_P.hwidth + _P.hspace)
+            local regxshift = (reg - 1) * _P.numbits * (_P.vwidth + _P.vspace)
             local regyshift = _P.nummerge * (reg - 1) * _P.numbits * (_P.hwidth + _P.hspace)
             for bit = 1, _P.numbits do
-                local bitxshift = (bit - 1) * (_P.hwidth + _P.hspace)
+                local bitxshift = (bit - 1) * (_P.vwidth + _P.vspace)
                 local bityshift = _P.nummerge * (bit - 1) * (_P.hwidth + _P.hspace)
                 local xshift = mergexshift + regxshift + bitxshift
                 local yshift = mergeyshift + regyshift + bityshift
-                geometry.rectanglebltr(bus, generics.metal(_P.hmetal),
-                    point.create(-2000, yshift),
-                    point.create(xshift + _P.hwidth, yshift + _P.hwidth)
-                )
+                if _P.hposition == "left" then
+                    geometry.rectanglebltr(bus, generics.metal(_P.hmetal),
+                        point.create(-2000, yshift),
+                        point.create(xshift + _P.vwidth, yshift + _P.hwidth)
+                    )
+                else -- _P.hposition == "right"
+                    geometry.rectanglebltr(bus, generics.metal(_P.hmetal),
+                        point.create(xshift + _P.vwidth, yshift),
+                        point.create(totalvsize, yshift + _P.hwidth)
+                    )
+                end
             end
         end
     end
@@ -56,25 +102,40 @@ function layout(bus, _P)
     -- vias
     for merge = 1, _P.nummerge do
         local mergexshift = (merge - 1) * _P.numregs * _P.numbits * (_P.vwidth + _P.vspace)
-        local mergeyshift = (merge - 1) * (_P.vwidth + _P.vspace)
+        if _P.shift_bus_for_vias then
+            mergexshift = mergexshift + (merge - 1) * 2 * _P.viaext
+        end
+        local mergeyshift = (merge - 1) * (_P.hwidth + _P.hspace)
         for reg = 1, _P.numregs do
-            local regxshift = (reg - 1) * _P.numbits * (_P.hwidth + _P.hspace)
+            local regxshift = (reg - 1) * _P.numbits * (_P.vwidth + _P.vspace)
             local regyshift = _P.nummerge * (reg - 1) * _P.numbits * (_P.hwidth + _P.hspace)
             for bit = 1, _P.numbits do
-                local bitxshift = (bit - 1) * (_P.hwidth + _P.hspace)
+                local bitxshift = (bit - 1) * (_P.vwidth + _P.vspace)
                 local bityshift = _P.nummerge * (bit - 1) * (_P.hwidth + _P.hspace)
                 local xshift = mergexshift + regxshift + bitxshift
                 local yshift = mergeyshift + regyshift + bityshift
                 local viaxext = 0
+                local viaxshift = 0
                 local viayext = 0
-                if merge <= _P.nummerge / 2 then
+                local viayshift = 0
+                if _P.viamode == "horizontal" then
                     viaxext = 2 * _P.viaext
+                    if _P.vposition == "bottom" then
+                        viaxshift = 0
+                    else
+                        viaxshift = 2 * _P.viaext
+                    end
                 else
                     viayext = 2 * _P.viaext
+                    if _P.hposition == "left" then
+                        viayshift = 0
+                    else
+                        viayshift = 2 * _P.viaext
+                    end
                 end
                 geometry.viabltr(bus, _P.vmetal, _P.hmetal,
-                    point.create(xshift - viaxext, yshift - viayext),
-                    point.create(xshift + _P.hwidth, yshift + _P.hwidth)
+                    point.create(xshift + viaxshift - viaxext, yshift + viayshift - viayext),
+                    point.create(xshift + viaxshift + _P.vwidth, yshift + viayshift + _P.hwidth)
                 )
             end
         end
