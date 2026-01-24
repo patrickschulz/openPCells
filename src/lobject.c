@@ -731,7 +731,11 @@ static int lobject_add_child(lua_State* L)
         lua_pushstring(L, "object.add_child: can't add proxy objects, only full objects");
         lua_error(L);
     }
-    const char* name = luaL_checkstring(L, 3);
+    const char* name = NULL;
+    if(lua_isstring(L, 3))
+    {
+        name = lua_tostring(L, 3);
+    }
     struct object* proxy = object_add_child(lobject_get(L, cell), lobject_get_unchecked(child), name);
     if(!proxy)
     {
