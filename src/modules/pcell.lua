@@ -226,9 +226,11 @@ local function _get_parameters(state, cellname, cellargs)
     local cellparams = cell.parameters.values
 
     -- check for non-string parameters (an error, typically indicating mistakes)
-    for k in pairs(cellargs) do
-        if type(k) ~= "string" then
-            moderror(string.format("non-string parameter for cell '%s': got parameter with type '%s' ('%s')", cellname, type(k), k))
+    if cellarsg then
+        for k in pairs(cellargs) do
+            if type(k) ~= "string" then
+                moderror(string.format("non-string parameter for cell '%s': got parameter with type '%s' ('%s')", cellname, type(k), k))
+            end
         end
     end
 
