@@ -18,6 +18,7 @@
 #include "lplacement.h"
 #include "lplacer.h"
 #include "lpoint.h"
+#include "lpolygon.h"
 #include "lpostprocess.h"
 #include "lrouter.h"
 #include "lua_util.h"
@@ -35,6 +36,7 @@ lua_State* main_create_and_initialize_lua(void)
     open_lobject_lib(L);
     open_lplacement_lib(L);
     open_lpostprocess(L);
+    open_lpolygon_lib(L);
     open_lutil_cmodule_lib(L);
     // FIXME: these libraries are probably not needed for cell creation (they are used in place & route scripts)
     open_lplacer_lib(L);

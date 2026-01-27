@@ -67,6 +67,7 @@ OBJS:= \
 	lplacer.o \
 	lplacer_rand.o \
 	lpoint.o \
+	lpolygon.o \
 	lpostprocess.o \
 	lrouter_field.o \
 	lrouter_min_heap.o \
@@ -351,6 +352,8 @@ lplacer_rand.o: lplacer_rand.c lplacer_rand.h lua/lua.h \
  lua/luaconf.h
 lpoint.o: lpoint.c lpoint.h lua/lua.h lua/luaconf.h \
  point.h lua/lauxlib.h lua/lua.h math.h
+lpolygon.o: lpolygon.c lpolygon.h lua/lauxlib.h lua/luaconf.h lua/lua.h \
+ polygon.h point.h
 lpostprocess.o: lpostprocess.c lpostprocess.h lua/lua.h \
  lua/luaconf.h lua/lauxlib.h lua/lua.h postprocess.h \
  object.h hashmap.h polygon.h point.h shape.h \

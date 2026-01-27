@@ -474,7 +474,7 @@ function M.place_hlines(cell, bl, tr, layer, height, space, minwidth, netnames, 
     return netshapes
 end
 
-function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, onlyfull, nocheck)
+function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)
     for i1 = 1, #netshapes1 do
         local connect = true
         if netfilter then
@@ -492,6 +492,14 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, o
                     )
                     if r then
                         local create = nocheck or geometry.check_viabltr(metal1, metal2, r.bl, r.tr)
+                        if excludes then
+                            for _, exclude in ipairs(excludes) do
+                                if util.rectangle_intersects_polygon(r, exclude) then
+                                    create = false
+                                    break
+                                end
+                            end
+                        end
                         if create then
                             geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
                         end

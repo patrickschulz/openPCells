@@ -437,6 +437,7 @@
         { "metal2",         INTEGER,    NULL, "highest/lowest metal" },
         { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
+        { "excludes",       TABLE,      NULL, "table with polygon excludes" },
         { "netfilter",      INTEGER,    NULL, "optional table containing nets that should be connected. If not given, all matching nets are conneted" },
         { "onlyfull",       BOOLEAN,    NULL, "only place vias where a full overlap exists (where one shape defines x and the other one defines y)" },
         { "nocheck",        BOOLEAN,    NULL, "don't check vias. If not given, all vias area created, if the overlap is too small an error is raised" },
@@ -448,6 +449,7 @@
         "Create vias in a cell connecting net shapes on different metal layers. "
         "This function creates vias between the given layers. "
         "If not net filter is given, all netshapes with matching nets are connected. "
+        "A table with exclusion polygons can be given, which is useful when vias across several layers are created. "
         "If a table array with string items is given, only shapes on nets in that array are connected. "
         "'nocheck' might cause the function to raise an error: "
         "when there are small overlaps without a legal via arrayzation, the function raises an error (as internally geometry.viabltr is used). "

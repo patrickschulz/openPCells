@@ -353,6 +353,20 @@ function util.rectangle_intersection(bl1, tr1, bl2, tr2, onlyfull)
     return nil
 end
 
+function util.rectangle_intersects_polygon(rect, poly)
+    if util.is_rectilinear_polygon(poly) then
+        local rects = util.split_rectilinear_polygon(poly)
+        for _, r in ipairs(rects) do
+            if util.rectangle_intersection(rect.bl, rect.tr, r.pt1, r.pt2) then
+                return true
+            end
+        end
+    else
+        -- FIXME: the function is broken and does not work for all polygons
+        return polygon.rectangle_intersects_polygon(rect.bl, rect.tr, poly)
+    end
+end
+
 function util.xmirror(pts, xcenter)
     check.set_next_function_name("util.xmirror")
     check.arg(1, "pts", "table", pts)
