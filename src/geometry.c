@@ -1482,7 +1482,7 @@ static int _viabltr(
         const struct generics* viacutlayer = generics_create_viacut(techstate, i, i + 1);
         if(!viacutlayer)
         {
-            puts("no viacutlayer defined");
+            fprintf(stderr, "no viacutlayer defined from metal %d to metal %d", i, i + 1);
             return 0;
         }
         ret = ret && _via_contact_bltr(cell,
@@ -1532,27 +1532,30 @@ static int _viabltr2(
         return 0;
     }
     int ret = 1;
-    struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1);
-    struct via_definition* fallback = technology_get_via_fallback(techstate, metal1);
-    if(!viadefs)
+    for(int i = metal1; i < metal2; ++i)
     {
-        return 0;
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i);
+        struct via_definition* fallback = technology_get_via_fallback(techstate, i);
+        if(!viadefs)
+        {
+            return 0;
+        }
+        const struct generics* viacutlayer = generics_create_viacut(techstate, i, i + 1);
+        if(!viacutlayer)
+        {
+            fprintf(stderr, "no viacutlayer defined from metal %d to metal %d", i, i + 1);
+            return 0;
+        }
+        ret = ret && _via_contact_bltr2(cell,
+            viadefs, fallback,
+            viacutlayer,
+            blx1, bly1, trx1, try1,
+            blx2, bly2, trx2, try2,
+            0, 0, // TODO: minxspace, minyspace
+            widthclass,
+            technology_is_create_via_arrays(techstate)
+        );
     }
-    const struct generics* viacutlayer = generics_create_viacut(techstate, metal1, metal2);
-    if(!viacutlayer)
-    {
-        puts("no viacutlayer defined");
-        return 0;
-    }
-    ret = ret && _via_contact_bltr2(cell,
-        viadefs, fallback,
-        viacutlayer,
-        blx1, bly1, trx1, try1,
-        blx2, bly2, trx2, try2,
-        0, 0, // TODO: minxspace, minyspace
-        widthclass,
-        technology_is_create_via_arrays(techstate)
-    );
     if(!bare)
     {
         _rectanglebltr(cell, generics_create_metal(techstate, metal1), blx1, bly1, trx1, try1);
@@ -1581,16 +1584,16 @@ static int _viabltrov(
     int ret = 1;
     for(int i = metal1; i < metal2; ++i)
     {
-        struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1);
-        struct via_definition* fallback = technology_get_via_fallback(techstate, metal1);
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i);
+        struct via_definition* fallback = technology_get_via_fallback(techstate, i);
         if(!viadefs)
         {
             return 0;
         }
-        const struct generics* viacutlayer = generics_create_viacut(techstate, metal1, metal2);
+        const struct generics* viacutlayer = generics_create_viacut(techstate, i, i + 1);
         if(!viacutlayer)
         {
-            puts("no viacutlayer defined");
+            fprintf(stderr, "no viacutlayer defined from metal %d to metal %d\n", i, i + 1);
             return 0;
         }
         ret = ret && _via_contact_bltrov(cell,
