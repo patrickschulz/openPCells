@@ -4,6 +4,7 @@
 
 #include "lua/lauxlib.h"
 
+#include "array.h"
 #include "bltrshape.h"
 #include "geometry.h"
 #include "lcheck.h"
@@ -1845,9 +1846,31 @@ static int lobject_get_shape_outlines(lua_State* L)
 {
     lcheck_check_numargs2(L, 2, 3, "object.get_shape_outlines");
     struct lobject* cell = lobject_check(L, 1);
-    const struct generics* layer = lua_touserdata(L, 2);
+    //array_create(const struct generics**, layers, numlayers);
+    size_t numlayers = 0;
+    const struct generics** layers = NULL;
+    if(lua_istable(L, 2))
+    {
+        lua_len(L, 2);
+        int len = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        layers = malloc(len * sizeof(*layers));
+        numlayers = len;
+        for(size_t i = 0; i < numlayers; ++i)
+        {
+            lua_rawgeti(L, 2, i + 1);
+            layers[i] = lua_touserdata(L, -1);
+            lua_pop(L, 1);
+        }
+    }
+    else if(lua_isuserdata(L, 2))
+    {
+        layers = malloc(1 * sizeof(*layers));
+        numlayers = 1;
+        layers[0] = lua_touserdata(L, 2);
+    }
     coordinate_t offset = luaL_optinteger(L, 3, 0);
-    struct polygon_container* outlines = object_get_shape_outlines(lobject_get(L, cell), layer);
+    struct polygon_container* outlines = object_get_shape_outlines(lobject_get(L, cell), layers, numlayers);
     lua_newtable(L);
     if(polygon_container_is_empty(outlines))
     {

@@ -29,7 +29,7 @@ size_t object_get_shapes_size(const struct object* cell);
 struct shape* object_get_shape(struct object* cell, size_t idx);
 const struct shape* object_get_shape_const(const struct object* cell, size_t idx);
 void object_rasterize_curves(struct object* cell);
-struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics* layer);
+struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics** layer, size_t numlayers);
 
 // children
 struct object* object_create_handle(struct object* cell, struct object* reference);

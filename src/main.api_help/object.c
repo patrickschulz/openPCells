@@ -1355,15 +1355,15 @@
 /* object.get_shape_outlines */
 {
     struct parameter parameters[] = {
-        { "cell",   OBJECT,     NULL, "object to get the shape outlines from" },
-        { "layer",  GENERICS,   NULL, "layer" },
+        { "cell",       OBJECT,     NULL, "object to get the shape outlines from" },
+        { "layers",     ANY,        NULL, "layer (generics) or list of layers" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "get_shape_outlines",
         MODULE_OBJECT,
-        "return a table which contains polygon outlines of all shapes on a given layer. Useful for instance for automatic filling",
-        "local outlines = cell:get_shape_outlines()",
+        "return a table which contains polygon outlines of all shapes on a given layer or layers. Useful for instance for automatic filling. The given layer can be a singular generics layer or a table with several layers.",
+        "local outlines = cell:get_shape_outlines()\nlocal m1outlines = cell:get_shape_outlines(generics.metal(1))\nlocal all_metal_outlines = cell:get_shape_outlines(util.foreach(util.range(1, technology.resolve_metal(-1)), generics.metal))",
         parameters
     ));
 }

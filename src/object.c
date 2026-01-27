@@ -3068,16 +3068,23 @@ void object_rasterize_curves(struct object* cell)
 }
 
 // FIXME: maxlevel does nothing
-static void _get_all_shapes_helper(const struct object* cell, const struct generics* layer, size_t maxlevel, struct vector* shapes)
+static void _get_all_shapes_helper(const struct object* cell, const struct generics** layers, size_t numlayers, size_t maxlevel, struct vector* shapes)
 {
     for(size_t i = 0; i < object_get_shapes_size(cell); ++i)
     {
+        int match = 0;
         struct shape* shape = object_get_transformed_shape(cell, i);
-        if(shape_is_layer(shape, layer))
+        for(size_t j = 0; j < numlayers; ++j)
         {
-            vector_append(shapes, shape);
+            const struct generics* layer = layers[j];
+            if(shape_is_layer(shape, layer))
+            {
+                match = 1;
+                vector_append(shapes, shape);
+                break;
+            }
         }
-        else
+        if(!match)
         {
             shape_destroy(shape);
         }
@@ -3086,23 +3093,23 @@ static void _get_all_shapes_helper(const struct object* cell, const struct gener
     while(child_iterator_is_valid(it))
     {
         const struct object* child = child_iterator_get(it);
-        _get_all_shapes_helper(child, layer, maxlevel, shapes);
+        _get_all_shapes_helper(child, layers, numlayers, maxlevel, shapes);
         child_iterator_next(it);
     }
     child_iterator_destroy(it);
 }
 
-static struct vector* _get_all_shapes(const struct object* cell, const struct generics* layer, size_t maxlevel)
+static struct vector* _get_all_shapes(const struct object* cell, const struct generics** layers, size_t numlayers, size_t maxlevel)
 {
     struct vector* shapes = vector_create(64, shape_destroy);
-    _get_all_shapes_helper(cell, layer, maxlevel, shapes);
+    _get_all_shapes_helper(cell, layers, numlayers, maxlevel, shapes);
     return shapes;
 }
 
-struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics* layer)
+struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics** layers, size_t numlayers)
 {
     struct polygon_container* container = polygon_container_create();
-    struct vector* shapes = _get_all_shapes(cell, layer, 0);
+    struct vector* shapes = _get_all_shapes(cell, layers, numlayers, 0);
     for(size_t i = 0; i < vector_size(shapes); ++i)
     {
         struct shape* shape = vector_get(shapes, i);
