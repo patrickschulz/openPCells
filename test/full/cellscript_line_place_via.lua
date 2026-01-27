@@ -19,7 +19,9 @@ local vlines = layouthelpers.place_vlines(
 
 local netshapes = cell:get_net_shapes("VDD", generics.metal(1))
 
-layouthelpers.place_vias(cell, 1, 2, netshapes, vlines, nil, true)
---layouthelpers.place_vias(cell, 1, 2, netshapes, vlines)
+-- first nil: no excludes
+-- second nil: no net filters
+-- true: only full vias
+layouthelpers.place_vias(cell, 1, 2, netshapes, vlines, nil, nil, true)
 
 return cell
