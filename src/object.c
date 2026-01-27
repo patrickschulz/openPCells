@@ -3067,6 +3067,7 @@ void object_rasterize_curves(struct object* cell)
     object_foreach_shapes(cell, _rasterize_curves);
 }
 
+// FIXME: maxlevel does nothing
 static void _get_all_shapes_helper(const struct object* cell, const struct generics* layer, size_t maxlevel, struct vector* shapes)
 {
     for(size_t i = 0; i < object_get_shapes_size(cell); ++i)
