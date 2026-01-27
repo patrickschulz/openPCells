@@ -144,6 +144,9 @@ do_cell_test common_centroid_02 analog/common_centroid gds
 do_cell_test common_centroid_03 analog/common_centroid gds
 do_cell_test common_centroid_04 analog/common_centroid gds
 do_cell_test common_centroid_05 analog/common_centroid gds
+#do_cell_test common_centroid_06 analog/common_centroid gds
+do_cell_test common_centroid_07 analog/common_centroid gds
+do_cell_test common_centroid_08 analog/common_centroid gds
 do_cellscript_test cellscript_common_centroid_01 cellscript_common_centroid_01.lua gds
 do_cellscript_test cellscript_common_centroid_02 cellscript_common_centroid_02.lua gds
 do_cellscript_test cellscript_common_centroid_03 cellscript_common_centroid_03.lua gds

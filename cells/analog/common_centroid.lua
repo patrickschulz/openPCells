@@ -204,6 +204,7 @@ function process_parameters(_P)
     t.sourceoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     t.drainoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     t.guardringoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
+    t.sourcedrainstrapwidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     return t
 end
 
@@ -716,22 +717,94 @@ function layout(cell, _P, _env, state)
     local rowshifts = {}
     rowshifts[1] = 0
     for row = 2, state.numrows do -- skip first row, no shift needed
-        if row % 2 == 0 then -- gate line row shifts only apply to even rows
-            local doublerowdevices = util.merge_tables(activepattern[row - 1], activepattern[row])
-            local numgates = #util.uniq(util.foreach(doublerowdevices, state._map_device_index_to_gate))
-            local gatestrap_space_occupation = 0
-            if _P.interconnectlinepos ~= "gate" then
+        local evenrow = row % 2 == 0
+
+        -- interconnect lines occupation
+        local interconnectline_space_occupation = 0
+        if _P.gatepos == "doublerow" then
+            if (evenrow and (_P.interconnectlinepos == "gate")) or
+               (not evenrow and (_P.interconnectlinepos == "offside")) then
+                local lowerrowdevices = activepattern[row - 1]
+                local numlowersourcelines
+                if _P.usesourcestraps then
+                    numlowersourcelines = 0
+                else
+                    numlowersourcelines = #util.uniq(util.foreach(lowerrowdevices, state._map_device_index_to_source))
+                end
+                local numlowerdrainlines = #util.uniq(util.foreach(lowerrowdevices, state._map_device_index_to_drain))
+                local numlowerlines = numlowersourcelines + numlowerdrainlines
+                local upperrowdevices = activepattern[row]
+                local numuppersourcelines
+                if _P.usesourcestraps then
+                    numuppersourcelines = 0
+                else
+                    numuppersourcelines = #util.uniq(util.foreach(upperrowdevices, state._map_device_index_to_source))
+                end
+                local numupperdrainlines = #util.uniq(util.foreach(upperrowdevices, state._map_device_index_to_drain))
+                local numupperlines = numuppersourcelines + numupperdrainlines
+                interconnectline_space_occupation = - 2 * _P.interconnectlinespace
+                    + numlowerlines * (_P.interconnectlinespace + _P.interconnectlinewidth)
+                    + numupperlines * (_P.interconnectlinespace + _P.interconnectlinewidth)
+            elseif not evenrow and (_P.interconnectlinepos ~= "offside") then
+                --if _P.usesourcestraps and not _P.sourcestrapsinside then
+                --    local numsourcenets = #util.uniq(util.foreach(util.range(1, state.numdevices), state._map_device_index_to_source))
+                --    -- FIXME: this checks across all rows, only check specific involved rows
+                --    if numsourcenets > 1 then
+                --        interconnectline_space_occupation = 2 * _P.sourcedrainstrapwidth + 3 * _P.sourcedrainstrapspace
+                --    else
+                --        interconnectline_space_occupation = _P.sourcedrainstrapwidth + 2 * _P.sourcedrainstrapspace
+                --    end
+                --end
+            end
+        else --_P.gatepos ~= "doublerow"
+            local rowdevices = activepattern[row]
+            local numsourcelines
+            if _P.usesourcestraps then
+                numsourcelines = 0
+            else
+                numsourcelines = #util.uniq(util.foreach(rowdevices, state._map_device_index_to_source))
+            end
+            local numdrainlines = #util.uniq(util.foreach(rowdevices, state._map_device_index_to_drain))
+            local numlines = numsourcelines + numdrainlines
+            interconnectline_space_occupation = (numlines - 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
+        end
+
+        -- gate strap occupation
+        local gatestrap_space_occupation = 0
+        if _P.gatepos == "doublerow" then
+            if evenrow and _P.interconnectlinepos ~= "gate" then -- gate line row shifts only apply to even rows
                 if _P.gatestrapsincenter then
                     gatestrap_space_occupation = 2 * _P.gatestrapspace + _P.gatestrapwidth
                 else
                     gatestrap_space_occupation = 2 * _P.gatestrapspace + 2 * _P.gatestrapwidth
                 end
             end
-            local gateline_space_occupation = (numgates + 1) * _P.gatelinespace + numgates * _P.gatelinewidth
-            local sourcestrap_space_occupation = 0
-            if _P.usesourcestraps and _P.sourcestrapsinside then
-                sourcestrap_space_occupation = 2 * (_P.sourcedrainstrapwidth + _P.sourcedrainstrapspace)
+        else -- _P.gatepos ~= "doublerow"
+            gatestrap_space_occupation = _P.gatestrapspace + _P.gatestrapwidth
+        end
+
+        -- source strap occupation
+        local sourcestrap_space_occupation = 0
+        if _P.usesourcestraps then
+            if _P.gatepos == "doublerow" then
+                if (not evenrow and not _P.sourcestrapsinside) or
+                   (evenrow and _P.sourcestrapsinside) then
+                    sourcestrap_space_occupation = _P.sourcedrainstrapwidth + 2 * _P.sourcedrainstrapspace
+                end
             end
+        end
+
+        -- gate lines occupation
+        local gateline_space_occupation = 0
+        if _P.gatepos == "doublerow" then
+            if evenrow then -- gate line row shifts only apply to even rows
+                local doublerowdevices = util.merge_tables(activepattern[row - 1], activepattern[row])
+                local numgates = #util.uniq(util.foreach(doublerowdevices, state._map_device_index_to_gate))
+                gateline_space_occupation = numgates * _P.gatelinewidth + (numgates - 1) * _P.gatelinespace
+            end
+        else -- _P.gatepos ~= "doublerow"
+            local numgates = #util.uniq(util.foreach(activepattern[row], state._map_device_index_to_gate))
+            gateline_space_occupation = numgates * (_P.gatelinespace + _P.gatelinewidth)
             if _P.gatestrapsincenter then
                 if gatestrap_space_occupation > gateline_space_occupation then
                     gateline_space_occupation = 0
@@ -739,72 +812,40 @@ function layout(cell, _P, _env, state)
                     gatestrap_space_occupation = 0
                 end
             end
-            local interconnectline_space_occupation = 0
-            if _P.interconnectlinepos == "gate" then
-                local lowerrowdevices = activepattern[row - 1]
-                local numlowersourcelines
-                if _P.usesourcestraps then
-                    numlowersourcelines = 0
-                else
-                    numlowersourcelines = #util.uniq(util.foreach(lowerrowdevices, state._map_device_index_to_source))
-                end
-                local numlowerdrainlines = #util.uniq(util.foreach(lowerrowdevices, state._map_device_index_to_drain))
-                local numlowerlines = numlowersourcelines + numlowerdrainlines
-                local upperrowdevices = activepattern[row]
-                local numuppersourcelines
-                if _P.usesourcestraps then
-                    numuppersourcelines = 0
-                else
-                    numuppersourcelines = #util.uniq(util.foreach(upperrowdevices, state._map_device_index_to_source))
-                end
-                local numupperdrainlines = #util.uniq(util.foreach(upperrowdevices, state._map_device_index_to_drain))
-                local numupperlines = numuppersourcelines + numupperdrainlines
-                interconnectline_space_occupation = - _P.interconnectlinespace -- correct for one additional space
-                    + (numlowerlines + 1) * _P.interconnectlinespace + numlowerlines * _P.interconnectlinewidth
-                    + (numupperlines + 1) * _P.interconnectlinespace + numupperlines * _P.interconnectlinewidth
-            end
-            rowshifts[row] =
-                sourcestrap_space_occupation +
-                gatestrap_space_occupation +
-                gateline_space_occupation +
-                interconnectline_space_occupation
-        else -- odd row
-            local interconnectline_space_occupation = 0
-            if _P.interconnectlinepos == "offside" then
-                local lowerrowdevices = activepattern[row - 1]
-                local numlowersourcelines
-                if _P.usesourcestraps then
-                    numlowersourcelines = 0
-                else
-                    numlowersourcelines = #util.uniq(util.foreach(lowerrowdevices, state._map_device_index_to_source))
-                end
-                local numlowerdrainlines = #util.uniq(util.foreach(lowerrowdevices, state._map_device_index_to_drain))
-                local numlowerlines = numlowersourcelines + numlowerdrainlines
-                local upperrowdevices = activepattern[row]
-                local numuppersourcelines
-                if _P.usesourcestraps then
-                    numuppersourcelines = 0
-                else
-                    numuppersourcelines = #util.uniq(util.foreach(upperrowdevices, state._map_device_index_to_source))
-                end
-                local numupperdrainlines = #util.uniq(util.foreach(upperrowdevices, state._map_device_index_to_drain))
-                local numupperlines = numuppersourcelines + numupperdrainlines
-                interconnectline_space_occupation = - _P.interconnectlinespace -- correct for one additional space
-                    + (numlowerlines + 1) * _P.interconnectlinespace + numlowerlines * _P.interconnectlinewidth
-                    + (numupperlines + 1) * _P.interconnectlinespace + numupperlines * _P.interconnectlinewidth
-            else -- _P.interconnectlinepos is "gate" or "inline"
-                if _P.usesourcestraps and not _P.sourcestrapsinside then
-                    local numsourcenets = #util.uniq(util.foreach(util.range(1, state.numdevices), state._map_device_index_to_source))
-                    -- FIXME: this checks across all rows, only check specific involved rows
-                    if numsourcenets > 1 then
-                        interconnectline_space_occupation = 2 * _P.sourcedrainstrapwidth + 3 * _P.sourcedrainstrapspace
-                    else
-                        interconnectline_space_occupation = _P.sourcedrainstrapwidth + 2 * _P.sourcedrainstrapspace
-                    end
-                end
-            end
-            rowshifts[row] = interconnectline_space_occupation
         end
+
+        -- add spacing between different lines
+        local extraspace = 0
+        if interconnectline_space_occupation > 0 then
+            extraspace = 2 * _P.interconnectlinespace
+            if _P.gatepos == "doublerow" then
+                if gateline_space_occupation > 0 then
+                    extraspace = extraspace + 2 * _P.interconnectlinespace
+                else
+                    extraspace = extraspace + _P.interconnectlinespace
+                end
+            end
+        end
+        if (gatestrap_space_occupation > 0) and (gateline_space_occupation > 0) then
+            extraspace = 2 * _P.gatelinespace
+        end
+
+        -- gate straps and gate lines can overlap
+        -- this removes unneeded spacing overhead
+        if _P.gatestrapsincenter then
+            if gatestrap_space_occupation > gateline_space_occupation + extraspace then
+                gateline_space_occupation = 0
+            else
+                gatestrap_space_occupation = 0
+            end
+        end
+
+        rowshifts[row] =
+            sourcestrap_space_occupation +
+            gatestrap_space_occupation +
+            gateline_space_occupation +
+            interconnectline_space_occupation +
+            extraspace
     end
     -- fix zero-shift rows
     for row = 1, state.numrows do
@@ -1157,139 +1198,202 @@ function layout(cell, _P, _env, state)
 
     -- create gate lines
     local gatelines = {}
-    for rownum = 1, math.floor((state.numrows + 1) / 2) do
-        -- gate lines cover all devices, not only active devices (use _get_device, not _get_active_device)
-        local lowerdevices = state._get_devices(function(device) return device.row == 2 * rownum - 1 end)
-        local upperdevices = state._get_devices(function(device) return device.row == 2 * rownum end)
-        local leftlowerdevice = lowerdevices[1]
-        local rightlowerdevice = lowerdevices[state.numinstancesperrow]
-        local leftupperdevice = upperdevices[1]
-        local rightupperdevice = upperdevices[state.numinstancesperrow]
-        local devindices = state._get_uniq_row_devices_double(rownum)
-        local lines = {}
-        for _, di in ipairs(devindices) do
-            local index = state._map_device_index_to_gate(di)
-            if not util.any_of(index, lines) then
-                table.insert(lines, index)
+    if _P.gatepos == "doublerow" then -- "doublerow" needs special treatment to avoid overlaps
+        for rownum = 1, math.floor((state.numrows + 1) / 2) do
+            -- gate lines cover all devices, not only active devices (use _get_device, not _get_active_device)
+            local lowerdevices = state._get_devices(function(device) return device.row == 2 * rownum - 1 end)
+            local upperdevices = state._get_devices(function(device) return device.row == 2 * rownum end)
+            local leftlowerdevice = lowerdevices[1]
+            local rightlowerdevice = lowerdevices[state.numinstancesperrow]
+            local leftupperdevice = upperdevices[1]
+            local rightupperdevice = upperdevices[state.numinstancesperrow]
+            local devindices = state._get_uniq_row_devices_double(rownum)
+            local lines = {}
+            for _, di in ipairs(devindices) do
+                local index = state._map_device_index_to_gate(di)
+                if not util.any_of(index, lines) then
+                    table.insert(lines, index)
+                end
+            end
+            local numlines = #lines
+            local yshiftbase = -(numlines - 1) / 2 * (_P.gatelinespace + _P.gatelinewidth)
+            local gateline_center = 0.5 * point.ydistance_abs(
+                _get_dev_anchor(leftupperdevice, "active").bl,
+                _get_dev_anchor(leftlowerdevice, "active").tl
+            ) + yshiftbase
+            for line, index in ipairs(lines) do
+                local yshift = (line - 1) * (_P.gatelinespace + _P.gatelinewidth)
+                for _, r in ipairs({ 2 * rownum - 1, 2 * rownum }) do
+                    cell:add_area_anchor_bltr(string.format("gateline_%d_%d", r, index),
+                        point.create(
+                            interconnectlineminx,
+                            _get_dev_anchor(leftlowerdevice, "active").t + gateline_center + yshift - _P.gatelinewidth / 2
+                        ),
+                        point.create(
+                            interconnectlinemaxx,
+                            _get_dev_anchor(rightlowerdevice, "active").t + gateline_center + yshift + _P.gatelinewidth / 2
+                        )
+                    )
+                end
+                geometry.rectanglebltr(cell, generics.metal(_P.gatelinemetal),
+                    cell:get_area_anchor_fmt("gateline_%d_%d", 2 * rownum - 1, index).bl,
+                    cell:get_area_anchor_fmt("gateline_%d_%d", 2 * rownum - 1, index).tr
+                )
+                table.insert(gatelines, { rownum = 2 * rownum - 1, index = index })
             end
         end
-        local numlines = #lines
-        local yshiftbase = -(numlines - 1) / 2 * (_P.gatelinespace + _P.gatelinewidth)
-        local gateline_center = 0.5 * point.ydistance_abs(
-            _get_dev_anchor(leftupperdevice, "active").bl,
-            _get_dev_anchor(leftlowerdevice, "active").tl
-        ) + yshiftbase
-        for line, index in ipairs(lines) do
-            local yshift = (line - 1) * (_P.gatelinespace + _P.gatelinewidth)
-            cell:add_area_anchor_bltr(string.format("gateline_%d_%d", rownum, index),
-                point.create(
-                    interconnectlineminx,
-                    _get_dev_anchor(leftlowerdevice, "active").t + gateline_center + yshift - _P.gatelinewidth / 2
-                ),
-                point.create(
-                    interconnectlinemaxx,
-                    _get_dev_anchor(rightlowerdevice, "active").t + gateline_center + yshift + _P.gatelinewidth / 2
-                )
-            )
-            geometry.rectanglebltr(cell, generics.metal(_P.gatelinemetal),
-                cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).bl,
-                cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).tr
-            )
-            table.insert(gatelines, { rownum = rownum, index = index })
+    else
+        for rownum = 1, state.numrows do
+            local anchor = (_P.gatepos == "top") and "t" or "b"
+            local sign = (_P.gatepos == "top") and 1 or -1
+            local devindices = state._get_uniq_row_devices_single(rownum)
+            local singlerowdevices = state._get_active_devices(function(device) return device.row == rownum end)
+            if #devindices > 0 then -- check for dummy-only rows
+                local leftdevice = singlerowdevices[1]
+                local rightdevice = singlerowdevices[#singlerowdevices]
+                local lines = util.uniq(util.foreach(devindices, state._map_device_index_to_gate))
+                local yshift
+                if _P.gatestrapsincenter then
+                    yshift = _P.gatelinespace
+                else -- not _P.gatestrapsincenter
+                    if _P.interconnectlinepos == "gate" then
+                        local yshift_gatestrap = _P.gatestrapspace + _P.gatestrapwidth + _P.gatelinespace
+                        local numsourcelines = #util.uniq(util.foreach(devindices, state._map_device_index_to_source))
+                        if _P.usesourcestraps then
+                            numsourcelines = 0
+                        end
+                        local numdrainlines = #util.uniq(util.foreach(devindices, state._map_device_index_to_drain))
+                        local yshift_sourcedrainline = 
+                            (numsourcelines + numdrainlines) * _P.interconnectlinewidth +
+                            (numsourcelines + numdrainlines + 1) * _P.interconnectlinespace
+                        yshift = math.max(yshift_gatestrap, yshift_sourcedrainline)
+                    else
+                        yshift = _P.gatestrapspace + _P.gatestrapwidth + _P.gatelinespace
+                    end
+                end
+                for line, lineindex in ipairs(lines) do
+                    cell:add_area_anchor_points(string.format("gateline_%d_%d", rownum, lineindex),
+                        point.create(
+                            interconnectlineminx,
+                            _get_dev_anchor(rightdevice, "active")[anchor] + sign * (yshift + (line - 1) * (_P.gatelinespace + _P.gatelinewidth) + _P.gatelinewidth)
+                        ),
+                        point.create(
+                            interconnectlinemaxx,
+                            _get_dev_anchor(leftdevice, "active")[anchor] + sign * (yshift + (line - 1) * (_P.gatelinespace + _P.gatelinewidth))
+                        )
+                    )
+                    geometry.rectanglebltr(cell, generics.metal(_P.gatelinemetal),
+                        cell:get_area_anchor_fmt("gateline_%d_%d", rownum, lineindex).bl,
+                        cell:get_area_anchor_fmt("gateline_%d_%d", rownum, lineindex).tr
+                    )
+                    table.insert(gatelines, { rownum = rownum, index = lineindex })
+                end
+            end
         end
     end
 
     -- connect gates to gate lines
     if not _P.gatestrapsincenter then
-        for rownum = 1, math.floor((state.numrows + 1) / 2) do
+        for rownum = 1, state.numrows do
             for colnum = 1, state.numinstancesperrow do
-                local lowerdevice = state._get_active_device(function(device) return (device.row == 2 * rownum - 1) and (device.column == colnum) end)
-                local upperdevice = state._get_active_device(function(device) return (device.row == 2 * rownum)     and (device.column == colnum) end)
-                local devices = {}
-                if lowerdevice then
-                    devices[1] = lowerdevice
-                end
-                if upperdevice then
-                    devices[2] = upperdevice
-                end
-                local spread = (lowerdevice and upperdevice) and state._map_device_index_to_gate(lowerdevice.device) ~= state._map_device_index_to_gate(upperdevice.device)
-                for i = 1, 2 do
-                    local device = devices[i]
-                    if device then
-                        local gate
-                        if _P.gatepos == "doublerow" then
-                            gate = (i % 2 == 1) and "top" or "bot"
-                        else
-                            gate = (_P.gatepos == "top") and "top" or "bot"
+                local device = state._get_active_device(function(device) return (device.row == rownum) and (device.column == colnum) end)
+                if device then -- not a dummy?
+                    local spread = false
+                    if _P.gatepos == "doublerow" then
+                        -- FIXME: caution with odd-row patterns
+                        local offset = (rownum % 2 == 0) and -1 or 1
+                        local otherdevice = state._get_active_device(function(device) return (device.row == rownum + offset) and (device.column == colnum) end)
+                        if otherdevice then
+                            local gatenet1 = state._map_device_index_to_gate(device.device)
+                            local gatenet2 = state._map_device_index_to_gate(otherdevice.device)
+                            spread = gatenet1 ~= gatenet2
                         end
-                        local shiftamount
-                        if _P.gatelineviapitch > 0 then
-                            shiftamount = _P.gatelineviapitch
-                        else
-                            shiftamount = _P.gatelength + _P.gatespace
-                        end
-                        local shift = spread and (i - 1.5) * shiftamount or 0
-                        -- draw connection line
-                        geometry.rectanglepoints(cell, generics.metal(_P.gatemetal),
-                            point.create(
-                                0.5 * (
-                                    _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
-                                    _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
-                                ) - _P.gatefeedlinewidth / 2 + shift,
-                                cell:get_area_anchor_fmt("gateline_%d_%d", rownum, state._map_device_index_to_gate(device.device)).b
-                            ),
-                            point.create(
-                                0.5 * (
-                                    _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
-                                    _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
-                                ) + _P.gatefeedlinewidth / 2 + shift,
-                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).t
-                            )
+                    end
+                    local gate
+                    if _P.gatepos == "doublerow" then
+                        gate = (rownum % 2 == 1) and "top" or "bot"
+                    else
+                        gate = (_P.gatepos == "top") and "top" or "bot"
+                    end
+                    local shiftamount
+                    if _P.gatelineviapitch > 0 then
+                        shiftamount = _P.gatelineviapitch
+                    else
+                        shiftamount = _P.gatelength + _P.gatespace
+                    end
+                    local shift = spread and (((rownum % 2) - 0.5) * shiftamount) or 0
+                    local lineanchor
+                    local gateanchor
+                    if _P.gatepos == "doublerow" then
+                        gateanchor = (rownum % 2 == 1) and "t" or "b"
+                        lineanchor = (rownum % 2 == 1) and "b" or "t"
+                    elseif _P.gatepos == "top" then
+                        gateanchor = "t"
+                        lineanchor = "b"
+                    else -- _P.gatepos == "bottom"
+                        gateanchor = "b"
+                        lineanchor = "t"
+                    end
+                    -- draw connection line
+                    geometry.rectanglepoints(cell, generics.metal(_P.gatemetal),
+                        point.create(
+                            0.5 * (
+                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
+                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
+                            ) - _P.gatefeedlinewidth / 2 + shift,
+                            cell:get_area_anchor_fmt("gateline_%d_%d", rownum, state._map_device_index_to_gate(device.device))[lineanchor]
+                        ),
+                        point.create(
+                            0.5 * (
+                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
+                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
+                            ) + _P.gatefeedlinewidth / 2 + shift,
+                            _get_dev_anchor(device, string.format("%sgatestrap", gate))[gateanchor]
                         )
-                        -- connect to gate
-                        if not spread and _P.fullgatevia then
-                            geometry.viabltr(cell, 1, _P.gatemetal,
-                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).bl,
-                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).tr
-                            )
-                        else
-                            geometry.viabltr(cell, 1, _P.gatemetal,
-                                point.create(
-                                    0.5 * (
-                                        _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
-                                        _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
-                                    ) - _P.gatelineviawidth / 2 + shift,
-                                    _get_dev_anchor(device, string.format("%sgatestrap", gate)).b
-                                ),
-                                point.create(
-                                    0.5 * (
-                                        _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
-                                        _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
-                                    ) + _P.gatelineviawidth / 2 + shift,
-                                    _get_dev_anchor(device, string.format("%sgatestrap", gate)).t
-                                ),
-                                string.format("gate strap via for gate line:\n    x parameters: gatelineviawidth (%d)\n    y parameters: gatestrapwidth (%d)", _P.gatelineviawidth, _P.gatestrapwidth)
-                            )
-                        end
-                        -- connect to gate line
-                        geometry.viabltr(cell, _P.gatemetal, _P.gatelinemetal,
+                    )
+                    -- connect to gate
+                    if not spread and _P.fullgatevia then
+                        geometry.viabltr(cell, 1, _P.gatemetal,
+                            _get_dev_anchor(device, string.format("%sgatestrap", gate)).bl,
+                            _get_dev_anchor(device, string.format("%sgatestrap", gate)).tr
+                        )
+                    else
+                        geometry.viabltr(cell, 1, _P.gatemetal,
                             point.create(
                                 0.5 * (
                                     _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
                                     _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
                                 ) - _P.gatelineviawidth / 2 + shift,
-                                cell:get_area_anchor_fmt("gateline_%d_%d", rownum, state._map_device_index_to_gate(device.device)).b
+                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).b
                             ),
                             point.create(
                                 0.5 * (
                                     _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
                                     _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
                                 ) + _P.gatelineviawidth / 2 + shift,
-                                cell:get_area_anchor_fmt("gateline_%d_%d", rownum, state._map_device_index_to_gate(device.device)).t
+                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).t
                             ),
-                            string.format("gate strap to gate line conncetion:\n    x parameters: gatelineviawidth (%d)\n    y parameters: gatelinewidth (%d)", _P.gatelineviawidth, _P.gatelinewidth)
+                            string.format("gate strap via for gate line:\n    x parameters: gatelineviawidth (%d)\n    y parameters: gatestrapwidth (%d)", _P.gatelineviawidth, _P.gatestrapwidth)
                         )
                     end
+                    -- connect to gate line
+                    geometry.viabltr(cell, _P.gatemetal, _P.gatelinemetal,
+                        point.create(
+                            0.5 * (
+                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
+                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
+                            ) - _P.gatelineviawidth / 2 + shift,
+                            cell:get_area_anchor_fmt("gateline_%d_%d", rownum, state._map_device_index_to_gate(device.device)).b
+                        ),
+                        point.create(
+                            0.5 * (
+                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).l +
+                                _get_dev_anchor(device, string.format("%sgatestrap", gate)).r
+                            ) + _P.gatelineviawidth / 2 + shift,
+                            cell:get_area_anchor_fmt("gateline_%d_%d", rownum, state._map_device_index_to_gate(device.device)).t
+                        ),
+                        string.format("gate strap to gate line conncetion:\n    x parameters: gatelineviawidth (%d)\n    y parameters: gatelinewidth (%d)", _P.gatelineviawidth, _P.gatelinewidth)
+                    )
                 end
             end
         end
@@ -1438,20 +1542,6 @@ function layout(cell, _P, _env, state)
             end
         else -- "gate" or "offside"
             for rownum = 1, state.numrows do
-                local anchor
-                if _P.interconnectlinepos == "gate" then
-                    if rownum % 2 == 1 then
-                        anchor = "t"
-                    else
-                        anchor = "b"
-                    end
-                else
-                    if rownum % 2 == 1 then
-                        anchor = "b"
-                    else
-                        anchor = "t"
-                    end
-                end
                 local devices = state._get_active_devices(function(device) return device.row == rownum end)
                 for _, device in ipairs(devices) do
                     local sourceline = state._map_device_index_to_source(device.device)
@@ -1460,24 +1550,32 @@ function layout(cell, _P, _env, state)
                         local sdanchor = _get_dev_anchor(device, string.format("sourcedrain%d", finger))
                         local ytop
                         local ybottom
-                        if _P.interconnectlinepos == "gate" then
-                            if rownum % 2 == 1 then
-                                ybottom = sdanchor.t
-                                ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).t
+                        if _P.gatepos == "doublerow" then
+                            if _P.interconnectlinepos == "gate" then
+                                if rownum % 2 == 1 then
+                                    ybottom = sdanchor.t
+                                    ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).t
+                                else
+                                    ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).b
+                                    ytop = sdanchor.b
+                                end
                             else
-                                ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).b
-                                ytop = sdanchor.b
+                                if rownum % 2 == 1 then
+                                    ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).b
+                                    ytop = sdanchor.b
+                                else
+                                    ybottom = sdanchor.t
+                                    ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).t
+                                end
                             end
-                        else
-                            if rownum % 2 == 1 then
-                                ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).b
-                                ytop = sdanchor.b
-                            else
-                                ybottom = sdanchor.t
-                                ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).t
-                            end
+                        elseif _P.gatepos == "top" then
+                            ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).b
+                            ytop = sdanchor.b
+                        else --_P.gatepos == "bottom"
+                            ybottom = sdanchor.t
+                            ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("source%d", sourceline)).t
                         end
-                        geometry.rectanglebltr(cell, generics.metal(_P.sourcemetal),
+                        geometry.rectanglepoints(cell, generics.metal(_P.sourcemetal),
                             point.create(sdanchor.l, ybottom),
                             point.create(sdanchor.r, ytop)
                         )
@@ -1520,7 +1618,7 @@ function layout(cell, _P, _env, state)
                 end
             end
         end
-    else -- "offside"
+    else -- "gate" or "offside"
         for rownum = 1, state.numrows do
             local anchor
             if _P.interconnectlinepos == "gate" then
@@ -1544,22 +1642,30 @@ function layout(cell, _P, _env, state)
                     local sdanchor = _get_dev_anchor(device, string.format("sourcedrain%d", finger))
                     local ytop
                     local ybottom
-                    if _P.interconnectlinepos == "gate" then
-                        if rownum % 2 == 1 then
-                            ybottom = sdanchor.t
-                            ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).t
+                    if _P.gatepos == "doublerow" then
+                        if _P.interconnectlinepos == "gate" then
+                            if rownum % 2 == 1 then
+                                ybottom = sdanchor.t
+                                ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).t
+                            else
+                                ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).b
+                                ytop = sdanchor.b
+                            end
                         else
-                            ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).b
-                            ytop = sdanchor.b
+                            if rownum % 2 == 1 then
+                                ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).b
+                                ytop = sdanchor.b
+                            else
+                                ybottom = sdanchor.t
+                                ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).t
+                            end
                         end
-                    else
-                        if rownum % 2 == 1 then
-                            ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).b
-                            ytop = sdanchor.b
-                        else
-                            ybottom = sdanchor.t
-                            ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).t
-                        end
+                    elseif _P.gatepos == "top" then
+                        ybottom = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).b
+                        ytop = sdanchor.b
+                    else --_P.gatepos == "bottom"
+                        ybottom = sdanchor.t
+                        ytop = cell:get_area_anchor_fmt("interconnectline_%d_%s", rownum, string.format("drain%d", drainline)).t
                     end
                     geometry.rectanglebltr(cell, generics.metal(_P.drainmetal),
                         point.create(sdanchor.l, ybottom),
@@ -1829,8 +1935,8 @@ function layout(cell, _P, _env, state)
     end
 
     -- connect gate lines to output lines
-    for rownum = 1, math.floor((state.numrows + 1) / 2) do
-        local devindices = state._get_uniq_row_devices_double(rownum)
+    for rownum = 1, state.numrows do
+        local devindices = state._get_uniq_row_devices_single(rownum)
         local lines = {}
         for _, di in ipairs(devindices) do
             local index = state._map_device_index_to_gate(di)
@@ -1852,7 +1958,8 @@ function layout(cell, _P, _env, state)
                 else
                     netname = string.format("gate%d", index)
                 end
-                geometry.viabltrov(cell, _P.gatelinemetal, _P.interconnectmetal + 1,
+                local viafun = (_P.gatelinemetal == _P.interconnectmetal) and geometry.viabarebltrov or geometry.viabltrov
+                viafun(cell, _P.gatelinemetal, _P.interconnectmetal + 1,
                     cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).bl,
                     cell:get_area_anchor_fmt("gateline_%d_%d", rownum, index).tr,
                     cell:get_area_anchor_fmt("outputconnectline_%s", netname).bl,
@@ -1910,7 +2017,8 @@ function layout(cell, _P, _env, state)
                     else
                         identifier = netname
                     end
-                    geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
+                    local viafun = (_P.sourcemetal == _P.interconnectmetal + 1) and geometry.viabarebltrov or geometry.viabltrov
+                    viafun(cell, _P.sourcemetal, _P.interconnectmetal + 1,
                         _get_dev_anchor(leftdevice, "sourcestrap").bl,
                         _get_dev_anchor(rightdevice, "sourcestrap").tr,
                         cell:get_area_anchor_fmt("outputconnectline_%s", identifier).bl,
@@ -1951,9 +2059,9 @@ function layout(cell, _P, _env, state)
         end
     end
 
-    -- connect gates lines to output lines
+    -- connect gates lines to drain output lines
     for _, connection in ipairs(_P.connectgatetosourcedrain) do
-        for rownum = 1, math.floor((state.numrows + 1) / 2) do
+        for rownum = 1, state.numrows do
             local devices = state._get_active_devices(function(device) return device.row == rownum end)
             for _, device in ipairs(devices) do
                 geometry.viabarebltrov(cell, _P.interconnectmetal, _P.interconnectmetal + 1,
@@ -2010,7 +2118,26 @@ function layout(cell, _P, _env, state)
         end
     end
 
-    -- add net labels for visual inspection (interconnect lines and gate lines)
+    -- add net labels for visual inspection (gate lines)
+    if _P.annotate_gatelines then
+        for _, line in ipairs(gatelines) do
+            local anchor = string.format("gateline_%d_%d", line.rownum, line.index)
+            cell:add_label(
+                string.format("gate%d", line.index),
+                generics.metal(_P.gatelinemetal),
+                cell:get_area_anchor_fmt(anchor).br,
+                _P.gatelines_label_sizehint
+            )
+            cell:add_label(
+                string.format("gate%d", line.index),
+                generics.metal(_P.gatelinemetal),
+                cell:get_area_anchor_fmt(anchor).bl,
+                _P.gatelines_label_sizehint
+            )
+        end
+    end
+
+    -- add net labels for visual inspection (interconnect lines)
     if _P.annotate_interconnectlines then
         for _, line in ipairs(interconnectlines) do
             local anchor = string.format("interconnectline_%d_%s", line.rownum, line.net)
@@ -2025,21 +2152,6 @@ function layout(cell, _P, _env, state)
                 generics.metal(_P.interconnectmetal),
                 cell:get_area_anchor_fmt(anchor).bl,
                 _P.interconnectlines_label_sizehint
-            )
-        end
-        for _, line in ipairs(gatelines) do
-            local anchor = string.format("gateline_%d_%d", line.rownum, line.index)
-            cell:add_label(
-                string.format("gate%d", line.index),
-                generics.metal(_P.gatelinemetal),
-                cell:get_area_anchor_fmt(anchor).br,
-                _P.gatelines_label_sizehint
-            )
-            cell:add_label(
-                string.format("gate%d", line.index),
-                generics.metal(_P.gatelinemetal),
-                cell:get_area_anchor_fmt(anchor).bl,
-                _P.gatelines_label_sizehint
             )
         end
     end

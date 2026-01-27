@@ -8,8 +8,8 @@ if [ ! $# -gt 1 ]; then
 fi
 
 if [ $2 = "diff" ]; then
-    testfile=$(mktemp)
-    reffile=$(mktemp)
+    testfile=$(mktemp test.XXXXXXXX)
+    reffile=$(mktemp reference.XXXXXXXX)
     ../../opc --show-gds-data test_$1.gds > ${testfile}
     ../../opc --show-gds-data reference_$1.gds > ${reffile}
     vim -d ${testfile} ${reffile}
