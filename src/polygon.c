@@ -306,7 +306,6 @@ struct vector* polygon_container_line_intersections(
     return intersections;
 }
 
-
 int simple_polygon_intersects_rectangle(
     const struct simple_polygon* simple_polygon,
     coordinate_t blx, coordinate_t bly,
@@ -377,7 +376,6 @@ coordinate_t simple_polygon_get_minx(const struct simple_polygon* simple_polygon
     return minx;
 }
 
-
 coordinate_t polygon_container_get_minx(const struct polygon_container* polygon_container)
 {
     coordinate_t minx = COORDINATE_MAX;
@@ -439,7 +437,6 @@ coordinate_t simple_polygon_get_maxx(const struct simple_polygon* simple_polygon
     }
     return maxx;
 }
-
 
 coordinate_t polygon_container_get_maxx(const struct polygon_container* polygon_container)
 {
