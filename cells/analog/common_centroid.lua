@@ -1080,7 +1080,7 @@ function layout(cell, _P, _env, state)
         table.insert(rows, row)
     end
     local guardringxsep = _P.guardringminxsep
-    local innerguardringysep = 2000
+    local innerguardringysep = (util.max(rowshifts) - _P.guardringwidth) / 2
     if innerguardringysep < _P.guardringminysep then
         innerguardringysep = _P.guardringminysep
     end
