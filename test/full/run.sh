@@ -87,6 +87,7 @@ do_cell_test cmos_01 basic/cmos gds
 do_cell_test diode_01 basic/diode gds
 
 # guardring
+do_cell_test guardring_00 auxiliary/guardring gds
 do_cell_test guardring_01 auxiliary/guardring gds
 do_cell_test guardring_02 auxiliary/guardring gds
 
@@ -230,6 +231,9 @@ do_cell_test schmitttrigger_00 analog/schmitttrigger gds
 
 # cell test for analog/stacked_ringoscillator
 do_cell_test stacked_ringoscillator_00 analog/stacked_ringoscillator gds
+
+# cell test for auxiliary/metalgrid
+do_cell_test metalgrid_00 auxiliary/metalgrid gds
 
 # test for label size
 do_cellscript_test cellscript_labeltest gds
