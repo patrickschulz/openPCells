@@ -74,7 +74,7 @@ function check(_P)
     for rownum, row in ipairs(_P.rows) do
         for devicenum, device in ipairs(row.devices) do
             if not _P.autoskip and (device.fingers <= 0 and not device.skip) then
-                return false, string.format("device %d in row %d (\"%s\") has zero or negative amount of fingers (%d). If this is intensional, set 'autoskip' to true", devicenum, rownum, device.name, device.fingers)
+                return false, string.format("device %d in row %d (\"%s\") has zero or negative amount of fingers (%d). If this is intentional, set 'autoskip' to true", devicenum, rownum, device.name, device.fingers)
             end
         end
     end
