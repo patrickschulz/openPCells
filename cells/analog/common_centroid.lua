@@ -34,27 +34,28 @@ function parameters()
         { "pattern", { { 1, 2, 1 }, { 2, 1, 2 } }, info = "pattern specification of the common centroid array. For every row a table should be specified, individual devices are indicated by a numeric index, starting at 1. These indices later also correspond to the net numbers (e.g. device 2 -> gate2/source2/drain2). The indices must be consecutive, for instance { { 1, 2, 4 } } is not allowed. Dummy/filler devices can be specified by '0', these devices are controlled via the '*dummy*' parameters." },
         { "minimum_row_shift", 0, info = "Minimum row shift between device rows (active-to-active spacing) where no other spacing constraints are present. In the default settings this does not happen, but with the 'gate' interconnect lines placement method for instance there are no metal lines between odd-even rows. This value is set to accomodate minimum spacing requirements between gates and active regions, but can be modified with this parameter." },
         { "channeltype", "nmos", posvals = set("nmos", "pmos"), info = "Channel type of the array devices ('nmos' or 'pmos')." },
-        { "implantalignwithactive", false },
+        { "implantalignwithactive", false, info = "Change the reference points for the distance parameters for the implant type layer. See the parameter for basic/mosfet for more information." },
         { "vthtype", 1, info = "Threshold voltage type of the array devices." },
-        { "vthtypealignwithactive", false },
+        { "vthtypealignwithactive", false, info = "Change the reference points for the distance parameters for the threshold voltage modification layer. See the parameter for basic/mosfet for more information." },
         { "oxidetype", 1, info = "Oxide type of the array devices." },
-        { "oxidetypealignwithactive", false },
-        { "flippedwell", false },
-        { "wellalignwithactive", false },
-        { "fingerwidth", technology.get_dimension("Minimum Gate Width") },
+        { "oxidetypealignwithactive", false, info = "Change the reference points for the distance parameters for the oxide type layer. See the parameter for basic/mosfet for more information." },
+        { "flippedwell", false, info = "Specifies whether devices are flipped-well devices." },
+        { "wellalignwithactive", false, info = "Change the reference points for the distance parameters for the well layer. See the parameter for basic/mosfet for more information." },
+        { "fingerwidth", technology.get_dimension("Minimum Gate Width"), info = "Specifies the fingerwidth of all devices." },
         { "sourcedrainsize", technology.get_dimension("Minimum Gate Width"), follow = "fingerwidth" },
-        { "xseparation", 0 },
-        { "gatelength", technology.get_dimension("Minimum Gate Length") },
-        { "gatespace", technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space") },
-        { "matchgateextensions", true },
-        { "gatemetal",  1 },
-        { "gatelinemetal",  2 },
+        { "xseparation", 0, info = "Shift every devices by this amount in x-direction. Required for non-equal source net arrays, where source regions can not be shared." },
+        { "gatelength", technology.get_dimension("Minimum Gate Length"), info = "Specifies the gate length of all devices." },
+        { "gatespace", technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), info = "Specifies the gate space of all devices." },
+        { "matchgateextensions", true, info = "Makes all gates have the same height. If this is 'false', some gate extensions can be longer, due to connections to gate straps. With 'true', all extensions are matched for symmetry. This increases the total area of the gate layer (not the gates itself, which are defined by the intersection of the active and gate regions)." },
+        { "gatemetal",  1, info = "Metal of the gate straps." },
+        { "gatelinemetal",  2, info = "Metal of the gate connections lines." },
         { "usesourcestraps", false },
         { "sourcestrapsinside", false },
         { "usedrainstraps", false },
-        { "drainmetal",  1 },
+        { "sourcedrainmetal", 1 },
+        { "drainmetal", 1, follow = "sourcedrainmetal" },
         { "interconnectmetal", 2 },
-        { "sourcemetal", 1 },
+        { "sourcemetal", 1, follow = "sourcedrainmetal" },
         { "equalsourcenets", true },
         { "equaldrainnets", false },
         { "sdwidth", technology.get_dimension("Minimum Source/Drain Contact Region Size") },
@@ -108,14 +109,16 @@ function parameters()
         { "groupoutputlines", false },
         { "grouporder", "drain_inside", posvals = set("drain_inside", "source_inside") },
         { "usegloballines", false },
-        { "globallines", {}, info = "Specify the global lines order manually. If used, this table must at least contain an entry for every net (gate, drain and source). The syntax for every line specification is '{ pin = <pin>, net = <numeric index> }'. A possible specification could be: '{ { pin = \"gate\", net = 1 }, { pin = \"gate\", net = 2 }, { pin = \"source\", net = 2 }, { pin = \"drain\", net = 1 }, { pin = \"drain\", net = 2 }, { pin = \"source\", net = 2 } }. Global lines can also be specified more than once, for low-ohmic connections or spreading of global lines. This will change internal anchors (appends _1, _2, etc.), which might change how global lines can be connected automatically. This parameter must be used with 'usegloballines', otherwise it is ignored." },
+        { "globallines", {}, info = "Specifies the global lines order manually. If used, this table must at least contain an entry for every net (gate, drain and source). The syntax for every line specification is '{ pin = <pin>, net = <numeric index> }'. A possible specification could be: '{ { pin = \"gate\", net = 1 }, { pin = \"gate\", net = 2 }, { pin = \"source\", net = 2 }, { pin = \"drain\", net = 1 }, { pin = \"drain\", net = 2 }, { pin = \"source\", net = 2 } }. Global lines can also be specified more than once, for low-ohmic connections or spreading of global lines. This will change internal anchors (appends _1, _2, etc.), which might change how global lines can be connected automatically. This parameter must be used with 'usegloballines', otherwise it is ignored." },
         { "sourcenets", {} },
         { "drainnets", {} },
         { "connectgatetosourcedrain", {} },
         { "diodeconnected", {} },
         { "shortdummies", false, follow = "drawinnerguardrings" },
         { "outerdummies", 0 },
-        { "outerdummygatelength", 500, follow = "gatelength" }, -- FIXME: basic/stacked_mosfet_array does not support this
+        { "outerdummyrows", 0 },
+        { "outerdummiesfingerwidth", technology.get_dimension("Minimum Gate Width"), follow = "fingerwidth", info = "Specifies the fingerwidth of devices in outer dummy rows." },
+        { "outerdummygatelength", technology.get_dimension("Minimum Gate Length") }, -- FIXME: basic/stacked_mosfet_array does not support this
         { "connectdummygatestoactive", false },
         { "connectdummies", true },
         { "connectdummysources", true },
@@ -255,20 +258,10 @@ function prepare(_P)
         cellerror(string.format("common_centroid: drain lookup with unknown device/configuration (device: %d, configuration: equaldrainnets = %s, usedrainconnections = %s)", device, _P.equaldrainnets and "true" or "false", _P.usedrainconnections and "true" or "false"))
     end
 
-    -- create pattern only containing active devices
-    state.activepattern = {}
-    for _, rowpattern in ipairs(_P.pattern) do
-        local row = {}
-        for _, device in ipairs(rowpattern) do
-            if device ~= 0 then
-                table.insert(row, device)
-            end
-        end
-        table.insert(state.activepattern, row)
-    end
+    state.numinstancesperrow = #(_P.pattern[1]) -- total number of *instances* in a row (e.g. 0ABBAABBA0 -> 10, includes dummies, excluding 'outerdummies')
 
     -- add outer dummies to pattern
-    local pattern = {}
+    state.pattern = {}
     for _, rowpattern in ipairs(_P.pattern) do
         local row = {}
         -- add outer dummies (left)
@@ -283,7 +276,47 @@ function prepare(_P)
         for i = 1, _P.outerdummies do
             table.insert(row, 0)
         end
-        table.insert(pattern, row)
+        table.insert(state.pattern, row)
+    end
+    for i = 1, _P.outerdummyrows do
+        local lowerrow = {}
+        local upperrow = {}
+        for j = 1, state.numinstancesperrow + 2 * _P.outerdummies do
+            table.insert(lowerrow, 0)
+            table.insert(upperrow, 0)
+        end
+        table.insert(state.pattern, 1, lowerrow)
+        table.insert(state.pattern, upperrow)
+    end
+
+    -- create pattern only containing active devices
+    state.activepattern = {}
+    for _, rowpattern in ipairs(state.pattern) do
+        local row = {}
+        for _, device in ipairs(rowpattern) do
+            if device ~= 0 then
+                table.insert(row, device)
+            end
+        end
+        table.insert(state.activepattern, row)
+    end
+
+    state.numrows = #state.activepattern
+    -- in the pattern, a '0' denotes a dummy, this does *not* count as a device
+    state.numdevices = 0 -- total number of active devices (e.g. 0ABBA0
+                         --                                      0CCDD0
+                         --                                 -> 4)
+    state.hasdummies = false
+    for _, rowpattern in ipairs(state.pattern) do
+        for _, device in ipairs(rowpattern) do
+            if device ~= 0 then
+                if device > state.numdevices then
+                    state.numdevices = device
+                end
+            else
+                state.hasdummies = true
+            end
+        end
     end
 
     -- device table
@@ -297,7 +330,7 @@ function prepare(_P)
     end
     -- generate all sub-devices
     local devicetable = {}
-    for rownum, rowpattern in ipairs(pattern) do -- don't use activepattern here as dummies should be generated
+    for rownum, rowpattern in ipairs(state.pattern) do -- don't use activepattern here as dummies should be generated
         for column, devicenum in ipairs(rowpattern) do
             local index = _get_device_name(devicenum)
             table.insert(devicetable, {
@@ -360,41 +393,22 @@ function prepare(_P)
         return indices
     end
 
-    state.numrows = #state.activepattern
-    state.numinstancesperrow = #(_P.pattern[1]) -- total number of *instances* in a row (e.g. 0ABBAABBA0 -> 10, includes dummies)
-    -- in the pattern, a '0' denotes a dummy, this does *not* count as a device
-    state.numdevices = 0 -- total number of active devices (e.g. 0ABBA0
-                         --                                      0CCDD0
-                         --                                 -> 4)
-    state.hasdummies = false
-    for _, rowpattern in ipairs(_P.pattern) do
-        for _, device in ipairs(rowpattern) do
-            if device ~= 0 then
-                if device > state.numdevices then
-                    state.numdevices = device
-                end
-            else
-                state.hasdummies = true
-            end
-        end
-    end
-
     -- end of prepare() function
     return state
 end
 
 function check(_P, state)
-    if not _P.allow_odd_rows and (#_P.pattern % 2 == 1) then
-        return false, "the pattern contains an odd number of rows. There might be a use case for this, but the current implementation does not support this"
+    if not _P.allow_odd_rows and (#state.pattern % 2 == 1) then
+        return false, "the pattern contains an odd number of rows. There is currently only limited support for this. Most things will probably work, but it is not tested extensively. Use 'allow_odd_rows == true' if you need a pattern with an odd number of rows."
     end
-    for i = 2, #_P.pattern do
-        if #_P.pattern[i] ~= #_P.pattern[1] then
-            return false, string.format("row pattern lengths are not equal (row %d has %d entries, the other rows have %d entries)", i, #_P.pattern[i], #_P.pattern[1])
+    for i = 2, #state.pattern do
+        if #state.pattern[i] ~= #state.pattern[1] then
+            return false, string.format("row pattern lengths are not equal (row %d has %d entries, the other rows have %d entries)", i, #state.pattern[i], #state.pattern[1])
         end
     end
 
     -- check gate position for an odd number of rows
-    if #_P.pattern % 2 == 1 then
+    if #state.pattern % 2 == 1 then
         if _P.gatepos == "doublerow" then
             return false, "if the pattern contains an odd number of rows, the gate position must be 'top' or 'bottom'."
         end
@@ -403,7 +417,7 @@ function check(_P, state)
     -- check whether devices are specified continuously
     local devices = {}
     for device = 1, state.numdevices do
-        for _, row in ipairs(_P.pattern) do
+        for _, row in ipairs(state.pattern) do
             if util.any_of(device, row) then
                 devices[device] = true
             end
@@ -681,7 +695,7 @@ function check(_P, state)
             local pnets = util.foreach(pinnettable, function(e) return e.net end)
             for _, net in ipairs(nets[pin]) do
                 if not util.any_of(net, pnets) then
-                    if pin ~= "gate" or #_P.pattern > 2 then
+                    if pin ~= "gate" or #state.pattern > 2 then
                         return false, string.format("when global line nets are specified manually ('usegloballines'), all required nets must be present in 'globallines'. Missing net: '%s%d'", pin, net)
                     end
                 end
@@ -1053,10 +1067,23 @@ function layout(cell, _P, _env, state)
         })
         local devicerow = state._get_devices(function(device) return device.row == rownum end)
         row.devices = _make_row_devices(rownum, devicerow)
+        local isdummyrow = true
+        for deviceindex, device in ipairs(devicerow) do
+            if device.device ~= 0 then
+                isdummyrow = false
+                break
+            end
+        end
+        if isdummyrow then
+            row.width = _P.outerdummiesfingerwidth
+        end
         table.insert(rows, row)
     end
     local guardringxsep = _P.guardringminxsep
-    local innerguardringysep = _P.guardringminysep
+    local innerguardringysep = 2000
+    if innerguardringysep < _P.guardringminysep then
+        innerguardringysep = _P.guardringminysep
+    end
     local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
         rows = rows,
         drawimplant = not (_P.guardringfillimplant and (_P.drawinnerguardrings or _P.drawouterguardring)),
@@ -1070,7 +1097,7 @@ function layout(cell, _P, _env, state)
         guardringwidth = _P.guardringwidth,
         guardringrespectactivedummies = true,
         guardringrespectgatestraps = true,
-        guardringrespectgateextensions = true,
+        guardringrespectgateextensions = false, -- line spacing calculations assume active/metal regions, not gates
         guardringrespectsourcestraps = true,
         guardringrespectdrainstraps = true,
         guardringleftsep = guardringxsep,

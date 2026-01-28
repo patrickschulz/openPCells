@@ -166,7 +166,7 @@ function layout(cell, _P)
                     channeltype = row.channeltype,
                     implantalignwithactive = not _P.splitimplant or row.implantalignwithactive,
                     flippedwell = row.flippedwell,
-                    gatelength = row.gatelength,
+                    gatelength = row.gatelength, -- FIXME: add support for per-device gate lengths
                     gatespace = row.gatespace,
                     fingerwidth = row.width,
                     fingers = device.fingers,
