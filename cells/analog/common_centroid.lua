@@ -1068,9 +1068,11 @@ function layout(cell, _P, _env, state)
         splitgates = not _P.shortgates,
         drawguardring = _P.drawinnerguardrings,
         guardringwidth = _P.guardringwidth,
-        guardringrespectactivedummies = false,
-        guardringrespectgatestraps = false,
-        guardringrespectgateextensions = false,
+        guardringrespectactivedummies = true,
+        guardringrespectgatestraps = true,
+        guardringrespectgateextensions = true,
+        guardringrespectsourcestraps = true,
+        guardringrespectdrainstraps = true,
         guardringleftsep = guardringxsep,
         guardringrightsep = guardringxsep,
         guardringtopsep = innerguardringysep,
@@ -1203,12 +1205,20 @@ function layout(cell, _P, _env, state)
     local interconnectlineminx
     local interconnectlinemaxx
     do
-        local row1devices = state._get_devices(function(device) return device.row == 1 end)
-        local leftdevice = row1devices[1]
-        local rightdevice = row1devices[#row1devices]
-        local icvextension = math.max(_P.interconnectlineextension, _P.interconnectlineviawidth, _P.sdwidth)
-        interconnectlineminx = _get_dev_anchor(leftdevice, "sourcedrainmetal1").l - (icvextension - _P.sdwidth) / 2
-        interconnectlinemaxx = _get_dev_anchor(rightdevice, "sourcedrainmetal-1").r + (icvextension - _P.sdwidth) / 2
+        if _P.drawinnerguardrings then
+            local row1devices = state._get_devices(function(device) return device.row == 1 end)
+            local leftdevice = row1devices[1]
+            local rightdevice = row1devices[#row1devices]
+            interconnectlineminx = _get_dev_anchor(leftdevice, "outerguardring").l
+            interconnectlinemaxx = _get_dev_anchor(rightdevice, "outerguardring").r
+        else
+            local row1devices = state._get_devices(function(device) return device.row == 1 end)
+            local leftdevice = row1devices[1]
+            local rightdevice = row1devices[#row1devices]
+            local icvextension = math.max(_P.interconnectlineextension, _P.interconnectlineviawidth, _P.sdwidth)
+            interconnectlineminx = _get_dev_anchor(leftdevice, "sourcedrainmetal1").l - (icvextension - _P.sdwidth) / 2
+            interconnectlinemaxx = _get_dev_anchor(rightdevice, "sourcedrainmetal-1").r + (icvextension - _P.sdwidth) / 2
+        end
     end
 
     -- create gate lines
