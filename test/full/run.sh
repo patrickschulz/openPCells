@@ -147,6 +147,7 @@ do_cell_test common_centroid_05 analog/common_centroid gds
 do_cell_test common_centroid_06 analog/common_centroid gds
 do_cell_test common_centroid_07 analog/common_centroid gds
 do_cell_test common_centroid_08 analog/common_centroid gds
+do_cell_test common_centroid_09 analog/common_centroid gds
 do_cellscript_test cellscript_common_centroid_01 gds
 do_cellscript_test cellscript_common_centroid_02 gds
 do_cellscript_test cellscript_common_centroid_03 gds

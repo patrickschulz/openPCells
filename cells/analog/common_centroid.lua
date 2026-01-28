@@ -208,6 +208,12 @@ function process_parameters(_P)
     t.drainoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     t.guardringoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     t.sourcedrainstrapwidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
+    if _P.insertglobalguardringlines and _P.connectguardringtogloballines then
+        t.guardringwidth = technology.get_dimension_max(
+            string.format("Minimum M%d Width", _P.interconnectmetal + 1),
+            string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1)
+        )
+    end
     return t
 end
 
@@ -258,7 +264,7 @@ function prepare(_P)
         cellerror(string.format("common_centroid: drain lookup with unknown device/configuration (device: %d, configuration: equaldrainnets = %s, usedrainconnections = %s)", device, _P.equaldrainnets and "true" or "false", _P.usedrainconnections and "true" or "false"))
     end
 
-    state.numinstancesperrow = #(_P.pattern[1]) -- total number of *instances* in a row (e.g. 0ABBAABBA0 -> 10, includes dummies, excluding 'outerdummies')
+    state.numinstancesperrow = #(_P.pattern[1]) + 2 * _P.outerdummies -- total number of *instances* in a row (e.g. 0ABBAABBA0 -> 10, includes dummies, excluding 'outerdummies')
 
     -- add outer dummies to pattern
     state.pattern = {}
@@ -281,7 +287,7 @@ function prepare(_P)
     for i = 1, _P.outerdummyrows do
         local lowerrow = {}
         local upperrow = {}
-        for j = 1, state.numinstancesperrow + 2 * _P.outerdummies do
+        for j = 1, state.numinstancesperrow do
             table.insert(lowerrow, 0)
             table.insert(upperrow, 0)
         end
@@ -620,8 +626,8 @@ function check(_P, state)
         return false, "if guard rings are present, interconnection lines can not be on metal 1 (interconnectmetal)"
     end
 
-    -- check for presence of an outer guardring when global guardring lines are used
-    if _P.insertglobalguardringlines and not _P.drawouterguardring then
+    -- check for presence of inner/outer guardring when global guardring lines are used
+    if _P.insertglobalguardringlines and not (_P.drawinnerguardrings or _P.drawouterguardring) then
         return false, "global guardring lines can only be inserted when an outer guardring is present"
     end
 
@@ -1788,10 +1794,18 @@ function layout(cell, _P, _env, state)
         local skipstrap = _P.usesourcestraps and _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth or 0
         outputlinemaxy = _get_dev_anchor(upperdevice, "active").t + (skipstrap + _P.interconnectlinespace + _P.interconnectlinewidth + (numupperlines - 1) * (_P.interconnectlinespace + _P.interconnectlinewidth))
     end
-    if _P.drawouterguardring and _P.insertglobalguardringlines then
-        local guardringboundary = cell:get_area_anchor("outerguardring")
-        outputlinemaxy = math.max(outputlinemaxy, guardringboundary.tr:gety())
-        outputlineminy = math.min(outputlineminy, guardringboundary.bl:gety())
+    if _P.insertglobalguardringlines then
+        if _P.drawouterguardring then
+            local guardringboundary = cell:get_area_anchor("outerguardring")
+            outputlinemaxy = math.max(outputlinemaxy, guardringboundary.tr:gety())
+            outputlineminy = math.min(outputlineminy, guardringboundary.bl:gety())
+        end
+        if _P.drawinnerguardrings then
+            local lowerdevices = state._get_devices(function(device) return device.row == 1 end)
+            local upperdevices = state._get_devices(function(device) return device.row == state.numrows end)
+            outputlineminy = _get_dev_anchor(lowerdevices[1], "outerguardring").b
+            outputlinemaxy = _get_dev_anchor(upperdevices[1], "outerguardring").t
+        end
     end
 
     -- gather output lines
@@ -2232,18 +2246,51 @@ function layout(cell, _P, _env, state)
         end
     end
 
-    if _P.drawouterguardring and _P.insertglobalguardringlines and _P.connectguardringtogloballines then
-        for _, segment in ipairs({ "top", "bottom" }) do
+    -- connect global guardring lines to guardrings
+    if _P.insertglobalguardringlines and _P.connectguardringtogloballines then
+        if _P.drawouterguardring then
+            for _, segment in ipairs({ "top", "bottom" }) do
+                for i = 1, 2 do
+                    geometry.viabltr(cell, 1, _P.interconnectmetal + 1,
+                        point.create(
+                            cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).l,
+                            guardring:get_area_anchor_fmt("%ssegment", segment).b
+                        ),
+                        point.create(
+                            cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).r,
+                            guardring:get_area_anchor_fmt("%ssegment", segment).t
+                        )
+                    )
+                end
+            end
+        end
+        if _P.drawinnerguardrings then
+            local lowerdevices = state._get_devices(function(device) return device.row == 1 end)
+            local upperdevices = state._get_devices(function(device) return device.row == state.numrows end)
             for i = 1, 2 do
-                geometry.viabltr(cell, 1, _P.interconnectmetal + 1,
+                geometry.viabltrov(cell, 1, _P.interconnectmetal + 1,
                     point.create(
-                        cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).l,
-                        guardring:get_area_anchor_fmt("%ssegment", segment).b
+                        _get_dev_anchor(lowerdevices[1], "outerguardring").l,
+                        _get_dev_anchor(lowerdevices[1], "outerguardring").b
                     ),
                     point.create(
-                        cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).r,
-                        guardring:get_area_anchor_fmt("%ssegment", segment).t
-                    )
+                        _get_dev_anchor(lowerdevices[state.numinstancesperrow], "outerguardring").r,
+                        _get_dev_anchor(lowerdevices[state.numinstancesperrow], "innerguardring").b
+                    ),
+                    cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).bl,
+                    cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).tr
+                )
+                geometry.viabltrov(cell, 1, _P.interconnectmetal + 1,
+                    point.create(
+                        _get_dev_anchor(upperdevices[1], "outerguardring").l,
+                        _get_dev_anchor(upperdevices[1], "innerguardring").t
+                    ),
+                    point.create(
+                        _get_dev_anchor(upperdevices[state.numinstancesperrow], "outerguardring").r,
+                        _get_dev_anchor(upperdevices[state.numinstancesperrow], "outerguardring").t
+                    ),
+                    cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).bl,
+                    cell:get_area_anchor_fmt("outputconnectline_%s_%d", "guardring0", i).tr
                 )
             end
         end
