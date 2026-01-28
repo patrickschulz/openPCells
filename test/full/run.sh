@@ -235,6 +235,8 @@ do_cell_test stacked_ringoscillator_00 analog/stacked_ringoscillator gds
 
 # cell test for auxiliary/metalgrid
 do_cell_test metalgrid_00 auxiliary/metalgrid gds
+do_cell_test metalgrid_01 auxiliary/metalgrid gds
+do_cell_test metalgrid_02 auxiliary/metalgrid gds
 
 # test for label size
 do_cellscript_test cellscript_labeltest gds

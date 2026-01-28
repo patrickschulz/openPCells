@@ -8,8 +8,9 @@ function parameters()
         { "mhspace", technology.get_dimension("Minimum M1 Space") },
         { "mvwidth", technology.get_dimension("Minimum M1M2 Viawidth") },
         { "mvspace", technology.get_dimension("Minimum M2 Space") },
-        { "mhlines", 6 },
-        { "mvlines", 3 },
+        { "mhlines", 2 },
+        { "mvlines", 2 },
+        { "separate_lines", false },
         { "mvextb", 0 },
         { "mvextt", 0 },
         { "mhextl", 0 },
@@ -95,11 +96,16 @@ function layout(grid, _P)
                 point.create(_P.mvwidth, _P.mhwidth)
             )
         end
-        if not _P.flatvias then
+        if _P.separate_lines then
             for i = 1, _P.mhlines do
-                for j = 1, _P.mvlines do
-                    local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
-                    local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
+                local j = i
+                local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
+                local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
+                if _P.flatvias then
+                    if (i % 2 == (_P.flipvias and 1 or 0)) == (j % 2 == 0) then
+                        grid:merge_into(viaref:copy():translate((j - 1) * xpitch + xoffset, (i - 1) * ypitch + yoffset))
+                    end
+                else
                     if (i % 2 == (_P.flipvias and 1 or 0)) == (j % 2 == 0) then
                         grid:add_child(viaref, string.format("via_%d_%d", i, j)):translate((j - 1) * xpitch + xoffset, (i - 1) * ypitch + yoffset)
                     end
@@ -110,8 +116,14 @@ function layout(grid, _P)
                 for j = 1, _P.mvlines do
                     local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
                     local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
-                    if (i % 2 == (_P.flipvias and 1 or 0)) == (j % 2 == 0) then
-                        grid:merge_into(viaref:copy():translate((j - 1) * xpitch + xoffset, (i - 1) * ypitch + yoffset))
+                    if _P.flatvias then
+                        if (i % 2 == (_P.flipvias and 1 or 0)) == (j % 2 == 0) then
+                            grid:merge_into(viaref:copy():translate((j - 1) * xpitch + xoffset, (i - 1) * ypitch + yoffset))
+                        end
+                    else
+                        if (i % 2 == (_P.flipvias and 1 or 0)) == (j % 2 == 0) then
+                            grid:add_child(viaref, string.format("via_%d_%d", i, j)):translate((j - 1) * xpitch + xoffset, (i - 1) * ypitch + yoffset)
+                        end
                     end
                 end
             end
