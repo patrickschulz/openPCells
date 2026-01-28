@@ -591,6 +591,21 @@ function check(_P, state)
         return false, "if guard rings are present, gate lines can not be on metal 1 (gatelinemetal)"
     end
 
+    -- check shorts between inner guardrings and source connections
+    if _P.drawinnerguardrings and _P.sourcemetal == 1 then
+        return false, "if guard rings are present, the source connections can not be on metal 1 (sourcemetal)"
+    end
+
+    -- check shorts between inner guardrings and drain connections
+    if _P.drawinnerguardrings and _P.drainmetal == 1 then
+        return false, "if guard rings are present, the drain connections can not be on metal 1 (drainmetal)"
+    end
+
+    -- check shorts between inner guardrings and interconnectlines
+    if _P.drawinnerguardrings and _P.interconnectmetal == 1 then
+        return false, "if guard rings are present, interconnection lines can not be on metal 1 (interconnectmetal)"
+    end
+
     -- check for presence of an outer guardring when global guardring lines are used
     if _P.insertglobalguardringlines and not _P.drawouterguardring then
         return false, "global guardring lines can only be inserted when an outer guardring is present"
