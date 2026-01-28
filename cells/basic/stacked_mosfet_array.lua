@@ -28,7 +28,7 @@ function parameters()
         { "guardringrightsep", technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
         { "guardringtopsep", technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
         { "guardringbottomsep", technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
-        { "guardringrespectactivedummies", false },
+        { "guardringrespectactivedummies", true },
         { "guardringrespectgatestraps", true },
         { "guardringrespectgateextensions", true },
         { "guardringrespectsourcestraps", true },
