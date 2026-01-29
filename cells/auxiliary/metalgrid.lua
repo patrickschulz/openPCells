@@ -29,16 +29,23 @@ function parameters()
         { "centergrid", true },
         { "flatvias", true },
         { "flipvias", false },
-        { "drawfillexclude", false }
+        { "drawfillexclude", false },
+        --{ "label_sizehint", technology.get_optional_dimension("Default Label Size", 0) }
+        { "label_sizehint", 50 }
     )
 end
 
 function check(_P)
     if not ((not _P.centergrid) or ((_P.mhlines % 2 == 1) and (_P.mhwidth % 2 == 0)) or ((_P.mhlines % 2 == 0) and (_P.mhspace % 2 == 0))) then
-        return nil, "with 'centergrid': number of lines must be odd and width must be even or number of lines must be even and space must be even (horizontal)"
+        return false, "with 'centergrid': number of lines must be odd and width must be even or number of lines must be even and space must be even (horizontal)"
     end
     if not ((not _P.centergrid) or ((_P.mvlines % 2 == 1) and (_P.mvwidth % 2 == 0)) or ((_P.mvlines % 2 == 0) and (_P.mvspace % 2 == 0))) then
-        return nil, "with 'centergrid': number of lines must be odd and width must be even or number of lines must be even and space must be even (vertical)"
+        return false, "with 'centergrid': number of lines must be odd and width must be even or number of lines must be even and space must be even (vertical)"
+    end
+    if _P.separate_lines then
+        if (_P.mhlines % _P.mvlines ~= 0) and (_P.mvlines % _P.mhlines ~= 0) then
+            return false, "When 'separate_lines' is true, the horizontal lines must be a multiple of the vertical lines or vice versa."
+        end
     end
     return true
 end
@@ -97,17 +104,22 @@ function layout(grid, _P)
             )
         end
         if _P.separate_lines then
-            for i = 1, _P.mhlines do
+            for i = 1, math.max(_P.mhlines, _P.mvlines) do
                 local j = i
                 local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
                 local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
                 if _P.flatvias then
                     if (i % 2 == (_P.flipvias and 1 or 0)) == (j % 2 == 0) then
-                        grid:merge_into(viaref:copy():translate((j - 1) * xpitch + xoffset, (i - 1) * ypitch + yoffset))
+                        local v = viaref:copy()
+                        v:translate_x(((j - 1) % _P.mvlines) * xpitch + xoffset)
+                        v:translate_y(((i - 1) % _P.mhlines) * ypitch + yoffset)
+                        grid:merge_into(v)
                     end
                 else
                     if (i % 2 == (_P.flipvias and 1 or 0)) == (j % 2 == 0) then
-                        grid:add_child(viaref, string.format("via_%d_%d", i, j)):translate((j - 1) * xpitch + xoffset, (i - 1) * ypitch + yoffset)
+                        local v = grid:add_child(viaref, string.format("via_%d_%d", i, j))
+                        v:translate_x(((j - 1) % _P.mvlines) * xpitch + xoffset)
+                        v:translate_y(((i - 1) % _P.mhlines) * ypitch + yoffset)
                     end
                 end
             end
@@ -128,6 +140,21 @@ function layout(grid, _P)
                 end
             end
         end
+    end
+
+    -- labels
+    if _P.separate_lines then
+        for i = 1, _P.mhlines do
+            local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
+            local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
+            --grid:add_label("LABEL", generics.metal(_P.metalh), point.create(xoffset, (i - 1) * ypitch + yoffset), _P.label_sizehint)
+        end
+        for i = 1, _P.mvlines do
+            local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
+            local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
+            --grid:add_label("LABEL", generics.metal(_P.metalv), point.create((i - 1) * xpitch + xoffset, yoffset), _P.label_sizehint)
+        end
+    else
     end
 
     -- fill excludes
