@@ -4,7 +4,6 @@
 
 #include "lua/lauxlib.h"
 
-#include "array.h"
 #include "bltrshape.h"
 #include "geometry.h"
 #include "lcheck.h"
@@ -1823,12 +1822,30 @@ static int lobject_get_layer_occupation(lua_State* L)
 {
     lcheck_check_numargs2(L, 1, 2, "object.get_layer_boundary");
     struct lobject* cell = lobject_check(L, 1);
-    const struct generics* layer = NULL;
-    if(lua_gettop(L) > 2)
+    size_t numlayers = 0;
+    const struct generics** layers = NULL;
+    if(lua_istable(L, 2))
     {
-        layer = lua_touserdata(L, 2);
+        lua_len(L, 2);
+        int len = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        layers = malloc(len * sizeof(*layers));
+        numlayers = len;
+        for(size_t i = 0; i < numlayers; ++i)
+        {
+            lua_rawgeti(L, 2, i + 1);
+            layers[i] = lua_touserdata(L, -1);
+            lua_pop(L, 1);
+        }
     }
-    struct bltrshape* bltrshape = object_get_layer_occupation(lobject_get(L, cell), layer);
+    else if(lua_isuserdata(L, 2))
+    {
+        layers = malloc(1 * sizeof(*layers));
+        numlayers = 1;
+        layers[0] = lua_touserdata(L, 2);
+    }
+
+    struct bltrshape* bltrshape = object_get_layer_occupation(lobject_get(L, cell), layers, numlayers);
     lua_newtable(L);
     /* bl */
     lpoint_create_internal_pt(L, bltrshape_get_bl(bltrshape));
@@ -1836,9 +1853,6 @@ static int lobject_get_layer_occupation(lua_State* L)
     /* tr */
     lpoint_create_internal_pt(L, bltrshape_get_tr(bltrshape));
     lua_setfield(L, -2, "tr");
-    /* layer */
-    lua_pushlightuserdata(L, (void*) bltrshape_get_layer(bltrshape));
-    lua_setfield(L, -2, "layer");
     return 1;
 }
 
@@ -1846,7 +1860,6 @@ static int lobject_get_shape_outlines(lua_State* L)
 {
     lcheck_check_numargs2(L, 2, 3, "object.get_shape_outlines");
     struct lobject* cell = lobject_check(L, 1);
-    //array_create(const struct generics**, layers, numlayers);
     size_t numlayers = 0;
     const struct generics** layers = NULL;
     if(lua_istable(L, 2))

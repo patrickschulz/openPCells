@@ -2331,23 +2331,44 @@ struct polygon_container* object_get_layer_boundary(const struct object* cell, c
     }
 }
 
-struct bltrshape* object_get_layer_occupation(const struct object* cell, const struct generics* layer)
+struct bltrshape* object_get_layer_occupation(const struct object* cell, const struct generics** layers, size_t numlayers)
 {
+    const struct object* obj;
     if(object_is_proxy(cell))
     {
-        coordinate_t blx, bly, trx, try;
-        object_get_minmax_xy_layer(cell->content.proxy.reference, &blx, &bly, &trx, &try, NULL, layer); // no extra transformation matrix (FIXME: is this correct?)
-        transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
-        transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
-        return bltrshape_create_xy(blx, bly, trx, try, layer);
+        obj = cell->content.proxy.reference;
+    }
+    else
+    {
+        obj = cell;
+    }
+    coordinate_t blx0 = COORDINATE_MAX;
+    coordinate_t bly0 = COORDINATE_MAX;
+    coordinate_t trx0 = COORDINATE_MIN;
+    coordinate_t try0 = COORDINATE_MIN;
+    if(layers)
+    {
+        for(size_t i = 0; i < numlayers; ++i)
+        {
+            const struct generics* layer = layers[i];
+            coordinate_t blx, bly, trx, try;
+            object_get_minmax_xy_layer(obj, &blx, &bly, &trx, &try, NULL, layer); // no extra transformation matrix (FIXME: is this correct?)
+            transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
+            transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
+            blx0 = MIN2(blx0, blx);
+            bly0 = MIN2(bly0, bly);
+            trx0 = MAX2(trx0, trx);
+            try0 = MAX2(try0, try);
+        }
+        return bltrshape_create_xy(blx0, bly0, trx0, try0, NULL);
     }
     else
     {
         coordinate_t blx, bly, trx, try;
-        object_get_minmax_xy_layer(cell, &blx, &bly, &trx, &try, NULL, layer); // no extra transformation matrix (FIXME: is this correct?)
+        object_get_minmax_xy_layer(obj, &blx, &bly, &trx, &try, NULL, NULL); // no extra transformation matrix (FIXME: is this correct?)
         transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
         transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
-        return bltrshape_create_xy(blx, bly, trx, try, layer);
+        return bltrshape_create_xy(blx, bly, trx, try, NULL);
     }
 }
 
