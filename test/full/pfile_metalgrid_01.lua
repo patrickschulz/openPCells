@@ -1,4 +1,4 @@
 return {
-    mhlines = 4,
-    mvlines = 4,
+    hnets = { "vdd", "vss", "vdd", "vss" },
+    vnets = { "vdd", "vss", "vdd", "vss" },
 }
