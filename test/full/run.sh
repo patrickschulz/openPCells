@@ -241,5 +241,8 @@ do_cell_test metalgrid_02 auxiliary/metalgrid gds
 # test for label size
 do_cellscript_test cellscript_labeltest gds
 
+# test for object.get_layer_occupation
+do_cellscript_test cellscript_layer_occupation gds
+
 # cell test for analog/strongARM_comparator
 do_cell_test strongARM_comparator_00 analog/strongARM_comparator gds
