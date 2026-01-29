@@ -96,8 +96,9 @@ procedure(OPCCreateSettingsForm()
         expandnamecontexts = hiCreateRadioField(
             ?name 'OPCSettingsExpandNamecontexts
             ?choices list("true" "false")
-            ?value "false"
+            ?value "true"
             ?prompt "Expand Name Contexts"
+            ?enabled nil
         )
         writechildrenports = hiCreateRadioField(
             ?name 'OPCSettingsWriteChildrenPorts
