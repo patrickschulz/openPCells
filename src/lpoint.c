@@ -95,7 +95,7 @@ struct lpoint* lpoint_takeover_point(lua_State* L, struct point* pt)
 
 int lpoint_create(lua_State* L)
 {
-    if(lua_gettop(L) < 2)
+    if(lua_gettop(L) != 2)
     {
         lua_pushfstring(L, "point.create(): expected two arguments (x and y), got %d", lua_gettop(L));
         lua_error(L);
