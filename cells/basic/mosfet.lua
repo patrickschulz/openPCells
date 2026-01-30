@@ -28,6 +28,7 @@ function parameters()
         { "implantalignrightwithactive",                                                                false, follow = "implantalignwithactive", info = "set reference point for implant right extensions. If this is false, the implant right extension is autmatically calculated so that the implant covers the right gates. With this option enabled, the implant right extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
         { "implantaligntopwithactive",                                                                  false, follow = "implantalignwithactive", info = "set reference point for implant top extensions. If this is false, the implant top extension is autmatically calculated so that the implant covers the top part of all gates. With this option enabled, the implant top extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
         { "implantalignbottomwithactive",                                                               false, follow = "implantalignwithactive", info = "set reference point for implant bottom extensions. If this is false, the implant bottom extension is autmatically calculated so that the implant covers the bottom part of all gates. With this option enabled, the implant bottom extension is referenced to the active region. This is useful for having precise control over the implant extensions marker extensions in mosfet arrays with varying gate heights" },
+        { "implantrespectpolylines",                                                                    true },
         { "drawoxidetype",                                                                              true, info = "switch to enable/disable oxidetype drawing. Typically this should be enabled, as a missing oxidetype might cause the LVS to misinterpret the device. However, in certain situations manual drawing of the oxidetype can be beneficial." },
         { "oxidetype(Oxide Thickness Type)",                                                            1, argtype = "integer", posvals = interval(1, inf), info = "oxide thickness index of the gate. This is a numeric index, starting from 1 (the default). The interpretation of this is up to the technology file" },
         { "oxidetypealignwithactive",                                                                   false, info = "set reference points for oxide thickness marker extensions. If this is false, the oxide thickness marker extensions are autmatically calculated so that the oxide thickness marker covers all gates. With this option enabled, the oxide thickness marker extensions are referenced to the active region. This is useful for having precise control over the oxide thickness marker extensions in mosfet arrays with varying gate heights. This option sets left/right/top/bottom alignment, the dedicated switches can be used for more fine-grained control." },
@@ -1131,6 +1132,18 @@ function layout(transistor, _P)
             _P.fingerwidth + _P.extendimplanttop or
             gatetry + _P.extendimplanttop
     )
+    if _P.implantrespectpolylines then
+        local leftskip = 0
+        for _, entry in ipairs(_P.leftpolylines) do
+            leftskip = leftskip + entry.space + entry.length
+        end
+        local rightskip = 0
+        for _, entry in ipairs(_P.rightpolylines) do
+            rightskip = rightskip + entry.space + entry.length
+        end
+        implantbl:translate_x(-leftskip)
+        implanttr:translate_x(rightskip)
+    end
     if _P.drawimplant and not _P.drawguardring then -- if a guardring is present, it draws the inner/MOSFET implant
         geometry.rectanglebltr(transistor, generics.implant(_P.channeltype), implantbl, implanttr)
     end
