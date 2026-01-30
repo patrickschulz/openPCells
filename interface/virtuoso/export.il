@@ -1,12 +1,12 @@
-procedure(OPCExportConvertCoordToNanometer(c)
+procedure(OPCExportConvertCoordToOPCUnit(c)
     fix(c * 1000)
-) ; OPCExportConvertCoordToNanometer
+) ; OPCExportConvertCoordToOPCUnit
 
 procedure(OPCExportFormatPoint(pt)
     lsprintf(
         "point.create(%d, %d)"
-        OPCExportConvertCoordToNanometer(xCoord(pt))
-        OPCExportConvertCoordToNanometer(yCoord(pt))
+        OPCExportConvertCoordToOPCUnit(xCoord(pt))
+        OPCExportConvertCoordToOPCUnit(yCoord(pt))
     )
 ) ; OPCExportFormatPoint
 
@@ -43,6 +43,16 @@ procedure(OPCExportTransform(pt tmatrix)
         setf(yCoord(pt) y)
     ) ; let
 ) ; OPCExportTransform
+
+procedure(OPCExportTranslate(pt dx dy)
+    let(
+        (x y)
+        x = xCoord(pt) + dx
+        y = yCoord(pt) + dy
+        setf(xCoord(pt) x)
+        setf(yCoord(pt) y)
+    ) ; let
+) ; OPCExportTranslate
 
 procedure(OPCExportGetTMatrix(x y orientation)
     case(orientation
@@ -114,6 +124,22 @@ procedure(OPCExportTransformShape(shape tmatrix)
     shape
 ) ; OPCExportTransformShape
 
+procedure(OPCExportDisplaceShape(shape dx dy)
+    case(car(shape)
+        ("rect"
+            OPCExportTranslate(nthelem(3 shape) dx dy)
+            OPCExportTranslate(nthelem(4 shape) dx dy)
+        ) ; rect
+        ("polygon"
+            foreach(pt nthelem(3 shape) OPCExportTranslate(pt dx dy))
+        ) ; polygon
+        ("path"
+            foreach(pt nthelem(3 shape) OPCExportTranslate(pt dx dy))
+        ) ; path
+    ) ; case shape type
+    shape
+) ; OPCExportDisplaceShape
+
 procedure(OPCExportGatherCellShapes(cell)
     let(
         (subshapes vias shapes viatmatrix tmatrix)
@@ -130,16 +156,31 @@ procedure(OPCExportGatherCellShapes(cell)
                 shapes = cons(viashape shapes)
             ) ; foreach viashapes
         ) ; foreach vias
-        ; gather shapes of sub-cells
-        foreach(sub cell->instances
-            subshapes = OPCExportGatherCellShapes(sub->master)
+        ; gather shapes of instances
+        foreach(instance cell->instances
+            subshapes = OPCExportGatherCellShapes(instance->master)
             ; instance transformation matrix
-            tmatrix = OPCExportGetInstanceTMatrix(sub)
-            ; apply transformation and add to shapes list
-            foreach(shape subshapes
-                OPCExportTransformShape(shape tmatrix)
-                shapes = cons(shape shapes)
-            ) ; foreach shapes
+            tmatrix = OPCExportGetInstanceTMatrix(instance)
+            if(instance->columns
+                then ; is array
+                    for(xi 1 instance->columns
+                        for(yi 1 instance->rows
+                            ; add array displacement
+                            OPCExportDisplaceShape(shape (xi - 1) * instance->uX (yi - 1) * instance->uY)
+                            ; apply transformation and add to shapes list
+                            foreach(shape subshapes
+                                OPCExportTransformShape(shape tmatrix)
+                                shapes = cons(shape shapes)
+                            ) ; foreach shapes
+                        )
+                    )
+                else ; single instance
+                    ; apply transformation and add to shapes list
+                    foreach(shape subshapes
+                        OPCExportTransformShape(shape tmatrix)
+                        shapes = cons(shape shapes)
+                    ) ; foreach shapes
+            ) ; if is array
         ) ; foreach instances
     ) ; let
 ) ; OPCExportGatherCellShapes
@@ -178,7 +219,7 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
                     "geometry.path(%s, %s, { %s }, %s)"
                     OPCExportFormatLayer(cadr(shape))
                     OPCExportFormatPoints(nthelem(3 shape))
-                    OPCExportConvertCoordToNanometer(nthelem(4 shape))
+                    OPCExportConvertCoordToOPCUnit(nthelem(4 shape))
                 )
             ) ; path
         ) ; case shape type
@@ -226,7 +267,7 @@ procedure(OPCHiExportCell(filename)
             ?name        'OPCInfoDialog
             ?dboxBanner  "openPCells"
             ?dboxText    lsprintf("written opc representation of layout to %s" path)
-            ?dialogType   hicWarningDialog
+            ?dialogType   hicMessageDialog
             ?dialogStyle 'modeless
             ?buttonLayout 'Close
         )
