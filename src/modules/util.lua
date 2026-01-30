@@ -152,7 +152,9 @@ function util.is_rectilinear_polygon(polygon)
     for i = 2, #polygon do
         local pt1 = polygon[i - 1]
         local pt2 = polygon[i]
-        if pt1.x ~= pt2.x and pt1.y ~= pt2.y then
+        local xdiff = pt1:getx() - pt2:getx()
+        local ydiff = pt1:gety() - pt2:gety()
+        if (xdiff ~= 0) and (ydiff ~= 0) then
             return false
         end
     end
