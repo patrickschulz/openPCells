@@ -117,6 +117,7 @@ procedure(OPCCreateLayoutMenu()
         ; settings
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
         editconfig = hiCreateMenuItem(?name 'OPCEditConfig ?itemText "Edit Configgile" ?callback "OPCEditConfigFile()")
+        viewpfile = hiCreateMenuItem(?name 'OPCViewParameterFile ?itemText "View Parameter File" ?callback "OPCViewParameterFile()")
         viewlog = hiCreateMenuItem(?name 'OPCViewLogFile ?itemText "View Logfile" ?callback "OPCViewLogFile()")
         viewdprint = hiCreateMenuItem(?name 'OPCViewDPrintFile ?itemText "View Debug Print File" ?callback "OPCViewDPrintFile()")
         viewoutput = hiCreateMenuItem(?name 'OPCViewOutputFile ?itemText "View Output File" ?callback "OPCViewOutputFile()")
@@ -125,7 +126,7 @@ procedure(OPCCreateLayoutMenu()
         itemlist = list(
             about
             SEP
-            settings editconfig viewlog viewdprint viewoutput
+            settings editconfig viewpfile viewlog viewdprint viewoutput
             SEP
             designmenu
             SEP

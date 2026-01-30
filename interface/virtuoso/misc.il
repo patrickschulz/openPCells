@@ -59,6 +59,16 @@ procedure(OPCShowTextFile(path)
     */
 ) ; OPCShowTextFile
 
+procedure(OPCViewParameterFile()
+    let(
+        (
+            path
+        )
+        path = lsprintf("%s" OPCSettingsForm->OPCParamFilename->value)
+        OPCShowTextFile(path)
+    )
+) ; OPCViewParameterFile
+
 procedure(OPCViewLogFile()
     let(
         (
