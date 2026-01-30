@@ -290,6 +290,7 @@ function parameters()
         { "guardringrespectgateextensions",                                                             true },
         { "guardringrespectsourcestraps",                                                               true },
         { "guardringrespectdrainstraps",                                                                true },
+        { "guardringrespectpolylines",                                                                  true },
         { "guardringwidth",                                                                             technology.get_dimension("Minimum Active Contact Region Size") },
         { "guardringsep",                                                                               technology.get_dimension("Minimum Active Space") },
         { "guardringleftsep",                                                                           technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
@@ -2857,17 +2858,29 @@ function layout(transistor, _P)
             guardringleftext_drainstraps = math.max(_P.connectdrainleftext, _P.connectdrainotherleftext)
             guardringrightext_drainstraps = math.max(_P.connectdrainrightext, _P.connectdrainotherrightext)
         end
+        local guardringleftext_polylines = 0
+        local guardringrightext_polylines = 0
+        if _P.guardringrespectpolylines then
+            for _, entry in ipairs(_P.leftpolylines) do
+                guardringleftext_polylines = guardringleftext_polylines + entry.space + entry.length
+            end
+            for _, entry in ipairs(_P.rightpolylines) do
+                guardringrightext_polylines = guardringrightext_polylines + entry.space + entry.length
+            end
+        end
         local guardringleftext = math.max(
             guardringleftext_activedummy,
             guardringleftext_gatestraps,
             guardringleftext_sourcestraps,
-            guardringleftext_drainstraps
+            guardringleftext_drainstraps,
+            guardringleftext_polylines
         )
         local guardringrightext = math.max(
             guardringrightext_activedummy,
             guardringrightext_gatestraps,
             guardringrightext_sourcestraps,
-            guardringrightext_drainstraps
+            guardringrightext_drainstraps,
+            guardringrightext_polylines
         )
         local guardringtopext = math.max(
             guardringtopext_activedummy,
@@ -2905,7 +2918,7 @@ function layout(transistor, _P)
             soiopeninnerextension = _P.guardringsoiopeninnerextension,
             soiopenouterextension = _P.guardringsoiopenouterextension,
         })
-        local gtargetx = -guardringleftext
+        local gtargetx = -leftactauxext - guardringleftext
         local gtargety = -guardringbotext
         guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, gtargety))
         guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
