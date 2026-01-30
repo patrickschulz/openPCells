@@ -320,8 +320,8 @@ function parameters()
         { "drawstopgatetopgatecut",                                                                     false },
         { "drawstopgatebotgatecut",                                                                     false },
         { "excludestopgatesfromcutregions",                                                             true },
-        { "leftpolylines",                                                                              {} },
-        { "rightpolylines",                                                                             {} },
+        { "leftpolylines",                                                                              {}, info = "Specifies additional poly (gate not over active) lines left of the device. The table should containt entries like this: '{ length = 80, space = 120 }'." },
+        { "rightpolylines",                                                                             {}, info = "Specifies additional poly (gate not over active) lines right of the device. The table should containt entries like this: '{ length = 80, space = 120 }'." },
         { "drawrotationmarker",                                                                         false },
         { "drawanalogmarker",                                                                           false },
         -- FIXME: checkshorts should be true, but this needs better logic
