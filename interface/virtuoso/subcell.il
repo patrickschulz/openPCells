@@ -193,7 +193,7 @@ procedure(OPCGetSubCellCellParameters(opcgroup)
     let((value parameterlist)
         parameterlist = nil
         foreach(p opcgroup->prop
-            unless(p->name == "opccell"
+            unless(p->name == "opccell" || p->name == "opcprotect"
                 value = case(p->valueType
                     ("int" lsprintf("%d" p->value)) ; integers stay integers (e.g. number of fingers)
                     ("float" lsprintf("%d" int(p->value * 1000))) ; convert micro-meter to nano-meter
