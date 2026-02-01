@@ -475,6 +475,16 @@ function M.place_hlines(cell, bl, tr, layer, height, space, minwidth, netnames, 
 end
 
 function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)
+    check.set_next_function_name("layouthelpers.place_vias")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg(2, "metal1", "number", metal1)
+    check.arg(3, "metal1", "number", metal1)
+    check.arg(4, "netshapes1", "table", netshapes1)
+    check.arg(5, "netshapes2", "table", netshapes2)
+    check.arg_optional(6, "excludes", "table", excludes)
+    check.arg_optional(7, "netfilter", "table", netfilter)
+    check.arg_optional(8, "onlyfull", "boolean", onlyfull)
+    check.arg_optional(9, "nocheck", "boolean", nocheck)
     for i1 = 1, #netshapes1 do
         local connect = true
         if netfilter then
