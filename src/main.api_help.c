@@ -827,6 +827,7 @@ static char* _make_safe_string(const char* str)
 
 static void _create_HTML_entry(const struct api_entry* entry)
 {
+    // module
     const char* module = _stringify_module(entry->module);
     if(module)
     {
@@ -836,10 +837,30 @@ static void _create_HTML_entry(const struct api_entry* entry)
     {
         fprintf(stdout, "        \"module\": \"%s\",\n", "<none>");
     }
+
+    // function name
     fprintf(stdout, "        \"funcname\": \"%s\",\n", entry->funcname);
+    
+    // syntax (parameters)
+    fprintf(stdout, "        \"syntax\": \"%s(", entry->funcname);
+    for(size_t i = 0; i < vector_size(entry->parameters); ++i)
+    {
+        const struct parameter* param = vector_get_const(entry->parameters, i);
+        fprintf(stdout, "%s", param->name);
+        if(i < vector_size(entry->parameters) - 1)
+        {
+            putchar(',');
+            putchar(' ');
+        }
+    }
+    fprintf(stdout, "%s\n", ")\",");
+
+    // description
     char* info = _make_safe_string(entry->info);
     fprintf(stdout, "        \"description\": \"%s\",\n", info);
     free(info);
+
+    // examples
     char* example = _make_safe_string(entry->example);
     fprintf(stdout, "        \"example\": \"%s\",\n", example);
     free(example);
