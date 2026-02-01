@@ -160,7 +160,7 @@ static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions, c
 static void _print_general_info(void)
 {
     fprintf(stdout, "This is the openPCell layout generator (opc), version %u.%u.%u.\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
-    puts("Copyright 2020-2025 Patrick Kurth");
+    puts("Copyright 2020-2026 Patrick Kurth");
     puts("");
     puts("To generate a layout, you need to pass the technology,");
     puts("the export type and a cellname or the name of a cellscript.");
@@ -170,7 +170,15 @@ static void _print_general_info(void)
     puts("");
     puts("You can find out more about the available command line options by running 'opc -h'.");
     puts("");
-    puts("A tutorial showing the usage of opc can be accessed by 'opc --tutorial'.");
+    puts("The documentation can be accessed in several ways, depending on the type of information:");
+    puts("  * Information about pcells can be obtained by:");
+    puts("      '-L': List available cells");
+    puts("      '-I': List available cells");
+    puts("      '-P': List cell parameters (with filter)");
+    puts("      '-A': List cell anchors (with filter)");
+    puts("  * Information about API functions can be obtained by '--api-search'/'--api-help'");
+    puts("  * HTML documentation can be opened via '-d/--html-documentation'");
+    puts("  * A tutorial showing the usage of opc can be accessed by '--tutorial'");
 }
 
 int main(int argc, const char* const * argv)
