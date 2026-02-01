@@ -437,6 +437,11 @@ int main(int argc, const char* const * argv)
         main_tutorial();
         goto DESTROY_CONFIG;
     }
+    if(cmdoptions_was_provided_long(cmdoptions, "html-documentation"))
+    {
+        system("xdg-open" " " OPC_DOC_PATH "/doc/index.html");
+        goto DESTROY_CONFIG;
+    }
 
     if(cmdoptions_was_provided_long(cmdoptions, "import"))
     {

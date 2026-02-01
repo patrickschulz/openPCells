@@ -3,6 +3,7 @@
 CELL_PATH=/usr/share/openPCells
 TECH_PATH=/usr/share/openPCells
 EXPORT_PATH=/usr/share/openPCells
+DOC_PATH=/usr/share/openPCells
 BIN_PATH=/usr/bin
 EXE_NAME=opc
 MAN_PATH=/usr/share/man/man1
@@ -14,7 +15,7 @@ while [[ $# -gt 0 ]]; do
             CELL_PATH=$2
             shift 2
         else
-            echo "-cell-path requires file path" 1>&2
+            echo "--cell-path requires file path" 1>&2
             exit 1
         fi
         ;;
@@ -23,7 +24,7 @@ while [[ $# -gt 0 ]]; do
             TECH_PATH=$2
             shift 2
         else
-            echo "-tech-path requires file path" 1>&2
+            echo "--tech-path requires file path" 1>&2
             exit 1
         fi
         ;;
@@ -32,7 +33,16 @@ while [[ $# -gt 0 ]]; do
             EXPORT_PATH=$2
             shift 2
         else
-            echo "-export-path requires file path" 1>&2
+            echo "--export-path requires file path" 1>&2
+            exit 1
+        fi
+        ;;
+    --doc-path)
+        if [[ $# -gt 1 && "$2" != -* ]]; then
+            DOC_PATH=$2
+            shift 2
+        else
+            echo "--doc-path requires file path" 1>&2
             exit 1
         fi
         ;;
@@ -41,9 +51,10 @@ while [[ $# -gt 0 ]]; do
             CELL_PATH=$2
             TECH_PATH=$2
             EXPORT_PATH=$2
+            DOC_PATH=$2
             shift 2
         else
-            echo "-all-load-paths requires file path" 1>&2
+            echo "--all-load-paths requires file path" 1>&2
             exit 1
         fi
         ;;
@@ -51,6 +62,7 @@ while [[ $# -gt 0 ]]; do
         CELL_PATH=$(pwd)
         TECH_PATH=$(pwd)
         EXPORT_PATH=$(pwd)
+        DOC_PATH=$(pwd)
         shift
         ;;
     --bin-path)
@@ -58,7 +70,7 @@ while [[ $# -gt 0 ]]; do
             BIN_PATH=$2
             shift 2
         else
-            echo "-bin-path requires file path" 1>&2
+            echo "--bin-path requires file path" 1>&2
             exit 1
         fi
         ;;
@@ -67,7 +79,7 @@ while [[ $# -gt 0 ]]; do
             EXE_NAME=$2
             shift 2
         else
-            echo "-executable-name requires argument" 1>&2
+            echo "--executable-name requires argument" 1>&2
             exit 1
         fi
         ;;
@@ -76,7 +88,7 @@ while [[ $# -gt 0 ]]; do
             MAN_PATH=$2
             shift 2
         else
-            echo "-man-path requires file path" 1>&2
+            echo "--man-path requires file path" 1>&2
             exit 1
         fi
         ;;
@@ -85,6 +97,7 @@ while [[ $# -gt 0 ]]; do
         echo "--cell-path               set install path for cells (default: ${CELL_PATH})"
         echo "--tech-path               set install path for technology files (default: ${TECH_PATH})"
         echo "--export-path             set install path for export definitions (default: ${EXPORT_PATH})"
+        echo "--doc-path                set install path for documentation filse (default: ${DOC_PATH})"
         echo "--all-load-paths          shortcut option which sets the cell path, tech path and the export path to the same location"
         echo "--all-load-paths-local    use this for a local installation. Sets all load paths (cells, technology files and export definitions) to the current directory"
         echo "--bin-path                set install path for the executable (default: ${BIN_PATH})"
@@ -137,6 +150,8 @@ install: opc opc.1
 	cp -R tech \${DESTDIR}${TECH_PATH}
 	mkdir -p \${DESTDIR}${EXPORT_PATH}
 	cp -R export \${DESTDIR}${EXPORT_PATH}
+	mkdir -p \${DESTDIR}${DOC_PATH}
+	cp -R doc \${DESTDIR}${DOC_PATH}
 
 .PHONY: doc
 doc:
@@ -183,6 +198,7 @@ cat > src/_config.h << EOF
 #define OPC_CELL_PATH "${CELL_PATH}"
 #define OPC_TECH_PATH "${TECH_PATH}"
 #define OPC_EXPORT_PATH "${EXPORT_PATH}"
+#define OPC_DOC_PATH "${DOC_PATH}"
 
 #endif /* OPC_CONFIG_H */
 EOF

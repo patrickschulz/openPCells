@@ -108,6 +108,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "api-list", NO_ARG, "list all availa
 cmdoptions_add_option(cmdoptions, NO_SHORT, "get-dimension", SINGLE_ARG, "get a technology-related dimension (like technology.get_dimension in pcells/cellscripts). This option requires a technology");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "generate-tutorial", NO_ARG, "generate a set of script files to demonstrate the usage and features of openPCells");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "tutorial", NO_ARG, "print out an interactive tutorial that shows the basic flow");
+cmdoptions_add_option(cmdoptions, 'd', "html-documentation", NO_ARG, "open a browser to show the documentation");
 
 /* Utility Functions */
 cmdoptions_add_section(cmdoptions, "Utility functions");

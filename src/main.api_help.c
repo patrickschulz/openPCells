@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "terminal.h"
 #include "print.h"
+#include "string.h"
+#include "terminal.h"
 #include "util.h"
 #include "vector.h"
 
@@ -797,6 +798,67 @@ void main_API_create_latex_doc(void)
         _create_latex_entry(entry, &lastmodule);
         vector_const_iterator_next(it);
     }
+    vector_const_iterator_destroy(it);
+    _destroy_api_entries(entries);
+}
+
+static char* _make_safe_string(const char* str)
+{
+    struct string* buffer = string_create();
+    const char* ch = str;
+    while(*ch)
+    {
+        if(*ch == '"')
+        {
+            string_add_character(buffer, '\\');
+        }
+        if(*ch == '\n')
+        {
+            string_add_character(buffer, ' ');
+        }
+        else
+        {
+            string_add_character(buffer, *ch);
+        }
+        ++ch;
+    }
+    return string_dissolve(buffer);
+}
+
+static void _create_HTML_entry(const struct api_entry* entry)
+{
+    const char* module = _stringify_module(entry->module);
+    if(module)
+    {
+        fprintf(stdout, "        \"module\": \"%s\",\n", module);
+    }
+    else
+    {
+        fprintf(stdout, "        \"module\": \"%s\",\n", "<none>");
+    }
+    fprintf(stdout, "        \"funcname\": \"%s\",\n", entry->funcname);
+    char* info = _make_safe_string(entry->info);
+    fprintf(stdout, "        \"description\": \"%s\",\n", info);
+    free(info);
+    char* example = _make_safe_string(entry->example);
+    fprintf(stdout, "        \"example\": \"%s\",\n", example);
+    free(example);
+}
+
+void main_API_create_HTML_doc(void)
+{
+    struct vector* entries = _initialize_api_entries();
+    struct vector_const_iterator* it = vector_const_iterator_create(entries);
+    fprintf(stdout, "const apirefs = %s\n", "[");
+    while(vector_const_iterator_is_valid(it))
+    {
+        fprintf(stdout, "%s\n", "    {");
+        const struct api_entry* entry = vector_const_iterator_get(it);
+        _create_HTML_entry(entry);
+        fprintf(stdout, "%s\n", "    },");
+        vector_const_iterator_next(it);
+    }
+    fprintf(stdout, "%s\n", "];");
     vector_const_iterator_destroy(it);
     _destroy_api_entries(entries);
 }

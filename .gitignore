@@ -7,6 +7,7 @@
 /src/_embed_compiled_lua_file_debug
 /src/_embed_compiled_lua_file_release
 /src/create_latex_API_doc
+/src/create_HTML_API_doc
 /src/_config.h
 /src/_modulemanager.c
 /src/_modulemanager.h
