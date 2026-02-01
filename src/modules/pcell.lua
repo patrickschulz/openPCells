@@ -598,6 +598,23 @@ function pcell.create_layout_env(cellname, name, cellargs, env)
     return obj
 end
 
+-- message handler which skips traceback for cell-generating functions
+local function cellmsghandler(obj)
+    -- no traceback
+    return obj
+end
+
+-- interface function for calling in pcell.c
+function pcell.create_layout_env_wrapper(cellname, name, cellargs, env)
+    local status, cell = xpcall(pcell.create_layout_env, cellmsghandler, cellname, name, cellargs, env)
+    if not status then
+        -- errors occured, 'cell' is a message
+        return false, cell
+    else
+        return true, cell
+    end
+end
+
 function pcell.create_layout_in_object(obj, cellname, cellargs, ...)
     if not obj or not object.is_object(obj) then
         error("pcell.create_layout_in_object: expected an object as first argument")
@@ -639,15 +656,25 @@ function pcell.create_layout_from_script(scriptpath, args, cellenv)
         local savedargs = env.args
         env.args = args
         env.cellenv = cellenv
-        -- run script
-        local cell = _dofile(reader, string.format("@%s", scriptpath), nil, env)
-        if not cell then
-            error(string.format("cellscript '%s' did not return an object", scriptpath))
+        -- load script
+        local cellfunc, errmsg = load(reader, string.format("@%s", scriptpath), "t", env)
+        if not cellfunc then
+            error(errmsg, 0)
         end
+        -- run script
+        local status, cell = xpcall(cellfunc, cellmsghandler)
+        if not status then
+            -- errors occured, 'cell' is a message
+            return false, cell
+        end
+        if not cell then
+            return false, string.format("cellscript '%s' did not return an object", scriptpath)
+        end
+        -- FIXME: should this be higher up?
         env.args = savedargs
-        return cell
+        return true, cell
     else
-        error(string.format("cellscript '%s' could not be opened", scriptpath))
+        return false, string.format("cellscript '%s' could not be opened", scriptpath)
     end
 end
 

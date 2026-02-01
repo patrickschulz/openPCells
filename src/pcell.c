@@ -211,17 +211,24 @@ static struct object* _process_object(lua_State* L, int retval)
 {
     if(retval != LUA_OK)
     {
+        const char* errmsg = lua_tostring(L, -1);
+        fprintf(stderr, "%s\n", errmsg);
         return NULL;
     }
-    struct lobject* lobject = lobject_check_soft(L, -1);
-    if(!lobject)
+    int success = lua_toboolean(L, -2);
+    if(success)
     {
-        fputs("cell/cellscript did not return an object\n", stderr);
+        struct lobject* lobject = lobject_check_soft(L, -1);
+        struct object* toplevel = lobject_get_unchecked(lobject);
+        lobject_disown(lobject);
+        return toplevel;
+    }
+    else
+    {
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "%s\n", msg);
         return NULL;
     }
-    struct object* toplevel = lobject_get_unchecked(lobject);
-    lobject_disown(lobject);
-    return toplevel;
 }
 
 struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* toplevelname, struct const_vector* cellargs, const char *cellenvfilename)
@@ -254,7 +261,7 @@ struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, 
     // (1) scriptpath
     // (2) args
     // (3) cellenv
-    int retval = main_lua_pcall(L, 3, 1);
+    int retval = main_lua_pcall(L, 3, 2);
     toplevel = _process_object(L, retval);
 create_layout_from_script_finish:
     lua_close(L);
@@ -271,7 +278,7 @@ struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct t
     struct object* toplevel = NULL;
     // get function
     lua_getglobal(L, "pcell");
-    lua_getfield(L, -1, "create_layout_env");
+    lua_getfield(L, -1, "create_layout_env_wrapper");
     // push arguments: cellname and object name
     lua_pushstring(L, cellname);
     lua_pushstring(L, toplevelname);
@@ -289,7 +296,7 @@ struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct t
         goto create_layout_finish;
     }
     // call layout generation function
-    int retval = main_lua_pcall(L, 4, 1);
+    int retval = main_lua_pcall(L, 4, 2);
     // check for errors and retrieve object in C
     toplevel = _process_object(L, retval);
 create_layout_finish:
