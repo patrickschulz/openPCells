@@ -30,7 +30,6 @@ Especially with HTML-based stuff (cell display, searchable documentation) I coul
 * functioning digital place&route
 * up-to-date documentation
 * hand-holding tutorial with mature examples so that anyone can start to use opc
-* fix cell export in virtuoso
 * GUI (browser-based) configuration tool for cells
 * a collection of robust and mature cells with medium complexity:
     - ring oscillator
