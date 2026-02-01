@@ -152,7 +152,7 @@ debug/$(PROGNAME): debug cmdoptions_def.c version.h main.c liblua_debug.a _modul
 	$(CC) $(CFLAGS) -O0 -g -o debug/$(PROGNAME) main.c $(DEBUGOBJS) _modulemanager.c _scriptmanager.c liblua_debug.a -lm -ldl
 
 debug/%.o: %.c
-	$(CC) -c $(CFLAGS) -O0 -g -o $@ $<
+	$(CC) -c $(CFLAGS) -DOPC_DEBUG -O0 -g -o $@ $<
 
 .PHONY: check
 check:

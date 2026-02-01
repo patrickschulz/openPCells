@@ -231,7 +231,7 @@ static struct object* _process_object(lua_State* L, int retval)
     }
 }
 
-struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* toplevelname, struct const_vector* cellargs, const char *cellenvfilename)
+struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* toplevelname, struct const_vector* cellargs, const char *cellenvfilename, int dodebug)
 {
     (void)toplevelname;
     lua_State* L = _prepare_layout_generation(pcell_state, techstate);
@@ -257,18 +257,21 @@ struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, 
         fprintf(stderr, "could not load cell environment in '%s'\n", cellenvfilename);
         goto create_layout_from_script_finish;
     }
+    // gather debug info?
+    lua_pushboolean(L, dodebug);
     // arguments:
     // (1) scriptpath
     // (2) args
     // (3) cellenv
-    int retval = main_lua_pcall(L, 3, 2);
+    // (4) dodebug
+    int retval = main_lua_pcall(L, 4, 2);
     toplevel = _process_object(L, retval);
 create_layout_from_script_finish:
     lua_close(L);
     return toplevel;
 }
 
-struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* toplevelname, const char* cellenvfilename)
+struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* toplevelname, const char* cellenvfilename, int dodebug)
 {
     lua_State* L = _prepare_layout_generation(pcell_state, techstate);
     if(!L)
@@ -295,8 +298,16 @@ struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct t
         fprintf(stderr, "could not load cell environment in '%s'\n", cellenvfilename);
         goto create_layout_finish;
     }
+    // gather debug info?
+    lua_pushboolean(L, dodebug);
     // call layout generation function
-    int retval = main_lua_pcall(L, 4, 2);
+    // arguments:
+    // (1) cellname
+    // (2) name
+    // (3) cellargs
+    // (4) env
+    // (5) dodebug
+    int retval = main_lua_pcall(L, 5, 2);
     // check for errors and retrieve object in C
     toplevel = _process_object(L, retval);
 create_layout_finish:

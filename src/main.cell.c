@@ -616,8 +616,19 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         }
     }
 
+    // cell environment
     const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
+
+    // cellname
     const char* name = cmdoptions_get_argument_long(cmdoptions, "cellname");
+
+    // generate debugging info
+    int dodebug = cmdoptions_was_provided_long(cmdoptions, "cell-debug");
+#ifdef OPC_DEBUG
+    dodebug = 1;
+#endif
+
+    // create layout
     if(verbose)
     {
         puts("creating layout...");
@@ -625,7 +636,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     struct object* toplevel = NULL;
     if(iscellscript)
     {
-        toplevel = pcell_create_layout_from_script(pcell_state, techstate, cellname, name, cellargs, cellenvfilename);
+        toplevel = pcell_create_layout_from_script(pcell_state, techstate, cellname, name, cellargs, cellenvfilename, dodebug);
     }
     else
     {
@@ -635,7 +646,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         }
         else
         {
-            toplevel = pcell_create_layout_env(pcell_state, techstate, cellname, name, cellenvfilename);
+            toplevel = pcell_create_layout_env(pcell_state, techstate, cellname, name, cellenvfilename, dodebug);
         }
     }
     const_vector_destroy(cellargs);

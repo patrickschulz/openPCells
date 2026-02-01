@@ -599,14 +599,19 @@ function pcell.create_layout_env(cellname, name, cellargs, env)
 end
 
 -- message handler which skips traceback for cell-generating functions
-local function cellmsghandler(obj)
+local function cellmsghandler_notraceback(msg)
     -- no traceback
-    return obj
+    return msg
+end
+
+local function cellmsghandler(msg)
+    return debug.traceback(msg)
 end
 
 -- interface function for calling in pcell.c
-function pcell.create_layout_env_wrapper(cellname, name, cellargs, env)
-    local status, cell = xpcall(pcell.create_layout_env, cellmsghandler, cellname, name, cellargs, env)
+function pcell.create_layout_env_wrapper(cellname, name, cellargs, env, dodebug)
+    local msghandler = dodebug and cellmsghandler or cellmsghandler_notraceback
+    local status, cell = xpcall(pcell.create_layout_env, msghandler, cellname, name, cellargs, env)
     if not status then
         -- errors occured, 'cell' is a message
         return false, cell
@@ -645,7 +650,7 @@ function pcell.create_layout_env_in_object(obj, cellname, cellargs, env)
     _globalenv = oldenv
 end
 
-function pcell.create_layout_from_script(scriptpath, args, cellenv)
+function pcell.create_layout_from_script(scriptpath, args, cellenv, dodebug)
     local reader = _get_reader(scriptpath)
     if reader then
         local env = _ENV
@@ -662,7 +667,8 @@ function pcell.create_layout_from_script(scriptpath, args, cellenv)
             error(errmsg, 0)
         end
         -- run script
-        local status, cell = xpcall(cellfunc, cellmsghandler)
+        local msghandler = dodebug and cellmsghandler or cellmsghandler_notraceback
+        local status, cell = xpcall(cellfunc, msghandler)
         if not status then
             -- errors occured, 'cell' is a message
             return false, cell
