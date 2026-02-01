@@ -104,8 +104,25 @@ procedure(OPCExportGetShape(shape)
     ) ; case objType
 ) ; OPCExportGetShape
 
+procedure(OPCExportGetShapeNoNets(shape)
+    case(shape->objType
+        ("rect"
+            list("rect" shape->lpp car(shape->bBox) cadr(shape->bBox))
+        ) ; rect
+        ("polygon"
+            list("polygon" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points))
+        ) ; polygon
+        ("path"
+            list("path" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points) shape->width)
+        ) ; path
+        ("pathSeg"
+            list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width)
+        ) ; path
+    ) ; case objType
+) ; OPCExportGetShape
+
 procedure(OPCExportGatherVias(via)
-    mapcar('OPCExportGetShape via->viaHeader->master->shapes)
+    mapcar('OPCExportGetShapeNoNets via->viaHeader->master->shapes)
 ) ; OPCExportGatherVias
 
 procedure(OPCExportTransformShape(shape tmatrix)
@@ -140,11 +157,21 @@ procedure(OPCExportDisplaceShape(shape dx dy)
     shape
 ) ; OPCExportDisplaceShape
 
-procedure(OPCExportGatherCellShapes(cell)
+procedure(OPCExportGatherCellShapes(cell level gather_only_toplevel_nets)
     let(
         (subshapes vias shapes viatmatrix tmatrix)
         ; gather shapes of cell
-        shapes = mapcar('OPCExportGetShape cell->shapes)
+        if(gather_only_toplevel_nets
+            then
+                if(level == 0
+                    then
+                        shapes = mapcar('OPCExportGetShape cell->shapes)
+                    else
+                        shapes = mapcar('OPCExportGetShapeNoNets cell->shapes)
+                )
+            else
+                shapes = mapcar('OPCExportGetShape cell->shapes)
+        )
         ; gather vias of this cell
         foreach(via cell->vias
             vias = OPCExportGatherVias(via)
@@ -158,7 +185,7 @@ procedure(OPCExportGatherCellShapes(cell)
         ) ; foreach vias
         ; gather shapes of instances
         foreach(instance cell->instances
-            subshapes = OPCExportGatherCellShapes(instance->master)
+            subshapes = OPCExportGatherCellShapes(instance->master level + 1 gather_only_toplevel_nets)
             ; instance transformation matrix
             tmatrix = OPCExportGetInstanceTMatrix(instance)
             if(instance->columns
@@ -226,7 +253,7 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
     ) ; foreach shape
 ) ; OPCExportWriteCellShapes
 
-procedure(OPCExportWriteCell(path)
+procedure(OPCExportWriteCell(path @key (export_only_toplevel_nets t))
     let(
         (
             (cv geGetEditCellView())
@@ -234,7 +261,7 @@ procedure(OPCExportWriteCell(path)
             shapes
         )
         file = outfile(path "w")
-        shapes = OPCExportGatherCellShapes(cv)
+        shapes = OPCExportGatherCellShapes(cv 0 export_only_toplevel_nets)
         fprintf(file "local %s = object.create(\"%s\")\n" cv->cellName cv->cellName)
         OPCExportWriteCellShapes(file cv->cellName shapes)
         fprintf(file "return %s\n" cv->cellName)
