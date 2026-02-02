@@ -189,6 +189,23 @@ procedure(OPCSubCellEditScript()
     ) ; let
 ) ; procedure
 
+procedure(OPCSubCellMapILListEntry(entry)
+    case(type(entry)
+        ('fixnum lsprintf("%d" entry))
+        ('flonum lsprintf("%d" 1000 * entry))
+        ('string lsprintf("\"%s\"" entry))
+        ('symbol lsprintf("\"%s\"" symbolToString(entry)))
+    ) ; case
+) ; OPCSubCellMapILListEntry
+
+procedure(OPCSubCellFormatILList(l)
+    let(
+        (flist)
+        flist = mapcar('OPCSubCellMapILListEntry l)
+        buildString(flist ", ")
+    ) ; let
+) ; OPCSubCellFormatILList
+
 procedure(OPCGetSubCellCellParameters(opcgroup)
     let((value parameterlist)
         parameterlist = nil
@@ -199,6 +216,7 @@ procedure(OPCGetSubCellCellParameters(opcgroup)
                     ("float" lsprintf("%d" int(p->value * 1000))) ; convert micro-meter to nano-meter
                     ("boolean" lsprintf("%s" if(p->value == "TRUE" "true" "false")))
                     ("string" lsprintf("\"%s\"" p->value))
+                    ("ILList" lsprintf("{ %s }" OPCSubCellFormatILList(p->value))
                     (t nil)
                 )
                 parameterlist = cons(list(p->name value) parameterlist)
