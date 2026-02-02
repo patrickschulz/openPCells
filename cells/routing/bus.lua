@@ -27,7 +27,6 @@ function process_parameters(_P)
     local t = {}
     local maxmetal = math.max(_P.hmetal, _P.vmetal)
 
-    technology.get_dimension(
     t.hwidth = technology.get_dimension_max(
         string.format("Minimum M%d Width", _P.hmetal),
         string.format("Minimum M%dM%d Viawidth", maxmetal - 1, maxmetal)
