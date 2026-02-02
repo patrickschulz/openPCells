@@ -142,7 +142,7 @@ procedure(OPCCreateLayoutMenu()
         )
         hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
-)
+) ; OPCCreateLayoutMenu
 
 procedure(OPCMenuTrigger(args)
     let((menu)
@@ -167,7 +167,7 @@ procedure(OPCMenuTrigger(args)
         */
         list(menu)
     )
-)
+) ; OPCMenuTrigger
 
 procedure(OPCModeChangeTrigger(args)
     ; FIXME: needs update after re-structuring menu
@@ -204,7 +204,7 @@ procedure(OPCModeChangeTrigger(args)
     )
     */
     t
-)
+) ; OPCModeChangeTrigger
 
 ; create a user postinstall trigger that automatically adds the menu
 foreach(layoutTier list("layout" "maskLayout" "maskLayoutL" "maskLayoutXL" "maskLayoutEXL" "maskLayoutGXL" "maskLayoutEAD")

@@ -11,11 +11,11 @@ procedure(OPCIsOPCGroup(group)
         ) ; when is group
         found
     )
-) ; procedure OPCIsOPCGroup
+) ; OPCIsOPCGroup
 
 procedure(OPCSubCellGet()
     setof(group geGetSelSet() OPCIsOPCGroup(group))
-) ; procedure
+) ; OPCSubCellGet
 
 procedure(OPCSubCellCreateScript()
     ; (1) open dialog to get group name/layout path (should they be the same?)
@@ -45,7 +45,7 @@ procedure(OPCSubCellCreateScript()
         ?callback "OPCSubCellScriptCreateCallback()"
     )
     hiDisplayForm(OPCSubCellScriptCreationForm 100:100)
-)
+) ; OPCSubCellCreateScript
 
 procedure(OPCSubCellCreateCell()
     ; (1) open dialog to get cell name
@@ -69,7 +69,7 @@ procedure(OPCSubCellCreateCell()
         ?callback "OPCSubCellCellCreateCallback()"
     )
     hiDisplayForm(OPCSubCellCellCreationForm 100:100)
-)
+) ; OPCSubCellCreateCell
 
 procedure(OPCSubCellCreateBase(cv name properties)
     let((group)
@@ -79,11 +79,11 @@ procedure(OPCSubCellCreateBase(cv name properties)
         )
         group
     )
-) ; procedure OPCSubCellCreateBase
+) ; OPCSubCellCreateBase
 
 procedure(OPCGetSubCellScriptDirectory(cv)
     lsprintf("%s/%s/layout/opcsubgroups" cv->lib->readPath cv->cellName)
-) ; procedure OPCGetSubCellScriptDirectory
+) ; OPCGetSubCellScriptDirectory
 
 procedure(OPCSubCellScriptCreateCallback()
     let(
@@ -140,7 +140,7 @@ procedure(OPCSubCellScriptCreateCallback()
     ; (4) add opcpath property
     ; (5) call opc and fill group with shapes
     ; (6) place/move group
-) ; procedure OPCSubCellScriptCreateCallback
+) ; OPCSubCellScriptCreateCallback
 
 procedure(OPCSubCellCellCreateCallback()
     let(
@@ -177,7 +177,7 @@ procedure(OPCSubCellCellCreateCallback()
     ; (4) add opcpath property
     ; (5) call opc and fill group with shapes
     ; (6) place/move group
-) ; procedure
+) ; OPCSubCellCellCreateCallback
 
 procedure(OPCSubCellEditScript()
     let(
@@ -187,7 +187,7 @@ procedure(OPCSubCellEditScript()
             OPCOpenEditor(opcgroup->opcpath)
         ) ; when opcgroup
     ) ; let
-) ; procedure
+) ; OPCSubCellEditScript
 
 procedure(OPCSubCellMapILListEntry(entry)
     case(type(entry)
@@ -195,6 +195,12 @@ procedure(OPCSubCellMapILListEntry(entry)
         ('flonum lsprintf("%d" 1000 * entry))
         ('string lsprintf("\"%s\"" entry))
         ('symbol lsprintf("\"%s\"" symbolToString(entry)))
+        ('list  OPCSubCellFormatILList(entry))
+        (t error(lsprintf(
+                "openPCells virtuoso sub-cell: received an unknown entry type for parameter formatting: %s" 
+                symbolToString(type(entry))
+           ))
+        )
     ) ; case
 ) ; OPCSubCellMapILListEntry
 
@@ -202,7 +208,7 @@ procedure(OPCSubCellFormatILList(l)
     let(
         (flist)
         flist = mapcar('OPCSubCellMapILListEntry l)
-        buildString(flist ", ")
+        lsprintf("{ %s }" lspbuildString(flist ", "))
     ) ; let
 ) ; OPCSubCellFormatILList
 
@@ -212,12 +218,12 @@ procedure(OPCGetSubCellCellParameters(opcgroup)
         foreach(p opcgroup->prop
             unless(p->name == "opccell" || p->name == "opcprotect"
                 value = case(p->valueType
-                    ("int" lsprintf("%d" p->value)) ; integers stay integers (e.g. number of fingers)
-                    ("float" lsprintf("%d" int(p->value * 1000))) ; convert micro-meter to nano-meter
-                    ("boolean" lsprintf("%s" if(p->value == "TRUE" "true" "false")))
-                    ("string" lsprintf("\"%s\"" p->value))
-                    ("ILList" lsprintf("{ %s }" OPCSubCellFormatILList(p->value))
-                    (t nil)
+                    ("int"      lsprintf("%d" p->value)) ; integers stay integers (e.g. number of fingers)
+                    ("float"    lsprintf("%d" int(p->value * 1000))) ; convert micro-meter to nano-meter
+                    ("boolean"  lsprintf("%s" if(p->value == "TRUE" "true" "false")))
+                    ("string"   lsprintf("\"%s\"" p->value))
+                    ("ILList"   lsprintf("{ %s }" OPCSubCellFormatILList(p->value))
+                    (t nil) ; should be unreachable?
                 )
                 parameterlist = cons(list(p->name value) parameterlist)
             )
@@ -228,7 +234,7 @@ procedure(OPCGetSubCellCellParameters(opcgroup)
 
 procedure(OPCSubCellUpdateCellScript()
     t
-)
+) ; OPCSubCellUpdateCellScript
 
 procedure(OPCSubCellUpdateCell(opcgroup)
     let(
@@ -243,7 +249,7 @@ procedure(OPCSubCellUpdateCell(opcgroup)
             ?xgroupname opcgroup->name
         )
     )
-)
+) ; OPCSubCellUpdateCell
 
 procedure(OPCSubCellUpdate()
     let(
@@ -267,7 +273,7 @@ procedure(OPCSubCellUpdate()
             )
         ) ; foreach opcgroup
     ) ; let
-) ; procedure
+) ; OPCSubCellUpdate
 
 procedure(OPCSubCellCleanUp()
     let(
@@ -288,4 +294,4 @@ procedure(OPCSubCellCleanUp()
             deleteFile(d)
         )
     ) ; let
-) ; procedure
+) ; OPCSubCellCleanUp

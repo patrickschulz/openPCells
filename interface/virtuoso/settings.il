@@ -253,9 +253,9 @@ procedure(OPCCreateSettingsForm()
             ?buttonLayout 'OKCancel
         )
     ) ; let
-) ; procedure
+) ; OPCCreateSettingsForm
 
 procedure(OPCSettingsCallback()
     hiDisplayForm(OPCSettingsForm 100:100)
-) ; procedure
+) ; OPCSettingsCallback
 

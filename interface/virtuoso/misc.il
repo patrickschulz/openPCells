@@ -109,7 +109,7 @@ procedure(OPCGetSelSetOrigin(selset)
 		y0 = car(sort(mapcar(lambda( (bBox) yCoord(car(bBox))) selset~>bBox) 'lessp))
 		list(x0 y0)
 	)
-)
+) ; OPCGetSelSetOrigin
 
 ; this function is written for selection sets but only one group is passed
 ; I kept the 'list(group)' construct everywhere, perhaps this might be expanded at some point
@@ -132,4 +132,4 @@ procedure(OPCMoveGroup(group)
 			)
 		)
 	)
-)
+) ; OPCMoveGroup

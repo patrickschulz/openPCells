@@ -1,6 +1,6 @@
 procedure(OPCOpenEditor(path)
     ipcBeginProcess(lsprintf(OPCSettingsForm->OPCSettingsEditCmd->value path))
-) ; procedure
+) ; OPCOpenEditor
 
 procedure(OPCEditCallback()
     letseq(
@@ -13,7 +13,7 @@ procedure(OPCEditCallback()
         path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
         OPCOpenEditor(path)
     )
-) ; procedure
+) ; OPCEditCallback
 
 procedure(OPCUpdateCellscriptCallback(@key (deleteAll t) (callopc t) (hierarchical t) (origin list(0 0)) (useOrigin nil) (xpath nil) (xgroupname nil))
     letseq(
@@ -129,7 +129,7 @@ procedure(OPCUpdateCellCellCallback(cellname parameterlist @key (deleteAll t) (c
             OPCCleanUp(OPCSettingsForm->OPCParamFilename->value)
         )
     )
-) ; procedure
+) ; OPCUpdateCellCellCallback
 
 procedure(OPCDeleteDesignFile()
 
@@ -144,4 +144,4 @@ procedure(OPCDeleteDesignFile()
             deleteFile(path)
         )
     )
-) ; procedure
+) ; OPCDeleteDesignFile

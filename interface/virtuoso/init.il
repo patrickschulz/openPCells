@@ -1,5 +1,5 @@
 foreach(
-    file
+    filename
     list(
         "backup"
         "call"
@@ -13,7 +13,7 @@ foreach(
         "settings"
         "subcell"
     )
-    load(lsprintf("%s/interface/virtuoso/%s.il" OPCPath file))
+    load(lsprintf("%s/interface/virtuoso/%s.il" OPCPath filename))
 )
 
 ; initialize forms

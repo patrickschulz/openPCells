@@ -88,7 +88,7 @@ procedure(OPCFillWriteInitial(file)
     fprintf(file "%s\n" "end")
     newline(file)
     fprintf(file "%s\n" "return fillcell")
-)
+) ; OPCFillWriteInitial
 
 procedure(OPCFillEditScript()
     letseq(
@@ -107,7 +107,7 @@ procedure(OPCFillEditScript()
         )
         OPCOpenEditor(path)
     )
-) ; procedure
+) ; OPCFillEditScript
 
 procedure(OPCUpdateFillCallback(@key (deleteAll t) (callopc t) (hierarchical nil) (origin list(0 0)) (useOrigin nil))
     letseq(
@@ -153,7 +153,7 @@ procedure(OPCUpdateFillCallback(@key (deleteAll t) (callopc t) (hierarchical nil
             OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
         )
     )
-) ; OPCUpdateCellscriptCallback
+) ; OPCUpdateFillCallback
 
 procedure(OPCDeleteFillGroup()
     let(
@@ -167,7 +167,7 @@ procedure(OPCDeleteFillGroup()
             )
         )
     )
-)
+) ; OPCDeleteFillGroup
 
 procedure(OPCDeleteFillScript()
     letseq(
@@ -181,4 +181,4 @@ procedure(OPCDeleteFillScript()
             deleteFile(path)
         )
     )
-) ; procedure
+) ; OPCDeleteFillScript

@@ -13,7 +13,7 @@ procedure(OPCGetGroupName(@key (newgroup nil))
                 OPCSettingsForm->OPCSettingsGroupname->value
         )
     )
-)
+) ; OPCGetGroupName
 
 procedure(OPCPrepareArgsForCellCreation(args origin @key (useOrigin t) (groupname nil) (exporttype "SKILL"))
     ; virtuoso chokes on loading files with malformed shapes, hence these are ignored
@@ -71,11 +71,11 @@ procedure(OPCPrepareArgsForCellCreation(args origin @key (useOrigin t) (groupnam
         OPCArgs = lsprintf("%s --merge-rectangles" OPCArgs)
     )
     OPCArgs
-)
+) ; OPCPrepareArgsForCellCreation
 
 procedure(OPCBuildCallCommand(args)
     lsprintf("%s/%s %s" OPCPath OPCExec args)
-)
+) ; OPCBuildCallCommand
 
 procedure(OPCCall(OPCCommand @key (redirect nil))
     let(
@@ -124,7 +124,7 @@ procedure(OPCCall(OPCCommand @key (redirect nil))
                 ) ; if exitstatus
         )
     ) ; let
-)
+) ; OPCCall
 
 procedure(OPCCleanUp(filename)
     when(OPCSettingsForm->OPCSettingsDeleteFile->value == "true"
@@ -132,5 +132,5 @@ procedure(OPCCleanUp(filename)
             deleteFile(filename)
         )
     )
-)
+) ; OPCCleanUp
 

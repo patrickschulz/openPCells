@@ -22,7 +22,7 @@ procedure(OPCCreateGuardring()
         group = OPCSubCellCreateBase(geGetEditCellView() groupname properties)
         OPCSubCellUpdateCell(group)
     )
-)
+) ; OPCCreateGuardring
 
 procedure(OPCCreateMosfet()
     let((group properties groupname count success)
@@ -59,7 +59,7 @@ procedure(OPCCreateMosfet()
             dbAddFigToFigGroup(group label)
         )
     )
-)
+) ; OPCCreateMosfet
 
 procedure(OPCCreateMetalgrid()
     let((group properties groupname count)
@@ -106,5 +106,5 @@ procedure(OPCCreateMetalgrid()
         group = OPCSubCellCreateBase(geGetEditCellView() groupname properties)
         OPCSubCellUpdateCell(group)
     )
-)
+) ; OPCCreateMetalgrid
 
