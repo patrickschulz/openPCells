@@ -239,7 +239,7 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
             ("rect"
                 fprintf(file
                     "geometry.rectanglepoints(%s, %s, %s, %s)"
-                    cellame
+                    cellname
                     OPCExportFormatLayer(cadr(shape))
                     OPCExportFormatPoint(nthelem(3 shape))
                     OPCExportFormatPoint(nthelem(4 shape))
