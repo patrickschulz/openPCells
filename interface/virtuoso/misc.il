@@ -87,7 +87,7 @@ procedure(OPCViewDPrintFile()
         path = lsprintf("%s" OPCSettingsForm->OPCDprintFilename->value)
         OPCShowTextFile(path)
     )
-) ; OPCViewLogFile
+) ; OPCViewDPrintFile
 
 procedure(OPCViewOutputFile()
     let(
@@ -97,7 +97,17 @@ procedure(OPCViewOutputFile()
         path = lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value)
         OPCShowTextFile(path)
     )
-) ; OPCViewLogFile
+) ; OPCViewOutputFile
+
+procedure(OPCViewExporttFile()
+    let(
+        (
+            path
+        )
+        path = lsprintf("%s" OPCSettingsForm->OPCExportFilename->value)
+        OPCShowTextFile(path)
+    )
+) ; OPCViewExporttFile
 
 procedure(OPCGetInfoLayer()
     list(OPCSettingsForm->OPCSettingsInfoLayer->value OPCSettingsForm->OPCSettingsInfoLayerPurpose->value)

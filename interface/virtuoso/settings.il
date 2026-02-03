@@ -11,7 +11,7 @@ procedure(OPCCreateSettingsForm()
             cellenvironmentfile
             filename
             paramfilename
-            listfilename
+            exportfilename
             labelsize
             enabledprint
             stdoutfilename
@@ -216,21 +216,21 @@ procedure(OPCCreateSettingsForm()
             ?value "opc.parameters"
             ?prompt "File Name for Parameters (pfiles)"
         )
-        listfilename = hiCreateStringField(
-            ?name 'OPCListFilename
-            ?value "opc.cells"
-            ?prompt "File Name for Cell Listings"
-        )
         stdoutfilename = hiCreateStringField(
             ?name 'OPCStdoutFileName
             ?value "openPCells.stdout"
-            ?prompt "File Name for standard output"
+            ?prompt "File Name for Standard Output"
+        )
+        exportfilename = hiCreateStringField(
+            ?name 'OPCExportFilename
+            ?value "openPCells_export.lua"
+            ?prompt "File Name for Cell Exports"
         )
         filenameoptionsgrid = hiCreateVerticalBoxLayout(
             'OPCSettingsFilenameOptionsGrid
             ?frame "File Names"
             ?spacing 10
-            ?items list(cellenvironmentfile cellfilename paramfilename stdoutfilename)
+            ?items list(cellenvironmentfile cellfilename paramfilename stdoutfilename exportfilename)
         )
         topgrid = hiCreateGridLayout(
             'OPCSettingsTopGrid

@@ -8,7 +8,11 @@ procedure(OPCCreateLayoutMenu()
             export
             settings
             editconfig
+            viewpfile
             viewlog
+            viewdprint
+            viewoutput
+            viewexport
             designmenu
             subcellmenu
             cellmenu
@@ -121,12 +125,13 @@ procedure(OPCCreateLayoutMenu()
         viewlog = hiCreateMenuItem(?name 'OPCViewLogFile ?itemText "View Logfile" ?callback "OPCViewLogFile()")
         viewdprint = hiCreateMenuItem(?name 'OPCViewDPrintFile ?itemText "View Debug Print File" ?callback "OPCViewDPrintFile()")
         viewoutput = hiCreateMenuItem(?name 'OPCViewOutputFile ?itemText "View Output File" ?callback "OPCViewOutputFile()")
+        viewexport = hiCreateMenuItem(?name 'OPCViewExportFile ?itemText "View Export File" ?callback "OPCViewExporttFile()")
 
         ; assemble main menu
         itemlist = list(
             about
             SEP
-            settings editconfig viewpfile viewlog viewdprint viewoutput
+            settings editconfig viewpfile viewlog viewdprint viewoutput viewexport
             SEP
             designmenu
             SEP

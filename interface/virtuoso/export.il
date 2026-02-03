@@ -54,16 +54,17 @@ procedure(OPCExportTranslate(pt dx dy)
     ) ; let
 ) ; OPCExportTranslate
 
-procedure(OPCExportGetTMatrix(x y orientation)
+procedure(OPCExportGetTMatrix(xpre ypre x y orientation)
+    ; orientation first, including xpre and ypre, than translation by x and y
     case(orientation
-        ("R0"     list( 1  0  x  0  1  y))
-        ("MX"     list( 1  0  x  0 -1  y))
-        ("MY"     list(-1  0  x  0  1  y))
-        ("R90"    list( 0 -1  x  1  0  y))
-        ("R180"   list(-1  0  x  0 -1  y))
-        ("R270"   list( 0  1  x -1  0  y))
-        ("MXR90"  list( 0  1  x  1  0  y))
-        ("MYR90"  list( 0 -1  x -1  0  y))
+        ("R0"     list( 1  0  xpre + x  0  1  ypre + y))
+        ("MX"     list( 1  0  xpre + x  0 -1 -ypre + y))
+        ("MY"     list(-1  0 -xpre + x  0  1  ypre + y))
+        ("R90"    list( 0 -1 -ypre + x  1  0  xpre + y))
+        ("R180"   list(-1  0 -xpre + x  0 -1 -ypre + y))
+        ("R270"   list( 0  1  ypre + x -1  0 -xpre + y))
+        ("MXR90"  list( 0  1  ypre + x  1  0  xpre + y))
+        ("MYR90"  list( 0 -1 -ypre + x -1  0 -xpre + y))
     ) ; case orientation
 ) ; OPCExportGetTMatrix
 
@@ -73,7 +74,20 @@ procedure(OPCExportGetInstanceTMatrix(instance)
         x = xCoord(instance->xy)
         y = yCoord(instance->xy)
         orientation = cadr(instance->transform)
-        OPCExportGetTMatrix(x y orientation)
+        OPCExportGetTMatrix(0 0 x y orientation)
+    ) ; let
+) ; OPCExportGetInstanceTMatrix
+
+procedure(OPCExportGetArrayInstanceTMatrix(instance xi yi)
+    ; FIXME: the existance of 'tileArray' as a list suggests that non-regular tiling is possible
+    ;        While I have never seen this and I also don't know how this can be achieved in virtuoso
+    ;        (possibly not via gui tools), it would still be nice to support this.
+    let(
+        (x y orientation)
+        x = xCoord(instance->xy)
+        y = yCoord(instance->xy)
+        orientation = car(instance->tileArray)
+        OPCExportGetTMatrix(xi yi x y orientation)
     ) ; let
 ) ; OPCExportGetInstanceTMatrix
 
@@ -82,8 +96,8 @@ procedure(OPCExportGetViaTMatrix(via)
         (x y orientation)
         x = xCoord(via->origin)
         y = yCoord(via->origin)
-        orientation = cadr(via->orient)
-        OPCExportGetTMatrix(x y orientation)
+        orientation = via->orient
+        OPCExportGetTMatrix(0 0 x y orientation)
     ) ; let
 ) ; OPCExportGetViaTMatrix
 
@@ -101,6 +115,7 @@ procedure(OPCExportGetShape(shape)
         ("pathSeg"
             list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width)
         ) ; path
+        (t nil) ; ignore everything else
     ) ; case objType
 ) ; OPCExportGetShape
 
@@ -118,6 +133,7 @@ procedure(OPCExportGetShapeNoNets(shape)
         ("pathSeg"
             list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width)
         ) ; path
+        (t nil) ; ignore everything else
     ) ; case objType
 ) ; OPCExportGetShape
 
@@ -159,19 +175,18 @@ procedure(OPCExportDisplaceShape(shape dx dy)
 
 procedure(OPCExportGatherCellShapes(cell level gather_only_toplevel_nets)
     let(
-        (subshapes vias shapes viatmatrix tmatrix)
-        ; gather shapes of cell
-        if(gather_only_toplevel_nets
+        (transformfun shapes subshapes vias viatmatrix tmatrix)
+        ; shape transformation function (possibly includes nets)
+        if(gather_only_toplevel_nets && (level > 0)
             then
-                if(level == 0
-                    then
-                        shapes = mapcar('OPCExportGetShape cell->shapes)
-                    else
-                        shapes = mapcar('OPCExportGetShapeNoNets cell->shapes)
-                )
+                transformfun = 'OPCExportGetShapeNoNets
             else
-                shapes = mapcar('OPCExportGetShape cell->shapes)
+                transformfun = 'OPCExportGetShape
         )
+        ; gather shapes of cell
+        shapes = mapcar(transformfun cell->shapes)
+        ; remove nils (ignored shapes)
+        remd(nil shapes)
         ; gather vias of this cell
         foreach(via cell->vias
             vias = OPCExportGatherVias(via)
@@ -185,15 +200,17 @@ procedure(OPCExportGatherCellShapes(cell level gather_only_toplevel_nets)
         ) ; foreach vias
         ; gather shapes of instances
         foreach(instance cell->instances
-            subshapes = OPCExportGatherCellShapes(instance->master level + 1 gather_only_toplevel_nets)
-            ; instance transformation matrix
-            tmatrix = OPCExportGetInstanceTMatrix(instance)
+            ; gather instance shapes in inner loop, as otherwise the shapes need to be copied for arrays
             if(instance->columns
                 then ; is array
                     for(xi 1 instance->columns
                         for(yi 1 instance->rows
+                            ; instance transformation matrix
+                            ; takes also care of array displacement
+                            tmatrix = OPCExportGetArrayInstanceTMatrix(instance xi yi)
+                            subshapes = OPCExportGatherCellShapes(instance->master level + 1 gather_only_toplevel_nets)
                             ; add array displacement
-                            OPCExportDisplaceShape(shape (xi - 1) * instance->uX (yi - 1) * instance->uY)
+                            ;OPCExportDisplaceShape(shape (xi - 1) * instance->uX (yi - 1) * instance->uY)
                             ; apply transformation and add to shapes list
                             foreach(shape subshapes
                                 OPCExportTransformShape(shape tmatrix)
@@ -202,6 +219,9 @@ procedure(OPCExportGatherCellShapes(cell level gather_only_toplevel_nets)
                         )
                     )
                 else ; single instance
+                    ; instance transformation matrix
+                    tmatrix = OPCExportGetInstanceTMatrix(instance)
+                    subshapes = OPCExportGatherCellShapes(instance->master level + 1 gather_only_toplevel_nets)
                     ; apply transformation and add to shapes list
                     foreach(shape subshapes
                         OPCExportTransformShape(shape tmatrix)
@@ -209,6 +229,7 @@ procedure(OPCExportGatherCellShapes(cell level gather_only_toplevel_nets)
                     ) ; foreach shapes
             ) ; if is array
         ) ; foreach instances
+        shapes
     ) ; let
 ) ; OPCExportGatherCellShapes
 
@@ -218,6 +239,7 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
             ("rect"
                 fprintf(file
                     "geometry.rectanglepoints(%s, %s, %s, %s)"
+                    cellame
                     OPCExportFormatLayer(cadr(shape))
                     OPCExportFormatPoint(nthelem(3 shape))
                     OPCExportFormatPoint(nthelem(4 shape))
@@ -237,6 +259,7 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
             ("polygon"
                 fprintf(file
                     "geometry.polygon(%s, %s, { %s })"
+                    cellname
                     OPCExportFormatLayer(cadr(shape))
                     OPCExportFormatPoints(nthelem(3 shape))
                 )
@@ -244,12 +267,14 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
             ("path"
                 fprintf(file
                     "geometry.path(%s, %s, { %s }, %s)"
+                    cellname
                     OPCExportFormatLayer(cadr(shape))
                     OPCExportFormatPoints(nthelem(3 shape))
                     OPCExportConvertCoordToOPCUnit(nthelem(4 shape))
                 )
             ) ; path
         ) ; case shape type
+        newline(file)
     ) ; foreach shape
 ) ; OPCExportWriteCellShapes
 
@@ -270,7 +295,7 @@ procedure(OPCExportWriteCell(path @key (export_only_toplevel_nets t))
 ) ; OPCExportWriteCell
 
 procedure(OPCExportGetFilename(filename)
-    if(filename filename "openPCells_export.lua")
+    if(filename filename OPCSettingsForm->OPCExportFilename->value)
 ) ; OPCExportGetFilename
 
 procedure(OPCExportCell(filename)

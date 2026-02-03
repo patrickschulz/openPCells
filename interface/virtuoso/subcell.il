@@ -208,7 +208,7 @@ procedure(OPCSubCellFormatILList(l)
     let(
         (flist)
         flist = mapcar('OPCSubCellMapILListEntry l)
-        lsprintf("{ %s }" lspbuildString(flist ", "))
+        lsprintf("{ %s }" buildString(flist ", "))
     ) ; let
 ) ; OPCSubCellFormatILList
 
@@ -222,7 +222,7 @@ procedure(OPCGetSubCellCellParameters(opcgroup)
                     ("float"    lsprintf("%d" int(p->value * 1000))) ; convert micro-meter to nano-meter
                     ("boolean"  lsprintf("%s" if(p->value == "TRUE" "true" "false")))
                     ("string"   lsprintf("\"%s\"" p->value))
-                    ("ILList"   lsprintf("{ %s }" OPCSubCellFormatILList(p->value))
+                    ("ILList"   OPCSubCellFormatILList(p->value))
                     (t nil) ; should be unreachable?
                 )
                 parameterlist = cons(list(p->name value) parameterlist)
