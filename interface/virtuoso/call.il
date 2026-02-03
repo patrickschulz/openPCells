@@ -39,6 +39,9 @@ procedure(OPCPrepareArgsForCellCreation(args origin @key (useOrigin t) (groupnam
     when(groupname
         OPCArgs = lsprintf("%s -X '-g -n %s'" OPCArgs groupname)
     )
+    when(OPCSettingsForm->OPCSettingsDebugCall->value == "true"
+        OPCArgs = lsprintf("%s --debug-cell" OPCArgs)
+    )
     when(OPCSettingsForm->OPCCellEnvironmentFile->value != ""
         OPCArgs = lsprintf("%s --cell-environment %s" OPCArgs OPCSettingsForm->OPCCellEnvironmentFile->value)
     )

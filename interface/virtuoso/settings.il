@@ -173,6 +173,12 @@ procedure(OPCCreateSettingsForm()
             ?value "false"
             ?prompt "Log opc calls to CIW"
         )
+        debugcalls = hiCreateRadioField(
+            ?name 'OPCSettingsDebugCall
+            ?choices list("true" "false")
+            ?value "false"
+            ?prompt "Enable Debugging for opc Calls"
+        )
         timeout = hiCreateIntField(
             ?name 'OPCSettingsTimeout
             ?value 10
@@ -198,7 +204,7 @@ procedure(OPCCreateSettingsForm()
             'OPCSettingsCallOptionsGrid
             ?frame "Call Options"
             ?spacing 10
-            ?items list(log timeout cmdadditionalargs editcmd deletefile)
+            ?items list(log debugcalls timeout cmdadditionalargs editcmd deletefile)
         )
         ; filenames
         cellenvironmentfile = hiCreateStringField(
