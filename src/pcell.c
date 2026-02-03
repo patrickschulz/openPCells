@@ -241,7 +241,7 @@ struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, 
         return NULL;
     }
     lua_getglobal(L, "pcell");
-    lua_getfield(L, -1, "create_layout_from_script");
+    lua_getfield(L, -1, "create_layout_from_script_wrapper");
     lua_pushstring(L, scriptname);
     // cell arguments
     lua_newtable(L);

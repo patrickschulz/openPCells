@@ -563,7 +563,6 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
     end
 end
 
-local _globalenv
 function pcell.create_layout(cellname, name, cellargs, ...)
     if not cellname or type(cellname) ~= "string" then
         error("pcell.create_layout: expected cellname (a string) as first argument")
@@ -579,6 +578,7 @@ function pcell.create_layout(cellname, name, cellargs, ...)
     return obj
 end
 
+local _globalenv
 function pcell.create_layout_env(cellname, name, cellargs, env)
     if not cellname or type(cellname) ~= "string" then
         error("pcell.create_layout_env: expected cellname as first argument")
@@ -650,7 +650,19 @@ function pcell.create_layout_env_in_object(obj, cellname, cellargs, env)
     _globalenv = oldenv
 end
 
-function pcell.create_layout_from_script(scriptpath, args, cellenv, dodebug)
+-- interface function for calling in pcell.c
+function pcell.create_layout_from_script_wrapper(scriptpath, args, cellenv, dodebug)
+    local msghandler = dodebug and cellmsghandler or cellmsghandler_notraceback
+    local status, cell = xpcall(pcell.create_layout_env, msghandler, scriptpath, args, cellenv)
+    if not status then
+        -- errors occured, 'cell' is a message
+        return false, cell
+    else
+        return true, cell
+    end
+end
+
+function pcell.create_layout_from_script(scriptpath, args, cellenv)
     local reader = _get_reader(scriptpath)
     if reader then
         local env = _ENV
@@ -667,20 +679,15 @@ function pcell.create_layout_from_script(scriptpath, args, cellenv, dodebug)
             error(errmsg, 0)
         end
         -- run script
-        local msghandler = dodebug and cellmsghandler or cellmsghandler_notraceback
-        local status, cell = xpcall(cellfunc, msghandler)
-        if not status then
-            -- errors occured, 'cell' is a message
-            return false, cell
-        end
+        local cell = cellfunc()
         if not cell then
-            return false, string.format("cellscript '%s' did not return an object", scriptpath)
+            error(string.format("cellscript '%s' did not return an object", scriptpath))
         end
         -- FIXME: should this be higher up?
         env.args = savedargs
-        return true, cell
+        return cell
     else
-        return false, string.format("cellscript '%s' could not be opened", scriptpath)
+        error(string.format("cellscript '%s' could not be opened", scriptpath))
     end
 end
 
