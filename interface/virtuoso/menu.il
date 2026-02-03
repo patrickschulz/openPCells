@@ -3,6 +3,7 @@ procedure(OPCCreateLayoutMenu()
         (
             menu
             itemlist
+            documentation
             about
             SEP
             export
@@ -21,6 +22,7 @@ procedure(OPCCreateLayoutMenu()
         )
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
+        documentation = hiCreateMenuItem(?name 'OPCDocumentation ?itemText "Documentation" ?callback "OPCDocumentationCallback()")
 
         SEP = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
 
@@ -130,6 +132,7 @@ procedure(OPCCreateLayoutMenu()
         ; assemble main menu
         itemlist = list(
             about
+            documentation
             SEP
             settings editconfig viewpfile viewlog viewdprint viewoutput viewexport
             SEP

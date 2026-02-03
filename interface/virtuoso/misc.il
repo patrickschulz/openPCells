@@ -17,6 +17,10 @@ procedure(OPCAboutCallback()
     )
 ) ; OPCAboutCallback
 
+procedure(OPCDocumentationCallback()
+    OPCAuxCall("--html-documentation")
+) ; OPCAboutCallback
+
 procedure(OPCEditConfigFile()
     let(
         (
