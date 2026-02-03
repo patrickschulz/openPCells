@@ -131,36 +131,12 @@ procedure(OPCCall(OPCCommand @key (redirect nil))
 
 procedure(OPCAuxCall(args)
     let(
-        (errmsg cmd pid exitstatus)
+        (cmd)
         cmd = OPCBuildCallCommand(args)
         when(OPCSettingsForm->OPCSettingsLog->value == "true"
             printf("opc call: %s\n" cmd)
         )
-        pid = ipcBeginProcess(cmd)
-        ipcWait(pid 1 1) ; does not need long time-out
-        when(ipcIsAliveProcess(pid)
-            ipcKillProcess(pid)
-        )
-        exitstatus = ipcGetExitStatus(pid)
-        if(exitstatus != 0
-            then
-                warn("opc call failed, command was: %s\n" OPCCommand)
-                errmsg = ipcReadProcess(pid)
-                unless(errmsg
-                    errmsg = "unknown error, this is a bug in opc (likely a segmentation fault)"
-                )
-                hiDisplayAppDBox(
-                    ?name        'OPCInfoDialog
-                    ?dboxBanner  "openPCells"
-                    ?dboxText    lsprintf("errors while executing opc: %s" errmsg)
-                    ?dialogType   hicWarningDialog
-                    ?dialogStyle 'modeless
-                    ?buttonLayout 'Close
-                )
-                nil
-            else
-                t
-        ) ; if exitstatus
+        system(cmd)
     ) ; let
 ) ; OPCAuxCall
 
