@@ -173,9 +173,9 @@ static void _print_general_info(void)
     puts("The documentation can be accessed in several ways, depending on the type of information:");
     puts("  * Information about pcells can be obtained by:");
     puts("      '-L': List available cells");
-    puts("      '-I': List available cells");
-    puts("      '-P': List cell parameters (with filter)");
-    puts("      '-A': List cell anchors (with filter)");
+    puts("      '-I': Show information about a given cell");
+    puts("      '-P': List parameters of a given cell (with filter)");
+    puts("      '-A': List anchors of a given cell (with filter)");
     puts("  * Information about API functions can be obtained by '--api-search'/'--api-help'");
     puts("  * HTML documentation can be opened via '-d/--html-documentation'");
     puts("  * A tutorial showing the usage of opc can be accessed by '--tutorial'");
