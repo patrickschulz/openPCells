@@ -653,7 +653,7 @@ end
 -- interface function for calling in pcell.c
 function pcell.create_layout_from_script_wrapper(scriptpath, args, cellenv, dodebug)
     local msghandler = dodebug and cellmsghandler or cellmsghandler_notraceback
-    local status, cell = xpcall(pcell.create_layout_env, msghandler, scriptpath, args, cellenv)
+    local status, cell = xpcall(pcell.create_layout_from_script, msghandler, scriptpath, args, cellenv)
     if not status then
         -- errors occured, 'cell' is a message
         return false, cell
