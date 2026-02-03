@@ -266,7 +266,7 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
             ) ; polygon
             ("path"
                 fprintf(file
-                    "geometry.path(%s, %s, { %s }, %s)"
+                    "geometry.path(%s, %s, { %s }, %d)"
                     cellname
                     OPCExportFormatLayer(cadr(shape))
                     OPCExportFormatPoints(nthelem(3 shape))
