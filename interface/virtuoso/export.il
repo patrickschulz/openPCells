@@ -205,12 +205,9 @@ procedure(OPCExportGatherCellShapes(cell level gather_only_toplevel_nets)
                 then ; is array
                     for(xi 1 instance->columns
                         for(yi 1 instance->rows
-                            ; instance transformation matrix
-                            ; takes also care of array displacement
-                            tmatrix = OPCExportGetArrayInstanceTMatrix(instance xi yi)
+                            ; instance transformation matrix (takes also care of array displacement)
+                            tmatrix = OPCExportGetArrayInstanceTMatrix(instance (xi - 1) * instance->uX (yi - 1) * instance->uY)
                             subshapes = OPCExportGatherCellShapes(instance->master level + 1 gather_only_toplevel_nets)
-                            ; add array displacement
-                            ;OPCExportDisplaceShape(shape (xi - 1) * instance->uX (yi - 1) * instance->uY)
                             ; apply transformation and add to shapes list
                             foreach(shape subshapes
                                 OPCExportTransformShape(shape tmatrix)
