@@ -1,0 +1,121 @@
+
+
+<head>
+    <meta charset="utf-8">
+    <title>OpenPCells Documentation</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="topbar">
+        <a href="../index.html" class="title">OpenPCells Documentation</a>
+        <h2 class="subtitle">Writing Parametric Cells</h2>
+    </div>
+    <h1>Introduction</h1>
+    <p>
+    This guide shows the various functions and techniques involved in creating parametric cells.
+    </p>
+    <p>
+    Parametric cells (p-cells or just pcells) in openPCells are defined by a collection of functions.
+    </p>
+    <h1>Interface Functions</h1>
+    The following functions define a parametric cells.
+    Not all functions need to be defined, it is actually quite unlikely that a cell will define all of them.
+    The list shows the functions in their order of when they are called (e.g. prepare() is called after process_parameters()).
+    <ol>
+        <li>info</li>
+        <li>requirements</li>
+        <li>config</li>
+        <li>parameters</li>
+        <li>process_parameters</li>
+        <li>prepare</li>
+        <li>check</li>
+        <li>anchors</li>
+        <li>layout</li>
+    </ol>
+    <h1>The info() Function</h1>
+    <p>
+    The info() function documents the cell usage.
+    It should return a string, which is accessed by:
+    </p>
+    <pre class="shell">opc --cell-info &lt;cellname&gt;</pre>
+    <p>
+    The info() function does not take any parameters and shall not produce any side effects.
+    </p>
+    <h1>The requirements() Function</h1>
+    <p>
+    The requirements() function runs preliminary checks whether the cell is supported (mainly by the technology node).
+    It does not receive any parameters, as at the time of its calling no cell parameters and no cell itself are defined.
+    The return value of it should be 'true' if all checks succeed, otherwise 'false' and a message describing the failure can be returned.
+    Not returning 'true' on success is an error and caught by the pcell module.
+    </p>
+    <p>
+    The targeted use of this function is checking for required process node features.
+    Consider the following example, where a minimum number of metals in the metal stack is required:
+    </p>
+    <pre class="opc">function requirements()
+    if technology.get_number_of_metals() < 4 then
+        return false, "this cell requires a metal stack with at least 4 metals"
+    end
+    return true -- a missing final 'return true' is an error
+end</pre>
+    <h1>The config() Function</h1>
+    The config() function sets certain configuration settings for a cell.
+    For example, a cell could be set as 'hidden' to prevent it from being listed.
+    This function is used very rarely and not well tested.
+    Its use is discouraged.
+    <h1>The parameters() Function</h1>
+    <p>
+    The parameters function defines the cell parameters.
+    The main API function for this are pcell.add_parameter and pcell.add_parameters.
+    Internally they call the same function, so add_parameters (the plural version) is simply a convenience function.
+    As most cells will typically use more than one parameter, add_parameters is used more often than add_parameter.
+    </p>
+    <p>
+    Parameters are defined by their name and default value (which determines which types they accept when the cell is called).
+    Hence, the signature of pcell.add_parameter has three arguments: the name of the parameter, the default value and an optional table with additional settings:
+    </p>
+    <pre class="opc"><code>pcell.add_parameters(name, default, opts)</code></pre>
+    <p>
+    pcell.add_parameters accepts any number of arguments.
+    Internally, the function loops over all arguments and call pcell.add_parameter with the contents of each entry.
+    Therefore, every argument to pcell.add_parameters should be a table, where its first entry is the parameter name and the second entry is its default value.
+    Additional settings can be done by key-value pairs.
+    Note: A common mistake is to include a final comma after the last entry, as (with many parameters) the function call resembles a lua table constructor expression.
+    This is however a syntax error.
+    </p>
+    <p>
+    An example of a parameters() function definition is given here:
+    </p>
+    <pre class="opc"><code>function parameters()
+    pcell.add_parameters(
+        { "metal", 1 },
+        { "width", 200 },
+        { "space", 200 }
+    )
+end</code></pre>
+    <h1>The process_parameters() Function</h1>
+    <h1>The prepare() Function</h1>
+    <h1>The check() Function</h1>
+    The check() function receives the processed 
+    <h1>The anchors() Function</h1>
+    <h1>The layout() Function</h1>
+    <p>
+    The layout function contains the actual code for layout generation.
+    It receives up to four parameters:
+    </p>
+    <ol>
+        <li>The cell in which the shapes and instances are placed</li>
+        <li>The parameter table</li>
+        <li>The cell environment</li>
+        <li>The cell state (obtained from prepare()</li>
+    </ol>
+    <p>
+    Typically, the layout function uses at least the first two parameters, as a layout without a cell is impossible and a layout without parameters is not very useful.
+    The cell environment is useful when several different pcells re-use the same settings (for instance width/spacing for metal grids across different cells).
+    As cell environments are equal for all cells in one opc call (as opposed to parameters, where every cell gets their own) the use of cell environments can reduce code duplication.
+    The cell state is an internal table generated by the prepare() function.
+    The goal again is to reduce code duplication, which can occur when calculations with parameters are necessary for, say, parameter checks and layout generation.
+    </p>
+    <pre class="opc"><code>function layout(cell, _P, env, state)
+end</code></pre>
+</body>
