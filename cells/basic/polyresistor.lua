@@ -56,6 +56,7 @@ function parameters()
         { "guardringsoiopenouterextension", technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
         { "guardringoxidetypeinnerextension", technology.get_dimension("Minimum Oxide Extension") },
         { "guardringoxidetypeouterextension", technology.get_dimension("Minimum Oxide Extension") },
+        { "guardringnet", "" },
         { "addlabel", false },
         { "labeltext", "" },
         { "labellayer", false }, -- nil is not possible due to internal pcell handling
@@ -598,5 +599,37 @@ function layout(resistor, _P)
         end
         guardring:translate(-_P.guardring_xsep, -_P.extraextension - _P.guardring_ysep)
         resistor:merge_into(guardring)
+
+        -- guardring segment anchors
+        resistor:inherit_area_anchor_as(guardring, "topsegment", "guardring_topsegment")
+        resistor:inherit_area_anchor_as(guardring, "bottomsegment", "guardring_bottomsegment")
+        resistor:inherit_area_anchor_as(guardring, "leftsegment", "guardring_leftsegment")
+        resistor:inherit_area_anchor_as(guardring, "rightsegment", "guardring_rightsegment")
+
+        -- add guardring net
+        if _P.guardringnet ~= "" then
+            resistor:add_net_shape(_P.guardringnet,
+                point.create(
+                    guardring:get_area_anchor("outerboundary").l,
+                    guardring:get_area_anchor("outerboundary").b
+                ),
+                point.create(
+                    guardring:get_area_anchor("outerboundary").r,
+                    guardring:get_area_anchor("innerboundary").b
+                ),
+                generics.metal(1)
+            )
+            resistor:add_net_shape(_P.guardringnet,
+                point.create(
+                    guardring:get_area_anchor("outerboundary").l,
+                    guardring:get_area_anchor("innerboundary").t
+                ),
+                point.create(
+                    guardring:get_area_anchor("outerboundary").r,
+                    guardring:get_area_anchor("outerboundary").t
+                ),
+                generics.metal(1)
+            )
+        end
     end
 end
