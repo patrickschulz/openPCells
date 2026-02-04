@@ -98,6 +98,8 @@ Furthermore, it can also import GDSII-streams and create an opc-own representati
 See `--read-gds` for this.
 All command line options are documented with `--help` and a few basic examples for usage are given at the end.
 Help for API functions is provided by `--api-list` (list all available API functions), `--api-search` (search for matching function names) and `api-help` (display detailed help about a specific function).
+The HTML documentation can be accessed by `opc --html-documentation`.
+It is currently in an early state, the entire documentation is being updated and polished.
 
 # Building and Installation
 Building this project is fairly simple, as the sole dependency is a C compiler.
