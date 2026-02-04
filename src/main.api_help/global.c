@@ -37,7 +37,7 @@
         "prepare",
         MODULE_NONE,
         "Cell definition function. Prepare a state for further cell functions. This function is useful when some calculations/logic have to be run for different functions (for instance check() and layout()). In order to avoid code duplication, the prepare() function can be used. It receives the final parameters table (after a possible call to process_parameters()) and is expected to return a table as a common state for all following cell functions. This function is optional.",
-        "function process_parameters(_P)\n    local t = {}\n    t.width = technology.get_dimension(string.format(\"Minimum M%d Width\"), _P.metal)\n    _P.length = _P.totallength -- simple follower parameter\nend",
+        "function prepare(_P)\n    local state = {}\n    state.metalwidths = util.rep(_P.numlines, _P.linewidth)\nend",
         parameters
     ));
 }
