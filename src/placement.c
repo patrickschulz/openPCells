@@ -333,6 +333,34 @@ struct vector* placement_calculate_origins_centered(
     int xshift = ((maxx - minx + xpitch - width) - ((maxx - minx + xpitch - width) / (xpitch)) * xpitch) / 2;
     int yshift = ((maxy - miny + ypitch - height) - ((maxy - miny + ypitch - height) / (ypitch)) * ypitch) / 2;
 
+    // filter out polygons whose boundaries lie outside of the fill area
+    struct polygon_container* filtered_excludes = NULL;
+    if(excludes)
+    {
+        filtered_excludes = polygon_container_create();
+        struct polygon_container_const_iterator* it = polygon_container_const_iterator_create(excludes);
+        while(polygon_container_const_iterator_is_valid(it))
+        {
+            // FIXME: this would benefit from a proper polygon-overlap test.
+            //        the rectangular boundary can potentially include polygons in subsequent tests
+            //        that don't actually overlap with the fill region
+            const struct simple_polygon* poly = polygon_container_const_iterator_get(it);
+            coordinate_t pminx, pmaxx, pminy, pmaxy;
+            _get_minmax(poly, &pminx, &pminy, &pmaxx, &pmaxy);
+            if(!(
+                (pminx > maxx) ||
+                (pmaxx < minx) ||
+                (pminy > maxy) ||
+                (pmaxy < miny)
+                ))
+            {
+                polygon_container_add(filtered_excludes, simple_polygon_copy(poly));
+            }
+            polygon_container_const_iterator_next(it);
+        }
+        polygon_container_const_iterator_destroy(it);
+    }
+
     struct vector* origins = vector_create(32, point_destroy);
     coordinate_t x = minx + ((xstartshift + xshift) % xpitch) + width / 2;
     while(x <= maxx)
@@ -341,7 +369,7 @@ struct vector* placement_calculate_origins_centered(
         while(y <= maxy)
         {
             int insert = _is_in_targetarea(x, y, width, height, targetarea);
-            if(excludes && _is_in_excludes(x, y, width, height, excludes))
+            if(filtered_excludes && _is_in_excludes(x, y, width, height, filtered_excludes))
             {
                 insert = 0;
             }

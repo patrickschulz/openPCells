@@ -15,6 +15,10 @@ geometry.rectanglebltr(cell, generics.metal(1),
     point.create(500, 500),
     point.create(1500, 1500)
 )
+geometry.rectanglebltr(cell, generics.metal(1),
+    point.create(-1200, 400),
+    point.create(-400, 800)
+)
 
 -- collect the shape outlines from the cell
 local excludes = cell:get_shape_outlines(generics.metal(1))
