@@ -1,6 +1,7 @@
 #ifndef OPC_OBJECT_H
 #define OPC_OBJECT_H
 
+#include "bltrshape.h"
 #include "hashmap.h"
 #include "polygon.h"
 #include "shape.h"
@@ -306,5 +307,13 @@ int label_iterator_is_valid(struct label_iterator* it);
 void label_iterator_next(struct label_iterator* it);
 void label_iterator_get(struct label_iterator* it, const char** labelname, const struct point** labelwhere, const struct generics** labellayer, unsigned int* sizehint);
 void label_iterator_destroy(struct label_iterator* it);
+
+// netshape iterator
+struct netshape_iterator;
+struct netshape_iterator* object_create_netshape_iterator(const struct object* cell);
+int netshape_iterator_is_valid(struct netshape_iterator* it);
+void netshape_iterator_next(struct netshape_iterator* it);
+void netshape_iterator_get(struct netshape_iterator* it, const char** netname, struct bltrshape** bltrshape);
+void netshape_iterator_destroy(struct netshape_iterator* it);
 
 #endif // OPC_OBJECT_H

@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "bltrshape.h"
 #include "helpers.h"
 #include "tuple.h"
 #include "util.h"
@@ -2511,9 +2510,15 @@ struct vector* object_get_net_shapes(const struct object* cell, const char* netn
                         {
                             struct bltrshape* bltrshape = bltrshape_copy(s);
                             _transform_to_global_coordinates(cell, bltrshape_get_bl(bltrshape));
-                            point_translate(bltrshape_get_bl(bltrshape), cell->content.proxy.xpitch * xindex, cell->content.proxy.ypitch * yindex);
+                            point_translate(
+                                bltrshape_get_bl(bltrshape),
+                                cell->content.proxy.xpitch * xindex, cell->content.proxy.ypitch * yindex
+                            );
                             _transform_to_global_coordinates(cell, bltrshape_get_tr(bltrshape));
-                            point_translate(bltrshape_get_tr(bltrshape), cell->content.proxy.xpitch * xindex, cell->content.proxy.ypitch * yindex);
+                            point_translate(
+                                bltrshape_get_tr(bltrshape),
+                                cell->content.proxy.xpitch * xindex, cell->content.proxy.ypitch * yindex
+                            );
                             vector_append(new, bltrshape);
                         }
                     }
@@ -3963,6 +3968,53 @@ void label_iterator_get(struct label_iterator* it, const char** labelname, const
 }
 
 void label_iterator_destroy(struct label_iterator* it)
+{
+    free(it);
+}
+
+// netshape iterator
+struct netshape_iterator {
+    struct hashmap_const_iterator* iterator;
+    size_t netindex;
+};
+
+struct netshape_iterator* object_create_netshape_iterator(const struct object* cell)
+{
+    struct netshape_iterator* it = malloc(sizeof(*it));
+    it->iterator = hashmap_const_iterator_create(cell->content.full.nets);
+    it->netindex = 0;
+    return it;
+}
+
+int netshape_iterator_is_valid(struct netshape_iterator* it)
+{
+    return hashmap_const_iterator_is_valid(it->iterator);
+}
+
+void netshape_iterator_next(struct netshape_iterator* it)
+{
+    const struct vector* nets = hashmap_const_iterator_value(it->iterator);
+    if(it->netindex + 1 == vector_size(nets)) // switch to next net and reset
+    {
+        it->netindex = 0;
+        hashmap_const_iterator_next(it->iterator);
+    }
+    else // go to next shape on this net
+    {
+        it->netindex += 1;
+    }
+}
+
+void netshape_iterator_get(struct netshape_iterator* it, const char** netname_ptr, struct bltrshape** bltrshape_ptr)
+{
+    const char* netname = hashmap_const_iterator_key(it->iterator);
+    const struct vector* nets = hashmap_const_iterator_value(it->iterator);
+    const struct bltrshape* bltrshape = vector_get_const(nets, it->netindex);
+    *netname_ptr = netname;
+    *bltrshape_ptr = bltrshape_copy(bltrshape);
+}
+
+void netshape_iterator_destroy(struct netshape_iterator* it)
 {
     free(it);
 }

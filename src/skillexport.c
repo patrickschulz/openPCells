@@ -529,6 +529,42 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     _ensure_legal_limit(data);
 }
 
+static void _write_netshape(struct export_data* data, const char* name, const struct hashmap* layer, const struct point* bl, const struct point* tr)
+{
+    // FIXME: add net to shape
+    _prepare_shape_for_group(data);
+    export_data_append_string(data, "let((id)");
+    export_data_append_char(data, '\n');
+    export_data_append_string(data, "        id = dbCreateRect");
+    export_data_append_char(data, '(');
+    export_data_append_string(data, "cv");
+    export_data_append_char(data, ' ');
+    _write_layer(data, layer);
+    export_data_append_char(data, ' ');
+    export_data_append_string(data, "list");
+    export_data_append_char(data, '(');
+    _write_point(data, bl);
+    export_data_append_char(data, ' ');
+    _write_point(data, tr);
+    export_data_append_char(data, ')');
+    export_data_append_char(data, ')');
+    // add net:
+    export_data_append_char(data, '\n');
+    export_data_append_string(data, "        dbAddFigToNet");
+    export_data_append_char(data, '(');
+    export_data_append_string(data, "id");
+    export_data_append_char(data, ' ');
+    export_data_append_char(data, '"');
+    export_data_append_string(data, name);
+    export_data_append_char(data, '"');
+    export_data_append_char(data, ')');
+    export_data_append_char(data, '\n');
+    export_data_append_string(data, "    )"); // close let
+    _finish_shape_for_group(data);
+    export_data_append_char(data, '\n');
+    _ensure_legal_limit(data);
+}
+
 static void _finalize(void)
 {
     if(__groupname)
@@ -555,5 +591,6 @@ struct export_functions* skillexport_get_export_functions(void)
     funcs->write_port = _write_port;
     funcs->write_label = _write_port;
     funcs->get_extension = _get_extension;
+    funcs->write_netshape = _write_netshape;
     return funcs;
 }

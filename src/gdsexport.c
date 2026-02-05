@@ -778,6 +778,7 @@ struct export_functions* gdsexport_get_export_functions(void)
     funcs->write_port = _write_port;
     funcs->write_label = _write_port;
     funcs->get_extension = _get_extension;
+    funcs->write_netshape = NULL;
     return funcs;
 }
 

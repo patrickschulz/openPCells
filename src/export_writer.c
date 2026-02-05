@@ -941,6 +941,64 @@ static int _write_labels(struct export_writer* writer, const struct object* cell
     return ret;
 }
 
+static int _write_netshape(struct export_writer* writer, const char* netname, const struct hashmap* layerdata, const struct point* bl, const struct point* tr)
+{
+    if(writer->islua)
+    {
+        lua_getfield(writer->interface.L, -1, "write_netshape");
+        if(lua_isnil(writer->interface.L, -1))
+        {
+            lua_pop(writer->interface.L, 1);
+            return 1; // no export support is not an error
+        }
+        lua_pushstring(writer->interface.L, netname);
+        _push_layer(writer->interface.L, layerdata);
+        _push_point(writer->interface.L, bl);
+        _push_point(writer->interface.L, tr);
+        int ret = _pcall(writer->interface.L, 4, 0, "write_netshape");
+        if(!ret)
+        {
+            return 0;
+        }
+        return 1;
+    }
+    else
+    {
+        if(!writer->interface.funcs->write_netshape)
+        {
+            return 1; // no export support is not an error
+        }
+        writer->interface.funcs->write_netshape(writer->data, netname, layerdata, bl, tr);
+        return 1;
+    }
+}
+
+static int _write_netshapes(struct export_writer* writer, const struct object* cell)
+{
+    struct netshape_iterator* it = object_create_netshape_iterator(cell);
+    int ret = 1;
+    while(netshape_iterator_is_valid(it))
+    {
+        const char* netname;
+        struct bltrshape* bltrshape;
+        netshape_iterator_get(it, &netname, &bltrshape);
+        struct point* bl = bltrshape_get_bl(bltrshape);
+        struct point* tr = bltrshape_get_tr(bltrshape);
+        object_transform_point(cell, bl);
+        object_transform_point(cell, tr);
+        const struct hashmap* layerdata = generics_get_first_layer_data(bltrshape_get_layer(bltrshape));
+        ret = _write_netshape(writer, netname, layerdata, bl, tr);
+        bltrshape_destroy(bltrshape);
+        if(!ret)
+        {
+            break;
+        }
+        netshape_iterator_next(it);
+    }
+    netshape_iterator_destroy(it);
+    return ret;
+}
+
 static int _write_cell_elements(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int write_ports, int write_malformed, char leftdelim, char rightdelim)
 {
     /* shapes */
@@ -986,6 +1044,13 @@ static int _write_cell_elements(struct export_writer* writer, const struct objec
 
     /* label */
     ret = _write_labels(writer, cell);
+    if(!ret)
+    {
+        return 0;
+    }
+
+    /* net shapes */
+    ret = _write_netshapes(writer, cell);
     if(!ret)
     {
         return 0;

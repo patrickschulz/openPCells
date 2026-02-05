@@ -61,6 +61,8 @@ struct export_functions {
     void (*write_port)(struct export_data*, const char* name, const struct hashmap*, const struct point* where, unsigned int sizehint);
     // write labels
     void (*write_label)(struct export_data*, const char* name, const struct hashmap*, const struct point* where, unsigned int sizehint);
+    // write netshapes
+    void (*write_netshape)(struct export_data*, const char* name, const struct hashmap*, const struct point* bl, const struct point* tr);
 };
 
 struct export_functions* export_create_functions(void);
