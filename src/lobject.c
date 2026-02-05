@@ -1264,6 +1264,7 @@ static unsigned int _get_sizehint(lua_State* L, int index)
         if(value)
         {
             sizehint = tagged_value_get_integer(value);
+            tagged_value_destroy(value);
         }
         else
         {
@@ -1846,6 +1847,7 @@ static int lobject_get_layer_occupation(lua_State* L)
     }
 
     struct bltrshape* bltrshape = object_get_layer_occupation(lobject_get(L, cell), layers, numlayers);
+    free(layers);
     lua_newtable(L);
     /* bl */
     lpoint_create_internal_pt(L, bltrshape_get_bl(bltrshape));
@@ -1853,6 +1855,7 @@ static int lobject_get_layer_occupation(lua_State* L)
     /* tr */
     lpoint_create_internal_pt(L, bltrshape_get_tr(bltrshape));
     lua_setfield(L, -2, "tr");
+    bltrshape_destroy(bltrshape);
     return 1;
 }
 
