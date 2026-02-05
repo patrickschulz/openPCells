@@ -451,6 +451,12 @@ void object_destroy(void* cellv)
         {
             vector_destroy(cell->content.full.layer_boundaries);
         }
+
+        // layer boundaries
+        if(cell->content.full.nets)
+        {
+            hashmap_destroy(cell->content.full.nets);
+        }
     }
     else // isproxy
     {
@@ -3142,6 +3148,7 @@ struct polygon_container* object_get_shape_outlines(const struct object* cell, c
         struct simple_polygon* polygon = shape_to_polygon(shape);
         polygon_container_add(container, polygon);
     }
+    vector_destroy(shapes);
     return container;
 }
 
@@ -4016,6 +4023,7 @@ void netshape_iterator_get(struct netshape_iterator* it, const char** netname_pt
 
 void netshape_iterator_destroy(struct netshape_iterator* it)
 {
+    hashmap_const_iterator_destroy(it->iterator);
     free(it);
 }
 

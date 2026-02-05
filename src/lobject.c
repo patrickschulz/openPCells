@@ -1884,6 +1884,7 @@ static int lobject_get_shape_outlines(lua_State* L)
     }
     coordinate_t offset = luaL_optinteger(L, 3, 0);
     struct polygon_container* outlines = object_get_shape_outlines(lobject_get(L, cell), layers, numlayers);
+    free(layers);
     lua_newtable(L);
     if(polygon_container_is_empty(outlines))
     {

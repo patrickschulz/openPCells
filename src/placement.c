@@ -381,6 +381,10 @@ struct vector* placement_calculate_origins_centered(
         }
         x = x + xpitch;
     }
+    if(filtered_excludes)
+    {
+        polygon_container_destroy(filtered_excludes);
+    }
     return origins;
 }
 
