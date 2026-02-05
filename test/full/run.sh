@@ -185,6 +185,9 @@ do_cellscript_test cellscript_line_place_via gds
 do_cellscript_test cellscript_powerlines gds
 do_cellscript_test cellscript_powerlines_viaexcludes gds
 
+# automated fill test
+do_cellscript_test cellscript_fill_basic gds
+
 # cellscript test for bounding box
 do_cellscript_test cellscript_bounding_box gds
 
