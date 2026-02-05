@@ -67,7 +67,6 @@ local vnets = layouthelpers.place_vlines(
 
 layouthelpers.place_vias(
     cell,
-    1, 3,
     hnets, vnets,
     mallexcludes
 )

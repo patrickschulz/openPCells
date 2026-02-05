@@ -433,8 +433,6 @@
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to place lines in" },
-        { "metal1",         INTEGER,    NULL, "lowest/highest metal" },
-        { "metal2",         INTEGER,    NULL, "highest/lowest metal" },
         { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "excludes",       TABLE,      NULL, "table with polygon excludes" },
@@ -446,7 +444,7 @@
     vector_append(entries, _make_api_entry(
         "place_vias",
         MODULE_LAYOUTHELPERS,
-        "Create vias in a cell connecting net shapes on different metal layers. "
+        "Create vias in a cell connecting net shapes on different layers. "
         "This function creates vias between the given layers. "
         "If not net filter is given, all netshapes with matching nets are connected. "
         "A table with exclusion polygons can be given, which is useful when vias across several layers are created. "
@@ -454,7 +452,7 @@
         "'nocheck' might cause the function to raise an error: "
         "when there are small overlaps without a legal via arrayzation, the function raises an error (as internally geometry.viabltr is used). "
         "With 'nocheck' == false (the default) the legality of the overlap for via generation is checked first and skipped if it would fail.",
-        "layouthelpers.place_vias(cell,\n    1, 4, -- metal layers\n    netshapes1, netshapes2, -- netshapes\n    { \"VSS\" \"BIAS\" }, -- net filter)",
+        "layouthelpers.place_vias(cell,\n    netshapes1, netshapes2, -- netshapes\n    { \"VSS\" \"BIAS\" }, -- net filter)",
         parameters
     ));
 }
@@ -463,8 +461,6 @@
 {
     struct parameter parameters[] = {
         { "cell",           OBJECT,     NULL, "cell to place lines in" },
-        { "metal1",         INTEGER,    NULL, "lowest/highest metal" },
-        { "metal2",         INTEGER,    NULL, "highest/lowest metal" },
         { "netshapes1",     TABLE,      NULL, "table with net targets (1): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netshapes2",     TABLE,      NULL, "table with net targets (2): { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }" },
         { "netfilter",      INTEGER,    NULL, "optional table containing nets that should be connected. If not given, all nets are connected" },
@@ -475,7 +471,7 @@
     vector_append(entries, _make_api_entry(
         "place_unequal_net_vias",
         MODULE_LAYOUTHELPERS,
-        "Create vias in a cell connecting net shapes on different metal layers and different nets. "
+        "Create vias in a cell connecting net shapes on different layers and different nets. "
         "This function creates vias between the given layers. "
         "As this function creates vias between all shapes, only the net shapes should be given that need to be connected. "
         "(This function shorts different nets). "
@@ -483,7 +479,7 @@
         "'nocheck' might cause the function to raise an error: "
         "when there are small overlaps without a legal via arrayzation, the function raises an error (as internally geometry.viabltr is used). "
         "With 'nocheck' == false (the default) the legality of the overlap for via generation is checked first and skipped if it would fail.",
-        "layouthelpers.place_unequal_vias(cell,\n    1, 4, -- metal layers\n    netshapes1, netshapes2)",
+        "layouthelpers.place_unequal_vias(cell,\n    netshapes1, netshapes2)",
         parameters
     ));
 }

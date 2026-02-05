@@ -474,17 +474,15 @@ function M.place_hlines(cell, bl, tr, layer, height, space, minwidth, netnames, 
     return netshapes
 end
 
-function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)
+function M.place_vias(cell, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)
     check.set_next_function_name("layouthelpers.place_vias")
     check.arg_func(1, "cell", "object", cell, object.is_object)
-    check.arg(2, "metal1", "number", metal1)
-    check.arg(3, "metal1", "number", metal1)
-    check.arg(4, "netshapes1", "table", netshapes1)
-    check.arg(5, "netshapes2", "table", netshapes2)
-    check.arg_optional(6, "excludes", "table", excludes)
-    check.arg_optional(7, "netfilter", "table", netfilter)
-    check.arg_optional(8, "onlyfull", "boolean", onlyfull)
-    check.arg_optional(9, "nocheck", "boolean", nocheck)
+    check.arg(2, "netshapes1", "table", netshapes1)
+    check.arg(3, "netshapes2", "table", netshapes2)
+    check.arg_optional(4, "excludes", "table", excludes)
+    check.arg_optional(5, "netfilter", "table", netfilter)
+    check.arg_optional(6, "onlyfull", "boolean", onlyfull)
+    check.arg_optional(7, "nocheck", "boolean", nocheck)
     for i1 = 1, #netshapes1 do
         local connect = true
         if netfilter then
@@ -501,6 +499,8 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, excludes, ne
                         onlyfull
                     )
                     if r then
+                        local metal1 = technology.metal_layer_to_index(netshapes1[i1].layer)
+                        local metal2 = technology.metal_layer_to_index(netshapes2[i2].layer)
                         local create = nocheck or geometry.check_viabltr(metal1, metal2, r.bl, r.tr)
                         if excludes then
                             for _, exclude in ipairs(excludes) do
@@ -520,7 +520,13 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, excludes, ne
     end
 end
 
-function M.place_unequal_net_vias(cell, metal1, metal2, netshapes1, netshapes2, onlyfull, nocheck)
+function M.place_unequal_net_vias(cell, netshapes1, netshapes2, onlyfull, nocheck)
+    check.set_next_function_name("layouthelpers.place_unequal_vias")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg(2, "netshapes1", "table", netshapes1)
+    check.arg(3, "netshapes2", "table", netshapes2)
+    check.arg_optional(4, "onlyfull", "boolean", onlyfull)
+    check.arg_optional(5, "nocheck", "boolean", nocheck)
     for i1 = 1, #netshapes1 do
         for i2 = 1, #netshapes2 do
             local r = util.rectangle_intersection(
@@ -529,6 +535,8 @@ function M.place_unequal_net_vias(cell, metal1, metal2, netshapes1, netshapes2, 
                 onlyfull
             )
             if r then
+                local metal1 = technology.metal_layer_to_index(netshapes1[i1].layer)
+                local metal2 = technology.metal_layer_to_index(netshapes2[i2].layer)
                 local create = nocheck or geometry.check_viabltr(metal1, metal2, r.bl, r.tr)
                 if create then
                     geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)

@@ -1101,16 +1101,16 @@ const apirefs = [
     {
         "module": "layouthelpers",
         "funcname": "place_vias",
-        "syntax": "place_vias(cell, metal1, metal2, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)",
+        "syntax": "place_vias(cell, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)",
         "description": "Create vias in a cell connecting net shapes on different metal layers. This function creates vias between the given layers. If not net filter is given, all netshapes with matching nets are connected. A table with exclusion polygons can be given, which is useful when vias across several layers are created. If a table array with string items is given, only shapes on nets in that array are connected. 'nocheck' might cause the function to raise an error: when there are small overlaps without a legal via arrayzation, the function raises an error (as internally geometry.viabltr is used). With 'nocheck' == false (the default) the legality of the overlap for via generation is checked first and skipped if it would fail.",
-        "examples": "layouthelpers.place_vias(cell,     1, 4, -- metal layers     netshapes1, netshapes2, -- netshapes     { \"VSS\" \"BIAS\" }, -- net filter)",
+        "examples": "layouthelpers.place_vias(cell,     netshapes1, netshapes2, -- netshapes     { \"VSS\" \"BIAS\" }, -- net filter)",
     },
     {
         "module": "layouthelpers",
         "funcname": "place_unequal_net_vias",
-        "syntax": "place_unequal_net_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, onlyfull, nocheck)",
+        "syntax": "place_unequal_net_vias(cell, netshapes1, netshapes2, netfilter, onlyfull, nocheck)",
         "description": "Create vias in a cell connecting net shapes on different metal layers and different nets. This function creates vias between the given layers. As this function creates vias between all shapes, only the net shapes should be given that need to be connected. (This function shorts different nets). This behaviour is different than layouthelpers.place_vias, where only shapes on equal nets are connected. 'nocheck' might cause the function to raise an error: when there are small overlaps without a legal via arrayzation, the function raises an error (as internally geometry.viabltr is used). With 'nocheck' == false (the default) the legality of the overlap for via generation is checked first and skipped if it would fail.",
-        "examples": "layouthelpers.place_unequal_vias(cell,     1, 4, -- metal layers     netshapes1, netshapes2)",
+        "examples": "layouthelpers.place_unequal_vias(cell,     netshapes1, netshapes2)",
     },
     {
         "module": "layouthelpers",
