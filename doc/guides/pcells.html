@@ -18,9 +18,11 @@
     Parametric cells (p-cells or just pcells) in openPCells are defined by a collection of functions.
     </p>
     <h1>Interface Functions</h1>
+    <p>
     The following functions define a parametric cells.
     Not all functions need to be defined, it is actually quite unlikely that a cell will define all of them.
     The list shows the functions in their order of when they are called (e.g. prepare() is called after process_parameters()).
+    </p>
     <ol>
         <li>info</li>
         <li>requirements</li>
@@ -32,7 +34,7 @@
         <li>anchors</li>
         <li>layout</li>
     </ol>
-    <h1>The info() Function</h1>
+    <h2>The info() Function</h2>
     <p>
     The info() function documents the cell usage.
     It should return a string, which is accessed by:
@@ -41,7 +43,7 @@
     <p>
     The info() function does not take any parameters and shall not have any side effects.
     </p>
-    <h1>The requirements() Function</h1>
+    <h2>The requirements() Function</h2>
     <p>
     The requirements() function runs preliminary checks whether the cell is supported (mainly by the technology node).
     It does not receive any parameters, as at the time of its calling no cell parameters and no cell itself are defined.
@@ -58,12 +60,14 @@
     end
     return true -- a missing final 'return true' is an error
 end</pre>
-    <h1>The config() Function</h1>
+    <h2>The config() Function</h2>
+    <p>
     The config() function sets certain configuration settings for a cell.
     For example, a cell could be set as 'hidden' to prevent it from being listed.
     This function is used very rarely and not well tested.
     Its use is discouraged.
-    <h1>The parameters() Function</h1>
+    </p>
+    <h2>The parameters() Function</h2>
     <p>
     The parameters function defines the cell parameters.
     The main API function for this are pcell.add_parameter and pcell.add_parameters.
@@ -93,12 +97,76 @@ end</pre>
         { "space", 200 }
     )
 end</code></pre>
-    <h1>The process_parameters() Function</h1>
-    <h1>The prepare() Function</h1>
-    <h1>The check() Function</h1>
-    The check() function receives the processed 
-    <h1>The anchors() Function</h1>
-    <h1>The layout() Function</h1>
+    <h2>The process_parameters() Function</h2>
+    <p>
+    The function process_parameters() receives the parameters table after it has been filled with user-supplied values.
+    In this function then some parameters can be modified:
+    The function should return a table with key-value pairs.
+    Every parameter in the parameters table is updated with the value given here.
+    Return a table with keys that are not parameters for this cell raises an error.
+    Additionally, only parameters that were not set explicitely in the call to this cell are overwritten.
+    Therefore, this function should be used to update sensible defaults of parameters in accordance to other paramters.
+    The example will clarify this:
+    </p>
+    <pre class="opc"><code>function process_parameters(_P)
+    local t = {}
+    t.width = technology.get_dimension(
+        string.format("Minimum M%d Width", _P.metal)
+    )
+    return t
+end</code></pre>
+    <p>
+    This definition changes 'width' in accordance with the actually used metal.
+    This is not possible in parameters(), where the defaults are static.
+    </p>
+    <h2>The prepare() Function</h2>
+    The prepare() function can create a state for this instantiation of the cell that can be shared across all following functions (check and layout).
+    This function is usually not needed, it can be useful when complex initial calculations/computations are required to both check and use the supplied parameters.
+    Anything here is possible, prepare() receives the parameters table (after process_parameters() is called) and should return a table containing shared values (although it is possible to return non-table values).
+    The table (better: value) returned by prepare() is given to the check() and layout() functions.
+    An (simple and rather useless) example of the prepare() function is given below:
+    <pre class="opc"><code>function prepare(_P)
+    local state = {}
+    state.nummetals = #_P.metals
+    return state
+end</code></pre>
+    <h2>The check() Function</h2>
+    <p>
+    The check() function receives the processed parameters after (potentially) calling process_parameters() and also (potentially) the cell state from prepare().
+    This function is used to perform checks on the final parameters, before the layout() function is called.
+    This can be used to check for basically anything, such as incorrect spacing (creating shorts), unsupported parameter combinations etc.
+    This can be implemented via simple if-else clauses, return 'false' and a helpful error message upon failure.
+    As in the pcell module the return value of this function is checked, it is necessary (similar to the requirements() function) to return 'true' to signal sucess (no failed parameter checks).
+    An example could be:
+    <pre class="opc"><code>function check(_P, state)
+    if _P.space < _P.cellpitch - 2 * _P.numbits * _P.width then
+         return false, string.format(
+            "'space' must be large enough to accomodate enough spacing " ..
+             "for all bit lines in every cell. Need: %d, got only %d",
+            _P.cellpitch - 2 * _P.numbits * _P.width,
+            _P.space
+         )
+    end
+    return true
+end</code></pre>
+    </p>
+    <h2>The anchors() Function</h2>
+    <p>
+    The anchors() function does not change anything in the cell itself, it is a documentation function.
+    Ideally, the information given in this function is gathered automatically, but this is currently not the case (and also a tricky problem).
+    Therefore, the developer/designer of a cell should document all anchors that are intenden for public use in this function.
+    This is done by calling the function pcell.add_anchor_documentation for every anchor.
+    This function takes two or three arguments: the name of the anchor, a description and an optional condition (some anchors are possibly only available when a certain part of the layout is also drawn).
+    An example is given below:
+    </p>
+    <pre class="opc"><code>function anchors()
+    pcell.add_area_anchor_documentation(
+        "active",
+        "region of the active diffusion",
+        "drawactive == true"
+    )
+end</code></pre>
+    <h2>The layout() Function</h2>
     <p>
     The layout function contains the actual code for layout generation.
     It receives up to four parameters:
@@ -116,6 +184,10 @@ end</code></pre>
     The cell state is an internal table generated by the prepare() function.
     The goal again is to reduce code duplication, which can occur when calculations with parameters are necessary for, say, parameter checks and layout generation.
     </p>
+    <p>
+    A layout() definition with full signature looks like this:
+    </p>
     <pre class="opc"><code>function layout(cell, _P, env, state)
 end</code></pre>
+    <h1>Cell Implementation</h1>
 </body>
