@@ -23,6 +23,13 @@ p {
     text-decoration: none;
 }
 
+summary {
+    font-weight: bold;
+    font-size: 2em;
+    color: #000000;
+    border-bottom: 2px solid #aaaaaa;
+}
+
 h1 {
     font-weight: bold;
     font-size: 2em;

@@ -13,11 +13,14 @@
     <h1>Introduction</h1>
     <p>
     This guide shows the various functions and techniques involved in creating parametric cells.
-    </p>
-    <p>
-    Parametric cells (p-cells or just pcells) in openPCells are defined by a collection of functions.
+    It first introduces the available functions for implementing cells and then shows a few useful methods for developing useful cells.
     </p>
     <h1>Interface Functions</h1>
+    <p>
+    Parametric cells (p-cells or just pcells) in openPCells are defined by a collection of functions.
+    These functions must be global, and no other global variables may be created when writing cells.
+    The cell definition code is run in a sandbox, isolated from the rest of the opc run.
+    </p>
     <p>
     The following functions define a parametric cells.
     Not all functions need to be defined, it is actually quite unlikely that a cell will define all of them.
@@ -190,4 +193,8 @@ end</code></pre>
     <pre class="opc"><code>function layout(cell, _P, env, state)
 end</code></pre>
     <h1>Cell Implementation</h1>
+    <p>
+    A typical cell will use the functions parameters() and layout().
+    Adding documentation via info() and anchors() is nice, but might not be needed for simple cells.
+    </p>
 </body>
