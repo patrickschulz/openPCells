@@ -623,7 +623,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     const char* name = cmdoptions_get_argument_long(cmdoptions, "cellname");
 
     // generate debugging info
-    int dodebug = cmdoptions_was_provided_long(cmdoptions, "cell-debug");
+    int dodebug = cmdoptions_was_provided_long(cmdoptions, "debug-cell");
 #ifdef OPC_DEBUG
     dodebug = 1;
 #endif
