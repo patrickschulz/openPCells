@@ -554,10 +554,17 @@ static void _write_netshape(struct export_data* data, const char* name, const st
     export_data_append_char(data, '(');
     export_data_append_string(data, "id");
     export_data_append_char(data, ' ');
+    export_data_append_string(data, "dbMakeNet");
+    export_data_append_char(data, '(');
+    export_data_append_string(data, "cv");
+    export_data_append_char(data, ' ');
     export_data_append_char(data, '"');
     export_data_append_string(data, name);
     export_data_append_char(data, '"');
     export_data_append_char(data, ')');
+    export_data_append_char(data, ')');
+    export_data_append_char(data, '\n');
+    export_data_append_string(data, "        id");
     export_data_append_char(data, '\n');
     export_data_append_string(data, "    )"); // close let
     _finish_shape_for_group(data);
