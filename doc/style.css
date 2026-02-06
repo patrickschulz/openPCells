@@ -23,6 +23,15 @@ p {
     text-decoration: none;
 }
 
+summary {
+    font-weight: bold;
+    font-size: 2em;
+    color: #000000;
+    padding: 10pt 4pt 4pt 4pt;
+    margin-bottom: 10pt;
+    border-bottom: 2px solid #aaaaaa;
+}
+
 h1 {
     font-weight: bold;
     font-size: 2em;
@@ -36,6 +45,11 @@ h2 {
     color: #000000;
 }
 
+li {
+    margin: 0pt 30pt 0pt 10pt;
+    text-align: justify;
+}
+
 .subtitle {
     font-size: 1.5em;
 }
@@ -43,7 +57,11 @@ h2 {
 .topbar {
     width: 100%;
     background-color: #f2f2f2;
-    padding: 1pt 10pt 1pt 10pt;
+    padding: 0pt 0pt 0pt 0pt;
+}
+
+.topbar-content {
+    padding: 10pt 5pt 1pt 20pt;
 }
 
 .container {
@@ -90,4 +108,17 @@ pre.opc {
 
 .search-bar {
     width: 50%;
+}
+
+.footerbar {
+    width: 100%;
+    background-color: #f2f2f2;
+    padding: 0pt 0pt 0pt 0pt;
+    margin: 20pt 0pt 0pt 0pt;
+}
+
+footer {
+    padding: 5pt 5pt 12pt 5pt;
+    color: #444444;
+    text-align: center;
 }

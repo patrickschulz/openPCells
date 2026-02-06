@@ -7,15 +7,20 @@
 </head>
 <body>
     <div class="topbar">
-        <a href="../index.html" class="title">OpenPCells Documentation</a>
-        <h2 class="subtitle">Writing Parametric Cells</h2>
+        <div class="topbar-content">
+            <a href="../index.html" class="title">OpenPCells Documentation</a>
+            <h2 class="subtitle">Writing Parametric Cells</h2>
+        </div>
     </div>
-    <h1>Introduction</h1>
-    <p>
-    This guide shows the various functions and techniques involved in creating parametric cells.
-    It first introduces the available functions for implementing cells and then shows a few useful methods for developing useful cells.
-    </p>
-    <h1>Interface Functions</h1>
+    <details open>
+        <summary>Introduction</summary>
+        <p>
+        This guide shows the various functions and techniques involved in creating parametric cells.
+        It first introduces the available functions for implementing cells and then shows a few useful methods for developing useful cells.
+        </p>
+    </details>
+    <details open>
+        <summary>Interface Functions</summary>
     <p>
     Parametric cells (p-cells or just pcells) in openPCells are defined by a collection of functions.
     These functions must be global, and no other global variables may be created when writing cells.
@@ -192,9 +197,54 @@ end</code></pre>
     </p>
     <pre class="opc"><code>function layout(cell, _P, env, state)
 end</code></pre>
-    <h1>Cell Implementation</h1>
-    <p>
-    A typical cell will use the functions parameters() and layout().
-    Adding documentation via info() and anchors() is nice, but might not be needed for simple cells.
-    </p>
+    </details>
+    <details open>
+        <summary>Cell Implementation</summary>
+        <p>
+        A typical cell will use the functions parameters() and layout().
+        Adding documentation via info() and anchors() is nice, but might not be needed for simple cells.
+        </p>
+        <h2>Parameter Definition</h2>
+        <p>
+        The parameters() function defines the parameters of the cell.
+        The two required properties are the name of the parameter and its default value.
+        As the name is given as a string, technically almost any combination of characters is possible.
+        However, typically later on in the layout() function the parameters are referenced as table keys with the dot syntax:
+        <pre class="opc"><code>_P.some_parameter</code></pre>
+        This is only possible when parameter names are also lua identifiers (they can not start with a digit, they can not contain any spaces and a few other constraints).
+        To circumvent this, the square-bracket notation can be used:
+        <pre class="opc"><code>_P["some parameter name with spaces"]</code></pre>
+        In general, this is discouraged.
+        Cells should use parameter names that are lua identifiers.
+        </p>
+        <p>
+        Parameter defaults should make it easy to use the cell without setting too many parameters manually.
+        The standard cells in openPCells (not digital standard cells but the parametric cells shipped with openPCells) are designed to be callable without setting any parameters at all.
+        This depends on proper technology constraint settings and is hard to test over a large set of technologies, but that should be the goal.
+        </p>
+        <p>
+        There are a few (loosely-defined) classes of parameters: geometric parameters (defining exact sizes, for instance a gate length), parameters that influence geometric generation, but are not related to technology dimensions (e.g. number of fingers in a MOSFET), and configuration parameters (e.g. order of nets on a metal grid).
+        In general the recommendation for default parameters of these parameters is:
+        <ul>
+            <li>
+                For geometric parameters, use the technology module to retrieve relevant dimensions, for instance minimum metal widths:
+                <pre class="opc"><code>{ "metalwidth", technology.get_dimension("Minimum M1 Width") }</code></pre>
+            </li>
+            <li>
+                For pseudo-geometric parameters, use the minimum sensible value that covers most use-cases.
+                This is highly dependent on the cell, as an example consider basic/mosfet:
+                Its default number of fingers ('fingers') is set to 2.
+            </li>
+        </ul>
+        </p>
+        <h2>Layout Definition</h2>
+        <p>
+        </p>
+    </details>
+    <div class="footerbar">
+        <hr>
+        <footer>
+            OpenPCells Documentation
+        </footer>
+    </div>
 </body>
