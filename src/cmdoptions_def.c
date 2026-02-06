@@ -108,7 +108,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "api-list", NO_ARG, "list all availa
 cmdoptions_add_option(cmdoptions, NO_SHORT, "get-dimension", SINGLE_ARG, "get a technology-related dimension (like technology.get_dimension in pcells/cellscripts). This option requires a technology");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "generate-tutorial", NO_ARG, "generate a set of script files to demonstrate the usage and features of openPCells");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "tutorial", NO_ARG, "print out an interactive tutorial that shows the basic flow");
-cmdoptions_add_option(cmdoptions, 'd', "html-documentation", NO_ARG, "open a browser to show the documentation");
+cmdoptions_add_option(cmdoptions, 'D', "html-documentation", NO_ARG, "open a browser to show the documentation");
 
 /* Utility Functions */
 cmdoptions_add_section(cmdoptions, "Utility functions");
@@ -124,8 +124,8 @@ cmdoptions_add_option(cmdoptions, 'e', "execute-lua-script", SINGLE_ARG, "execut
 cmdoptions_add_section(cmdoptions, "Diagnostic functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "null", NO_ARG, "do nothing, can be used to check for availability of the opc command without any output");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-cellinfo", NO_ARG, "show some cell information: shape count, used layers, etc.");
-cmdoptions_add_option(cmdoptions, 'V', "verbose", NO_ARG, "enable verbose output");
-cmdoptions_add_option(cmdoptions, 'D', "debug", NO_ARG, "enable debugging output");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "verbose", NO_ARG, "enable verbose output");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "debug", NO_ARG, "enable debugging output");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "check", NO_ARG, "check cell code and parameter variations. Strict checking, e.g. if a cell parameter can not work with odd values, specify the parameter as even()");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "check-technology", SINGLE_ARG, "check technology files if given technology");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "check-technology-ignore-export", NO_ARG, "ignore missing export definitions for --check-technology");
