@@ -103,7 +103,7 @@ It is currently in an early state, the entire documentation is being updated and
 
 # Building and Installation
 Building this project is fairly simple, as the sole dependency is a C compiler.
-It was mainly with various gcc versions (11 - 15, 4.7.x), but also compiles with clang, tcc and kefir.
+It was tested mainly with various gcc versions (11 - 15, 4.7.x), but also compiles with clang, tcc and kefir.
 The build and install process installs all required files in standard paths (/usr/bin, /usr/share), but these paths can be configured.
 It is also possible to install it locally, which does not require any root privileges.
 Short-cut configure options exist to make this process easy.
