@@ -2595,6 +2595,50 @@ struct vector* object_get_array_net_shapes(const struct object* cell, int xindex
     return new;
 }
 
+void object_inherit_net_shapes(struct object* cell, const struct object* other, const struct generics* layer)
+{
+    if(object_is_proxy(cell))
+    {
+        // FIXME: raise error (not needed if this is implemented for childre/child arrays)
+        return;
+    }
+    if(!other->content.full.nets)
+    {
+        return;
+    }
+    //if(object_is_child_array(other)) FIXME: this should also be possible for children/child arrays
+    if(0){}
+    else
+    {
+        struct hashmap_const_iterator* it = hashmap_const_iterator_create(other->content.full.nets);
+        while(hashmap_const_iterator_is_valid(it))
+        {
+            const char* netname = hashmap_const_iterator_key(it);
+            const struct vector* nets = hashmap_const_iterator_value(it);
+            for(unsigned int i = 0; i < vector_size(nets); ++i)
+            {
+                const struct bltrshape* bltrshape = vector_get_const(nets, i);
+                int include = 1;
+                if(layer && !bltrshape_is_layer(bltrshape, layer))
+                {
+                    include = 0;
+                }
+                if(include)
+                {
+                    struct point* bl = point_copy(bltrshape_get_bl_const(bltrshape));
+                    struct point* tr = point_copy(bltrshape_get_tr_const(bltrshape));
+                    _transform_to_global_coordinates(other, bl);
+                    _transform_to_global_coordinates(other, tr);
+                    object_add_net_shape(cell, netname, bl, tr, bltrshape_get_layer(bltrshape));
+                    point_destroy(bl);
+                    point_destroy(tr);
+                }
+            }
+            hashmap_const_iterator_next(it);
+        }
+        hashmap_const_iterator_destroy(it);
+    }
+}
 
 void object_clear_alignment_box(struct object* cell)
 {

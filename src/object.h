@@ -150,6 +150,7 @@ void object_add_label(struct object* cell, const char* name, const struct generi
 void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer);
 struct vector* object_get_net_shapes(const struct object* cell, const char* netname, const struct generics* layer);
 struct vector* object_get_array_net_shapes(const struct object* cell, int xindex, int yindex, const char* netname, const struct generics* layer);
+void object_inherit_net_shapes(struct object* cell, const struct object* other, const struct generics* layer);
 
 // alignment box and bounding box
 void object_clear_alignment_box(struct object* cell);

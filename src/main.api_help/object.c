@@ -1425,7 +1425,7 @@
 /* object.get_array_net_shapes */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL, "object to get the shape outlines from" },
+        { "cell",       OBJECT,     NULL, "object to get the net shapes from" },
         { "xindex",     INTEGER,    NULL, "x-index" },
         { "yindex",     INTEGER,    NULL, "y-index" },
         { "netname",    STRING,     NULL, "net name of added shape" },
@@ -1437,6 +1437,23 @@
         MODULE_OBJECT,
         "return a table which contains rectangular netshape entries of all shapes on a given net. Useful for instance for automatic placement of via from a power grid. The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }. If the 'layer' parameter is non-nil, only shapes on the given layer are returned. This function retrieves the netshape of a specific instance of a child array.",
         "cell:get_net_shapes(\"vdd\")\ncell:get_net_shapes(\"vss\", generics.metal(4))",
+        parameters
+    ));
+}
+
+/* object.inherit_net_shapes */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,     NULL, "object to add the net shapes to" },
+        { "other",  OBJECT,     NULL, "object to get the net shapes from" },
+        { "layer",  GENERICS,   NULL, "optional layer filter" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "inherit_net_shapes",
+        MODULE_OBJECT,
+        "Inherit all net shapes from a given cell. This has the same effect as iterating over all net shapes from the 'other' cell and calling 'cell:add_net_shape' on every net shape. An optional layer filter can be given, only the net shapes on that layer will then be inherited.",
+        "cell:inherit_net_shapes(othercell, generics.metal(3))",
         parameters
     ));
 }

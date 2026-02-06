@@ -51,6 +51,16 @@ struct point* bltrshape_get_tr(struct bltrshape* bltrshape)
     return bltrshape->tr;
 }
 
+const struct point* bltrshape_get_bl_const(const struct bltrshape* bltrshape)
+{
+    return bltrshape->bl;
+}
+
+const struct point* bltrshape_get_tr_const(const struct bltrshape* bltrshape)
+{
+    return bltrshape->tr;
+}
+
 const struct generics* bltrshape_get_layer(const struct bltrshape* bltrshape)
 {
     return bltrshape->layer;

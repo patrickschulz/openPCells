@@ -2057,6 +2057,16 @@ static int lobject_get_array_net_shapes(lua_State* L)
     return 1;
 }
 
+static int lobject_inherit_net_shapes(lua_State* L)
+{
+    lcheck_check_numargs2(L, 2, 3, "object.inherit_net_shapes");
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* other = lobject_check(L, 2);
+    const struct generics* layer = lua_touserdata(L, 3);
+    object_inherit_net_shapes(lobject_get(L, cell), lobject_get_const(other), layer);
+    return 0;
+}
+
 int open_lobject_lib(lua_State* L)
 {
     // create metatable for objects
@@ -2202,6 +2212,7 @@ int open_lobject_lib(lua_State* L)
         { "mark_area_anchor_as_net",                lobject_mark_area_anchor_as_net             },
         { "get_net_shapes",                         lobject_get_net_shapes                      },
         { "get_array_net_shapes",                   lobject_get_array_net_shapes                },
+        { "inherit_net_shapes",                     lobject_inherit_net_shapes                  },
         { "__gc",                                   lobject_destroy                             },
         { "__tostring",                             lobject_tostring                            },
         { NULL,                                     NULL                                        }

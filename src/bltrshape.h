@@ -12,6 +12,8 @@ void bltrshape_destroy(void* v);
 void* bltrshape_copy(const void* v); /* const void* v because it is used as copy constructor */
 struct point* bltrshape_get_bl(struct bltrshape* bltrshape);
 struct point* bltrshape_get_tr(struct bltrshape* bltrshape);
+const struct point* bltrshape_get_bl_const(const struct bltrshape* bltrshape);
+const struct point* bltrshape_get_tr_const(const struct bltrshape* bltrshape);
 const struct generics* bltrshape_get_layer(const struct bltrshape* bltrshape);
 int bltrshape_is_layer(const struct bltrshape* bltrshape, const struct generics* layer);
 
