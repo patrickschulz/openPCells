@@ -318,6 +318,9 @@ local function _set_property(state, cellname, property, value)
 end
 
 local function _check_parameter(parameter)
+    if #parameter > 2 then
+        error(string.format("parameter check: parameter definition has more than two non-named entries"))
+    end
     for k in pairs(parameter) do
         if not ((k == 1) or (k == 2)) then -- skip name and value
             if not util.any_of(k, { "argtype", "posvals", "info", "follow", "readonly" }) then
