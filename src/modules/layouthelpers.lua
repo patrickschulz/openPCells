@@ -1,10 +1,17 @@
 local M = {}
 
-function M.connect_area_anchor(cell, layer, width, anchor1, anchor2)
+function M.connect_area_anchor(cell, layer, width, anchor1, anchor2, matchtolerance)
+    check.set_next_function_name("layouthelpers.connect_area_anchor")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg(2, "width", "number", width)
+    check.arg(3, "anchor1", "table", anchor1)
+    check.arg(4, "anchor2", "table", anchor2)
+    check.arg_optional(5, "matchtolerance", "number", matchtolerance)
     local x1l, y1b = anchor1.bl:unwrap()
     local x1r, y1t = anchor1.tr:unwrap()
     local x2l, y2b = anchor2.bl:unwrap()
     local x2r, y2t = anchor2.tr:unwrap()
+    -- anchor 1 is x-bound by anchor 2
     if x1l >= x2l and x1r <= x2r then
         if y1b > y2t then
             geometry.path(cell, layer, {
@@ -19,6 +26,7 @@ function M.connect_area_anchor(cell, layer, width, anchor1, anchor2)
                 }, width
             )
         end
+    -- anchor 2 is x-bound by anchor 1
     elseif x2l >= x1l and x2r <= x1r then
         if y1b > y2t then
             geometry.path(cell, layer, {
@@ -33,8 +41,64 @@ function M.connect_area_anchor(cell, layer, width, anchor1, anchor2)
                 }, width
             )
         end
+    -- anchor 1 is y-bound by anchor 2
+    elseif y1b >= y2b and y1t <= y2t then
+        if x1l > x2r then
+            geometry.path(cell, layer, {
+                    point.create(x1l, 0.5 * (y1b + y1t)),
+                    point.create(x2r, 0.5 * (y1b + y1t)),
+                }, width
+            )
+        else
+            geometry.path(cell, layer, {
+                    point.create(x2l, 0.5 * (y1b + y1t)),
+                    point.create(x1r, 0.5 * (y1b + y1t)),
+                }, width
+            )
+        end
+    -- anchor 2 is y-bound by anchor 1
+    elseif y2b >= y1b and y2t <= y1t then
+        if x1l > x2r then
+            geometry.path(cell, layer, {
+                    point.create(x1l, 0.5 * (y2b + y2t)),
+                    point.create(x2r, 0.5 * (y2b + y2t)),
+                }, width
+            )
+        else
+            geometry.path(cell, layer, {
+                    point.create(x2l, 0.5 * (y2b + y2t)),
+                    point.create(x1r, 0.5 * (y2b + y2t)),
+                }, width
+            )
+        end
     else -- FIXME: add more conditions
-        if y2b > y1t then
+        -- find target edges:
+        local width1  = x1r - x1l
+        local height1 = y1t - y1b
+        local width2  = x2r - x2l
+        local height2 = y2t - y2b
+        local matchtolerance = matchtolerance or 1
+        local xmatch1 = math.abs(width1 - width)  <= matchtolerance * width
+        local ymatch1 = math.abs(height1 - width) <= matchtolerance * width
+        local xmatch2 = math.abs(width2 - width)  <= matchtolerance * width
+        local ymatch2 = math.abs(height2 - width) <= matchtolerance * width
+        if xmatch1 and ymatch2 then
+            local x2 = x1l > x2r and x2r or x2l
+            local y1 = y1t < y2b and y1t or y1b
+            geometry.path_2y(cell, layer,
+                point.create(0.5 * (x1l + x1r), y1),
+                point.create(x2, 0.5 * (y2b + y2t)),
+                width
+            )
+        elseif xmatch2 and ymatch1 then
+            local x1 = x2l > x1r and x1r or x1l
+            local y2 = y2t < y1b and y2t or y2b
+            geometry.path_2y(cell, layer,
+                point.create(0.5 * (x2l + x2r), y2),
+                point.create(x1, 0.5 * (y1b + y1t)),
+                width
+            )
+        elseif y2b > y1t then
             geometry.path_3y(cell, layer,
                 point.create(0.5 * (x1l + x1r), y1t),
                 point.create(0.5 * (x2l + x2r), y2b),

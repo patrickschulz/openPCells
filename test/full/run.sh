@@ -250,3 +250,6 @@ do_cellscript_test cellscript_layer_occupation gds
 
 # cell test for analog/strongARM_comparator
 do_cell_test strongARM_comparator_00 analog/strongARM_comparator gds
+
+# cellscript test for layouthelpers.connect_area_anchors
+do_cellscript_test cellscript_connect_area_anchors gds
