@@ -505,11 +505,12 @@
 /* layouthelpers.connect_area_anchor */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL, "cell to place net labels in" },
-        { "layer",      GENERICS,   NULL, "layer for the created shape" },
-        { "width",      INTEGER,    NULL, "width of connection path" },
-        { "anchor1",    INTEGER,    NULL, "first area anchor for connection" },
-        { "anchor2",    INTEGER,    NULL, "second area anchor for connection" },
+        { "cell",               OBJECT,     NULL, "cell to place net labels in" },
+        { "layer",              GENERICS,   NULL, "layer for the created shape" },
+        { "width",              INTEGER,    NULL, "width of connection path" },
+        { "anchor1",            STRING,     NULL, "first area anchor for connection" },
+        { "anchor2",            STRING,     NULL, "second area anchor for connection" },
+        { "matchtolerance",     STRING,     NULL, "tolerance matching factor for edges (default 1)" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
@@ -518,7 +519,10 @@
         "Create a connection between two given area anchors. "
         "This function is currently very basic and only exists for testing purposes. "
         "Its interface is likely to change as well as its function. "
-        "It will create a working (and often also DRC-clean) connection, so it should be somewhat usable.",
+        "It will create a working (and often also DRC-clean) connection, so it should be somewhat usable. "
+        "The tolerance matching factor (default: 1) determines which edges are acceptable for two-point connections. "
+        "The idea behind this is that edges whose length match the width of the connection path (the 'width' parameter) can be used for more efficient two-point connections instead of three point connections. "
+        "The default for this is 1, if only edges with an exact length 'width', the 'matchtolerance' should be 0.",
         "layouthelpers.connect_area_anchor(cell, generics.metal(3), 500, cell:get_area_anchor(\"anchor1\"), cell:get_area_anchor(\"anchor2\"))",
         parameters
     ));
