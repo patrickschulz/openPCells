@@ -2,7 +2,7 @@ function parameters()
     pcell.add_parameters(
         { "fingers", 1 },
         { "shiftinput", 0 },
-        { "inputpos", "center", { posvals = set("center", "lower", "upper") } },
+        { "inputpos", "center", posvals = set("center", "lower", "upper") },
         { "shiftoutput", 0 },
         { "swapoddcorrectiongate", false },
         { "connectoutput", true }
@@ -13,8 +13,16 @@ end
 function layout(gate, _P)
     local xpitch = _P.gatespace + _P.gatelength
 
+    local inputpos
+    if _P.inputpos == "lower" then
+        inputpos = "lower1"
+    elseif _P.inputpos == "upper" then
+        inputpos = "upper1"
+    else
+        inputpos = "center"
+    end
     local gatecontactpos = {}
-    for i = 1, _P.fingers do gatecontactpos[i] = _P.inputpos end
+    for i = 1, _P.fingers do gatecontactpos[i] = inputpos end
 
     local contactpos = {}
     for i = 1, _P.fingers + 1 do

@@ -242,6 +242,15 @@ do_cell_test metalgrid_01 auxiliary/metalgrid gds
 do_cell_test metalgrid_02 auxiliary/metalgrid gds
 do_cell_test metalgrid_03 auxiliary/metalgrid gds
 
+# stdcells
+do_cell_test not_gate_00 stdcells/not_gate gds
+do_cell_test nor_gate_00 stdcells/nor_gate gds
+do_cell_test nand_gate_00 stdcells/nand_gate gds
+do_cell_test or_gate_00 stdcells/or_gate gds
+do_cell_test and_gate_00 stdcells/and_gate gds
+do_cell_test xnor_gate_00 stdcells/xnor_gate gds
+do_cell_test xor_gate_00 stdcells/xor_gate gds
+
 # test for label size
 do_cellscript_test cellscript_labeltest gds
 
