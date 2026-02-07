@@ -99,8 +99,11 @@ void geometry_rectanglepoints(struct object* cell, const struct generics* layer,
 void geometry_rectangleareaanchor(struct object* cell, const struct generics* layer, const char* anchor)
 {
     struct point* pts = object_get_area_anchor(cell, anchor);
-    geometry_rectanglebltr(cell, layer, pts + 0, pts + 1);
-    free(pts);
+    if(pts)
+    {
+        geometry_rectanglebltr(cell, layer, pts + 0, pts + 1);
+        free(pts);
+    }
 }
 
 void geometry_rectanglearray(

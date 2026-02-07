@@ -71,6 +71,15 @@ static int lgeometry_rectangleareaanchor(lua_State* L)
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = generics_check_generics(L, 2);
     const char* anchor = luaL_checkstring(L, 3);
+    if(!object_has_area_anchor(lobject_get_full(L, cell), anchor))
+    {
+        lua_pushfstring(L,
+            "geometry.rectangleareaanchor: tried to access area anchor '%s', but the anchor does not exist in the cell '%s'",
+            anchor,
+            object_get_name(lobject_get_full(L, cell))
+        );
+        lua_error(L);
+    }
     geometry_rectangleareaanchor(lobject_get_full(L, cell), layer, anchor);
     return 0;
 }
