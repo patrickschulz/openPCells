@@ -802,7 +802,7 @@ void main_API_create_latex_doc(void)
     _destroy_api_entries(entries);
 }
 
-static char* _make_safe_string(const char* str)
+static char* _make_safe_string(const char* str, int replace_newline)
 {
     struct string* buffer = string_create();
     const char* ch = str;
@@ -812,7 +812,7 @@ static char* _make_safe_string(const char* str)
         {
             string_add_character(buffer, '\\');
         }
-        if(*ch == '\n')
+        if((*ch == '\n') && replace_newline)
         {
             string_add_character(buffer, ' ');
         }
@@ -856,13 +856,13 @@ static void _create_HTML_entry(const struct api_entry* entry)
     fprintf(stdout, "%s\n", ")\",");
 
     // description
-    char* info = _make_safe_string(entry->info);
+    char* info = _make_safe_string(entry->info, 1); // 1: replace newline
     fprintf(stdout, "        \"description\": \"%s\",\n", info);
     free(info);
 
     // examples
-    char* example = _make_safe_string(entry->example);
-    fprintf(stdout, "        \"example\": \"%s\",\n", example);
+    char* example = _make_safe_string(entry->example, 0); // 0: don't replace newline
+    fprintf(stdout, "        \"examples\": \"%s\",\n", example);
     free(example);
 }
 
