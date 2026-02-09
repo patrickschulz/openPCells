@@ -242,6 +242,7 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
                     OPCExportFormatPoint(nthelem(4 shape))
                 )
                 when(nthelem(5 shape) ; has net
+                    newline(file)
                     fprintf(file
                         "%s:add_net_shape(\"%s\", %s, %s, %s)"
                         cellname
@@ -250,7 +251,6 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
                         OPCExportFormatPoint(nthelem(4 shape))
                         OPCExportFormatLayer(cadr(shape))
                     )
-                    newline(file)
                 ) ; when net
             ) ; rect
             ("polygon"
