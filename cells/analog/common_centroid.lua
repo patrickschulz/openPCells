@@ -175,6 +175,7 @@ function parameters()
         { "interconnectlines_label_sizehint", technology.get_optional_dimension("Default Label Size", 0), follow = "lines_label_sizehint" },
         { "globallines_label_sizehint", technology.get_optional_dimension("Default Label Size", 0), follow = "lines_label_sizehint" },
         { "instancename", nil },
+        { "instancenameincenter", true },
         { "instancelabelsizehint", technology.get_optional_dimension("Default Label Size", 0) }
     )
 end
@@ -2298,10 +2299,25 @@ function layout(cell, _P, _env, state)
 
     -- instance name
     if rawget(_P, "instancename") then
+        local position
+        if _P.instancenameincenter then
+            position = point.create(
+                0.5 * (
+                    cell:get_alignment_anchor("outerbl"):getx(),
+                    cell:get_alignment_anchor("outertr"):getx()
+                ),
+                0.5 * (
+                    cell:get_alignment_anchor("outerbl"):gety(),
+                    cell:get_alignment_anchor("outertr"):gety()
+                )
+            )
+        else
+            position = cell:get_alignment_anchor("outerbl")
+        end
         cell:add_label(
             _P.instancename,
             generics.other("text"),
-            cell:get_alignment_anchor("outerbl"),
+            position,
             _P.instancelabelsizehint
         )
     end
