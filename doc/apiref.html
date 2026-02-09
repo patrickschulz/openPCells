@@ -13,9 +13,6 @@
     <div class="container">
         <p>
         This page contains searchable API function references.
-        (The search is currently slightly broken.
-        It works for simple cases, but sometimes misses functions.
-        opc --api-search can also be used to search for API functions.)
         </p>
     </div>
     <div class="container">
@@ -3026,12 +3023,55 @@ const template = document.querySelector(".result");
 // whenever the user types in the search input, look for a apiref by name
 input.addEventListener("input", searchByAPIRefName);
 
-function checkMatch(searchQuery, apiref)
-{
-    const matches_module = apiref.module.includes(searchQuery)
-    const matches_funcname = apiref.funcname.includes(searchQuery)
-    const matches_description = apiref.description.includes(searchQuery)
-    return matches_module || matches_funcname || matches_description
+function filterBySearch(array, searchTerm) {
+    if (!searchTerm || searchTerm.trim() === '') {
+        return array;
+    }
+
+    const lowerSearch = searchTerm.toLowerCase();
+
+    const results = array.filter(entry => {
+        const searchableText = [
+            entry.module,
+            entry.funcname,
+            entry.description
+        ].join(' ').toLowerCase();
+
+        return searchableText.includes(lowerSearch);
+    }).map(entry => {
+        // Assign priority based on which field matches and position
+        let priority;
+        let startsWithMatch = false;
+
+        const funcnameLower = entry.funcname.toLowerCase();
+        const moduleLower = entry.module.toLowerCase();
+
+        if (funcnameLower.includes(lowerSearch)) {
+            priority = 1;
+            startsWithMatch = funcnameLower.startsWith(lowerSearch);
+        } else if (moduleLower.includes(lowerSearch)) {
+            priority = 2;
+            startsWithMatch = moduleLower.startsWith(lowerSearch);
+        } else {
+            priority = 3;
+            startsWithMatch = false;
+        }
+
+        return { entry, priority, startsWithMatch };
+    });
+
+    // Sort by priority (1 = funcname, 2 = module, 3 = description)
+    // Within each priority, prefer matches at the beginning
+    results.sort((a, b) => {
+        if (a.priority !== b.priority) {
+            return a.priority - b.priority;
+        }
+        // Within same priority, prefer beginning matches
+        return b.startsWithMatch - a.startsWithMatch;
+    });
+
+    // Return just the entries without priority
+    return results.map(result => result.entry);
 }
 
 function searchByAPIRefName(inputEvent)
@@ -3040,9 +3080,7 @@ function searchByAPIRefName(inputEvent)
     const isEmptySearch = searchQuery.trim() === "";
 
     // get array with matching entries
-    const matching_api_refs = isEmptySearch ?
-        []
-        : apirefs.filter(checkMatch.bind(null, searchQuery));
+    const matching_api_refs = filterBySearch(apirefs, searchQuery);
 
     // show matching results
     renderSearchResults(matching_api_refs);
