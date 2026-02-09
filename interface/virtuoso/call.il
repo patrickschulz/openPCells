@@ -140,6 +140,29 @@ procedure(OPCAuxCall(args)
     ) ; let
 ) ; OPCAuxCall
 
+procedure(OPCAuxCallResults(args)
+    let(
+        (cmd pid exitstatus)
+        cmd = OPCBuildCallCommand(args)
+        when(OPCSettingsForm->OPCSettingsLog->value == "true"
+            printf("opc call: %s\n" cmd)
+        )
+        pid = ipcBeginProcess(cmd)
+        ipcWait(pid 1 1)
+        exitstatus = ipcGetExitStatus(pid)
+        if(exitstatus != 0
+            then
+                let(
+                    (errmsg)
+                    errmsg = ipcReadProcess(pid)
+                    warn("opc call (%s) failed:, error message was: %s\n" cmd errmsg)
+                ) ; let
+            else
+                ipcReadProcess(pid)
+        )
+    ) ; let
+) ; OPCAuxCallResults
+
 procedure(OPCCleanUp(filename)
     when(OPCSettingsForm->OPCSettingsDeleteFile->value == "true"
         when(isFile(filename)

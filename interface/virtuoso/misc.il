@@ -1,20 +1,37 @@
 procedure(OPCAboutCallback()
-    let(
-        (OPCAboutForm)
-        OPCAboutForm = hiCreateAppForm(
-            ?name 'OPCAboutForm
-            ?formTitle "openPCells About"
-            ?buttonLayout 'OKCancel
-            ?fields list(
-                hiCreateHypertextField(
-                    ?name 'OPCHTMLField 
-                    ?title ""
-                    ?value "<div style=\"text-align:center\"><h1>openPCells &ndash; A framework for open layout cell generators</h1><p>openPCells (opc) 0.1.0 &ndash; &copy;Patrick Kurth 2020&ndash;2021</p><A href=https://github.com/patrickschulz/openPCells>Website</A>" 
-                )
+    unless(boundp('OPCAboutForm)
+        let(
+            (version content field layout)
+            version = OPCAuxCallResults("--version")
+            content = list(
+                "OpenPCells Layout Generator"
+                "https://github.com/patrickschulz/openPCells"
+                "Author: Patrick Kurth"
+                version
+                "OpenPCells is a layout generator for integrated circuits."
+                "It features rich technology-independent parametric cells."
+                "Additionally it comes with powerful helper functions to automatically place routing, power grids and filling."
+                "The virtuoso interface makes many OpenPCells concepts accessible in an easy way."
+                "Check out the documentation for more information, API documentation and usage guides."
+            )
+            field = hiCreateOutputStringField(
+                ?name 'OPCAboutText
+                ?value buildString(content "\n")
+                ?enabled t
+            )
+            layout = hiCreateVerticalBoxLayout(
+                'OPCAboutLayout
+                ?items list(field)
+            )
+            OPCAboutForm = hiCreateLayoutForm(
+                'OPCAboutForm
+                "About OpenPCells"
+                layout
+                ?buttonLayout 'OKCancel
             )
         )
-        hiDisplayForm(OPCAboutForm 100:100)
-    )
+    ) ; unless
+    hiDisplayForm(OPCAboutForm 100:100)
 ) ; OPCAboutCallback
 
 procedure(OPCDocumentationCallback()
