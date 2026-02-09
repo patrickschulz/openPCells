@@ -107,14 +107,16 @@ void main_show_cell_info(const char* cellname, struct cmdoptions* cmdoptions, st
     pcell_destroy_state(pcell_state);
 }
 
-void main_list_cells_cellpaths(struct cmdoptions* cmdoptions, struct hashmap* config)
+void main_list_cells_cellpaths(const char** cellnames_ptr, struct cmdoptions* cmdoptions, struct hashmap* config)
 {
     struct pcell_state* pcell_state = pcell_initialize_state();
     _prepare_cellpaths(pcell_state, cmdoptions, config);
     if(cmdoptions_was_provided_long(cmdoptions, "list"))
     {
         const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
-        pcell_list_cells(pcell_state, listformat);
+        struct const_vector* cellnames = const_vector_adapt_from_pointer_array((void**)cellnames_ptr);
+        pcell_list_cells(cellnames, pcell_state, listformat);
+        const_vector_destroy(cellnames);
     }
     if(cmdoptions_was_provided_long(cmdoptions, "list-cellpaths"))
     {
@@ -162,6 +164,7 @@ void main_list_cell_parameters(const char* cellname, const char* parametersforma
     struct const_vector* parameternames = const_vector_adapt_from_pointer_array((void**)parameternames_ptr);
 
     pcell_list_parameters(pcell_state, techstate, cellname, parametersformat, parameternames);
+    const_vector_destroy(parameternames);
     pcell_destroy_state(pcell_state);
 LIST_PARAMETERS_DESTROY_TECHNOLOGY:
     if(techstate)
@@ -192,6 +195,7 @@ void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* confi
     struct const_vector* parameternames = const_vector_adapt_from_pointer_array((void**)ptr);
 
     pcell_list_anchors(pcell_state, cellname, anchorsformat, parameternames);
+    const_vector_destroy(parameternames);
     pcell_destroy_state(pcell_state);
 }
 

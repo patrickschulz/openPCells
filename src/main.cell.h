@@ -11,6 +11,7 @@ void main_show_cell_info(
 );
 
 void main_list_cells_cellpaths(
+    const char** cellnames,
     struct cmdoptions* cmdoptions,
     struct hashmap* config
 );

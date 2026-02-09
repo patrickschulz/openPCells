@@ -96,7 +96,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "parameters-format", SINGLE_ARG, "fo
 cmdoptions_add_option(cmdoptions, 'A', "anchors", SINGLE_ARG, "display available cell anchors for the given cellname and exit. If additional positional parameters are given, these are interpreted as parameter names and only info for these parameters is printed.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "anchors-format", SINGLE_ARG, "format for displaying cell anchors (currently not used)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "constraints", NO_ARG, "show required technology parameter (requires --cell and --technology)");
-cmdoptions_add_option(cmdoptions, 'L', "list", NO_ARG, "list available cells");
+cmdoptions_add_option(cmdoptions, 'L', "list", NO_ARG, "list available cells. The list of cells can be filtered by additional positional parameters. The filter list is applied consecutively, in the order of the parameters (e.g. 'foo bar' filters first for foo and then for bar).");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-format", SINGLE_ARG, "format for listing cells. The following format is recognized: prefmt:postfmt:prepathfmt:postpathfmt:prebasefmt:postbasefmt:cellfmt. Format strings can be empty, the delimiting ':' has to be present. A (useless) basic format could be '::::::'. The default is '::%p\\n::  %b\\n::    %c\\n'. A possible format for creating a nested list (e.g. for SKILL) would be 'list(\\n:)\\n:::list(\"%b\" list(:))\\n:\"%c\"'");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-all", NO_ARG, "list all available cells (including hidden cells)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-no-directories", NO_ARG, "don't list parent directories when listing available cells");

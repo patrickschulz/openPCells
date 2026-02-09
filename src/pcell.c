@@ -352,7 +352,7 @@ void pcell_list_cellpaths(const struct pcell_state* pcell_state)
     }
 }
 
-void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
+void pcell_list_cells(struct const_vector* cellnames, struct pcell_state* pcell_state, const char* listformat)
 {
     lua_State* L = util_create_basic_lua_state();
     module_load_aux(L);
@@ -362,7 +362,8 @@ void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
     }
     open_ldir_lib(L);
 
-    lua_newtable(L);
+    lua_newtable(L); // args
+    // cell paths
     lua_newtable(L);
     for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
     {
@@ -370,10 +371,28 @@ void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
         lua_rawseti(L, -2, i + 1);
     }
     lua_setfield(L, -2, "cellpaths");
+    // list format
     if(listformat)
     {
         lua_pushstring(L, listformat);
         lua_setfield(L, -2, "listformat");
+    }
+    // cellnames names
+    size_t numposargs = 0;
+    lua_newtable(L);
+    for(size_t i = 0; i < const_vector_size(cellnames); ++i)
+    {
+        lua_pushstring(L, const_vector_get(cellnames, i));
+        lua_rawseti(L, -2, numposargs + 1);
+        ++numposargs;
+    }
+    if(numposargs > 0)
+    {
+        lua_setfield(L, -2, "cellnames");
+    }
+    else
+    {
+        lua_pop(L, 1);
     }
     lua_setglobal(L, "args");
     script_call_list_cells(L);

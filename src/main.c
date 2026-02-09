@@ -586,7 +586,8 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "list-cellpaths") ||
        cmdoptions_was_provided_long(cmdoptions, "list"))
     {
-        main_list_cells_cellpaths(cmdoptions, config);
+        const char** cellnames = cmdoptions_get_positional_parameters(cmdoptions);
+        main_list_cells_cellpaths(cellnames, cmdoptions, config);
         goto DESTROY_CONFIG;
     }
 
