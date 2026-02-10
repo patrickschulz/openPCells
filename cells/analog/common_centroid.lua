@@ -2303,11 +2303,11 @@ function layout(cell, _P, _env, state)
         if _P.instancenameincenter then
             position = point.create(
                 0.5 * (
-                    cell:get_alignment_anchor("outerbl"):getx(),
+                    cell:get_alignment_anchor("outerbl"):getx() +
                     cell:get_alignment_anchor("outertr"):getx()
                 ),
                 0.5 * (
-                    cell:get_alignment_anchor("outerbl"):gety(),
+                    cell:get_alignment_anchor("outerbl"):gety() +
                     cell:get_alignment_anchor("outertr"):gety()
                 )
             )
