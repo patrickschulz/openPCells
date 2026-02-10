@@ -1,0 +1,104 @@
+<head>
+    <meta charset="utf-8">
+    <title>OpenPCells Documentation</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="topbar">
+        <div class="topbar-content">
+            <a href="../index.html" class="title">OpenPCells Documentation</a>
+            <h2 class="subtitle">Writing Exports</h2>
+        </div>
+    </div>
+    <details open>
+        <summary>Introduction</summary>
+        <p>
+        This guide shows how to add new export types to openPCells.
+        </p>
+    </details>
+    <details open>
+        <summary>Interface Functions</summary>
+    <p>
+    Export types in openPCells are implemented by a collection of functions.
+    Some functions are mandatory (for instance the function to export rectangles), others are optional.
+    If optional functions are missing, the to-be-exported data is possibly altered.
+    For instance, when no functions for hierarchy support are present, the generated layout is flattened before it is exported.
+    </p>
+    <p>
+    The following functions are available for implementing export types:
+    </p>
+    <ol>
+        <li>initialize(minx, maxx, miny, maxy)</li>
+        <li>finalize()</li>
+        <li>get_extension()</li>
+        <li>get_techexport()</li>
+        <li>set_options(opt)</li>
+        <li>at_begin()</li>
+        <li>at_end()</li>
+        <li>at_begin_cell(cellname)</li>
+        <li>at_end_cell()</li>
+        <li>write_rectangle(layer, bl, tr)</li>
+        <li>write_triangle(layer, pt1, pt2, pt3)</li>
+        <li>write_polygon(layer, pts)</li>
+        <li>write_path(layer, pts, width, extension)</li>
+        <li>write_cell_reference(identifier, instname, x, y, orientation)</li>
+        <li>write_cell_array(identifier, instbasename, x, y, orientation, xrep, yrep, xpitch, ypitch)</li>
+        <li>write_port(name, layer, where, sizehint)</li>
+    </ol>
+    <h2>The initialize() function</h2>
+    <p>
+    </p>
+    <h2>The finalize() function</h2>
+    <p>
+    </p>
+    <h2>The get_extension() function</h2>
+    <p>
+    </p>
+    <h2>The get_techexport() function</h2>
+    <p>
+    </p>
+    <h2>The set_options() function</h2>
+    <p>
+    </p>
+    <h2>The at_begin() function</h2>
+    <p>
+    </p>
+    <h2>The at_end() function</h2>
+    <p>
+    </p>
+    <h2>The at_begin_cell() function</h2>
+    <p>
+    </p>
+    <h2>The at_end_cell() function</h2>
+    <p>
+    </p>
+    <h2>The write_rectangle() function</h2>
+    <p>
+    </p>
+    <h2>The write_triangle() function</h2>
+    <p>
+    </p>
+    <h2>The write_polygon() function</h2>
+    <p>
+    </p>
+    <h2>The write_path() function</h2>
+    <p>
+    </p>
+    <h2>The write_cell_reference() function</h2>
+    <p>
+    </p>
+    <h2>The write_cell_array() function</h2>
+    <p>
+    </p>
+    <h2>The write_port() function</h2>
+    <p>
+    </p>
+    </details>
+    <div class="footerbar">
+        <hr>
+        <footer>
+            OpenPCells Documentation
+        </footer>
+    </div>
+</body>
+
