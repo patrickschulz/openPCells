@@ -708,8 +708,17 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     {
         struct export_state* export_state = export_create_state();
 
-        // add export search paths. FIXME: add --exportpath cmd option
+        // add export search paths
         export_add_searchpath(export_state, OPC_EXPORT_PATH "/export");
+        if(cmdoptions_was_provided_long(cmdoptions, "exportpath"))
+        {
+            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "exportpath");
+            while(*arg)
+            {
+                export_add_searchpath(export_state, *arg);
+                ++arg;
+            }
+        }
 
         // basename
         export_set_basename(export_state, cmdoptions_get_argument_long(cmdoptions, "filename"));
