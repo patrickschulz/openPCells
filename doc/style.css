@@ -107,6 +107,8 @@ pre.opc {
 }
 
 .search-bar {
+    font-size: 120%;
+    padding: 5pt;
     width: 50%;
 }
 

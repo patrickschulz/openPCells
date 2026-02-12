@@ -818,7 +818,7 @@ static char* _make_safe_string(const char* str, int replace_newline)
     const char* ch = str;
     // use rudimentary counter to warn against too long examples
     size_t counter = 0;
-    const size_t maxchars = 60;
+    const size_t maxchars = 62;
     while(*ch)
     {
         ++counter;

@@ -47,7 +47,7 @@
         "This function can be given multiple look-up strings, the first one that is found will be returned. "
         "If the maximum of several properties is required, use 'technology.get_dimension_max()'. "
         "For convenience, this function can also process 'nil' parameters, which will simply be ignored.",
-        "function parameters()\n    pcell.add_parameters({ {\"width\", technology.get_dimension(\"Minimum M1 Width\") } })\nend",
+        "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_dimension(\"Minimum M1 Width\") \n        }\n    )\nend",
         parameters
     ));
 }
@@ -64,7 +64,7 @@
         "get critical technology dimensions such as minimum metal width (max value)",
         "Get critical technology dimensions such as minimum metal width. "
         "This is similar to technology.get_dimension, but returns the maximum value of all given properties.",
-        "function parameters()\n    pcell.add_parameters({ {\"width\", technology.get_dimension_ma(\"Minimum Gate Width\", \"Analog Gate Width\") } })\nend",
+        "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_dimension_max(\n                \"Minimum Gate Width\",\n                \"Analog Gate Width\"\n            )\n        }\n    )\nend",
         parameters
     ));
 }
@@ -81,7 +81,7 @@
         "get critical technology dimensions such as minimum metal width (min value)",
         "Get critical technology dimensions such as minimum metal width. "
         "This is similar to technology.get_dimension, but returns the minimum value of all given properties.",
-        "function parameters()\n    pcell.add_parameters({ {\"space\", technology.get_dimension_ma(\"Minimum Gate Space\", \"Minimum Gate XSpace\") } })\nend",
+        "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_dimension_min(\n                \"Minimum Gate Space\",\n                \"Minimum Gate XSpace\"\n            )\n        }\n    )\nend",
         parameters
     ));
 }
@@ -98,7 +98,7 @@
         MODULE_TECHNOLOGY,
         "get optional technology dimensions",
         "Like get_dimension, but this function does not raise an error if the dimension was not found but returns the given fallback value.",
-        "function parameters()\n    pcell.add_parameters({ {\"width\", technology.get_optional_dimension(\"Minimum M1 Width\") } })\nend",
+        "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_optional_dimension(\n                \"Minimum M1 Width\"\n            )\n        }\n    )\nend",
         parameters
     ));
 }

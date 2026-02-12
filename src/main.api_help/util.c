@@ -865,7 +865,7 @@
         "check if any value in a table fulfills a condition",
         "Return true if any of the values in the array part of the table compare true (either directly to the given value or the function call is true). "
         "If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.any_of are passed to the function, following the array element",
-        "util.any_of(42, { 1, 2, 3 }) -- false\nutil.any_of(function(e) return e == 42 end, { 1, 2, 3 }) -- also false",
+        "util.any_of(42, { 1, 2, 3 }) -- false\nutil.any_of(\n    function(e) return e == 42 end,\n    { 1, 2, 3 }\n) -- also false",
         parameters
     ));
 }
@@ -884,7 +884,7 @@
         "check if all value in a table fulfill a condition",
         "Return true if all of the values in the array part of the table compare true (either directly to the given value or the function call is true). "
         "If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.all_of are passed to the function, following the array element",
-        "util.all_of(42, { 42, 42, 42 }) -- true\nutil.all_of(function(e) return e == 42 end, { 42, 2, 3 }) -- false",
+        "util.all_of(42, { 42, 42, 42 }) -- true\nutil.all_of(\n    function(e) return e == 42 end,\n    { 42, 2, 3 }\n) -- false",
         parameters
     ));
 }
@@ -1083,7 +1083,8 @@
         "Like util.find, but call a function to do the comparison. "
         "The function is called with every one of the values, but not the index. "
         "If multiple values match, only the first one is returned.",
-        "util.find({ 3, 4, 5 }, function(value) return value == 4 end) -- 2, 4\nlocal target = 4\nutil.find({ 3, 4, 5 }, function(value, t) return value == t end, target) -- 2, 4\n",
+        "util.find_predicate(\n    { 3, 4, 5 },\n    function(value)\n        return value == 4\n    end\n) -- 2, 4\n"
+        "local target = 4\nutil.find(\n    { 3, 4, 5 },\n    function(value, t)\n        return value == t\n    end,\n    target\n) -- 2, 4\n",
         parameters
     ));
 }

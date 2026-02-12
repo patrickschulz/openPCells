@@ -13,7 +13,7 @@
         "abut the area anchor of one cell to the bottom of the area anchor of another cell",
         "Translate the cell so that the specified area anchor is abutted to the bottom of the target area anchor of the specified target cell. "
         "This only changes the y coordinate.",
-        "cell:abut_area_anchor_bottom(\"topgatestrap\", othercell, \"botgatestrap\")",
+        "cell:abut_area_anchor_bottom(\n    \"topgatestrap\",\n    othercell,\n    \"botgatestrap\"\n)",
         parameters
     ));
 }
@@ -33,7 +33,7 @@
         "abut the area anchor of one cell to the left of the area anchor of another cell",
         "Translate the cell so that the specified area anchor is abutted to the left of the target area anchor of the specified target cell. "
         "This only changes the x coordinate.",
-        "cell:abut_area_anchor_left(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+        "cell:abut_area_anchor_left(\n    \"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
         parameters
     ));
 }
@@ -53,7 +53,7 @@
         "abut the area anchor of one cell to the right of the area anchor of another cell",
         "Translate the cell so that the specified area anchor is abutted to the right of the target area anchor of the specified target cell. "
         "This only changes the x coordinate.",
-        "cell:abut_area_anchor_right(\"rightsourcedrain\", othercell, \"leftsourcedrain\")",
+        "cell:abut_area_anchor_right(\n\"rightsourcedrain\",\n    othercell,\n    \"leftsourcedrain\"\n)",
         parameters
     ));
 }
@@ -72,7 +72,7 @@
         "abut the area anchor of one cell to the top of the area anchor of another cell",
         "Translate the cell so that the specified area anchor is abutted to the top of the target area anchor of the specified target cell. "
         "This only changes the y coordinate.",
-        "cell:abut_area_anchor_top(\"botgatestrap\", othercell, \"topgatestrap\")",
+        "cell:abut_area_anchor_top(\n\"botgatestrap\",\n    othercell,\n    \"topgatestrap\"\n)",
         parameters
     ));
 }
@@ -394,7 +394,7 @@
         MODULE_OBJECT,
         "add an area anchor to a cell (bottom-left/top-right)",
         "Add an area anchor to a cell, defined by the lower-left and upper-right corner points of the rectangular area.",
-        "cell:add_area_anchor_bltr(\"source\", point.create(-100, -20), point.create(100, 20))",
+        "cell:add_area_anchor_bltr(\n\"source\",\n    point.create(-100, -20),\n    point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -413,7 +413,7 @@
         MODULE_OBJECT,
         "add an area anchor to a cell (arbitrary corner points)",
         "Add an area anchor to a cell, defined by the two corner points of the rectangular area (order does not matter).",
-        "cell:add_area_anchor_points(\"source\", point.create(100, 20), point.create(-100, -20))",
+        "cell:add_area_anchor_points(\n\"source\",\n    point.create(100, 20),\n    point.create(-100, -20)\n)",
         parameters
     ));
 }
@@ -433,7 +433,7 @@
         MODULE_OBJECT,
         "add an area anchor to a cell (point/dimensions)",
         "Add an area anchor to a cell, defined by the the lower-left corner point and the width and height of the rectangular area.",
-        "cell:add_area_anchor_blwh(\"source\", point.create(-100, -20), 200, 40)",
+        "cell:add_area_anchor_blwh(\n\"source\",\n    point.create(-100, -20),\n    200, 40\n)",
         parameters
     ));
 }
@@ -527,7 +527,7 @@
         MODULE_OBJECT,
         "add a layer boundary to a cell",
         "Add a layer boundary to an object. A layer boundary is useful for automatic filling",
-        "cell:add_layer_boundary(generics.metal(1), { point.create(0, 0), point.create(1000, 0), point.create(500, 500) })",
+        "cell:add_layer_boundary(\n    generics.metal(1),\n    {\n        point.create(0, 0),\n        point.create(1000, 0),\n        point.create(500, 500)\n    }\n)",
         parameters
     ));
 }
@@ -546,7 +546,7 @@
         MODULE_OBJECT,
         "add a layer boundary to a cell (rectangular variant)",
         "Add a rectangular layer boundary to an object. A layer boundary is useful for automatic filling",
-        "cell:add_layer_boundary_rectangular(generics.metal(1), point.create(-100, -100), point.create(100, 100))",
+        "cell:add_layer_boundary_rectangular(\n    generics.metal(1),\n    point.create(-100, -100),\n    point.create(100, 100)\n)",
         parameters
     ));
 }
@@ -566,7 +566,7 @@
         MODULE_OBJECT,
         "add a label (not a port) to a cell",
         "add a label to a cell. Works like add_anchor, but additionally a layer is expected. This is different from add_port in that it expresses intent for labels that are not connectivity-related (as opposed to ports). A size hint can be given, which might be processed by the export.",
-        "cell:add_label(\"0.8\", generics.other(\"M1voltagelabelhigh\"), point.create(100, 0))",
+        "cell:add_label(\n    \"0.8\",\n     generics.other(\"M1voltagelabelhigh\"),\n     point.create(100, 0)\n)",
         parameters
     ));
 }
@@ -586,7 +586,7 @@
         MODULE_OBJECT,
         "add a port to a cell",
         "add a port to a cell. Works like add_anchor, but additionally a layer is expected. A size hint can be given, which might be processed by the export.",
-        "cell:add_port(\"vdd\", generics.metalport(2), point.create(100, 0))",
+        "cell:add_port(\n    \"vdd\",\n    generics.metalport(2),\n    point.create(100, 0)\n)",
         parameters
     ));
 }
@@ -606,7 +606,7 @@
         MODULE_OBJECT,
         "add a port and the corresponding point as an anchor to a cell",
         "add a port to a cell. Works like add_anchor, but additionally a layer is expected. This function also adds an anchor to the cell (named like the port). A size hint can be given, which might be processed by the export.",
-        "cell:add_port_with_anchor(\"vdd\", generics.metalport(2), point.create(100, 0))",
+        "cell:add_port_with_anchor(\n    \"vdd\",\n    generics.metalport(2),\n    point.create(100, 0)\n)",
         parameters
     ));
 }
@@ -629,7 +629,7 @@
         MODULE_OBJECT,
         "add a bus port (multiple ports)",
         "add a bus port (multiple ports like vout[0:4]) to a cell. The port expression is portname[startindex:endindex] and portname[i] is placed at 'where' with an offset of ((i - 1) * xpitch, (i - 1) * ypitch)",
-        "cell:add_bus_port(\"vout\", generics.metalport(4), point.create(200, 0), 0, 4, 200, 0)",
+        "cell:add_bus_port(\n    \"vout\",\n    generics.metalport(4),\n    point.create(200, 0),\n    0, 4,\n    200, 0\n)",
         parameters
     ));
 }
@@ -649,7 +649,7 @@
         "align the area anchor of one cell to the bottom of the area anchor of another cell",
         "Translate the cell so that the specified area anchor is aligned to the bottom of the target area anchor of the specified target cell. "
         "This only changes the y coordinate.",
-        "cell:align_area_anchor_bottom(\"topgatestrap\", othercell, \"botgatestrap\")",
+        "cell:align_area_anchor_bottom(\n    \"topgatestrap\",\n    othercell,\n    \"botgatestrap\"\n)",
         parameters
     ));
 }
@@ -669,7 +669,7 @@
         "align the area anchor of one cell to the left of the area anchor of another cell",
         "Translate the cell so that the specified area anchor is aligned to the left of the target area anchor of the specified target cell. "
         "This only changes the x coordinate.",
-        "cell:align_area_anchor_left(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+        "cell:align_area_anchor_left(\n    \"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
         parameters
     ));
 }
@@ -689,7 +689,7 @@
         "align the area anchor of one cell to the right of the area anchor of another cell",
         "Translate the cell so that the specified area anchor is aligned to the right of the target area anchor of the specified target cell. "
         "This only changes the x coordinate.",
-        "cell:align_area_anchor_right(\"rightsourcedrain\", othercell, \"leftsourcedrain\")",
+        "cell:align_area_anchor_right(\n    \"rightsourcedrain\",\n    othercell,\n    \"leftsourcedrain\"\n)",
         parameters
     ));
 }
@@ -709,7 +709,7 @@
         "align the area anchor of one cell to the top of the area anchor of another cell",
         "Translate the cell so that the specified area anchor is aligned to the top of the target area anchor of the specified target cell. "
         "This only changes the y-coordinate.",
-        "cell:align_area_anchor_top(\"botgatestrap\", othercell, \"topgatestrap\")",
+        "cell:align_area_anchor_top(\n\"botgatestrap\",\n    othercell,\n    \"topgatestrap\"\n)",
         parameters
     ));
 }
@@ -730,7 +730,7 @@
         "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. "
         "The area anchors must have the same size, otherwise an error is raised. "
         "This changes both the x- and the y-coordinate.",
-        "cell:align_area_anchor(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+        "cell:align_area_anchor(\n\"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
         parameters
     ));
 }
@@ -750,7 +750,7 @@
         "align the area anchor of one cell to the area anchor of another cell (x-only variant)",
         "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. "
         "This changes only the x-coordinate.",
-        "cell:align_area_anchor_x(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+        "cell:align_area_anchor_x(\n\"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
         parameters
     ));
 }
@@ -770,7 +770,7 @@
         "align the area anchor of one cell to the area anchor of another cell (y-only variant)",
         "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. "
         "This changes only the y-coordinate.",
-        "cell:align_area_anchor_y(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+        "cell:align_area_anchor_y(\n\"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
         parameters
     ));
 }
@@ -1468,7 +1468,7 @@
         "Like object.get_anchor, but works on child arrays. "
         "The first two argument are the x- and the y-index (starting at 1, 1). "
         "Accessing an array anchor of a non-array object is an error.",
-        "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(ref, \"refarray\", 20, 2, 100, 1000)\nlocal anchor = array:get_array_anchor(4, 1, \"sourcedrain1bl\")",
+        "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(\n    ref,\n    \"refarray\",\n    20, 2,\n    100, 1000\n)\nlocal anchor = array:get_array_anchor(4, 1, \"someanchor\")",
         parameters
     ));
 }
@@ -1489,7 +1489,7 @@
         "Like object.get_area_anchor, but works on child arrays. "
         "The first two argument are the x- and the y-index (starting at 1, 1). "
         "Accessing an array anchor of a non-array object is an error.",
-        "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(ref, \"refarray\", 20, 2, 100, 1000)\nlocal anchor = array:get_array_area_anchor(4, 1, \"sourcedrain1bl\")",
+        "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(\n    ref,\n    \"refarray\",\n    20, 2,\n    100, 1000\n)\nlocal anchor = array:get_array_area_anchor(4, 1, \"someareaanchor\")",
         parameters
     ));
 }
@@ -1570,7 +1570,7 @@
         "This might or might not be desirable, if precise control over the layer occupation is required it is recommended to use layer boundaries. "
         "This function is potentially slow, as it traverses the entire cell hierarchy and compares every shape layer to the given layer. "
         "If no layer is given, this function returns the bounding box.",
-        "local occupation = cell:get_layer_occupation(generics.metal(1))\nlayouthelpers.place_guardring(cell, occupation.bl, occupation.tr (...))",
+        "local occupation = cell:get_layer_occupation(\n    generics.metal(1)\n    )\nlayouthelpers.place_guardring(cell,\n    occupation.bl,\n    occupation.tr,\n    (...) -- further options\n)",
         parameters
     ));
 }
@@ -1610,7 +1610,7 @@
         "add a net shape to a cell",
         "Mark a rectangular area in a cell with a certain net. "
         "This can be used for automatic via placement from power grids, for instance.",
-        "cell:add_net_shape(\"vdd\", cell:get_area_anchor(\"sourcestrap\").bl, cell:get_area_anchor(\"sourcestrap\").tr, generics.metal(2))",
+        "cell:add_net_shape(\n    \"vdd\",\n    cell:get_area_anchor(\"sourcestrap\").bl,\n    cell:get_area_anchor(\"sourcestrap\").tr,\n    generics.metal(2)\n)",
         parameters
     ));
 }
@@ -2012,7 +2012,7 @@
         "Translate (move) the object so that the source point lies on the target. "
         "Usually the source point is an anchor of the object, but that is not a necessity. "
         "The points are just references for the delta vector and can be any points.",
-        "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
+        "cell:move_point(\n    cell:get_area_anchor(\"gate\").bl,\n    point.create(0, 0)\n) -- move to origin\n\nmosfet:move_point(\n    mosfet:get_area_anchor(\"leftsourcedrain\").bl,\n    othermosfet:get_area_anchor(\"rightsourcedrain\").bl\n) -- align two mosfets",
         parameters
     ));
 }
@@ -2032,7 +2032,7 @@
         "Translate (move) the object so that the x-coorindate of the source point lies on the x-coordinate target. "
         "Usually the source point is an anchor of the object, but that is not a necessity. "
         "The points are just references for the delta vector and can be any points.",
-        "cell:move_point_x(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move the x-coordinate of the origin\nmosfet:move_point_x(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align the x-coordinate of two mosfets",
+        "cell:move_point_x(\n    cell:get_area_anchor(\"gate\").bl,\n     point.create(0, 0)\n) -- move the x-coordinate of the origin\n\nmosfet:move_point_x(\n    mosfet:get_area_anchor(\"leftsourcedrain\").bl,\n    othermosfet:get_area_anchor(\"rightsourcedrain\").bl\n) -- align the x-coordinate of two mosfets",
         parameters
     ));
 }
@@ -2052,7 +2052,7 @@
         "Translate (move) the object so that the y-coorindate of the source point lies on the y-coordinate target. "
         "Usually the source point is an anchor of the object, but that is not a necessity. "
         "The points are just references for the delta vector and can be any points.",
-        "cell:move_point_y(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move the y-coordinate of the origin\nmosfet:move_point_y(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align the y-coordinate of two mosfets",
+        "cell:move_point_y(\n    cell:get_area_anchor(\"gate\").bl,\n    point.create(0, 0)\n) -- move the y-coordinate of the origin\n\nmosfet:move_point_y(\n    mosfet:get_area_anchor(\"leftsourcedrain\").bl,\n    othermosfet:get_area_anchor(\"rightsourcedrain\").bl\n) -- align the y-coordinate of two mosfets",
         parameters
     ));
 }
@@ -2070,7 +2070,7 @@
         "center an object",
         "Translate (move) the object so that the cell center lies on the target (default: (0, 0)). "
         "The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
-        "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
+        "cell:center() -- move to origin\n\ncell:center(point.create(100, 100)",
         parameters
     ));
 }
@@ -2088,7 +2088,7 @@
         "center an object (x-only variant)",
         "Translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in x-direction. "
         "The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
-        "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
+        "cell:center_x() -- move to origin\n\ncell:center_x(point.create(100, 100)",
         parameters
     ));
 }
@@ -2106,7 +2106,7 @@
         "center an object (y-only variant)",
         "Translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in y-direction. "
         "The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
-        "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
+        "cell:center_y() -- move to origin\n\ncell:center_y(point.create(100, 100)",
         parameters
     ));
 }

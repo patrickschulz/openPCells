@@ -12,7 +12,9 @@
         MODULE_GEOMETRY,
         "create a rectangular shape with the given corner points in cell",
         "geometry.rectanglebltr creates a rectangle in a given cell with the specified layer and corner points. The order of the points should be bottom-left/top-right. This is checked in the function and an error is raised if the points are not given like that. If the exact ordering is unkonwn (for instance because the points are generated with some variation) geometry.rectanglepoints should be used.",
-        "geometry.rectanglebltr(cell,\n    generics.other(\"nwell\"),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\ngeometry.rectanglebltr(cell, generics.metal(1), obj:get_anchor(\"bottomleft\"), obj:get_anchor(\"topright\"))\ngeometry.rectanglebltr(cell, generics.metal(-1), point.create(-100, -100), point.create(100, 100))\n",
+        "geometry.rectanglebltr(cell,\n    generics.other(\"nwell\"),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\n\n"
+        "geometry.rectanglebltr(cell,\n    generics.metal(1),\n    obj:get_anchor(\"bottomleft\"),\n    obj:get_anchor(\"topright\")\n)\n\n"
+        "geometry.rectanglebltr(cell,\n    generics.metal(-1),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\n",
         parameters
     ));
 }
@@ -32,7 +34,7 @@
         MODULE_GEOMETRY,
         "create a rectangular shape with the given point and dimensions",
         "Create a rectangular shape with the given bottom-left corner point and the width and height in cell",
-        "geometry.rectangleblwh(cell, generics.other(\"nwell\"), point.create(-100, -100), 200, 200)",
+        "geometry.rectangleblwh(cell,\n    generics.other(\"nwell\"),\n    point.create(-100, -100),\n    200, 200\n)",
         parameters
     ));
 }
@@ -51,7 +53,7 @@
         MODULE_GEOMETRY,
         "create a rectangular shape with the given arbitrary corner points",
         "Create a rectangular shape with the given corner points in cell. Similar to geometry.rectanglebltr, but any of the corner points can be given in any order",
-        "geometry.rectanglepoints(cell, generics.metal(1), point.create(100, -100), point(-100, 100))",
+        "geometry.rectanglepoints(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100))",
         parameters
     ));
 }
@@ -70,7 +72,7 @@
         "Create a rectangular shape on an area anchor of the given cell.",
         "geometry.rectangleareaanchor creates a rectangle defined by an area anchor. "
         "This construct is often used in cell definitions, and can simplify the code.",
-        "geometry.rectangleareaanchor(cell, generics.metal(1), \"someanchor\")",
+        "geometry.rectangleareaanchor(cell,\n    generics.metal(1),\n    \"someanchor\"\n)",
         parameters
     ));
 }
@@ -91,7 +93,7 @@
         MODULE_GEOMETRY,
         "create a rectangle-lika path",
         "Create a rectangular shape that is defined by its path-like endpoints. This function behaves like geometry.path, but takes only two points, not a list of points. This function likely will be removed in the future, use geometry.rectanglebltr or geometry.rectanglepoints",
-        "geometry.rectanglepath(cell, generics.metal(1), point.create(-100, 0), point(100, 0), 50)",
+        "geometry.rectanglepath(cell,\n    generics.metal(1),\n    point.create(-100, 0),\n    point(100, 0),\n    50\n)",
         parameters
     ));
 }
@@ -116,7 +118,7 @@
         MODULE_GEOMETRY,
         "create an array of rectangles",
         "Create an array of rectangles with the given width, height, repetition and pitch in cell",
-        "geometry.rectanglebltr(cell, generics.other(\"nwell\"), 100, 100, 0, 0, 10, 20, 200, 200)",
+        "geometry.rectanglebltr(cell,\n    generics.other(\"nwell\"),\n    100, 100, -- width, height\n    0, 0, -- xshift, yshift\n    10, 20, -- xrep, yrep\n    200, 200 -- xpitch, ypitch\n)",
         parameters
     ));
 }
@@ -140,9 +142,9 @@
         "slotted_rectangle",
         MODULE_GEOMETRY,
         "create a rectangle with slotting",
-        // FIXME
+        // FIXME: add more info
         "Create a rectangle with slotting.",
-        "geometry.slotted_rectangle(cell, generics.other(\"nwell\"), point.create(-200, -2000), point.create(200, 2000), 50, 50, 50, 50, 100, 100)",
+        "geometry.slotted_rectangle(cell,\n    generics.other(\"nwell\"),\n    point.create(-200, -2000),\n    point.create(200, 2000),\n    50, 50, -- slot width/height\n    50, 50, -- slot xspace/yspace\n    100, 100 -- slot edge xspace/yspace\n)",
         parameters
     ));
 }
@@ -163,7 +165,7 @@
         MODULE_GEOMETRY,
         "fill an area with vertical lines (defined by number of lines and width/space ratio)",
         "Fill a rectangular area with vertical lines with a given ratio between width and spacing",
-        "geometry.rectanglevlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 8, 1)",
+        "geometry.rectanglevlines(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    8, 1 -- numlines, ratio\n)",
         parameters
     ));
 }
@@ -184,7 +186,7 @@
         MODULE_GEOMETRY,
         "fill an area with vertical lines (defined by number of lines and line width)",
         "Fill a rectangular area with a certain number of vertical lines with the given width. The spacing is calculated automatically.",
-        "geometry.rectanglevlines_numlines_width(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 4, 20)",
+        "geometry.rectanglevlines_numlines_width(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    4, 20 --numlines, width\n)",
         parameters
     ));
 }
@@ -205,7 +207,7 @@
         MODULE_GEOMETRY,
         "fill an area with vertical lines (defined by number of lines and line space)",
         "Fill a rectangular area with vertical lines with the given width and spacing. The given numbers are only targets, in some cases they can't be matched exactly.",
-        "geometry.rectanglevlines_width_space(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 20, 20)",
+        "geometry.rectanglevlines_width_space(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    20, 20 -- width, space\n)",
         parameters
     ));
 }
@@ -226,7 +228,8 @@
         MODULE_GEOMETRY,
         "caculate the parameters to fill an area with vertical lines (defined by number of lines and width/space ratio)",
         "Calculate the geometries of vertical lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglevlines, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "local width, height, space, offset, numlines = geometry.rectanglevlines_settings(point.create(-100, -100), point(100, 100), 20, 1)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100 + offset, -100, numlines, 1, width + space, 0)",
+        "local width, height, space, offset, numlines = \n    geometry.rectanglevlines_settings(\n        point.create(-100, -100),\n        point(100, 100),\n        20, 1 -- numlines, ratio\n)\n"
+        "geometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100 + offset, -100,\n    numlines, 1,\n    width + space, 0\n)",
         parameters
     ));
 }
@@ -245,7 +248,7 @@
         MODULE_GEOMETRY,
         "calculate the parameters to fill an area with vertical lines (defined by number of lines and line width)",
         "Calculate the geometries of vertical lines to fill a rectangular area with a given number of lines and width. The function returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "local width, height, space, offset, numlines = geometry.rectanglehlines_width_space_settings(point.create(-100, -100), point(100, 100), 4, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
+        "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_width_space_settings(\n        point.create(-100, -100),\n        point(100, 100),\n        4, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
         parameters
     ));
 }
@@ -266,7 +269,7 @@
         MODULE_GEOMETRY,
         "calculate the parameters to fill an area with vertical lines (defined by number of lines and line space)",
         "Calculate the geometries of vertical lines to fill a rectangular area with a given width and spacing. This function is like geometry.rectanglevlines_width_space, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(point.create(-100, -100), point(100, 100), 20, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100 + offset, -100, numlines, 1, width + space, 0)",
+        "local width, height, space, offset, numlines =\n    geometry.rectanglevlines_width_space_settings(\n        point.create(-100, -100),\n        point(100, 100),\n        20, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100 + offset, -100,\n    numlines, 1,\n    width + space, 0\n)",
         parameters
     ));
 }
@@ -287,7 +290,7 @@
         MODULE_GEOMETRY,
         "fill an area with horizontal lines (defined by number of lines and width/space ratio)",
         "Fill a rectangular area with horizontal lines with a given ratio between width and spacing",
-        "geometry.rectanglehlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 8, 1)",
+        "geometry.rectanglehlines(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    8, 1\n)",
         parameters
     ));
 }
@@ -308,7 +311,7 @@
         MODULE_GEOMETRY,
         "fill an area with horizontal lines (defined by number of lines and line height)",
         "Fill a rectangular area with horizontal lines with the given height and spacing. The given numbers are only targets, in some cases they can't be matched exactly.",
-        "geometry.rectanglehlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 20, 20)",
+        "geometry.rectanglehlines_height_space(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    20, 20\n)",
         parameters
     ));
 }
@@ -329,7 +332,7 @@
         MODULE_GEOMETRY,
         "calculate the parameters to fill an area with horizontal lines (defined by number of lines and width/space ratio)",
         "Calculate the geometries of horizontal lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglehlines, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "local width, height, space, offset, numlines = geometry.rectanglehlines_settings(point.create(-100, -100), point(100, 100), 20, 1)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
+        "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_settings(\n        point.create(-100, -100),\n         point(100, 100),\n         20, 1\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
         parameters
     ));
 }
@@ -350,7 +353,7 @@
         MODULE_GEOMETRY,
         "calculate the parameters to fill an area with horizontal lines (defined by line height and line space)",
         "Calculate the geometries of horizontal lines to fill a rectangular area with a given height and spacing. This function is like geometry.rectanglehlines_width_space, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(point.create(-100, -100), point(100, 100), 20, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
+        "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_height_space_settings(\n        point.create(-100, -100),\n         point(100, 100),\n         20, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
         parameters
     ));
 }
@@ -369,7 +372,7 @@
         MODULE_GEOMETRY,
         "calculate the parameters to fill an area with horizontal lines (defined by number of lines and line height)",
         "Calculate the geometries of horizontal lines to fill a rectangular area with a given number of lines and height. The function returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(point.create(-100, -100), point(100, 100), 4, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
+        "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_height_space_settings(\n        point.create(-100, -100),\n         point(100, 100),\n        4, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
         parameters
     ));
 }
@@ -397,7 +400,7 @@
         "If given, the rectangles are not placed in the regions defined by the exclude rectangles. "
         "Optionally, binary (fill or no fill) excludes can be given, where no fill is placed. "
         "This should be a table containing polygons, which can (for instance) be fetched from cells by object:get_boundary().",
-        "geometry.rectangle_fill_in_boundary(\n    cell,\n     generics.metal(1),\n     100, 100,\n     200, 200,\n     { point.create(-10000, -10000), point.create(10000, -10000), point.create(10000, 10000), point.create(-10000, 10000) },\n     { util.rectangle_to_polygon( point.create(1000, 1000), point.create(2000, 2000)) }\n)",
+        "geometry.rectangle_fill_in_boundary(\n    cell,\n     generics.metal(1),\n     100, 100,\n     200, 200,\n     {\n        point.create(-10000, -10000),\n        point.create(10000, -10000),\n        point.create(10000, 10000),\n        point.create(-10000, 10000)\n    },\n     {\n        util.rectangle_to_polygon(\n            point.create(1000, 1000),\n            point.create(2000, 2000)\n        )\n    }\n)",
         parameters
     ));
 }
@@ -415,7 +418,7 @@
         MODULE_GEOMETRY,
         "create a polygon shape",
         "Create a polygon shape with the given points in cell",
-        "geometry.polygon(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 0), point.create(0, 50))",
+        "geometry.polygon(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 0),\n        point.create(0, 50)\n    }\n)",
         parameters
     ));
 }
@@ -435,7 +438,7 @@
         MODULE_GEOMETRY,
         "create a path shape",
         "Create a path shape with the given points and width in cell",
-        "geometry.path(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 0), point.create(50, 50))",
+        "geometry.path(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 0),\n        point.create(50, 50)\n    }\n)",
         parameters
     ));
 }
@@ -455,7 +458,7 @@
         MODULE_GEOMETRY,
         "create a path shape (polygon outline)",
         "Like geometry.path, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "geometry.path_polygon(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 0), point.create(50, 50))",
+        "geometry.path_polygon(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 0),\n        point.create(50, 50)\n    }\n)",
         parameters
     ));
 }
@@ -475,7 +478,7 @@
         MODULE_GEOMETRY,
         "create a rectilinear path shape",
         "Create a manhatten path shape with the given points and width in cell. This only allows vertical or horizontal movements",
-        "geometry.path_manhatten(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 50))",
+        "geometry.path_manhatten(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 50)\n    }\n)",
         parameters
     ));
 }
@@ -495,7 +498,7 @@
         MODULE_GEOMETRY,
         "create a rectilinear path shape defined by two points (x-direction first)",
         "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in y-direction (similar to an 'L')",
-        "geometry.path_2x(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        "geometry.path_2x(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
         parameters
     ));
 }
@@ -515,7 +518,7 @@
         MODULE_GEOMETRY,
         "create a rectilinear path shape defined by two points (x-direction first) (polygon outline)",
         "Like geometry.path_2x, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "geometry.path_2x_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        "geometry.path_2x_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
         parameters
     ));
 }
@@ -535,7 +538,7 @@
         MODULE_GEOMETRY,
         "create a rectilinear path shape defined by two points (y-direction first)",
         "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction (similar to an capital greek gamma)",
-        "geometry.path_2y(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        "geometry.path_2y(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
         parameters
     ));
 }
@@ -555,7 +558,7 @@
         MODULE_GEOMETRY,
         "create a rectilinear path shape defined by two points (y-direction first) (polygon outline)",
         "Like geometry.path_2y, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "geometry.path_2y_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        "geometry.path_2y_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
         parameters
     ));
 }
@@ -577,7 +580,7 @@
         MODULE_GEOMETRY,
         "create a rectilinear path shape defined by three points (x-direction first)",
         "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in y-direction. Different from path_2x this make a bend in the middle between the start and the end point. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "geometry.path_3x(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "geometry.path_3x(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
         parameters
     ));
 }
@@ -599,7 +602,7 @@
         MODULE_GEOMETRY,
         "create a rectilinear path shape defined by three points (x-direction first) (polygon outline)",
         "Like geometry.path_3x, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "geometry.path_3x_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "geometry.path_3x_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
         parameters
     ));
 }
@@ -621,7 +624,7 @@
         MODULE_GEOMETRY,
         "create a path shape defined by three points with a diagonal segment (x-direction first)",
         "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in x-direction. Different from path_3x the middle segment is diagonal. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "geometry.path_3x_diagonal(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "geometry.path_3x_diagonal(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
         parameters
     ));
 }
@@ -643,7 +646,7 @@
         MODULE_GEOMETRY,
         "create a path shape defined by three points with a diagonal segment (x-direction first) (polygon outline)",
         "Like geometry.path_3x_diagonal_polygon, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "geometry.path_3x_diagonal_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "geometry.path_3x_diagonal_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
         parameters
     ));
 }
@@ -665,7 +668,7 @@
         MODULE_GEOMETRY,
         "create a rectilinear path shape defined by three points (y-direction first)",
         "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction. Different from path_2x this make a bend in the middle between the start and the end point. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "geometry.path_3y(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "geometry.path_3y(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
         parameters
     ));
 }
@@ -687,7 +690,7 @@
         MODULE_GEOMETRY,
         "create a rectilinear path shape defined by three points (y-direction first) (polygon outline)",
         "Like geometry.path_3y, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "geometry.path_3y_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "geometry.path_3y_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
         parameters
     ));
 }
@@ -709,7 +712,7 @@
         MODULE_GEOMETRY,
         "create a path shape defined by three points with a diagonal segment (y-direction first)",
         "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction. Different from path_3y the middle segment is diagonal. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "geometry.path_3y_diagonal(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "geometry.path_3y_diagonal(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
         parameters
     ));
 }
@@ -731,7 +734,7 @@
         MODULE_GEOMETRY,
         "create a path shape defined by three points with a diagonal segment (y-direction first) (polygon outline)",
         "Like geometry.path_3y_diagonal, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "geometry.path_3y_diagonal_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "geometry.path_3y_diagonal_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
         parameters
     ));
 }
@@ -752,7 +755,7 @@
         MODULE_GEOMETRY,
         "create a path shape defined by three points, resembling a 'c' shape",
         "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the x-coordinate of the offset point is taken, creating a shape resembling a (possibly inverted) 'C'",
-        "geometry.path_cshape(cell, generics.metal(1), point.create(-50, 50), point.create(-50, -50), point.create(100, 0))",
+        "geometry.path_cshape(cell,\n    generics.metal(1),\n    point.create(-50, 50),\n    point.create(-50, -50),\n    point.create(100, 0)\n)",
         parameters
     ));
 }
@@ -773,7 +776,7 @@
         MODULE_GEOMETRY,
         "create a path shape defined by three points, resembling a 'u' shape",
         "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the y-coordinate of the offset point is taken, creating a shape resembling a (possibly inverted) 'U'",
-        "geometry.path_ushape(cell, generics.metal(1), point.create(-50, 0), point.create(50, 0), point.create(0, 100))",
+        "geometry.path_ushape(cell,\n    generics.metal(1),\n    point.create(-50, 0),\n    point.create(50, 0),\n    point.create(0, 100)\n)",
         parameters
     ));
 }
@@ -794,12 +797,13 @@
         "A movement can be a point, in which case two resulting movements are created: first x, than y (or vice versa, depending on the current state).\n"
         "A scalar movement moves relatively by that amount (in x or y, again depending on the state)\n"
         "This function does the same as geometry.path_points_yx, but starts in x-direction",
-        "geometry.path(cell, generics.metal(2), geometry.path_points_xy(point.create(0, 0), {\n"
+        "geometry.path(cell,\n    generics.metal(2),\n    geometry.path_points_xy(point.create(0, 0), {\n"
         "    100, -- move 100 to the right\n"
         "    100, -- move 200 upwards\n"
-        "      0, -- don't move, but switch direction\n"
-        "    point.create(300, 300) -- move to (300, 300), first in y-direction, than in x-direction\n"
-        "    }), 100)",
+        "    0, -- don't move, but switch direction\n"
+        "    point.create(300, 300) -- move to (300, 300)\n"
+        "    }), 100\n"
+        ")",
         parameters
     ));
 }
@@ -819,15 +823,16 @@
         "This function only creates the resulting list of points, no shapes by itself.\n"
         "A movement can be a point, in which case two resulting movements are created: first x, than y (or vice versa, depending on the current state).\n"
         "A scalar movement moves relatively by that amount (in x or y, again depending on the state)\n"
-        "This function does the same as geometry.path_points_xy, but starts in y-direction"
-        ,
-        "geometry.path(cell, generics.metal(2), geometry.path_points_yx(point.create(0, 0), {\n"
-        "    100, -- move 100 to the right\n"
-        "    100, -- move 200 upwards\n"
-        "      0, -- don't move, but switch direction\n"
-        "    point.create(300, 300) -- move to (300, 300), first in y-direction, than in x-direction\n"
-        "    }), 100)"
-        ,
+        "This function does the same as geometry.path_points_xy, but starts in y-direction",
+        "geometry.path(cell,\n"
+        "    generics.metal(2),\n"
+        "    geometry.path_points_yx(point.create(0, 0), {\n"
+        "        100, -- move 100 to the right\n"
+        "        100, -- move 200 upwards\n"
+        "        0, -- don't move, but switch direction\n"
+        "        point.create(300, 300) -- move to (300, 300)\n"
+        "    }), 100\n"
+        ")",
         parameters
     ));
 }
@@ -852,7 +857,7 @@
         "Here it can occur that a via is built only on a partial overlap, making the creation fail. "
         "As this does not actually create a via, a cell as target is not present as function parameter. "
         "The properties table is the same as for geometry.viabltr()",
-        "geometry.check_viabltr(1, 3, point.create(-100, -20), point.create(100, 20))",
+        "geometry.check_viabltr(1, 3,\n    point.create(-100, -20),\n    point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -877,7 +882,7 @@
         "It is useful for cells that (for instance) place vias on the intersections of vertical and horizontal powerlines with non-matching pitch. "
         "Here it can occur that a via is built only on a partial overlap, making the creation fail. "
         "As this does not actually create a via, a cell as target is not present as function parameter.",
-        "geometry.check_viabltrov(1, 3, point.create(-100, -20), point.create(100, 20), point.create(-20, -100), point.create(20, 100))",
+        "geometry.check_viabltrov(1, 3,\n    point.create(-100, -20),\n    point.create(100, 20),\n    point.create(-20, -100),\n    point.create(20, 100)\n)",
         parameters
     ));
 }
@@ -1410,7 +1415,7 @@
         MODULE_GEOMETRY,
         "create a curve",
         "Create a curve shape width in the given cell. Segments must be added for a curve to be meaningful. See the functions for adding curve segments: curve.lineto, curve.arcto and curve.cubicto",
-        "geometry.curve(cell, generics.metal(-1), _pt(radius * math.cos(math.pi / 180 * angle), radius * math.sin(math.pi / 180 * angle)), {\n curve.arcto(135, 180, cornerradius, false),\n }, grid, allow45)\n geometry.curve(cell, generics.metal(-2), _pt((radius + cornerradius) * math.cos(math.pi / 180 * angle) - cornerradius, (radius + cornerradius) * math.sin(math.pi / 180 * angle)), {\n curve.arcto(180, 135, cornerradius, true),\n }, grid, allow45)",
+        "geometry.curve(cell,\n    generics.metal(-1),\n    point.create(0, 0),\n    {\n        curve.arcto(135, 180, 500, false),\n    },\n    10, true -- allow45\n)",
         parameters
     ));
 }
@@ -1431,7 +1436,7 @@
         MODULE_GEOMETRY,
         "create a pre-rasterized curve",
         "Like geometry.curve, but rasterize the curve right now. Typically, the rasterization happens later in the layout generation process (it is resolved when the design is exported, depending whether the export format supports arbitrary curves, in which case there is no rasterization). This function is useful to generate rasterized curves for export formats that support arbitrary curves.",
-        "geometry.curve_rasterized(cell, generics.metal(-1), _pt(radius * math.cos(math.pi / 180 * angle), radius * math.sin(math.pi / 180 * angle)), {\n curve.arcto(135, 180, cornerradius, false),\n }, grid, allow45)\n geometry.curve(cell, generics.metal(-2), _pt((radius + cornerradius) * math.cos(math.pi / 180 * angle) - cornerradius, (radius + cornerradius) * math.sin(math.pi / 180 * angle)), {\n curve.arcto(180, 135, cornerradius, true),\n }, grid, allow45)",
+        "geometry.curve_rasterized(cell,\n    generics.metal(-1),\n    point.create(0, 0),\n    {\n        curve.arcto(135, 180, 500, false),\n    },\n    10, true -- allow45\n)",
         parameters
     ));
 }

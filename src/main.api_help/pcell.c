@@ -56,7 +56,7 @@
         "Hint for the usage: in lua tables, a trailing comma after the last entry is explicitely allowed. "
         "However, this is a variable number of arguments for a function call, where the list has to be well-defined. "
         "A common error is a trailing comma after the last entry.",
-        "function parameters()\n    pcell.add_parameters(\n        { \"fingers\",     2,      posvals = even()              },\n        { \"fingerwidth\", 100,    posvals = positive()          },\n        { \"channeltype\", \"nmos\", posvals = set(\"nmos\", \"pmos\") } -- <--- no comma!\n    )\nend",
+        "function parameters()\n    pcell.add_parameters(\n        {\n            \"fingers\",\n            2,\n            posvals = even()\n        },\n        {\n            \"fingerwidth\",\n            100,\n            posvals = positive()\n        },\n        {\n            \"channeltype\",\n            \"nmos\",\n            posvals = set(\"nmos\", \"pmos\")\n        } -- <--- no comma!\n    )\nend",
         parameters
     ));
 }
@@ -75,7 +75,7 @@
         "Check valid parameter values with expressions. "
         "If parameter values depend on some other parameter or the posval function of parameter definitions do not offer enough flexibility, parameters can be checked with arbitrary lua expressions. "
         "This function must be called in parameters().",
-        "function parameters()\n    pcell.add_parameters({\n        { \"width\", 100 },\n        { \"height\", 200 },\n    })\n    pcell.check_expression(\"(height / width) % 2 == 0\", \"quotionent of height and width must be even\")\nend",
+        "function parameters()\n    pcell.add_parameters({\n        {\n            \"width\", 100\n        },\n        {\n            \"height\", 200\n        },\n    })\n    pcell.check_expression(\n        \"(height / width) % 2 == 0\",\n        \"quotionent of height and width must be even\"\n    )\nend",
         parameters
     ));
 }

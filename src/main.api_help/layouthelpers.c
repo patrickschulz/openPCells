@@ -15,7 +15,7 @@
         MODULE_LAYOUTHELPERS,
         "place (possibly arrayed) vias on (multiple) area anchors based on a format/pattern",
         "Place a via stack on an area anchor of the given cell (also places the via stack in the given cell). The via stack starts at the startmetal and ends at the endmetal. The vias are created within a for-loop that starts at the given startindex and ends at the given endindex. Optionally, an increment value (default 1) can be given. The fourth argument is a base name for the area anchor, in with the percent sign ('%') is replaced by the current iterator value.",
-"layouthelpers.via_area_anchor_multiple(cell, 1, 2, \"gate_%\", 1, 8\n)",
+        "layouthelpers.via_area_anchor_multiple(cell,\n    1, 2,\n    \"gate_%\",\n    1, 8\n)",
         parameters
     ));
 }
@@ -298,7 +298,7 @@
         MODULE_LAYOUTHELPERS,
         "place a power grid",
         "Create a power grid with vertical and horizontal lines that connect to given target shapes. The power grid lays out alternating lines for the 'plus' net and the 'minus' net (e.g., VDD and VSS). Target shapes for both these nets are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "local vddshapes = { { bl = point(2000, 0), tr = point.create(8000, 200) } }\nlocal vssshapes = { { bl = point.create(2000, 800), tr = point.create(8000, 1000) } }\nlayouthelpers.place_powergrid(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    5, 6, -- metal layers\n    400, 800,-- vertical width/space\n     400, 800,-- horizontal width/space\n    vddshapes, vssshapes)",
+        "local vddshapes = {\n    {\n        bl = point(2000, 0),\n        tr = point.create(8000, 200)\n    }\n}\nlocal vssshapes = {\n    {\n        bl = point.create(2000, 800),\n        tr = point.create(8000, 1000)\n    }\n}\nlayouthelpers.place_powergrid(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    5, 6, -- metal layers\n    400, 800,-- vertical width/space\n     400, 800,-- horizontal width/space\n    vddshapes, vssshapes)",
         parameters
     ));
 }
@@ -320,7 +320,7 @@
         MODULE_LAYOUTHELPERS,
         "place vertical power lines",
         "Create power lines with vertical lines that connect to given target shapes. Target shapes for the power net are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "local powershapes = { { bl = point(2000, 0), tr = point.create(8000, 200) } }\nlayouthelpers.place_powervlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    5, -- metal layer\n    400, 800,-- width/space\n    powershapes)",
+        "local powershapes = {\n    {\n        bl = point(2000, 0),\n        tr = point.create(8000, 200)\n    }\n}\nlayouthelpers.place_powervlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    5, -- metal layer\n    400, 800,-- width/space\n    powershapes\n)",
         parameters
     ));
 }
@@ -342,7 +342,7 @@
         MODULE_LAYOUTHELPERS,
         "place horizontal power lines",
         "Create power lines with horizontal lines that connect to given target shapes. Target shapes for the power net are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "local powershapes = { { bl = point(2000, 0), tr = point.create(8000, 200) } }\nlayouthelpers.place_powerhlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    5, -- metal layer\n    400, 800,-- height/space\n    powershapes)",
+        "local powershapes = {\n    {\n        bl = point(2000, 0),\n        tr = point.create(8000, 200)\n    }\n}\nlayouthelpers.place_powerhlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    5, -- metal layer\n    400, 800,-- height/space\n    powershapes)",
         parameters
     ));
 }
@@ -364,7 +364,7 @@
         MODULE_LAYOUTHELPERS,
         "place vertical lines (number of sets)",
         "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "local netshapes = layouthelpers.place_vlines_numsets(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, -- width\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
+        "local netshapes = layouthelpers.place_vlines_numsets(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    generics.metal(5), -- layer\n    400, -- width\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
         parameters
     ));
 }
@@ -399,7 +399,7 @@
         "This can be 0 (zero), then all possible lines will be created. "
         "This function returns a table with a net target entry for every line, where one entry looks like this: "
         "{ net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "local netshapes = layouthelpers.place_vlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
+        "local netshapes = layouthelpers.place_vlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
         parameters
     ));
 }
@@ -421,7 +421,7 @@
         MODULE_LAYOUTHELPERS,
         "place horizontal lines (number of sets)",
         "Create horizontal lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "local netshapes = layouthelpers.place_hlines_numsets(cell,\n    point.create(0, 0), point.create(4000, 10000) -- target area,\n    generics.metal(5), -- layer\n    400, -- height\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
+        "local netshapes = layouthelpers.place_hlines_numsets(cell,\n    -- target area:\n    point.create(0, 0), point.create(4000, 10000),\n    generics.metal(5), -- layer\n    400, -- height\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
         parameters
     ));
 }
@@ -456,7 +456,7 @@
         "This can be 0 (zero), then all possible lines will be created. "
         "This function returns a table with a net target entry for every line, where one entry looks like this: "
         "{ net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "local netshapes = layouthelpers.place_hlines(cell,\n    point.create(0, 0), point.create(4000, 10000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
+        "local netshapes = layouthelpers.place_hlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(4000, 10000),\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
         parameters
     ));
 }

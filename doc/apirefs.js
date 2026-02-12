@@ -117,7 +117,7 @@ const apirefs = [
         "syntax": "arcto(startangle, endangle, radius, clockwise)",
         "description": "create an arc segment for a curve",
         "details": "Create an arc segment for a curve. The segment must be added to a curve definition, which will be handed to geometry.curve(). An arc segment starts at the previous point of the curve (or the start point of the curve if it is the first segment). The arc segment is then defined by the 'startangle' and the 'endangle', both with respect to 0, which is defined pointing to the right. Additionally, the arc segment is defined by its 'radius'. The boolean 'clockwise' can be set to true, to get an arc in the other direction. If not given, the arc is defined counter-clockwise.",
-        "examples": "geometry.curve(cell, generics.metal(1), point.create(0, 0), {\n	curve.arcto(180, 0, 1000, true),\n}, grid, allow45)\n",
+        "examples": "geometry.curve(cell,\n    generics.metal(1),\n    point.create(0, 0),\n    {\n        curve.arcto(180, 0, 1000, true),\n    }, grid, allow45\n)",
     },
     {
         "module": "curve",
@@ -125,7 +125,7 @@ const apirefs = [
         "syntax": "cubicto(ctp1, ctp2, endpt)",
         "description": "create a cubic bezier segment for a curve",
         "details": "Create a cubic bezier segment for a curve. The segment must be added to a curve definition, which will be handed to geometry.curve(). A cubic segment starts at the previous point of the curve (or the start point of the curve if it is the first segment). The cubic segment is then defined by the (implicit) start point, the 'endpoint' (third parameter) and two control points 'cpt1' and 'cpt2'.",
-        "examples": "geometry.curve(cell, generics.metal(1), point.create(0, 0), {\n	curve.cubicto(point.create(0, 500), point.create(500, 500), point.create(500, 0)),\n}, grid, allow45)\n",
+        "examples": "geometry.curve(cell,\n    generics.metal(1),\n    point.create(0, 0),\n    {\n        curve.cubicto(\n            point.create(0, 500),\n            point.create(500, 500),\n            point.create(500, 0)\n        ),\n    }, grid, allow45\n)",
     },
     {
         "module": "curve",
@@ -133,7 +133,7 @@ const apirefs = [
         "syntax": "lineto(point)",
         "description": "create a line segment for a curve",
         "details": "Create a line segment for a curve. The segment must be added to a curve definition, which will be handed to geometry.curve(). A line segment starts at the previous point of the curve (or the start point of the curve if it is the first segment). The line segment is then defined by the (implicit) start point and the 'point' (the next point given as parameter).",
-        "examples": "geometry.curve(cell, generics.metal(1), point.create(0, 0), {\n	curve.lineto(point.create(1000, 1000)),\n}, grid, allow45)\n",
+        "examples": "geometry.curve(cell,\n    generics.metal(1),\n    point.create(0, 0),\n    {\n        curve.lineto(point.create(1000, 1000)),\n    }, grid, allow45\n)",
     },
     {
         "module": "generics",
@@ -341,7 +341,7 @@ const apirefs = [
         "syntax": "rectanglebltr(cell, layer, bl, tr)",
         "description": "create a rectangular shape with the given corner points in cell",
         "details": "geometry.rectanglebltr creates a rectangle in a given cell with the specified layer and corner points. The order of the points should be bottom-left/top-right. This is checked in the function and an error is raised if the points are not given like that. If the exact ordering is unkonwn (for instance because the points are generated with some variation) geometry.rectanglepoints should be used.",
-        "examples": "geometry.rectanglebltr(cell,\n    generics.other(\"nwell\"),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\ngeometry.rectanglebltr(cell, generics.metal(1), obj:get_anchor(\"bottomleft\"), obj:get_anchor(\"topright\"))\ngeometry.rectanglebltr(cell, generics.metal(-1), point.create(-100, -100), point.create(100, 100))\n",
+        "examples": "geometry.rectanglebltr(cell,\n    generics.other(\"nwell\"),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\n\ngeometry.rectanglebltr(cell,\n    generics.metal(1),\n    obj:get_anchor(\"bottomleft\"),\n    obj:get_anchor(\"topright\")\n)\n\ngeometry.rectanglebltr(cell,\n    generics.metal(-1),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\n",
     },
     {
         "module": "geometry",
@@ -349,7 +349,7 @@ const apirefs = [
         "syntax": "rectangleblwh(cell, layer, bl, width, height)",
         "description": "create a rectangular shape with the given point and dimensions",
         "details": "Create a rectangular shape with the given bottom-left corner point and the width and height in cell",
-        "examples": "geometry.rectangleblwh(cell, generics.other(\"nwell\"), point.create(-100, -100), 200, 200)",
+        "examples": "geometry.rectangleblwh(cell,\n    generics.other(\"nwell\"),\n    point.create(-100, -100),\n    200, 200\n)",
     },
     {
         "module": "geometry",
@@ -357,7 +357,7 @@ const apirefs = [
         "syntax": "rectanglepoints(cell, layer, pt1, pt2)",
         "description": "create a rectangular shape with the given arbitrary corner points",
         "details": "Create a rectangular shape with the given corner points in cell. Similar to geometry.rectanglebltr, but any of the corner points can be given in any order",
-        "examples": "geometry.rectanglepoints(cell, generics.metal(1), point.create(100, -100), point(-100, 100))",
+        "examples": "geometry.rectanglepoints(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100))",
     },
     {
         "module": "geometry",
@@ -365,7 +365,7 @@ const apirefs = [
         "syntax": "rectangleareaanchor(cell, layer, anchor)",
         "description": "Create a rectangular shape on an area anchor of the given cell.",
         "details": "geometry.rectangleareaanchor creates a rectangle defined by an area anchor. This construct is often used in cell definitions, and can simplify the code.",
-        "examples": "geometry.rectangleareaanchor(cell, generics.metal(1), \"someanchor\")",
+        "examples": "geometry.rectangleareaanchor(cell,\n    generics.metal(1),\n    \"someanchor\"\n)",
     },
     {
         "module": "geometry",
@@ -373,7 +373,7 @@ const apirefs = [
         "syntax": "rectanglepath(cell, layer, pt1, pt2, width, extension)",
         "description": "create a rectangle-lika path",
         "details": "Create a rectangular shape that is defined by its path-like endpoints. This function behaves like geometry.path, but takes only two points, not a list of points. This function likely will be removed in the future, use geometry.rectanglebltr or geometry.rectanglepoints",
-        "examples": "geometry.rectanglepath(cell, generics.metal(1), point.create(-100, 0), point(100, 0), 50)",
+        "examples": "geometry.rectanglepath(cell,\n    generics.metal(1),\n    point.create(-100, 0),\n    point(100, 0),\n    50\n)",
     },
     {
         "module": "geometry",
@@ -381,7 +381,7 @@ const apirefs = [
         "syntax": "rectanglearray(cell, layer, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch)",
         "description": "create an array of rectangles",
         "details": "Create an array of rectangles with the given width, height, repetition and pitch in cell",
-        "examples": "geometry.rectanglebltr(cell, generics.other(\"nwell\"), 100, 100, 0, 0, 10, 20, 200, 200)",
+        "examples": "geometry.rectanglebltr(cell,\n    generics.other(\"nwell\"),\n    100, 100, -- width, height\n    0, 0, -- xshift, yshift\n    10, 20, -- xrep, yrep\n    200, 200 -- xpitch, ypitch\n)",
     },
     {
         "module": "geometry",
@@ -389,7 +389,7 @@ const apirefs = [
         "syntax": "slotted_rectangle(cell, layer, bl, tr, slotwidth, slotheight, slotxspace, slotxspace, slotedgexspace, slotedgeyspace)",
         "description": "create a rectangle with slotting",
         "details": "Create a rectangle with slotting.",
-        "examples": "geometry.slotted_rectangle(cell, generics.other(\"nwell\"), point.create(-200, -2000), point.create(200, 2000), 50, 50, 50, 50, 100, 100)",
+        "examples": "geometry.slotted_rectangle(cell,\n    generics.other(\"nwell\"),\n    point.create(-200, -2000),\n    point.create(200, 2000),\n    50, 50, -- slot width/height\n    50, 50, -- slot xspace/yspace\n    100, 100 -- slot edge xspace/yspace\n)",
     },
     {
         "module": "geometry",
@@ -397,7 +397,7 @@ const apirefs = [
         "syntax": "rectanglevlines(cell, layer, pt1, pt2, numlines, ratio)",
         "description": "fill an area with vertical lines (defined by number of lines and width/space ratio)",
         "details": "Fill a rectangular area with vertical lines with a given ratio between width and spacing",
-        "examples": "geometry.rectanglevlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 8, 1)",
+        "examples": "geometry.rectanglevlines(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    8, 1 -- numlines, ratio\n)",
     },
     {
         "module": "geometry",
@@ -405,7 +405,7 @@ const apirefs = [
         "syntax": "rectanglevlines_width_space(cell, layer, pt1, pt2, numlines, width)",
         "description": "fill an area with vertical lines (defined by number of lines and line width)",
         "details": "Fill a rectangular area with a certain number of vertical lines with the given width. The spacing is calculated automatically.",
-        "examples": "geometry.rectanglevlines_numlines_width(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 4, 20)",
+        "examples": "geometry.rectanglevlines_numlines_width(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    4, 20 --numlines, width\n)",
     },
     {
         "module": "geometry",
@@ -413,7 +413,7 @@ const apirefs = [
         "syntax": "rectanglevlines_width_space(cell, layer, pt1, pt2, width, space)",
         "description": "fill an area with vertical lines (defined by number of lines and line space)",
         "details": "Fill a rectangular area with vertical lines with the given width and spacing. The given numbers are only targets, in some cases they can't be matched exactly.",
-        "examples": "geometry.rectanglevlines_width_space(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 20, 20)",
+        "examples": "geometry.rectanglevlines_width_space(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    20, 20 -- width, space\n)",
     },
     {
         "module": "geometry",
@@ -421,7 +421,7 @@ const apirefs = [
         "syntax": "rectanglevlines_settings(cell, layer, pt1, pt2, numlines, ratio)",
         "description": "caculate the parameters to fill an area with vertical lines (defined by number of lines and width/space ratio)",
         "details": "Calculate the geometries of vertical lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglevlines, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines = geometry.rectanglevlines_settings(point.create(-100, -100), point(100, 100), 20, 1)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100 + offset, -100, numlines, 1, width + space, 0)",
+        "examples": "local width, height, space, offset, numlines = \n    geometry.rectanglevlines_settings(\n        point.create(-100, -100),\n        point(100, 100),\n        20, 1 -- numlines, ratio\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100 + offset, -100,\n    numlines, 1,\n    width + space, 0\n)",
     },
     {
         "module": "geometry",
@@ -429,7 +429,7 @@ const apirefs = [
         "syntax": "rectanglevlines_numlines_width_settings(pt1, pt2, numlines, width)",
         "description": "calculate the parameters to fill an area with vertical lines (defined by number of lines and line width)",
         "details": "Calculate the geometries of vertical lines to fill a rectangular area with a given number of lines and width. The function returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines = geometry.rectanglehlines_width_space_settings(point.create(-100, -100), point(100, 100), 4, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
+        "examples": "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_width_space_settings(\n        point.create(-100, -100),\n        point(100, 100),\n        4, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
     },
     {
         "module": "geometry",
@@ -437,7 +437,7 @@ const apirefs = [
         "syntax": "rectanglevlines_width_space_settings(cell, layer, pt1, pt2, width, space)",
         "description": "calculate the parameters to fill an area with vertical lines (defined by number of lines and line space)",
         "details": "Calculate the geometries of vertical lines to fill a rectangular area with a given width and spacing. This function is like geometry.rectanglevlines_width_space, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(point.create(-100, -100), point(100, 100), 20, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100 + offset, -100, numlines, 1, width + space, 0)",
+        "examples": "local width, height, space, offset, numlines =\n    geometry.rectanglevlines_width_space_settings(\n        point.create(-100, -100),\n        point(100, 100),\n        20, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100 + offset, -100,\n    numlines, 1,\n    width + space, 0\n)",
     },
     {
         "module": "geometry",
@@ -445,7 +445,7 @@ const apirefs = [
         "syntax": "rectanglehlines(cell, layer, pt1, pt2, numlines, ratio)",
         "description": "fill an area with horizontal lines (defined by number of lines and width/space ratio)",
         "details": "Fill a rectangular area with horizontal lines with a given ratio between width and spacing",
-        "examples": "geometry.rectanglehlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 8, 1)",
+        "examples": "geometry.rectanglehlines(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    8, 1\n)",
     },
     {
         "module": "geometry",
@@ -453,7 +453,7 @@ const apirefs = [
         "syntax": "rectanglehlines_height_space(cell, layer, pt1, pt2, height, space)",
         "description": "fill an area with horizontal lines (defined by number of lines and line height)",
         "details": "Fill a rectangular area with horizontal lines with the given height and spacing. The given numbers are only targets, in some cases they can't be matched exactly.",
-        "examples": "geometry.rectanglehlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 20, 20)",
+        "examples": "geometry.rectanglehlines_height_space(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    20, 20\n)",
     },
     {
         "module": "geometry",
@@ -461,7 +461,7 @@ const apirefs = [
         "syntax": "rectanglehlines_settings(cell, layer, pt1, pt2, numlines, ratio)",
         "description": "calculate the parameters to fill an area with horizontal lines (defined by number of lines and width/space ratio)",
         "details": "Calculate the geometries of horizontal lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglehlines, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines = geometry.rectanglehlines_settings(point.create(-100, -100), point(100, 100), 20, 1)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
+        "examples": "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_settings(\n        point.create(-100, -100),\n         point(100, 100),\n         20, 1\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
     },
     {
         "module": "geometry",
@@ -469,7 +469,7 @@ const apirefs = [
         "syntax": "rectanglehlines_height_space_settings(cell, layer, pt1, pt2, height, space)",
         "description": "calculate the parameters to fill an area with horizontal lines (defined by line height and line space)",
         "details": "Calculate the geometries of horizontal lines to fill a rectangular area with a given height and spacing. This function is like geometry.rectanglehlines_width_space, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(point.create(-100, -100), point(100, 100), 20, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
+        "examples": "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_height_space_settings(\n        point.create(-100, -100),\n         point(100, 100),\n         20, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
     },
     {
         "module": "geometry",
@@ -477,7 +477,7 @@ const apirefs = [
         "syntax": "rectanglehlines_numlines_height_settings(pt1, pt2, numlines, height)",
         "description": "calculate the parameters to fill an area with horizontal lines (defined by number of lines and line height)",
         "details": "Calculate the geometries of horizontal lines to fill a rectangular area with a given number of lines and height. The function returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(point.create(-100, -100), point(100, 100), 4, 20)\ngeometry.rectanglearray(cell, generics.metal(1), width, height, -100, -100 + offset, 1, numlines, 0, height + space)",
+        "examples": "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_height_space_settings(\n        point.create(-100, -100),\n         point(100, 100),\n        4, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
     },
     {
         "module": "geometry",
@@ -485,7 +485,7 @@ const apirefs = [
         "syntax": "rectangle_fill_in_boundary(cell, layer, width, height, xpitch, ypitch, xstartshift, ystartshift, boundary, excludes)",
         "description": "fill a given boundary with regular rectangles",
         "details": "Fill a given boundary (a polygon) with rectangles of a given width and height. If given, the rectangles are not placed in the regions defined by the exclude rectangles. Optionally, binary (fill or no fill) excludes can be given, where no fill is placed. This should be a table containing polygons, which can (for instance) be fetched from cells by object:get_boundary().",
-        "examples": "geometry.rectangle_fill_in_boundary(\n    cell,\n     generics.metal(1),\n     100, 100,\n     200, 200,\n     { point.create(-10000, -10000), point.create(10000, -10000), point.create(10000, 10000), point.create(-10000, 10000) },\n     { util.rectangle_to_polygon( point.create(1000, 1000), point.create(2000, 2000)) }\n)",
+        "examples": "geometry.rectangle_fill_in_boundary(\n    cell,\n     generics.metal(1),\n     100, 100,\n     200, 200,\n     {\n        point.create(-10000, -10000),\n        point.create(10000, -10000),\n        point.create(10000, 10000),\n        point.create(-10000, 10000)\n    },\n     {\n        util.rectangle_to_polygon(\n            point.create(1000, 1000),\n            point.create(2000, 2000)\n        )\n    }\n)",
     },
     {
         "module": "geometry",
@@ -493,7 +493,7 @@ const apirefs = [
         "syntax": "polygon(cell, layer, pts)",
         "description": "create a polygon shape",
         "details": "Create a polygon shape with the given points in cell",
-        "examples": "geometry.polygon(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 0), point.create(0, 50))",
+        "examples": "geometry.polygon(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 0),\n        point.create(0, 50)\n    }\n)",
     },
     {
         "module": "geometry",
@@ -501,7 +501,7 @@ const apirefs = [
         "syntax": "path(cell, layer, pts, width, extension)",
         "description": "create a path shape",
         "details": "Create a path shape with the given points and width in cell",
-        "examples": "geometry.path(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 0), point.create(50, 50))",
+        "examples": "geometry.path(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 0),\n        point.create(50, 50)\n    }\n)",
     },
     {
         "module": "geometry",
@@ -509,7 +509,7 @@ const apirefs = [
         "syntax": "path_polygon(cell, layer, pts, width, extension)",
         "description": "create a path shape (polygon outline)",
         "details": "Like geometry.path, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_polygon(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 0), point.create(50, 50))",
+        "examples": "geometry.path_polygon(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 0),\n        point.create(50, 50)\n    }\n)",
     },
     {
         "module": "geometry",
@@ -517,7 +517,7 @@ const apirefs = [
         "syntax": "path_manhatten(cell, layer, pts, width, extension)",
         "description": "create a rectilinear path shape",
         "details": "Create a manhatten path shape with the given points and width in cell. This only allows vertical or horizontal movements",
-        "examples": "geometry.path_manhatten(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 50))",
+        "examples": "geometry.path_manhatten(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 50)\n    }\n)",
     },
     {
         "module": "geometry",
@@ -525,7 +525,7 @@ const apirefs = [
         "syntax": "path_2x(cell, layer, ptstart, ptend, width)",
         "description": "create a rectilinear path shape defined by two points (x-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in y-direction (similar to an 'L')",
-        "examples": "geometry.path_2x(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        "examples": "geometry.path_2x(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
     },
     {
         "module": "geometry",
@@ -533,7 +533,7 @@ const apirefs = [
         "syntax": "path_2x_polygon(cell, layer, ptstart, ptend, width)",
         "description": "create a rectilinear path shape defined by two points (x-direction first) (polygon outline)",
         "details": "Like geometry.path_2x, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_2x_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        "examples": "geometry.path_2x_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
     },
     {
         "module": "geometry",
@@ -541,7 +541,7 @@ const apirefs = [
         "syntax": "path_2y(cell, layer, ptstart, ptend, width)",
         "description": "create a rectilinear path shape defined by two points (y-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction (similar to an capital greek gamma)",
-        "examples": "geometry.path_2y(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        "examples": "geometry.path_2y(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
     },
     {
         "module": "geometry",
@@ -549,7 +549,7 @@ const apirefs = [
         "syntax": "path_2y_polygon(cell, layer, ptstart, ptend, width)",
         "description": "create a rectilinear path shape defined by two points (y-direction first) (polygon outline)",
         "details": "Like geometry.path_2y, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_2y_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+        "examples": "geometry.path_2y_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
     },
     {
         "module": "geometry",
@@ -557,7 +557,7 @@ const apirefs = [
         "syntax": "path_3x(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a rectilinear path shape defined by three points (x-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in y-direction. Different from path_2x this make a bend in the middle between the start and the end point. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "examples": "geometry.path_3x(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "examples": "geometry.path_3x(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
     },
     {
         "module": "geometry",
@@ -565,7 +565,7 @@ const apirefs = [
         "syntax": "path_3x_polygon(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a rectilinear path shape defined by three points (x-direction first) (polygon outline)",
         "details": "Like geometry.path_3x, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_3x_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "examples": "geometry.path_3x_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
     },
     {
         "module": "geometry",
@@ -573,7 +573,7 @@ const apirefs = [
         "syntax": "path_3x_diagonal(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a path shape defined by three points with a diagonal segment (x-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in x-direction. Different from path_3x the middle segment is diagonal. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "examples": "geometry.path_3x_diagonal(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "examples": "geometry.path_3x_diagonal(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
     },
     {
         "module": "geometry",
@@ -581,7 +581,7 @@ const apirefs = [
         "syntax": "path_3x_diagonal_polygon(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a path shape defined by three points with a diagonal segment (x-direction first) (polygon outline)",
         "details": "Like geometry.path_3x_diagonal_polygon, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_3x_diagonal_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "examples": "geometry.path_3x_diagonal_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
     },
     {
         "module": "geometry",
@@ -589,7 +589,7 @@ const apirefs = [
         "syntax": "path_3y(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a rectilinear path shape defined by three points (y-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction. Different from path_2x this make a bend in the middle between the start and the end point. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "examples": "geometry.path_3y(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "examples": "geometry.path_3y(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
     },
     {
         "module": "geometry",
@@ -597,7 +597,7 @@ const apirefs = [
         "syntax": "path_3y_polygon(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a rectilinear path shape defined by three points (y-direction first) (polygon outline)",
         "details": "Like geometry.path_3y, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_3y_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "examples": "geometry.path_3y_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
     },
     {
         "module": "geometry",
@@ -605,7 +605,7 @@ const apirefs = [
         "syntax": "path_3y_diagonal(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a path shape defined by three points with a diagonal segment (y-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction. Different from path_3y the middle segment is diagonal. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "examples": "geometry.path_3y_diagonal(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "examples": "geometry.path_3y_diagonal(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
     },
     {
         "module": "geometry",
@@ -613,7 +613,7 @@ const apirefs = [
         "syntax": "path_3y_diagonal_polygon(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a path shape defined by three points with a diagonal segment (y-direction first) (polygon outline)",
         "details": "Like geometry.path_3y_diagonal, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_3y_diagonal_polygon(cell, generics.metal(2), point.create(0, 0), point.create(200, 200), 0.5)",
+        "examples": "geometry.path_3y_diagonal_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
     },
     {
         "module": "geometry",
@@ -621,7 +621,7 @@ const apirefs = [
         "syntax": "path_cshape(cell, layer, ptstart, ptend, ptoffset, width)",
         "description": "create a path shape defined by three points, resembling a 'c' shape",
         "details": "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the x-coordinate of the offset point is taken, creating a shape resembling a (possibly inverted) 'C'",
-        "examples": "geometry.path_cshape(cell, generics.metal(1), point.create(-50, 50), point.create(-50, -50), point.create(100, 0))",
+        "examples": "geometry.path_cshape(cell,\n    generics.metal(1),\n    point.create(-50, 50),\n    point.create(-50, -50),\n    point.create(100, 0)\n)",
     },
     {
         "module": "geometry",
@@ -629,7 +629,7 @@ const apirefs = [
         "syntax": "path_ushape(cell, layer, ptstart, ptend, ptoffset, width)",
         "description": "create a path shape defined by three points, resembling a 'u' shape",
         "details": "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the y-coordinate of the offset point is taken, creating a shape resembling a (possibly inverted) 'U'",
-        "examples": "geometry.path_ushape(cell, generics.metal(1), point.create(-50, 0), point.create(50, 0), point.create(0, 100))",
+        "examples": "geometry.path_ushape(cell,\n    generics.metal(1),\n    point.create(-50, 0),\n    point.create(50, 0),\n    point.create(0, 100)\n)",
     },
     {
         "module": "geometry",
@@ -637,7 +637,7 @@ const apirefs = [
         "syntax": "path_points_xy(ptstart, pts)",
         "description": "create a list of points for geometry.path based on various given specifications (x-first variant)",
         "details": "Create a point list for use in geometry.path that contains only horizontal and vertical movements based on a list of points or scalars. This function only creates the resulting list of points, no shapes by itself. A movement can be a point, in which case two resulting movements are created: first x, than y (or vice versa, depending on the current state). A scalar movement moves relatively by that amount (in x or y, again depending on the state) This function does the same as geometry.path_points_yx, but starts in x-direction",
-        "examples": "geometry.path(cell, generics.metal(2), geometry.path_points_xy(point.create(0, 0), {\n    100, -- move 100 to the right\n    100, -- move 200 upwards\n      0, -- don't move, but switch direction\n    point.create(300, 300) -- move to (300, 300), first in y-direction, than in x-direction\n    }), 100)",
+        "examples": "geometry.path(cell,\n    generics.metal(2),\n    geometry.path_points_xy(point.create(0, 0), {\n    100, -- move 100 to the right\n    100, -- move 200 upwards\n    0, -- don't move, but switch direction\n    point.create(300, 300) -- move to (300, 300)\n    }), 100\n)",
     },
     {
         "module": "geometry",
@@ -645,7 +645,7 @@ const apirefs = [
         "syntax": "path_points_yx(ptstart, pts)",
         "description": "create a list of points for geometry.path based on various given specifications (y-first variant)",
         "details": "Create a point list for use in geometry.path that contains only horizontal and vertical movements based on a list of points or scalars. This function only creates the resulting list of points, no shapes by itself. A movement can be a point, in which case two resulting movements are created: first x, than y (or vice versa, depending on the current state). A scalar movement moves relatively by that amount (in x or y, again depending on the state) This function does the same as geometry.path_points_xy, but starts in y-direction",
-        "examples": "geometry.path(cell, generics.metal(2), geometry.path_points_yx(point.create(0, 0), {\n    100, -- move 100 to the right\n    100, -- move 200 upwards\n      0, -- don't move, but switch direction\n    point.create(300, 300) -- move to (300, 300), first in y-direction, than in x-direction\n    }), 100)",
+        "examples": "geometry.path(cell,\n    generics.metal(2),\n    geometry.path_points_yx(point.create(0, 0), {\n        100, -- move 100 to the right\n        100, -- move 200 upwards\n        0, -- don't move, but switch direction\n        point.create(300, 300) -- move to (300, 300)\n    }), 100\n)",
     },
     {
         "module": "geometry",
@@ -653,7 +653,7 @@ const apirefs = [
         "syntax": "check_viabltr(firstmetal, lastmetal, bl, tr, properties)",
         "description": "check whether a via can be created",
         "details": "Check whether a via can be created. This is essentially a dry-run of geometry.viabltr(). It is useful for cells that (for instance) place vias on the intersections of vertical and horizontal powerlines with non-matching pitch. Here it can occur that a via is built only on a partial overlap, making the creation fail. As this does not actually create a via, a cell as target is not present as function parameter. The properties table is the same as for geometry.viabltr()",
-        "examples": "geometry.check_viabltr(1, 3, point.create(-100, -20), point.create(100, 20))",
+        "examples": "geometry.check_viabltr(1, 3,\n    point.create(-100, -20),\n    point.create(100, 20)\n)",
     },
     {
         "module": "geometry",
@@ -661,7 +661,7 @@ const apirefs = [
         "syntax": "check_viabltrov(firstmetal, lastmetal, bl1, tr1, bl2, tr2)",
         "description": "check whether an overlap via can be created",
         "details": "Check whether an overlap via can be created. This is essentially a dry-run of geometry.viabltrov(). It is useful for cells that (for instance) place vias on the intersections of vertical and horizontal powerlines with non-matching pitch. Here it can occur that a via is built only on a partial overlap, making the creation fail. As this does not actually create a via, a cell as target is not present as function parameter.",
-        "examples": "geometry.check_viabltrov(1, 3, point.create(-100, -20), point.create(100, 20), point.create(-20, -100), point.create(20, 100))",
+        "examples": "geometry.check_viabltrov(1, 3,\n    point.create(-100, -20),\n    point.create(100, 20),\n    point.create(-20, -100),\n    point.create(20, 100)\n)",
     },
     {
         "module": "geometry",
@@ -853,7 +853,7 @@ const apirefs = [
         "syntax": "curve(cell, layer, origin, segments, grid, allow45)",
         "description": "create a curve",
         "details": "Create a curve shape width in the given cell. Segments must be added for a curve to be meaningful. See the functions for adding curve segments: curve.lineto, curve.arcto and curve.cubicto",
-        "examples": "geometry.curve(cell, generics.metal(-1), _pt(radius * math.cos(math.pi / 180 * angle), radius * math.sin(math.pi / 180 * angle)), {\n curve.arcto(135, 180, cornerradius, false),\n }, grid, allow45)\n geometry.curve(cell, generics.metal(-2), _pt((radius + cornerradius) * math.cos(math.pi / 180 * angle) - cornerradius, (radius + cornerradius) * math.sin(math.pi / 180 * angle)), {\n curve.arcto(180, 135, cornerradius, true),\n }, grid, allow45)",
+        "examples": "geometry.curve(cell,\n    generics.metal(-1),\n    point.create(0, 0),\n    {\n        curve.arcto(135, 180, 500, false),\n    },\n    10, true -- allow45\n)",
     },
     {
         "module": "geometry",
@@ -861,7 +861,7 @@ const apirefs = [
         "syntax": "curve_rasterized(cell, layer, origin, segments, grid, allow45)",
         "description": "create a pre-rasterized curve",
         "details": "Like geometry.curve, but rasterize the curve right now. Typically, the rasterization happens later in the layout generation process (it is resolved when the design is exported, depending whether the export format supports arbitrary curves, in which case there is no rasterization). This function is useful to generate rasterized curves for export formats that support arbitrary curves.",
-        "examples": "geometry.curve_rasterized(cell, generics.metal(-1), _pt(radius * math.cos(math.pi / 180 * angle), radius * math.sin(math.pi / 180 * angle)), {\n curve.arcto(135, 180, cornerradius, false),\n }, grid, allow45)\n geometry.curve(cell, generics.metal(-2), _pt((radius + cornerradius) * math.cos(math.pi / 180 * angle) - cornerradius, (radius + cornerradius) * math.sin(math.pi / 180 * angle)), {\n curve.arcto(180, 135, cornerradius, true),\n }, grid, allow45)",
+        "examples": "geometry.curve_rasterized(cell,\n    generics.metal(-1),\n    point.create(0, 0),\n    {\n        curve.arcto(135, 180, 500, false),\n    },\n    10, true -- allow45\n)",
     },
     {
         "module": "geometry",
@@ -901,7 +901,7 @@ const apirefs = [
         "syntax": "process_parameters(_P)",
         "description": "process cell parameters (cell definition function)",
         "details": "Cell definition function. Process parameters after user values have been set. This can be used to re-evaluate parameters based on different settings. As an example the width of a metal line could be set to the minimum width value of the used metal. This can not be done in regular parameter definitions for cells. The function receives the table with all parameter values and should return a new table with altered parameters. Every parameter in this new table will overwrite a parameter in the main parameter table, but only if it was not explicitly modified when calling the cell. This function is optional.",
-        "examples": "function process_parameters(_P)\n    local t = {}\n    t.width = technology.get_dimension(string.format(\"Minimum M%d Width\"), _P.metal)\n    t.length = _P.totallength -- simple follower parameter\n    return t\nend",
+        "examples": "function process_parameters(_P)\n    local t = {}\n    t.width = technology.get_dimension(\n        string.format(\"Minimum M%d Width\"),\n        _P.metal\n    )\n    t.length = _P.totallength -- simple follower parameter\n    return t\nend",
     },
     {
         "module": "<none>",
@@ -917,7 +917,7 @@ const apirefs = [
         "syntax": "check(_P, cellstate)",
         "description": "check cell parameters (cell definition function)",
         "details": "Cell definition function. Check parameters for sane values. This function should return 'true' if all checks succeed. This means that an empty check function should still return 'true'. Any arbitrary checks can be implemented (typically simply 'if ... then return false, message end') and if a check fails the function should return 'false' and a message. This function can receive (if present) the cellstate from prepare(). This function is optional, but if present the last statement should be 'return true'.",
-        "examples": "function check(_P, cellstate)\n    if _P.topmetal > 4 then\n        return false, string.format(\"the top metal must not exceed 4, got %d\", _P.topmetal)\n    end\n    return true -- final return\nend",
+        "examples": "function check(_P, cellstate)\n    if _P.topmetal > 4 then\n        return\n            false,\n            string.format(\n                 \"top metal must be below 5, got %d\",\n                  _P.topmetal\n            )\n    end\n    return true -- final return\nend",
     },
     {
         "module": "<none>",
@@ -925,7 +925,7 @@ const apirefs = [
         "syntax": "layout(cell, _P, env, cellstate)",
         "description": "define cell layout (cell definition function)",
         "details": "Cell definition function. Main layout definition of a cell. This function receives an object where shapes, instances, ports etc. are to be placed in. This function should not create its own top-level layout object (even if it did, it would simply be ignored). As inputs the function receives (besides the object) the final parameter values, and possibly a cell environment and the common cell state. The parameter table controls the layout creation and should always be present (just like 'parameters()', although both are technically optional). The cell environment is equal for all called cells (invocations but also cell types) within one opc call, there is only one cell environment. This can be used for cells of one project that only work together. For this reason, it is not used in standard cell implementations in openPCells. The cellstate is the shared common cellstate from a potential 'prepare()' call. This function is technically optional, but only in very rare cases it is not needed (a base cell defining parameters can be created, see stdcells/base).",
-        "examples": "function layout(cell, _P)\n    geometry.rectanglebltr(cell, generics.metal(1), point.create(0, 0), point.create(_P.width, _P.height))\nend\n\nfunction layout(cell, _P, env)\n    if env.XXX then ... end\nend\n\nfunction layout(cell, _P, _envnotused, state)\n    if state.XXX then ... end\nend",
+        "examples": "function layout(cell, _P)\n    geometry.rectanglebltr(cell,\n        generics.metal(1),\n        point.create(0, 0),\n        point.create(_P.width, _P.height)\n    )\nend\n\nfunction layout(cell, _P, env)\n    if env.XXX then ... end\nend\n\nfunction layout(cell, _P, _envnotused, state)\n    if state.XXX then ... end\nend",
     },
     {
         "module": "<none>",
@@ -1061,7 +1061,7 @@ const apirefs = [
         "syntax": "via_area_anchor_multiple(cell, startmetal, endmetal, fmt, startindex, endindex, increment)",
         "description": "place (possibly arrayed) vias on (multiple) area anchors based on a format/pattern",
         "details": "Place a via stack on an area anchor of the given cell (also places the via stack in the given cell). The via stack starts at the startmetal and ends at the endmetal. The vias are created within a for-loop that starts at the given startindex and ends at the given endindex. Optionally, an increment value (default 1) can be given. The fourth argument is a base name for the area anchor, in with the percent sign ('%') is replaced by the current iterator value.",
-        "examples": "layouthelpers.via_area_anchor_multiple(cell, 1, 2, \"gate_%\", 1, 8\n)",
+        "examples": "layouthelpers.via_area_anchor_multiple(cell,\n    1, 2,\n    \"gate_%\",\n    1, 8\n)",
     },
     {
         "module": "layouthelpers",
@@ -1157,7 +1157,7 @@ const apirefs = [
         "syntax": "place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth, hspace, plusshapes, minusshapes)",
         "description": "place a power grid",
         "details": "Create a power grid with vertical and horizontal lines that connect to given target shapes. The power grid lays out alternating lines for the 'plus' net and the 'minus' net (e.g., VDD and VSS). Target shapes for both these nets are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "examples": "local vddshapes = { { bl = point(2000, 0), tr = point.create(8000, 200) } }\nlocal vssshapes = { { bl = point.create(2000, 800), tr = point.create(8000, 1000) } }\nlayouthelpers.place_powergrid(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    5, 6, -- metal layers\n    400, 800,-- vertical width/space\n     400, 800,-- horizontal width/space\n    vddshapes, vssshapes)",
+        "examples": "local vddshapes = {\n    {\n        bl = point(2000, 0),\n        tr = point.create(8000, 200)\n    }\n}\nlocal vssshapes = {\n    {\n        bl = point.create(2000, 800),\n        tr = point.create(8000, 1000)\n    }\n}\nlayouthelpers.place_powergrid(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    5, 6, -- metal layers\n    400, 800,-- vertical width/space\n     400, 800,-- horizontal width/space\n    vddshapes, vssshapes)",
     },
     {
         "module": "layouthelpers",
@@ -1165,7 +1165,7 @@ const apirefs = [
         "syntax": "place_powervlines(cell, bl, tr, layer, width, space, powershapes)",
         "description": "place vertical power lines",
         "details": "Create power lines with vertical lines that connect to given target shapes. Target shapes for the power net are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "examples": "local powershapes = { { bl = point(2000, 0), tr = point.create(8000, 200) } }\nlayouthelpers.place_powervlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    5, -- metal layer\n    400, 800,-- width/space\n    powershapes)",
+        "examples": "local powershapes = {\n    {\n        bl = point(2000, 0),\n        tr = point.create(8000, 200)\n    }\n}\nlayouthelpers.place_powervlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    5, -- metal layer\n    400, 800,-- width/space\n    powershapes\n)",
     },
     {
         "module": "layouthelpers",
@@ -1173,7 +1173,7 @@ const apirefs = [
         "syntax": "place_powerhlines(cell, bl, tr, layer, width, space, powershapes)",
         "description": "place horizontal power lines",
         "details": "Create power lines with horizontal lines that connect to given target shapes. Target shapes for the power net are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "examples": "local powershapes = { { bl = point(2000, 0), tr = point.create(8000, 200) } }\nlayouthelpers.place_powerhlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    5, -- metal layer\n    400, 800,-- height/space\n    powershapes)",
+        "examples": "local powershapes = {\n    {\n        bl = point(2000, 0),\n        tr = point.create(8000, 200)\n    }\n}\nlayouthelpers.place_powerhlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    5, -- metal layer\n    400, 800,-- height/space\n    powershapes)",
     },
     {
         "module": "layouthelpers",
@@ -1181,7 +1181,7 @@ const apirefs = [
         "syntax": "place_vlines_numsets(cell, bl, tr, layer, width, netnames, numsets)",
         "description": "place vertical lines (number of sets)",
         "details": "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = layouthelpers.place_vlines_numsets(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, -- width\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
+        "examples": "local netshapes = layouthelpers.place_vlines_numsets(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    generics.metal(5), -- layer\n    400, -- width\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
     },
     {
         "module": "layouthelpers",
@@ -1189,7 +1189,7 @@ const apirefs = [
         "syntax": "place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, excludes)",
         "description": "place vertical lines",
         "details": "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the available area and the width and space. Additionally a table with exclude polygons can be given. No lines will be drawn in these excludes. Note that the minimum fitting rectangle around the polygon is used, not the polygon itself. This might result in too pessimistic line placement. However, as most geometries are rectangles, in general this will work quite well. As excludes can cause short lines to be created, the 'minheight' parameter restricts the creation of too small lines. This can be 0 (zero), then all possible lines will be created. This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = layouthelpers.place_vlines(cell,\n    point.create(0, 0), point.create(10000, 4000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
+        "examples": "local netshapes = layouthelpers.place_vlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
     },
     {
         "module": "layouthelpers",
@@ -1197,7 +1197,7 @@ const apirefs = [
         "syntax": "place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)",
         "description": "place horizontal lines (number of sets)",
         "details": "Create horizontal lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = layouthelpers.place_hlines_numsets(cell,\n    point.create(0, 0), point.create(4000, 10000) -- target area,\n    generics.metal(5), -- layer\n    400, -- height\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
+        "examples": "local netshapes = layouthelpers.place_hlines_numsets(cell,\n    -- target area:\n    point.create(0, 0), point.create(4000, 10000),\n    generics.metal(5), -- layer\n    400, -- height\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
     },
     {
         "module": "layouthelpers",
@@ -1205,7 +1205,7 @@ const apirefs = [
         "syntax": "place_hlines(cell, bl, tr, layer, width, space, minwidth, netnames, excludes)",
         "description": "place horizontal lines",
         "details": "Create horizontal lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the available area and the height and space. Additionally a table with exclude polygons can be given. No lines will be drawn in these excludes. Note that the minimum fitting rectangle around the polygon is used, not the polygon itself. This might result in too pessimistic line placement. However, as most geometries are rectangles, in general this will work quite well. As excludes can cause short lines to be created, the 'minwidth' parameter restricts the creation of too small lines. This can be 0 (zero), then all possible lines will be created. This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = layouthelpers.place_hlines(cell,\n    point.create(0, 0), point.create(4000, 10000) -- target area,\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
+        "examples": "local netshapes = layouthelpers.place_hlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(4000, 10000),\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
     },
     {
         "module": "layouthelpers",
@@ -1245,7 +1245,7 @@ const apirefs = [
         "syntax": "abut_area_anchor_bottom(cell, anchorname, targetcell, targetanchorname)",
         "description": "abut the area anchor of one cell to the bottom of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is abutted to the bottom of the target area anchor of the specified target cell. This only changes the y coordinate.",
-        "examples": "cell:abut_area_anchor_bottom(\"topgatestrap\", othercell, \"botgatestrap\")",
+        "examples": "cell:abut_area_anchor_bottom(\n    \"topgatestrap\",\n    othercell,\n    \"botgatestrap\"\n)",
     },
     {
         "module": "object",
@@ -1253,7 +1253,7 @@ const apirefs = [
         "syntax": "abut_area_anchor_left(cell, anchorname, targetcell, targetanchorname)",
         "description": "abut the area anchor of one cell to the left of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is abutted to the left of the target area anchor of the specified target cell. This only changes the x coordinate.",
-        "examples": "cell:abut_area_anchor_left(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+        "examples": "cell:abut_area_anchor_left(\n    \"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
     },
     {
         "module": "object",
@@ -1261,7 +1261,7 @@ const apirefs = [
         "syntax": "abut_area_anchor_right(cell, anchorname, targetcell, targetanchorname)",
         "description": "abut the area anchor of one cell to the right of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is abutted to the right of the target area anchor of the specified target cell. This only changes the x coordinate.",
-        "examples": "cell:abut_area_anchor_right(\"rightsourcedrain\", othercell, \"leftsourcedrain\")",
+        "examples": "cell:abut_area_anchor_right(\n\"rightsourcedrain\",\n    othercell,\n    \"leftsourcedrain\"\n)",
     },
     {
         "module": "object",
@@ -1269,7 +1269,7 @@ const apirefs = [
         "syntax": "abut_area_anchor_top(cell, anchorname, targetcell, targetanchorname)",
         "description": "abut the area anchor of one cell to the top of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is abutted to the top of the target area anchor of the specified target cell. This only changes the y coordinate.",
-        "examples": "cell:abut_area_anchor_top(\"botgatestrap\", othercell, \"topgatestrap\")",
+        "examples": "cell:abut_area_anchor_top(\n\"botgatestrap\",\n    othercell,\n    \"topgatestrap\"\n)",
     },
     {
         "module": "object",
@@ -1413,7 +1413,7 @@ const apirefs = [
         "syntax": "add_area_anchor_bltr(cell, name, bl, tr)",
         "description": "add an area anchor to a cell (bottom-left/top-right)",
         "details": "Add an area anchor to a cell, defined by the lower-left and upper-right corner points of the rectangular area.",
-        "examples": "cell:add_area_anchor_bltr(\"source\", point.create(-100, -20), point.create(100, 20))",
+        "examples": "cell:add_area_anchor_bltr(\n\"source\",\n    point.create(-100, -20),\n    point.create(100, 20)\n)",
     },
     {
         "module": "object",
@@ -1421,7 +1421,7 @@ const apirefs = [
         "syntax": "add_area_anchor_points(cell, name, pt1, pt2)",
         "description": "add an area anchor to a cell (arbitrary corner points)",
         "details": "Add an area anchor to a cell, defined by the two corner points of the rectangular area (order does not matter).",
-        "examples": "cell:add_area_anchor_points(\"source\", point.create(100, 20), point.create(-100, -20))",
+        "examples": "cell:add_area_anchor_points(\n\"source\",\n    point.create(100, 20),\n    point.create(-100, -20)\n)",
     },
     {
         "module": "object",
@@ -1429,7 +1429,7 @@ const apirefs = [
         "syntax": "add_area_anchor_blwh(cell, name, pt1, width, height)",
         "description": "add an area anchor to a cell (point/dimensions)",
         "details": "Add an area anchor to a cell, defined by the the lower-left corner point and the width and height of the rectangular area.",
-        "examples": "cell:add_area_anchor_blwh(\"source\", point.create(-100, -20), 200, 40)",
+        "examples": "cell:add_area_anchor_blwh(\n\"source\",\n    point.create(-100, -20),\n    200, 40\n)",
     },
     {
         "module": "object",
@@ -1469,7 +1469,7 @@ const apirefs = [
         "syntax": "add_layer_boundary(cell, layer, boundary)",
         "description": "add a layer boundary to a cell",
         "details": "Add a layer boundary to an object. A layer boundary is useful for automatic filling",
-        "examples": "cell:add_layer_boundary(generics.metal(1), { point.create(0, 0), point.create(1000, 0), point.create(500, 500) })",
+        "examples": "cell:add_layer_boundary(\n    generics.metal(1),\n    {\n        point.create(0, 0),\n        point.create(1000, 0),\n        point.create(500, 500)\n    }\n)",
     },
     {
         "module": "object",
@@ -1477,7 +1477,7 @@ const apirefs = [
         "syntax": "add_layer_boundary_rectangular(cell, layer, bl, tr)",
         "description": "add a layer boundary to a cell (rectangular variant)",
         "details": "Add a rectangular layer boundary to an object. A layer boundary is useful for automatic filling",
-        "examples": "cell:add_layer_boundary_rectangular(generics.metal(1), point.create(-100, -100), point.create(100, 100))",
+        "examples": "cell:add_layer_boundary_rectangular(\n    generics.metal(1),\n    point.create(-100, -100),\n    point.create(100, 100)\n)",
     },
     {
         "module": "object",
@@ -1485,7 +1485,7 @@ const apirefs = [
         "syntax": "add_label(cell, name, layer, where, sizehint)",
         "description": "add a label (not a port) to a cell",
         "details": "add a label to a cell. Works like add_anchor, but additionally a layer is expected. This is different from add_port in that it expresses intent for labels that are not connectivity-related (as opposed to ports). A size hint can be given, which might be processed by the export.",
-        "examples": "cell:add_label(\"0.8\", generics.other(\"M1voltagelabelhigh\"), point.create(100, 0))",
+        "examples": "cell:add_label(\n    \"0.8\",\n     generics.other(\"M1voltagelabelhigh\"),\n     point.create(100, 0)\n)",
     },
     {
         "module": "object",
@@ -1493,7 +1493,7 @@ const apirefs = [
         "syntax": "add_port(cell, name, layer, where, sizehint)",
         "description": "add a port to a cell",
         "details": "add a port to a cell. Works like add_anchor, but additionally a layer is expected. A size hint can be given, which might be processed by the export.",
-        "examples": "cell:add_port(\"vdd\", generics.metalport(2), point.create(100, 0))",
+        "examples": "cell:add_port(\n    \"vdd\",\n    generics.metalport(2),\n    point.create(100, 0)\n)",
     },
     {
         "module": "object",
@@ -1501,7 +1501,7 @@ const apirefs = [
         "syntax": "add_port_with_anchor(cell, name, layer, where, sizehint)",
         "description": "add a port and the corresponding point as an anchor to a cell",
         "details": "add a port to a cell. Works like add_anchor, but additionally a layer is expected. This function also adds an anchor to the cell (named like the port). A size hint can be given, which might be processed by the export.",
-        "examples": "cell:add_port_with_anchor(\"vdd\", generics.metalport(2), point.create(100, 0))",
+        "examples": "cell:add_port_with_anchor(\n    \"vdd\",\n    generics.metalport(2),\n    point.create(100, 0)\n)",
     },
     {
         "module": "object",
@@ -1509,7 +1509,7 @@ const apirefs = [
         "syntax": "add_bus_port(cell, name, layer, where, startindex, endindex, xpitch, ypitch)",
         "description": "add a bus port (multiple ports)",
         "details": "add a bus port (multiple ports like vout[0:4]) to a cell. The port expression is portname[startindex:endindex] and portname[i] is placed at 'where' with an offset of ((i - 1) * xpitch, (i - 1) * ypitch)",
-        "examples": "cell:add_bus_port(\"vout\", generics.metalport(4), point.create(200, 0), 0, 4, 200, 0)",
+        "examples": "cell:add_bus_port(\n    \"vout\",\n    generics.metalport(4),\n    point.create(200, 0),\n    0, 4,\n    200, 0\n)",
     },
     {
         "module": "object",
@@ -1517,7 +1517,7 @@ const apirefs = [
         "syntax": "align_area_anchor_bottom(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the bottom of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is aligned to the bottom of the target area anchor of the specified target cell. This only changes the y coordinate.",
-        "examples": "cell:align_area_anchor_bottom(\"topgatestrap\", othercell, \"botgatestrap\")",
+        "examples": "cell:align_area_anchor_bottom(\n    \"topgatestrap\",\n    othercell,\n    \"botgatestrap\"\n)",
     },
     {
         "module": "object",
@@ -1525,7 +1525,7 @@ const apirefs = [
         "syntax": "align_area_anchor_left(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the left of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is aligned to the left of the target area anchor of the specified target cell. This only changes the x coordinate.",
-        "examples": "cell:align_area_anchor_left(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+        "examples": "cell:align_area_anchor_left(\n    \"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
     },
     {
         "module": "object",
@@ -1533,7 +1533,7 @@ const apirefs = [
         "syntax": "align_area_anchor_right(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the right of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is aligned to the right of the target area anchor of the specified target cell. This only changes the x coordinate.",
-        "examples": "cell:align_area_anchor_right(\"rightsourcedrain\", othercell, \"leftsourcedrain\")",
+        "examples": "cell:align_area_anchor_right(\n    \"rightsourcedrain\",\n    othercell,\n    \"leftsourcedrain\"\n)",
     },
     {
         "module": "object",
@@ -1541,7 +1541,7 @@ const apirefs = [
         "syntax": "align_area_anchor_top(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the top of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is aligned to the top of the target area anchor of the specified target cell. This only changes the y-coordinate.",
-        "examples": "cell:align_area_anchor_top(\"botgatestrap\", othercell, \"topgatestrap\")",
+        "examples": "cell:align_area_anchor_top(\n\"botgatestrap\",\n    othercell,\n    \"topgatestrap\"\n)",
     },
     {
         "module": "object",
@@ -1549,7 +1549,7 @@ const apirefs = [
         "syntax": "align_area_anchor(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. The area anchors must have the same size, otherwise an error is raised. This changes both the x- and the y-coordinate.",
-        "examples": "cell:align_area_anchor(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+        "examples": "cell:align_area_anchor(\n\"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
     },
     {
         "module": "object",
@@ -1557,7 +1557,7 @@ const apirefs = [
         "syntax": "align_area_anchor_x(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the area anchor of another cell (x-only variant)",
         "details": "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. This changes only the x-coordinate.",
-        "examples": "cell:align_area_anchor_x(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+        "examples": "cell:align_area_anchor_x(\n\"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
     },
     {
         "module": "object",
@@ -1565,7 +1565,7 @@ const apirefs = [
         "syntax": "align_area_anchor_y(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the area anchor of another cell (y-only variant)",
         "details": "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. This changes only the y-coordinate.",
-        "examples": "cell:align_area_anchor_y(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+        "examples": "cell:align_area_anchor_y(\n\"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
     },
     {
         "module": "object",
@@ -1861,7 +1861,7 @@ const apirefs = [
         "syntax": "get_array_anchor(cell, xindex, yindex, anchorname)",
         "description": "get a regular anchor from a child array",
         "details": "Like object.get_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error.",
-        "examples": "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(ref, \"refarray\", 20, 2, 100, 1000)\nlocal anchor = array:get_array_anchor(4, 1, \"sourcedrain1bl\")",
+        "examples": "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(\n    ref,\n    \"refarray\",\n    20, 2,\n    100, 1000\n)\nlocal anchor = array:get_array_anchor(4, 1, \"someanchor\")",
     },
     {
         "module": "object",
@@ -1869,7 +1869,7 @@ const apirefs = [
         "syntax": "get_array_area_anchor(cell, xindex, yindex, anchorname)",
         "description": "get an area anchor from a child array",
         "details": "Like object.get_area_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error.",
-        "examples": "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(ref, \"refarray\", 20, 2, 100, 1000)\nlocal anchor = array:get_array_area_anchor(4, 1, \"sourcedrain1bl\")",
+        "examples": "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(\n    ref,\n    \"refarray\",\n    20, 2,\n    100, 1000\n)\nlocal anchor = array:get_array_area_anchor(4, 1, \"someareaanchor\")",
     },
     {
         "module": "object",
@@ -1901,7 +1901,7 @@ const apirefs = [
         "syntax": "get_layer_occupation(cell, layer)",
         "description": "get the layer occupation (bounding box) of a cell for a specific layer",
         "details": "Retrieve the extreme points of the overall layer occupation (including the sub-cells) of the given cell. This function returns a table with a bottom-left ('bl') and a top-right ('tr') point. This function does not depend on any existing layer boundaries, it always computes to real occupation. This might or might not be desirable, if precise control over the layer occupation is required it is recommended to use layer boundaries. This function is potentially slow, as it traverses the entire cell hierarchy and compares every shape layer to the given layer. If no layer is given, this function returns the bounding box.",
-        "examples": "local occupation = cell:get_layer_occupation(generics.metal(1))\nlayouthelpers.place_guardring(cell, occupation.bl, occupation.tr (...))",
+        "examples": "local occupation = cell:get_layer_occupation(\n    generics.metal(1)\n    )\nlayouthelpers.place_guardring(cell,\n    occupation.bl,\n    occupation.tr,\n    (...) -- further options\n)",
     },
     {
         "module": "object",
@@ -1917,7 +1917,7 @@ const apirefs = [
         "syntax": "add_net_shape(cell, netname, bl, tr, layer)",
         "description": "add a net shape to a cell",
         "details": "Mark a rectangular area in a cell with a certain net. This can be used for automatic via placement from power grids, for instance.",
-        "examples": "cell:add_net_shape(\"vdd\", cell:get_area_anchor(\"sourcestrap\").bl, cell:get_area_anchor(\"sourcestrap\").tr, generics.metal(2))",
+        "examples": "cell:add_net_shape(\n    \"vdd\",\n    cell:get_area_anchor(\"sourcestrap\").bl,\n    cell:get_area_anchor(\"sourcestrap\").tr,\n    generics.metal(2)\n)",
     },
     {
         "module": "object",
@@ -2093,7 +2093,7 @@ const apirefs = [
         "syntax": "move_point(cell, source, target)",
         "description": "move an object to a point by a reference point",
         "details": "Translate (move) the object so that the source point lies on the target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.",
-        "examples": "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
+        "examples": "cell:move_point(\n    cell:get_area_anchor(\"gate\").bl,\n    point.create(0, 0)\n) -- move to origin\n\nmosfet:move_point(\n    mosfet:get_area_anchor(\"leftsourcedrain\").bl,\n    othermosfet:get_area_anchor(\"rightsourcedrain\").bl\n) -- align two mosfets",
     },
     {
         "module": "object",
@@ -2101,7 +2101,7 @@ const apirefs = [
         "syntax": "move_point_x(cell, source, target)",
         "description": "move an object to a point by a reference point (x-only variant)",
         "details": "Translate (move) the object so that the x-coorindate of the source point lies on the x-coordinate target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.",
-        "examples": "cell:move_point_x(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move the x-coordinate of the origin\nmosfet:move_point_x(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align the x-coordinate of two mosfets",
+        "examples": "cell:move_point_x(\n    cell:get_area_anchor(\"gate\").bl,\n     point.create(0, 0)\n) -- move the x-coordinate of the origin\n\nmosfet:move_point_x(\n    mosfet:get_area_anchor(\"leftsourcedrain\").bl,\n    othermosfet:get_area_anchor(\"rightsourcedrain\").bl\n) -- align the x-coordinate of two mosfets",
     },
     {
         "module": "object",
@@ -2109,7 +2109,7 @@ const apirefs = [
         "syntax": "move_point_y(cell, source, target)",
         "description": "move an object to a point by a reference point (y-only variant)",
         "details": "Translate (move) the object so that the y-coorindate of the source point lies on the y-coordinate target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.",
-        "examples": "cell:move_point_y(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move the y-coordinate of the origin\nmosfet:move_point_y(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align the y-coordinate of two mosfets",
+        "examples": "cell:move_point_y(\n    cell:get_area_anchor(\"gate\").bl,\n    point.create(0, 0)\n) -- move the y-coordinate of the origin\n\nmosfet:move_point_y(\n    mosfet:get_area_anchor(\"leftsourcedrain\").bl,\n    othermosfet:get_area_anchor(\"rightsourcedrain\").bl\n) -- align the y-coordinate of two mosfets",
     },
     {
         "module": "object",
@@ -2117,7 +2117,7 @@ const apirefs = [
         "syntax": "center(cell, source)",
         "description": "center an object",
         "details": "Translate (move) the object so that the cell center lies on the target (default: (0, 0)). The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
-        "examples": "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
+        "examples": "cell:center() -- move to origin\n\ncell:center(point.create(100, 100)",
     },
     {
         "module": "object",
@@ -2125,7 +2125,7 @@ const apirefs = [
         "syntax": "center_x(cell, source)",
         "description": "center an object (x-only variant)",
         "details": "Translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in x-direction. The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
-        "examples": "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
+        "examples": "cell:center_x() -- move to origin\n\ncell:center_x(point.create(100, 100)",
     },
     {
         "module": "object",
@@ -2133,7 +2133,7 @@ const apirefs = [
         "syntax": "center_y(cell, source)",
         "description": "center an object (y-only variant)",
         "details": "Translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in y-direction. The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
-        "examples": "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
+        "examples": "cell:center_y() -- move to origin\n\ncell:center_y(point.create(100, 100)",
     },
     {
         "module": "object",
@@ -2333,7 +2333,7 @@ const apirefs = [
         "syntax": "add_parameters(args)",
         "description": "add multiple parameters to a pcell definition",
         "details": "Add multiple parameters to a cell. Internally, this calls pcell.add_parameter, so this function is merely a shorthand for multiple calls to pcell.parameter. Hint for the usage: in lua tables, a trailing comma after the last entry is explicitely allowed. However, this is a variable number of arguments for a function call, where the list has to be well-defined. A common error is a trailing comma after the last entry.",
-        "examples": "function parameters()\n    pcell.add_parameters(\n        { \"fingers\",     2,      posvals = even()              },\n        { \"fingerwidth\", 100,    posvals = positive()          },\n        { \"channeltype\", \"nmos\", posvals = set(\"nmos\", \"pmos\") } -- <--- no comma!\n    )\nend",
+        "examples": "function parameters()\n    pcell.add_parameters(\n        {\n            \"fingers\",\n            2,\n            posvals = even()\n        },\n        {\n            \"fingerwidth\",\n            100,\n            posvals = positive()\n        },\n        {\n            \"channeltype\",\n            \"nmos\",\n            posvals = set(\"nmos\", \"pmos\")\n        } -- <--- no comma!\n    )\nend",
     },
     {
         "module": "pcell",
@@ -2341,7 +2341,7 @@ const apirefs = [
         "syntax": "check_expression(expression, message)",
         "description": "check valid parameter values with expressions",
         "details": "Check valid parameter values with expressions. If parameter values depend on some other parameter or the posval function of parameter definitions do not offer enough flexibility, parameters can be checked with arbitrary lua expressions. This function must be called in parameters().",
-        "examples": "function parameters()\n    pcell.add_parameters({\n        { \"width\", 100 },\n        { \"height\", 200 },\n    })\n    pcell.check_expression(\"(height / width) % 2 == 0\", \"quotionent of height and width must be even\")\nend",
+        "examples": "function parameters()\n    pcell.add_parameters({\n        {\n            \"width\", 100\n        },\n        {\n            \"height\", 200\n        },\n    })\n    pcell.check_expression(\n        \"(height / width) % 2 == 0\",\n        \"quotionent of height and width must be even\"\n    )\nend",
     },
     {
         "module": "pcell",
@@ -2437,7 +2437,7 @@ const apirefs = [
         "syntax": "create_reference_rows(cellnames, xpitch)",
         "description": "prepare a row placement table",
         "details": "Prepare a row placement table for further placement functions by parsing a definition given in 'cellnames'. This table contains the individual rows of the placment, which every row consiting of individual cells. Cell entries can either be given by just the name of the standard cell (the 'reference') or the instance name ('instance') and the reference name ('reference') This function is meant to be used in pcell definitions.",
-        "examples": "-- un-named mode:\nlocal rows = placement.create_reference_rows({\n    { \"inv\", \"nand1\", \"dff_out\" },\n    { \"nand2\", \"dff_buf\" },\n    { \"nand3\", \"dff_in\" },\n})\n\n-- named mode:\nlocal rows = placement.create_reference_rows({\n    { { name = \"inv0\", reference = \"not_gate\" }, { name = \"nand1\", reference = \"nand_gate\" }, { name = \"dff_out\", reference = \"dffpq\" } },\n    { { name = \"nand2\", reference = \"nand_gate\" }, { name = \"dff_buf\", reference = \"dffpq\" } },\n    { { name = \"nand3\", reference = \"nand_gate\" }, { name = \"dff_in\", reference = \"dffpq\" } },\n})",
+        "examples": "-- un-named mode:\nlocal rows = placement.create_reference_rows({\n    { \"inv\", \"nand1\", \"dff_out\" },\n    { \"nand2\", \"dff_buf\" },\n    { \"nand3\", \"dff_in\" },\n})\n\n-- named mode:\nlocal rows = placement.create_reference_rows({\n    {\n        { name = \"inv0\", reference = \"not_gate\" },\n        { name = \"nand1\", reference = \"nand_gate\" },\n        { name = \"dff_out\", reference = \"dffpq\" }\n    },\n    {\n        { name = \"nand2\", reference = \"nand_gate\" },\n        { name = \"dff_buf\", reference = \"dffpq\" }\n    },\n    {\n        { name = \"nand3\", reference = \"nand_gate\" },\n        { name = \"dff_in\", reference = \"dffpq\" }\n    },\n})",
     },
     {
         "module": "placement",
@@ -2453,7 +2453,7 @@ const apirefs = [
         "syntax": "rowwise(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a row-wise manner in a parent cell",
         "details": "Place cells in a row-wise manner in a parent cell. The cells definition contains definitions for every row, which in turn contain entries with two keys: 'reference' (an object) and 'instance' (an instance name). The placed cells are aligned by their alignment boxes and grow into the upper-right direction. This means that the first entry in the first row is the bottom-left-most cell. This function is useful for digital standard cell layouts (and in fact called by placement.digital, which offers a more high-level interface), but it can also be useful for regular analog structures. Flipping fine control can be obtained by passing 'flip = true/false' to entire rows or individually per cell entry with 'flipx' and 'flipy' (boolean switches).",
-        "examples": "local celldef = {\n    { -- first row (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second row\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.rowwise(parent, cellsdef)",
+        "examples": "local celldef = {\n    { -- first row (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second row\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.rowwise(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2461,7 +2461,7 @@ const apirefs = [
         "syntax": "rowwise_flat(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a row-wise manner in a parent cell (flat variant)",
         "details": "Like placement.rowwise, but merges cells into parents (flat)",
-        "examples": "local celldef = {\n    { -- first row (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second row\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.rowwise_flat(parent, cellsdef)",
+        "examples": "local celldef = {\n    { -- first row (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second row\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.rowwise_flat(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2469,7 +2469,7 @@ const apirefs = [
         "syntax": "columnwise(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a column-wise manner in a parent cell",
         "details": "Place cells in a column-wise manner in a parent cell. The cells definition contains definitions for every column, which in turn contain entries with two keys: 'reference' (an object) and 'instance' (an instance name). The placed cells are aligned by their alignment boxes and grow into the upper-right direction. This means that the first entry in the first column is the bottom-left-most cell. This function is useful for digital standard cell layouts (and in fact called by placement.digital, which offers a more high-level interface), but it can also be useful for regular analog structures. Flipping fine control can be obtained by passing 'flip = true/false' to entire columns or individually per cell entry with 'flipx' and 'flipy' (boolean switches).",
-        "examples": "local celldef = {\n    { -- first column (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second column\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.columnwise(parent, cellsdef)",
+        "examples": "local celldef = {\n    { -- first column (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second column\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.columnwise(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2477,7 +2477,7 @@ const apirefs = [
         "syntax": "columnwise_flat(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a column-wise manner in a parent cell (flat variant)",
         "details": "Like placement.columnwise, but merges cells into parents (flat).",
-        "examples": "local celldef = {\n    { -- first column (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second column\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.columnwise_flat(parent, cellsdef)",
+        "examples": "local celldef = {\n    { -- first column (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second column\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.columnwise_flat(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2541,7 +2541,7 @@ const apirefs = [
         "syntax": "place_boundary_grid(toplevel, boundarycells, basept, grid, pitch, basename)",
         "description": "place cells on a regular grid with the given pitch",
         "details": "Place cells on a regular grid with the given pitch. The grid contains numeric entries of either 1 or 0, meaning 'place' or 'don't place'. This grid can be obtained by using placement.calculate_grid. The cells are placed on this grid, so that the proper cells are used at each of the grid points. This means that special cells are placed at the boundary of the grid (e.g., where there is no neighbouring cell to the left). The boundarycells table should contain sixteen (2^4) key-value pairs: cells for 'center', 'top', 'bottom', 'left', 'right', 'topleft', 'topright', 'topbottom', 'bottomleft', 'bottomright', 'leftright', 'topleftright', 'topbottomleft', 'topbottomright', 'bottomleftright' and 'topbottomleftright'",
-        "examples": "local grid = { --[[ some grid definition --]] }\nlocal boundarycells = { center = centercell, top = topcell, --[[ and so on --]] } \nplacement.place_boundary_grid(toplevel, boundarycells, point.create(0, 0), grid, 10000, \"gridcell\")",
+        "examples": "local grid = {\n    --[[ some grid definition --]]\n}\nlocal boundarycells = {\n    center = centercell,\n    top = topcell,\n    --[[ and so on --]]\n}\nplacement.place_boundary_grid(toplevel,\n    boundarycells,\n    point.create(0, 0),\n    grid,\n    10000,\n    \"gridcell\"\n)",
     },
     {
         "module": "point",
@@ -2789,7 +2789,7 @@ const apirefs = [
         "syntax": "get_dimension(properties...)",
         "description": "get critical technology dimensions such as minimum metal width",
         "details": "Get critical technology dimensions such as minimum metal width. Predominantly used in pcell parameter definitions, but not necessarily restricted to that. There is a small set of technology properties that are used in the standard opc cells, but there is currently no proper definitions of the supported fields. See basic/mosfet and basic/cmos for examples. This function can be given multiple look-up strings, the first one that is found will be returned. If the maximum of several properties is required, use 'technology.get_dimension_max()'. For convenience, this function can also process 'nil' parameters, which will simply be ignored.",
-        "examples": "function parameters()\n    pcell.add_parameters({ {\"width\", technology.get_dimension(\"Minimum M1 Width\") } })\nend",
+        "examples": "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_dimension(\"Minimum M1 Width\") \n        }\n    )\nend",
     },
     {
         "module": "technology",
@@ -2797,7 +2797,7 @@ const apirefs = [
         "syntax": "get_dimension_max(properties...)",
         "description": "get critical technology dimensions such as minimum metal width (max value)",
         "details": "Get critical technology dimensions such as minimum metal width. This is similar to technology.get_dimension, but returns the maximum value of all given properties.",
-        "examples": "function parameters()\n    pcell.add_parameters({ {\"width\", technology.get_dimension_ma(\"Minimum Gate Width\", \"Analog Gate Width\") } })\nend",
+        "examples": "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_dimension_max(\n                \"Minimum Gate Width\",\n                \"Analog Gate Width\"\n            )\n        }\n    )\nend",
     },
     {
         "module": "technology",
@@ -2805,7 +2805,7 @@ const apirefs = [
         "syntax": "get_dimension_min(properties...)",
         "description": "get critical technology dimensions such as minimum metal width (min value)",
         "details": "Get critical technology dimensions such as minimum metal width. This is similar to technology.get_dimension, but returns the minimum value of all given properties.",
-        "examples": "function parameters()\n    pcell.add_parameters({ {\"space\", technology.get_dimension_ma(\"Minimum Gate Space\", \"Minimum Gate XSpace\") } })\nend",
+        "examples": "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_dimension_min(\n                \"Minimum Gate Space\",\n                \"Minimum Gate XSpace\"\n            )\n        }\n    )\nend",
     },
     {
         "module": "technology",
@@ -2813,7 +2813,7 @@ const apirefs = [
         "syntax": "get_optional_dimension(properties..., fallback)",
         "description": "get optional technology dimensions",
         "details": "Like get_dimension, but this function does not raise an error if the dimension was not found but returns the given fallback value.",
-        "examples": "function parameters()\n    pcell.add_parameters({ {\"width\", technology.get_optional_dimension(\"Minimum M1 Width\") } })\nend",
+        "examples": "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_optional_dimension(\n                \"Minimum M1 Width\"\n            )\n        }\n    )\nend",
     },
     {
         "module": "technology",
@@ -3253,7 +3253,7 @@ const apirefs = [
         "syntax": "any_of(comp, table, ...)",
         "description": "check if any value in a table fulfills a condition",
         "details": "Return true if any of the values in the array part of the table compare true (either directly to the given value or the function call is true). If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.any_of are passed to the function, following the array element",
-        "examples": "util.any_of(42, { 1, 2, 3 }) -- false\nutil.any_of(function(e) return e == 42 end, { 1, 2, 3 }) -- also false",
+        "examples": "util.any_of(42, { 1, 2, 3 }) -- false\nutil.any_of(\n    function(e) return e == 42 end,\n    { 1, 2, 3 }\n) -- also false",
     },
     {
         "module": "util",
@@ -3261,7 +3261,7 @@ const apirefs = [
         "syntax": "all_of(comp, table, ...)",
         "description": "check if all value in a table fulfill a condition",
         "details": "Return true if all of the values in the array part of the table compare true (either directly to the given value or the function call is true). If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.all_of are passed to the function, following the array element",
-        "examples": "util.all_of(42, { 42, 42, 42 }) -- true\nutil.all_of(function(e) return e == 42 end, { 42, 2, 3 }) -- false",
+        "examples": "util.all_of(42, { 42, 42, 42 }) -- true\nutil.all_of(\n    function(e) return e == 42 end,\n    { 42, 2, 3 }\n) -- false",
     },
     {
         "module": "util",
@@ -3341,7 +3341,7 @@ const apirefs = [
         "syntax": "find_predicate(table, comp, ...)",
         "description": "find a value in an array (predicate variant)",
         "details": "Like util.find, but call a function to do the comparison. The function is called with every one of the values, but not the index. If multiple values match, only the first one is returned.",
-        "examples": "util.find({ 3, 4, 5 }, function(value) return value == 4 end) -- 2, 4\nlocal target = 4\nutil.find({ 3, 4, 5 }, function(value, t) return value == t end, target) -- 2, 4\n",
+        "examples": "util.find_predicate(\n    { 3, 4, 5 },\n    function(value)\n        return value == 4\n    end\n) -- 2, 4\nlocal target = 4\nutil.find(\n    { 3, 4, 5 },\n    function(value, t)\n        return value == t\n    end,\n    target\n) -- 2, 4\n",
     },
     {
         "module": "util",

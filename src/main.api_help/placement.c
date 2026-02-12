@@ -121,9 +121,9 @@
         "})\n\n"
         "-- named mode:\n"
         "local rows = placement.create_reference_rows({\n"
-        "    { { name = \"inv0\", reference = \"not_gate\" }, { name = \"nand1\", reference = \"nand_gate\" }, { name = \"dff_out\", reference = \"dffpq\" } },\n"
-        "    { { name = \"nand2\", reference = \"nand_gate\" }, { name = \"dff_buf\", reference = \"dffpq\" } },\n"
-        "    { { name = \"nand3\", reference = \"nand_gate\" }, { name = \"dff_in\", reference = \"dffpq\" } },\n"
+        "    {\n        { name = \"inv0\", reference = \"not_gate\" },\n        { name = \"nand1\", reference = \"nand_gate\" },\n        { name = \"dff_out\", reference = \"dffpq\" }\n    },\n"
+        "    {\n        { name = \"nand2\", reference = \"nand_gate\" },\n        { name = \"dff_buf\", reference = \"dffpq\" }\n    },\n"
+        "    {\n        { name = \"nand3\", reference = \"nand_gate\" },\n        { name = \"dff_in\", reference = \"dffpq\" }\n    },\n"
         "})",
         parameters
     ));
@@ -163,7 +163,7 @@
         "This means that the first entry in the first row is the bottom-left-most cell. "
         "This function is useful for digital standard cell layouts (and in fact called by placement.digital, which offers a more high-level interface), but it can also be useful for regular analog structures. "
         "Flipping fine control can be obtained by passing 'flip = true/false' to entire rows or individually per cell entry with 'flipx' and 'flipy' (boolean switches).",
-        "local celldef = {\n    { -- first row (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second row\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.rowwise(parent, cellsdef)",
+        "local celldef = {\n    { -- first row (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second row\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.rowwise(parent, cellsdef)",
         parameters
     ));
 }
@@ -182,7 +182,7 @@
         MODULE_PLACEMENT,
         "place cells in a row-wise manner in a parent cell (flat variant)",
         "Like placement.rowwise, but merges cells into parents (flat)",
-        "local celldef = {\n    { -- first row (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second row\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.rowwise_flat(parent, cellsdef)",
+        "local celldef = {\n    { -- first row (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second row\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.rowwise_flat(parent, cellsdef)",
         parameters
     ));
 }
@@ -206,7 +206,7 @@
         "This means that the first entry in the first column is the bottom-left-most cell. "
         "This function is useful for digital standard cell layouts (and in fact called by placement.digital, which offers a more high-level interface), but it can also be useful for regular analog structures. "
         "Flipping fine control can be obtained by passing 'flip = true/false' to entire columns or individually per cell entry with 'flipx' and 'flipy' (boolean switches).",
-        "local celldef = {\n    { -- first column (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second column\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.columnwise(parent, cellsdef)",
+        "local celldef = {\n    { -- first column (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second column\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.columnwise(parent, cellsdef)",
         parameters
     ));
 }
@@ -225,7 +225,7 @@
         MODULE_PLACEMENT,
         "place cells in a column-wise manner in a parent cell (flat variant)",
         "Like placement.columnwise, but merges cells into parents (flat).",
-        "local celldef = {\n    { -- first column (bottom)\n        { reference = someobject, instance = \"instance_1_1\" },\n        { reference = someobject, instance = \"instance_1_2\" },\n    },\n    { -- second column\n        { reference = someotherobject, instance = \"instance_2_1\" },\n        { reference = someotherobject, instance = \"instance_2_2\" },\n    }\n}\nplacement.columnwise_flat(parent, cellsdef)",
+        "local celldef = {\n    { -- first column (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second column\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.columnwise_flat(parent, cellsdef)",
         parameters
     ));
 }
@@ -419,7 +419,7 @@
         "The cells are placed on this grid, so that the proper cells are used at each of the grid points. "
         "This means that special cells are placed at the boundary of the grid (e.g., where there is no neighbouring cell to the left). "
         "The boundarycells table should contain sixteen (2^4) key-value pairs: cells for 'center', 'top', 'bottom', 'left', 'right', 'topleft', 'topright', 'topbottom', 'bottomleft', 'bottomright', 'leftright', 'topleftright', 'topbottomleft', 'topbottomright', 'bottomleftright' and 'topbottomleftright'",
-        "local grid = { --[[ some grid definition --]] }\nlocal boundarycells = { center = centercell, top = topcell, --[[ and so on --]] } \nplacement.place_boundary_grid(toplevel, boundarycells, point.create(0, 0), grid, 10000, \"gridcell\")",
+        "local grid = {\n    --[[ some grid definition --]]\n}\nlocal boundarycells = {\n    center = centercell,\n    top = topcell,\n    --[[ and so on --]]\n}\nplacement.place_boundary_grid(toplevel,\n    boundarycells,\n    point.create(0, 0),\n    grid,\n    10000,\n    \"gridcell\"\n)",
         parameters
     ));
 }

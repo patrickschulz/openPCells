@@ -24,7 +24,7 @@
         MODULE_NONE,
         "process cell parameters (cell definition function)",
         "Cell definition function. Process parameters after user values have been set. This can be used to re-evaluate parameters based on different settings. As an example the width of a metal line could be set to the minimum width value of the used metal. This can not be done in regular parameter definitions for cells. The function receives the table with all parameter values and should return a new table with altered parameters. Every parameter in this new table will overwrite a parameter in the main parameter table, but only if it was not explicitly modified when calling the cell. This function is optional.",
-        "function process_parameters(_P)\n    local t = {}\n    t.width = technology.get_dimension(string.format(\"Minimum M%d Width\"), _P.metal)\n    t.length = _P.totallength -- simple follower parameter\n    return t\nend",
+        "function process_parameters(_P)\n    local t = {}\n    t.width = technology.get_dimension(\n        string.format(\"Minimum M%d Width\"),\n        _P.metal\n    )\n    t.length = _P.totallength -- simple follower parameter\n    return t\nend",
         parameters
     ));
 }
@@ -57,7 +57,7 @@
         MODULE_NONE,
         "check cell parameters (cell definition function)",
         "Cell definition function. Check parameters for sane values. This function should return 'true' if all checks succeed. This means that an empty check function should still return 'true'. Any arbitrary checks can be implemented (typically simply 'if ... then return false, message end') and if a check fails the function should return 'false' and a message. This function can receive (if present) the cellstate from prepare(). This function is optional, but if present the last statement should be 'return true'.",
-        "function check(_P, cellstate)\n    if _P.topmetal > 4 then\n        return false, string.format(\"the top metal must not exceed 4, got %d\", _P.topmetal)\n    end\n    return true -- final return\nend",
+        "function check(_P, cellstate)\n    if _P.topmetal > 4 then\n        return\n            false,\n            string.format(\n                 \"top metal must be below 5, got %d\",\n                  _P.topmetal\n            )\n    end\n    return true -- final return\nend",
         parameters
     ));
 }
@@ -76,7 +76,7 @@
         MODULE_NONE,
         "define cell layout (cell definition function)",
         "Cell definition function. Main layout definition of a cell. This function receives an object where shapes, instances, ports etc. are to be placed in. This function should not create its own top-level layout object (even if it did, it would simply be ignored). As inputs the function receives (besides the object) the final parameter values, and possibly a cell environment and the common cell state. The parameter table controls the layout creation and should always be present (just like 'parameters()', although both are technically optional). The cell environment is equal for all called cells (invocations but also cell types) within one opc call, there is only one cell environment. This can be used for cells of one project that only work together. For this reason, it is not used in standard cell implementations in openPCells. The cellstate is the shared common cellstate from a potential 'prepare()' call. This function is technically optional, but only in very rare cases it is not needed (a base cell defining parameters can be created, see stdcells/base).",
-        "function layout(cell, _P)\n    geometry.rectanglebltr(cell, generics.metal(1), point.create(0, 0), point.create(_P.width, _P.height))\nend\n\nfunction layout(cell, _P, env)\n    if env.XXX then ... end\nend\n\nfunction layout(cell, _P, _envnotused, state)\n    if state.XXX then ... end\nend",
+        "function layout(cell, _P)\n    geometry.rectanglebltr(cell,\n        generics.metal(1),\n        point.create(0, 0),\n        point.create(_P.width, _P.height)\n    )\nend\n\nfunction layout(cell, _P, env)\n    if env.XXX then ... end\nend\n\nfunction layout(cell, _P, _envnotused, state)\n    if state.XXX then ... end\nend",
         parameters
     ));
 }
