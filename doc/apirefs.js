@@ -341,7 +341,7 @@ const apirefs = [
         "syntax": "rectanglebltr(cell, layer, bl, tr)",
         "description": "create a rectangular shape with the given corner points in cell",
         "details": "geometry.rectanglebltr creates a rectangle in a given cell with the specified layer and corner points. The order of the points should be bottom-left/top-right. This is checked in the function and an error is raised if the points are not given like that. If the exact ordering is unkonwn (for instance because the points are generated with some variation) geometry.rectanglepoints should be used.",
-        "examples": "geometry.rectanglebltr(cell,\n    generics.other(\"nwell\"),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\n\ngeometry.rectanglebltr(cell,\n    generics.metal(1),\n    obj:get_anchor(\"bottomleft\"),\n    obj:get_anchor(\"topright\")\n)\n\ngeometry.rectanglebltr(cell,\n    generics.metal(-1),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\n",
+        "examples": "<span>geometry</span>.rectanglebltr(cell,\n    generics.other(\"nwell\"),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\n\ngeometry.rectanglebltr(cell,\n    generics.metal(1),\n    obj:get_anchor(\"bottomleft\"),\n    obj:get_anchor(\"topright\")\n)\n\ngeometry.rectanglebltr(cell,\n    generics.metal(-1),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\n",
     },
     {
         "module": "geometry",

@@ -83,8 +83,7 @@ function renderSearchResults(productsToRender)
         clone.querySelector(".APIref-funcname").innerText = apiref.module + "." + apiref.funcname;
         clone.querySelector(".APIref-syntax").innerText = apiref.syntax;
         clone.querySelector(".APIref-description").innerText = apiref.description;
-        clone.querySelector(".APIref-examples").innerText = apiref.examples;
-        //clone.querySelector(".link").setAttribute("href", apiref.url);
+        clone.querySelector(".APIref-examples").innerHTML = apiref.examples;
 
         // add our clone to the results
         results.appendChild(clone);

@@ -99,11 +99,13 @@ pre.opc {
     font: monospace;
 }
 
-.APIref-examples {
+.APIref-examples-container {
     background-color: #eeeeee;
     padding: 5pt;
     border-radius: 2pt;
     font-size: 14pt;
+}
+.APIref-examples {
 }
 
 .search-bar {
@@ -123,4 +125,9 @@ footer {
     padding: 5pt 5pt 12pt 5pt;
     color: #444444;
     text-align: center;
+}
+
+/* code highlighting */
+.opc-identifier {
+    color: #ff0000;
 }
