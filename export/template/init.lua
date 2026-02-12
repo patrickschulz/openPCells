@@ -18,9 +18,7 @@ function M.initialize(minx, maxx, miny, maxy)
 end
 
 -- * mandatory *
--- function which defines how the export gets its layer
--- usually pretty simple, as most of the work is already done in the technology translation
--- example from the GDS export: return { S:get_lpp():get().layer, purpose = S:get_lpp():get().purpose }
+-- function which assembles the final data and returns it to the export module
 function M.finalize()
     -- example for string return
     -- most exports work like this, but some need to do something else
