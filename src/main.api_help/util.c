@@ -8,7 +8,11 @@
     vector_append(entries, _make_api_entry(
         "is_on_grid",
         MODULE_UTIL,
-        "check if a value is on a given grid. This function returns a boolean, and does not assert internally. This is for detecting off-grid situations in order to remedy them, not as a sanity check. Use util.check_grid if that is required.",
+        "check if a value is on a given grid",
+        "Check if a value is on a given grid. "
+        "This function returns a boolean, and does not assert internally. "
+        "This is for detecting off-grid situations in order to remedy them, not as a sanity check. "
+        "Use util.check_grid if that is required.",
         "util.check_grid(80, 10) -- true\nutil.check_grid(85, 10) -- false",
         parameters
     ));
@@ -24,7 +28,11 @@
     vector_append(entries, _make_api_entry(
         "check_grid",
         MODULE_UTIL,
-        "check that all given numbers are on integer multiples of the given grid. This function calls assert, so aborts the entire program if the assertation fails. This is intended as a sanity check, not detection in order to solve this. Use util.is_on_grid if that is required.",
+        "check that all given numbers are on integer multiples of the given grid",
+        "Check that all given numbers are on integer multiples of the given grid. "
+        "This function calls assert, so aborts the entire program if the assertation fails. "
+        "This is intended as a sanity check, not detection in order to solve this. "
+        "Use util.is_on_grid if that is required.",
         "util.check_grid(100, 100, 800, 42, 10000) -- will fail",
         parameters
     ));
@@ -39,7 +47,9 @@
     vector_append(entries, _make_api_entry(
         "min",
         MODULE_UTIL,
-        "retrieve the minimum value of a numeric array. Returns the corresponding index as second return value",
+        "retrieve the minimum value of a numeric array",
+        "Retrieve the minimum value of a numeric array. "
+        "Returns the corresponding index as second return value",
         "local min, idx = util.min({ 1, 4, 2, 3 }) -- 1, 1",
         parameters
     ));
@@ -54,7 +64,9 @@
     vector_append(entries, _make_api_entry(
         "max",
         MODULE_UTIL,
-        "retrieve the maximum value of a numeric array. Returns the corresponding index as second return value",
+        "retrieve the maximum value of a numeric array",
+        "Retrieve the maximum value of a numeric array. "
+        "Returns the corresponding index as second return value",
         "local max, idx = util.max({ 1, 4, 2, 3 }) -- 4, 2",
         parameters
     ));
@@ -69,7 +81,10 @@
     vector_append(entries, _make_api_entry(
         "make_counter",
         MODULE_UTIL,
-        "create a counter function that increments and returns its current value everytime it is called. If a value is given, the counter starts at that value. The default is 1.",
+        "create a counter funciton",
+        "Create a counter function that increments and returns its current value everytime it is called. "
+        "If a value is given, the counter starts at that value. "
+        "The default is 1.",
         "local counter = util.make_counter()\nprint(counter()) -- 1\nprint(counter()) -- 2\nprint(counter()) -- 3",
         parameters
     ));
@@ -84,7 +99,8 @@
     vector_append(entries, _make_api_entry(
         "polygon_xmin",
         MODULE_UTIL,
-        "retrieve the minimum x-value of all points of a polygon",
+        "retrieve the minimum x-value of a polygon",
+        "Retrieve the minimum x-value of all points of a polygon.",
         "local value = util.polygon_xmin({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- -100",
         parameters
     ));
@@ -99,7 +115,8 @@
     vector_append(entries, _make_api_entry(
         "polygon_xmax",
         MODULE_UTIL,
-        "retrieve the maximum x-value of all points of a polygon",
+        "retrieve the maximum x-value of a polygon",
+        "Retrieve the maximum x-value of all points of a polygon.",
         "local value = util.polygon_xmax({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 200",
         parameters
     ));
@@ -114,7 +131,8 @@
     vector_append(entries, _make_api_entry(
         "polygon_ymin",
         MODULE_UTIL,
-        "retrieve the minimum y-value of all points of a polygon",
+        "retrieve the minimum y-value of a polygon",
+        "Retrieve the minimum y-value of all points of a polygon.",
         "local value = util.polygon_ymin({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 0",
         parameters
     ));
@@ -129,7 +147,8 @@
     vector_append(entries, _make_api_entry(
         "polygon_ymax",
         MODULE_UTIL,
-        "retrieve the maximum y-value of all points of a polygon",
+        "retrieve the maximum y-value of a polygon",
+        "Retrieve the maximum y-value of all points of a polygon.",
         "local value = util.polygon_ymax({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 200",
         parameters
     ));
@@ -145,7 +164,8 @@
     vector_append(entries, _make_api_entry(
         "xmirror",
         MODULE_UTIL,
-        "create a copy of the points in pts (a table) with all x-coordinates mirrored with respect to xcenter",
+        "copy and mirror (x only) a list of points",
+        "Create a copy of the points in pts (a table) with all x-coordinates mirrored with respect to xcenter.",
         "local pts = { point.create(10, 0), point.create(20, 0) }\nutil.xmirror(pts, 0) -- { (-10, 0), (-20, 0) }",
         parameters
     ));
@@ -161,7 +181,8 @@
     vector_append(entries, _make_api_entry(
         "ymirror",
         MODULE_UTIL,
-        "create a copy of the points in pts (a table) with all y-coordinates mirrored with respect to ycenter",
+        "copy and mirror (y only) a list of points",
+        "Create a copy of the points in pts (a table) with all y-coordinates mirrored with respect to ycenter.",
         "local pts = { point.create(0, 10), point.create(0, 20) }\nutil.ymirror(pts, 0) -- { (0, -10), (0, -20) }",
         parameters
     ));
@@ -178,7 +199,8 @@
     vector_append(entries, _make_api_entry(
         "xymirror",
         MODULE_UTIL,
-        "create a copy of the points in pts (a table) with all x- and y-coordinates mirrored with respect to xcenter and ycenter, respectively",
+        "copy and mirror (x and y) a list of points",
+        "Create a copy of the points in pts (a table) with all x- and y-coordinates mirrored with respect to xcenter and ycenter, respectively.",
         "local pts = { point.create(10, 10), point.create(20, 20) }\nutil.ymirror(pts, 0, 0) -- { (-10, -10), (-20, -20) }",
         parameters
     ));
@@ -194,7 +216,9 @@
     vector_append(entries, _make_api_entry(
         "filter_forward",
         MODULE_UTIL,
-        "iterate forward through the list of points and create a new list with copied points that match the predicate. The predicate function is called with every point.",
+        "filter a list of points through a filter function (forward variant)",
+        "Iterate forward through the list of points and create a new list with copied points that match the predicate. "
+        "The predicate function is called with every point.",
         "local pts = { ... }\nlocal predicate = function(pt) return pt:getx() > 0 end\nlocal newpts = util.filter_forward(pts, predicate)",
         parameters
     ));
@@ -210,7 +234,9 @@
     vector_append(entries, _make_api_entry(
         "filter_backward",
         MODULE_UTIL,
-        "iterate backward through the list of points and create a new list with copied points that match the predicate. The predicate function is called with every point.",
+        "filter a list of points through a filter function (backward variant)",
+        "Iterate backward through the list of points and create a new list with copied points that match the predicate. "
+        "The predicate function is called with every point.",
         "local pts = { ... }\nlocal predicate = function(pt) return pt:getx() > 0 end\nlocal newpts = util.filter_backward(pts, predicate)",
         parameters
     ));
@@ -226,7 +252,10 @@
     vector_append(entries, _make_api_entry(
         "merge_forwards",
         MODULE_UTIL,
-        "append all points from pts2 to pts1. Iterate pts2 forward. Operates in-place, thus pts is modified",
+        "append all points from pts2 to pts1 (forward variant)",
+        "Append all points from pts2 to pts1. "
+        "Iterate pts2 forward. "
+        "Operates in-place, thus pts is modified",
         "util.merge_forward(pts, pts2)",
         parameters
     ));
@@ -242,7 +271,10 @@
     vector_append(entries, _make_api_entry(
         "merge_backwards",
         MODULE_UTIL,
-        "append all points from pts2 to pts1. Iterate pts2 backwards. Operates in-place, thus pts is modified",
+        "append all points from pts2 to pts1 (backward variant)",
+        "Append all points from pts2 to pts1. "
+        "Iterate pts2 backwards. "
+        "Operates in-place, thus pts is modified",
         "util.merge_backward(pts, pts2)",
         parameters
     ));
@@ -258,7 +290,10 @@
     vector_append(entries, _make_api_entry(
         "merge_tables",
         MODULE_UTIL,
-        "create a new table with t1 and t2 concatenated. The elements of t2 are append after thos of t1. Only the array entries of t1 and t2 are processed.",
+        "append all entries from t2 to t1",
+        "Create a new table with t1 and t2 concatenated. "
+        "The elements of t2 are append after those of t1. "
+        "Only the array entries of t1 and t2 are processed.",
         "util.merge_tables({ 1, 2, 3 }, { 4, 5, 6 }) -- { 1, 2, 3, 4, 5, 6 }",
         parameters
     ));
@@ -274,7 +309,8 @@
     vector_append(entries, _make_api_entry(
         "insert_table",
         MODULE_UTIL,
-        "create a copy of the point array with the order of points reversed",
+        "append all entries from t to main",
+        "Append all entries from t to main.",
         "local t = { 1, 2, 3 }\nutil.insert_table(t, { 4, 5, 6 }) -- t is now { 1, 2, 3, 4, 5, 6 }",
         parameters
     ));
@@ -289,6 +325,7 @@
     vector_append(entries, _make_api_entry(
         "reverse",
         MODULE_UTIL,
+        "reverse a point list",
         "create a copy of the point array with the order of points reversed",
         "local reversed = util.reverse(pts)",
         parameters
@@ -305,7 +342,11 @@
     vector_append(entries, _make_api_entry(
         "make_insert_xy",
         MODULE_UTIL,
-        "create a function that inserts points into a point array. XY mode, thus points are given as two coordinates. If an index is given, insert at that position. Mostly useful with 1 as an index or not index at all (append)",
+        "create a function that inserts points into a point array (xy variant)",
+        "Create a function that inserts points into a point array. "
+        "XY mode, thus points are given as two coordinates. "
+        "If an index is given, insert at that position. "
+        "Mostly useful with 1 as an index or not index at all (append)",
         "local pts = {}\nlocal _append = util.make_insert_xy(pts)\n_append(0, 0)\n_append(100, 0)\n_append(100, 100)\n_append(0, 100)",
         parameters
     ));
@@ -321,7 +362,11 @@
     vector_append(entries, _make_api_entry(
         "make_insert_pts",
         MODULE_UTIL,
-        "create a function that inserts points into a point array. Point mode, thus points are given as single points. If an index is given, insert at that position. Mostly useful with 1 as an index or not index at all (append)",
+        "create a function that inserts points into a point array (point variant)",
+        "Create a function that inserts points into a point array. "
+        "Point mode, thus points are given as single points. "
+        "If an index is given, insert at that position. "
+        "Mostly useful with 1 as an index or not index at all (append)",
         "local pts = {}\nlocal _append = util.make_insert_pts(pts)\n_append(point.create(0, 0))\n_append(point.create(100, 0))\n_append(point.create(100, 100))\n_append(point.create(0, 100))",
         parameters
     ));
@@ -337,7 +382,9 @@
     vector_append(entries, _make_api_entry(
         "rep",
         MODULE_UTIL,
-        "create an array-like table with one entry repeated N times. This is useful, for example, for specifying gate contacts for basic/cmos.",
+        "create an list with a repetition of a value",
+        "Create an array-like table with one entry repeated N times. "
+        "This is useful, for example, for specifying gate contacts for basic/cmos.",
         "local gatecontactpos = util.rep(4, 0) -- { 0, 0, 0, 0 }",
         parameters
     ));
@@ -354,7 +401,9 @@
     vector_append(entries, _make_api_entry(
         "range",
         MODULE_UTIL,
-        "create a table with numeric entries between lower and upper (both inclusive). The entries spacing is specified by the increment (default 1)",
+        "create an list with a numeric range",
+        "Create a table with numeric entries between lower and upper (both inclusive). "
+        "The entries spacing is specified by the increment (default 1)",
         "util.range(1, 5) -- { 1, 2, 3, 4, 5 }\nutil.range(2, 8, 3) -- { 2, 5, 8 }",
         parameters
     ));
@@ -370,7 +419,10 @@
     vector_append(entries, _make_api_entry(
         "remove",
         MODULE_UTIL,
-        "create a shallow copy of a table with certain elements matching the given criteria removed. The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. If the result of the function call is 'true', the entry is NOT included in the results table.",
+        "remove some elements of a table (the table is copied)",
+        "Create a shallow copy of a table with certain elements matching the given criteria removed. "
+        "The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. "
+        "If the result of the function call is 'true', the entry is NOT included in the results table.",
         "util.remove({1, 2, 3, 4, 5}, 3) -- { 1, 2, 4, 5 }\nutil.remove({1, 2, 3, 4, 5}, function(e) return e % 2 == 0 end) -- { 1, 3, 5 }",
         parameters
     ));
@@ -386,7 +438,9 @@
     vector_append(entries, _make_api_entry(
         "remove_index",
         MODULE_UTIL,
-        "create a shallow copy of a table with the element(s) at the 'index(es)' removed. Index can be either a scalar integer or a table containing multiple indices which shall be removed",
+        "remove some elements of a table (the table is copied) (index variant)",
+        "Create a shallow copy of a table with the element(s) at the 'index(es)' removed. "
+        "Index can be either a scalar integer or a table containing multiple indices which shall be removed",
         "util.remove_index({10, 20, 30, 40, 50}, 3) -- { 10, 20, 40, 50 }",
         parameters
     ));
@@ -402,7 +456,10 @@
     vector_append(entries, _make_api_entry(
         "remove_inplace",
         MODULE_UTIL,
-        "remove certain elements matching the given criteria. The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. If the result of the function call is 'true', the entry is NOT included in the results table.",
+        "remove some elements of a table",
+        "Remove certain elements matching the given criteria. "
+        "The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. "
+        "If the result of the function call is 'true', the entry is NOT included in the results table.",
         "util.remove({1, 2, 3, 4, 5}, 3) -- { 1, 2, 4, 5 }\nutil.remove({1, 2, 3, 4, 5}, function(e) return e % 2 == 0 end) -- { 1, 3, 5 }",
         parameters
     ));
@@ -418,6 +475,7 @@
     vector_append(entries, _make_api_entry(
         "remove_index_inplace",
         MODULE_UTIL,
+        "remove some elements of a table (index variant)",
         "remove the element of the given table at the given index (actually just a wrapper for table.remove)",
         "util.remove_index({10, 20, 30, 40, 50}, 3) -- { 10, 20, 40, 50 }",
         parameters
@@ -434,7 +492,9 @@
     vector_append(entries, _make_api_entry(
         "fill_all_with",
         MODULE_UTIL,
-        "create an array-like table with one entry repeated N times. This is useful, for example, for specifying gate contacts for basic/cmos",
+        "create an list with a repetition of a value",
+        "Create an array-like table with one entry repeated N times. "
+        "This is useful, for example, for specifying gate contacts for basic/cmos",
         "local gatecontactpos = util.fill_all_with(4, \"center\") -- { \"center\", \"center\", \"center\", \"center\" }",
         parameters
     ));
@@ -452,7 +512,13 @@
     vector_append(entries, _make_api_entry(
         "fill_predicate_with",
         MODULE_UTIL,
-        "create an array-like table with two entries (total number of entries is N). This function (compared to fill_all_with, fill_odd_with and fill_even_with) allows for more complex patterns. To do this, a predicate (a function) is called on every index. If the predicate is true, the first entry is inserted, otherwise the second one. This function is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
+        "create an list with a repetition of a value, defined by a binary predicate function",
+        "Create an array-like table with two entries (total number of entries is N). "
+        "This function (compared to fill_all_with, fill_odd_with and fill_even_with) allows for more complex patterns. "
+        "To do this, a predicate (a function) is called on every index. "
+        "If the predicate is true, the first entry is inserted, otherwise the second one. "
+        "This function is useful, for example, for specifying gate contacts for basic/cmos. "
+        "Counting starts at 1, so the first entry will be 'other'",
         "local contactpos = util.fill_predicate_with(8, \"power\", function(i) return i % 4 == 0 end, \"outer\")",
         parameters
     ));
@@ -469,7 +535,11 @@
     vector_append(entries, _make_api_entry(
         "fill_even_with",
         MODULE_UTIL,
-        "create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
+        "create an list with an alternating repetition of two values (even variant)",
+        "Create an array-like table with two entries repeated N / 2 times, alternating. "
+        "Counting starts at 1. "
+        "This is useful, for example, for specifying gate contacts for basic/cmos. "
+        "Counting starts at 1, so the first entry will be 'other'",
         "local gatecontactpos = util.fill_even_with(4, \"center\", \"upper\") -- { \"upper\", \"center\", \"upper\", \"center\" }",
         parameters
     ));
@@ -486,7 +556,11 @@
     vector_append(entries, _make_api_entry(
         "fill_odd_with",
         MODULE_UTIL,
-        "create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'filler'",
+        "create an list with an alternating repetition of two values (odd variant)",
+        "Create an array-like table with two entries repeated N / 2 times, alternating. "
+        "Counting starts at 1. "
+        "This is useful, for example, for specifying gate contacts for basic/cmos. "
+        "Counting starts at 1, so the first entry will be 'filler'",
         "local gatecontactpos = util.fill_odd_with(4, \"center\", \"upper\") -- { \"center\", \"upper\", \"center\", \"upper\" }",
         parameters
     ));
@@ -501,7 +575,10 @@
     vector_append(entries, _make_api_entry(
         "clone_shallow",
         MODULE_UTIL,
-        "create a shallow copy of a table. This function creates a copy of the given table, where all first-level values are copied. If those values are tables, they reference the same table as the original object.",
+        "create a shallow copy of a table",
+        "Create a shallow copy of a table. "
+        "This function creates a copy of the given table, where all first-level values are copied. "
+        "If those values are tables, they reference the same table as the original object.",
         "local new = util.clone_shallow(t)",
         parameters
     ));
@@ -517,7 +594,11 @@
     vector_append(entries, _make_api_entry(
         "clone_shallow_predicate",
         MODULE_UTIL,
-        "create a shallow copy of a table. This function creates a copy of the given table, where all first-level values are copied. If those values are tables, they reference the same table as the original object. This function only copies items where the given predicate function (called with the key and the value of the item) returns true.",
+        "create a shallow copy of a table with entries selected by a predicate function",
+        "Create a shallow copy of a table. "
+        "This function creates a copy of the given table, where all first-level values are copied. "
+        "If those values are tables, they reference the same table as the original object. "
+        "This function only copies items where the given predicate function (called with the key and the value of the item) returns true.",
         "local new = util.clone_shallow_predicate(t, function(k, v) if string.match(v, \"vdd.+\") end)",
         parameters
     ));
@@ -533,7 +614,12 @@
     vector_append(entries, _make_api_entry(
         "clone_array_predicate",
         MODULE_UTIL,
-        "create a shallow copy of an array-like table. This function creates a copy of the given table, where all first-level array values are copied. If those values are tables, they reference the same table as the original object. This function only copies items where the given predicate function (called with value of the item) returns true. The array indices might change as not all elements might be copied.",
+        "create a shallow copy of an array-like table with entries selected by a predicate function",
+        "Create a shallow copy of an array-like table. "
+        "This function creates a copy of the given table, where all first-level array values are copied. "
+        "If those values are tables, they reference the same table as the original object. "
+        "This function only copies items where the given predicate function (called with value of the item) returns true. "
+        "The array indices might change as not all elements might be copied.",
         "local new = util.clone_shallow_predicate(t, function(e) if string.match(e, \"vdd.+\") end)",
         parameters
     ));
@@ -549,7 +635,12 @@
     vector_append(entries, _make_api_entry(
         "add_options",
         MODULE_UTIL,
-        "create a copy of the baseoptions table and add all key-value pairs found in additionaloptions. This function clones baseoptions so the original is not altered. This copy is flat, so only the first-level elements are copied (e.g. tables will reference the same object). This function is useful to modify a set of base options for several devices such as mosfets, which only differ in a few options",
+        "create a copy of a table and add extra key-value pairs",
+        "Create a copy of the baseoptions table and add all key-value pairs found in additionaloptions. "
+        "This function clones baseoptions so the original is not altered. "
+        "This copy is flat, so only the first-level elements are copied (e.g. "
+        "tables will reference the same object). "
+        "This function is useful to modify a set of base options for several devices such as mosfets, which only differ in a few options",
         "local baseoptions = ...\nlocal fet = pcell.create_layout(\"basic/mosfet\", \"fet\", util.add_options(baseoptions, { gatelength = 100 }))",
         parameters
     ));
@@ -565,7 +656,10 @@
     vector_append(entries, _make_api_entry(
         "ratio_split_even",
         MODULE_UTIL,
-        "create two values that sum up to the input value and have the specified ratio. The values are adjusted so that both of them are even, possibly changing the ratio slightly. The input value must be even",
+        "create two values that sum up to the input value and have the specified ratio",
+        "Create two values that sum up to the input value and have the specified ratio. "
+        "The values are adjusted so that both of them are even, possibly changing the ratio slightly. "
+        "The input value must be even",
         "local pitch = 1000\nlocal width, space = util.ratio_split_even(pitch, 2) -- results in 668 and 332, the actual ratio then is 2.012",
         parameters
     ));
@@ -582,7 +676,11 @@
     vector_append(entries, _make_api_entry(
         "ratio_split_multiple_of",
         MODULE_UTIL,
-        "create two values that sum up to the input value and have the specified ratio. The values are adjusted so that both of them are multiples of the given value ('multiple'), possibly changing the ratio slightly. The input value must be divisable by 'multiple'. This function called with multiple == 2 behaves exactly like ratio_split_even",
+        "create two values that sum up to the input value and have the specified ratio (multiple variant)",
+        "Create two values that sum up to the input value and have the specified ratio. "
+        "The values are adjusted so that both of them are multiples of the given value ('multiple'), possibly changing the ratio slightly. "
+        "The input value must be divisable by 'multiple'. "
+        "This function called with multiple == 2 behaves exactly like ratio_split_even",
         "local pitch = 1000\nlocal width, space = util.ratio_split_even(pitch, 2, 20) -- results in 680 and 320, the actual ratio then is 2.125",
         parameters
     ));
@@ -599,7 +697,10 @@
     vector_append(entries, _make_api_entry(
         "make_rectangle",
         MODULE_UTIL,
-        "create a rectangle from a center point and the width and height. This function returns two points (bottom-left and top-right)",
+        "create a rectangle from a center point and the width and height",
+        "Create a rectangle from a center point and the width and height. "
+        "This function returns two points (bottom-left and top-right). "
+        "This function does not create any shapes, use geometry.rectanglebltr and similar functions for that.",
         "local bl, tr = util.make_rectangle(point.create(0, 0), 100, 100)",
         parameters
     ));
@@ -614,7 +715,9 @@
     vector_append(entries, _make_api_entry(
         "polygon_rectangular_boundary",
         MODULE_UTIL,
-        "calculate the encompassing rectangle of the given polygon. This function two points: 'bl' (bottom-left) and 'tr' (top-right).",
+        "calculate the bounding rectangle of a polygon",
+        "Calculate the encompassing rectangle of the given polygon. "
+        "This function two points: 'bl' (bottom-left) and 'tr' (top-right).",
         "local bl, tr = util.polygon_rectangular_boundary(polygon)",
         parameters
     ));
@@ -634,7 +737,9 @@
     vector_append(entries, _make_api_entry(
         "rectangle_to_polygon",
         MODULE_UTIL,
-        "convert a two-point rectangle to a polygon describing this rectangle. Optionally, the polygon can be extended in the four directions (left/right/bottom/top). This function is useful for creating fill layer boundaries or fill target regions",
+        "convert a rectangle to a rectangular polygon",
+        "Convert a two-point rectangle to a polygon describing this rectangle. Optionally, the polygon can be extended in the four directions (left/right/bottom/top). "
+        "This function is useful for creating fill layer boundaries or fill target regions",
         "local region = util.rectangle_to_polygon(point.create(-100, -100), point.create(100, 100), -100, 0, 0, 200)",
         parameters
     ));
@@ -649,6 +754,7 @@
     vector_append(entries, _make_api_entry(
         "is_rectilinear_polygon",
         MODULE_UTIL,
+        "check whether a polygon is rectilinear",
         "Check whether a given polygon is rectilinear (has only angles of 90 degrees)",
         "util.is_rectilinear_polygon(polygon)",
         parameters
@@ -664,7 +770,11 @@
     vector_append(entries, _make_api_entry(
         "split_rectilinear_polygon",
         MODULE_UTIL,
-        "Split a rectilinear polygon into non-overlapping rectangles. This function returns a table with one entry per rectangle. The rectangles are represented by something like '{ pt1 = point.create(...), pt2 = point.create(...) }'. The function checks whether the polygon is actually rectilinear and does not do anything in case it is not.",
+        "split a rectilinear polygon into rectangles",
+        "Split a rectilinear polygon into non-overlapping rectangles. "
+        "This function returns a table with one entry per rectangle. "
+        "The rectangles are represented by something like '{ pt1 = point.create(...), pt2 = point.create(...) }'. "
+        "The function checks whether the polygon is actually rectilinear and does not do anything in case it is not.",
         "local rectangles = util.split_rectilinear_polygon(polygon)",
         parameters
     ));
@@ -686,7 +796,14 @@
     vector_append(entries, _make_api_entry(
         "fit_rectangular_polygon",
         MODULE_UTIL,
-        "convert a two-point rectangle to a polygon describing this rectangle. The polygon is extended so that its width and height are a integer multiple of the specified x- and y-grid. The polygon's width and height are always at least the width and height of the rectangle. Additionally, a minimum extension can be given in x- and y-direction, which can further increase the polygon's size. The resulting rectangle can be tuned so that it has an even or odd multiplicity in either of the directions. The keys \"even\" or \"odd\" can be used for the last two parameters 'xmultiple' and 'ymultiple'. If they are nil, the resulting rectangle is not modified from the original fitting.",
+        "convert a rectangle to a rectangular polygon (gridded variant)",
+        "Convert a two-point rectangle to a polygon describing this rectangle. "
+        "The polygon is extended so that its width and height are a integer multiple of the specified x- and y-grid. "
+        "The polygon's width and height are always at least the width and height of the rectangle. "
+        "Additionally, a minimum extension can be given in x- and y-direction, which can further increase the polygon's size. "
+        "The resulting rectangle can be tuned so that it has an even or odd multiplicity in either of the directions. "
+        "The keys \"even\" or \"odd\" can be used for the last two parameters 'xmultiple' and 'ymultiple'. "
+        "If they are nil, the resulting rectangle is not modified from the original fitting.",
         "local region = util.fit_rectangular_polygon(point.create(-127, -110), point.create(118, 109), 20, 20, 50, 50)",
         parameters
     ));
@@ -701,7 +818,14 @@
     vector_append(entries, _make_api_entry(
         "offset_polygon",
         MODULE_UTIL,
-        "Calculate a new polygon from a given one with all lines shifted by a given offset. This function has potentially many uses, but as of version 0.10.0 it is mostly used for expanding layer boundaries to include mandatory spacing to automatically generated fill structures. Hence, it is only tested for positive offsets. Additionally, for extreme cases (acute angles with large offsets) self-intersecting polygons can occur. This function should fix these, but it currently does not. This is a bug. Submission of proper algorithms to solve this are very welcome.",
+        "grow or shrink (offset) a polygon outline",
+        "Calculate a new polygon from a given one with all lines shifted by a given offset. "
+        "This function has potentially many uses, but as of version 0.10.0 it is mostly used for expanding layer boundaries to include mandatory spacing to automatically generated fill structures. "
+        "Hence, it is only tested for positive offsets. "
+        "Additionally, for extreme cases (acute angles with large offsets) self-intersecting polygons can occur. "
+        "This function should fix these, but it currently does not. "
+        "This is a bug. "
+        "Submission of proper algorithms to solve this are welcome.",
         "local new_polygon = util.offset_polygon(polygon, 100)",
         parameters
     ));
@@ -719,7 +843,9 @@
     vector_append(entries, _make_api_entry(
         "rectangle_intersection",
         MODULE_UTIL,
-        "Compute the intersection of two rectangles and return it as a table with 'bl' (bottom-left) and 'tr' (top-right) entries. If no itersection exists, this function returns nil.",
+        "compute the intersection of two rectangles",
+        "Compute the intersection of two rectangles and return it as a table with 'bl' (bottom-left) and 'tr' (top-right) entries. "
+        "If no itersection exists, this function returns nil.",
         "local region = util.rectangle_intersection(point.create(0, 0), point.create(100, 100), point.create(20, 20), point.create(200, 20))",
         parameters
     ));
@@ -736,7 +862,9 @@
     vector_append(entries, _make_api_entry(
         "any_of",
         MODULE_UTIL,
-        "return true if any of the values in the array part of the table compare true (either directly to the given value or the function call is true). If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.any_of are passed to the function, following the array element",
+        "check if any value in a table fulfills a condition",
+        "Return true if any of the values in the array part of the table compare true (either directly to the given value or the function call is true). "
+        "If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.any_of are passed to the function, following the array element",
         "util.any_of(42, { 1, 2, 3 }) -- false\nutil.any_of(function(e) return e == 42 end, { 1, 2, 3 }) -- also false",
         parameters
     ));
@@ -753,7 +881,9 @@
     vector_append(entries, _make_api_entry(
         "all_of",
         MODULE_UTIL,
-        "return true if all of the values in the array part of the table compare true (either directly to the given value or the function call is true). If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.all_of are passed to the function, following the array element",
+        "check if all value in a table fulfill a condition",
+        "Return true if all of the values in the array part of the table compare true (either directly to the given value or the function call is true). "
+        "If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.all_of are passed to the function, following the array element",
         "util.all_of(42, { 42, 42, 42 }) -- true\nutil.all_of(function(e) return e == 42 end, { 42, 2, 3 }) -- false",
         parameters
     ));
@@ -769,7 +899,11 @@
     vector_append(entries, _make_api_entry(
         "transform_points",
         MODULE_UTIL,
-        "transform all points in a list of points. This function creates a copy of the point list (the points are copied too). Every point is transformed by the transformation function. Any return values of the function are ignored, the function should transform the given point in-place.",
+        "transform all points in a list of points",
+        "Transform all points in a list of points. "
+        "This function creates a copy of the point list (the points are copied too). "
+        "Every point is transformed by the transformation function. "
+        "Any return values of the function are ignored, the function should transform the given point in-place.",
         "util.transform_points({\n    point.create(0, 0),\n    point.create(100, 100)\n    point.create(50, 200)\n}, function(pt) pt:translate(100, 100) end)",
         parameters
     ));
@@ -786,6 +920,7 @@
         "round_to_grid",
         MODULE_UTIL,
         "round a coordinate to a multiple of the given grid",
+        "Round a coordinate to a multiple of the given grid.",
         "util.round_to_grid(120, 100) -- 100\nutil.round_to_grid(160, 100) -- 200",
         parameters
     ));
@@ -801,7 +936,11 @@
     vector_append(entries, _make_api_entry(
         "fix_to_grid_higher",
         MODULE_UTIL,
-        "fix a coordinate to a multiple of the given grid. This function works like a 'ceil(ing)' function, so the resulting number is either higher or equal. This means that this function does not behave symmetrically for negative and positive input. If this is required, use util.fix_to_grid_abs_higher.",
+        "fix a coordinate to a multiple of the given grid (higher value)",
+        "Fix a coordinate to a multiple of the given grid. "
+        "This function works like a 'ceil(ing)' function, so the resulting number is either higher or equal. "
+        "This means that this function does not behave symmetrically for negative and positive input. "
+        "If this is required, use util.fix_to_grid_abs_higher.",
         "util.fix_to_grid_higher(120, 100) -- 200\nutil.fix_to_grid_higher(-120, 100) -- 100",
         parameters
     ));
@@ -817,7 +956,11 @@
     vector_append(entries, _make_api_entry(
         "fix_to_grid_lower",
         MODULE_UTIL,
-        "fix a coordinate to a multiple of the given grid. This function works like a 'floor(ing)' function, so the resulting number is either lower or equal. This means that this function does not behave symmetrically for negative and positive input. If this is required, use util.fix_to_grid_abs_lower.",
+        "fix a coordinate to a multiple of the given grid (lower value)",
+        "Fix a coordinate to a multiple of the given grid. "
+        "This function works like a 'floor(ing)' function, so the resulting number is either lower or equal. "
+        "This means that this function does not behave symmetrically for negative and positive input. "
+        "If this is required, use util.fix_to_grid_abs_lower.",
         "util.fix_to_grid_lower(120, 100) -- 100\nutil.fix_to_grid_lower(-120, 100) -- 200",
         parameters
     ));
@@ -833,7 +976,11 @@
     vector_append(entries, _make_api_entry(
         "fix_to_grid_abs_higher",
         MODULE_UTIL,
-        "fix a coordinate to a multiple of the given grid. This function works like a 'ceil(ing)' function, but it is computed on the absolute value, so the absolute of the resulting number is either higher or equal. This means that this function does behave symmetrically for negative and positive input. If this is unwanted, use util.fix_to_grid_higher.",
+        "fix a coordinate to a multiple of the given grid (higher absolute value)",
+        "Fix a coordinate to a multiple of the given grid. "
+        "This function works like a 'ceil(ing)' function, but it is computed on the absolute value, so the absolute of the resulting number is either higher or equal. "
+        "This means that this function does behave symmetrically for negative and positive input. "
+        "If this is unwanted, use util.fix_to_grid_higher.",
         "util.fix_to_grid_abs_higher(120, 100) -- 200\nutil.fix_to_grid_abs_higher(-120, 100) -- 200",
         parameters
     ));
@@ -849,7 +996,11 @@
     vector_append(entries, _make_api_entry(
         "fix_to_grid_abs_lower",
         MODULE_UTIL,
-        "fix a coordinate to a multiple of the given grid. This function works like a 'floor(ing)' function, but it is computed on the absolute value, so the absolute of the resulting number is either lower or equal. This means that this function does behave symmetrically for negative and positive input. If this is unwanted, use util.fix_to_grid_lower.",
+        "fix a coordinate to a multiple of the given grid (lower absolute value)",
+        "Fix a coordinate to a multiple of the given grid. "
+        "This function works like a 'floor(ing)' function, but it is computed on the absolute value, so the absolute of the resulting number is either lower or equal. "
+        "This means that this function does behave symmetrically for negative and positive input. "
+        "If this is unwanted, use util.fix_to_grid_lower.",
         "util.fix_to_grid_abs_lower(120, 100) -- 100\nutil.fix_to_grid_abs_lower(-120, 100) -- 100",
         parameters
     ));
@@ -866,7 +1017,10 @@
     vector_append(entries, _make_api_entry(
         "foreach",
         MODULE_UTIL,
-        "apply a function to every element of a given table. Return a new table containing the results of these calls in the order of the original elements. Additional arguments can be passed to the function.",
+        "apply a function to every element of a table (table return)",
+        "Apply a function to every element of a given table. "
+        "Return a new table containing the results of these calls in the order of the original elements. "
+        "Additional arguments can be passed to the function.",
         "util.foreach({ 1, 2, 3 }, generics.metal)",
         parameters
     ));
@@ -884,7 +1038,12 @@
     vector_append(entries, _make_api_entry(
         "reduce",
         MODULE_UTIL,
-        "apply a function to every element of a given table. Return a scalar result of these calls. An initial value must be given (e.g. '0' for numeric operations). This sets the type of the result. Additional arguments can be passed to the function.",
+        "apply a function to every element of a table (scalar return)",
+        "Apply a function to every element of a given table. "
+        "Return a scalar result of these calls. "
+        "An initial value must be given (e.g. '0' for numeric operations). "
+        "This sets the type of the result. "
+        "Additional arguments can be passed to the function.",
         "util.reduce({ 1, 2, 3 }, function(lhs, rhs) return lhs + rhs end, 0) -- 6",
         parameters
     ));
@@ -900,7 +1059,10 @@
     vector_append(entries, _make_api_entry(
         "find",
         MODULE_UTIL,
-        "find a value in an array. This function returns the index of that value and the value itself. If multiple values match, only the first one is returned.",
+        "find a value in an array",
+        "Find a value in an array. "
+        "This function returns the index of that value and the value itself. "
+        "If multiple values match, only the first one is returned.",
         "util.find({ 3, 4, 5 }, 4) -- 2, 4",
         parameters
     ));
@@ -917,7 +1079,10 @@
     vector_append(entries, _make_api_entry(
         "find_predicate",
         MODULE_UTIL,
-        "Like util.find, but call a function to do the comparison. The function is called with every one of the values, but not the index. If multiple values match, only the first one is returned.",
+        "find a value in an array (predicate variant)",
+        "Like util.find, but call a function to do the comparison. "
+        "The function is called with every one of the values, but not the index. "
+        "If multiple values match, only the first one is returned.",
         "util.find({ 3, 4, 5 }, function(value) return value == 4 end) -- 2, 4\nlocal target = 4\nutil.find({ 3, 4, 5 }, function(value, t) return value == t end, target) -- 2, 4\n",
         parameters
     ));
@@ -934,7 +1099,9 @@
     vector_append(entries, _make_api_entry(
         "fit_lines_upper",
         MODULE_UTIL,
-        "Calculate the number of lines with the given size and space that fit into the given total width/height. This function rounds up.",
+        "calculate the number of lines that fit in a dimension (upper variant)",
+        "Calculate the number of lines with the given size and space that fit into the given total width/height. "
+        "This function rounds up.",
         "util.fit_lines_upper(10000, 500, 500) -- 11",
         parameters
     ));
@@ -951,7 +1118,9 @@
     vector_append(entries, _make_api_entry(
         "fit_lines_lower",
         MODULE_UTIL,
-        "Calculate the number of lines with the given size and space that fit into the given total width/height. This function rounds down.",
+        "calculate the number of lines that fit in a dimension (lower variant)",
+        "Calculate the number of lines with the given size and space that fit into the given total width/height. "
+        "This function rounds down.",
         "util.fit_lines_lower(10000, 500, 500) -- 10",
         parameters
     ));
@@ -969,7 +1138,9 @@
     vector_append(entries, _make_api_entry(
         "fit_lines_width_grid",
         MODULE_UTIL,
-        "Calculate the spacing of a given number of lines of a certain width that should fit in a region. This function can take a grid and will decrement the space until it fits on the grid",
+        "calculate the number of lines that fit in a dimension (gridded variant)",
+        "Calculate the spacing of a given number of lines of a certain width that should fit in a region. "
+        "This function can take a grid and will decrement the space until it fits on the grid",
         "util.fit_lines_width_grid(10000, 1000, 8) -- 285\nutil.fit_lines_width_grid(10000, 1000, 8, 10) -- 280",
         parameters
     ));
@@ -987,7 +1158,11 @@
     vector_append(entries, _make_api_entry(
         "fit_lines_fullwidth_grid",
         MODULE_UTIL,
-        "Calculate the spacing of a given number of lines of a certain width that should fit in a region. This function can take a grid and will decrement the space until it fits on the grid. This function is different than util.fit_lines_width_grid in that it does not take the width of an individual line but the combined width of all lines. This is useful when spacing for lines with unequal widths should be calculated.",
+        "calculate the number of lines that fit in a dimension (fullwidth gridded variant)",
+        "Calculate the spacing of a given number of lines of a certain width that should fit in a region. "
+        "This function can take a grid and will decrement the space until it fits on the grid. "
+        "This function is different than util.fit_lines_width_grid in that it does not take the width of an individual line but the combined width of all lines. "
+        "This is useful when spacing for lines with unequal widths should be calculated.",
         "util.fit_lines_fullwidth_grid(10000, 8000, 8) -- 285\nutil.fit_lines_lower(10000, 10000, 8, 10) -- 280",
         parameters
     ));
@@ -1003,6 +1178,7 @@
         "sum",
         MODULE_UTIL,
         "calculate the sum of all items of an numeric array",
+        "Calculate the sum of all items of an numeric array.",
         "local sum = util.sum({ 1, 2, 3 }) -- 6",
         parameters
     ));
@@ -1017,7 +1193,9 @@
     vector_append(entries, _make_api_entry(
         "uniq",
         MODULE_UTIL,
-        "create an array where only unique entries of the input array t are present. Equality is checked via the comparison operator '=='",
+        "copy only unique elements of a table",
+        "Create an array where only unique entries of the input array t are present. "
+        "Equality is checked via the comparison operator '=='",
         "local u = util.uniq({ 1, 2, 3, 1, 4, 5, 2, 1, 7 }) -- { 1, 2, 3, 4, 5, 7 }",
         parameters
     ));
@@ -1035,7 +1213,11 @@
     vector_append(entries, _make_api_entry(
         "intersection",
         MODULE_UTIL,
-        "calculate the intersection point of two lines. If the intersection is found, it is returned. If the lines are parallel, nil is returned. If the lines are not parallel but don't intersect (because they are not infinite), their virtual intersection point is returned after nil (as second return value)",
+        "calculate the intersection point of two lines",
+        "Calculate the intersection point of two lines. "
+        "If the intersection is found, it is returned. "
+        "If the lines are parallel, nil is returned. "
+        "If the lines are not parallel but don't intersect (because they are not infinite), their virtual intersection point is returned after nil (as second return value)",
         "local ptreal, ptvirtual = util.intersection(spt1, spt2, tpt1, tpt2)",
         parameters
     ));
@@ -1053,7 +1235,10 @@
     vector_append(entries, _make_api_entry(
         "rectangle_union",
         MODULE_UTIL,
-        "calculate the rectangle union of two rectangles. This only return a non-nil result if the union of the two rectangles is still a true rectangle. The calculated union is return as a table with 'bl' and 'tr' entries",
+        "calculate the rectangle union of two rectangles",
+        "Calculate the rectangle union of two rectangles. "
+        "This only return a non-nil result if the union of the two rectangles is still a true rectangle. "
+        "The calculated union is return as a table with 'bl' and 'tr' entries",
         "local union = util.rectangle_union(bl1, tr1, bl2, tr2)",
         parameters
     ));
@@ -1070,7 +1255,10 @@
     vector_append(entries, _make_api_entry(
         "tconcatfmt",
         MODULE_UTIL,
-        "Create a string representation of the array elements of a table. Similar to table.concat, but this allows to specify a format for every element. util.tconcatfmt(t, sep, \"%s\") is equivalent to table.concat(t, sep).",
+        "create a string representation of the array elements of a table",
+        "Create a string representation of the array elements of a table. "
+        "Similar to table.concat, but this allows to specify a format for every element. "
+        "util.tconcatfmt(t, sep, \"%s\") is equivalent to table.concat(t, sep).",
         "local str = util.tconcatfmt(t, \", \", \"<%s>\")",
         parameters
     ));

@@ -10,7 +10,9 @@
     vector_append(entries, _make_api_entry(
         "abut_area_anchor_bottom",
         MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is abutted to the bottom of the target area anchor of the specified target cell. This only changes the y coordinate",
+        "abut the area anchor of one cell to the bottom of the area anchor of another cell",
+        "Translate the cell so that the specified area anchor is abutted to the bottom of the target area anchor of the specified target cell. "
+        "This only changes the y coordinate.",
         "cell:abut_area_anchor_bottom(\"topgatestrap\", othercell, \"botgatestrap\")",
         parameters
     ));
@@ -28,7 +30,9 @@
     vector_append(entries, _make_api_entry(
         "abut_area_anchor_left",
         MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is abutted to the left of the target area anchor of the specified target cell. This only changes the x coordinate",
+        "abut the area anchor of one cell to the left of the area anchor of another cell",
+        "Translate the cell so that the specified area anchor is abutted to the left of the target area anchor of the specified target cell. "
+        "This only changes the x coordinate.",
         "cell:abut_area_anchor_left(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
         parameters
     ));
@@ -46,7 +50,9 @@
     vector_append(entries, _make_api_entry(
         "abut_area_anchor_right",
         MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is abutted to the right of the target area anchor of the specified target cell. This only changes the x coordinate",
+        "abut the area anchor of one cell to the right of the area anchor of another cell",
+        "Translate the cell so that the specified area anchor is abutted to the right of the target area anchor of the specified target cell. "
+        "This only changes the x coordinate.",
         "cell:abut_area_anchor_right(\"rightsourcedrain\", othercell, \"leftsourcedrain\")",
         parameters
     ));
@@ -63,7 +69,9 @@
     vector_append(entries, _make_api_entry(
         "abut_area_anchor_top",
         MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is abutted to the top of the target area anchor of the specified target cell. This only changes the y coordinate",
+        "abut the area anchor of one cell to the top of the area anchor of another cell",
+        "Translate the cell so that the specified area anchor is abutted to the top of the target area anchor of the specified target cell. "
+        "This only changes the y coordinate.",
         "cell:abut_area_anchor_top(\"botgatestrap\", othercell, \"topgatestrap\")",
         parameters
     ));
@@ -78,7 +86,9 @@
     vector_append(entries, _make_api_entry(
         "abut_bottom_origin",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is abutted-bottom to the origin. This only changes the y coordinate",
+        "abut a cell to the bottom of the origin",
+        "Translate the cell so that its alignment box (outer boundary) is abutted-bottom to the origin. "
+        "This only changes the y coordinate.",
         "cell:abut_bottom_origin()",
         parameters
     ));
@@ -94,7 +104,9 @@
     vector_append(entries, _make_api_entry(
         "abut_bottom",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is abutted to the bottom of the alignment box of the specified target cell. This only changes the y coordinate",
+        "abut a cell to the bottom of another cell",
+        "Translate the cell so that its alignment box is abutted to the bottom of the alignment box of the specified target cell. "
+        "This only changes the y coordinate.",
         "cell:abut_bottom(othercell)",
         parameters
     ));
@@ -109,7 +121,9 @@
     vector_append(entries, _make_api_entry(
         "abut_left_origin",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is abutted-left to the origin. This only changes the x coordinate",
+        "abut a cell to the left of the origin",
+        "Translate the cell so that its alignment box (outer boundary) is abutted-left to the origin. "
+        "This only changes the x coordinate.",
         "cell:abut_left_origin()",
         parameters
     ));
@@ -125,7 +139,9 @@
     vector_append(entries, _make_api_entry(
         "abut_left",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is abutted to the left of the alignment box of the specified target cell. This only changes the y coordinate",
+        "abut a cell to the left of another cell",
+        "Translate the cell so that its alignment box is abutted to the left of the alignment box of the specified target cell. "
+        "This only changes the y coordinate.",
         "cell:abut_left(othercell)",
         parameters
     ));
@@ -139,7 +155,9 @@
     vector_append(entries, _make_api_entry(
         "abut_right_origin",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is abutted-right to the origin. This only changes the x coordinate",
+        "abut a cell to the right of the origin",
+        "Translate the cell so that its alignment box (outer boundary) is abutted-right to the origin. "
+        "This only changes the x coordinate.",
         "cell:abut_right_origin()",
         parameters
 ));
@@ -155,7 +173,9 @@
     vector_append(entries, _make_api_entry(
         "abut_right",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is abutted to the right of the alignment box of the specified target cell. This only changes the y coordinate",
+        "abut a cell to the right of another cell",
+        "Translate the cell so that its alignment box is abutted to the right of the alignment box of the specified target cell. "
+        "This only changes the y coordinate.",
         "cell:abut_right(othercell)",
         parameters
     ));
@@ -170,7 +190,9 @@
     vector_append(entries, _make_api_entry(
         "abut_top_origin",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is abutted-top to the origin. This only changes the x coordinate",
+        "abut a cell to the top of the origin",
+        "Translate the cell so that its alignment box (outer boundary) is abutted-top to the origin. "
+        "This only changes the x coordinate.",
         "cell:abut_top_origin()",
         parameters
     ));
@@ -186,7 +208,9 @@
     vector_append(entries, _make_api_entry(
         "abut_top",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is abutted to the top of the alignment box of the specified target cell. This only changes the y coordinate",
+        "abut a cell to the top of another cell",
+        "Translate the cell so that its alignment box is abutted to the top of the alignment box of the specified target cell. "
+        "This only changes the y coordinate.",
         "cell:abut_top(othercell)",
         parameters
     ));
@@ -201,7 +225,10 @@
     vector_append(entries, _make_api_entry(
         "place_bottom_origin",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is placed-bottom to the origin. This only changes the y coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "abut a cell to the bottom of the origin (bounding-box variant)",
+        "Translate the cell so that its alignment box (outer boundary) is placed-bottom to the origin. "
+        "This only changes the y coordinate. "
+        "This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
         "cell:place_bottom_origin()",
         parameters
     ));
@@ -217,7 +244,10 @@
     vector_append(entries, _make_api_entry(
         "place_bottom",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is placed to the bottom of the alignment box of the specified target cell. This only changes the y coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "abut a cell to the bottom of another cell (bounding-box variant)",
+        "Translate the cell so that its alignment box is placed to the bottom of the alignment box of the specified target cell. "
+        "This only changes the y coordinate. "
+        "This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
         "cell:place_bottom(othercell)",
         parameters
     ));
@@ -232,7 +262,10 @@
     vector_append(entries, _make_api_entry(
         "place_left_origin",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is placed-left to the origin. This only changes the x coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "abut a cell to the left of the origin (bounding-box variant)",
+        "Translate the cell so that its alignment box (outer boundary) is placed-left to the origin. "
+        "This only changes the x coordinate. "
+        "This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
         "cell:place_left_origin()",
         parameters
     ));
@@ -248,7 +281,10 @@
     vector_append(entries, _make_api_entry(
         "place_left",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is placed to the left of the alignment box of the specified target cell. This only changes the y coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "abut a cell to the left of another cell (bounding-box variant)",
+        "Translate the cell so that its alignment box is placed to the left of the alignment box of the specified target cell. "
+        "This only changes the y coordinate. "
+        "This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
         "cell:place_left(othercell)",
         parameters
     ));
@@ -262,7 +298,10 @@
     vector_append(entries, _make_api_entry(
         "place_right_origin",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is placed-right to the origin. This only changes the x coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "abut a cell to the right of the origin (bounding-box variant)",
+        "Translate the cell so that its alignment box (outer boundary) is placed-right to the origin. "
+        "This only changes the x coordinate. "
+        "This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
         "cell:place_right_origin()",
         parameters
     ));
@@ -278,7 +317,10 @@
     vector_append(entries, _make_api_entry(
         "place_right",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is placed to the right of the alignment box of the specified target cell. This only changes the y coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "abut a cell to the right of another cell (bounding-box variant)",
+        "Translate the cell so that its alignment box is placed to the right of the alignment box of the specified target cell. "
+        "This only changes the y coordinate. "
+        "This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
         "cell:place_right(othercell)",
         parameters
     ));
@@ -293,7 +335,10 @@
     vector_append(entries, _make_api_entry(
         "place_top_origin",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is placed-top to the origin. This only changes the x coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "abut a cell to the top of the origin (bounding-box variant)",
+        "Translate the cell so that its alignment box (outer boundary) is placed-top to the origin. "
+        "This only changes the x coordinate. "
+        "This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
         "cell:place_top_origin()",
         parameters
     ));
@@ -309,7 +354,10 @@
     vector_append(entries, _make_api_entry(
         "place_top",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is placed to the top of the alignment box of the specified target cell. This only changes the y coordinate. This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
+        "abut a cell to the top of another cell (bounding-box variant)",
+        "Translate the cell so that its alignment box is placed to the top of the alignment box of the specified target cell. "
+        "This only changes the y coordinate. "
+        "This is similar to the corresponding abut function, but uses the bounding boxes of the cells.",
         "cell:place_top(othercell)",
         parameters
     ));
@@ -325,7 +373,8 @@
     vector_append(entries, _make_api_entry(
         "add_anchor",
         MODULE_OBJECT,
-        "add an anchor to an object",
+        "add an anchor to a cell",
+        "Add an anchor to a cell.",
         "cell:add_anchor(\"output\", point.create(200, -20))",
         parameters
     ));
@@ -343,7 +392,8 @@
     vector_append(entries, _make_api_entry(
         "add_area_anchor_bltr",
         MODULE_OBJECT,
-        "Add an area anchor to a cell, defined by the lower-left and upper-right corner points of the rectangular area",
+        "add an area anchor to a cell (bottom-left/top-right)",
+        "Add an area anchor to a cell, defined by the lower-left and upper-right corner points of the rectangular area.",
         "cell:add_area_anchor_bltr(\"source\", point.create(-100, -20), point.create(100, 20))",
         parameters
     ));
@@ -361,7 +411,8 @@
     vector_append(entries, _make_api_entry(
         "add_area_anchor_points",
         MODULE_OBJECT,
-        "Add an area anchor to a cell, defined by the two corner points of the rectangular area (order does not matter)",
+        "add an area anchor to a cell (arbitrary corner points)",
+        "Add an area anchor to a cell, defined by the two corner points of the rectangular area (order does not matter).",
         "cell:add_area_anchor_points(\"source\", point.create(100, 20), point.create(-100, -20))",
         parameters
     ));
@@ -380,7 +431,8 @@
     vector_append(entries, _make_api_entry(
         "add_area_anchor_blwh",
         MODULE_OBJECT,
-        "Add an area anchor to a cell, defined by the the lower-left corner point and the width and height of the rectangular area",
+        "add an area anchor to a cell (point/dimensions)",
+        "Add an area anchor to a cell, defined by the the lower-left corner point and the width and height of the rectangular area.",
         "cell:add_area_anchor_blwh(\"source\", point.create(-100, -20), 200, 40)",
         parameters
     ));
@@ -397,6 +449,7 @@
     vector_append(entries, _make_api_entry(
         "add_anchor_line_x",
         MODULE_OBJECT,
+        "add an anchor line to a cell (x-direction)",
         "Add an anchor line to a cell (given its x-coordinate)",
         "cell:add_anchor_line_x(\"xbase\", 40)",
         parameters
@@ -414,8 +467,146 @@
     vector_append(entries, _make_api_entry(
         "add_anchor_line_y",
         MODULE_OBJECT,
+        "add an anchor line to a cell (y-direction)",
         "Add an anchor line to a cell (given its y-coordinate)",
         "cell:add_anchor_line_y(\"ybase\", 40)",
+        parameters
+    ));
+}
+
+/* object.add_child */
+{
+    struct parameter parameters[] = {
+        { "cell",      OBJECT, NULL, "Object to which the child is added" },
+        { "child",     OBJECT, NULL, "Child to add" },
+        { "instname",  STRING, NULL,   "Instance name (not used by all exports)" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_child",
+        MODULE_OBJECT,
+        "add a child (an instance) to a cell",
+        "Add a child object (instance) to the given cell. This make 'cell' the parent of the child (it manages its memory). This means that you should not use the original child object any more after this call (unless it is object.add_child or object.add_child_array)",
+        "local ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child(ref, \"mosinst0\")",
+        parameters
+    ));
+}
+
+/* object.add_child_array */
+{
+    struct parameter parameters[] = {
+        { "cell",      OBJECT,      NULL,   "Object to which the child is added" },
+        { "child",     OBJECT,      NULL,   "Child to add" },
+        { "instname",  STRING,      NULL,   "Instance name (not used by all exports)" },
+        { "xrep",      INTEGER,     NULL,   "Number of repetitions in x direction" },
+        { "yrep",      INTEGER,     NULL,   "Number of repetitions in y direction" },
+        { "xpitch",    INTEGER,     NULL,   "Optional itch in x direction, used for repetition in x. If not given, this parameter is derived from the alignment box" },
+        { "ypitch",    INTEGER,     NULL,   "Optional itch in y direction, used for repetition in y. If not given, this parameter is derived from the alignment box" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_child_array",
+        MODULE_OBJECT,
+        "add a child array (multiple instances) to a cell",
+        "Add a child as an arrayed object to the given cell. The child array has xrep * yrep elements, with a pitch of xpitch and ypitch, respectively. The array grows to the upper-left, with the first placed untranslated. The pitch does not have to be explicitly given: If the child has an alignment box, the xpitch and ypitch are deferred from this box, if they are not given in the call. In this case, it is an error if no alignment box is present in child. As with object.add_child: don't use the original child object after this call unless it is object.add_child or object.add_child_array",
+        "-- with explicit xpitch and ypitch:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1, 200, 0)\n-- with alignment box:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1)",
+        parameters
+    ));
+}
+
+/* object.add_layer_boundary */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "object to which the layer boundary should be added" },
+        { "layer",      GENERICS,   NULL, "layer for the layer boundary" },
+        { "boundary",   POINTLIST,  NULL, "the boundary (a polygon)" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_layer_boundary",
+        MODULE_OBJECT,
+        "add a layer boundary to a cell",
+        "Add a layer boundary to an object. A layer boundary is useful for automatic filling",
+        "cell:add_layer_boundary(generics.metal(1), { point.create(0, 0), point.create(1000, 0), point.create(500, 500) })",
+        parameters
+    ));
+}
+
+/* object.add_layer_boundary_rectangular */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,     NULL, "object to which the layer boundary should be added" },
+        { "layer",  GENERICS,   NULL, "layer for the layer boundary" },
+        { "bl",     POINT,      NULL, "lower-left corner point of the rectangular boundary" },
+        { "tr",     POINT,      NULL, "upper-right corner point of the rectangular boundary" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_layer_boundary_rectangular",
+        MODULE_OBJECT,
+        "add a layer boundary to a cell (rectangular variant)",
+        "Add a rectangular layer boundary to an object. A layer boundary is useful for automatic filling",
+        "cell:add_layer_boundary_rectangular(generics.metal(1), point.create(-100, -100), point.create(100, 100))",
+        parameters
+    ));
+}
+
+/* object.add_label */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "object to which a label should be added" },
+        { "name",       STRING,     NULL, "name of the label" },
+        { "layer",      GENERICS,   NULL, "layer of the label" },
+        { "where",      POINT,      NULL, "location of the label" },
+        { "sizehint",   INTEGER,    NULL, "sizehint for the label" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_label",
+        MODULE_OBJECT,
+        "add a label (not a port) to a cell",
+        "add a label to a cell. Works like add_anchor, but additionally a layer is expected. This is different from add_port in that it expresses intent for labels that are not connectivity-related (as opposed to ports). A size hint can be given, which might be processed by the export.",
+        "cell:add_label(\"0.8\", generics.other(\"M1voltagelabelhigh\"), point.create(100, 0))",
+        parameters
+    ));
+}
+
+/* object.add_port */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "object to which a port should be added" },
+        { "name",       STRING,     NULL, "name of the port" },
+        { "layer",      GENERICS,   NULL, "layer of the port" },
+        { "where",      POINT,      NULL, "location of the port" },
+        { "sizehint",   INTEGER,    NULL, "sizehint for the port" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_port",
+        MODULE_OBJECT,
+        "add a port to a cell",
+        "add a port to a cell. Works like add_anchor, but additionally a layer is expected. A size hint can be given, which might be processed by the export.",
+        "cell:add_port(\"vdd\", generics.metalport(2), point.create(100, 0))",
+        parameters
+    ));
+}
+
+/* object.add_port_with_anchor */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "object to which a port should be added" },
+        { "name",       STRING,     NULL, "name of the port" },
+        { "layer",      GENERICS,   NULL, "layer of the port" },
+        { "where",      POINT,      NULL, "location of the port" },
+        { "sizehint",   INTEGER,    NULL, "sizehint for the port" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "add_port_with_anchor",
+        MODULE_OBJECT,
+        "add a port and the corresponding point as an anchor to a cell",
+        "add a port to a cell. Works like add_anchor, but additionally a layer is expected. This function also adds an anchor to the cell (named like the port). A size hint can be given, which might be processed by the export.",
+        "cell:add_port_with_anchor(\"vdd\", generics.metalport(2), point.create(100, 0))",
         parameters
     ));
 }
@@ -436,121 +627,9 @@
     vector_append(entries, _make_api_entry(
         "add_bus_port",
         MODULE_OBJECT,
+        "add a bus port (multiple ports)",
         "add a bus port (multiple ports like vout[0:4]) to a cell. The port expression is portname[startindex:endindex] and portname[i] is placed at 'where' with an offset of ((i - 1) * xpitch, (i - 1) * ypitch)",
         "cell:add_bus_port(\"vout\", generics.metalport(4), point.create(200, 0), 0, 4, 200, 0)",
-        parameters
-    ));
-}
-
-/* object.add_child_array */
-{
-    struct parameter parameters[] = {
-        { "cell",      OBJECT,      NULL,   "Object to which the child is added" },
-        { "child",     OBJECT,      NULL,   "Child to add" },
-        { "instname",  STRING,      NULL,   "Instance name (not used by all exports)" },
-        { "xrep",      INTEGER,     NULL,   "Number of repetitions in x direction" },
-        { "yrep",      INTEGER,     NULL,   "Number of repetitions in y direction" },
-        { "xpitch",    INTEGER,     NULL,   "Optional itch in x direction, used for repetition in x. If not given, this parameter is derived from the alignment box" },
-        { "ypitch",    INTEGER,     NULL,   "Optional itch in y direction, used for repetition in y. If not given, this parameter is derived from the alignment box" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "add_child_array",
-        MODULE_OBJECT,
-        "Add a child as an arrayed object to the given cell. The child array has xrep * yrep elements, with a pitch of xpitch and ypitch, respectively. The array grows to the upper-left, with the first placed untranslated. The pitch does not have to be explicitly given: If the child has an alignment box, the xpitch and ypitch are deferred from this box, if they are not given in the call. In this case, it is an error if no alignment box is present in child. As with object.add_child: don't use the original child object after this call unless it is object.add_child or object.add_child_array",
-        "-- with explicit xpitch and ypitch:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1, 200, 0)\n-- with alignment box:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1)",
-        parameters
-    ));
-}
-
-/* object.add_layer_boundary */
-{
-    struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL, "object to which the layer boundary should be added" },
-        { "layer",      GENERICS,   NULL, "layer for the layer boundary" },
-        { "boundary",   POINTLIST,  NULL, "the boundary (a polygon)" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "add_layer_boundary",
-        MODULE_OBJECT,
-        "Add a layer boundary to an object. A layer boundary is useful for automatic filling",
-        "cell:add_layer_boundary(generics.metal(1), { point.create(0, 0), point.create(1000, 0), point.create(500, 500) })",
-        parameters
-    ));
-}
-
-/* object.add_layer_boundary_rectangular */
-{
-    struct parameter parameters[] = {
-        { "cell",   OBJECT,     NULL, "object to which the layer boundary should be added" },
-        { "layer",  GENERICS,   NULL, "layer for the layer boundary" },
-        { "bl",     POINT,      NULL, "lower-left corner point of the rectangular boundary" },
-        { "tr",     POINT,      NULL, "upper-right corner point of the rectangular boundary" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "add_layer_boundary_rectangular",
-        MODULE_OBJECT,
-        "Add a rectangular layer boundary to an object. A layer boundary is useful for automatic filling",
-        "cell:add_layer_boundary_rectangular(generics.metal(1), point.create(-100, -100), point.create(100, 100))",
-        parameters
-    ));
-}
-
-/* object.add_label */
-{
-    struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL, "object to which a label should be added" },
-        { "name",       STRING,     NULL, "name of the label" },
-        { "layer",      GENERICS,   NULL, "layer of the label" },
-        { "where",      POINT,      NULL, "location of the label" },
-        { "sizehint",   INTEGER,    NULL, "sizehint for the label" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "add_label",
-        MODULE_OBJECT,
-        "add a label to a cell. Works like add_anchor, but additionally a layer is expected. This is different from add_port in that it expresses intent for labels that are not connectivity-related (as opposed to ports). A size hint can be given, which might be processed by the export.",
-        "cell:add_label(\"0.8\", generics.other(\"M1voltagelabelhigh\"), point.create(100, 0))",
-        parameters
-    ));
-}
-
-/* object.add_port */
-{
-    struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL, "object to which a port should be added" },
-        { "name",       STRING,     NULL, "name of the port" },
-        { "layer",      GENERICS,   NULL, "layer of the port" },
-        { "where",      POINT,      NULL, "location of the port" },
-        { "sizehint",   INTEGER,    NULL, "sizehint for the port" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "add_port",
-        MODULE_OBJECT,
-        "add a port to a cell. Works like add_anchor, but additionally a layer is expected. A size hint can be given, which might be processed by the export.",
-        "cell:add_port(\"vdd\", generics.metalport(2), point.create(100, 0))",
-        parameters
-    ));
-}
-
-/* object.add_port_with_anchor */
-{
-    struct parameter parameters[] = {
-        { "cell",       OBJECT,     NULL, "object to which a port should be added" },
-        { "name",       STRING,     NULL, "name of the port" },
-        { "layer",      GENERICS,   NULL, "layer of the port" },
-        { "where",      POINT,      NULL, "location of the port" },
-        { "sizehint",   INTEGER,    NULL, "sizehint for the port" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "add_port_with_anchor",
-        MODULE_OBJECT,
-        "add a port to a cell. Works like add_anchor, but additionally a layer is expected. This function also adds an anchor to the cell (named like the port). A size hint can be given, which might be processed by the export.",
-        "cell:add_port_with_anchor(\"vdd\", generics.metalport(2), point.create(100, 0))",
         parameters
     ));
 }
@@ -567,7 +646,9 @@
     vector_append(entries, _make_api_entry(
         "align_area_anchor_bottom",
         MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is aligned to the bottom of the target area anchor of the specified target cell. This only changes the y coordinate",
+        "align the area anchor of one cell to the bottom of the area anchor of another cell",
+        "Translate the cell so that the specified area anchor is aligned to the bottom of the target area anchor of the specified target cell. "
+        "This only changes the y coordinate.",
         "cell:align_area_anchor_bottom(\"topgatestrap\", othercell, \"botgatestrap\")",
         parameters
     ));
@@ -585,7 +666,9 @@
     vector_append(entries, _make_api_entry(
         "align_area_anchor_left",
         MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is aligned to the left of the target area anchor of the specified target cell. This only changes the x coordinate",
+        "align the area anchor of one cell to the left of the area anchor of another cell",
+        "Translate the cell so that the specified area anchor is aligned to the left of the target area anchor of the specified target cell. "
+        "This only changes the x coordinate.",
         "cell:align_area_anchor_left(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
         parameters
     ));
@@ -603,7 +686,9 @@
     vector_append(entries, _make_api_entry(
         "align_area_anchor_right",
         MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is aligned to the right of the target area anchor of the specified target cell. This only changes the x coordinate",
+        "align the area anchor of one cell to the right of the area anchor of another cell",
+        "Translate the cell so that the specified area anchor is aligned to the right of the target area anchor of the specified target cell. "
+        "This only changes the x coordinate.",
         "cell:align_area_anchor_right(\"rightsourcedrain\", othercell, \"leftsourcedrain\")",
         parameters
     ));
@@ -621,7 +706,9 @@
     vector_append(entries, _make_api_entry(
         "align_area_anchor_top",
         MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is aligned to the top of the target area anchor of the specified target cell. This only changes the y-coordinate",
+        "align the area anchor of one cell to the top of the area anchor of another cell",
+        "Translate the cell so that the specified area anchor is aligned to the top of the target area anchor of the specified target cell. "
+        "This only changes the y-coordinate.",
         "cell:align_area_anchor_top(\"botgatestrap\", othercell, \"topgatestrap\")",
         parameters
     ));
@@ -639,7 +726,10 @@
     vector_append(entries, _make_api_entry(
         "align_area_anchor",
         MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. This changes both the x- and the y-coordinate",
+        "align the area anchor of one cell to the area anchor of another cell",
+        "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. "
+        "The area anchors must have the same size, otherwise an error is raised. "
+        "This changes both the x- and the y-coordinate.",
         "cell:align_area_anchor(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
         parameters
     ));
@@ -657,7 +747,9 @@
     vector_append(entries, _make_api_entry(
         "align_area_anchor_x",
         MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. This changes only the x-coordinate",
+        "align the area anchor of one cell to the area anchor of another cell (x-only variant)",
+        "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. "
+        "This changes only the x-coordinate.",
         "cell:align_area_anchor_x(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
         parameters
     ));
@@ -675,7 +767,9 @@
     vector_append(entries, _make_api_entry(
         "align_area_anchor_y",
         MODULE_OBJECT,
-        "translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. This changes only the y-coordinate",
+        "align the area anchor of one cell to the area anchor of another cell (y-only variant)",
+        "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. "
+        "This changes only the y-coordinate.",
         "cell:align_area_anchor_y(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
         parameters
     ));
@@ -691,7 +785,9 @@
     vector_append(entries, _make_api_entry(
         "align_bottom",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is aligned to the bottom of the alignment box of the specified target cell. This only changes the y coordinate",
+        "align a cell to the bottom of another cell",
+        "Translate the cell so that its alignment box is aligned to the bottom of the alignment box of the specified target cell. "
+        "This only changes the y coordinate.",
         "cell:align_bottom(othercell)",
         parameters
     ));
@@ -706,23 +802,10 @@
     vector_append(entries, _make_api_entry(
         "align_bottom_origin",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is aligned-bottom to the origin. This only changes the y coordinate",
+        "bottom-align a cell to the origin",
+        "Translate the cell so that its alignment box (outer boundary) is aligned-bottom to the origin. "
+        "This only changes the y coordinate.",
         "cell:align_bottom_origin(othercell)",
-        parameters
-    ));
-}
-
-/* object.align_left_origin */
-{
-    struct parameter parameters[] = {
-        { "cell", OBJECT, NULL, "cell to be aligned" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "align_left_origin",
-        MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is aligned-left to the origin. This only changes the x coordinate",
-        "cell:align_left_origin(othercell)",
         parameters
     ));
 }
@@ -737,71 +820,27 @@
     vector_append(entries, _make_api_entry(
         "align_left",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is aligned to the left of the alignment box of the specified target cell. This only changes the x coordinate",
+        "align a cell to the left of another cell",
+        "Translate the cell so that its alignment box is aligned to the left of the alignment box of the specified target cell. "
+        "This only changes the x coordinate.",
         "cell:align_left(othercell)",
         parameters
     ));
 }
 
-/* object.alignment_box_include_point */
-{
-    struct parameter parameters[] = {
-        { "cell",   OBJECT, NULL, "cell to extend the alignment box of" },
-        { "pt",     POINT,  NULL, "point to be included in the alignment box of the cell" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "alignment_box_include_point",
-        MODULE_OBJECT,
-        "extend the alignment box of a cell in a way that the given point is included in it. The alignment box is never shrunken, only enlarged.",
-        "cell:alignment_box_include_point(point.create(200, 200))",
-        parameters
-    ));
-}
-
-/* object.alignment_box_include_x */
-{
-    struct parameter parameters[] = {
-        { "cell",   OBJECT, NULL, "cell to extend the alignment box of" },
-        { "pt",     POINT,  NULL, "point to be included in the alignment box of the cell" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "alignment_box_include_x",
-        MODULE_OBJECT,
-        "like alignment_box_include_point, but only change the x-coordinates of the alignment box. The y-coordinate is ignored, the second argument is a point only for convenience.",
-        "cell:alignment_box_include_x(point.create(200, 200))",
-        parameters
-    ));
-}
-
-/* object.alignment_box_include_y */
-{
-    struct parameter parameters[] = {
-        { "cell",   OBJECT, NULL, "cell to extend the alignment box of" },
-        { "pt",     POINT,  NULL, "point to be included in the alignment box of the cell" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "alignment_box_include_y",
-        MODULE_OBJECT,
-        "like alignment_box_include_point, but only change the y-coordinates of the alignment box. The x-coordinate is ignored, the second argument is a point only for convenience.",
-        "cell:alignment_box_include_y(point.create(200, 200))",
-        parameters
-    ));
-}
-
-/* object.align_right_origin */
+/* object.align_left_origin */
 {
     struct parameter parameters[] = {
         { "cell", OBJECT, NULL, "cell to be aligned" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
-        "align_right_origin",
+        "align_left_origin",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is aligned-right to the origin. This only changes the x coordinate",
-        "cell:align_right_origin(othercell)",
+        "left-align a cell to the origin",
+        "Translate the cell so that its alignment box (outer boundary) is aligned-left to the origin. "
+        "This only changes the x coordinate.",
+        "cell:align_left_origin(othercell)",
         parameters
     ));
 }
@@ -816,23 +855,27 @@
     vector_append(entries, _make_api_entry(
         "align_right",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is aligned to the right of the alignment box of the specified target cell. This only changes the x coordinate",
+        "align a cell to the right of another cell",
+        "Translate the cell so that its alignment box is aligned to the right of the alignment box of the specified target cell. "
+        "This only changes the x coordinate.",
         "cell:align_right(othercell)",
         parameters
     ));
 }
 
-/* object.align_top_origin */
+/* object.align_right_origin */
 {
     struct parameter parameters[] = {
         { "cell", OBJECT, NULL, "cell to be aligned" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
-        "align_top_origin",
+        "align_right_origin",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box (outer boundary) is aligned-top to the origin. This only changes the y coordinate",
-        "cell:align_top_origin(othercell)",
+        "right-align a cell to the origin",
+        "Translate the cell so that its alignment box (outer boundary) is aligned-right to the origin. "
+        "This only changes the x coordinate.",
+        "cell:align_right_origin(othercell)",
         parameters
     ));
 }
@@ -847,8 +890,27 @@
     vector_append(entries, _make_api_entry(
         "align_top",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is aligned to the top of the alignment box of the specified target cell. This only changes the y coordinate",
+        "align a cell to the top of another cell",
+        "Translate the cell so that its alignment box is aligned to the top of the alignment box of the specified target cell. "
+        "This only changes the y coordinate.",
         "cell:align_top(othercell)",
+        parameters
+    ));
+}
+
+/* object.align_top_origin */
+{
+    struct parameter parameters[] = {
+        { "cell", OBJECT, NULL, "cell to be aligned" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "align_top_origin",
+        MODULE_OBJECT,
+        "top-align a cell to the origin",
+        "Translate the cell so that its alignment box (outer boundary) is aligned-top to the origin. "
+        "This only changes the y coordinate.",
+        "cell:align_top_origin(othercell)",
         parameters
     ));
 }
@@ -863,7 +925,9 @@
     vector_append(entries, _make_api_entry(
         "align_center_x",
         MODULE_OBJECT,
-        "translate the cell so that its alignment box is centered (in x) to the alignment box of the specified target cell. This only changes the x coordinate",
+        "center a cell with respect to another cell (x-only)",
+        "Translate the cell so that its alignment box is centered (in x) to the alignment box of the specified target cell. "
+        "This only changes the x coordinate.",
         "cell:align_center_x(othercell)",
         parameters
     ));
@@ -879,7 +943,9 @@
     vector_append(entries, _make_api_entry(
         "align_center_y",
         MODULE_OBJECT,
-        "translate the cell so that its alignment boy is centered (in y) to the alignment boy of the specified target cell. This only changes the y coordinate",
+        "center a cell with respect to another cell (y-only)",
+        "Translate the cell so that its alignment boy is centered (in y) to the alignment boy of the specified target cell. "
+        "This only changes the y coordinate.",
         "cell:align_center_y(othercell)",
         parameters
     ));
@@ -894,8 +960,64 @@
     vector_append(entries, _make_api_entry(
         "clear_alignment_box",
         MODULE_OBJECT,
-        "clear (remove) the alignment box of a cell. Useful to set a new alignment box with object.set_alignment_box(...)",
+        "center a cell with respect to another cell (y-only)",
+        "Clear (remove) the alignment box of a cell. "
+        "Useful to set a new alignment box with object.set_alignment_box(...).",
         "cell:clear_alignment_box()",
+        parameters
+    ));
+}
+
+/* object.alignment_box_include_point */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT, NULL, "cell to extend the alignment box of" },
+        { "pt",     POINT,  NULL, "point to be included in the alignment box of the cell" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "alignment_box_include_point",
+        MODULE_OBJECT,
+        "add a point to a cells alignment box",
+        "Extend the alignment box of a cell in a way that the given point is included in it. "
+        "The alignment box is never shrunken, only enlarged.",
+        "cell:alignment_box_include_point(point.create(200, 200))",
+        parameters
+    ));
+}
+
+/* object.alignment_box_include_x */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT, NULL, "cell to extend the alignment box of" },
+        { "pt",     POINT,  NULL, "point to be included in the alignment box of the cell" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "alignment_box_include_x",
+        MODULE_OBJECT,
+        "add a point to a cells alignment box (x-only variant)",
+        "Like alignment_box_include_point, but only change the x-coordinates of the alignment box. "
+        "The y-coordinate is ignored, the second argument is a point only for convenience.",
+        "cell:alignment_box_include_x(point.create(200, 200))",
+        parameters
+    ));
+}
+
+/* object.alignment_box_include_y */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT, NULL, "cell to extend the alignment box of" },
+        { "pt",     POINT,  NULL, "point to be included in the alignment box of the cell" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "alignment_box_include_y",
+        MODULE_OBJECT,
+        "add a point to a cells alignment box (y-only variant)",
+        "Like alignment_box_include_point, but only change the y-coordinates of the alignment box. "
+        "The x-coordinate is ignored, the second argument is a point only for convenience.",
+        "cell:alignment_box_include_y(point.create(200, 200))",
         parameters
     ));
 }
@@ -910,6 +1032,7 @@
         "copy",
         MODULE_OBJECT,
         "copy an object",
+        "Copy an object.",
         "local new = cell:copy()",
         parameters
     ));
@@ -925,7 +1048,11 @@
     vector_append(entries, _make_api_entry(
         "create_object_handle",
         MODULE_OBJECT,
-        "create an object handle of a reference cell and store it in a parent cell. This is used internally when a cell is added for the first time as child. This function is exposed to the user in order to explicitly create these handles. They are useful when multiple cells in a hierarchy add the same object as a child, which would not be possible otherwise (this would require either a complete copy of the object with a new name or the cell hierarchy would contain the same object twice)",
+        "create a light reference to an object for object:add_child()",
+        "Create an object handle of a reference cell and store it in a parent cell. "
+        "This is used internally when a cell is added for the first time as child. "
+        "This function is exposed to the user in order to explicitly create these handles. "
+        "They are useful when multiple cells in a hierarchy add the same object as a child, which would not be possible otherwise (this would require either a complete copy of the object with a new name or the cell hierarchy would contain the same object twice)",
         "local handle = object.create_object_handle(parent, reference)\nsubcell1:add_child(handle, \"child\")\nsubcell2:add_child(handle, \"child\")\nparent:add_child(subcell1, \"sub1\")\nparent:add_child(subcell2, \"sub2\")",
         parameters
     ));
@@ -940,7 +1067,12 @@
     vector_append(entries, _make_api_entry(
         "create",
         MODULE_OBJECT,
-        "create a new object. A name must be given. Hierarchical exports use this name to identify layout cells and no checks for duplication are done. Therefore the user must make sure that every name is unique. Note that this will probably change in the future",
+        "create an object",
+        "Create a new object. "
+        "A name must be given. "
+        "Hierarchical exports use this name to identify layout cells and no checks for duplication are done. "
+        "Therefore the user must make sure that every name is unique. "
+        "Note that this will probably change in the future.",
         "local cell = object.create(\"toplevel\")",
         parameters
     ));
@@ -954,7 +1086,11 @@
     vector_append(entries, _make_api_entry(
         "create_pseudo",
         MODULE_OBJECT,
-        "create a new object without a name. This kind of object behaves exactly like a regular object, but it can't be added as a child to a parent object. It is intended to be used as a flat container for shapes that are merged into another cell. This function is there to express this intent, but other than this there are no advantages of using this function over object.create() (except that one does not have to come up with a name)",
+        "create a pseudo-object",
+        "Create a new object without a name. "
+        "This kind of object behaves exactly like a regular object, but it can't be added as a child to a parent object. "
+        "It is intended to be used as a flat container for shapes that are merged into another cell. "
+        "This function is there to express this intent, but other than this there are no advantages of using this function over object.create() (except that one does not have to come up with a name)",
         "local container = object.create_pseudo()",
         parameters
     ));
@@ -964,13 +1100,16 @@
 {
     struct parameter parameters[] = {
         { "cell",       OBJECT, NULL, "Object which should take over the other object" },
-        { "othercell",  OBJECT, NULL, "Object which should be taken over. The object handle must not be used after this operation" },
+        { "othercell",  OBJECT, NULL, "Object which should be taken over. The object must not be used after this operation" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "exchange",
         MODULE_OBJECT,
-        "Take over internal state of the other object, effectively making this the main cell. The object handle to 'othercell' must not be used afterwards as this object is destroyed. This function is only really useful in cells that act as a parameter wrapper for other cells (e.g. dffpq -> dff)",
+        "replace an object with the contens of another",
+        "Take over internal state of the other object, effectively making this the main cell. "
+        "The object handle to 'othercell' must not be used afterwards as this object is destroyed. "
+        "This function is only really useful in cells that act as a parameter wrapper for other cells (e.g. dffpq -> dff).",
         "cell:exchange(othercell)",
         parameters
     ));
@@ -993,7 +1132,9 @@
     vector_append(entries, _make_api_entry(
         "extend_alignment_box",
         MODULE_OBJECT,
-        "extend an existing object alignment box. Takes eight values for the extension of the four corner points making up the alignment box",
+        "extend an object alignment box",
+        "Extend an existing object alignment box. "
+        "Takes eight values for the extension of the four corner points making up the alignment box.",
         "cell:extend_alignment_box(-100, -100, 100, 100, 0, 0, 0, 0)",
         parameters
     ));
@@ -1009,8 +1150,28 @@
     vector_append(entries, _make_api_entry(
         "extend_alignment_box_x_symmetrical",
         MODULE_OBJECT,
-        "extend an existing object alignment box. Takes only one value for the extension of the four corner points and extends all x-coordinates of the box symmetrically in the left/right direction",
+        "extend an object alignment box (symmetrical x-only variant)",
+        "Extend an existing object alignment box. "
+        "Takes only one value for the extension of the four corner points and extends all x-coordinates of the box symmetrically in the left/right direction.",
         "cell:extend_alignment_box_x_symmetrical(200)",
+        parameters
+    ));
+}
+
+/* object.extend_alignment_box_y_symmetrical */
+{
+    struct parameter parameters[] = {
+        { "cell",   OBJECT,     NULL,   "cell to add the alignment box to" },
+        { "exty",   INTEGER,    NULL,   "y-extension" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "extend_alignment_box_y_symmetrical",
+        MODULE_OBJECT,
+        "extend an object alignment box (symmetrical y-only variant)",
+        "Extend an existing object alignment box. "
+        "Takes only one value for the extension of the four corner points and extends all y-coordinates of the box symmetrically in the left/right direction.",
+        "cell:extend_alignment_box_y_symmetrical(200)",
         parameters
     ));
 }
@@ -1026,24 +1187,11 @@
     vector_append(entries, _make_api_entry(
         "extend_alignment_box_xy_symmetrical",
         MODULE_OBJECT,
-        "extend an existing object alignment box. Takes two values for the extension of the four corner points and extends all x- and y-coordinates of the box symmetrically in the left/right direction. This function is the same as calling the individual alignment box extension functions for x- and y-directions individually",
+        "extend an object alignment box (symmetrical variant)",
+        "Extend an existing object alignment box. "
+        "Takes two values for the extension of the four corner points and extends all x- and y-coordinates of the box symmetrically in the left/right direction. "
+        "This function is the same as calling the individual alignment box extension functions for x- and y-directions individually.",
         "cell:extend_alignment_box_xy_symmetrical(200, 300)",
-        parameters
-    ));
-}
-
-/* object.extend_alignment_box_y_symmetrical */
-{
-    struct parameter parameters[] = {
-        { "cell",   OBJECT,     NULL,   "cell to add the alignment box to" },
-        { "exty",   INTEGER,    NULL,   "y-extension" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "extend_alignment_box_y_symmetrical",
-        MODULE_OBJECT,
-        "extend an existing object alignment box. Takes only one value for the extension of the four corner points and extends all y-coordinates of the box symmetrically in the left/right direction",
-        "cell:extend_alignment_box_y_symmetrical(200)",
         parameters
     ));
 }
@@ -1058,7 +1206,12 @@
     vector_append(entries, _make_api_entry(
         "flatten_inline",
         MODULE_OBJECT,
-        "resolve the cell by placing all shapes from all children in the parent cell. This operates in-place and modifies the object. Copy the cell or use object:flatten() if this is unwanted. The second argument specifies if ports from lower levels are copied into the flattened object. The default for this is false.",
+        "flatten a cell (no-copy variant)",
+        "Resolve the cell by placing all shapes from all children in the parent cell. "
+        "This operates in-place and modifies the object. "
+        "Copy the cell or use object:flatten() if this is unwanted. "
+        "The second argument specifies if ports from lower levels are copied into the flattened object. "
+        "The default for this is false.",
         "cell:flatten_inline()\ncell:copy():flatten_inline()\ncell:flatten_inline(true) -- flatten ports",
         parameters
     ));
@@ -1074,7 +1227,11 @@
     vector_append(entries, _make_api_entry(
         "flatten",
         MODULE_OBJECT,
-        "resolve the cell by placing all shapes from all children in the parent cell. This does not operate in-place, the object is copied. The second argument specifies if ports from lower levels are copied into the flattened object. The default for this is false.",
+        "flatten a cell (copy variant)",
+        "Resolve the cell by placing all shapes from all children in the parent cell. "
+        "This does not operate in-place, the object is copied. "
+        "The second argument specifies if ports from lower levels are copied into the flattened object. "
+        "The default for this is false.",
         "cell:flatten()\ncell:flatten(true) -- flatten ports",
         parameters
     ));
@@ -1089,7 +1246,13 @@
     vector_append(entries, _make_api_entry(
         "flipx",
         MODULE_OBJECT,
-        "flip the entire object in x direction. This is similar to mirror_at_yaxis (note the x vs. y), but is done in-place. The object is translated so that it is still in its original location. Works best on objects with an alignment box, since this is used to calculate the required translation. On other objects, this operation can be time-consuming as an accurate bounding box has to be computed. It is recommended not to use this function on objects without an alignment box because the result is not always ideal",
+        "flip an object in x-direction",
+        "Flip the entire object in x-direction. "
+        "This is similar to mirror_at_yaxis (note the x vs. y), but is done in-place. "
+        "The object is translated so that it is still in its original location. "
+        "Works best on objects with an alignment box, since this is used to calculate the required translation. "
+        "On other objects, this operation can be time-consuming as an accurate bounding box has to be computed. "
+        "It is recommended not to use this function on objects without an alignment box because the result is not always ideal.",
         "cell:flipx()",
         parameters
     ));
@@ -1104,7 +1267,13 @@
     vector_append(entries, _make_api_entry(
         "flipy",
         MODULE_OBJECT,
-        "flip the entire object in y direction. This is similar to mirror_at_xaxis (note the y vs. x), but is done in-place. The object is translated so that it is still in its original location. Works best on objects with an alignment box, since this is used to calculate the required translation. On other objects, this operation can be time-consuming as an accurate bounding box has to be computed. It is recommended not to use this function on objects without an alignment box because the result is not always ideal",
+        "flip an object in y-direction",
+        "Flip the entire object in y-direction. "
+        "This is similar to mirror_at_xaxis (note the y vs. x), but is done in-place. "
+        "The object is translated so that it is still in its original location. "
+        "Works best on objects with an alignment box, since this is used to calculate the required translation. "
+        "On other objects, this operation can be time-consuming as an accurate bounding box has to be computed. "
+        "It is recommended not to use this function on objects without an alignment box because the result is not always ideal.",
         "cell:flipy()",
         parameters
     ));
@@ -1120,7 +1289,12 @@
     vector_append(entries, _make_api_entry(
         "get_alignment_anchor",
         MODULE_OBJECT,
-        "Retrieve an alignment anchor from a cell. These anchors are the defining points of the alignment box. Valid anchor names are 'outerbl', 'outerbr', 'outertl', 'outertr', 'innerbl', 'innerbr', 'innertl' and 'innertr'. This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. A non-existing anchor is an error",
+        "get an alignment anchor",
+        "Retrieve an alignment anchor from a cell. "
+        "These anchors are the defining points of the alignment box. "
+        "Valid anchor names are 'outerbl', 'outerbr', 'outertl', 'outertr', 'innerbl', 'innerbr', 'innertl' and 'innertr'. "
+        "This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. "
+        "A non-existing anchor is an error.",
         "cell:get_alignment_anchor(\"outerbl\")",
         parameters
     ));
@@ -1136,7 +1310,10 @@
     vector_append(entries, _make_api_entry(
         "get_all_regular_anchors",
         MODULE_OBJECT,
-        "Create a table containing all regular (non-alignment) anchors of a cell. The table can be iterated with standard lua methods (pairs). Area anchors are reported with four anchors (bl, br, tl and tr)",
+        "get all anchors and area anchors of a cell",
+        "Create a table containing all regular (non-alignment) anchors of a cell. "
+        "The table can be iterated with standard lua methods (pairs). "
+        "Area anchors are reported with four points (bl, br, tl and tr).",
         "cell:get_all_regular_anchors()",
         parameters
     ));
@@ -1152,7 +1329,11 @@
     vector_append(entries, _make_api_entry(
         "get_anchor_line_x",
         MODULE_OBJECT,
-        "Retrieve an anchor line from a cell. This function returns a coordinate that contains the x-position of the specified anchor line, corrected by the cell transformation. Retrieving non-existing anchor lines raises an error. There is (and can't) be any checks that an x-coordinate is not used as a y-coordinate and vice versa.",
+        "get an anchor line from a cell (x variant)",
+        "Retrieve an anchor line from a cell. "
+        "This function returns a coordinate that contains the x-position of the specified anchor line, corrected by the cell transformation. "
+        "Retrieving non-existing anchor lines raises an error. "
+        "There is (and can't) be any checks that an x-coordinate is not used as a y-coordinate and vice versa.",
         "cell:get_anchor_line_x(\"activeleft\")",
         parameters
     ));
@@ -1168,7 +1349,11 @@
     vector_append(entries, _make_api_entry(
         "get_anchor_line_y",
         MODULE_OBJECT,
-        "Retrieve an anchor line from a cell. This function returns a coordinate that contains the y-position of the specified anchor line, corrected by the cell transformation. Retrieving non-existing anchor lines raises an error. There is (and can't) be any checks that an x-coordinate is not used as a y-coordinate and vice versa.",
+        "get an anchor line from a cell (y variant)",
+        "Retrieve an anchor line from a cell. "
+        "This function returns a coordinate that contains the y-position of the specified anchor line, corrected by the cell transformation. "
+        "Retrieving non-existing anchor lines raises an error. "
+        "There is (and can't) be any checks that an x-coordinate is not used as a y-coordinate and vice versa.",
         "cell:get_anchor_line_y(\"activetop\")",
         parameters
     ));
@@ -1184,7 +1369,10 @@
     vector_append(entries, _make_api_entry(
         "get_anchor",
         MODULE_OBJECT,
-        "Retrieve an anchor from a cell. This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. Retrieving non-existing anchor raises an error.",
+        "get a regular anchor from a cell",
+        "Retrieve an anchor from a cell. "
+        "This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. "
+        "Retrieving non-existing anchor raises an error.",
         "cell:get_anchor(\"sourcedrain1bl\")",
         parameters
     ));
@@ -1200,7 +1388,11 @@
     vector_append(entries, _make_api_entry(
         "get_area_anchor",
         MODULE_OBJECT,
-        "Retrieve an area anchor from a cell. This function returns a table with four points (bl (bottom-left), tr (top-right), br (bottom-right) and tl (top-left)) that contain the position of the specified area anchor, corrected by the cell transformation. Furthermore, the individual coordinates are also available as skalar values with the keys 'b', 't', 'l' and 'r'. Retrieving a non-existing anchor raises an error.",
+        "get an area anchor from a cell",
+        "Retrieve an area anchor from a cell. "
+        "This function returns a table with four points (bl (bottom-left), tr (top-right), br (bottom-right) and tl (top-left)) that contain the position of the specified area anchor, corrected by the cell transformation. "
+        "Furthermore, the individual coordinates are also available as skalar values with the keys 'b', 't', 'l' and 'r'. "
+        "Retrieving a non-existing anchor raises an error.",
         "cell:get_area_anchor(\"sourcedrain1\").bl\npoint.create(cell1:get_area_anchor(\"sourcedrain1\").l, cell2:get_area_anchor(\"topgatestrap\").t)",
         parameters
     ));
@@ -1209,14 +1401,16 @@
 /* object.get_area_anchor_fmt */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT, NULL, "object to get an anchor from" },
-        { "anchorname", STRING, NULL, "name of the anchor" },
+        { "cell",       OBJECT,     NULL, "object to get an anchor from" },
+        { "anchorname", STRING,     NULL, "name of the anchor" },
+        { "...",        VARARGS,    NULL, "additional parameters for string.format()" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "get_area_anchor_fmt",
         MODULE_OBJECT,
-        "Like object.get_array_anchor, but call string.format on the input arguments",
+        "get an area anchor from a cell (format string variant)",
+        "Like object.get_area_anchor, but call string.format on the input arguments.",
         "cell:get_area_anchor_fmt(\"sourcedrain%d\", 1)",
         parameters
     ));
@@ -1232,7 +1426,9 @@
     vector_append(entries, _make_api_entry(
         "get_area_anchor_height",
         MODULE_OBJECT,
-        "Retrieve the height (an integer) of an area anchor from a cell. A non-existing anchor is an error",
+        "get the height of an area anchor",
+        "Retrieve the height (an integer) of an area anchor from a cell. "
+        "A non-existing anchor is an error.",
         "local height = cell:get_area_anchor_height(\"sourcedrain1\")",
         parameters
     ));
@@ -1248,7 +1444,9 @@
     vector_append(entries, _make_api_entry(
         "get_area_anchor_width",
         MODULE_OBJECT,
-        "Retrieve the width (an integer) of an area anchor from a cell. A non-existing anchor is an error",
+        "get the width of an area anchor",
+        "Retrieve the width (an integer) of an area anchor from a cell. "
+        "A non-existing anchor is an error.",
         "local width = cell:get_area_anchor_width(\"sourcedrain1\")",
         parameters
     ));
@@ -1266,7 +1464,10 @@
     vector_append(entries, _make_api_entry(
         "get_array_anchor",
         MODULE_OBJECT,
-        "Like object.get_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error",
+        "get a regular anchor from a child array",
+        "Like object.get_anchor, but works on child arrays. "
+        "The first two argument are the x- and the y-index (starting at 1, 1). "
+        "Accessing an array anchor of a non-array object is an error.",
         "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(ref, \"refarray\", 20, 2, 100, 1000)\nlocal anchor = array:get_array_anchor(4, 1, \"sourcedrain1bl\")",
         parameters
     ));
@@ -1284,7 +1485,10 @@
     vector_append(entries, _make_api_entry(
         "get_array_area_anchor",
         MODULE_OBJECT,
-        "Like object.get_area_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error",
+        "get an area anchor from a child array",
+        "Like object.get_area_anchor, but works on child arrays. "
+        "The first two argument are the x- and the y-index (starting at 1, 1). "
+        "Accessing an array anchor of a non-array object is an error.",
         "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(ref, \"refarray\", 20, 2, 100, 1000)\nlocal anchor = array:get_array_area_anchor(4, 1, \"sourcedrain1bl\")",
         parameters
     ));
@@ -1299,7 +1503,13 @@
     vector_append(entries, _make_api_entry(
         "get_boundary",
         MODULE_OBJECT,
-        "Retrieve the boundary of an object. If no explicit boundary exists, it is calculated from the extrem coordinates of all shapes (bounding box). The boundary is returned as a table containing the points. A boundary is not necessarily rectangular, but automatically-calculated boundaries are. In any case, the boundary is returned as a polygon, even if it is rectangular. This can be converted into a rectangular representation by util.polygon_rectangular_boundary(boundary).",
+        "get the boundary of a cell",
+        "Retrieve the boundary of an object. "
+        "If no explicit boundary exists, it is calculated from the extrem coordinates of all shapes (bounding box). "
+        "The boundary is returned as a table containing the points. "
+        "A boundary is not necessarily rectangular, but automatically-calculated boundaries are. "
+        "In any case, the boundary is returned as a polygon, even if it is rectangular. "
+        "This can be converted into a rectangular representation by util.polygon_rectangular_boundary(boundary).",
         "local boundary = cell:get_boundary()\n-- get min/max points:\nlocal bl, tr = util.polygon_rectangular_boundary(boundary)",
         parameters
     ));
@@ -1314,7 +1524,9 @@
     vector_append(entries, _make_api_entry(
         "get_bounding_box",
         MODULE_OBJECT,
-        "Retrieve the rectangular bounding box of an object. This is different from object.get_boundary as it is always the true computed bounding box (the possibly present object boundary is not used) and the result is returned as a table describing a rectangle (with 'bl' and 'tr' entries).",
+        "get the bounding box of a cell",
+        "Retrieve the rectangular bounding box of an object. "
+        "This is different from object.get_boundary as it is always the true computed bounding box (the possibly present object boundary is not used) and the result is returned as a table describing a rectangle (with 'bl' and 'tr' entries).",
         "local boundary = cell:get_bounding_box()",
         parameters
     ));
@@ -1330,7 +1542,12 @@
     vector_append(entries, _make_api_entry(
         "get_layer_boundary",
         MODULE_OBJECT,
-        "Retrieve the layer boundary of an object. If the cell has no layer boundaries at all, an empty table is returned. Otherwise, if the layer boundary for the specified layer does not exist, the bounding box of the cell is returned. If the layer boundary exists, it is returned. For this case, object.set_empty_layer_boundary() is useful.",
+        "get a layer boundary of a cell",
+        "Retrieve a layer boundary of an object. "
+        "If the cell has no layer boundaries at all, an empty table is returned. "
+        "Otherwise, if the layer boundary for the specified layer does not exist, the bounding box of the cell is returned. "
+        "If the layer boundary exists, it is returned. "
+        "For this case, object.set_empty_layer_boundary() is useful.",
         "local layerboundary = cell:get_layer_boundary(generics.metal(1))",
         parameters
     ));
@@ -1346,7 +1563,13 @@
     vector_append(entries, _make_api_entry(
         "get_layer_occupation",
         MODULE_OBJECT,
-        "Retrieve the extreme points of the overall layer occupation (including the sub-cells) of the given cell. This function returns a table with a bottom-left ('bl') and a top-right ('tr') point. This function does not depend on any existing layer boundaries, it always computes to real occupation. This might or might not be desirable, if precise control over the layer occupation is required it is recommended to use layer boundaries. This function is potentially slow, as it traverses the entire cell hierarchy and compares every shape layer to the given layer. If no layer is given, this function returns the bounding box.",
+        "get the layer occupation (bounding box) of a cell for a specific layer",
+        "Retrieve the extreme points of the overall layer occupation (including the sub-cells) of the given cell. "
+        "This function returns a table with a bottom-left ('bl') and a top-right ('tr') point. "
+        "This function does not depend on any existing layer boundaries, it always computes to real occupation. "
+        "This might or might not be desirable, if precise control over the layer occupation is required it is recommended to use layer boundaries. "
+        "This function is potentially slow, as it traverses the entire cell hierarchy and compares every shape layer to the given layer. "
+        "If no layer is given, this function returns the bounding box.",
         "local occupation = cell:get_layer_occupation(generics.metal(1))\nlayouthelpers.place_guardring(cell, occupation.bl, occupation.tr (...))",
         parameters
     ));
@@ -1362,7 +1585,10 @@
     vector_append(entries, _make_api_entry(
         "get_shape_outlines",
         MODULE_OBJECT,
-        "return a table which contains polygon outlines of all shapes on a given layer or layers. Useful for instance for automatic filling. The given layer can be a singular generics layer or a table with several layers.",
+        "get the polygon outlines of all shapes of a cell (possibly filtered by a given layer)",
+        "Return a table which contains polygon outlines of all shapes on a given layer or layers. "
+        ",Useful for instance for automatic filling. "
+        ",The given layer can be a singular generics layer or a table with several layers.",
         "local outlines = cell:get_shape_outlines()\nlocal m1outlines = cell:get_shape_outlines(generics.metal(1))\nlocal all_metal_outlines = cell:get_shape_outlines(util.foreach(util.range(1, technology.resolve_metal(-1)), generics.metal))",
         parameters
     ));
@@ -1381,7 +1607,9 @@
     vector_append(entries, _make_api_entry(
         "add_net_shape",
         MODULE_OBJECT,
-        "mark a rectangular area in a cell with a certain net. This can be used for automatic via placement from power grids, for instance.",
+        "add a net shape to a cell",
+        "Mark a rectangular area in a cell with a certain net. "
+        "This can be used for automatic via placement from power grids, for instance.",
         "cell:add_net_shape(\"vdd\", cell:get_area_anchor(\"sourcestrap\").bl, cell:get_area_anchor(\"sourcestrap\").tr, generics.metal(2))",
         parameters
     ));
@@ -1399,7 +1627,10 @@
     vector_append(entries, _make_api_entry(
         "mark_area_anchor_as_net",
         MODULE_OBJECT,
-        "mark an area anchor in a cell with a certain net. This can be used for automatic via placement from power grids, for instance. This function is similar to add_net_shape, but simpler (and less flexible) to use.",
+        "add a net shape to a cell based on an area anchor",
+        "Mark an area anchor in a cell with a certain net. "
+        "This can be used for automatic via placement from power grids, for instance. "
+        "This function is similar to add_net_shape, but simpler (and less flexible) to use.",
         "cell:mark_area_anchor_as_net(\"sourcestrap\", \"vdd\", generics.metal(2))",
         parameters
     ));
@@ -1416,7 +1647,11 @@
     vector_append(entries, _make_api_entry(
         "get_net_shapes",
         MODULE_OBJECT,
-        "return a table which contains rectangular netshape entries of all shapes on a given net. Useful for instance for automatic placement of via from a power grid. The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }. If the 'layer' parameter is non-nil, only shapes on the given layer are returned.",
+        "get all net shapes for a given net (possibly filtered by their layer)",
+        "Return a table which contains rectangular netshape entries of all shapes on a given net. "
+        "Useful for instance for automatic placement of via from a power grid. "
+        "The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }. "
+        "If the 'layer' parameter is non-nil, only shapes on the given layer are returned.",
         "cell:get_net_shapes(\"vdd\")\ncell:get_net_shapes(\"vss\", generics.metal(4))",
         parameters
     ));
@@ -1435,7 +1670,12 @@
     vector_append(entries, _make_api_entry(
         "get_array_net_shapes",
         MODULE_OBJECT,
-        "return a table which contains rectangular netshape entries of all shapes on a given net. Useful for instance for automatic placement of via from a power grid. The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }. If the 'layer' parameter is non-nil, only shapes on the given layer are returned. This function retrieves the netshape of a specific instance of a child array.",
+        "get all net shapes for a given net (possibly filtered by their layer) from a child array",
+        "Teturn a table which contains rectangular netshape entries of all shapes on a given net. "
+        "Useful for instance for automatic placement of via from a power grid. "
+        "The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }. "
+        "If the 'layer' parameter is non-nil, only shapes on the given layer are returned. "
+        "This function retrieves the netshape of a specific instance of a child array.",
         "cell:get_net_shapes(\"vdd\")\ncell:get_net_shapes(\"vss\", generics.metal(4))",
         parameters
     ));
@@ -1452,7 +1692,10 @@
     vector_append(entries, _make_api_entry(
         "inherit_net_shapes",
         MODULE_OBJECT,
-        "Inherit all net shapes from a given cell. This has the same effect as iterating over all net shapes from the 'other' cell and calling 'cell:add_net_shape' on every net shape. An optional layer filter can be given, only the net shapes on that layer will then be inherited.",
+        "inherit (copy) all net shapes from one cell to another",
+        "Inherit all net shapes from a given cell. "
+        "This has the same effect as iterating over all net shapes from the 'other' cell and calling 'cell:add_net_shape' on every net shape. "
+        "An optional layer filter can be given, only the net shapes on that layer will then be inherited.",
         "cell:inherit_net_shapes(othercell, generics.metal(3))",
         parameters
     ));
@@ -1467,7 +1710,9 @@
     vector_append(entries, _make_api_entry(
         "get_ports",
         MODULE_OBJECT,
-        "return a table which contains key-value pairs with all ports of a cell. The key is the portname, the value the corresponding point.",
+        "get all ports",
+        "Return a table which contains key-value pairs with all ports of a cell. "
+        "The key is the portname, the value the corresponding point.",
         "local ports = cell:get_ports()",
         parameters
     ));
@@ -1482,7 +1727,8 @@
     vector_append(entries, _make_api_entry(
         "has_boundary",
         MODULE_OBJECT,
-        "check if the object has a boundary",
+        "check if the object has a user-defined boundary",
+        "Check if the object has a user-defined boundary.",
         "cell:has_boundary()",
         parameters
     ));
@@ -1491,7 +1737,7 @@
 /* object.has_layer_boundary */
 {
     struct parameter parameters[] = {
-        { "cell",       OBJECT, NULL, "cell to add the alignment box to" },
+        { "cell",       OBJECT,     NULL, "cell to add the alignment box to" },
         { "layer",      GENERICS,   NULL, "layer for the layer boundary" },
         { NULL }
     };
@@ -1499,6 +1745,7 @@
         "has_layer_boundary",
         MODULE_OBJECT,
         "check if the object has a layer boundary for the specified layer",
+        "Check if the object has a layer boundary for the specified layer.",
         "cell:has_layer_boundary(generics.metal(1))",
         parameters
     ));
@@ -1514,7 +1761,10 @@
     vector_append(entries, _make_api_entry(
         "inherit_alignment_box",
         MODULE_OBJECT,
-        "inherit the alignment box from another cell. This EXPANDS the current alignment box, if any is present. This means that this function can be called multiple times with different objects to establish an overall alignment box",
+        "inherit the alignment box from another cell",
+        "Inherit the alignment box from another cell. "
+        "This EXPANDS the current alignment box, if any is present. "
+        "This means that this function can be called multiple times with different objects to establish an overall alignment box",
         "cell:inherit_alignment_box(someothercell)\ncell:inherit_alignment_box(anothercell)",
         parameters
     ));
@@ -1532,6 +1782,7 @@
         "inherit_all_anchors_with_prefix",
         MODULE_OBJECT,
         "inherit all anchors from another cell with an attached prefix.",
+        "Inherit all anchors from another cell with an attached prefix.",
         "cell:inherit_all_anchors_with_prefix(someothercell, \"othercell_\")",
         parameters
     ));
@@ -1549,7 +1800,8 @@
     vector_append(entries, _make_api_entry(
         "inherit_anchor_as",
         MODULE_OBJECT,
-        "inherit an anchor from another cell under a different name.",
+        "inherit an anchor from another cell under a different name",
+        "Inherit an anchor from another cell under a different name.",
         "cell:inherit_anchor(someothercell, \"anchor\", \"newname\")",
         parameters
     ));
@@ -1566,7 +1818,8 @@
     vector_append(entries, _make_api_entry(
         "inherit_anchor",
         MODULE_OBJECT,
-        "inherit an anchor from another cell.",
+        "inherit an anchor from another cell",
+        "Inherit an anchor from another cell.",
         "cell:inherit_anchor(someothercell, \"anchor\")",
         parameters
     ));
@@ -1584,7 +1837,8 @@
     vector_append(entries, _make_api_entry(
         "inherit_area_anchor_as",
         MODULE_OBJECT,
-        "inherit an area anchor from another cell under a different name.",
+        "inherit an area anchor from another cell under a different name",
+        "Inherit an area anchor from another cell under a different name.",
         "cell:inherit_area_anchor(someothercell, \"anchor\", \"newname\")",
         parameters
     ));
@@ -1601,7 +1855,8 @@
     vector_append(entries, _make_api_entry(
         "inherit_area_anchor",
         MODULE_OBJECT,
-        "inherit an area anchor from another cell.",
+        "inherit an area anchor from another cell",
+        "Inherit an area anchor from another cell.",
         "cell:inherit_area_anchor(someothercell, \"anchor\")",
         parameters
     ));
@@ -1618,7 +1873,8 @@
     vector_append(entries, _make_api_entry(
         "inherit_all_anchors",
         MODULE_OBJECT,
-        "inherit all anchors (regular and area) from another cell.",
+        "inherit all anchors (regular and area) from another cell",
+        "Inherit all anchors (regular and area) from another cell.",
         "cell:inherit_all_anchors(someothercell)",
         parameters
     ));
@@ -1634,7 +1890,8 @@
     vector_append(entries, _make_api_entry(
         "inherit_boundary",
         MODULE_OBJECT,
-        "inherit the boundary from another cell.",
+        "inherit the boundary from another cell",
+        "Inherit the boundary from another cell.",
         "cell:inherit_boundary(someothercell)",
         parameters
     ));
@@ -1651,7 +1908,8 @@
     vector_append(entries, _make_api_entry(
         "inherit_layer_boundary",
         MODULE_OBJECT,
-        "inherit all layer boundaries from another cell for the given layer.",
+        "inherit all layer boundaries from another cell for the given layer",
+        "Inherit all layer boundaries from another cell for the given layer.",
         "cell:inherit_layer_boundary(someothercell, generics.metal(1))",
         parameters
     ));
@@ -1667,6 +1925,7 @@
     vector_append(entries, _make_api_entry(
         "merge_into",
         MODULE_OBJECT,
+        "merge the contents of a cell into this one (excluding ports)",
         "add all shapes and children from othercell to the cell -> 'dissolve' othercell in cell",
         "cell:merge_into(othercell)\ncell:merge_into(othercell:flatten())",
         parameters
@@ -1683,6 +1942,7 @@
     vector_append(entries, _make_api_entry(
         "merge_into_with_ports",
         MODULE_OBJECT,
+        "merge the contents of a cell into this one (including ports)",
         "add all shapes, children and ports from othercell to the cell -> 'dissolve' othercell in cell",
         "cell:merge_into_with_ports(othercell)",
         parameters
@@ -1699,6 +1959,7 @@
         "mirror_at_origin",
         MODULE_OBJECT,
         "mirror the entire object at the origin",
+        "Mirror the entire object at the origin.",
         "cell:mirror_at_origin()",
         parameters
     ));
@@ -1714,6 +1975,7 @@
         "mirror_at_xaxis",
         MODULE_OBJECT,
         "mirror the entire object at the x axis",
+        "Mirror the entire object at the x axis.",
         "cell:mirror_at_xaxis()",
         parameters
     ));
@@ -1729,6 +1991,7 @@
         "mirror_at_yaxis",
         MODULE_OBJECT,
         "mirror the entire object at the y axis",
+        "Mirror the entire object at the y axis.",
         "cell:mirror_at_yaxis()",
         parameters
     ));
@@ -1745,7 +2008,10 @@
     vector_append(entries, _make_api_entry(
         "move_point",
         MODULE_OBJECT,
-        "translate (move) the object so that the source point lies on the target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.",
+        "move an object to a point by a reference point",
+        "Translate (move) the object so that the source point lies on the target. "
+        "Usually the source point is an anchor of the object, but that is not a necessity. "
+        "The points are just references for the delta vector and can be any points.",
         "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
         parameters
     ));
@@ -1762,7 +2028,10 @@
     vector_append(entries, _make_api_entry(
         "move_point_x",
         MODULE_OBJECT,
-        "translate (move) the object so that the x-coorindate of the source point lies on the x-coordinate target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.",
+        "move an object to a point by a reference point (x-only variant)",
+        "Translate (move) the object so that the x-coorindate of the source point lies on the x-coordinate target. "
+        "Usually the source point is an anchor of the object, but that is not a necessity. "
+        "The points are just references for the delta vector and can be any points.",
         "cell:move_point_x(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move the x-coordinate of the origin\nmosfet:move_point_x(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align the x-coordinate of two mosfets",
         parameters
     ));
@@ -1779,7 +2048,10 @@
     vector_append(entries, _make_api_entry(
         "move_point_y",
         MODULE_OBJECT,
-        "translate (move) the object so that the y-coorindate of the source point lies on the y-coordinate target. Usually the source point is an anchor of the object)",
+        "move an object to a point by a reference point (y-only variant)",
+        "Translate (move) the object so that the y-coorindate of the source point lies on the y-coordinate target. "
+        "Usually the source point is an anchor of the object, but that is not a necessity. "
+        "The points are just references for the delta vector and can be any points.",
         "cell:move_point_y(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move the y-coordinate of the origin\nmosfet:move_point_y(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align the y-coordinate of two mosfets",
         parameters
     ));
@@ -1795,7 +2067,8 @@
     vector_append(entries, _make_api_entry(
         "center",
         MODULE_OBJECT,
-        "translate (move) the object so that the cell center lies on the target (default: (0, 0)). "
+        "center an object",
+        "Translate (move) the object so that the cell center lies on the target (default: (0, 0)). "
         "The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
         "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
         parameters
@@ -1812,7 +2085,8 @@
     vector_append(entries, _make_api_entry(
         "center_x",
         MODULE_OBJECT,
-        "translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in x-direction. "
+        "center an object (x-only variant)",
+        "Translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in x-direction. "
         "The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
         "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
         parameters
@@ -1829,26 +2103,10 @@
     vector_append(entries, _make_api_entry(
         "center_y",
         MODULE_OBJECT,
-        "translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in y-direction. "
+        "center an object (y-only variant)",
+        "Translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in y-direction. "
         "The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
         "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
-        parameters
-    ));
-}
-
-/* object.add_child */
-{
-    struct parameter parameters[] = {
-        { "cell",      OBJECT, NULL, "Object to which the child is added" },
-        { "child",     OBJECT, NULL, "Child to add" },
-        { "instname",  STRING, NULL,   "Instance name (not used by all exports)" },
-        { NULL }
-    };
-    vector_append(entries, _make_api_entry(
-        "add_child",
-        MODULE_OBJECT,
-        "Add a child object (instance) to the given cell. This make 'cell' the parent of the child (it manages its memory). This means that you should not use the original child object any more after this call (unless it is object.add_child or object.add_child_array)",
-        "local ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child(ref, \"mosinst0\")",
         parameters
     ));
 }
@@ -1864,7 +2122,9 @@
     vector_append(entries, _make_api_entry(
         "move_to",
         MODULE_OBJECT,
-        "move the cell to the specified coordinates (absolute movement). If x is a point, x and y are taken from this point",
+        "move a cell",
+        "Move the cell to the specified coordinates (absolute movement). "
+        "If x is a point, x and y are taken from this point.",
         "cell:move_to(100, 200)",
         parameters
     ));
@@ -1881,7 +2141,9 @@
     vector_append(entries, _make_api_entry(
         "set_origin",
         MODULE_OBJECT,
-        "Sets the origin of the cell to the given position. This is an absolute movement.",
+        "set to origin of a cell",
+        "Sets the origin of the cell to the given position. "
+        "This is an absolute movement.",
         "cell:set_origin(100, 200)",
         parameters
     ));
@@ -1898,7 +2160,8 @@
     vector_append(entries, _make_api_entry(
         "move_x",
         MODULE_OBJECT,
-        "move the cell so that the given x-coordinates are equal (move the difference between these coordinates)",
+        "move an object to a x-coordinate by a reference x-coordinate",
+        "Move the cell so that the given x-coordinates are equal (move the difference between these coordinates).",
         "cell:move_x(cell:get_area_anchor(\"someanchor\").l, 0)",
         parameters
     ));
@@ -1915,7 +2178,8 @@
     vector_append(entries, _make_api_entry(
         "move_y",
         MODULE_OBJECT,
-        "move the cell so that the given y-coordinates are equal (move the difference between these coordinates)",
+        "move an object to a y-coordinate by a reference y-coordinate",
+        "Move the cell so that the given y-coordinates are equal (move the difference between these coordinates).",
         "cell:move_y(cell:get_area_anchor(\"someanchor\").l, 0)",
         parameters
     ));
@@ -1930,7 +2194,10 @@
     vector_append(entries, _make_api_entry(
         "rasterize_curves",
         MODULE_OBJECT,
-        "rasterize all curves in the object. This is usually not needed, as this happens during the cell export, if required. This function is useful if this should be done regardless of the export capabilities, but then there also is the geometry function geomtry.curve_rasterized",
+        "rasterize all curves in the object",
+        "Rasterize all curves in the object. "
+        "This is usually not needed, as this happens during the cell export, if required. "
+        "This function is useful if this should be done regardless of the export capabilities, but then there also is the geometry function geomtry.curve_rasterized",
         "cell:rasterize_curves()",
         parameters
     ));
@@ -1946,6 +2213,7 @@
         "reset_translation",
         MODULE_OBJECT,
         "reset all previous translations (transformations are kept)",
+        "Reset all previous translations (transformations are kept).",
         "cell:reset_translation()",
         parameters
     ));
@@ -1960,6 +2228,7 @@
     vector_append(entries, _make_api_entry(
         "rotate_90_left",
         MODULE_OBJECT,
+        "rotate a cell 90 degrees counter-clockwise",
         "rotate the entire object 90 degrees counter-clockwise with respect to the origin",
         "cell:rotate_90_left()",
         parameters
@@ -1975,6 +2244,7 @@
     vector_append(entries, _make_api_entry(
         "rotate_90_right",
         MODULE_OBJECT,
+        "rotate a cell 90 degrees clockwise",
         "rotate the entire object 90 degrees clockwise with respect to the origin",
         "cell:rotate_90_right()",
         parameters
@@ -1990,6 +2260,7 @@
     vector_append(entries, _make_api_entry(
         "array_rotate_90_left",
         MODULE_OBJECT,
+        "rotate a child array 90 degrees counter-clockwise",
         "rotate the entire object array 90 degrees counter-clockwise with respect to the origin",
         "cell:array_rotate_90_left()",
         parameters
@@ -2005,6 +2276,7 @@
     vector_append(entries, _make_api_entry(
         "array_rotate_90_right",
         MODULE_OBJECT,
+        "rotate a child array 90 degrees clockwise",
         "rotate the entire object array 90 degrees clockwise with respect to the origin",
         "cell:array_rotate_90_right()",
         parameters
@@ -2024,7 +2296,14 @@
     vector_append(entries, _make_api_entry(
         "set_alignment_box",
         MODULE_OBJECT,
-        "set the alignment box of an object. Overwrites any previous existing alignment boxes. This function can either be called with three or five arguments. In the first case the alignment box is determined by only two corner points. With four corner points, a more sophisticated alignment box is established, which allows the alignment of cells with odd dimensions. Often this is not needed. The more advanced library cells use this mode, but 2 points suffice in many cases.",
+        "set the alignment box of a cell",
+        "Set the alignment box of an object. "
+        "Overwrites any previous existing alignment boxes. "
+        "This function can either be called with three or five arguments. "
+        "In the first case the alignment box is determined by only two corner points. "
+        "With four corner points, a more sophisticated alignment box is established, which allows the alignment of cells with odd dimensions. "
+        "Often this is not needed. "
+        "The more advanced library cells use this mode, but 2 points suffice in many cases.",
         "cell:set_alignment_box(point.create(-100, -100), point.create(100, 100))",
         parameters
     ));
@@ -2034,13 +2313,15 @@
 {
     struct parameter parameters[] = {
         { "cell",   OBJECT,     NULL, "cell to add the boundary to" },
-        { "pts",    POINTLIST,  NULL, "polygon boundary" },
+        { "bl",     POINT,      NULL, "bottom-left point of the rectangular boundar" },
+        { "tr",     POINT,      NULL, "top-right point of the rectangular boundar" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "set_boundary_rectangular",
         MODULE_OBJECT,
-        "set the cell boundary (rectangular)",
+        "set the cell boundary (rectangular variant)",
+        "Set the cell boundary (rectangular).",
         "cell:set_boundary_rectangular(point.create(-100, -100), point.create(100, 100))",
         parameters
     ));
@@ -2057,6 +2338,7 @@
     vector_append(entries, _make_api_entry(
         "set_boundary",
         MODULE_OBJECT,
+        "set the cell boundary (polygon variant)",
         "set the cell boundary (polygon)",
         "cell:set_boundary({ point.create(-100, -100), point.create(100, -100), point.create(100, 100), point.create(-100, 100) })",
         parameters
@@ -2073,7 +2355,10 @@
     vector_append(entries, _make_api_entry(
         "set_empty_layer_boundary",
         MODULE_OBJECT,
-        "Set the layer boundary of this object for the specified layer to empty. A layer boundary is useful for automatic filling, an empty layer boundary indicates that filling can take place everywhere. This function is required if fill is to be placed within the regular boundary of the object, because the regular boundary is used as layer boundary if the latter is not present.",
+        "set an emtpy layer boundary",
+        "Set the layer boundary of this object for the specified layer to empty. "
+        "A layer boundary is useful for automatic filling, an empty layer boundary indicates that filling can take place everywhere. "
+        "This function is required if fill is to be placed within the regular boundary of the object, because the regular boundary is used as layer boundary if the latter is not present.",
         "cell:set_empty_layer_boundary(generics.metal(1))",
         parameters
     ));
@@ -2090,7 +2375,9 @@
     vector_append(entries, _make_api_entry(
         "translate",
         MODULE_OBJECT,
-        "translate the cell by the specified offsets (relative movement). If x is a point, x and y are taken from this point",
+        "translate a cell",
+        "Translate the cell by the specified offsets (relative movement). "
+        "If x is a point, x and y are taken from this point",
         "cell:translate(100, 200)",
         parameters
     ));
@@ -2106,7 +2393,8 @@
     vector_append(entries, _make_api_entry(
         "translate_x",
         MODULE_OBJECT,
-        "translate the cell by the specified x offset (relative movement).",
+        "translate a cell (x-only variant)",
+        "Translate the cell by the specified x offset (relative movement).",
         "cell:translate_x(100)",
         parameters
     ));
@@ -2122,7 +2410,8 @@
     vector_append(entries, _make_api_entry(
         "translate_y",
         MODULE_OBJECT,
-        "translate the cell by the specified y offset (relative movement).",
+        "translate a cell (y-only variant)",
+        "Translate the cell by the specified y offset (relative movement).",
         "cell:translate_y(100)",
         parameters
     ));
@@ -2137,7 +2426,9 @@
     vector_append(entries, _make_api_entry(
         "width_height_alignmentbox",
         MODULE_OBJECT,
-        "get the width and the height of the alignment box. A non-existing alignment box triggers an error",
+        "get the width and the height of the alignment box of an object",
+        "Get the width and the height of the alignment box of an object. "
+        "A non-existing alignment box triggers an error.",
         "local width, height = cell:width_height_alignmentbox()",
         parameters
     ));
@@ -2153,6 +2444,8 @@
         "get_name",
         MODULE_OBJECT,
         "return the name of the given object",
+        // FIXME: add info about pseudo and child objects
+        "Return the name of the given object.",
         "local name = cell:get_name()",
         parameters
     ));
@@ -2169,6 +2462,8 @@
         "set_name",
         MODULE_OBJECT,
         "set the name of the given object",
+        // FIXME: add info about pseudo and child objects
+        "Set the name of the given object.",
         "cell:set_name(\"newname\")",
         parameters
     ));
@@ -2183,7 +2478,9 @@
     vector_append(entries, _make_api_entry(
         "is_object",
         MODULE_OBJECT,
-        "check that a given parameter is an object (with the metatable forn objects). Useful for overloaded functions",
+        "check if a value is an object",
+        "Check that a given parameter is an object (with the metatable forn objects). "
+        "Useful for overloaded functions.",
         "if object.is_object(cell) then\n    -- actions for object\nelse    -- actions for other types\nend",
         parameters
     ));
@@ -2199,7 +2496,9 @@
     vector_append(entries, _make_api_entry(
         "has_layer",
         MODULE_OBJECT,
-        "check whether an object contains a given layer. This function is recursive and checks all hierarchy levels of the cell",
+        "check if an object has a shape on a given layer (hierarchical)",
+        "Check whether an object contains a given layer. "
+        "This function is recursive and checks all hierarchy levels of the cell.",
         "if cell:has_layer(generics.metal(1)) then ...",
         parameters
     ));

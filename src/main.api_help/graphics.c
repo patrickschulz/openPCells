@@ -12,6 +12,7 @@
     vector_append(entries, _make_api_entry(
         "quartercircle",
         MODULE_GRAPHICS,
+        "create a rasterized circle quarter",
         "Create a rasterized circle quarter (a polygon) with the given parameters. The generated quadrant is the first (between 0 and 90 degrees). The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a circle shape.",
         "local pts = graphics.quartercircle(point.create(0, 0), 5000, 100, false)",
         parameters
@@ -33,6 +34,7 @@
     vector_append(entries, _make_api_entry(
         "quarterellipse",
         MODULE_GRAPHICS,
+        "create a rasterized ellipse quarter",
         "Create a rasterized ellipse quarter (a polygon) with the given parameters. The generated quadrant is the first (between 0 and 90 degrees). The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a ellipse shape.",
         "local pts = graphics.quarterellipse(point.create(0, 0), 5000, 100, false)",
         parameters
@@ -53,6 +55,7 @@
     vector_append(entries, _make_api_entry(
         "circle",
         MODULE_GRAPHICS,
+        "create a rasterized circle",
         "Create a rasterized circle (a polygon) with the given parameters. The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a circle shape.",
         "local pts = graphics.circle(point.create(0, 0), 5000, 0, 360, 100, false)",
         parameters
@@ -74,6 +77,7 @@
     vector_append(entries, _make_api_entry(
         "ellipse",
         MODULE_GRAPHICS,
+        "create a rasterized ellipse",
         "Create a rasterized ellipse (a polygon) with the given parameters. The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a ellipse shape.",
         "local pts = graphics.ellipse(point.create(0, 0), 5000, 10000, 0, 360, 100, false)",
         parameters
@@ -91,6 +95,7 @@
     vector_append(entries, _make_api_entry(
         "circle",
         MODULE_GRAPHICS,
+        "create a coarsely-approximated circle",
         "Create a coarse rendering of a circle, where points lying on the circle are simply connected by polygon edges. No rasterization is performed. This function creates regular polygons, for instance with 8 points an octagonal shape is generated.",
         "local pts = graphics.coarse_circle(point.create(0, 0), 5000, 0)",
         parameters

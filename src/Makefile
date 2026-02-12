@@ -238,7 +238,7 @@ _embed_compiled_lua_file: embed_compiled_lua_file.c
 create_latex_API_doc: create_latex_API_doc.c main.api_help.c main.api_help.h vector.c vector.h util.c util.h terminal.c terminal.h
 	$(CC) $(CFLAGS) create_latex_API_doc.c main.api_help.c print.c terminal.c util.c vector.c -o create_latex_API_doc
 
-create_HTML_API_doc: create_HTML_API_doc.c main.api_help.c main.api_help.h vector.c vector.h util.c util.h terminal.c terminal.h
+create_HTML_API_doc: create_HTML_API_doc.c main.api_help.c main.api_help/*.c main.api_help.h vector.c vector.h util.c util.h terminal.c terminal.h
 	$(CC) $(CFLAGS) create_HTML_API_doc.c main.api_help.c print.c string.c terminal.c util.c vector.c -o create_HTML_API_doc
 
 .PHONY: clean

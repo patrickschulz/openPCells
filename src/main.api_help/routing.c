@@ -8,6 +8,7 @@
         MODULE_ROUTING,
         "",
         "",
+        "",
         parameters
     ));
 }
@@ -20,6 +21,7 @@
     vector_append(entries, _make_api_entry(
         "route",
         MODULE_ROUTING,
+        "",
         "",
         "",
         parameters

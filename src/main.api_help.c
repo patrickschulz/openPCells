@@ -140,7 +140,8 @@ enum module {
 struct api_entry {
     char* funcname;
     enum module module;
-    char* info;
+    char* description;
+    char* details;
     char* example;
     struct vector* parameters;
 };
@@ -425,7 +426,8 @@ static void _destroy_parameter(void* v)
 static struct api_entry* _make_api_entry(
     const char* funcname,
     enum module module,
-    const char* info,
+    const char* description,
+    const char* details,
     const char* example,
     struct parameter* parameters
 )
@@ -437,7 +439,8 @@ static struct api_entry* _make_api_entry(
     }
     entry->funcname = util_strdup(funcname);
     entry->module = module;
-    entry->info = util_strdup(info);
+    entry->description = util_strdup(description);
+    entry->details = util_strdup(details);
     entry->example = util_strdup(example);
     entry->parameters = vector_create(1, _destroy_parameter);
     struct parameter* parameter = parameters;
@@ -453,7 +456,8 @@ static void _destroy_api_entry(void* v)
 {
     struct api_entry* entry = v;
     free(entry->funcname);
-    free(entry->info);
+    free(entry->description);
+    free(entry->details);
     free(entry->example);
     vector_destroy(entry->parameters);
     free(entry);
@@ -512,10 +516,17 @@ static void _print_api_entry(const struct api_entry* entry)
     }
 
     _putstr(")");
-    
-    // function info
     putchar('\n');
-    print_wrapped_paragraph(entry->info, 0, 0); // 0, 0: auto-width mode, zero left margin
+
+    // function summary
+    putchar('\n');
+    _putstr("Description: ");
+    print_wrapped_paragraph(entry->description, 0, 0); // 0, 0: auto-width mode, zero left margin
+    
+    // function details
+    putchar('\n');
+    _putstr("Details: ");
+    print_wrapped_paragraph(entry->details, 0, 0); // 0, 0: auto-width mode, zero left margin
     putchar('\n');
 
     // detailed parameter list
@@ -629,14 +640,13 @@ void main_API_search(const char* name)
             {
                 _putstr(modulename);
                 putchar('.');
-                _putstr(entry->funcname);
-                putchar('\n');
             }
-            else
-            {
-                _putstr(entry->funcname);
-                putchar('\n');
-            }
+            _putstr(entry->funcname);
+            _putstr(":");
+            putchar('\n');
+            _putstr("    ");
+            _putstr(entry->description);
+            putchar('\n');
         }
     }
     const_vector_destroy(found_entries);
@@ -701,7 +711,7 @@ static void _create_latex_entry(const struct api_entry* entry, const char** last
     fprintf(stdout, "%s\n", ")}");
 
     // function info
-    fprintf(stdout, "    %s\n", entry->info);
+    fprintf(stdout, "    %s\n", entry->details);
 
     // detailed parameter list
     struct vector_const_iterator* it = vector_const_iterator_create(entry->parameters);
@@ -806,15 +816,33 @@ static char* _make_safe_string(const char* str, int replace_newline)
 {
     struct string* buffer = string_create();
     const char* ch = str;
+    // use rudimentary counter to warn against too long examples
+    size_t counter = 0;
+    const size_t maxchars = 60;
     while(*ch)
     {
+        ++counter;
         if(*ch == '"')
         {
             string_add_character(buffer, '\\');
         }
-        if((*ch == '\n') && replace_newline)
+        if((*ch == '\n'))
         {
-            string_add_character(buffer, ' ');
+            // warn about too long lines (only when newlines are not replaced, for pre-formatted text)
+            if(!replace_newline && (counter > maxchars))
+            {
+                fprintf(stderr, "example lines are too long:\n%s\n", str);
+            }
+            counter = 0;
+            if(replace_newline)
+            {
+                string_add_character(buffer, ' ');
+            }
+            else
+            {
+                string_add_character(buffer, '\\');
+                string_add_character(buffer, 'n');
+            }
         }
         else
         {
@@ -856,9 +884,14 @@ static void _create_HTML_entry(const struct api_entry* entry)
     fprintf(stdout, "%s\n", ")\",");
 
     // description
-    char* info = _make_safe_string(entry->info, 1); // 1: replace newline
-    fprintf(stdout, "        \"description\": \"%s\",\n", info);
-    free(info);
+    char* description = _make_safe_string(entry->description, 1); // 1: replace newline
+    fprintf(stdout, "        \"description\": \"%s\",\n", description);
+    free(description);
+
+    // details
+    char* details = _make_safe_string(entry->details, 1); // 1: replace newline
+    fprintf(stdout, "        \"details\": \"%s\",\n", details);
+    free(details);
 
     // examples
     char* example = _make_safe_string(entry->example, 0); // 0: don't replace newline
