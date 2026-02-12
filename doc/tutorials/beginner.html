@@ -10,73 +10,81 @@
             <h2 class="subtitle">Beginner Tutorial</h2>
         </div>
     </div>
-    <h1>Introduction</h1>
-    <p>
-    This page serves as an introduction to openPCells (also called opc) for new users who are unfamiliar with the tool.
-    The tutorial will shortly outline the motivation for the development of opc, and how it can be useful to integrated circuit designers.
-    </p>
-    <p>
-    A warning up-front: OpenPCells is designed to help in the process of creating layouts, but it does not make it easier.
-    It can aid with repetitive tasks and also supports some automation, but it is probably not suitable for beginners who need to understand the layout process itself first.
-    </p>
-    <h1>Background: Motivation for OpenPCells</h1>
-    <p>
-    The creation of analog integrated circuit layouts is tedious, complex and often requires several iterations until it is right.
-    This can slow down the design process of integrated circuits, as the feedback loop from layout back to schematic design is slow.
-    Every change in a layout can take a significant amount of time, which, in the schematic might have only been a small change.
-    The reason for this is that a) there are virtually endless possible ways of creating the layout of a schematic and b) all shapes in a layout are connected by a complex set of DRC rules. If one shape has to move, the chance is high that other shapes also have to move.
-    </p>
-    <p>
-    Layout editors (both commercial and free) have various ways of dealing with these issues, such as support for parametric cells (pcells), connectivity support (showing what should be connected where), automatic folding of devices, automatic arrangement of devices to achieve (e.g.) common-centroid), dummy placement etc.
-    However, even with all these tools the layout process is stil very manual.
-    The layouter needs to manually place device groups at absolute coordinates, not relative to each other, wires don't move with the devices (including automatic re-routing), modifications like changing MOSFET device gate lengths can mean huge changes in the layout.
-    </p>
-    <p>
-    Additionally, while most foundries and process design kits (PDKs) offer a set of more or less sophisticated pcells, these pcells typically are only applicable at the lowest level, the device level.
-    PDKs will offer pcells for MOSFETS, inductors, capacitors, resistors, but not CMOS inverters, operational amplifiers, etc.
-    However, often cells like these will be needed, hence everyone builds the same things over and over again.
-    This is worsened by the fact that most PDKs are not open for everyone to read (closed-source), and layouts and pcells are technology-bound.
-    </p>
-    <p>
-    The openPCells project aims to fix all these things:
-    Its parameterized layout descriptions are independent of a specific process node, which enables re-use NDA-free publication.
-    </p>
-    <h1>Overview</h1>
-    <p>
-    OpenPCells is a layout generator.
-    It has two entry points for the generation: cells or cell scripts.
-    Cells are defined by a set of functions whereas cell scripts correspond more to programs called by interpreters such as python.
-    Cell scripts don't allow parameterization (regarding their interface, inside of the cell script anything is possible), hence cells are better for re-usable cells and cell scripts are often an easier entry point for the generation of layouts.
-    Typically one uses a cell script where various cells are created and instatiated.
-    This tutorial will show the usage of both.
-    For simple examples, cell scripts will be used as they require less boilerplate code and book-keeping.
-    That concludes the introduction, let's start with the tutorial.
-    </p>
-    <h1>First Steps</h1>
-    <p>
-    First we need to make sure opc is working.
-    In a shell (indicated by the percent sign in the following code example) type 'opc':
-    </p>
-    <pre class="shell">% opc
-This is the openPCell layout generator (opc), version 0.27.0.
-Copyright 2020-2026 Patrick Kurth
-(... more lines ...)</pre>
-    <p>
-    If this spits out the above message, you are good to go.
-    Make sure to include the path in your PATH environment variable or call opc via its full path.
-    </p>
-    <p>
-    Now let's start with a simple cell script.
-    We will show the script first and then walk through it.
-    </p>
-    <pre class="opc">local cell = object.create("cell")
-geometry.rectanglebltr(
-    cell,
-    generics.metal(1),
-    point.create(0, 0),
-    point.create(100, 100)
-)
-return cell</pre>
+    <details open>
+        <summary>Introduction</summary>
+        <p>
+        This page serves as an introduction to openPCells (also called opc) for new users who are unfamiliar with the tool.
+        The tutorial will shortly outline the motivation for the development of opc, and how it can be useful to integrated circuit designers.
+        </p>
+        <p>
+        A warning up-front: OpenPCells is designed to help in the process of creating layouts, but it does not make it easier.
+        It can aid with repetitive tasks and also supports some automation, but it is probably not suitable for beginners who need to understand the layout process itself first.
+        </p>
+    </details>
+    <details>
+        <summary>Background: Motivation for OpenPCells</summary>
+        <p>
+        The creation of analog integrated circuit layouts is tedious, complex and often requires several iterations until it is right.
+        This can slow down the design process of integrated circuits, as the feedback loop from layout back to schematic design is slow.
+        Every change in a layout can take a significant amount of time, which, in the schematic might have only been a small change.
+        The reason for this is that a) there are virtually endless possible ways of creating the layout of a schematic and b) all shapes in a layout are connected by a complex set of DRC rules. If one shape has to move, the chance is high that other shapes also have to move.
+        </p>
+        <p>
+        Layout editors (both commercial and free) have various ways of dealing with these issues, such as support for parametric cells (pcells), connectivity support (showing what should be connected where), automatic folding of devices, automatic arrangement of devices to achieve (e.g.) common-centroid), dummy placement etc.
+        However, even with all these tools the layout process is stil very manual.
+        The layouter needs to manually place device groups at absolute coordinates, not relative to each other, wires don't move with the devices (including automatic re-routing), modifications like changing MOSFET device gate lengths can mean huge changes in the layout.
+        </p>
+        <p>
+        Additionally, while most foundries and process design kits (PDKs) offer a set of more or less sophisticated pcells, these pcells typically are only applicable at the lowest level, the device level.
+        PDKs will offer pcells for MOSFETS, inductors, capacitors, resistors, but not CMOS inverters, operational amplifiers, etc.
+        However, often cells like these will be needed, hence everyone builds the same things over and over again.
+        This is worsened by the fact that most PDKs are not open for everyone to read (closed-source), and layouts and pcells are technology-bound.
+        </p>
+        <p>
+        The openPCells project aims to fix all these things:
+        Its parameterized layout descriptions are independent of a specific process node, which enables re-use NDA-free publication.
+        </p>
+    </details>
+    <details>
+        <summary>Overview</summary>
+        <p>
+        OpenPCells is a layout generator.
+        It has two entry points for the generation: cells or cell scripts.
+        Cells are defined by a set of functions whereas cell scripts correspond more to programs called by interpreters such as python.
+        Cell scripts don't allow parameterization (regarding their interface, inside of the cell script anything is possible), hence cells are better for re-usable cells and cell scripts are often an easier entry point for the generation of layouts.
+        Typically one uses a cell script where various cells are created and instatiated.
+        This tutorial will show the usage of both.
+        For simple examples, cell scripts will be used as they require less boilerplate code and book-keeping.
+        That concludes the introduction, let's start with the tutorial.
+        </p>
+    </details>
+    <details>
+    <summary>First Steps</summary>
+        <p>
+        First we need to make sure opc is working.
+        In a shell (indicated by the percent sign in the following code example) type 'opc':
+        </p>
+        <pre class="shell">% opc
+    This is the openPCell layout generator (opc), version 0.27.0.
+    Copyright 2020-2026 Patrick Kurth
+    (... more lines ...)</pre>
+        <p>
+        If this spits out the above message, you are good to go.
+        Make sure to include the path in your PATH environment variable or call opc via its full path.
+        </p>
+        <p>
+        Now let's start with a simple cell script.
+        We will show the script first and then walk through it.
+        </p>
+        <pre class="opc">local cell = object.create("cell")
+    geometry.rectanglebltr(
+        cell,
+        generics.metal(1),
+        point.create(0, 0),
+        point.create(100, 100)
+    )
+    return cell</pre>
+    </details>
     <div class="footerbar">
         <hr>
         <footer>
