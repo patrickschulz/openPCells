@@ -2598,8 +2598,8 @@ function layout(transistor, _P)
     if _P.shortdevice then
         if _P.shortlocation == "inline" then
             geometry.rectanglebltr(transistor, generics.metal(1),
-                transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).br:translate(0, (_P.sourcesize - _P.sdwidth) / 2),
-                transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).bl:translate(0, (_P.sourcesize + _P.sdwidth) / 2)
+                transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).br:translate(0, (_P.sourcesize - _P.shortwidth) / 2),
+                transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).bl:translate(0, (_P.sourcesize + _P.shortwidth) / 2)
             )
         elseif _P.shortlocation == "top" then
             geometry.rectanglebltr(transistor, generics.metal(1),
