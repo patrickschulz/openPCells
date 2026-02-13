@@ -20,3 +20,6 @@ foreach(
 unless(boundp('OPCSettingsForm)
     OPCCreateSettingsForm()
 )
+
+; set required environment variables
+envSetVal("layout" "extractKeepShapeAssignment" 'boolean t)
