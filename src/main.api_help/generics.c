@@ -408,7 +408,7 @@
         "The supplied key-value pairs in this table must match the key-value pairs that are expected by the export"
         "This layer is mostly useful in auto-generated opc layouts, that are (for instance) generated from virtuoso. "
         "The virtuoso export or the GDS import modules uses these for representing layers where no semantic information is available.",
-        "generics.premapped(\"specialmetal\", { gds = { layer = 32, purpose = 17 }, SKILL = { layer = \"specialmetal\", purpose = \"drawing\" } })",
+        "generics.premapped(\n    \"specialmetal\",\n    {\n         gds = { layer = 32, purpose = 17 },\n         SKILL = { layer = \"specialmetal\", purpose = \"drawing\" }\n    }\n)",
         parameters
     ));
 }

@@ -213,7 +213,7 @@
         MODULE_LAYOUTHELPERS,
         "place a via stack that respects maximum metal widths",
         "Place a via (or a via stack) in an object. The function behaves like geometry.viabltr, but takes into account the maximum width of the metal layers. This means that possibly not all vias are created with the full width of the given region. This means that the first point (pt1) must touch the actual shape that should connect to the via. Therefore, pt1 and pt2 don't have to be the lower-left and the top-right corner points. The maximum widths are specified by the technology constraint file (entries \"Maximum Mn Width\", where 'n' is an integer). If no values are specified, the full width of the via region is used, in which case the function behaves exactly like geometry.viabltr (except for the order of the points).",
-        "layouthelpers.place_maximum_width_via(cell, 1, 8, point.create(-100, 200), point.create(-800, 1500))",
+        "layouthelpers.place_maximum_width_via(cell,\n    1, 8,\n    point.create(-100, 200),\n    point.create(-800, 1500)\n)",
         parameters
     ));
 }
@@ -234,7 +234,7 @@
         MODULE_LAYOUTHELPERS,
         "place a coplanar waveguide",
         "Place a coplanar waveguide defined by the center path points. This function is almost the same as geometry.path but draws three paths in total (ground-signal-ground).",
-        "local pts = {\n    point.create(0, 0),\n    point.create(100000, 0),\n    point.create(100000, 100000)\n}\nlayouthelpers.place_coplanar_waveguide(cell, generics.metal(-1), pts, 5000, 10000, 10000)",
+        "local pts = {\n    point.create(0, 0),\n    point.create(100000, 0),\n    point.create(100000, 100000)\n}\nlayouthelpers.place_coplanar_waveguide(cell,\n    generics.metal(-1),\n    pts,\n    5000, 10000, 10000\n)",
         parameters
     ));
 }
@@ -485,7 +485,7 @@
         "'nocheck' might cause the function to raise an error: "
         "when there are small overlaps without a legal via arrayzation, the function raises an error (as internally geometry.viabltr is used). "
         "With 'nocheck' == false (the default) the legality of the overlap for via generation is checked first and skipped if it would fail.",
-        "layouthelpers.place_vias(cell,\n    netshapes1, netshapes2, -- netshapes\n    { \"VSS\" \"BIAS\" }, -- net filter)",
+        "layouthelpers.place_vias(cell,\n    netshapes1, netshapes2, -- netshapes\n    { \"VSS\" \"BIAS\" }, -- net filter\n)",
         parameters
     ));
 }

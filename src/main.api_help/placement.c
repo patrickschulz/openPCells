@@ -273,7 +273,8 @@
         "The instances are named accordingly to the basename (with _1, _2, etc. appended). "
         "This function is a convenient low-level wrapper for placement.place_at_origins, where the individual points don't have to be typed out. "
         "The function returns all placed children in a table.",
-        "local grid = {\n    { 0, 1, 1 }\n    { 1, 1, 1 },\n    { 0, 0, 1 },\n}\nplacement.place_on_grid(toplevel, cell, \"cell\", point.create(0, 0), 100, 100, grid)",
+        "local grid = {\n    { 0, 1, 1 }\n    { 1, 1, 1 },\n    { 0, 0, 1 },\n}\n"
+        "placement.place_on_grid(toplevel,\n    cell,\n    \"cell\",\n    point.create(0, 0),\n    100, 100,\n    grid\n)",
         parameters
     ));
 }
@@ -297,7 +298,8 @@
         "An optional table can hold list of points (polygons), which describe areas that should not be filled. "
         "The x- and y-pitch of the cell are inferred from the alignment box. "
         "The function returns all placed children in a table.",
-        "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\nplacement.place_within_boundary(toplevel, filler, \"fill\", targetarea, excludes)",
+        "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\n"
+        "placement.place_within_boundary(toplevel,\n    filler,\n    \"fill\",\n    targetarea,\n    excludes\n)",
         parameters
     ));
 }
@@ -317,7 +319,8 @@
         "automatically place a cell multiple times in a toplevel cell (flat)",
         "Same as placement.place_within_boundary, but merges the cells (instead of adding them as children). "
         "Since only children need instance names, the 'basename' parameter is not present for this function.",
-        "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\nplacement.place_within_boundary_merge(toplevel, filler, targetarea, excludes)",
+        "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\n"
+        "placement.place_within_boundary_merge(toplevel,\n    filler,\n    targetarea,\n    excludes\n)",
         parameters
     ));
 }
@@ -373,7 +376,8 @@
         "Therefore the order of the cells matters (first come, first serve). "
         "The sixth (optional) argument of this function is a singular generic layer that will be ignored when building the new excludes for subsequent cells. "
         "The reasoning behind is that if a certain layer is used as a marking layer as a full block, then all the cells in the cell lookup also need to contain this layer, which then in turn blocks the subsequent placing of further cells.",
-        "local celllut = {\n    {\n        cell = object1,\n        layers = {\n            generics.metal(1),\n            generics.metal(2),\n            generics.metal(3),\n            generics.metal(4),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            generics.metal(1),\n            generics.metal(2),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            generics.other(\"active\"),\n        },\n    },\n}\nlocal target = {\n    point.create(-10000, -10000),\n    point.create( 10000, -10000),\n    point.create( 10000,  10000),\n    point.create(-10000,  10000),\n}\nlocal excludes = {\n    {\n        excludes = { -- multiple polygons are possible\n            {\n                point.create(-5000, -5000),\n                point.create( 5000, -5000),\n                point.create( 5000,  5000),\n                point.create(-5000,  5000),\n            },\n            layers = {\n                generics.metal(1),\n                generics.metal(2),\n            },\n        },\n    }\n    {\n        excludes = { -- multiple polygons are possible\n            {\n                point.create( 2000,  1000),\n                point.create( 4000,  1000),\n                point.create( 4000,  8000),\n                point.create( 2000,  8000),\n            },\n            layers = {\n                generics.other(\"active\"),\n            },\n        },\n    }\n}\nplacement.place_within_layer_boundaries(toplevel, celllookup, \"fill\", targetarea, 1000, 1000, excludes)",
+        "local celllut = {\n    {\n        cell = object1,\n        layers = {\n            generics.metal(1),\n            generics.metal(2),\n            generics.metal(3),\n            generics.metal(4),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            generics.metal(1),\n            generics.metal(2),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            generics.other(\"active\"),\n        },\n    },\n}\nlocal target = {\n    point.create(-10000, -10000),\n    point.create( 10000, -10000),\n    point.create( 10000,  10000),\n    point.create(-10000,  10000),\n}\nlocal excludes = {\n    {\n        excludes = { -- multiple polygons are possible\n            {\n                point.create(-5000, -5000),\n                point.create( 5000, -5000),\n                point.create( 5000,  5000),\n                point.create(-5000,  5000),\n            },\n            layers = {\n                generics.metal(1),\n                generics.metal(2),\n            },\n        },\n    }\n    {\n        excludes = { -- multiple polygons are possible\n            {\n                point.create( 2000,  1000),\n                point.create( 4000,  1000),\n                point.create( 4000,  8000),\n                point.create( 2000,  8000),\n            },\n            layers = {\n                generics.other(\"active\"),\n            },\n        },\n    }\n}\n"
+        "placement.place_within_layer_boundaries(toplevel,\n    celllookup,\n    \"fill\",\n    targetarea,\n    1000, 1000,\n    excludes\n)",
         parameters
     ));
 }

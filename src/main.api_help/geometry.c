@@ -1472,7 +1472,7 @@
         MODULE_GEOMETRY,
         "get outline points of a path",
         "Get the edge points of a path given by the center points and the width. This function does not create any shapes. The result of this function can be put into geometry.polygon to create the path shape.",
-        "local pts = geometry.path_points_to_polygon({ point.create(0, 0), point.create(1000, 0) }, 50)",
+        "local pts = geometry.path_points_to_polygon(\n    {\n        point.create(0, 0),\n        point.create(1000, 0)\n    },\n    50\n)",
         parameters
     ));
 }

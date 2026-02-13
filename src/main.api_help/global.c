@@ -124,7 +124,7 @@
         MODULE_NONE,
         "define allowed parameter values as an even (parameter constraint function)",
         "define that a parameter must be even. Only useful within a parameter definition of a pcell",
-        "pcell.add_parameters({ { fingerwidth, 100, posvals = even() } })",
+        "pcell.add_parameters({\n    {\n        \"fingerwidth\",\n        3,\n        posvals = even()\n    }\n})",
         parameters
     ));
 }
@@ -139,7 +139,7 @@
         MODULE_NONE,
         "define allowed parameter values as an odd (parameter constraint function)",
         "define that a parameter must be odd. Only useful within a parameter definition of a pcell",
-        "pcell.add_parameters({ { fingerwidth, 100, posvals = odd() } })",
+        "pcell.add_parameters({\n    {\n        \"numinv\",\n        3,\n        posvals = odd()\n    }\n})",
         parameters
     ));
 }
@@ -154,7 +154,7 @@
         MODULE_NONE,
         "define allowed parameter values as an positive (parameter constraint function)",
         "define that a parameter must be positive. Only useful within a parameter definition of a pcell",
-        "pcell.add_parameters({ { fingerwidth, 100, posvals = positive() } })",
+        "pcell.add_parameters({\n    {\n        \"fingerwidth\",\n        100,\n        posvals = positive()\n    }\n})",
         parameters
     ));
 }
