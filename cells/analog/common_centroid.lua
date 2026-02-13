@@ -115,6 +115,7 @@ function parameters()
         { "connectgatetosourcedrain", {} },
         { "diodeconnected", {} },
         { "shortdummies", false, follow = "drawinnerguardrings" },
+        { "shortwidth", technology.get_dimension("Minimum M1 Width") },
         { "outerdummies", 0 },
         { "outerdummyrows", 0 },
         { "outerdummiesfingerwidth", technology.get_dimension("Minimum Gate Width"), follow = "fingerwidth", info = "Specifies the fingerwidth of devices in outer dummy rows." },
@@ -1021,6 +1022,7 @@ function layout(cell, _P, _env, state)
             else
                 devopts.shortdevice = _P.shortdummies
                 devopts.diodeconnected = _P.shortdummies
+                devopts.shortwidth = _P.shortwidth
                 devopts.drainmetal = 1
                 devopts.sourcemetal = 1
             end
