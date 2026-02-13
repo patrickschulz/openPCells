@@ -554,6 +554,8 @@ static void _write_netshape(struct export_data* data, const char* name, const st
     export_data_append_char(data, '(');
     export_data_append_string(data, "id");
     export_data_append_char(data, ' ');
+    // FIXME: set sticky net on shape?
+    // shape->lxStickyNet = t
     export_data_append_string(data, "dbMakeNet");
     export_data_append_char(data, '(');
     export_data_append_string(data, "cv");
