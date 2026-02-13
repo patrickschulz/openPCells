@@ -1,3 +1,4 @@
+<!doctype html>
 <head>
     <meta charset="utf-8">
     <title>OpenPCells Documentation</title>
@@ -208,10 +209,14 @@ end</code></pre>
         The two required properties are the name of the parameter and its default value.
         As the name is given as a string, technically almost any combination of characters is possible.
         However, typically later on in the layout() function the parameters are referenced as table keys with the dot syntax:
+        </p>
         <pre class="opc"><code>_P.some_parameter</code></pre>
+        <p>
         This is only possible when parameter names are also lua identifiers (they can not start with a digit, they can not contain any spaces and a few other constraints).
         To circumvent this, the square-bracket notation can be used:
+        </p>
         <pre class="opc"><code>_P["some parameter name with spaces"]</code></pre>
+        <p>
         In general, this is discouraged.
         Cells should use parameter names that are lua identifiers.
         </p>
@@ -223,6 +228,7 @@ end</code></pre>
         <p>
         There are a few (loosely-defined) classes of parameters: geometric parameters (defining exact sizes, for instance a gate length), parameters that influence geometric generation, but are not related to technology dimensions (e.g. number of fingers in a MOSFET), and configuration parameters (e.g. order of nets on a metal grid).
         In general the recommendation for default parameters of these parameters is:
+        </p>
         <ul>
             <li>
                 For geometric parameters, use the technology module to retrieve relevant dimensions, for instance minimum metal widths:
@@ -234,7 +240,6 @@ end</code></pre>
                 Its default number of fingers ('fingers') is set to 2.
             </li>
         </ul>
-        </p>
         <h2>Layout Definition</h2>
         <p>
         </p>
