@@ -5,6 +5,7 @@
 #include "lua/lua.h"
 #include "lua/lauxlib.h"
 
+#include "arith.h"
 #include "math.h"
 #include "point.h"
 
@@ -246,7 +247,8 @@ static int lpoint_xaverage(lua_State* L)
 {
     struct lpoint* lhs = lpoint_checkpoint(L, 1);
     struct lpoint* rhs = lpoint_checkpoint(L, 2);
-    lua_pushinteger(L, (_x(lhs) + _x(rhs)) / 2);
+    coordinate_t grid = luaL_optinteger(L, 3, 1);
+    lua_pushinteger(L, arith_div_grid(_x(lhs) + _x(rhs), 2, grid));
     return 1;
 }
 
@@ -254,7 +256,8 @@ static int lpoint_yaverage(lua_State* L)
 {
     struct lpoint* lhs = lpoint_checkpoint(L, 1);
     struct lpoint* rhs = lpoint_checkpoint(L, 2);
-    lua_pushinteger(L, (_y(lhs) + _y(rhs)) / 2);
+    coordinate_t grid = luaL_optinteger(L, 3, 1);
+    lua_pushinteger(L, arith_div_grid(_y(lhs) + _y(rhs), 2, grid));
     return 1;
 }
 

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "arith.h"
 #include "geometry.h"
 #include "graphics.h"
 #include "lcheck.h"
@@ -877,7 +878,7 @@ static int lgeometry_path_2y_polygon(lua_State* L)
 
 static int lgeometry_path_3x(lua_State* L)
 {
-    lcheck_check_numargs2(L, 6, 7, "geometry.path_3x");
+    lcheck_check_numargs3(L, 6, 7, 8, "geometry.path_3x");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
@@ -889,8 +890,16 @@ static int lgeometry_path_3x(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 7, &bgnext, &endext, width);
 
-    struct point* pts1 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptstart)->y);
-    struct point* pts2 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptend)->y);
+    coordinate_t grid = luaL_optinteger(L, 8, 1);
+
+    coordinate_t xstart = point_getx(lpoint_get(ptstart));
+    coordinate_t xend = point_getx(lpoint_get(ptend));
+    coordinate_t ystart = point_gety(lpoint_get(ptstart));
+    coordinate_t yend = point_gety(lpoint_get(ptend));
+    coordinate_t xmid = xstart + arith_mul_grid(xend - xstart, posfactor, grid);
+
+    struct point* pts1 = point_create(xmid, ystart);
+    struct point* pts2 = point_create(xmid, yend);
     struct vector* points = vector_create(3, NULL); // non-owning
     vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
@@ -1011,7 +1020,7 @@ static int lgeometry_path_3x_diagonal_polygon(lua_State* L)
 
 static int lgeometry_path_3y(lua_State* L)
 {
-    lcheck_check_numargs2(L, 6, 7, "geometry.path_3y");
+    lcheck_check_numargs3(L, 6, 7, 8, "geometry.path_3y");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
@@ -1023,8 +1032,16 @@ static int lgeometry_path_3y(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 7, &bgnext, &endext, width);
 
-    struct point* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
-    struct point* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
+    coordinate_t grid = luaL_optinteger(L, 8, 1);
+
+    coordinate_t xstart = point_getx(lpoint_get(ptstart));
+    coordinate_t xend = point_getx(lpoint_get(ptend));
+    coordinate_t ystart = point_gety(lpoint_get(ptstart));
+    coordinate_t yend = point_gety(lpoint_get(ptend));
+    coordinate_t ymid = ystart + arith_mul_grid(yend - ystart, posfactor, grid);
+
+    struct point* pts1 = point_create(xstart, ymid);
+    struct point* pts2 = point_create(xend, ymid);
     struct vector* points = vector_create(3, NULL); // non-owning
     vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);

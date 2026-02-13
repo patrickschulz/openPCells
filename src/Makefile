@@ -35,6 +35,7 @@ CFLAGS=-std=c99 $(WARNFLAGS) $(COMMONFLAGS) $(PPFLAGS) $(ANALYZEFLAGS)
 ########################################################################################################################
 
 OBJS:= \
+	arith.o \
 	bltrshape.o \
 	buffer.o \
 	cdl_parser.o \
@@ -268,6 +269,7 @@ clean:
 # * _modulemanager.o
 # * _scriptmanager.o
 # * main.o
+arith.o: arith.c arith.h point.h
 bltrshape.o: bltrshape.c bltrshape.h point.h
 buffer.o: buffer.c buffer.h
 cdl_parser.o: cdl_parser.c cdl_parser.h buffer.h string.h \
@@ -324,12 +326,11 @@ ldir.o: ldir.c ldir.h lua/lua.h lua/luaconf.h \
 lgenerics.o: lgenerics.c lgenerics.h lua/lua.h \
  lua/luaconf.h lua/lauxlib.h lua/lua.h technology.h \
  vector.h hashmap.h
-lgeometry.o: lgeometry.c lgeometry.h lua/lua.h \
- lua/luaconf.h lua/lauxlib.h lua/lua.h geometry.h \
- technology.h vector.h hashmap.h object.h polygon.h \
- point.h shape.h transformationmatrix.h graphics.h \
- lcheck.h lgenerics.h lobject.h lplacement.h lpoint.h \
- lutil.h placement.h
+lgeometry.o: lgeometry.c lgeometry.h lua/lua.h lua/luaconf.h \
+ lua/lauxlib.h lua/lua.h arith.h point.h geometry.h technology.h \
+ hashmap.h tagged_value.h vector.h object.h bltrshape.h polygon.h shape.h \
+ transformationmatrix.h graphics.h lcheck.h lgenerics.h lobject.h \
+ lplacement.h lpoint.h lutil.h placement.h
 limport.o: limport.c limport.h lua/lua.h lua/luaconf.h \
  lua/lauxlib.h lua/lua.h import.h
 lobject.o: lobject.c lobject.h lua/lua.h lua/luaconf.h \

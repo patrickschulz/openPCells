@@ -573,6 +573,7 @@
         { "width",      INTEGER,  NULL,   "width of the path. Must be even" },
         { "position",   NUMBER,   NULL,   "position factor (a number between 0 and 1)" },
         { "extension",  TABLE,    NULL,   "optional table argument containing the start/end extensions" },
+        { "grid",       INTEGER,  NULL,   "optional grid for generated points" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
@@ -661,6 +662,7 @@
         { "width",      INTEGER,  NULL,   "width of the path. Must be even" },
         { "position",   NUMBER,   NULL,   "position factor (a number between 0 and 1)" },
         { "extension",  TABLE,    NULL,   "optional table argument containing the start/end extensions" },
+        { "grid",       INTEGER,  NULL,   "optional grid for generated points" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(

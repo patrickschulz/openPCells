@@ -1,8 +1,9 @@
 #ifndef OPC_POINT_H
 #define OPC_POINT_H
 
-#include <stdint.h>
 #include <limits.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 typedef long long int coordinate_t;
 typedef unsigned long long int ucoordinate_t;
