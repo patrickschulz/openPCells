@@ -30,6 +30,9 @@ function parameters()
         { "centergrid", true },
         { "flatvias", true },
         { "drawfillexclude", false },
+        { "addlabels", true },
+        { "addvlabels", true, follow = "addlabels" },
+        { "addhlabels", true, follow = "addlabels" },
         --{ "label_sizehint", technology.get_optional_dimension("Default Label Size", 0) }
         { "label_sizehint", 50 }
     )
@@ -135,15 +138,19 @@ function layout(grid, _P, _unused, state)
     end
 
     -- labels
-    for i = 1, mhlines do
-        local xoffset = _P.centergrid and (-mvlines * xpitch / 2) or math.floor(_P.mvspace / 2)
-        local yoffset = _P.centergrid and (-mhlines * ypitch / 2 + _P.mhspace / 2 + _P.mhwidth / 2) or math.floor(_P.mhspace / 2)
-        grid:add_label(_P.hnets[i], generics.metal(_P.metalh), point.create(xoffset, (i - 1) * ypitch + yoffset), _P.label_sizehint)
+    if _P.addhlabels then
+        for i = 1, mhlines do
+            local xoffset = _P.centergrid and (-mvlines * xpitch / 2) or math.floor(_P.mvspace / 2)
+            local yoffset = _P.centergrid and (-mhlines * ypitch / 2 + _P.mhspace / 2 + _P.mhwidth / 2) or math.floor(_P.mhspace / 2)
+            grid:add_label(_P.hnets[i], generics.metal(_P.metalh), point.create(xoffset, (i - 1) * ypitch + yoffset), _P.label_sizehint)
+        end
     end
-    for i = 1, mvlines do
-        local xoffset = _P.centergrid and (-mvlines * xpitch / 2 + _P.mvspace / 2 + _P.mvwidth / 2) or math.floor(_P.mvspace / 2)
-        local yoffset = _P.centergrid and (-mhlines * ypitch / 2) or math.floor(_P.mhspace / 2)
-        grid:add_label(_P.vnets[i], generics.metal(_P.metalv), point.create((i - 1) * xpitch + xoffset, yoffset), _P.label_sizehint)
+    if _P.addvlabels then
+        for i = 1, mvlines do
+            local xoffset = _P.centergrid and (-mvlines * xpitch / 2 + _P.mvspace / 2 + _P.mvwidth / 2) or math.floor(_P.mvspace / 2)
+            local yoffset = _P.centergrid and (-mhlines * ypitch / 2) or math.floor(_P.mhspace / 2)
+            grid:add_label(_P.vnets[i], generics.metal(_P.metalv), point.create((i - 1) * xpitch + xoffset, yoffset), _P.label_sizehint)
+        end
     end
 
     -- fill excludes
