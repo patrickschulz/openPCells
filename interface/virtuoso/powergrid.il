@@ -1,94 +1,132 @@
 procedure(OPCPowergridWriteInitial(file)
-    fprintf(file "%s\n" "-- base cell")
-    fprintf(file "%s\n" "local base = pcell.create_layout_from_script(\"openPCells_cellshapes.lua\")")
-    newline(file)
-    fprintf(file "%s\n" "-- target metals")
-    fprintf(file "%s\n" "local targetmetals = { 1 }")
-    newline(file)
-    fprintf(file "%s\n" "-- power nets")
-    fprintf(file "%s\n" "local powernets = { \"vdd\", \"vss\" }")
-    newline(file)
-    fprintf(file "%s\n" "-- power metals")
-    fprintf(file "%s\n" "local vmetal = 2")
-    fprintf(file "%s\n" "local hmetal = 3")
-    newline(file)
-    fprintf(file "%s\n" "-- power grid size")
-    fprintf(file "%s\n" "local pwidth = 1000")
-    fprintf(file "%s\n" "local pspace = 1000")
-    fprintf(file "%s\n" "local pgrid = #powernets * (pwidth + pspace)")
-    newline(file)
-    fprintf(file "%s\n" "-- target area")
-    fprintf(file "%s\n" "local pbl = point.create(-10000, -10000)")
-    fprintf(file "%s\n" "local ptr = point.create( 10000,  10000)")
-    newline(file)
-    fprintf(file "%s\n" "-- get shapes on power grid metals for exclusion")
-    fprintf(file "%s\n" "local offset = 500 -- offset/distance around shapes as exclusion zones")
-    fprintf(file "%s\n" "local vshapes = base:get_shape_outlines(generics.metal(vmetal), offset)")
-    fprintf(file "%s\n" "local hshapes = base:get_shape_outlines(generics.metal(hmetal), offset)")
-    newline(file)
-    fprintf(file "%s\n" "-- main power grid shapes cell")
-    fprintf(file "%s\n" "local cell = object.create(\"opcpowergrid\")")
-    newline(file)
-    fprintf(file "%s\n" "-- draw boundary")
-    fprintf(file "%s\n" "geometry.rectanglebltr(cell, generics.outline(), pbl, ptr)")
-    newline(file)
-    fprintf(file "%s\n" "-- place vertical lines")
-    fprintf(file "%s\n" "local vlines = layouthelpers.place_vlines(")
-    fprintf(file "%s\n" "    cell,")
-    fprintf(file "%s\n" "    pbl, ptr,")
-    fprintf(file "%s\n" "    generics.metal(vmetal),")
-    fprintf(file "%s\n" "    pwidth, pspace,")
-    fprintf(file "%s\n" "    pwidth, -- minwidth")
-    fprintf(file "%s\n" "    powernets,")
-    fprintf(file "%s\n" "    vshapes -- excludes")
-    fprintf(file "%s\n" ")")
-    newline(file)
-    fprintf(file "%s\n" "-- place horizontal lines")
-    fprintf(file "%s\n" "local hlines = layouthelpers.place_hlines(")
-    fprintf(file "%s\n" "    cell,")
-    fprintf(file "%s\n" "    pbl, ptr,")
-    fprintf(file "%s\n" "    generics.metal(hmetal),")
-    fprintf(file "%s\n" "    pwidth, pspace,")
-    fprintf(file "%s\n" "    pwidth, -- minwidth")
-    fprintf(file "%s\n" "    powernets,")
-    fprintf(file "%s\n" "    hshapes -- excludes")
-    fprintf(file "%s\n" ")")
-    newline(file)
-    fprintf(file "%s\n" "-- draw labels to identify shapes")
-    fprintf(file "%s\n" "layouthelpers.annotate_netshapes(cell, vlines, 100)")
-    fprintf(file "%s\n" "layouthelpers.annotate_netshapes(cell, hlines, 100)")
-    newline(file)
-    fprintf(file "%s\n" "-- connect target shapes to lower metal")
-    fprintf(file "%s\n" "local netshapes = {}")
-    fprintf(file "%s\n" "for _, net in ipairs(powernets) do")
-    fprintf(file "%s\n" "    for _, metal in ipairs(targetmetals) do")
-    fprintf(file "%s\n" "        util.insert_table(netshapes, base:get_net_shapes(net, generics.metal(metal)))")
-    fprintf(file "%s\n" "    end")
-    fprintf(file "%s\n" "end")
-    fprintf(file "%s\n" "local lowerlines = vmetal < hmetal and vlines or hlines")
-    fprintf(file "%s\n" "-- get intermediate shapes between lowest grid metal and target metals")
-    fprintf(file "%s\n" "local viaoffset = 500")
-    fprintf(file "%s\n" "local maxtargetmetal = util.max(targetmetals)")
-    fprintf(file "%s\n" "local intermediate_shapes = {}")
-    fprintf(file "%s\n" "for metal = maxtargetmetal + 1, math.min(vmetal, hmetal) - 1 do")
-    fprintf(file "%s\n" "    local shapes = base:get_shape_outlines(generics.metal(metal), viaoffset)")
-    fprintf(file "%s\n" "    util.insert_table(intermediate_shapes, shapes)")
-    fprintf(file "%s\n" "end")
-    fprintf(file "%s\n" "for _, metal in ipairs(targetmetals) do")
-    fprintf(file "%s\n" "    layouthelpers.place_vias(")
-    fprintf(file "%s\n" "        cell,")
-    fprintf(file "%s\n" "        netshapes, vlines")
-    fprintf(file "%s\n" "    )")
-    fprintf(file "%s\n" "end")
-    newline(file)
-    fprintf(file "%s\n" "-- place vias between power lines")
-    fprintf(file "%s\n" "layouthelpers.place_vias(")
-    fprintf(file "%s\n" "    cell,")
-    fprintf(file "%s\n" "    vlines, hlines")
-    fprintf(file "%s\n" ")")
-    newline(file)
-    fprintf(file "%s\n" "-- return shapes")
-    fprintf(file "%s\n" "return cell")
+    let(
+        (lines)
+        lines = list(
+            "-- base cell"
+            "local base = pcell.create_layout_from_script(\"openPCells_cellshapes.lua\")"
+            ""
+            "-- target metals (can also be nil/emtpy)"
+            "local targetmetals = { 1 }"
+            ""
+            "-- power nets"
+            "local powernets = { \"vdd\", \"vss\" }"
+            ""
+            "-- power metals"
+            "local vmetal = 2"
+            "local hmetal = 3"
+            ""
+            "-- place only full-size vias"
+            "local only_full_vias = true"
+            ""
+            "-- power grid size"
+            "local pwidth = 1000"
+            "local pspace = 1000"
+            "local pgrid = #powernets * (pwidth + pspace)"
+            ""
+            "-- target area"
+            "local pbl = point.create(-10000, -10000)"
+            "local ptr = point.create( 10000,  10000)"
+            ""
+            "-- get shapes on power grid metals for exclusion"
+            "local offset = 500 -- offset/distance around shapes as exclusion zones"
+            "local vshapes = base:get_shape_outlines(generics.metal(vmetal), offset)"
+            "local hshapes = base:get_shape_outlines(generics.metal(hmetal), offset)"
+            ""
+            "-- main power grid shapes cell"
+            "local cell = object.create(\"opcpowergrid\")"
+            ""
+            "-- draw boundary"
+            "geometry.rectanglebltr(cell, generics.outline(), pbl, ptr)"
+            ""
+            "-- place vertical lines"
+            "local vlines = layouthelpers.place_vlines("
+            "    cell,"
+            "    pbl, ptr,"
+            "    generics.metal(vmetal),"
+            "    pwidth, pspace,"
+            "    pwidth, -- minwidth"
+            "    powernets,"
+            "    vshapes -- excludes"
+            ")"
+            ""
+            "-- place horizontal lines"
+            "local hlines = layouthelpers.place_hlines("
+            "    cell,"
+            "    pbl, ptr,"
+            "    generics.metal(hmetal),"
+            "    pwidth, pspace,"
+            "    pwidth, -- minwidth"
+            "    powernets,"
+            "    hshapes -- excludes"
+            ")"
+            ""
+            "-- draw labels to identify shapes"
+            "layouthelpers.annotate_netshapes(cell, vlines, 100)"
+            "layouthelpers.annotate_netshapes(cell, hlines, 100)"
+            ""
+            "-- connect target shapes to power grid"
+            "for _, targetmetal in ipairs(targetmetals or {}) do"
+            "    local netshapes = {}"
+            "    for _, net in ipairs(powernets) do"
+            "        util.insert_table(netshapes, base:get_net_shapes(net, generics.metal(targetmetal)))"
+            "    end"
+            "    -- lines to connect to"
+            "    local powermetal"
+            "    local powerlines"
+            "    if targetmetal < math.min(vmetal, hmetal) then -- target metal below power grid"
+            "        if vmetal < hmetal then"
+            "            powermetal = vmetal)"
+            "            powerlines = vlines"
+            "        else"
+            "            powermetal = hmetal)"
+            "            powerlines = hlines"
+            "        end"
+            "    elseif targetmetal > math.max(vmetal, hmetal) then -- target metal above power grid"
+            "        if vmetal > hmetal then"
+            "            powermetal = vmetal)"
+            "            powerlines = vlines"
+            "        else"
+            "            powermetal = hmetal)"
+            "            powerlines = hlines"
+            "        end"
+            "    else -- target metal on power grid"
+            "        if targetmetal == hmetal then"
+            "            powermetal = vmetal)"
+            "            powerlines = vlines"
+            "        else"
+            "            powermetal = hmetal)"
+            "            powerlines = hlines"
+            "        end"
+            "    end"
+            "    -- get intermediate shapes between targetmetal and lowest grid metal"
+            "    local viaoffset = 500"
+            "    local intermediate_shapes = {}"
+            "    for metal = targetmetal + 1, math.min(vmetal, hmetal) - 1 do"
+            "        local shapes = base:get_shape_outlines(generics.metal(metal), viaoffset)"
+            "        util.insert_table(intermediate_shapes, shapes)"
+            "    end"
+            "    layouthelpers.place_vias("
+            "        cell,"
+            "        netshapes, powerlines,"
+            "        intermediate_shapes, -- excludes"
+            "        nil, -- net filter"
+            "        only_full_vias"
+            "    )"
+            "end"
+            ""
+            "-- place vias between power lines"
+            "layouthelpers.place_vias("
+            "    cell,"
+            "    vlines, hlines"
+            ")"
+            ""
+            "-- return shapes"
+            "return cell"
+        )
+        foreach(line lines
+            fprintf(file "%s\n" line)
+        )
+    ) ; let
 ) ; OPCPowergridWriteInitial
 
 procedure(OPCPowergridEditScript()
