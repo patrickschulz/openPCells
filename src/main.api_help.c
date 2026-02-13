@@ -812,43 +812,177 @@ void main_API_create_latex_doc(void)
     _destroy_api_entries(entries);
 }
 
-static char* _make_safe_string(const char* str, int replace_newline)
+static char* _make_safe_string(const char* str)
 {
     struct string* buffer = string_create();
     const char* ch = str;
-    // use rudimentary counter to warn against too long examples
-    size_t counter = 0;
-    const size_t maxchars = 62;
     while(*ch)
     {
-        ++counter;
         if(*ch == '"')
         {
             string_add_character(buffer, '\\');
         }
         if((*ch == '\n'))
         {
-            // warn about too long lines (only when newlines are not replaced, for pre-formatted text)
-            if(!replace_newline && (counter > maxchars))
-            {
-                fprintf(stderr, "example lines are too long:\n%s\n", str);
-            }
-            counter = 0;
-            if(replace_newline)
-            {
-                string_add_character(buffer, ' ');
-            }
-            else
-            {
-                string_add_character(buffer, '\\');
-                string_add_character(buffer, 'n');
-            }
+            string_add_character(buffer, ' ');
         }
         else
         {
             string_add_character(buffer, *ch);
         }
         ++ch;
+    }
+    return string_dissolve(buffer);
+}
+
+static int _is_apimodule(const char* str, size_t n)
+{
+    const char* APImodule_lut[] = {
+        "alignmentgroup",
+        "aux",
+        "curve",
+        "generics",
+        "geometry",
+        "graphics",
+        "layouthelpers",
+        "object",
+        "pcell",
+        "placement",
+        "point",
+        "postprocess",
+        "routing",
+        "technology",
+        "util"
+    };
+    const size_t len = sizeof(APImodule_lut) / sizeof(APImodule_lut[0]);
+    for(size_t i = 0; i < len; ++i)
+    {
+        if(strncmp(APImodule_lut[i], str, n) == 0)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int _is_apifun(const char* str, size_t n)
+{
+    const char* APIfun_lut[] = {
+        "create",
+        "metal",
+        "other",
+        "get_anchor",
+        "get_area_anchor",
+        "rectanglebltr",
+    };
+    const size_t len = sizeof(APIfun_lut) / sizeof(APIfun_lut[0]);
+    for(size_t i = 0; i < len; ++i)
+    {
+        if(strncmp(APIfun_lut[i], str, n) == 0)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static void _emit_word(struct string* buffer, const char* str, size_t n)
+{
+    if(_is_apimodule(str, n))
+    {
+        string_add_string(buffer, "<span class=\\\"opc-module\\\">");
+        string_add_string_n(buffer, str, n);
+        string_add_string(buffer, "</span>");
+    }
+    else if(_is_apifun(str, n))
+    {
+        string_add_string(buffer, "<span class=\\\"opc-function\\\">");
+        string_add_string_n(buffer, str, n);
+        string_add_string(buffer, "</span>");
+    }
+    else
+    {
+        string_add_string_n(buffer, str, n);
+    }
+}
+
+static void _emit_num(struct string* buffer, const char* str, size_t n)
+{
+    string_add_string(buffer, "<span class=\\\"opc-number\\\">");
+    string_add_string_n(buffer, str, n);
+    string_add_string(buffer, "</span>");
+}
+
+static char* _format(const char* str)
+{
+    struct string* buffer = string_create();
+    const char* ch = str;
+    const char* wordptr = NULL;
+    const char* numptr = NULL;
+    int instr = 0;
+    while(*ch)
+    {
+        if(isalpha(*ch) || *ch == '_')
+        {
+            if(!wordptr)
+            {
+                wordptr = ch;
+            }
+        }
+        else if(isdigit(*ch))
+        {
+            if(!numptr)
+            {
+                numptr = ch;
+            }
+        }
+        else
+        {
+            // not in word anymore, emit whole word
+            if(wordptr)
+            {
+                _emit_word(buffer, wordptr, ch - wordptr);
+                wordptr = NULL;
+            }
+            // not in number anymore, emit whole number
+            if(numptr)
+            {
+                _emit_num(buffer, numptr, ch - numptr);
+                numptr = NULL;
+            }
+            // then emit current character
+            if(*ch == '\n')
+            {
+                string_add_character(buffer, '\\');
+                string_add_character(buffer, 'n');
+            }
+            else
+            {
+                if(*ch == '"')
+                {
+                    if(!instr)
+                    {
+                        string_add_string(buffer, "<span class=\\\"opc-string\\\">");
+                    }
+                    string_add_character(buffer, '\\');
+                    string_add_character(buffer, '"');
+                    if(instr)
+                    {
+                        string_add_string(buffer, "</span>");
+                    }
+                    instr = !instr;
+                }
+                else
+                {
+                    string_add_character(buffer, *ch);
+                }
+            }
+        }
+        ++ch;
+    }
+    if(wordptr)
+    {
+        _emit_word(buffer, wordptr, ch - wordptr);
     }
     return string_dissolve(buffer);
 }
@@ -884,17 +1018,17 @@ static void _create_HTML_entry(const struct api_entry* entry)
     fprintf(stdout, "%s\n", ")\",");
 
     // description
-    char* description = _make_safe_string(entry->description, 1); // 1: replace newline
+    char* description = _make_safe_string(entry->description);
     fprintf(stdout, "        \"description\": \"%s\",\n", description);
     free(description);
 
     // details
-    char* details = _make_safe_string(entry->details, 1); // 1: replace newline
+    char* details = _make_safe_string(entry->details);
     fprintf(stdout, "        \"details\": \"%s\",\n", details);
     free(details);
 
     // examples
-    char* example = _make_safe_string(entry->example, 0); // 0: don't replace newline
+    char* example = _format(entry->example);
     fprintf(stdout, "        \"examples\": \"%s\",\n", example);
     free(example);
 }

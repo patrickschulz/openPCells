@@ -100,7 +100,12 @@ pre.opc {
 }
 
 .APIref-examples-container {
-    background-color: #eeeeee;
+    /*
+    color: #ffffff;
+    background-color: #262626;
+    */
+    color: #000000;
+    background-color: #e9e9e9;
     padding: 5pt;
     border-radius: 2pt;
     font-size: 14pt;
@@ -127,7 +132,40 @@ footer {
     text-align: center;
 }
 
-/* code highlighting */
-.opc-identifier {
-    color: #ff0000;
+/* code highlighting (light mode) */
+.opc-module {
+    color: #0087ff;
 }
+
+.opc-function {
+    color: #00bfff;
+    font-weight: bold;
+}
+
+.opc-number {
+    color: #00aa00;
+}
+
+.opc-string {
+    color: #dd2222;
+}
+
+/* code highlighting (dark mode) */
+/*
+.opc-module {
+    color: #0087ff;
+}
+
+.opc-function {
+    color: #00bfff;
+    font-weight: bold;
+}
+
+.opc-number {
+    color: #eedd82;
+}
+
+.opc-string {
+    color: #e9967a;
+}
+*/

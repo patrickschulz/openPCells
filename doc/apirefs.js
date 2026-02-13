@@ -5,7 +5,7 @@ const apirefs = [
         "syntax": "create()",
         "description": "create an alignment group",
         "details": "Create an alignment group that stores alignment boxes of several different objects. Objects are added subsequently and the alignment group can be given to any object.align/abut function as a target parameter.",
-        "examples": "local cell1 = ...\nlocal cell2 = ...\nlocal cell3 = ...\nlocal group = alignmentgroup.create()\ngroup:add(cell1)\ngroup:add(cell2)\ncell3:abut_bottom(group)",
+        "examples": "local cell1<span class=\"opc-number\">1</span> = ...\nlocal cell2<span class=\"opc-number\">2</span> = ...\nlocal cell3<span class=\"opc-number\">3</span> = ...\nlocal group = <span class=\"opc-module\">alignmentgroup</span>.<span class=\"opc-function\">create</span>()\ngroup:add(cell1<span class=\"opc-number\">1</span>)\ngroup:add(cell2<span class=\"opc-number\">2</span>)\ncell3<span class=\"opc-number\">3</span>:abut_bottom(group)",
     },
     {
         "module": "alignmentgroup",
@@ -21,7 +21,7 @@ const apirefs = [
         "syntax": "assert_one_of(msg, key, ...)",
         "description": "check that a key is within a list of possible candidates",
         "details": "aux.assert_one_of checks a list of function arguments for the existance of a given key. If the key is not found an error is raised. The error message is given by 'msg'.",
-        "examples": "aux.assert_one_of(\"variable\", variable, \"foo\", \"bar\", \"baz\")",
+        "examples": "<span class=\"opc-module\">aux</span>.assert_one_of(<span class=\"opc-string\">\"variable\"</span>, variable, <span class=\"opc-string\">\"foo\"</span>, <span class=\"opc-string\">\"bar\"</span>, <span class=\"opc-string\">\"baz\"</span>)",
     },
     {
         "module": "aux",
@@ -29,7 +29,7 @@ const apirefs = [
         "syntax": "clone_shallow(t, predicate)",
         "description": "create a shallow copy of a table",
         "details": "This function creates a shallow copy of a table. It does not copy elements in the table, which means that nested tables refer to the same objects. The predicate function can be used to filter out unwanted entries. Only items where the predicate returns true are inserted. Without a predicate, all items are inserted.",
-        "examples": "aux.clone_shallow({ 1, 2, 3, \"foo\", \"bar\", \"baz\" }, function(k, v) return type(v) == \"number\") -- { 1, 2, 3 }",
+        "examples": "<span class=\"opc-module\">aux</span>.clone_shallow({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-string\">\"foo\"</span>, <span class=\"opc-string\">\"bar\"</span>, <span class=\"opc-string\">\"baz\"</span> }, function(k, v) return type(v) == <span class=\"opc-string\">\"number\"</span>) -- { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }",
     },
     {
         "module": "aux",
@@ -37,7 +37,7 @@ const apirefs = [
         "syntax": "make_even(num)",
         "description": "get the next even number (counting up)",
         "details": "This function returns num + 1 if the given number is odd and the given number, if it is even.",
-        "examples": "aux.make_even(7) -- 8\naux.make_even(32) -- 32",
+        "examples": "<span class=\"opc-module\">aux</span>.make_even(<span class=\"opc-number\">7</span>) -- <span class=\"opc-number\">8</span>\n<span class=\"opc-module\">aux</span>.make_even(<span class=\"opc-number\">32</span>) -- ",
     },
     {
         "module": "aux",
@@ -45,7 +45,7 @@ const apirefs = [
         "syntax": "split_path(path)",
         "description": "split a path into its prefix/suffix (like dirname/basename)",
         "details": "Split a path into its prefix/suffix (like dirname/basename). If no path separator '/' is present, the function returns \".\" and the full given path",
-        "examples": "aux.split_path(\"foo/bar/baz\") -- \"foo/bar\" \"baz\"\naux.split_path(\"baz\") -- \".\" \"baz\"",
+        "examples": "<span class=\"opc-module\">aux</span>.split_path(<span class=\"opc-string\">\"foo/bar/baz\"</span>) -- <span class=\"opc-string\">\"foo/bar\"</span> <span class=\"opc-string\">\"baz\"</span>\n<span class=\"opc-module\">aux</span>.split_path(<span class=\"opc-string\">\"baz\"</span>) -- <span class=\"opc-string\">\".\"</span> <span class=\"opc-string\">\"baz\"</span>",
     },
     {
         "module": "aux",
@@ -53,7 +53,7 @@ const apirefs = [
         "syntax": "pop_top_directory(path)",
         "description": "remove the last part of a path",
         "details": "Remove the last part of a path, separated by '/' (like basename). This function internally uses aux.split_path, so if no path separator '/' is present, this funtion return \".\".",
-        "examples": "aux.pop_top_directory(\"foo/bar/baz\") -- \"foo/bar\"",
+        "examples": "<span class=\"opc-module\">aux</span>.pop_top_directory(<span class=\"opc-string\">\"foo/bar/baz\"</span>) -- <span class=\"opc-string\">\"foo/bar\"</span>",
     },
     {
         "module": "aux",
@@ -61,7 +61,7 @@ const apirefs = [
         "syntax": "shuffle(t)",
         "description": "shuffle the array elements of a table",
         "details": "Shuffle the array elements of a table. This function works in-situ, so the given table is modified. If this is undesirable, aux.clone_shallow can be used to create a shallow copy of the table first.",
-        "examples": "aux.shuffle({ 1, 2, 3 }) -- { 3, 1, 2 }",
+        "examples": "<span class=\"opc-module\">aux</span>.shuffle({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) -- { <span class=\"opc-number\">3</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span> }",
     },
     {
         "module": "aux",
@@ -69,7 +69,7 @@ const apirefs = [
         "syntax": "strsplit(str, pattern, plain)",
         "description": "split a string at a given separator pattern.",
         "details": "Split a string at a given separator pattern (a lua pattern). If 'plain' is true, then the separator pattern is taken literally, no lua pattern matching is performed.",
-        "examples": "aux.strsplit(\"foo:bar:baz\", \":\") -- { \"foo\", \"bar\", \"baz\" }",
+        "examples": "<span class=\"opc-module\">aux</span>.strsplit(<span class=\"opc-string\">\"foo:bar:baz\"</span>, <span class=\"opc-string\">\":\"</span>) -- { <span class=\"opc-string\">\"foo\"</span>, <span class=\"opc-string\">\"bar\"</span>, <span class=\"opc-string\">\"baz\"</span> }",
     },
     {
         "module": "aux",
@@ -77,7 +77,7 @@ const apirefs = [
         "syntax": "strgsplit(str, pattern, plain)",
         "description": "split a string at a given separator pattern.",
         "details": "Split a string at a given separator pattern (a lua pattern). If 'plain' is true, then the separator pattern is taken literally, no lua pattern matching is performed. This is the iterator version of aux.strsplit.",
-        "examples": "for match in aux.strgsplit(\"foo:bar:baz\", \":\") do\n    -- do something with 'match'\nend",
+        "examples": "for match in <span class=\"opc-module\">aux</span>.strgsplit(<span class=\"opc-string\">\"foo:bar:baz\"</span>, <span class=\"opc-string\">\":\"</span>) do\n    -- do something with 'match'\nend",
     },
     {
         "module": "aux",
@@ -85,7 +85,7 @@ const apirefs = [
         "syntax": "sum(t)",
         "description": "calculate the sum of all array entries",
         "details": "Calculate the sum of all array entries of the table t. This function assumes that the operator '+' is defined for all the array items.",
-        "examples": "aux.sum({ 1, 2, 3 }) -- 6",
+        "examples": "<span class=\"opc-module\">aux</span>.sum({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) -- ",
     },
     {
         "module": "aux",
@@ -93,7 +93,7 @@ const apirefs = [
         "syntax": "gcd(...)",
         "description": "calculate the greatest common divisor (GDC) of all given input arguments",
         "details": "Calculate the greatest common divisor (GDC) of all given input arguments.",
-        "examples": "aux.gcd(12, 9) -- 3",
+        "examples": "<span class=\"opc-module\">aux</span>.gcd(<span class=\"opc-number\">12</span>, <span class=\"opc-number\">9</span>) -- ",
     },
     {
         "module": "aux",
@@ -101,7 +101,7 @@ const apirefs = [
         "syntax": "tabgcd(t)",
         "description": "calculate the greatest common divisor (GDC) of all elements of the given array",
         "details": "Calculate the greatest common divisor (GDC) of all elements of the given array.",
-        "examples": "aux.gcd({ 12, 9 }) -- 3",
+        "examples": "<span class=\"opc-module\">aux</span>.gcd({ <span class=\"opc-number\">12</span>, <span class=\"opc-number\">9</span> }) -- ",
     },
     {
         "module": "aux",
@@ -109,7 +109,7 @@ const apirefs = [
         "syntax": "tprint(t)",
         "description": "recursive pretty-print of a given table",
         "details": "This function recursively pretty-prints the contents of the given table. This function has a simple implementation and will fail on odd tables, like cycles.",
-        "examples": "aux.tprint({ 12, 9, \"foo\", sub = { name = \"name\" }, })",
+        "examples": "<span class=\"opc-module\">aux</span>.tprint({ <span class=\"opc-number\">12</span>, <span class=\"opc-number\">9</span>, <span class=\"opc-string\">\"foo\"</span>, sub = { name = <span class=\"opc-string\">\"name\"</span> }, })",
     },
     {
         "module": "curve",
@@ -117,7 +117,7 @@ const apirefs = [
         "syntax": "arcto(startangle, endangle, radius, clockwise)",
         "description": "create an arc segment for a curve",
         "details": "Create an arc segment for a curve. The segment must be added to a curve definition, which will be handed to geometry.curve(). An arc segment starts at the previous point of the curve (or the start point of the curve if it is the first segment). The arc segment is then defined by the 'startangle' and the 'endangle', both with respect to 0, which is defined pointing to the right. Additionally, the arc segment is defined by its 'radius'. The boolean 'clockwise' can be set to true, to get an arc in the other direction. If not given, the arc is defined counter-clockwise.",
-        "examples": "geometry.curve(cell,\n    generics.metal(1),\n    point.create(0, 0),\n    {\n        curve.arcto(180, 0, 1000, true),\n    }, grid, allow45\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.<span class=\"opc-module\">curve</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    {\n        <span class=\"opc-module\">curve</span>.arcto(<span class=\"opc-number\">180</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">1000</span>, true),\n    }, grid, allow45<span class=\"opc-number\">45</span>\n)",
     },
     {
         "module": "curve",
@@ -125,7 +125,7 @@ const apirefs = [
         "syntax": "cubicto(ctp1, ctp2, endpt)",
         "description": "create a cubic bezier segment for a curve",
         "details": "Create a cubic bezier segment for a curve. The segment must be added to a curve definition, which will be handed to geometry.curve(). A cubic segment starts at the previous point of the curve (or the start point of the curve if it is the first segment). The cubic segment is then defined by the (implicit) start point, the 'endpoint' (third parameter) and two control points 'cpt1' and 'cpt2'.",
-        "examples": "geometry.curve(cell,\n    generics.metal(1),\n    point.create(0, 0),\n    {\n        curve.cubicto(\n            point.create(0, 500),\n            point.create(500, 500),\n            point.create(500, 0)\n        ),\n    }, grid, allow45\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.<span class=\"opc-module\">curve</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    {\n        <span class=\"opc-module\">curve</span>.cubicto(\n            <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">500</span>),\n            <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">500</span>, <span class=\"opc-number\">500</span>),\n            <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">500</span>, <span class=\"opc-number\">0</span>)\n        ),\n    }, grid, allow45<span class=\"opc-number\">45</span>\n)",
     },
     {
         "module": "curve",
@@ -133,7 +133,7 @@ const apirefs = [
         "syntax": "lineto(point)",
         "description": "create a line segment for a curve",
         "details": "Create a line segment for a curve. The segment must be added to a curve definition, which will be handed to geometry.curve(). A line segment starts at the previous point of the curve (or the start point of the curve if it is the first segment). The line segment is then defined by the (implicit) start point and the 'point' (the next point given as parameter).",
-        "examples": "geometry.curve(cell,\n    generics.metal(1),\n    point.create(0, 0),\n    {\n        curve.lineto(point.create(1000, 1000)),\n    }, grid, allow45\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.<span class=\"opc-module\">curve</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    {\n        <span class=\"opc-module\">curve</span>.lineto(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">1000</span>, <span class=\"opc-number\">1000</span>)),\n    }, grid, allow45<span class=\"opc-number\">45</span>\n)",
     },
     {
         "module": "generics",
@@ -141,7 +141,7 @@ const apirefs = [
         "syntax": "metal(index)",
         "description": "create a metal layer",
         "details": "Create a generic layer representing a metal. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc.",
-        "examples": "generics.metal(1)\ngenerics.metal(-2)",
+        "examples": "<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>)\n<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(-<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "generics",
@@ -149,7 +149,7 @@ const apirefs = [
         "syntax": "mptmetal(index, maskindex)",
         "description": "create a metal layer with multiple-patterning support",
         "details": "Create a generic layer representing a metal with multiple-patterning (mpt) information. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc. The mask information is a numeric indix starting at 1. The number of available masks for the respective metal can be queried by technology.multiple_patterning_number(metalnumber). Whether a metal is a mpt metal can be queried by technology.has_multiple_patterning(metalnumber)",
-        "examples": "generics.mptmetal(1, 1)\ngenerics.mptmetal(1, 2)",
+        "examples": "<span class=\"opc-module\">generics</span>.mptmetal(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span>)\n<span class=\"opc-module\">generics</span>.mptmetal(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>)",
     },
     {
         "module": "generics",
@@ -157,7 +157,7 @@ const apirefs = [
         "syntax": "metalport(index)",
         "description": "create a metal port layer",
         "details": "Create a generic layer representing a metal port. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc.",
-        "examples": "generics.metalport(1)\ngenerics.metalport(-2)",
+        "examples": "<span class=\"opc-module\">generics</span>.metalport(<span class=\"opc-number\">1</span>)\n<span class=\"opc-module\">generics</span>.metalport(-<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "generics",
@@ -165,7 +165,7 @@ const apirefs = [
         "syntax": "metalfill(index)",
         "description": "create a metal fill layer",
         "details": "Create a generic layer representing a metal fill. Some technologies have special layer for metal fillings, but technology files can also map these to the same layers as generics.metal(). Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc.",
-        "examples": "generics.metalfill(1)\ngenerics.metalfill(-2)",
+        "examples": "<span class=\"opc-module\">generics</span>.metalfill(<span class=\"opc-number\">1</span>)\n<span class=\"opc-module\">generics</span>.metalfill(-<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "generics",
@@ -173,7 +173,7 @@ const apirefs = [
         "syntax": "mptmetalfill(index, maskindex)",
         "description": "create a metal fill layer with multiple-patterning support",
         "details": "Create a generic layer representing a metal fill shape with multiple-patterning (mpt) information. Some technologies have special layer for metal fillings, but technology files can also map these to the same layers as generics.metal(). Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc. The mask information is a numeric indix starting at 1. The number of available masks for the respective metal can be queried by technology.multiple_patterning_number(metalnumber). Whether a metal is a mpt metal can be queried by technology.has_multiple_patterning(metalnumber)",
-        "examples": "generics.mptmetal(1, 1)\ngenerics.mptmetal(1, 2)",
+        "examples": "<span class=\"opc-module\">generics</span>.mptmetal(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span>)\n<span class=\"opc-module\">generics</span>.mptmetal(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>)",
     },
     {
         "module": "generics",
@@ -181,7 +181,7 @@ const apirefs = [
         "syntax": "metalexclude(index)",
         "description": "create a metal fill exclude layer",
         "details": "Create a generic layer representing a metal exclude where automatic filling is blocked. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc.",
-        "examples": "generics.metalexclude(1)\ngenerics.metalexclude(-2)",
+        "examples": "<span class=\"opc-module\">generics</span>.metalexclude(<span class=\"opc-number\">1</span>)\n<span class=\"opc-module\">generics</span>.metalexclude(-<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "generics",
@@ -189,7 +189,7 @@ const apirefs = [
         "syntax": "viacut(m1index, m2index)",
         "description": "create a via cut layer between two metals",
         "details": "Create a generic layer representing a via cut. This does not calculate the right size for the via cuts. This function is rarely used directly. Via cuts are generated by geometry.via[bltr]. If you are using this function as a user, it is likely you are doing something wrong",
-        "examples": "generics.viacut(1, 2)",
+        "examples": "<span class=\"opc-module\">generics</span>.viacut(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>)",
     },
     {
         "module": "generics",
@@ -197,7 +197,7 @@ const apirefs = [
         "syntax": "contact(region)",
         "description": "create a contact layer between an FEOL and a BEOL layer",
         "details": "Create a generic layer representing a contact. This does not calculate the right size for the contact cuts. This function is rarely used directly. Contact cuts are generated by geometry.contact[bltr]. If you are using this function as a user, it is likely you are doing something wrong. Supported parameters for this function are 'active', 'poly', 'gate' and 'sourcedrain'.",
-        "examples": "generics.contact(\"gate\")",
+        "examples": "<span class=\"opc-module\">generics</span>.contact(<span class=\"opc-string\">\"gate\"</span>)",
     },
     {
         "module": "generics",
@@ -205,7 +205,7 @@ const apirefs = [
         "syntax": "oxide(index)",
         "description": "create an oxide thickness modification layer",
         "details": "Create a generic layer representing a marking layer for MOSFET gate oxide thickness (e.g. for core or I/O devices).",
-        "examples": "generics.oxide(2)",
+        "examples": "<span class=\"opc-module\">generics</span>.oxide(<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "generics",
@@ -213,7 +213,7 @@ const apirefs = [
         "syntax": "implant(polarity)",
         "description": "create an p-type or n-type implant layer",
         "details": "Create a generic layer representing MOSFET source/drain implant polarity.",
-        "examples": "generics.implant(\"n\")",
+        "examples": "<span class=\"opc-module\">generics</span>.implant(<span class=\"opc-string\">\"n\"</span>)",
     },
     {
         "module": "generics",
@@ -221,7 +221,7 @@ const apirefs = [
         "syntax": "well(polarity)",
         "description": "create an n-well or p-well layer",
         "details": "Create a generic layer representing a well.",
-        "examples": "generics.well(\"n\")",
+        "examples": "<span class=\"opc-module\">generics</span>.well(<span class=\"opc-string\">\"n\"</span>)",
     },
     {
         "module": "generics",
@@ -229,7 +229,7 @@ const apirefs = [
         "syntax": "vthtype(index)",
         "description": "Create a MOSFET threshold voltage modification layer",
         "details": "Create a generic layer representing MOSFET source/drain threshold voltage marking layers (a channel implant).",
-        "examples": "generics.vthtype(2)",
+        "examples": "<span class=\"opc-module\">generics</span>.vthtype(<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "generics",
@@ -237,7 +237,7 @@ const apirefs = [
         "syntax": "active()",
         "description": "Create an 'active' layer",
         "details": "Create a generic layer representing active area, for instance for mosfets.",
-        "examples": "generics.active()",
+        "examples": "<span class=\"opc-module\">generics</span>.active()",
     },
     {
         "module": "generics",
@@ -245,7 +245,7 @@ const apirefs = [
         "syntax": "gate()",
         "description": "Create a 'gate' layer",
         "details": "Create a generic layer representing gate area of mosfets.",
-        "examples": "generics.gate()",
+        "examples": "<span class=\"opc-module\">generics</span>.gate()",
     },
     {
         "module": "generics",
@@ -253,7 +253,7 @@ const apirefs = [
         "syntax": "feol(identifier)",
         "description": "create a generic front-end-of-line layer",
         "details": "Create a front-end-of-line layer. This is for layers that do not need special processing, such as \"silicideblocker\".",
-        "examples": "generics.feol(\"gate\")",
+        "examples": "<span class=\"opc-module\">generics</span>.feol(<span class=\"opc-string\">\"gate\"</span>)",
     },
     {
         "module": "generics",
@@ -261,7 +261,7 @@ const apirefs = [
         "syntax": "beol(identifier)",
         "description": "create a generic back-end-of-line layer",
         "details": "Create a back-end-of-line layer. This is for layers that do not need special processing, such as \"padopening\".",
-        "examples": "generics.beol(\"gate\")",
+        "examples": "<span class=\"opc-module\">generics</span>.beol(<span class=\"opc-string\">\"gate\"</span>)",
     },
     {
         "module": "generics",
@@ -269,7 +269,7 @@ const apirefs = [
         "syntax": "marker(type, level)",
         "description": "create a generic marker layer",
         "details": "Create a generic layer representing any marker (a non-physical layer).",
-        "examples": "generics.marker(\"inductor\")\ngenerics.marker(\"lvs\", 2)",
+        "examples": "<span class=\"opc-module\">generics</span>.marker(<span class=\"opc-string\">\"inductor\"</span>)\n<span class=\"opc-module\">generics</span>.marker(<span class=\"opc-string\">\"lvs\"</span>, <span class=\"opc-number\">2</span>)",
     },
     {
         "module": "generics",
@@ -277,7 +277,7 @@ const apirefs = [
         "syntax": "devicelabel(type)",
         "description": "create a generic device-marking layer",
         "details": "Create a generic device-marking layer (a non-physical layer, used for labels).",
-        "examples": "generics.devicelabel(\"resistancelevel2\")\ngenerics.marker(\"specialmosfet\")",
+        "examples": "<span class=\"opc-module\">generics</span>.devicelabel(<span class=\"opc-string\">\"resistancelevel2<span class=\"opc-number\">2</span>\"</span>)\n<span class=\"opc-module\">generics</span>.marker(<span class=\"opc-string\">\"specialmosfet\"</span>)",
     },
     {
         "module": "generics",
@@ -285,7 +285,7 @@ const apirefs = [
         "syntax": "exclude(identifier)",
         "description": "create a generic fill exclude layer",
         "details": "Create a generic layer representing an exclude where automatic filling is blocked.",
-        "examples": "generics.exclude(\"gate\")",
+        "examples": "<span class=\"opc-module\">generics</span>.exclude(<span class=\"opc-string\">\"gate\"</span>)",
     },
     {
         "module": "generics",
@@ -293,7 +293,7 @@ const apirefs = [
         "syntax": "fill(identifier)",
         "description": "create a generic fill layer",
         "details": "Create a generic layer representing a fill. Some technologies have special layer for fillings, but technology files can also map these to the same layers with their main purposes.",
-        "examples": "generics.fill(\"gate\")",
+        "examples": "<span class=\"opc-module\">generics</span>.fill(<span class=\"opc-string\">\"gate\"</span>)",
     },
     {
         "module": "generics",
@@ -301,7 +301,7 @@ const apirefs = [
         "syntax": "other(identifier)",
         "description": "create a generic 'anything' layer",
         "details": "Create a generic layer representing 'something else'. This is for layers that are special to the used technology node and should not be used for generic layout representation. It is best to avoid this layer as much as possible.",
-        "examples": "generics.other(\"somespecialfoundrylayer\")",
+        "examples": "<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"somespecialfoundrylayer\"</span>)",
     },
     {
         "module": "generics",
@@ -309,7 +309,7 @@ const apirefs = [
         "syntax": "otherport(identifier)",
         "description": "create a generic 'anything' port layer",
         "details": "Create a generic layer representing a port for 'something else'. This is for layers that are special to the used technology node and should not be used for generic layout representation. It is best to avoid this layer as much as possible.",
-        "examples": "generics.otherport(\"somespecialfoundrylayer\")",
+        "examples": "<span class=\"opc-module\">generics</span>.otherport(<span class=\"opc-string\">\"somespecialfoundrylayer\"</span>)",
     },
     {
         "module": "generics",
@@ -317,7 +317,7 @@ const apirefs = [
         "syntax": "outline()",
         "description": "create an outline layer",
         "details": "Create a generic layer representing a block outline.",
-        "examples": "generics.outline()",
+        "examples": "<span class=\"opc-module\">generics</span>.outline()",
     },
     {
         "module": "generics",
@@ -325,7 +325,7 @@ const apirefs = [
         "syntax": "special()",
         "description": "create a 'special' layer",
         "details": "Create a 'special' layer. This is used to mark certain things in layouts (usually for debugging, like anchors or alignment boxes). This is not intended to translate to any meaningful layer for fabrication",
-        "examples": "generics.special()",
+        "examples": "<span class=\"opc-module\">generics</span>.special()",
     },
     {
         "module": "generics",
@@ -333,7 +333,7 @@ const apirefs = [
         "syntax": "premapped(name, entries)",
         "description": "Create an already-mapped layer with technology-specific data",
         "details": "Create a non-generic layer from specific layer data for a certain technology. The entries table should contain one table per supported export. The supplied key-value pairs in this table must match the key-value pairs that are expected by the exportThis layer is mostly useful in auto-generated opc layouts, that are (for instance) generated from virtuoso. The virtuoso export or the GDS import modules uses these for representing layers where no semantic information is available.",
-        "examples": "generics.premapped(\"specialmetal\", { gds = { layer = 32, purpose = 17 }, SKILL = { layer = \"specialmetal\", purpose = \"drawing\" } })",
+        "examples": "<span class=\"opc-module\">generics</span>.premapped(\n    <span class=\"opc-string\">\"specialmetal\"</span>,\n    {\n         gds = { layer = <span class=\"opc-number\">32</span>, purpose = <span class=\"opc-number\">17</span> },\n         SKILL = { layer = <span class=\"opc-string\">\"specialmetal\"</span>, purpose = <span class=\"opc-string\">\"drawing\"</span> }\n    }\n)",
     },
     {
         "module": "geometry",
@@ -341,7 +341,7 @@ const apirefs = [
         "syntax": "rectanglebltr(cell, layer, bl, tr)",
         "description": "create a rectangular shape with the given corner points in cell",
         "details": "geometry.rectanglebltr creates a rectangle in a given cell with the specified layer and corner points. The order of the points should be bottom-left/top-right. This is checked in the function and an error is raised if the points are not given like that. If the exact ordering is unkonwn (for instance because the points are generated with some variation) geometry.rectanglepoints should be used.",
-        "examples": "<span>geometry</span>.rectanglebltr(cell,\n    generics.other(\"nwell\"),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\n\ngeometry.rectanglebltr(cell,\n    generics.metal(1),\n    obj:get_anchor(\"bottomleft\"),\n    obj:get_anchor(\"topright\")\n)\n\ngeometry.rectanglebltr(cell,\n    generics.metal(-1),\n    point.create(-100, -100),\n    point.create(100, 100)\n)\n",
+        "examples": "<span class=\"opc-module\">geometry</span>.<span class=\"opc-function\">rectanglebltr</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"nwell\"</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)\n)\n\n<span class=\"opc-module\">geometry</span>.<span class=\"opc-function\">rectanglebltr</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">obj</span>:<span class=\"opc-function\">get_anchor</span>(<span class=\"opc-string\">\"bottomleft\"</span>),\n    <span class=\"opc-module\">obj</span>:<span class=\"opc-function\">get_anchor</span>(<span class=\"opc-string\">\"topright\"</span>)\n)\n\n<span class=\"opc-module\">geometry</span>.<span class=\"opc-function\">rectanglebltr</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(-<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)\n)\n",
     },
     {
         "module": "geometry",
@@ -349,7 +349,7 @@ const apirefs = [
         "syntax": "rectangleblwh(cell, layer, bl, width, height)",
         "description": "create a rectangular shape with the given point and dimensions",
         "details": "Create a rectangular shape with the given bottom-left corner point and the width and height in cell",
-        "examples": "geometry.rectangleblwh(cell,\n    generics.other(\"nwell\"),\n    point.create(-100, -100),\n    200, 200\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.rectangleblwh(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"nwell\"</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>\n)",
     },
     {
         "module": "geometry",
@@ -357,7 +357,7 @@ const apirefs = [
         "syntax": "rectanglepoints(cell, layer, pt1, pt2)",
         "description": "create a rectangular shape with the given arbitrary corner points",
         "details": "Create a rectangular shape with the given corner points in cell. Similar to geometry.rectanglebltr, but any of the corner points can be given in any order",
-        "examples": "geometry.rectanglepoints(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100))",
+        "examples": "<span class=\"opc-module\">geometry</span>.rectanglepoints(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>))",
     },
     {
         "module": "geometry",
@@ -365,7 +365,7 @@ const apirefs = [
         "syntax": "rectangleareaanchor(cell, layer, anchor)",
         "description": "Create a rectangular shape on an area anchor of the given cell.",
         "details": "geometry.rectangleareaanchor creates a rectangle defined by an area anchor. This construct is often used in cell definitions, and can simplify the code.",
-        "examples": "geometry.rectangleareaanchor(cell,\n    generics.metal(1),\n    \"someanchor\"\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.rectangleareaanchor(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-string\">\"someanchor\"</span>\n)",
     },
     {
         "module": "geometry",
@@ -373,7 +373,7 @@ const apirefs = [
         "syntax": "rectanglepath(cell, layer, pt1, pt2, width, extension)",
         "description": "create a rectangle-lika path",
         "details": "Create a rectangular shape that is defined by its path-like endpoints. This function behaves like geometry.path, but takes only two points, not a list of points. This function likely will be removed in the future, use geometry.rectanglebltr or geometry.rectanglepoints",
-        "examples": "geometry.rectanglepath(cell,\n    generics.metal(1),\n    point.create(-100, 0),\n    point(100, 0),\n    50\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.rectanglepath(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">50</span>\n)",
     },
     {
         "module": "geometry",
@@ -381,7 +381,7 @@ const apirefs = [
         "syntax": "rectanglearray(cell, layer, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch)",
         "description": "create an array of rectangles",
         "details": "Create an array of rectangles with the given width, height, repetition and pitch in cell",
-        "examples": "geometry.rectanglebltr(cell,\n    generics.other(\"nwell\"),\n    100, 100, -- width, height\n    0, 0, -- xshift, yshift\n    10, 20, -- xrep, yrep\n    200, 200 -- xpitch, ypitch\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.<span class=\"opc-function\">rectanglebltr</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"nwell\"</span>),\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>, -- width, height\n    <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>, -- xshift, yshift\n    <span class=\"opc-number\">10</span>, <span class=\"opc-number\">20</span>, -- xrep, yrep\n    <span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span> -- xpitch, ypitch\n)",
     },
     {
         "module": "geometry",
@@ -389,7 +389,7 @@ const apirefs = [
         "syntax": "slotted_rectangle(cell, layer, bl, tr, slotwidth, slotheight, slotxspace, slotxspace, slotedgexspace, slotedgeyspace)",
         "description": "create a rectangle with slotting",
         "details": "Create a rectangle with slotting.",
-        "examples": "geometry.slotted_rectangle(cell,\n    generics.other(\"nwell\"),\n    point.create(-200, -2000),\n    point.create(200, 2000),\n    50, 50, -- slot width/height\n    50, 50, -- slot xspace/yspace\n    100, 100 -- slot edge xspace/yspace\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.slotted_rectangle(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"nwell\"</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">200</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-number\">50</span>, <span class=\"opc-number\">50</span>, -- slot width/height\n    <span class=\"opc-number\">50</span>, <span class=\"opc-number\">50</span>, -- slot xspace/yspace\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span> -- slot edge xspace/yspace\n)",
     },
     {
         "module": "geometry",
@@ -397,7 +397,7 @@ const apirefs = [
         "syntax": "rectanglevlines(cell, layer, pt1, pt2, numlines, ratio)",
         "description": "fill an area with vertical lines (defined by number of lines and width/space ratio)",
         "details": "Fill a rectangular area with vertical lines with a given ratio between width and spacing",
-        "examples": "geometry.rectanglevlines(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    8, 1 -- numlines, ratio\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.rectanglevlines(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n    <span class=\"opc-number\">8</span>, <span class=\"opc-number\">1</span> -- numlines, ratio\n)",
     },
     {
         "module": "geometry",
@@ -405,7 +405,7 @@ const apirefs = [
         "syntax": "rectanglevlines_width_space(cell, layer, pt1, pt2, numlines, width)",
         "description": "fill an area with vertical lines (defined by number of lines and line width)",
         "details": "Fill a rectangular area with a certain number of vertical lines with the given width. The spacing is calculated automatically.",
-        "examples": "geometry.rectanglevlines_numlines_width(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    4, 20 --numlines, width\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.rectanglevlines_numlines_width(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n    <span class=\"opc-number\">4</span>, <span class=\"opc-number\">20</span> --numlines, width\n)",
     },
     {
         "module": "geometry",
@@ -413,7 +413,7 @@ const apirefs = [
         "syntax": "rectanglevlines_width_space(cell, layer, pt1, pt2, width, space)",
         "description": "fill an area with vertical lines (defined by number of lines and line space)",
         "details": "Fill a rectangular area with vertical lines with the given width and spacing. The given numbers are only targets, in some cases they can't be matched exactly.",
-        "examples": "geometry.rectanglevlines_width_space(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    20, 20 -- width, space\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.rectanglevlines_width_space(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n    <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span> -- width, space\n)",
     },
     {
         "module": "geometry",
@@ -421,7 +421,7 @@ const apirefs = [
         "syntax": "rectanglevlines_settings(cell, layer, pt1, pt2, numlines, ratio)",
         "description": "caculate the parameters to fill an area with vertical lines (defined by number of lines and width/space ratio)",
         "details": "Calculate the geometries of vertical lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglevlines, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines = \n    geometry.rectanglevlines_settings(\n        point.create(-100, -100),\n        point(100, 100),\n        20, 1 -- numlines, ratio\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100 + offset, -100,\n    numlines, 1,\n    width + space, 0\n)",
+        "examples": "local width, height, space, offset, numlines = \n    <span class=\"opc-module\">geometry</span>.rectanglevlines_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n        <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">20</span>, <span class=\"opc-number\">1</span> -- numlines, ratio\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span> + offset, -<span class=\"opc-number\">100</span>,\n    numlines, <span class=\"opc-number\">1</span>,\n    width + space, <span class=\"opc-number\">0</span>\n)",
     },
     {
         "module": "geometry",
@@ -429,7 +429,7 @@ const apirefs = [
         "syntax": "rectanglevlines_numlines_width_settings(pt1, pt2, numlines, width)",
         "description": "calculate the parameters to fill an area with vertical lines (defined by number of lines and line width)",
         "details": "Calculate the geometries of vertical lines to fill a rectangular area with a given number of lines and width. The function returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_width_space_settings(\n        point.create(-100, -100),\n        point(100, 100),\n        4, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
+        "examples": "local width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_width_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n        <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">4</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
     },
     {
         "module": "geometry",
@@ -437,7 +437,7 @@ const apirefs = [
         "syntax": "rectanglevlines_width_space_settings(cell, layer, pt1, pt2, width, space)",
         "description": "calculate the parameters to fill an area with vertical lines (defined by number of lines and line space)",
         "details": "Calculate the geometries of vertical lines to fill a rectangular area with a given width and spacing. This function is like geometry.rectanglevlines_width_space, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines =\n    geometry.rectanglevlines_width_space_settings(\n        point.create(-100, -100),\n        point(100, 100),\n        20, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100 + offset, -100,\n    numlines, 1,\n    width + space, 0\n)",
+        "examples": "local width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglevlines_width_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n        <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span> + offset, -<span class=\"opc-number\">100</span>,\n    numlines, <span class=\"opc-number\">1</span>,\n    width + space, <span class=\"opc-number\">0</span>\n)",
     },
     {
         "module": "geometry",
@@ -445,7 +445,7 @@ const apirefs = [
         "syntax": "rectanglehlines(cell, layer, pt1, pt2, numlines, ratio)",
         "description": "fill an area with horizontal lines (defined by number of lines and width/space ratio)",
         "details": "Fill a rectangular area with horizontal lines with a given ratio between width and spacing",
-        "examples": "geometry.rectanglehlines(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    8, 1\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.rectanglehlines(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n    <span class=\"opc-number\">8</span>, <span class=\"opc-number\">1</span>\n)",
     },
     {
         "module": "geometry",
@@ -453,7 +453,7 @@ const apirefs = [
         "syntax": "rectanglehlines_height_space(cell, layer, pt1, pt2, height, space)",
         "description": "fill an area with horizontal lines (defined by number of lines and line height)",
         "details": "Fill a rectangular area with horizontal lines with the given height and spacing. The given numbers are only targets, in some cases they can't be matched exactly.",
-        "examples": "geometry.rectanglehlines_height_space(cell,\n    generics.metal(1),\n    point.create(100, -100),\n    point(-100, 100),\n    20, 20\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.rectanglehlines_height_space(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n    <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>\n)",
     },
     {
         "module": "geometry",
@@ -461,7 +461,7 @@ const apirefs = [
         "syntax": "rectanglehlines_settings(cell, layer, pt1, pt2, numlines, ratio)",
         "description": "calculate the parameters to fill an area with horizontal lines (defined by number of lines and width/space ratio)",
         "details": "Calculate the geometries of horizontal lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglehlines, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_settings(\n        point.create(-100, -100),\n         point(100, 100),\n         20, 1\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
+        "examples": "local width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n         <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n         <span class=\"opc-number\">20</span>, <span class=\"opc-number\">1</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
     },
     {
         "module": "geometry",
@@ -469,7 +469,7 @@ const apirefs = [
         "syntax": "rectanglehlines_height_space_settings(cell, layer, pt1, pt2, height, space)",
         "description": "calculate the parameters to fill an area with horizontal lines (defined by line height and line space)",
         "details": "Calculate the geometries of horizontal lines to fill a rectangular area with a given height and spacing. This function is like geometry.rectanglehlines_width_space, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_height_space_settings(\n        point.create(-100, -100),\n         point(100, 100),\n         20, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
+        "examples": "local width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_height_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n         <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n         <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
     },
     {
         "module": "geometry",
@@ -477,7 +477,7 @@ const apirefs = [
         "syntax": "rectanglehlines_numlines_height_settings(pt1, pt2, numlines, height)",
         "description": "calculate the parameters to fill an area with horizontal lines (defined by number of lines and line height)",
         "details": "Calculate the geometries of horizontal lines to fill a rectangular area with a given number of lines and height. The function returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines =\n    geometry.rectanglehlines_height_space_settings(\n        point.create(-100, -100),\n         point(100, 100),\n        4, 20\n)\ngeometry.rectanglearray(cell,\n    generics.metal(1),\n    width, height,\n    -100, -100 + offset,\n    1, numlines,\n    0, height + space\n)",
+        "examples": "local width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_height_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n         <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">4</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
     },
     {
         "module": "geometry",
@@ -485,7 +485,7 @@ const apirefs = [
         "syntax": "rectangle_fill_in_boundary(cell, layer, width, height, xpitch, ypitch, xstartshift, ystartshift, boundary, excludes)",
         "description": "fill a given boundary with regular rectangles",
         "details": "Fill a given boundary (a polygon) with rectangles of a given width and height. If given, the rectangles are not placed in the regions defined by the exclude rectangles. Optionally, binary (fill or no fill) excludes can be given, where no fill is placed. This should be a table containing polygons, which can (for instance) be fetched from cells by object:get_boundary().",
-        "examples": "geometry.rectangle_fill_in_boundary(\n    cell,\n     generics.metal(1),\n     100, 100,\n     200, 200,\n     {\n        point.create(-10000, -10000),\n        point.create(10000, -10000),\n        point.create(10000, 10000),\n        point.create(-10000, 10000)\n    },\n     {\n        util.rectangle_to_polygon(\n            point.create(1000, 1000),\n            point.create(2000, 2000)\n        )\n    }\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.rectangle_fill_in_boundary(\n    cell,\n     <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n     <span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>,\n     <span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>,\n     {\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>)\n    },\n     {\n        <span class=\"opc-module\">util</span>.rectangle_to_polygon(\n            <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">1000</span>, <span class=\"opc-number\">1000</span>),\n            <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>)\n        )\n    }\n)",
     },
     {
         "module": "geometry",
@@ -493,7 +493,7 @@ const apirefs = [
         "syntax": "polygon(cell, layer, pts)",
         "description": "create a polygon shape",
         "details": "Create a polygon shape with the given points in cell",
-        "examples": "geometry.polygon(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 0),\n        point.create(0, 50)\n    }\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.polygon(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    {\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">50</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">50</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">50</span>)\n    }\n)",
     },
     {
         "module": "geometry",
@@ -501,7 +501,7 @@ const apirefs = [
         "syntax": "path(cell, layer, pts, width, extension)",
         "description": "create a path shape",
         "details": "Create a path shape with the given points and width in cell",
-        "examples": "geometry.path(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 0),\n        point.create(50, 50)\n    }\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    {\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">50</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">50</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">50</span>, <span class=\"opc-number\">50</span>)\n    }\n)",
     },
     {
         "module": "geometry",
@@ -509,7 +509,7 @@ const apirefs = [
         "syntax": "path_polygon(cell, layer, pts, width, extension)",
         "description": "create a path shape (polygon outline)",
         "details": "Like geometry.path, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_polygon(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 0),\n        point.create(50, 50)\n    }\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_polygon(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    {\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">50</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">50</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">50</span>, <span class=\"opc-number\">50</span>)\n    }\n)",
     },
     {
         "module": "geometry",
@@ -517,7 +517,7 @@ const apirefs = [
         "syntax": "path_manhatten(cell, layer, pts, width, extension)",
         "description": "create a rectilinear path shape",
         "details": "Create a manhatten path shape with the given points and width in cell. This only allows vertical or horizontal movements",
-        "examples": "geometry.path_manhatten(cell,\n    generics.metal(1),\n    {\n        point.create(-50, 0),\n        point.create(50, 50)\n    }\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_manhatten(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    {\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">50</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">50</span>, <span class=\"opc-number\">50</span>)\n    }\n)",
     },
     {
         "module": "geometry",
@@ -525,7 +525,7 @@ const apirefs = [
         "syntax": "path_2x(cell, layer, ptstart, ptend, width)",
         "description": "create a rectilinear path shape defined by two points (x-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in y-direction (similar to an 'L')",
-        "examples": "geometry.path_2x(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_2x<span class=\"opc-number\">2x</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>)\n)",
     },
     {
         "module": "geometry",
@@ -533,7 +533,7 @@ const apirefs = [
         "syntax": "path_2x_polygon(cell, layer, ptstart, ptend, width)",
         "description": "create a rectilinear path shape defined by two points (x-direction first) (polygon outline)",
         "details": "Like geometry.path_2x, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_2x_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_2x_polygon<span class=\"opc-number\">2x_polygon</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>)\n)",
     },
     {
         "module": "geometry",
@@ -541,7 +541,7 @@ const apirefs = [
         "syntax": "path_2y(cell, layer, ptstart, ptend, width)",
         "description": "create a rectilinear path shape defined by two points (y-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction (similar to an capital greek gamma)",
-        "examples": "geometry.path_2y(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_2y<span class=\"opc-number\">2y</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>)\n)",
     },
     {
         "module": "geometry",
@@ -549,7 +549,7 @@ const apirefs = [
         "syntax": "path_2y_polygon(cell, layer, ptstart, ptend, width)",
         "description": "create a rectilinear path shape defined by two points (y-direction first) (polygon outline)",
         "details": "Like geometry.path_2y, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_2y_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200)\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_2y_polygon<span class=\"opc-number\">2y_polygon</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>)\n)",
     },
     {
         "module": "geometry",
@@ -557,7 +557,7 @@ const apirefs = [
         "syntax": "path_3x(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a rectilinear path shape defined by three points (x-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in y-direction. Different from path_2x this make a bend in the middle between the start and the end point. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "examples": "geometry.path_3x(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_3x<span class=\"opc-number\">3x</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>),\n    <span class=\"opc-number\">0</span>.<span class=\"opc-number\">5</span>\n)",
     },
     {
         "module": "geometry",
@@ -565,7 +565,7 @@ const apirefs = [
         "syntax": "path_3x_polygon(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a rectilinear path shape defined by three points (x-direction first) (polygon outline)",
         "details": "Like geometry.path_3x, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_3x_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_3x_polygon<span class=\"opc-number\">3x_polygon</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>),\n    <span class=\"opc-number\">0</span>.<span class=\"opc-number\">5</span>\n)",
     },
     {
         "module": "geometry",
@@ -573,7 +573,7 @@ const apirefs = [
         "syntax": "path_3x_diagonal(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a path shape defined by three points with a diagonal segment (x-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in x-direction. Different from path_3x the middle segment is diagonal. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "examples": "geometry.path_3x_diagonal(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_3x_diagonal<span class=\"opc-number\">3x_diagonal</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>),\n    <span class=\"opc-number\">0</span>.<span class=\"opc-number\">5</span>\n)",
     },
     {
         "module": "geometry",
@@ -581,7 +581,7 @@ const apirefs = [
         "syntax": "path_3x_diagonal_polygon(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a path shape defined by three points with a diagonal segment (x-direction first) (polygon outline)",
         "details": "Like geometry.path_3x_diagonal_polygon, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_3x_diagonal_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_3x_diagonal_polygon<span class=\"opc-number\">3x_diagonal_polygon</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>),\n    <span class=\"opc-number\">0</span>.<span class=\"opc-number\">5</span>\n)",
     },
     {
         "module": "geometry",
@@ -589,7 +589,7 @@ const apirefs = [
         "syntax": "path_3y(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a rectilinear path shape defined by three points (y-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction. Different from path_2x this make a bend in the middle between the start and the end point. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "examples": "geometry.path_3y(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_3y<span class=\"opc-number\">3y</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>),\n    <span class=\"opc-number\">0</span>.<span class=\"opc-number\">5</span>\n)",
     },
     {
         "module": "geometry",
@@ -597,7 +597,7 @@ const apirefs = [
         "syntax": "path_3y_polygon(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a rectilinear path shape defined by three points (y-direction first) (polygon outline)",
         "details": "Like geometry.path_3y, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_3y_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_3y_polygon<span class=\"opc-number\">3y_polygon</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>),\n    <span class=\"opc-number\">0</span>.<span class=\"opc-number\">5</span>\n)",
     },
     {
         "module": "geometry",
@@ -605,7 +605,7 @@ const apirefs = [
         "syntax": "path_3y_diagonal(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a path shape defined by three points with a diagonal segment (y-direction first)",
         "details": "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction. Different from path_3y the middle segment is diagonal. The position factor influences where the middle point lies. It is a linear interpolation between the start- and the end-point, with a factor of 0.5 leading to exactly the middle. Values closer to 0 shift this point to the beginning, values closer to 1 shift this point to the end.",
-        "examples": "geometry.path_3y_diagonal(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_3y_diagonal<span class=\"opc-number\">3y_diagonal</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>),\n    <span class=\"opc-number\">0</span>.<span class=\"opc-number\">5</span>\n)",
     },
     {
         "module": "geometry",
@@ -613,7 +613,7 @@ const apirefs = [
         "syntax": "path_3y_diagonal_polygon(cell, layer, ptstart, ptend, width, position, extension)",
         "description": "create a path shape defined by three points with a diagonal segment (y-direction first) (polygon outline)",
         "details": "Like geometry.path_3y_diagonal, but create a polygon with the outline of the path, not the actual path. From a physical standpoint, the result is the same.",
-        "examples": "geometry.path_3y_diagonal_polygon(cell,\n    generics.metal(2),\n    point.create(0, 0),\n    point.create(200, 200),\n    0.5\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_3y_diagonal_polygon<span class=\"opc-number\">3y_diagonal_polygon</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>),\n    <span class=\"opc-number\">0</span>.<span class=\"opc-number\">5</span>\n)",
     },
     {
         "module": "geometry",
@@ -621,7 +621,7 @@ const apirefs = [
         "syntax": "path_cshape(cell, layer, ptstart, ptend, ptoffset, width)",
         "description": "create a path shape defined by three points, resembling a 'c' shape",
         "details": "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the x-coordinate of the offset point is taken, creating a shape resembling a (possibly inverted) 'C'",
-        "examples": "geometry.path_cshape(cell,\n    generics.metal(1),\n    point.create(-50, 50),\n    point.create(-50, -50),\n    point.create(100, 0)\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_cshape(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">50</span>, <span class=\"opc-number\">50</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">50</span>, -<span class=\"opc-number\">50</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>)\n)",
     },
     {
         "module": "geometry",
@@ -629,7 +629,7 @@ const apirefs = [
         "syntax": "path_ushape(cell, layer, ptstart, ptend, ptoffset, width)",
         "description": "create a path shape defined by three points, resembling a 'u' shape",
         "details": "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the y-coordinate of the offset point is taken, creating a shape resembling a (possibly inverted) 'U'",
-        "examples": "geometry.path_ushape(cell,\n    generics.metal(1),\n    point.create(-50, 0),\n    point.create(50, 0),\n    point.create(0, 100)\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path_ushape(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">50</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">50</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">100</span>)\n)",
     },
     {
         "module": "geometry",
@@ -637,7 +637,7 @@ const apirefs = [
         "syntax": "path_points_xy(ptstart, pts)",
         "description": "create a list of points for geometry.path based on various given specifications (x-first variant)",
         "details": "Create a point list for use in geometry.path that contains only horizontal and vertical movements based on a list of points or scalars. This function only creates the resulting list of points, no shapes by itself. A movement can be a point, in which case two resulting movements are created: first x, than y (or vice versa, depending on the current state). A scalar movement moves relatively by that amount (in x or y, again depending on the state) This function does the same as geometry.path_points_yx, but starts in x-direction",
-        "examples": "geometry.path(cell,\n    generics.metal(2),\n    geometry.path_points_xy(point.create(0, 0), {\n    100, -- move 100 to the right\n    100, -- move 200 upwards\n    0, -- don't move, but switch direction\n    point.create(300, 300) -- move to (300, 300)\n    }), 100\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">geometry</span>.path_points_xy(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), {\n    <span class=\"opc-number\">100</span>, -- move <span class=\"opc-number\">100</span> to the right\n    <span class=\"opc-number\">100</span>, -- move <span class=\"opc-number\">200</span> upwards\n    <span class=\"opc-number\">0</span>, -- don'<span class=\"opc-module\">t</span> move, but switch direction\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">300</span>, <span class=\"opc-number\">300</span>) -- move to (<span class=\"opc-number\">300</span>, <span class=\"opc-number\">300</span>)\n    }), <span class=\"opc-number\">100</span>\n)",
     },
     {
         "module": "geometry",
@@ -645,7 +645,7 @@ const apirefs = [
         "syntax": "path_points_yx(ptstart, pts)",
         "description": "create a list of points for geometry.path based on various given specifications (y-first variant)",
         "details": "Create a point list for use in geometry.path that contains only horizontal and vertical movements based on a list of points or scalars. This function only creates the resulting list of points, no shapes by itself. A movement can be a point, in which case two resulting movements are created: first x, than y (or vice versa, depending on the current state). A scalar movement moves relatively by that amount (in x or y, again depending on the state) This function does the same as geometry.path_points_xy, but starts in y-direction",
-        "examples": "geometry.path(cell,\n    generics.metal(2),\n    geometry.path_points_yx(point.create(0, 0), {\n        100, -- move 100 to the right\n        100, -- move 200 upwards\n        0, -- don't move, but switch direction\n        point.create(300, 300) -- move to (300, 300)\n    }), 100\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.path(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">geometry</span>.path_points_yx(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), {\n        <span class=\"opc-number\">100</span>, -- move <span class=\"opc-number\">100</span> to the right\n        <span class=\"opc-number\">100</span>, -- move <span class=\"opc-number\">200</span> upwards\n        <span class=\"opc-number\">0</span>, -- don'<span class=\"opc-module\">t</span> move, but switch direction\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">300</span>, <span class=\"opc-number\">300</span>) -- move to (<span class=\"opc-number\">300</span>, <span class=\"opc-number\">300</span>)\n    }), <span class=\"opc-number\">100</span>\n)",
     },
     {
         "module": "geometry",
@@ -653,7 +653,7 @@ const apirefs = [
         "syntax": "check_viabltr(firstmetal, lastmetal, bl, tr, properties)",
         "description": "check whether a via can be created",
         "details": "Check whether a via can be created. This is essentially a dry-run of geometry.viabltr(). It is useful for cells that (for instance) place vias on the intersections of vertical and horizontal powerlines with non-matching pitch. Here it can occur that a via is built only on a partial overlap, making the creation fail. As this does not actually create a via, a cell as target is not present as function parameter. The properties table is the same as for geometry.viabltr()",
-        "examples": "geometry.check_viabltr(1, 3,\n    point.create(-100, -20),\n    point.create(100, 20)\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.check_viabltr(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>)\n)",
     },
     {
         "module": "geometry",
@@ -661,7 +661,7 @@ const apirefs = [
         "syntax": "check_viabltrov(firstmetal, lastmetal, bl1, tr1, bl2, tr2)",
         "description": "check whether an overlap via can be created",
         "details": "Check whether an overlap via can be created. This is essentially a dry-run of geometry.viabltrov(). It is useful for cells that (for instance) place vias on the intersections of vertical and horizontal powerlines with non-matching pitch. Here it can occur that a via is built only on a partial overlap, making the creation fail. As this does not actually create a via, a cell as target is not present as function parameter.",
-        "examples": "geometry.check_viabltrov(1, 3,\n    point.create(-100, -20),\n    point.create(100, 20),\n    point.create(-20, -100),\n    point.create(20, 100)\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.check_viabltrov(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">20</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">100</span>)\n)",
     },
     {
         "module": "geometry",
@@ -669,7 +669,7 @@ const apirefs = [
         "syntax": "calculate_viabltr(firstmetal, lastmetal, bl, tr, properties)",
         "description": "calculate via arrayzation in an area",
         "details": "Calculates possible via arrayzation in an area and returns a table with the results. Internally, the same functions as for direct creation of vias is used, so the same results can be obtained. The table contains tables with the following items (one per solution): \"layer\" (the via cut layer), \"width\" and \"height\" of the to-be-drawn cuts, \"xrep\" and \"yrep\" (repetition in x and y of the cuts), \"xspace\" and \"yspace\" (spacing of the contacts), and \"xoffset\" and \"yoffset\" (x/y offset with regard to array placement, for instance for geometry.rectanglearray)",
-        "examples": "local via = geometry.calculate_viabltr(1, 3, point.create(-100, -20), point.create(100, 20))",
+        "examples": "local via = <span class=\"opc-module\">geometry</span>.calculate_viabltr(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>))",
     },
     {
         "module": "geometry",
@@ -677,7 +677,7 @@ const apirefs = [
         "syntax": "calculate_viabltr(firstmetal, lastmetal, bl1, tr1, bl2, tr2, properties)",
         "description": "calculate via arrayzation in an area (via2 support)",
         "details": "Calculates possible via arrayzation in an area and returns a table with the results. Internally, the same functions as for direct creation of vias is used, so the same results can be obtained. The table contains tables with the following items (one per solution): \"layer\" (the via cut layer), \"width\" and \"height\" of the to-be-drawn cuts, \"xrep\" and \"yrep\" (repetition in x and y of the cuts), \"xspace\" and \"yspace\" (spacing of the contacts), and \"xoffset\" and \"yoffset\" (x/y offset with regard to array placement, for instance for geometry.rectanglearray). This function is like viabltr2, where two regions are given, with possibly-different sizes. Note though that only consecutive metals can be given (with a difference of 1).",
-        "examples": "local via = geometry.calculate_viabltr(1, 3, point.create(-100, -20), point.create(100, 20))",
+        "examples": "local via = <span class=\"opc-module\">geometry</span>.calculate_viabltr(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>))",
     },
     {
         "module": "geometry",
@@ -685,7 +685,7 @@ const apirefs = [
         "syntax": "viabltr(cell, firstmetal, lastmetal, bl, tr, debugstring, options)",
         "description": "create vias in a rectangular area (bottom-left/top-right)",
         "details": "Create vias (single or stack) in a rectangular area with the given corner points in cell. Special properties can be passed to the via generation function: 'xcontinuous' (create vias that can be abutted in x-direction, boolean), 'ycontinuous' (create vias that can be abutted in y-direction, boolean), 'minxspace' (minimum x space), 'minyspace' (minimum y space), 'equal_pitch' (use equal spacing in both x- and y-direction, boolean) and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. This is useful to solve DRC issues. Numeric parameter)",
-        "examples": "geometry.viabltr(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabltr(cell, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>))",
     },
     {
         "module": "geometry",
@@ -693,7 +693,7 @@ const apirefs = [
         "syntax": "viapoints(cell, firstmetal, lastmetal, pt1, pt2, debugstring, options)",
         "description": "create vias in a rectangular area (arbitrary corners)",
         "details": "Create vias (single or stack) in a rectangular area with the given corner points in cell. Similar to geometry.rectanglepoints, the order o the points does not matter, any corner points of the rectangle can be given. Special properties can be passed to the via generation function: 'xcontinuous' (create vias that can be abutted in x-direction, boolean), 'ycontinuous' (create vias that can be abutted in y-direction, boolean), 'minxspace' (minimum x space), 'minyspace' (minimum y space), 'equal_pitch' (use equal spacing in both x- and y-direction, boolean) and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. This is useful to solve DRC issues. Numeric parameter)",
-        "examples": "geometry.viapoints(cell, 1, 3, point.create(100, 20), point.create(-100, -20))",
+        "examples": "<span class=\"opc-module\">geometry</span>.viapoints(cell, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>))",
     },
     {
         "module": "geometry",
@@ -701,7 +701,7 @@ const apirefs = [
         "syntax": "viabltr(cell, firstmetal, lastmetal, bl1, tr1, bl2, tr2, debugstring, options)",
         "description": "create vias in a rectangular area (bottom-left/top-right) (via2 variant)",
         "details": "Create vias (single or stack) in a rectangular area with the given corner points in cell. Two regions are given, one for each metal. This allows vias with tighter spacing, as lower metals might require less enclosure around the via cuts. The usage of this function only makes sense if contacts are defined with '[x/y]enclosure[1/2], instead of unnumbered enclosures. Special properties can be passed to the via generation function: 'minxspace' (minimum x space), 'minyspace' (minimum y space), and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. This is useful to solve DRC issues. Numeric parameter)",
-        "examples": "geometry.viabltr2(cell, 1, 3, point.create(-100, -20), point.create(100, 20), point.create(-150, -50), point.create(150, 50))",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabltr2<span class=\"opc-number\">2</span>(cell, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">150</span>, -<span class=\"opc-number\">50</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">150</span>, <span class=\"opc-number\">50</span>))",
     },
     {
         "module": "geometry",
@@ -709,7 +709,7 @@ const apirefs = [
         "syntax": "viabarebltr(cell, firstmetal, lastmetal, bl, tr, debugstring, options)",
         "description": "create vias in a rectangular area (bottom-left/top-right) (no-metal variant)",
         "details": "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function is like viabltr, but no metals are drawn",
-        "examples": "geometry.viabarebltr(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabarebltr(cell, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>))",
     },
     {
         "module": "geometry",
@@ -717,7 +717,7 @@ const apirefs = [
         "syntax": "viabltr_xcontinuous(cell, firstmetal, lastmetal, bl, tr, debugstring, options)",
         "description": "create vias in a rectangular area (bottom-left/top-right) (x-continuous variant)",
         "details": "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in x-direction. For this, the space between cuts and the surroundings are equalized",
-        "examples": "geometry.viabltr_xcontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabltr_xcontinuous(cell, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>))",
     },
     {
         "module": "geometry",
@@ -725,7 +725,7 @@ const apirefs = [
         "syntax": "viabltr_ycontinuous(cell, firstmetal, lastmetal, bl, tr, debugstring, options)",
         "description": "create vias in a rectangular area (bottom-left/top-right) (y-continuous variant)",
         "details": "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in y-direction. For this, the space between cuts and the surroundings are equalized",
-        "examples": "geometry.viabltr_ycontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabltr_ycontinuous(cell, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>))",
     },
     {
         "module": "geometry",
@@ -733,7 +733,7 @@ const apirefs = [
         "syntax": "viabltr_continuous(cell, firstmetal, lastmetal, bl, tr, debugstring, options)",
         "description": "create vias in a rectangular area (bottom-left/top-right) (xy-continuous variant)",
         "details": "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in both x- and y-direction. For this, the space between cuts and the surroundings are equalized",
-        "examples": "geometry.viabltr_continuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabltr_continuous(cell, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>))",
     },
     {
         "module": "geometry",
@@ -741,7 +741,7 @@ const apirefs = [
         "syntax": "viabarebltr_xcontinuous(cell, firstmetal, lastmetal, bl, tr, debugstring, options)",
         "description": "create vias in a rectangular area (bottom-left/top-right) (x-continuous no-metal variant)",
         "details": "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in x-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_xcontinuous, but no metals are drawn",
-        "examples": "geometry.viabltr_xcontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabltr_xcontinuous(cell, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>))",
     },
     {
         "module": "geometry",
@@ -749,7 +749,7 @@ const apirefs = [
         "syntax": "viabarebltr_ycontinuous(cell, firstmetal, lastmetal, bl, tr, debugstring, options)",
         "description": "create vias in a rectangular area (bottom-left/top-right) (y-continuous no-metal variant)",
         "details": "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in y-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_ycontinuous, but no metals are drawn",
-        "examples": "geometry.viabltr_ycontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabltr_ycontinuous(cell, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>))",
     },
     {
         "module": "geometry",
@@ -757,7 +757,7 @@ const apirefs = [
         "syntax": "viabarebltr_continuous(cell, firstmetal, lastmetal, bl, tr, debugstring, options)",
         "description": "create vias in a rectangular area (bottom-left/top-right) (xy-continuous no-metal variant)",
         "details": "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in both x- and y-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_continuous, but no metals are drawn",
-        "examples": "geometry.viabltr_continuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabltr_continuous(cell, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>))",
     },
     {
         "module": "geometry",
@@ -765,7 +765,7 @@ const apirefs = [
         "syntax": "viabltrov(cell, firstmetal, lastmetal, bl1, tr1, bl2, tr2, debugstring)",
         "description": "create overlap via",
         "details": "Create vias defined by the overlap of two rectangular areas. The typical usage is to define a overlap region by vertical and horizontal metal strips. With this approach metal enclosure rules can be satisfied for both metal layers, even though the overlap is technically too small to allow for via generation (where geometry.viabltr would fail). This allows for vias in highly constrained regions, but it is more restrictive than the geometry.viabltr family. It does not support any of the additional parameters (e.g. xcontinuous).",
-        "examples": "geometry.viabltrov(cell,\n    1, 2,\n    point.create(-20, -100),\n    point.create(20, 100)\n    point.create(-100, -20)\n    point.create(100, 20)\n)\n-- throws an error:\ngeometry.viabltrov(cell,\n    1, 3,\n    point.create(-20, -100),\n    point.create(20, 100)\n    point.create(-100, -20)\n    point.create(100, 20)\n)\n",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabltrov(cell,\n    <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">20</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">100</span>)\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>)\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>)\n)\n-- throws an error:\n<span class=\"opc-module\">geometry</span>.viabltrov(cell,\n    <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">20</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">100</span>)\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>)\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>)\n)\n",
     },
     {
         "module": "geometry",
@@ -773,7 +773,7 @@ const apirefs = [
         "syntax": "viabarebltrov(cell, firstmetal, lastmetal, bl1, tr1, bl2, tr2, debugstring)",
         "description": "create overlap via (no-metal variant)",
         "details": "Like viabltrov, but only create via cuts, not the metals.",
-        "examples": "geometry.viabarebltrov(cell,\n    1, 2,\n    point.create(-20, -100),\n    point.create(20, 100)\n    point.create(-100, -20)\n    point.create(100, 20)\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabarebltrov(cell,\n    <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">20</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">100</span>)\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>)\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>)\n)",
     },
     {
         "module": "geometry",
@@ -781,7 +781,7 @@ const apirefs = [
         "syntax": "viabltr(cell, firstmetal, lastmetal, bl1, tr1, bl2, tr2, debugstring, options)",
         "description": "create via in an area (via2 support, no-metal variant)",
         "details": "Like geometry.viabltr2, but only create the via cuts, not the metal regions.",
-        "examples": "geometry.viabarebltr2(cell, 1, 3, point.create(-100, -20), point.create(100, 20), point.create(-150, -50), point.create(150, 50))",
+        "examples": "<span class=\"opc-module\">geometry</span>.viabarebltr2<span class=\"opc-number\">2</span>(cell, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">150</span>, -<span class=\"opc-number\">50</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">150</span>, <span class=\"opc-number\">50</span>))",
     },
     {
         "module": "geometry",
@@ -789,7 +789,7 @@ const apirefs = [
         "syntax": "contactbltr(cell, region, bl, tr, debugstring, options)",
         "description": "create contact in an area (bottom-left/top-right)",
         "details": "Create contacts in a rectangular area with the given corner points in cell",
-        "examples": "geometry.contactbltr(cell, \"sourcedrain\", point.create(-20, -250), point.create(20, 500))",
+        "examples": "<span class=\"opc-module\">geometry</span>.contactbltr(cell, <span class=\"opc-string\">\"sourcedrain\"</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">20</span>, -<span class=\"opc-number\">250</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">500</span>))",
     },
     {
         "module": "geometry",
@@ -797,7 +797,7 @@ const apirefs = [
         "syntax": "contactbltrov(cell, region, bl1, tr1, bl2, tr2, debugstring)",
         "description": "create overlap contact in an area (bottom-left/top-right)",
         "details": "Create contacts defined by the overlap of two rectangular areas. With this approach enclosure rules can be satisfied for both layers (FEOL and metal), even though the overlap is technically too small to allow for contact generation (where geometry.contactbltr would fail). This allows for contacts in highly constrained regions, but it is more restrictive than the geometry.contactbltr family. This function does not support any of the additional parameters (e.g. xcontinuous).",
-        "examples": "geometry.contactbltrov(cell,\n    \"gate\",\n    point.create(-20, -100),\n    point.create(20, 100)\n    point.create(-100, -20)\n    point.create(100, 20)\n)\n",
+        "examples": "<span class=\"opc-module\">geometry</span>.contactbltrov(cell,\n    <span class=\"opc-string\">\"gate\"</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">20</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">100</span>)\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>)\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>)\n)\n",
     },
     {
         "module": "geometry",
@@ -805,7 +805,7 @@ const apirefs = [
         "syntax": "contactbltr2(cell, region, bl1, tr1, bl2, tr2, debugstring, options)",
         "description": "create overlap contact in an area (bottom-left/top-right) (contact2 variant)",
         "details": "Create contacts in a rectangular area with the given corner points in cell. This function supports unequal target regions for the FEOL layer and the metal 1 layer. The usage of this function only makes sense if contacts are defined with '[x/y]enclosure[1/2], instead of unnumbered enclosures.",
-        "examples": "geometry.contactbltr2(cell, \"sourcedrain\", point.create(-20, -250), point.create(20, 500), point.create(-10, -220), point.create(10, 400))",
+        "examples": "<span class=\"opc-module\">geometry</span>.contactbltr2<span class=\"opc-number\">2</span>(cell, <span class=\"opc-string\">\"sourcedrain\"</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">20</span>, -<span class=\"opc-number\">250</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">500</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10</span>, -<span class=\"opc-number\">220</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10</span>, <span class=\"opc-number\">400</span>))",
     },
     {
         "module": "geometry",
@@ -813,7 +813,7 @@ const apirefs = [
         "syntax": "contactbarebltr(cell, region, bl, tr, debugstring, options)",
         "description": "create overlap contact in an area (bottom-left/top-right) (no-metal/no-FEOL variant)",
         "details": "Create contacts in a rectangular area with the given corner points in cell. This function creates 'bare' contacts, so only the cut layers, no surrouning metals or semi-conductor layers",
-        "examples": "geometry.contactbarebltr(cell, \"sourcedrain\", point.create(-20, -250), point.create(20, 500))",
+        "examples": "<span class=\"opc-module\">geometry</span>.contactbarebltr(cell, <span class=\"opc-string\">\"sourcedrain\"</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">20</span>, -<span class=\"opc-number\">250</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">500</span>))",
     },
     {
         "module": "geometry",
@@ -821,7 +821,7 @@ const apirefs = [
         "syntax": "cross(cell, layer, width, height, crosssize)",
         "description": "create a cross shape",
         "details": "Create a cross shape in the given cell. The cross is made up by two overlapping rectangles in horizontal and in vertical direction.",
-        "examples": "geometry.cross(cell, generics.metal(2), 1000, 1000, 100)",
+        "examples": "<span class=\"opc-module\">geometry</span>.cross(cell, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>), <span class=\"opc-number\">1000</span>, <span class=\"opc-number\">1000</span>, <span class=\"opc-number\">100</span>)",
     },
     {
         "module": "geometry",
@@ -829,7 +829,7 @@ const apirefs = [
         "syntax": "unequal_ring_pts(cell, layer, outerbl, outertr, innerbl, innertr)",
         "description": "create a ring shape with unequal ring widths (corner-point variant)",
         "details": "Create a ring shape with unequal ring widths in the given cell, defined by the corner points",
-        "examples": "geometry.unequal_ring_pts(cell, generics.other(\"nwell\"), point.create(-1000, -1000), point.create(1000, 1000), point.create(-800, -800), point.create(800, 800))",
+        "examples": "<span class=\"opc-module\">geometry</span>.unequal_ring_pts(cell, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"nwell\"</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">1000</span>, -<span class=\"opc-number\">1000</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">1000</span>, <span class=\"opc-number\">1000</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">800</span>, -<span class=\"opc-number\">800</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">800</span>, <span class=\"opc-number\">800</span>))",
     },
     {
         "module": "geometry",
@@ -837,7 +837,7 @@ const apirefs = [
         "syntax": "unequal_ring(cell, layer, center, width, height, leftringwidth, rightringwidth, topringwidth, bottomringwidth)",
         "description": "create a ring shape with unequal ring widths",
         "details": "Create a ring shape with unequal ring widths in the given cell",
-        "examples": "geometry.unequal_ring(cell, generics.other(\"nwell\"), point.create(0, 0), 2000, 2000, 100, 80, 20, 20)",
+        "examples": "<span class=\"opc-module\">geometry</span>.unequal_ring(cell, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"nwell\"</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>, <span class=\"opc-number\">100</span>, <span class=\"opc-number\">80</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>)",
     },
     {
         "module": "geometry",
@@ -845,7 +845,7 @@ const apirefs = [
         "syntax": "ring(cell, layer, center, width, height, ringwidth)",
         "description": "create a ring shape with equal ring widths",
         "details": "Create a ring shape width equal ring widths in the given cell. Like geometry.unequal_ring, but all widths are the same",
-        "examples": "geometry.ring(cell, generics.other(\"nwell\"), point.create(0, 0), 2000, 2000, 100)",
+        "examples": "<span class=\"opc-module\">geometry</span>.ring(cell, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"nwell\"</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>, <span class=\"opc-number\">100</span>)",
     },
     {
         "module": "geometry",
@@ -853,7 +853,7 @@ const apirefs = [
         "syntax": "curve(cell, layer, origin, segments, grid, allow45)",
         "description": "create a curve",
         "details": "Create a curve shape width in the given cell. Segments must be added for a curve to be meaningful. See the functions for adding curve segments: curve.lineto, curve.arcto and curve.cubicto",
-        "examples": "geometry.curve(cell,\n    generics.metal(-1),\n    point.create(0, 0),\n    {\n        curve.arcto(135, 180, 500, false),\n    },\n    10, true -- allow45\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.<span class=\"opc-module\">curve</span>(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(-<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    {\n        <span class=\"opc-module\">curve</span>.arcto(<span class=\"opc-number\">135</span>, <span class=\"opc-number\">180</span>, <span class=\"opc-number\">500</span>, false),\n    },\n    <span class=\"opc-number\">10</span>, true -- allow45<span class=\"opc-number\">45</span>\n)",
     },
     {
         "module": "geometry",
@@ -861,7 +861,7 @@ const apirefs = [
         "syntax": "curve_rasterized(cell, layer, origin, segments, grid, allow45)",
         "description": "create a pre-rasterized curve",
         "details": "Like geometry.curve, but rasterize the curve right now. Typically, the rasterization happens later in the layout generation process (it is resolved when the design is exported, depending whether the export format supports arbitrary curves, in which case there is no rasterization). This function is useful to generate rasterized curves for export formats that support arbitrary curves.",
-        "examples": "geometry.curve_rasterized(cell,\n    generics.metal(-1),\n    point.create(0, 0),\n    {\n        curve.arcto(135, 180, 500, false),\n    },\n    10, true -- allow45\n)",
+        "examples": "<span class=\"opc-module\">geometry</span>.curve_rasterized(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(-<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    {\n        <span class=\"opc-module\">curve</span>.arcto(<span class=\"opc-number\">135</span>, <span class=\"opc-number\">180</span>, <span class=\"opc-number\">500</span>, false),\n    },\n    <span class=\"opc-number\">10</span>, true -- allow45<span class=\"opc-number\">45</span>\n)",
     },
     {
         "module": "geometry",
@@ -869,7 +869,7 @@ const apirefs = [
         "syntax": "get_side_path_points(pts, width)",
         "description": "get one-sided outline points of a path",
         "details": "Get one side of the edge points of a path given by the center points and the width. The sign of the width is significant: With positive values, the right-hand-side points are created, with negative values the left-hand-side (in the direction of the path). This function does not create any shapes.",
-        "examples": "local pts = geometry.get_side_path_points({ point.create(0, 0), point.create(1000, 0) }, 50)",
+        "examples": "local pts = <span class=\"opc-module\">geometry</span>.get_side_path_points({ <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">1000</span>, <span class=\"opc-number\">0</span>) }, <span class=\"opc-number\">50</span>)",
     },
     {
         "module": "geometry",
@@ -877,7 +877,7 @@ const apirefs = [
         "syntax": "path_points_to_polygon(pts, width)",
         "description": "get outline points of a path",
         "details": "Get the edge points of a path given by the center points and the width. This function does not create any shapes. The result of this function can be put into geometry.polygon to create the path shape.",
-        "examples": "local pts = geometry.path_points_to_polygon({ point.create(0, 0), point.create(1000, 0) }, 50)",
+        "examples": "local pts = <span class=\"opc-module\">geometry</span>.path_points_to_polygon(\n    {\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">1000</span>, <span class=\"opc-number\">0</span>)\n    },\n    <span class=\"opc-number\">50</span>\n)",
     },
     {
         "module": "geometry",
@@ -885,7 +885,7 @@ const apirefs = [
         "syntax": "offset_polygon_points(pts, offset)",
         "description": "offset polygon points by a given offset",
         "details": "Create a table with new polygon points by offsetting (moving the edges towards the outside or inside).",
-        "examples": "geometry.offset_polygon_points(polygonpts, 200)",
+        "examples": "<span class=\"opc-module\">geometry</span>.offset_polygon_points(polygonpts, <span class=\"opc-number\">200</span>)",
     },
     {
         "module": "<none>",
@@ -893,7 +893,7 @@ const apirefs = [
         "syntax": "parameters()",
         "description": "define cell parameters (cell definition function)",
         "details": "Cell definition function. Define cell parameters. This function takes no arguments and does not return anything (the value will be ignored). This function is optional, but a cell without parameters is not very useful.",
-        "examples": "function parameters()\n    pcell.add_parameters(\n        { \"param1\", 0 },\n        { \"param2\", 100 }    )\nend",
+        "examples": "function parameters()\n    <span class=\"opc-module\">pcell</span>.add_parameters(\n        { <span class=\"opc-string\">\"param1<span class=\"opc-number\">1</span>\"</span>, <span class=\"opc-number\">0</span> },\n        { <span class=\"opc-string\">\"param2<span class=\"opc-number\">2</span>\"</span>, <span class=\"opc-number\">100</span> }    )\nend",
     },
     {
         "module": "<none>",
@@ -901,7 +901,7 @@ const apirefs = [
         "syntax": "process_parameters(_P)",
         "description": "process cell parameters (cell definition function)",
         "details": "Cell definition function. Process parameters after user values have been set. This can be used to re-evaluate parameters based on different settings. As an example the width of a metal line could be set to the minimum width value of the used metal. This can not be done in regular parameter definitions for cells. The function receives the table with all parameter values and should return a new table with altered parameters. Every parameter in this new table will overwrite a parameter in the main parameter table, but only if it was not explicitly modified when calling the cell. This function is optional.",
-        "examples": "function process_parameters(_P)\n    local t = {}\n    t.width = technology.get_dimension(\n        string.format(\"Minimum M%d Width\"),\n        _P.metal\n    )\n    t.length = _P.totallength -- simple follower parameter\n    return t\nend",
+        "examples": "function process_parameters(_P)\n    local <span class=\"opc-module\">t</span> = {}\n    <span class=\"opc-module\">t</span>.width = <span class=\"opc-module\">technology</span>.get_dimension(\n        string.format(<span class=\"opc-string\">\"Minimum M%d Width\"</span>),\n        _P.<span class=\"opc-function\">metal</span>\n    )\n    <span class=\"opc-module\">t</span>.length = _P.totallength -- simple follower parameter\n    return <span class=\"opc-module\">t</span>\nend",
     },
     {
         "module": "<none>",
@@ -909,7 +909,7 @@ const apirefs = [
         "syntax": "prepare(_P)",
         "description": "prepare cell state (cell definition function)",
         "details": "Cell definition function. Prepare a state for further cell functions. This function is useful when some calculations/logic have to be run for different functions (for instance check() and layout()). In order to avoid code duplication, the prepare() function can be used. It receives the final parameters table (after a possible call to process_parameters()) and is expected to return a table as a common state for all following cell functions. This function is optional.",
-        "examples": "function prepare(_P)\n    local state = {}\n    state.metalwidths = util.rep(_P.numlines, _P.linewidth)\nend",
+        "examples": "function prepare(_P)\n    local state = {}\n    state.metalwidths = <span class=\"opc-module\">util</span>.rep(_P.numlines, _P.linewidth)\nend",
     },
     {
         "module": "<none>",
@@ -917,7 +917,7 @@ const apirefs = [
         "syntax": "check(_P, cellstate)",
         "description": "check cell parameters (cell definition function)",
         "details": "Cell definition function. Check parameters for sane values. This function should return 'true' if all checks succeed. This means that an empty check function should still return 'true'. Any arbitrary checks can be implemented (typically simply 'if ... then return false, message end') and if a check fails the function should return 'false' and a message. This function can receive (if present) the cellstate from prepare(). This function is optional, but if present the last statement should be 'return true'.",
-        "examples": "function check(_P, cellstate)\n    if _P.topmetal > 4 then\n        return\n            false,\n            string.format(\n                 \"top metal must be below 5, got %d\",\n                  _P.topmetal\n            )\n    end\n    return true -- final return\nend",
+        "examples": "function check(_P, cellstate)\n    if _P.topmetal > <span class=\"opc-number\">4</span> then\n        return\n            false,\n            string.format(\n                 <span class=\"opc-string\">\"top <span class=\"opc-function\">metal</span> must be below <span class=\"opc-number\">5</span>, got %d\"</span>,\n                  _P.topmetal\n            )\n    end\n    return true -- final return\nend",
     },
     {
         "module": "<none>",
@@ -925,7 +925,7 @@ const apirefs = [
         "syntax": "layout(cell, _P, env, cellstate)",
         "description": "define cell layout (cell definition function)",
         "details": "Cell definition function. Main layout definition of a cell. This function receives an object where shapes, instances, ports etc. are to be placed in. This function should not create its own top-level layout object (even if it did, it would simply be ignored). As inputs the function receives (besides the object) the final parameter values, and possibly a cell environment and the common cell state. The parameter table controls the layout creation and should always be present (just like 'parameters()', although both are technically optional). The cell environment is equal for all called cells (invocations but also cell types) within one opc call, there is only one cell environment. This can be used for cells of one project that only work together. For this reason, it is not used in standard cell implementations in openPCells. The cellstate is the shared common cellstate from a potential 'prepare()' call. This function is technically optional, but only in very rare cases it is not needed (a base cell defining parameters can be created, see stdcells/base).",
-        "examples": "function layout(cell, _P)\n    geometry.rectanglebltr(cell,\n        generics.metal(1),\n        point.create(0, 0),\n        point.create(_P.width, _P.height)\n    )\nend\n\nfunction layout(cell, _P, env)\n    if env.XXX then ... end\nend\n\nfunction layout(cell, _P, _envnotused, state)\n    if state.XXX then ... end\nend",
+        "examples": "function <span class=\"opc-module\">layout</span>(cell, _P)\n    <span class=\"opc-module\">geometry</span>.<span class=\"opc-function\">rectanglebltr</span>(cell,\n        <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(_P.width, _P.height)\n    )\nend\n\nfunction <span class=\"opc-module\">layout</span>(cell, _P, env)\n    if env.XXX then ... end\nend\n\nfunction <span class=\"opc-module\">layout</span>(cell, _P, _envnotused, state)\n    if state.XXX then ... end\nend",
     },
     {
         "module": "<none>",
@@ -933,7 +933,7 @@ const apirefs = [
         "syntax": "set(...)",
         "description": "define allowed parameter values as a set (parameter constraint function)",
         "details": "define a set of possible values that a parameter can take. Only useful within a parameter definition of a pcell",
-        "examples": "pcell.add_parameters({ { \"mostype\", \"nmos\", posvals = set(\"nmos\", \"pmos\") } })",
+        "examples": "<span class=\"opc-module\">pcell</span>.add_parameters({ { <span class=\"opc-string\">\"mostype\"</span>, <span class=\"opc-string\">\"nmos\"</span>, posvals = set(<span class=\"opc-string\">\"nmos\"</span>, <span class=\"opc-string\">\"pmos\"</span>) } })",
     },
     {
         "module": "<none>",
@@ -941,7 +941,7 @@ const apirefs = [
         "syntax": "interval(lower, upper)",
         "description": "define allowed parameter values as an interval (parameter constraint function)",
         "details": "define an interval of possible values that a parameter can take. Only useful within a parameter definition of a pcell",
-        "examples": "pcell.add_parameters({ { \"fingers\", 2, posvals = interval = (1, inf) } })",
+        "examples": "<span class=\"opc-module\">pcell</span>.add_parameters({ { <span class=\"opc-string\">\"fingers\"</span>, <span class=\"opc-number\">2</span>, posvals = interval = (<span class=\"opc-number\">1</span>, inf) } })",
     },
     {
         "module": "<none>",
@@ -949,7 +949,7 @@ const apirefs = [
         "syntax": "even()",
         "description": "define allowed parameter values as an even (parameter constraint function)",
         "details": "define that a parameter must be even. Only useful within a parameter definition of a pcell",
-        "examples": "pcell.add_parameters({ { fingerwidth, 100, posvals = even() } })",
+        "examples": "<span class=\"opc-module\">pcell</span>.add_parameters({\n    {\n        <span class=\"opc-string\">\"fingerwidth\"</span>,\n        <span class=\"opc-number\">3</span>,\n        posvals = even()\n    }\n})",
     },
     {
         "module": "<none>",
@@ -957,7 +957,7 @@ const apirefs = [
         "syntax": "odd()",
         "description": "define allowed parameter values as an odd (parameter constraint function)",
         "details": "define that a parameter must be odd. Only useful within a parameter definition of a pcell",
-        "examples": "pcell.add_parameters({ { fingerwidth, 100, posvals = odd() } })",
+        "examples": "<span class=\"opc-module\">pcell</span>.add_parameters({\n    {\n        <span class=\"opc-string\">\"numinv\"</span>,\n        <span class=\"opc-number\">3</span>,\n        posvals = odd()\n    }\n})",
     },
     {
         "module": "<none>",
@@ -965,7 +965,7 @@ const apirefs = [
         "syntax": "positive()",
         "description": "define allowed parameter values as an positive (parameter constraint function)",
         "details": "define that a parameter must be positive. Only useful within a parameter definition of a pcell",
-        "examples": "pcell.add_parameters({ { fingerwidth, 100, posvals = positive() } })",
+        "examples": "<span class=\"opc-module\">pcell</span>.add_parameters({\n    {\n        <span class=\"opc-string\">\"fingerwidth\"</span>,\n        <span class=\"opc-number\">100</span>,\n        posvals = positive()\n    }\n})",
     },
     {
         "module": "<none>",
@@ -973,7 +973,7 @@ const apirefs = [
         "syntax": "negative()",
         "description": "define allowed parameter values as an negative (parameter constraint function)",
         "details": "define that a parameter must be negative. Only useful within a parameter definition of a pcell",
-        "examples": "pcell.add_parameters({ { offset, -100, posvals = negative() } })",
+        "examples": "<span class=\"opc-module\">pcell</span>.add_parameters({ { offset, -<span class=\"opc-number\">100</span>, posvals = negative() } })",
     },
     {
         "module": "<none>",
@@ -989,7 +989,7 @@ const apirefs = [
         "syntax": "evenodddiv2(value)",
         "description": "divide a value by 2 and return floor and ceil of the division",
         "details": "divide a value by 2. If it is odd, return floor(val / 2) and ceil(val / 2), otherwise return val / 2",
-        "examples": "local low, high = evenodddiv2(13) -- return 6 and 7",
+        "examples": "local low, high = evenodddiv2<span class=\"opc-number\">2</span>(<span class=\"opc-number\">13</span>) -- return <span class=\"opc-number\">6</span> and ",
     },
     {
         "module": "<none>",
@@ -997,7 +997,7 @@ const apirefs = [
         "syntax": "divevenup(value, div)",
         "description": "divide a value by divisor and return an even (possible higher) result",
         "details": "approximately divide a value by the divisor, so that the result is even. If this can't be achieved with the original value, increment it until it works",
-        "examples": "local result = divevenup(6, 2) -- returns 4",
+        "examples": "local result = divevenup(<span class=\"opc-number\">6</span>, <span class=\"opc-number\">2</span>) -- returns ",
     },
     {
         "module": "<none>",
@@ -1005,7 +1005,7 @@ const apirefs = [
         "syntax": "divevendown(value, div)",
         "description": "divide a value by divisor and return an even (possible lower) result",
         "details": "approximately divide a value by the divisor, so that the result is even. If this can't be achieved with the original value, decrement it until it works",
-        "examples": "local result = divevendown(6, 2) -- returns 2",
+        "examples": "local result = divevendown(<span class=\"opc-number\">6</span>, <span class=\"opc-number\">2</span>) -- returns ",
     },
     {
         "module": "<none>",
@@ -1021,7 +1021,7 @@ const apirefs = [
         "syntax": "quartercircle(origin, radius, startangle, endangle, grid, allow45)",
         "description": "create a rasterized circle quarter",
         "details": "Create a rasterized circle quarter (a polygon) with the given parameters. The generated quadrant is the first (between 0 and 90 degrees). The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a circle shape.",
-        "examples": "local pts = graphics.quartercircle(point.create(0, 0), 5000, 100, false)",
+        "examples": "local pts = <span class=\"opc-module\">graphics</span>.quartercircle(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">100</span>, false)",
     },
     {
         "module": "graphics",
@@ -1029,7 +1029,7 @@ const apirefs = [
         "syntax": "quarterellipse(origin, x-radius, y-radius, startangle, endangle, grid, allow45)",
         "description": "create a rasterized ellipse quarter",
         "details": "Create a rasterized ellipse quarter (a polygon) with the given parameters. The generated quadrant is the first (between 0 and 90 degrees). The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a ellipse shape.",
-        "examples": "local pts = graphics.quarterellipse(point.create(0, 0), 5000, 100, false)",
+        "examples": "local pts = <span class=\"opc-module\">graphics</span>.quarterellipse(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">100</span>, false)",
     },
     {
         "module": "graphics",
@@ -1037,7 +1037,7 @@ const apirefs = [
         "syntax": "circle(origin, radius, startangle, endangle, grid, allow45)",
         "description": "create a rasterized circle",
         "details": "Create a rasterized circle (a polygon) with the given parameters. The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a circle shape.",
-        "examples": "local pts = graphics.circle(point.create(0, 0), 5000, 0, 360, 100, false)",
+        "examples": "local pts = <span class=\"opc-module\">graphics</span>.circle(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">360</span>, <span class=\"opc-number\">100</span>, false)",
     },
     {
         "module": "graphics",
@@ -1045,7 +1045,7 @@ const apirefs = [
         "syntax": "ellipse(origin, xradius, yradius, startangle, endangle, grid, allow45)",
         "description": "create a rasterized ellipse",
         "details": "Create a rasterized ellipse (a polygon) with the given parameters. The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a ellipse shape.",
-        "examples": "local pts = graphics.ellipse(point.create(0, 0), 5000, 10000, 0, 360, 100, false)",
+        "examples": "local pts = <span class=\"opc-module\">graphics</span>.ellipse(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">10000</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">360</span>, <span class=\"opc-number\">100</span>, false)",
     },
     {
         "module": "graphics",
@@ -1053,7 +1053,7 @@ const apirefs = [
         "syntax": "circle(origin, numpoints, startangle)",
         "description": "create a coarsely-approximated circle",
         "details": "Create a coarse rendering of a circle, where points lying on the circle are simply connected by polygon edges. No rasterization is performed. This function creates regular polygons, for instance with 8 points an octagonal shape is generated.",
-        "examples": "local pts = graphics.coarse_circle(point.create(0, 0), 5000, 0)",
+        "examples": "local pts = <span class=\"opc-module\">graphics</span>.coarse_circle(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">0</span>)",
     },
     {
         "module": "layouthelpers",
@@ -1061,7 +1061,7 @@ const apirefs = [
         "syntax": "via_area_anchor_multiple(cell, startmetal, endmetal, fmt, startindex, endindex, increment)",
         "description": "place (possibly arrayed) vias on (multiple) area anchors based on a format/pattern",
         "details": "Place a via stack on an area anchor of the given cell (also places the via stack in the given cell). The via stack starts at the startmetal and ends at the endmetal. The vias are created within a for-loop that starts at the given startindex and ends at the given endindex. Optionally, an increment value (default 1) can be given. The fourth argument is a base name for the area anchor, in with the percent sign ('%') is replaced by the current iterator value.",
-        "examples": "layouthelpers.via_area_anchor_multiple(cell,\n    1, 2,\n    \"gate_%\",\n    1, 8\n)",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.via_area_anchor_multiple(cell,\n    <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>,\n    <span class=\"opc-string\">\"gate_%\"</span>,\n    <span class=\"opc-number\">1</span>, <span class=\"opc-number\">8</span>\n)",
     },
     {
         "module": "layouthelpers",
@@ -1069,7 +1069,7 @@ const apirefs = [
         "syntax": "place_bus(cell, layer, pts, numbits, width, space)",
         "description": "place a bus defined by a list of points (like a path)",
         "details": "Place a bus with 'numbits' lines with the given 'width' and 'space'. The bus is defined by the path points (like a regular path), which define the center of the bus.",
-        "examples": "layouthelpers.place_bus(cell,\n    generics.metal(2),\n    pts,\n    16\n    100, 100\n)",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.place_bus(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n    pts,\n    <span class=\"opc-number\">16</span>\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>\n)",
     },
     {
         "module": "layouthelpers",
@@ -1077,7 +1077,7 @@ const apirefs = [
         "syntax": "place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)",
         "description": "place a guardring in a cell with a defined boundary and spacing",
         "details": "Place a guardring in a cell with a defined boundary and spacing. The guardring is drawn around the given bottom-left ('bl') and top-right ('tr') points, with additional spacing in x- and y-direction ('xspace' and 'yspace'). The guardring anchors are inherited by the cell (prefixed by the given 'anchorprefix'), for further use for alignment/connections/etc. The guardring itself can be configured by the 'options' table, its keys are passed to auxiliary/guardring as parameters.",
-        "examples": "layouthelpers.place_guardring(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.place_guardring(cell,\n    nmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).bl,\n    nmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).tr,\n    <span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>,\n    <span class=\"opc-string\">\"guardring_\"</span>,\n    {\n        contype = <span class=\"opc-string\">\"n\"</span>,\n        ringwidth = <span class=\"opc-number\">100</span>,\n        drawdeepwell = true,\n    }\n)",
     },
     {
         "module": "layouthelpers",
@@ -1085,7 +1085,7 @@ const apirefs = [
         "syntax": "place_guardring_quantized(cell, bl, tr, xspace, yspace, basexsize, baseysize, anchorprefix, options)",
         "description": "place a quantized guardring in a cell with a defined boundary and spacing",
         "details": "Place a quantized guardring in a cell with a defined boundary and spacing. The guardring is drawn around the given bottom-left ('bl') and top-right ('tr') points, with additional spacing in x- and y-direction ('xspace' and 'yspace'). The guardring hole width and height are quantized so that they fit a multiple of the specified basesize (x and y). This does NOT account for the width of the guardring. While this might be a short-coming of this function, this issue can easily be circumvented by using a ring width that is also a multiple of the basesize. The guardring anchors are inherited by the cell (prefixed by the given 'anchorprefix'), for further use for alignment/connections/etc. The guardring itself can be configured by the 'options' table, its keys are passed to auxiliary/guardring as parameters.",
-        "examples": "layouthelpers.place_guardring_quantized(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    500, 500,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.place_guardring_quantized(cell,\n    nmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).bl,\n    nmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).tr,\n    <span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>,\n    <span class=\"opc-number\">500</span>, <span class=\"opc-number\">500</span>,\n    <span class=\"opc-string\">\"guardring_\"</span>,\n    {\n        contype = <span class=\"opc-string\">\"n\"</span>,\n        ringwidth = <span class=\"opc-number\">100</span>,\n        drawdeepwell = true,\n    }\n)",
     },
     {
         "module": "layouthelpers",
@@ -1093,7 +1093,7 @@ const apirefs = [
         "syntax": "place_guardring_with_hole(cell, bl, tr, hbl, htr, xspace, yspace, wellxoffset, wellyoffset, anchorprefix, options)",
         "description": "place a guardring with a well hole",
         "details": "Place a guardring with a well hole in a cell with a defined boundary and spacing. This function is like placement.place_guardring, but expects two more points that define the hole boundary. The placed guardring then has a hole in the well which encompasses exactly the given boundary. The connection to this inner well is not placed, this has to be done manually.",
-        "examples": "layouthelpers.place_guardring_with_hole(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr,\n    pmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr),\n    200, 200,\n    0, 0,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.place_guardring_with_hole(cell,\n    nmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).bl,\n    pmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).tr,\n    pmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).bl,\n    pmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).tr),\n    <span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>,\n    <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>,\n    <span class=\"opc-string\">\"guardring_\"</span>,\n    {\n        contype = <span class=\"opc-string\">\"n\"</span>,\n        ringwidth = <span class=\"opc-number\">100</span>,\n        drawdeepwell = true,\n    }\n)",
     },
     {
         "module": "layouthelpers",
@@ -1101,7 +1101,7 @@ const apirefs = [
         "syntax": "place_guardring_with_hole_quantized(cell, bl, tr, hbl, htr, xspace, yspace, basexsize, baseysize, wellxoffset, wellyoffset, anchorprefix, options)",
         "description": "place a quantized guardring with a well hole",
         "details": "This function is like a combination of placement.place_guardring_quantized and placement.place_guardring_with_hole, it creates a quantized guardring with a well hole, whose width and height are made a multiple of the given basesize (x and y). See also the information on placement.place_guardring_quantized.",
-        "examples": "layouthelpers.place_guardring_with_hole_quantized(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    pmos:get_area_anchor(\"active\").bl,\n    pmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    0, 0,\n    500, 500,\n    \"guardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n        drawdeepwell = true,\n    }\n)",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.place_guardring_with_hole_quantized(cell,\n    nmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).bl,\n    nmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).tr,\n    pmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).bl,\n    pmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).tr,\n    <span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>,\n    <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>,\n    <span class=\"opc-number\">500</span>, <span class=\"opc-number\">500</span>,\n    <span class=\"opc-string\">\"guardring_\"</span>,\n    {\n        contype = <span class=\"opc-string\">\"n\"</span>,\n        ringwidth = <span class=\"opc-number\">100</span>,\n        drawdeepwell = true,\n    }\n)",
     },
     {
         "module": "layouthelpers",
@@ -1109,7 +1109,7 @@ const apirefs = [
         "syntax": "place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, anchorprefix1, anchorprefix2, options)",
         "description": "place two guardrings",
         "details": "Place two surrounding guardrings in a cell with a defined boundary and spacing.",
-        "examples": "layouthelpers.place_double_guardring(cell,\n    nmos:get_area_anchor(\"active\").bl,\n    nmos:get_area_anchor(\"active\").tr,\n    200, 200,\n    \"p\",\n    \"innerguardring_\", \"outerguardring_\",\n    {\n        contype = \"n\",\n        ringwidth = 100,\n    }\n)",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.place_double_guardring(cell,\n    nmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).bl,\n    nmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"active\"</span>).tr,\n    <span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>,\n    <span class=\"opc-string\">\"<span class=\"opc-module\">p</span>\"</span>,\n    <span class=\"opc-string\">\"innerguardring_\"</span>, <span class=\"opc-string\">\"outerguardring_\"</span>,\n    {\n        contype = <span class=\"opc-string\">\"n\"</span>,\n        ringwidth = <span class=\"opc-number\">100</span>,\n    }\n)",
     },
     {
         "module": "layouthelpers",
@@ -1117,7 +1117,7 @@ const apirefs = [
         "syntax": "place_welltap(cell, bl, tr, anchorprefix, options)",
         "description": "place a welltap",
         "details": "Place a welltap in a cell with a defined boundary and spacing",
-        "examples": "layouthelpers.place_welltap(cell,\n    nmos:get_area_anchor(\"sourcestrap\").bl,\n    nmos:get_area_anchor(\"sourcestrap\").tr,\n    {\n        contype = \"n\",\n    }\n)",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.place_welltap(cell,\n    nmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"sourcestrap\"</span>).bl,\n    nmos:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"sourcestrap\"</span>).tr,\n    {\n        contype = <span class=\"opc-string\">\"n\"</span>,\n    }\n)",
     },
     {
         "module": "layouthelpers",
@@ -1125,7 +1125,7 @@ const apirefs = [
         "syntax": "place_maximum_width_via(cell, firstmetal, lastmetal, pt1, pt2)",
         "description": "place a via stack that respects maximum metal widths",
         "details": "Place a via (or a via stack) in an object. The function behaves like geometry.viabltr, but takes into account the maximum width of the metal layers. This means that possibly not all vias are created with the full width of the given region. This means that the first point (pt1) must touch the actual shape that should connect to the via. Therefore, pt1 and pt2 don't have to be the lower-left and the top-right corner points. The maximum widths are specified by the technology constraint file (entries \"Maximum Mn Width\", where 'n' is an integer). If no values are specified, the full width of the via region is used, in which case the function behaves exactly like geometry.viabltr (except for the order of the points).",
-        "examples": "layouthelpers.place_maximum_width_via(cell, 1, 8, point.create(-100, 200), point.create(-800, 1500))",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.place_maximum_width_via(cell,\n    <span class=\"opc-number\">1</span>, <span class=\"opc-number\">8</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">800</span>, <span class=\"opc-number\">1500</span>)\n)",
     },
     {
         "module": "layouthelpers",
@@ -1133,7 +1133,7 @@ const apirefs = [
         "syntax": "place_coplanar_waveguide(cell, layer, pts, swidth, gwidth, separation)",
         "description": "place a coplanar waveguide",
         "details": "Place a coplanar waveguide defined by the center path points. This function is almost the same as geometry.path but draws three paths in total (ground-signal-ground).",
-        "examples": "local pts = {\n    point.create(0, 0),\n    point.create(100000, 0),\n    point.create(100000, 100000)\n}\nlayouthelpers.place_coplanar_waveguide(cell, generics.metal(-1), pts, 5000, 10000, 10000)",
+        "examples": "local pts = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">100000</span>)\n}\n<span class=\"opc-module\">layouthelpers</span>.place_coplanar_waveguide(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(-<span class=\"opc-number\">1</span>),\n    pts,\n    <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>\n)",
     },
     {
         "module": "layouthelpers",
@@ -1141,7 +1141,7 @@ const apirefs = [
         "syntax": "place_stripline(cell, metalindex, pts, swidth, gwidth)",
         "description": "place a stripline",
         "details": "place a stripline defined by the center path points. This function is almost the same as geometry.path but draws three paths in total (ground-signal-ground). The layer argument is NOT a generic layer but a metal index (as striplines are assumed to be drawn in a metal). The metals below and above the signal layer are used for ground. Therefore, 'metalindex' must be 2 and the highest metal (-1).",
-        "examples": "local pts = {\n    point.create(0, 0),\n    point.create(100000, 0),\n    point.create(100000, 100000)\n}\nlayouthelpers.place_stripline(cell, 4, pts, 5000, 10000)",
+        "examples": "local pts = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">100000</span>)\n}\n<span class=\"opc-module\">layouthelpers</span>.place_stripline(cell, <span class=\"opc-number\">4</span>, pts, <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">10000</span>)",
     },
     {
         "module": "layouthelpers",
@@ -1149,7 +1149,7 @@ const apirefs = [
         "syntax": "collect_gridlines(t, cells, anchorname)",
         "description": "collect gridlines for placing vias",
         "details": "Combine overlapping/touching rectangular anchors into larger rectangles. This function expects a list of cells that all have at least the given area anchor. Then all overlaps are computed an inserted into the table. This function is useful when placing vias from a powergrid down to power bars. If only the individual anchors are used it can happen (depending on the type of the grid cell) that only partial vias can be placed. Merging the lines beforehand solves this.",
-        "examples": "local lines = {}\nlayouthelpers.collect_gridlines(lines, gridcells, \"vddline\")",
+        "examples": "local lines = {}\n<span class=\"opc-module\">layouthelpers</span>.collect_gridlines(lines, gridcells, <span class=\"opc-string\">\"vddline\"</span>)",
     },
     {
         "module": "layouthelpers",
@@ -1157,7 +1157,7 @@ const apirefs = [
         "syntax": "place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth, hspace, plusshapes, minusshapes)",
         "description": "place a power grid",
         "details": "Create a power grid with vertical and horizontal lines that connect to given target shapes. The power grid lays out alternating lines for the 'plus' net and the 'minus' net (e.g., VDD and VSS). Target shapes for both these nets are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "examples": "local vddshapes = {\n    {\n        bl = point(2000, 0),\n        tr = point.create(8000, 200)\n    }\n}\nlocal vssshapes = {\n    {\n        bl = point.create(2000, 800),\n        tr = point.create(8000, 1000)\n    }\n}\nlayouthelpers.place_powergrid(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    5, 6, -- metal layers\n    400, 800,-- vertical width/space\n     400, 800,-- horizontal width/space\n    vddshapes, vssshapes)",
+        "examples": "local vddshapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">0</span>),\n        tr = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">200</span>)\n    }\n}\nlocal vssshapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">800</span>),\n        tr = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">1000</span>)\n    }\n}\n<span class=\"opc-module\">layouthelpers</span>.place_powergrid(cell,\n    -- target area:\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-number\">5</span>, <span class=\"opc-number\">6</span>, -- <span class=\"opc-function\">metal</span> layers\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,-- vertical width/space\n     <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,-- horizontal width/space\n    vddshapes, vssshapes)",
     },
     {
         "module": "layouthelpers",
@@ -1165,7 +1165,7 @@ const apirefs = [
         "syntax": "place_powervlines(cell, bl, tr, layer, width, space, powershapes)",
         "description": "place vertical power lines",
         "details": "Create power lines with vertical lines that connect to given target shapes. Target shapes for the power net are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "examples": "local powershapes = {\n    {\n        bl = point(2000, 0),\n        tr = point.create(8000, 200)\n    }\n}\nlayouthelpers.place_powervlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    5, -- metal layer\n    400, 800,-- width/space\n    powershapes\n)",
+        "examples": "local powershapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">0</span>),\n        tr = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">200</span>)\n    }\n}\n<span class=\"opc-module\">layouthelpers</span>.place_powervlines(cell,\n    -- target area:\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-number\">5</span>, -- <span class=\"opc-function\">metal</span> layer\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,-- width/space\n    powershapes\n)",
     },
     {
         "module": "layouthelpers",
@@ -1173,7 +1173,7 @@ const apirefs = [
         "syntax": "place_powerhlines(cell, bl, tr, layer, width, space, powershapes)",
         "description": "place horizontal power lines",
         "details": "Create power lines with horizontal lines that connect to given target shapes. Target shapes for the power net are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "examples": "local powershapes = {\n    {\n        bl = point(2000, 0),\n        tr = point.create(8000, 200)\n    }\n}\nlayouthelpers.place_powerhlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    5, -- metal layer\n    400, 800,-- height/space\n    powershapes)",
+        "examples": "local powershapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">0</span>),\n        tr = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">200</span>)\n    }\n}\n<span class=\"opc-module\">layouthelpers</span>.place_powerhlines(cell,\n    -- target area:\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-number\">5</span>, -- <span class=\"opc-function\">metal</span> layer\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,-- height/space\n    powershapes)",
     },
     {
         "module": "layouthelpers",
@@ -1181,7 +1181,7 @@ const apirefs = [
         "syntax": "place_vlines_numsets(cell, bl, tr, layer, width, netnames, numsets)",
         "description": "place vertical lines (number of sets)",
         "details": "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = layouthelpers.place_vlines_numsets(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    generics.metal(5), -- layer\n    400, -- width\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
+        "examples": "local netshapes = <span class=\"opc-module\">layouthelpers</span>.place_vlines_numsets(cell,\n    -- target area:\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), -- layer\n    <span class=\"opc-number\">400</span>, -- width\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, -- net names \n    <span class=\"opc-number\">4</span> -- number of sets)",
     },
     {
         "module": "layouthelpers",
@@ -1189,7 +1189,7 @@ const apirefs = [
         "syntax": "place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, excludes)",
         "description": "place vertical lines",
         "details": "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the available area and the width and space. Additionally a table with exclude polygons can be given. No lines will be drawn in these excludes. Note that the minimum fitting rectangle around the polygon is used, not the polygon itself. This might result in too pessimistic line placement. However, as most geometries are rectangles, in general this will work quite well. As excludes can cause short lines to be created, the 'minheight' parameter restricts the creation of too small lines. This can be 0 (zero), then all possible lines will be created. This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = layouthelpers.place_vlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
+        "examples": "local netshapes = <span class=\"opc-module\">layouthelpers</span>.place_vlines(cell,\n    -- target area:\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), -- layer\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">400</span>, -- width/space\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, -- net names)",
     },
     {
         "module": "layouthelpers",
@@ -1197,7 +1197,7 @@ const apirefs = [
         "syntax": "place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)",
         "description": "place horizontal lines (number of sets)",
         "details": "Create horizontal lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = layouthelpers.place_hlines_numsets(cell,\n    -- target area:\n    point.create(0, 0), point.create(4000, 10000),\n    generics.metal(5), -- layer\n    400, -- height\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names \n    4 -- number of sets)",
+        "examples": "local netshapes = <span class=\"opc-module\">layouthelpers</span>.place_hlines_numsets(cell,\n    -- target area:\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">4000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), -- layer\n    <span class=\"opc-number\">400</span>, -- height\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, -- net names \n    <span class=\"opc-number\">4</span> -- number of sets)",
     },
     {
         "module": "layouthelpers",
@@ -1205,7 +1205,7 @@ const apirefs = [
         "syntax": "place_hlines(cell, bl, tr, layer, width, space, minwidth, netnames, excludes)",
         "description": "place horizontal lines",
         "details": "Create horizontal lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the available area and the height and space. Additionally a table with exclude polygons can be given. No lines will be drawn in these excludes. Note that the minimum fitting rectangle around the polygon is used, not the polygon itself. This might result in too pessimistic line placement. However, as most geometries are rectangles, in general this will work quite well. As excludes can cause short lines to be created, the 'minwidth' parameter restricts the creation of too small lines. This can be 0 (zero), then all possible lines will be created. This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = layouthelpers.place_hlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(4000, 10000),\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
+        "examples": "local netshapes = <span class=\"opc-module\">layouthelpers</span>.place_hlines(cell,\n    -- target area:\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">4000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), -- layer\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">400</span>, -- width/space\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, -- net names)",
     },
     {
         "module": "layouthelpers",
@@ -1213,7 +1213,7 @@ const apirefs = [
         "syntax": "place_vias(cell, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)",
         "description": "place vias between net shapes",
         "details": "Create vias in a cell connecting net shapes on different layers. This function creates vias between the given layers. If not net filter is given, all netshapes with matching nets are connected. A table with exclusion polygons can be given, which is useful when vias across several layers are created. If a table array with string items is given, only shapes on nets in that array are connected. 'nocheck' might cause the function to raise an error: when there are small overlaps without a legal via arrayzation, the function raises an error (as internally geometry.viabltr is used). With 'nocheck' == false (the default) the legality of the overlap for via generation is checked first and skipped if it would fail.",
-        "examples": "layouthelpers.place_vias(cell,\n    netshapes1, netshapes2, -- netshapes\n    { \"VSS\" \"BIAS\" }, -- net filter)",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.place_vias(cell,\n    netshapes1<span class=\"opc-number\">1</span>, netshapes2<span class=\"opc-number\">2</span>, -- netshapes\n    { <span class=\"opc-string\">\"VSS\"</span> <span class=\"opc-string\">\"BIAS\"</span> }, -- net filter\n)",
     },
     {
         "module": "layouthelpers",
@@ -1221,7 +1221,7 @@ const apirefs = [
         "syntax": "place_unequal_net_vias(cell, netshapes1, netshapes2, netfilter, onlyfull, nocheck)",
         "description": "place vias between unmatching net shapes",
         "details": "Create vias in a cell connecting net shapes on different layers and different nets. This function creates vias between the given layers. As this function creates vias between all shapes, only the net shapes should be given that need to be connected. (This function shorts different nets). This behaviour is different than layouthelpers.place_vias, where only shapes on equal nets are connected. 'nocheck' might cause the function to raise an error: when there are small overlaps without a legal via arrayzation, the function raises an error (as internally geometry.viabltr is used). With 'nocheck' == false (the default) the legality of the overlap for via generation is checked first and skipped if it would fail.",
-        "examples": "layouthelpers.place_unequal_vias(cell,\n    netshapes1, netshapes2)",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.place_unequal_vias(cell,\n    netshapes1<span class=\"opc-number\">1</span>, netshapes2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "layouthelpers",
@@ -1229,7 +1229,7 @@ const apirefs = [
         "syntax": "annotate_netshapes(cell, netshapes, sizehint)",
         "description": "annotate net shapes with net labels",
         "details": "Create labels on every given net shape in the table, on all four corners. Useful for e.g. creating bigger interconnect grids",
-        "examples": "layouthelpers.annotate_netshapes(cell, netshapes, 200)",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.annotate_netshapes(cell, netshapes, <span class=\"opc-number\">200</span>)",
     },
     {
         "module": "layouthelpers",
@@ -1237,7 +1237,7 @@ const apirefs = [
         "syntax": "connect_area_anchor(cell, layer, width, anchor1, anchor2, matchtolerance)",
         "description": "connect to area anchors",
         "details": "Create a connection between two given area anchors. This function is currently very basic and only exists for testing purposes. Its interface is likely to change as well as its function. It will create a working (and often also DRC-clean) connection, so it should be somewhat usable. The tolerance matching factor (default: 1) determines which edges are acceptable for two-point connections. The idea behind this is that edges whose length match the width of the connection path (the 'width' parameter) can be used for more efficient two-point connections instead of three point connections. The default for this is 1, if only edges with an exact length 'width', the 'matchtolerance' should be 0.",
-        "examples": "layouthelpers.connect_area_anchor(cell, generics.metal(3), 500, cell:get_area_anchor(\"anchor1\"), cell:get_area_anchor(\"anchor2\"))",
+        "examples": "<span class=\"opc-module\">layouthelpers</span>.connect_area_anchor(cell, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">3</span>), <span class=\"opc-number\">500</span>, cell:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"anchor1<span class=\"opc-number\">1</span>\"</span>), cell:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"anchor2<span class=\"opc-number\">2</span>\"</span>))",
     },
     {
         "module": "object",
@@ -1245,7 +1245,7 @@ const apirefs = [
         "syntax": "abut_area_anchor_bottom(cell, anchorname, targetcell, targetanchorname)",
         "description": "abut the area anchor of one cell to the bottom of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is abutted to the bottom of the target area anchor of the specified target cell. This only changes the y coordinate.",
-        "examples": "cell:abut_area_anchor_bottom(\n    \"topgatestrap\",\n    othercell,\n    \"botgatestrap\"\n)",
+        "examples": "cell:abut_area_anchor_bottom(\n    <span class=\"opc-string\">\"topgatestrap\"</span>,\n    othercell,\n    <span class=\"opc-string\">\"botgatestrap\"</span>\n)",
     },
     {
         "module": "object",
@@ -1253,7 +1253,7 @@ const apirefs = [
         "syntax": "abut_area_anchor_left(cell, anchorname, targetcell, targetanchorname)",
         "description": "abut the area anchor of one cell to the left of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is abutted to the left of the target area anchor of the specified target cell. This only changes the x coordinate.",
-        "examples": "cell:abut_area_anchor_left(\n    \"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
+        "examples": "cell:abut_area_anchor_left(\n    <span class=\"opc-string\">\"leftsourcedrain\"</span>,\n    othercell,\n    <span class=\"opc-string\">\"rightsourcedrain\"</span>\n)",
     },
     {
         "module": "object",
@@ -1261,7 +1261,7 @@ const apirefs = [
         "syntax": "abut_area_anchor_right(cell, anchorname, targetcell, targetanchorname)",
         "description": "abut the area anchor of one cell to the right of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is abutted to the right of the target area anchor of the specified target cell. This only changes the x coordinate.",
-        "examples": "cell:abut_area_anchor_right(\n\"rightsourcedrain\",\n    othercell,\n    \"leftsourcedrain\"\n)",
+        "examples": "cell:abut_area_anchor_right(\n<span class=\"opc-string\">\"rightsourcedrain\"</span>,\n    othercell,\n    <span class=\"opc-string\">\"leftsourcedrain\"</span>\n)",
     },
     {
         "module": "object",
@@ -1269,7 +1269,7 @@ const apirefs = [
         "syntax": "abut_area_anchor_top(cell, anchorname, targetcell, targetanchorname)",
         "description": "abut the area anchor of one cell to the top of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is abutted to the top of the target area anchor of the specified target cell. This only changes the y coordinate.",
-        "examples": "cell:abut_area_anchor_top(\n\"botgatestrap\",\n    othercell,\n    \"topgatestrap\"\n)",
+        "examples": "cell:abut_area_anchor_top(\n<span class=\"opc-string\">\"botgatestrap\"</span>,\n    othercell,\n    <span class=\"opc-string\">\"topgatestrap\"</span>\n)",
     },
     {
         "module": "object",
@@ -1405,7 +1405,7 @@ const apirefs = [
         "syntax": "add_anchor(cell, name, where)",
         "description": "add an anchor to a cell",
         "details": "Add an anchor to a cell.",
-        "examples": "cell:add_anchor(\"output\", point.create(200, -20))",
+        "examples": "cell:add_anchor(<span class=\"opc-string\">\"output\"</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, -<span class=\"opc-number\">20</span>))",
     },
     {
         "module": "object",
@@ -1413,7 +1413,7 @@ const apirefs = [
         "syntax": "add_area_anchor_bltr(cell, name, bl, tr)",
         "description": "add an area anchor to a cell (bottom-left/top-right)",
         "details": "Add an area anchor to a cell, defined by the lower-left and upper-right corner points of the rectangular area.",
-        "examples": "cell:add_area_anchor_bltr(\n\"source\",\n    point.create(-100, -20),\n    point.create(100, 20)\n)",
+        "examples": "cell:add_area_anchor_bltr(\n<span class=\"opc-string\">\"source\"</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>)\n)",
     },
     {
         "module": "object",
@@ -1421,7 +1421,7 @@ const apirefs = [
         "syntax": "add_area_anchor_points(cell, name, pt1, pt2)",
         "description": "add an area anchor to a cell (arbitrary corner points)",
         "details": "Add an area anchor to a cell, defined by the two corner points of the rectangular area (order does not matter).",
-        "examples": "cell:add_area_anchor_points(\n\"source\",\n    point.create(100, 20),\n    point.create(-100, -20)\n)",
+        "examples": "cell:add_area_anchor_points(\n<span class=\"opc-string\">\"source\"</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>)\n)",
     },
     {
         "module": "object",
@@ -1429,7 +1429,7 @@ const apirefs = [
         "syntax": "add_area_anchor_blwh(cell, name, pt1, width, height)",
         "description": "add an area anchor to a cell (point/dimensions)",
         "details": "Add an area anchor to a cell, defined by the the lower-left corner point and the width and height of the rectangular area.",
-        "examples": "cell:add_area_anchor_blwh(\n\"source\",\n    point.create(-100, -20),\n    200, 40\n)",
+        "examples": "cell:add_area_anchor_blwh(\n<span class=\"opc-string\">\"source\"</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>),\n    <span class=\"opc-number\">200</span>, <span class=\"opc-number\">40</span>\n)",
     },
     {
         "module": "object",
@@ -1437,7 +1437,7 @@ const apirefs = [
         "syntax": "add_anchor_line_x(cell, name, x)",
         "description": "add an anchor line to a cell (x-direction)",
         "details": "Add an anchor line to a cell (given its x-coordinate)",
-        "examples": "cell:add_anchor_line_x(\"xbase\", 40)",
+        "examples": "cell:add_anchor_line_x(<span class=\"opc-string\">\"xbase\"</span>, <span class=\"opc-number\">40</span>)",
     },
     {
         "module": "object",
@@ -1445,7 +1445,7 @@ const apirefs = [
         "syntax": "add_anchor_line_y(cell, name, y)",
         "description": "add an anchor line to a cell (y-direction)",
         "details": "Add an anchor line to a cell (given its y-coordinate)",
-        "examples": "cell:add_anchor_line_y(\"ybase\", 40)",
+        "examples": "cell:add_anchor_line_y(<span class=\"opc-string\">\"ybase\"</span>, <span class=\"opc-number\">40</span>)",
     },
     {
         "module": "object",
@@ -1453,7 +1453,7 @@ const apirefs = [
         "syntax": "add_child(cell, child, instname)",
         "description": "add a child (an instance) to a cell",
         "details": "Add a child object (instance) to the given cell. This make 'cell' the parent of the child (it manages its memory). This means that you should not use the original child object any more after this call (unless it is object.add_child or object.add_child_array)",
-        "examples": "local ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child(ref, \"mosinst0\")",
+        "examples": "local ref = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"mosfet\"</span>)\ncell:add_child(ref, <span class=\"opc-string\">\"mosinst0<span class=\"opc-number\">0</span>\"</span>)",
     },
     {
         "module": "object",
@@ -1461,7 +1461,7 @@ const apirefs = [
         "syntax": "add_child_array(cell, child, instname, xrep, yrep, xpitch, ypitch)",
         "description": "add a child array (multiple instances) to a cell",
         "details": "Add a child as an arrayed object to the given cell. The child array has xrep * yrep elements, with a pitch of xpitch and ypitch, respectively. The array grows to the upper-left, with the first placed untranslated. The pitch does not have to be explicitly given: If the child has an alignment box, the xpitch and ypitch are deferred from this box, if they are not given in the call. In this case, it is an error if no alignment box is present in child. As with object.add_child: don't use the original child object after this call unless it is object.add_child or object.add_child_array",
-        "examples": "-- with explicit xpitch and ypitch:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1, 200, 0)\n-- with alignment box:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1)",
+        "examples": "-- with explicit xpitch and ypitch:\nlocal ref = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"mosfet\"</span>)\ncell:add_child_array(ref, <span class=\"opc-string\">\"mosinst0<span class=\"opc-number\">0</span>\"</span>, <span class=\"opc-number\">8</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">200</span>, <span class=\"opc-number\">0</span>)\n-- with <span class=\"opc-module\">alignment</span> box:\nlocal ref = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"mosfet\"</span>)\ncell:add_child_array(ref, <span class=\"opc-string\">\"mosinst0<span class=\"opc-number\">0</span>\"</span>, <span class=\"opc-number\">8</span>, <span class=\"opc-number\">1</span>)",
     },
     {
         "module": "object",
@@ -1469,7 +1469,7 @@ const apirefs = [
         "syntax": "add_layer_boundary(cell, layer, boundary)",
         "description": "add a layer boundary to a cell",
         "details": "Add a layer boundary to an object. A layer boundary is useful for automatic filling",
-        "examples": "cell:add_layer_boundary(\n    generics.metal(1),\n    {\n        point.create(0, 0),\n        point.create(1000, 0),\n        point.create(500, 500)\n    }\n)",
+        "examples": "cell:add_layer_boundary(\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    {\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">1000</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">500</span>, <span class=\"opc-number\">500</span>)\n    }\n)",
     },
     {
         "module": "object",
@@ -1477,7 +1477,7 @@ const apirefs = [
         "syntax": "add_layer_boundary_rectangular(cell, layer, bl, tr)",
         "description": "add a layer boundary to a cell (rectangular variant)",
         "details": "Add a rectangular layer boundary to an object. A layer boundary is useful for automatic filling",
-        "examples": "cell:add_layer_boundary_rectangular(\n    generics.metal(1),\n    point.create(-100, -100),\n    point.create(100, 100)\n)",
+        "examples": "cell:add_layer_boundary_rectangular(\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)\n)",
     },
     {
         "module": "object",
@@ -1485,7 +1485,7 @@ const apirefs = [
         "syntax": "add_label(cell, name, layer, where, sizehint)",
         "description": "add a label (not a port) to a cell",
         "details": "add a label to a cell. Works like add_anchor, but additionally a layer is expected. This is different from add_port in that it expresses intent for labels that are not connectivity-related (as opposed to ports). A size hint can be given, which might be processed by the export.",
-        "examples": "cell:add_label(\n    \"0.8\",\n     generics.other(\"M1voltagelabelhigh\"),\n     point.create(100, 0)\n)",
+        "examples": "cell:add_label(\n    <span class=\"opc-string\">\"<span class=\"opc-number\">0</span>.<span class=\"opc-number\">8</span>\"</span>,\n     <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"M1voltagelabelhigh<span class=\"opc-number\">1voltagelabelhigh</span>\"</span>),\n     <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>)\n)",
     },
     {
         "module": "object",
@@ -1493,7 +1493,7 @@ const apirefs = [
         "syntax": "add_port(cell, name, layer, where, sizehint)",
         "description": "add a port to a cell",
         "details": "add a port to a cell. Works like add_anchor, but additionally a layer is expected. A size hint can be given, which might be processed by the export.",
-        "examples": "cell:add_port(\n    \"vdd\",\n    generics.metalport(2),\n    point.create(100, 0)\n)",
+        "examples": "cell:add_port(\n    <span class=\"opc-string\">\"vdd\"</span>,\n    <span class=\"opc-module\">generics</span>.metalport(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>)\n)",
     },
     {
         "module": "object",
@@ -1501,7 +1501,7 @@ const apirefs = [
         "syntax": "add_port_with_anchor(cell, name, layer, where, sizehint)",
         "description": "add a port and the corresponding point as an anchor to a cell",
         "details": "add a port to a cell. Works like add_anchor, but additionally a layer is expected. This function also adds an anchor to the cell (named like the port). A size hint can be given, which might be processed by the export.",
-        "examples": "cell:add_port_with_anchor(\n    \"vdd\",\n    generics.metalport(2),\n    point.create(100, 0)\n)",
+        "examples": "cell:add_port_with_anchor(\n    <span class=\"opc-string\">\"vdd\"</span>,\n    <span class=\"opc-module\">generics</span>.metalport(<span class=\"opc-number\">2</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>)\n)",
     },
     {
         "module": "object",
@@ -1509,7 +1509,7 @@ const apirefs = [
         "syntax": "add_bus_port(cell, name, layer, where, startindex, endindex, xpitch, ypitch)",
         "description": "add a bus port (multiple ports)",
         "details": "add a bus port (multiple ports like vout[0:4]) to a cell. The port expression is portname[startindex:endindex] and portname[i] is placed at 'where' with an offset of ((i - 1) * xpitch, (i - 1) * ypitch)",
-        "examples": "cell:add_bus_port(\n    \"vout\",\n    generics.metalport(4),\n    point.create(200, 0),\n    0, 4,\n    200, 0\n)",
+        "examples": "cell:add_bus_port(\n    <span class=\"opc-string\">\"vout\"</span>,\n    <span class=\"opc-module\">generics</span>.metalport(<span class=\"opc-number\">4</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">0</span>, <span class=\"opc-number\">4</span>,\n    <span class=\"opc-number\">200</span>, <span class=\"opc-number\">0</span>\n)",
     },
     {
         "module": "object",
@@ -1517,7 +1517,7 @@ const apirefs = [
         "syntax": "align_area_anchor_bottom(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the bottom of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is aligned to the bottom of the target area anchor of the specified target cell. This only changes the y coordinate.",
-        "examples": "cell:align_area_anchor_bottom(\n    \"topgatestrap\",\n    othercell,\n    \"botgatestrap\"\n)",
+        "examples": "cell:align_area_anchor_bottom(\n    <span class=\"opc-string\">\"topgatestrap\"</span>,\n    othercell,\n    <span class=\"opc-string\">\"botgatestrap\"</span>\n)",
     },
     {
         "module": "object",
@@ -1525,7 +1525,7 @@ const apirefs = [
         "syntax": "align_area_anchor_left(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the left of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is aligned to the left of the target area anchor of the specified target cell. This only changes the x coordinate.",
-        "examples": "cell:align_area_anchor_left(\n    \"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
+        "examples": "cell:align_area_anchor_left(\n    <span class=\"opc-string\">\"leftsourcedrain\"</span>,\n    othercell,\n    <span class=\"opc-string\">\"rightsourcedrain\"</span>\n)",
     },
     {
         "module": "object",
@@ -1533,7 +1533,7 @@ const apirefs = [
         "syntax": "align_area_anchor_right(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the right of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is aligned to the right of the target area anchor of the specified target cell. This only changes the x coordinate.",
-        "examples": "cell:align_area_anchor_right(\n    \"rightsourcedrain\",\n    othercell,\n    \"leftsourcedrain\"\n)",
+        "examples": "cell:align_area_anchor_right(\n    <span class=\"opc-string\">\"rightsourcedrain\"</span>,\n    othercell,\n    <span class=\"opc-string\">\"leftsourcedrain\"</span>\n)",
     },
     {
         "module": "object",
@@ -1541,7 +1541,7 @@ const apirefs = [
         "syntax": "align_area_anchor_top(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the top of the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is aligned to the top of the target area anchor of the specified target cell. This only changes the y-coordinate.",
-        "examples": "cell:align_area_anchor_top(\n\"botgatestrap\",\n    othercell,\n    \"topgatestrap\"\n)",
+        "examples": "cell:align_area_anchor_top(\n<span class=\"opc-string\">\"botgatestrap\"</span>,\n    othercell,\n    <span class=\"opc-string\">\"topgatestrap\"</span>\n)",
     },
     {
         "module": "object",
@@ -1549,7 +1549,7 @@ const apirefs = [
         "syntax": "align_area_anchor(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the area anchor of another cell",
         "details": "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. The area anchors must have the same size, otherwise an error is raised. This changes both the x- and the y-coordinate.",
-        "examples": "cell:align_area_anchor(\n\"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
+        "examples": "cell:align_area_anchor(\n<span class=\"opc-string\">\"leftsourcedrain\"</span>,\n    othercell,\n    <span class=\"opc-string\">\"rightsourcedrain\"</span>\n)",
     },
     {
         "module": "object",
@@ -1557,7 +1557,7 @@ const apirefs = [
         "syntax": "align_area_anchor_x(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the area anchor of another cell (x-only variant)",
         "details": "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. This changes only the x-coordinate.",
-        "examples": "cell:align_area_anchor_x(\n\"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
+        "examples": "cell:align_area_anchor_x(\n<span class=\"opc-string\">\"leftsourcedrain\"</span>,\n    othercell,\n    <span class=\"opc-string\">\"rightsourcedrain\"</span>\n)",
     },
     {
         "module": "object",
@@ -1565,7 +1565,7 @@ const apirefs = [
         "syntax": "align_area_anchor_y(cell, anchorname, targetcell, targetanchorname)",
         "description": "align the area anchor of one cell to the area anchor of another cell (y-only variant)",
         "details": "Translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. This changes only the y-coordinate.",
-        "examples": "cell:align_area_anchor_y(\n\"leftsourcedrain\",\n    othercell,\n    \"rightsourcedrain\"\n)",
+        "examples": "cell:align_area_anchor_y(\n<span class=\"opc-string\">\"leftsourcedrain\"</span>,\n    othercell,\n    <span class=\"opc-string\">\"rightsourcedrain\"</span>\n)",
     },
     {
         "module": "object",
@@ -1661,7 +1661,7 @@ const apirefs = [
         "syntax": "alignment_box_include_point(cell, pt)",
         "description": "add a point to a cells alignment box",
         "details": "Extend the alignment box of a cell in a way that the given point is included in it. The alignment box is never shrunken, only enlarged.",
-        "examples": "cell:alignment_box_include_point(point.create(200, 200))",
+        "examples": "cell:alignment_box_include_point(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>))",
     },
     {
         "module": "object",
@@ -1669,7 +1669,7 @@ const apirefs = [
         "syntax": "alignment_box_include_x(cell, pt)",
         "description": "add a point to a cells alignment box (x-only variant)",
         "details": "Like alignment_box_include_point, but only change the x-coordinates of the alignment box. The y-coordinate is ignored, the second argument is a point only for convenience.",
-        "examples": "cell:alignment_box_include_x(point.create(200, 200))",
+        "examples": "cell:alignment_box_include_x(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>))",
     },
     {
         "module": "object",
@@ -1677,7 +1677,7 @@ const apirefs = [
         "syntax": "alignment_box_include_y(cell, pt)",
         "description": "add a point to a cells alignment box (y-only variant)",
         "details": "Like alignment_box_include_point, but only change the y-coordinates of the alignment box. The x-coordinate is ignored, the second argument is a point only for convenience.",
-        "examples": "cell:alignment_box_include_y(point.create(200, 200))",
+        "examples": "cell:alignment_box_include_y(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">200</span>))",
     },
     {
         "module": "object",
@@ -1693,7 +1693,7 @@ const apirefs = [
         "syntax": "create_object_handle(cell, reference)",
         "description": "create a light reference to an object for object:add_child()",
         "details": "Create an object handle of a reference cell and store it in a parent cell. This is used internally when a cell is added for the first time as child. This function is exposed to the user in order to explicitly create these handles. They are useful when multiple cells in a hierarchy add the same object as a child, which would not be possible otherwise (this would require either a complete copy of the object with a new name or the cell hierarchy would contain the same object twice)",
-        "examples": "local handle = object.create_object_handle(parent, reference)\nsubcell1:add_child(handle, \"child\")\nsubcell2:add_child(handle, \"child\")\nparent:add_child(subcell1, \"sub1\")\nparent:add_child(subcell2, \"sub2\")",
+        "examples": "local handle = <span class=\"opc-module\">object</span>.create_object_handle(parent, reference)\nsubcell1<span class=\"opc-number\">1</span>:add_child(handle, <span class=\"opc-string\">\"child\"</span>)\nsubcell2<span class=\"opc-number\">2</span>:add_child(handle, <span class=\"opc-string\">\"child\"</span>)\nparent:add_child(subcell1<span class=\"opc-number\">1</span>, <span class=\"opc-string\">\"sub1<span class=\"opc-number\">1</span>\"</span>)\nparent:add_child(subcell2<span class=\"opc-number\">2</span>, <span class=\"opc-string\">\"sub2<span class=\"opc-number\">2</span>\"</span>)",
     },
     {
         "module": "object",
@@ -1701,7 +1701,7 @@ const apirefs = [
         "syntax": "create(cellname)",
         "description": "create an object",
         "details": "Create a new object. A name must be given. Hierarchical exports use this name to identify layout cells and no checks for duplication are done. Therefore the user must make sure that every name is unique. Note that this will probably change in the future.",
-        "examples": "local cell = object.create(\"toplevel\")",
+        "examples": "local cell = <span class=\"opc-module\">object</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-string\">\"toplevel\"</span>)",
     },
     {
         "module": "object",
@@ -1709,7 +1709,7 @@ const apirefs = [
         "syntax": "create_pseudo()",
         "description": "create a pseudo-object",
         "details": "Create a new object without a name. This kind of object behaves exactly like a regular object, but it can't be added as a child to a parent object. It is intended to be used as a flat container for shapes that are merged into another cell. This function is there to express this intent, but other than this there are no advantages of using this function over object.create() (except that one does not have to come up with a name)",
-        "examples": "local container = object.create_pseudo()",
+        "examples": "local container = <span class=\"opc-module\">object</span>.create_pseudo()",
     },
     {
         "module": "object",
@@ -1725,7 +1725,7 @@ const apirefs = [
         "syntax": "extend_alignment_box(cell, extouterblx, extouterbly, extoutertrx, extoutertry, extinnerblx, extinnerbly, extinnertrx, extinnertry)",
         "description": "extend an object alignment box",
         "details": "Extend an existing object alignment box. Takes eight values for the extension of the four corner points making up the alignment box.",
-        "examples": "cell:extend_alignment_box(-100, -100, 100, 100, 0, 0, 0, 0)",
+        "examples": "cell:extend_alignment_box(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>)",
     },
     {
         "module": "object",
@@ -1733,7 +1733,7 @@ const apirefs = [
         "syntax": "extend_alignment_box_x_symmetrical(cell, extx)",
         "description": "extend an object alignment box (symmetrical x-only variant)",
         "details": "Extend an existing object alignment box. Takes only one value for the extension of the four corner points and extends all x-coordinates of the box symmetrically in the left/right direction.",
-        "examples": "cell:extend_alignment_box_x_symmetrical(200)",
+        "examples": "cell:extend_alignment_box_x_symmetrical(<span class=\"opc-number\">200</span>)",
     },
     {
         "module": "object",
@@ -1741,7 +1741,7 @@ const apirefs = [
         "syntax": "extend_alignment_box_y_symmetrical(cell, exty)",
         "description": "extend an object alignment box (symmetrical y-only variant)",
         "details": "Extend an existing object alignment box. Takes only one value for the extension of the four corner points and extends all y-coordinates of the box symmetrically in the left/right direction.",
-        "examples": "cell:extend_alignment_box_y_symmetrical(200)",
+        "examples": "cell:extend_alignment_box_y_symmetrical(<span class=\"opc-number\">200</span>)",
     },
     {
         "module": "object",
@@ -1749,7 +1749,7 @@ const apirefs = [
         "syntax": "extend_alignment_box_xy_symmetrical(cell, extx, exty)",
         "description": "extend an object alignment box (symmetrical variant)",
         "details": "Extend an existing object alignment box. Takes two values for the extension of the four corner points and extends all x- and y-coordinates of the box symmetrically in the left/right direction. This function is the same as calling the individual alignment box extension functions for x- and y-directions individually.",
-        "examples": "cell:extend_alignment_box_xy_symmetrical(200, 300)",
+        "examples": "cell:extend_alignment_box_xy_symmetrical(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">300</span>)",
     },
     {
         "module": "object",
@@ -1789,7 +1789,7 @@ const apirefs = [
         "syntax": "get_alignment_anchor(cell, anchorname)",
         "description": "get an alignment anchor",
         "details": "Retrieve an alignment anchor from a cell. These anchors are the defining points of the alignment box. Valid anchor names are 'outerbl', 'outerbr', 'outertl', 'outertr', 'innerbl', 'innerbr', 'innertl' and 'innertr'. This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. A non-existing anchor is an error.",
-        "examples": "cell:get_alignment_anchor(\"outerbl\")",
+        "examples": "cell:get_alignment_anchor(<span class=\"opc-string\">\"outerbl\"</span>)",
     },
     {
         "module": "object",
@@ -1805,7 +1805,7 @@ const apirefs = [
         "syntax": "get_anchor_line_x(cell, anchorname)",
         "description": "get an anchor line from a cell (x variant)",
         "details": "Retrieve an anchor line from a cell. This function returns a coordinate that contains the x-position of the specified anchor line, corrected by the cell transformation. Retrieving non-existing anchor lines raises an error. There is (and can't) be any checks that an x-coordinate is not used as a y-coordinate and vice versa.",
-        "examples": "cell:get_anchor_line_x(\"activeleft\")",
+        "examples": "cell:get_anchor_line_x(<span class=\"opc-string\">\"activeleft\"</span>)",
     },
     {
         "module": "object",
@@ -1813,7 +1813,7 @@ const apirefs = [
         "syntax": "get_anchor_line_y(cell, anchorname)",
         "description": "get an anchor line from a cell (y variant)",
         "details": "Retrieve an anchor line from a cell. This function returns a coordinate that contains the y-position of the specified anchor line, corrected by the cell transformation. Retrieving non-existing anchor lines raises an error. There is (and can't) be any checks that an x-coordinate is not used as a y-coordinate and vice versa.",
-        "examples": "cell:get_anchor_line_y(\"activetop\")",
+        "examples": "cell:get_anchor_line_y(<span class=\"opc-string\">\"activetop\"</span>)",
     },
     {
         "module": "object",
@@ -1821,7 +1821,7 @@ const apirefs = [
         "syntax": "get_anchor(cell, anchorname)",
         "description": "get a regular anchor from a cell",
         "details": "Retrieve an anchor from a cell. This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. Retrieving non-existing anchor raises an error.",
-        "examples": "cell:get_anchor(\"sourcedrain1bl\")",
+        "examples": "cell:<span class=\"opc-function\">get_anchor</span>(<span class=\"opc-string\">\"sourcedrain1bl<span class=\"opc-number\">1bl</span>\"</span>)",
     },
     {
         "module": "object",
@@ -1829,7 +1829,7 @@ const apirefs = [
         "syntax": "get_area_anchor(cell, anchorname)",
         "description": "get an area anchor from a cell",
         "details": "Retrieve an area anchor from a cell. This function returns a table with four points (bl (bottom-left), tr (top-right), br (bottom-right) and tl (top-left)) that contain the position of the specified area anchor, corrected by the cell transformation. Furthermore, the individual coordinates are also available as skalar values with the keys 'b', 't', 'l' and 'r'. Retrieving a non-existing anchor raises an error.",
-        "examples": "cell:get_area_anchor(\"sourcedrain1\").bl\npoint.create(cell1:get_area_anchor(\"sourcedrain1\").l, cell2:get_area_anchor(\"topgatestrap\").t)",
+        "examples": "cell:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"sourcedrain1<span class=\"opc-number\">1</span>\"</span>).bl\n<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(cell1<span class=\"opc-number\">1</span>:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"sourcedrain1<span class=\"opc-number\">1</span>\"</span>).<span class=\"opc-module\">l</span>, cell2<span class=\"opc-number\">2</span>:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"topgatestrap\"</span>).<span class=\"opc-module\">t</span>)",
     },
     {
         "module": "object",
@@ -1837,7 +1837,7 @@ const apirefs = [
         "syntax": "get_area_anchor_fmt(cell, anchorname, ...)",
         "description": "get an area anchor from a cell (format string variant)",
         "details": "Like object.get_area_anchor, but call string.format on the input arguments.",
-        "examples": "cell:get_area_anchor_fmt(\"sourcedrain%d\", 1)",
+        "examples": "cell:get_area_anchor_fmt(<span class=\"opc-string\">\"sourcedrain%d\"</span>, <span class=\"opc-number\">1</span>)",
     },
     {
         "module": "object",
@@ -1845,7 +1845,7 @@ const apirefs = [
         "syntax": "get_area_anchor_height(cell, anchorname)",
         "description": "get the height of an area anchor",
         "details": "Retrieve the height (an integer) of an area anchor from a cell. A non-existing anchor is an error.",
-        "examples": "local height = cell:get_area_anchor_height(\"sourcedrain1\")",
+        "examples": "local height = cell:get_area_anchor_height(<span class=\"opc-string\">\"sourcedrain1<span class=\"opc-number\">1</span>\"</span>)",
     },
     {
         "module": "object",
@@ -1853,7 +1853,7 @@ const apirefs = [
         "syntax": "get_area_anchor_width(cell, anchorname)",
         "description": "get the width of an area anchor",
         "details": "Retrieve the width (an integer) of an area anchor from a cell. A non-existing anchor is an error.",
-        "examples": "local width = cell:get_area_anchor_width(\"sourcedrain1\")",
+        "examples": "local width = cell:get_area_anchor_width(<span class=\"opc-string\">\"sourcedrain1<span class=\"opc-number\">1</span>\"</span>)",
     },
     {
         "module": "object",
@@ -1861,7 +1861,7 @@ const apirefs = [
         "syntax": "get_array_anchor(cell, xindex, yindex, anchorname)",
         "description": "get a regular anchor from a child array",
         "details": "Like object.get_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error.",
-        "examples": "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(\n    ref,\n    \"refarray\",\n    20, 2,\n    100, 1000\n)\nlocal anchor = array:get_array_anchor(4, 1, \"someanchor\")",
+        "examples": "local ref = <span class=\"opc-module\">object</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-string\">\"ref\"</span>)\nlocal array = cell:add_child_array(\n    ref,\n    <span class=\"opc-string\">\"refarray\"</span>,\n    <span class=\"opc-number\">20</span>, <span class=\"opc-number\">2</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">1000</span>\n)\nlocal anchor = array:get_array_anchor(<span class=\"opc-number\">4</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-string\">\"someanchor\"</span>)",
     },
     {
         "module": "object",
@@ -1869,7 +1869,7 @@ const apirefs = [
         "syntax": "get_array_area_anchor(cell, xindex, yindex, anchorname)",
         "description": "get an area anchor from a child array",
         "details": "Like object.get_area_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error.",
-        "examples": "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(\n    ref,\n    \"refarray\",\n    20, 2,\n    100, 1000\n)\nlocal anchor = array:get_array_area_anchor(4, 1, \"someareaanchor\")",
+        "examples": "local ref = <span class=\"opc-module\">object</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-string\">\"ref\"</span>)\nlocal array = cell:add_child_array(\n    ref,\n    <span class=\"opc-string\">\"refarray\"</span>,\n    <span class=\"opc-number\">20</span>, <span class=\"opc-number\">2</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">1000</span>\n)\nlocal anchor = array:get_array_area_anchor(<span class=\"opc-number\">4</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-string\">\"someareaanchor\"</span>)",
     },
     {
         "module": "object",
@@ -1877,7 +1877,7 @@ const apirefs = [
         "syntax": "get_boundary(cell)",
         "description": "get the boundary of a cell",
         "details": "Retrieve the boundary of an object. If no explicit boundary exists, it is calculated from the extrem coordinates of all shapes (bounding box). The boundary is returned as a table containing the points. A boundary is not necessarily rectangular, but automatically-calculated boundaries are. In any case, the boundary is returned as a polygon, even if it is rectangular. This can be converted into a rectangular representation by util.polygon_rectangular_boundary(boundary).",
-        "examples": "local boundary = cell:get_boundary()\n-- get min/max points:\nlocal bl, tr = util.polygon_rectangular_boundary(boundary)",
+        "examples": "local boundary = cell:get_boundary()\n-- <span class=\"opc-function\">get</span> min/max points:\nlocal bl, tr = <span class=\"opc-module\">util</span>.polygon_rectangular_boundary(boundary)",
     },
     {
         "module": "object",
@@ -1893,7 +1893,7 @@ const apirefs = [
         "syntax": "get_layer_boundary(cell, layer)",
         "description": "get a layer boundary of a cell",
         "details": "Retrieve a layer boundary of an object. If the cell has no layer boundaries at all, an empty table is returned. Otherwise, if the layer boundary for the specified layer does not exist, the bounding box of the cell is returned. If the layer boundary exists, it is returned. For this case, object.set_empty_layer_boundary() is useful.",
-        "examples": "local layerboundary = cell:get_layer_boundary(generics.metal(1))",
+        "examples": "local layerboundary = cell:get_layer_boundary(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>))",
     },
     {
         "module": "object",
@@ -1901,7 +1901,7 @@ const apirefs = [
         "syntax": "get_layer_occupation(cell, layer)",
         "description": "get the layer occupation (bounding box) of a cell for a specific layer",
         "details": "Retrieve the extreme points of the overall layer occupation (including the sub-cells) of the given cell. This function returns a table with a bottom-left ('bl') and a top-right ('tr') point. This function does not depend on any existing layer boundaries, it always computes to real occupation. This might or might not be desirable, if precise control over the layer occupation is required it is recommended to use layer boundaries. This function is potentially slow, as it traverses the entire cell hierarchy and compares every shape layer to the given layer. If no layer is given, this function returns the bounding box.",
-        "examples": "local occupation = cell:get_layer_occupation(\n    generics.metal(1)\n    )\nlayouthelpers.place_guardring(cell,\n    occupation.bl,\n    occupation.tr,\n    (...) -- further options\n)",
+        "examples": "local occupation = cell:get_layer_occupation(\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>)\n    )\n<span class=\"opc-module\">layouthelpers</span>.place_guardring(cell,\n    occupation.bl,\n    occupation.tr,\n    (...) -- further options\n)",
     },
     {
         "module": "object",
@@ -1909,7 +1909,7 @@ const apirefs = [
         "syntax": "get_shape_outlines(cell, layers)",
         "description": "get the polygon outlines of all shapes of a cell (possibly filtered by a given layer)",
         "details": "Return a table which contains polygon outlines of all shapes on a given layer or layers. ,Useful for instance for automatic filling. ,The given layer can be a singular generics layer or a table with several layers.",
-        "examples": "local outlines = cell:get_shape_outlines()\nlocal m1outlines = cell:get_shape_outlines(generics.metal(1))\nlocal all_metal_outlines = cell:get_shape_outlines(util.foreach(util.range(1, technology.resolve_metal(-1)), generics.metal))",
+        "examples": "local outlines = cell:get_shape_outlines()\nlocal m1outlines<span class=\"opc-number\">1outlines</span> = cell:get_shape_outlines(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>))\nlocal all_metal_outlines = cell:get_shape_outlines(<span class=\"opc-module\">util</span>.foreach(<span class=\"opc-module\">util</span>.range(<span class=\"opc-number\">1</span>, <span class=\"opc-module\">technology</span>.resolve_metal(-<span class=\"opc-number\">1</span>)), <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>))",
     },
     {
         "module": "object",
@@ -1917,7 +1917,7 @@ const apirefs = [
         "syntax": "add_net_shape(cell, netname, bl, tr, layer)",
         "description": "add a net shape to a cell",
         "details": "Mark a rectangular area in a cell with a certain net. This can be used for automatic via placement from power grids, for instance.",
-        "examples": "cell:add_net_shape(\n    \"vdd\",\n    cell:get_area_anchor(\"sourcestrap\").bl,\n    cell:get_area_anchor(\"sourcestrap\").tr,\n    generics.metal(2)\n)",
+        "examples": "cell:add_net_shape(\n    <span class=\"opc-string\">\"vdd\"</span>,\n    cell:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"sourcestrap\"</span>).bl,\n    cell:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"sourcestrap\"</span>).tr,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>)\n)",
     },
     {
         "module": "object",
@@ -1925,7 +1925,7 @@ const apirefs = [
         "syntax": "mark_area_anchor_as_net(cell, anchor, netname, layer)",
         "description": "add a net shape to a cell based on an area anchor",
         "details": "Mark an area anchor in a cell with a certain net. This can be used for automatic via placement from power grids, for instance. This function is similar to add_net_shape, but simpler (and less flexible) to use.",
-        "examples": "cell:mark_area_anchor_as_net(\"sourcestrap\", \"vdd\", generics.metal(2))",
+        "examples": "cell:mark_area_anchor_as_net(<span class=\"opc-string\">\"sourcestrap\"</span>, <span class=\"opc-string\">\"vdd\"</span>, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>))",
     },
     {
         "module": "object",
@@ -1933,7 +1933,7 @@ const apirefs = [
         "syntax": "get_net_shapes(cell, netname, layer)",
         "description": "get all net shapes for a given net (possibly filtered by their layer)",
         "details": "Return a table which contains rectangular netshape entries of all shapes on a given net. Useful for instance for automatic placement of via from a power grid. The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }. If the 'layer' parameter is non-nil, only shapes on the given layer are returned.",
-        "examples": "cell:get_net_shapes(\"vdd\")\ncell:get_net_shapes(\"vss\", generics.metal(4))",
+        "examples": "cell:get_net_shapes(<span class=\"opc-string\">\"vdd\"</span>)\ncell:get_net_shapes(<span class=\"opc-string\">\"vss\"</span>, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">4</span>))",
     },
     {
         "module": "object",
@@ -1941,7 +1941,7 @@ const apirefs = [
         "syntax": "get_array_net_shapes(cell, xindex, yindex, netname, layer)",
         "description": "get all net shapes for a given net (possibly filtered by their layer) from a child array",
         "details": "Teturn a table which contains rectangular netshape entries of all shapes on a given net. Useful for instance for automatic placement of via from a power grid. The structure of the table entries in the results table are: { net = <netname>, bl = <bl>, tr = <tr> }. If the 'layer' parameter is non-nil, only shapes on the given layer are returned. This function retrieves the netshape of a specific instance of a child array.",
-        "examples": "cell:get_net_shapes(\"vdd\")\ncell:get_net_shapes(\"vss\", generics.metal(4))",
+        "examples": "cell:get_net_shapes(<span class=\"opc-string\">\"vdd\"</span>)\ncell:get_net_shapes(<span class=\"opc-string\">\"vss\"</span>, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">4</span>))",
     },
     {
         "module": "object",
@@ -1949,7 +1949,7 @@ const apirefs = [
         "syntax": "inherit_net_shapes(cell, other, layer)",
         "description": "inherit (copy) all net shapes from one cell to another",
         "details": "Inherit all net shapes from a given cell. This has the same effect as iterating over all net shapes from the 'other' cell and calling 'cell:add_net_shape' on every net shape. An optional layer filter can be given, only the net shapes on that layer will then be inherited.",
-        "examples": "cell:inherit_net_shapes(othercell, generics.metal(3))",
+        "examples": "cell:inherit_net_shapes(othercell, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">3</span>))",
     },
     {
         "module": "object",
@@ -1973,7 +1973,7 @@ const apirefs = [
         "syntax": "has_layer_boundary(cell, layer)",
         "description": "check if the object has a layer boundary for the specified layer",
         "details": "Check if the object has a layer boundary for the specified layer.",
-        "examples": "cell:has_layer_boundary(generics.metal(1))",
+        "examples": "cell:has_layer_boundary(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>))",
     },
     {
         "module": "object",
@@ -1989,7 +1989,7 @@ const apirefs = [
         "syntax": "inherit_all_anchors_with_prefix(cell, othercell, prefix)",
         "description": "inherit all anchors from another cell with an attached prefix.",
         "details": "Inherit all anchors from another cell with an attached prefix.",
-        "examples": "cell:inherit_all_anchors_with_prefix(someothercell, \"othercell_\")",
+        "examples": "cell:inherit_all_anchors_with_prefix(someothercell, <span class=\"opc-string\">\"othercell_\"</span>)",
     },
     {
         "module": "object",
@@ -1997,7 +1997,7 @@ const apirefs = [
         "syntax": "inherit_anchor_as(cell, othercell, anchorname, newname)",
         "description": "inherit an anchor from another cell under a different name",
         "details": "Inherit an anchor from another cell under a different name.",
-        "examples": "cell:inherit_anchor(someothercell, \"anchor\", \"newname\")",
+        "examples": "cell:inherit_anchor(someothercell, <span class=\"opc-string\">\"anchor\"</span>, <span class=\"opc-string\">\"newname\"</span>)",
     },
     {
         "module": "object",
@@ -2005,7 +2005,7 @@ const apirefs = [
         "syntax": "inherit_anchor(cell, othercell, anchorname)",
         "description": "inherit an anchor from another cell",
         "details": "Inherit an anchor from another cell.",
-        "examples": "cell:inherit_anchor(someothercell, \"anchor\")",
+        "examples": "cell:inherit_anchor(someothercell, <span class=\"opc-string\">\"anchor\"</span>)",
     },
     {
         "module": "object",
@@ -2013,7 +2013,7 @@ const apirefs = [
         "syntax": "inherit_area_anchor_as(cell, othercell, anchorname, newname)",
         "description": "inherit an area anchor from another cell under a different name",
         "details": "Inherit an area anchor from another cell under a different name.",
-        "examples": "cell:inherit_area_anchor(someothercell, \"anchor\", \"newname\")",
+        "examples": "cell:inherit_area_anchor(someothercell, <span class=\"opc-string\">\"anchor\"</span>, <span class=\"opc-string\">\"newname\"</span>)",
     },
     {
         "module": "object",
@@ -2021,7 +2021,7 @@ const apirefs = [
         "syntax": "inherit_area_anchor(cell, othercell, anchorname)",
         "description": "inherit an area anchor from another cell",
         "details": "Inherit an area anchor from another cell.",
-        "examples": "cell:inherit_area_anchor(someothercell, \"anchor\")",
+        "examples": "cell:inherit_area_anchor(someothercell, <span class=\"opc-string\">\"anchor\"</span>)",
     },
     {
         "module": "object",
@@ -2045,7 +2045,7 @@ const apirefs = [
         "syntax": "inherit_layer_boundary(cell, othercell, layer)",
         "description": "inherit all layer boundaries from another cell for the given layer",
         "details": "Inherit all layer boundaries from another cell for the given layer.",
-        "examples": "cell:inherit_layer_boundary(someothercell, generics.metal(1))",
+        "examples": "cell:inherit_layer_boundary(someothercell, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>))",
     },
     {
         "module": "object",
@@ -2093,7 +2093,7 @@ const apirefs = [
         "syntax": "move_point(cell, source, target)",
         "description": "move an object to a point by a reference point",
         "details": "Translate (move) the object so that the source point lies on the target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.",
-        "examples": "cell:move_point(\n    cell:get_area_anchor(\"gate\").bl,\n    point.create(0, 0)\n) -- move to origin\n\nmosfet:move_point(\n    mosfet:get_area_anchor(\"leftsourcedrain\").bl,\n    othermosfet:get_area_anchor(\"rightsourcedrain\").bl\n) -- align two mosfets",
+        "examples": "cell:move_point(\n    cell:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"gate\"</span>).bl,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>)\n) -- move to origin\n\nmosfet:move_point(\n    mosfet:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"leftsourcedrain\"</span>).bl,\n    othermosfet:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"rightsourcedrain\"</span>).bl\n) -- <span class=\"opc-module\">align</span> two mosfets",
     },
     {
         "module": "object",
@@ -2101,7 +2101,7 @@ const apirefs = [
         "syntax": "move_point_x(cell, source, target)",
         "description": "move an object to a point by a reference point (x-only variant)",
         "details": "Translate (move) the object so that the x-coorindate of the source point lies on the x-coordinate target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.",
-        "examples": "cell:move_point_x(\n    cell:get_area_anchor(\"gate\").bl,\n     point.create(0, 0)\n) -- move the x-coordinate of the origin\n\nmosfet:move_point_x(\n    mosfet:get_area_anchor(\"leftsourcedrain\").bl,\n    othermosfet:get_area_anchor(\"rightsourcedrain\").bl\n) -- align the x-coordinate of two mosfets",
+        "examples": "cell:move_point_x(\n    cell:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"gate\"</span>).bl,\n     <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>)\n) -- move the x-coordinate of the origin\n\nmosfet:move_point_x(\n    mosfet:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"leftsourcedrain\"</span>).bl,\n    othermosfet:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"rightsourcedrain\"</span>).bl\n) -- <span class=\"opc-module\">align</span> the x-coordinate of two mosfets",
     },
     {
         "module": "object",
@@ -2109,7 +2109,7 @@ const apirefs = [
         "syntax": "move_point_y(cell, source, target)",
         "description": "move an object to a point by a reference point (y-only variant)",
         "details": "Translate (move) the object so that the y-coorindate of the source point lies on the y-coordinate target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.",
-        "examples": "cell:move_point_y(\n    cell:get_area_anchor(\"gate\").bl,\n    point.create(0, 0)\n) -- move the y-coordinate of the origin\n\nmosfet:move_point_y(\n    mosfet:get_area_anchor(\"leftsourcedrain\").bl,\n    othermosfet:get_area_anchor(\"rightsourcedrain\").bl\n) -- align the y-coordinate of two mosfets",
+        "examples": "cell:move_point_y(\n    cell:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"gate\"</span>).bl,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>)\n) -- move the y-coordinate of the origin\n\nmosfet:move_point_y(\n    mosfet:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"leftsourcedrain\"</span>).bl,\n    othermosfet:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"rightsourcedrain\"</span>).bl\n) -- <span class=\"opc-module\">align</span> the y-coordinate of two mosfets",
     },
     {
         "module": "object",
@@ -2117,7 +2117,7 @@ const apirefs = [
         "syntax": "center(cell, source)",
         "description": "center an object",
         "details": "Translate (move) the object so that the cell center lies on the target (default: (0, 0)). The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
-        "examples": "cell:center() -- move to origin\n\ncell:center(point.create(100, 100)",
+        "examples": "cell:center() -- move to origin\n\ncell:center(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)",
     },
     {
         "module": "object",
@@ -2125,7 +2125,7 @@ const apirefs = [
         "syntax": "center_x(cell, source)",
         "description": "center an object (x-only variant)",
         "details": "Translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in x-direction. The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
-        "examples": "cell:center_x() -- move to origin\n\ncell:center_x(point.create(100, 100)",
+        "examples": "cell:center_x() -- move to origin\n\ncell:center_x(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)",
     },
     {
         "module": "object",
@@ -2133,7 +2133,7 @@ const apirefs = [
         "syntax": "center_y(cell, source)",
         "description": "center an object (y-only variant)",
         "details": "Translate (move) the object so that the cell center lies on the target (default: (0, 0)), but only move in y-direction. The alignment box is used for calculating the center of the cell, if not available the bounding box is used.",
-        "examples": "cell:center_y() -- move to origin\n\ncell:center_y(point.create(100, 100)",
+        "examples": "cell:center_y() -- move to origin\n\ncell:center_y(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)",
     },
     {
         "module": "object",
@@ -2141,7 +2141,7 @@ const apirefs = [
         "syntax": "move_to(cell, x, y)",
         "description": "move a cell",
         "details": "Move the cell to the specified coordinates (absolute movement). If x is a point, x and y are taken from this point.",
-        "examples": "cell:move_to(100, 200)",
+        "examples": "cell:move_to(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>)",
     },
     {
         "module": "object",
@@ -2149,7 +2149,7 @@ const apirefs = [
         "syntax": "set_origin(cell, x, y)",
         "description": "set to origin of a cell",
         "details": "Sets the origin of the cell to the given position. This is an absolute movement.",
-        "examples": "cell:set_origin(100, 200)",
+        "examples": "cell:set_origin(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>)",
     },
     {
         "module": "object",
@@ -2157,7 +2157,7 @@ const apirefs = [
         "syntax": "move_x(cell, xsource, xtarget)",
         "description": "move an object to a x-coordinate by a reference x-coordinate",
         "details": "Move the cell so that the given x-coordinates are equal (move the difference between these coordinates).",
-        "examples": "cell:move_x(cell:get_area_anchor(\"someanchor\").l, 0)",
+        "examples": "cell:move_x(cell:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"someanchor\"</span>).<span class=\"opc-module\">l</span>, <span class=\"opc-number\">0</span>)",
     },
     {
         "module": "object",
@@ -2165,7 +2165,7 @@ const apirefs = [
         "syntax": "move_y(cell, ysource, ytarget)",
         "description": "move an object to a y-coordinate by a reference y-coordinate",
         "details": "Move the cell so that the given y-coordinates are equal (move the difference between these coordinates).",
-        "examples": "cell:move_y(cell:get_area_anchor(\"someanchor\").l, 0)",
+        "examples": "cell:move_y(cell:<span class=\"opc-function\">get_area_anchor</span>(<span class=\"opc-string\">\"someanchor\"</span>).<span class=\"opc-module\">l</span>, <span class=\"opc-number\">0</span>)",
     },
     {
         "module": "object",
@@ -2189,7 +2189,7 @@ const apirefs = [
         "syntax": "rotate_90_left(cell)",
         "description": "rotate a cell 90 degrees counter-clockwise",
         "details": "rotate the entire object 90 degrees counter-clockwise with respect to the origin",
-        "examples": "cell:rotate_90_left()",
+        "examples": "cell:rotate_90_left<span class=\"opc-number\">90_left</span>()",
     },
     {
         "module": "object",
@@ -2197,7 +2197,7 @@ const apirefs = [
         "syntax": "rotate_90_right(cell)",
         "description": "rotate a cell 90 degrees clockwise",
         "details": "rotate the entire object 90 degrees clockwise with respect to the origin",
-        "examples": "cell:rotate_90_right()",
+        "examples": "cell:rotate_90_right<span class=\"opc-number\">90_right</span>()",
     },
     {
         "module": "object",
@@ -2205,7 +2205,7 @@ const apirefs = [
         "syntax": "array_rotate_90_left(cell)",
         "description": "rotate a child array 90 degrees counter-clockwise",
         "details": "rotate the entire object array 90 degrees counter-clockwise with respect to the origin",
-        "examples": "cell:array_rotate_90_left()",
+        "examples": "cell:array_rotate_90_left<span class=\"opc-number\">90_left</span>()",
     },
     {
         "module": "object",
@@ -2213,7 +2213,7 @@ const apirefs = [
         "syntax": "array_rotate_90_right(cell)",
         "description": "rotate a child array 90 degrees clockwise",
         "details": "rotate the entire object array 90 degrees clockwise with respect to the origin",
-        "examples": "cell:array_rotate_90_right()",
+        "examples": "cell:array_rotate_90_right<span class=\"opc-number\">90_right</span>()",
     },
     {
         "module": "object",
@@ -2221,7 +2221,7 @@ const apirefs = [
         "syntax": "set_alignment_box(cell, outerbl, outertr, innerbl, innertr)",
         "description": "set the alignment box of a cell",
         "details": "Set the alignment box of an object. Overwrites any previous existing alignment boxes. This function can either be called with three or five arguments. In the first case the alignment box is determined by only two corner points. With four corner points, a more sophisticated alignment box is established, which allows the alignment of cells with odd dimensions. Often this is not needed. The more advanced library cells use this mode, but 2 points suffice in many cases.",
-        "examples": "cell:set_alignment_box(point.create(-100, -100), point.create(100, 100))",
+        "examples": "cell:set_alignment_box(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>))",
     },
     {
         "module": "object",
@@ -2229,7 +2229,7 @@ const apirefs = [
         "syntax": "set_boundary_rectangular(cell, bl, tr)",
         "description": "set the cell boundary (rectangular variant)",
         "details": "Set the cell boundary (rectangular).",
-        "examples": "cell:set_boundary_rectangular(point.create(-100, -100), point.create(100, 100))",
+        "examples": "cell:set_boundary_rectangular(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>))",
     },
     {
         "module": "object",
@@ -2237,7 +2237,7 @@ const apirefs = [
         "syntax": "set_boundary(cell, pts)",
         "description": "set the cell boundary (polygon variant)",
         "details": "set the cell boundary (polygon)",
-        "examples": "cell:set_boundary({ point.create(-100, -100), point.create(100, -100), point.create(100, 100), point.create(-100, 100) })",
+        "examples": "cell:set_boundary({ <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>) })",
     },
     {
         "module": "object",
@@ -2245,7 +2245,7 @@ const apirefs = [
         "syntax": "set_empty_layer_boundary(cell, layer)",
         "description": "set an emtpy layer boundary",
         "details": "Set the layer boundary of this object for the specified layer to empty. A layer boundary is useful for automatic filling, an empty layer boundary indicates that filling can take place everywhere. This function is required if fill is to be placed within the regular boundary of the object, because the regular boundary is used as layer boundary if the latter is not present.",
-        "examples": "cell:set_empty_layer_boundary(generics.metal(1))",
+        "examples": "cell:set_empty_layer_boundary(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>))",
     },
     {
         "module": "object",
@@ -2253,7 +2253,7 @@ const apirefs = [
         "syntax": "translate(cell, x, y)",
         "description": "translate a cell",
         "details": "Translate the cell by the specified offsets (relative movement). If x is a point, x and y are taken from this point",
-        "examples": "cell:translate(100, 200)",
+        "examples": "cell:translate(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>)",
     },
     {
         "module": "object",
@@ -2261,7 +2261,7 @@ const apirefs = [
         "syntax": "translate_x(cell, x)",
         "description": "translate a cell (x-only variant)",
         "details": "Translate the cell by the specified x offset (relative movement).",
-        "examples": "cell:translate_x(100)",
+        "examples": "cell:translate_x(<span class=\"opc-number\">100</span>)",
     },
     {
         "module": "object",
@@ -2269,7 +2269,7 @@ const apirefs = [
         "syntax": "translate_y(cell, y)",
         "description": "translate a cell (y-only variant)",
         "details": "Translate the cell by the specified y offset (relative movement).",
-        "examples": "cell:translate_y(100)",
+        "examples": "cell:translate_y(<span class=\"opc-number\">100</span>)",
     },
     {
         "module": "object",
@@ -2293,7 +2293,7 @@ const apirefs = [
         "syntax": "set_name(cell, name)",
         "description": "set the name of the given object",
         "details": "Set the name of the given object.",
-        "examples": "cell:set_name(\"newname\")",
+        "examples": "cell:set_name(<span class=\"opc-string\">\"newname\"</span>)",
     },
     {
         "module": "object",
@@ -2301,7 +2301,7 @@ const apirefs = [
         "syntax": "is_object(cell)",
         "description": "check if a value is an object",
         "details": "Check that a given parameter is an object (with the metatable forn objects). Useful for overloaded functions.",
-        "examples": "if object.is_object(cell) then\n    -- actions for object\nelse    -- actions for other types\nend",
+        "examples": "if <span class=\"opc-module\">object</span>.is_object(cell) then\n    -- actions for <span class=\"opc-module\">object</span>\nelse    -- actions for <span class=\"opc-function\">other</span> types\nend",
     },
     {
         "module": "object",
@@ -2309,7 +2309,7 @@ const apirefs = [
         "syntax": "has_layer(cell, layer)",
         "description": "check if an object has a shape on a given layer (hierarchical)",
         "details": "Check whether an object contains a given layer. This function is recursive and checks all hierarchy levels of the cell.",
-        "examples": "if cell:has_layer(generics.metal(1)) then ...",
+        "examples": "if cell:has_layer(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>)) then ...",
     },
     {
         "module": "pcell",
@@ -2317,7 +2317,7 @@ const apirefs = [
         "syntax": "set_property(property, value)",
         "description": "set a property of a pcell.",
         "details": "Set a property of a pcell. Not many properties are supported currently, so this function is very rarely used. The base cell of the standard cell library uses it to be hidden, but that's the only current use.",
-        "examples": "function config()\n    pcell.set_property(\"hidden\", true)\nend",
+        "examples": "function config()\n    <span class=\"opc-module\">pcell</span>.set_property(<span class=\"opc-string\">\"hidden\"</span>, true)\nend",
     },
     {
         "module": "pcell",
@@ -2325,7 +2325,7 @@ const apirefs = [
         "syntax": "add_parameter(name, defaultvalue, opt)",
         "description": "add a parameter to a pcell definition",
         "details": "Add a parameter to a pcell definition. Must be called in parameters(). The parameter options table can contain the following fields: 'argtype': (type of the parameter, usually deduced from the default value), 'posvals': possible parameter values, see functions 'even', 'odd', 'interval', 'positive', 'negative' and 'set'; 'follow': copy the values from the followed parameter to this one if not explicitly specified and if the followed parameter was given explicitly; 'readonly': make parameter readonly",
-        "examples": "function parameters()\n    pcell.add_parameter(\"fingers\", 2, { posvals = even() })\nend",
+        "examples": "function parameters()\n    <span class=\"opc-module\">pcell</span>.add_parameter(<span class=\"opc-string\">\"fingers\"</span>, <span class=\"opc-number\">2</span>, { posvals = even() })\nend",
     },
     {
         "module": "pcell",
@@ -2333,7 +2333,7 @@ const apirefs = [
         "syntax": "add_parameters(args)",
         "description": "add multiple parameters to a pcell definition",
         "details": "Add multiple parameters to a cell. Internally, this calls pcell.add_parameter, so this function is merely a shorthand for multiple calls to pcell.parameter. Hint for the usage: in lua tables, a trailing comma after the last entry is explicitely allowed. However, this is a variable number of arguments for a function call, where the list has to be well-defined. A common error is a trailing comma after the last entry.",
-        "examples": "function parameters()\n    pcell.add_parameters(\n        {\n            \"fingers\",\n            2,\n            posvals = even()\n        },\n        {\n            \"fingerwidth\",\n            100,\n            posvals = positive()\n        },\n        {\n            \"channeltype\",\n            \"nmos\",\n            posvals = set(\"nmos\", \"pmos\")\n        } -- <--- no comma!\n    )\nend",
+        "examples": "function parameters()\n    <span class=\"opc-module\">pcell</span>.add_parameters(\n        {\n            <span class=\"opc-string\">\"fingers\"</span>,\n            <span class=\"opc-number\">2</span>,\n            posvals = even()\n        },\n        {\n            <span class=\"opc-string\">\"fingerwidth\"</span>,\n            <span class=\"opc-number\">100</span>,\n            posvals = positive()\n        },\n        {\n            <span class=\"opc-string\">\"channeltype\"</span>,\n            <span class=\"opc-string\">\"nmos\"</span>,\n            posvals = set(<span class=\"opc-string\">\"nmos\"</span>, <span class=\"opc-string\">\"pmos\"</span>)\n        } -- <--- no comma!\n    )\nend",
     },
     {
         "module": "pcell",
@@ -2341,7 +2341,7 @@ const apirefs = [
         "syntax": "check_expression(expression, message)",
         "description": "check valid parameter values with expressions",
         "details": "Check valid parameter values with expressions. If parameter values depend on some other parameter or the posval function of parameter definitions do not offer enough flexibility, parameters can be checked with arbitrary lua expressions. This function must be called in parameters().",
-        "examples": "function parameters()\n    pcell.add_parameters({\n        {\n            \"width\", 100\n        },\n        {\n            \"height\", 200\n        },\n    })\n    pcell.check_expression(\n        \"(height / width) % 2 == 0\",\n        \"quotionent of height and width must be even\"\n    )\nend",
+        "examples": "function parameters()\n    <span class=\"opc-module\">pcell</span>.add_parameters({\n        {\n            <span class=\"opc-string\">\"width\"</span>, <span class=\"opc-number\">100</span>\n        },\n        {\n            <span class=\"opc-string\">\"height\"</span>, <span class=\"opc-number\">200</span>\n        },\n    })\n    <span class=\"opc-module\">pcell</span>.check_expression(\n        <span class=\"opc-string\">\"(height / width) % <span class=\"opc-number\">2</span> == <span class=\"opc-number\">0</span>\"</span>,\n        <span class=\"opc-string\">\"quotionent of height and width must be even\"</span>\n    )\nend",
     },
     {
         "module": "pcell",
@@ -2349,7 +2349,7 @@ const apirefs = [
         "syntax": "add_area_anchor_documentation(name, description, condition)",
         "description": "add documentation of an area anchor of a pcell",
         "details": "Add documentation of an area anchor of a pcell. This function is called in the 'anchor' function of a pcell definition. The anchors defined here are available via 'opc --anchors'.",
-        "examples": "pcell.add_area_anchor_documentation(\n    \"someanchor\",\n    \"anchor of some region\",\n    \"someflag == true\"\n)",
+        "examples": "<span class=\"opc-module\">pcell</span>.add_area_anchor_documentation(\n    <span class=\"opc-string\">\"someanchor\"</span>,\n    <span class=\"opc-string\">\"anchor of some region\"</span>,\n    <span class=\"opc-string\">\"someflag == true\"</span>\n)",
     },
     {
         "module": "pcell",
@@ -2357,7 +2357,7 @@ const apirefs = [
         "syntax": "create_layout(cellname, objectname, parameters)",
         "description": "create a layout based on a parametric cell",
         "details": "Create a layout based on a parametric cell. A name has to be given, the parameters are optional. ",
-        "examples": "pcell.create_layout(\"stdcells/not_gate\", \"not_gate\", { pwidth = 600 })",
+        "examples": "<span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"stdcells/not_gate\"</span>, <span class=\"opc-string\">\"not_gate\"</span>, { pwidth = <span class=\"opc-number\">600</span> })",
     },
     {
         "module": "pcell",
@@ -2365,7 +2365,7 @@ const apirefs = [
         "syntax": "create_layout_env(cellname, objectname, parameters, environment)",
         "description": "create a layout of a parametric cell with a cell environment",
         "details": "Create a layout based on a parametric cell with a given cell environment",
-        "examples": "pcell.create_layout_env(\"libname/cellname\", \"toplevel\", args, env)",
+        "examples": "<span class=\"opc-module\">pcell</span>.create_layout_env(<span class=\"opc-string\">\"libname/cellname\"</span>, <span class=\"opc-string\">\"toplevel\"</span>, args, env)",
     },
     {
         "module": "pcell",
@@ -2373,7 +2373,7 @@ const apirefs = [
         "syntax": "create_layout_in_object(cell, cellname, parameters)",
         "description": "create a layout of a parametric cell in an already-existing cell",
         "details": "Create a layout based on a parametric cell in an existing cell. This function does NOT return a new object but places everything from the pcell in the given object (first argument).",
-        "examples": "pcell.create_layout_in_object(cell, \"libname/cellname\", args)",
+        "examples": "<span class=\"opc-module\">pcell</span>.create_layout_in_object(cell, <span class=\"opc-string\">\"libname/cellname\"</span>, args)",
     },
     {
         "module": "pcell",
@@ -2381,7 +2381,7 @@ const apirefs = [
         "syntax": "create_layout_env_in_object(cell, cellname, parameters, environment)",
         "description": "create a layout of a parametric cell in an already-existing cell with a cell environment",
         "details": "Create a layout based on a parametric cell with a given cell environment in an existing cell. This function does NOT return a new object but places everything from the pcell in the given object (first argument).",
-        "examples": "pcell.create_layout_env_in_object(cell, \"libname/cellname\", args, env)",
+        "examples": "<span class=\"opc-module\">pcell</span>.create_layout_env_in_object(cell, <span class=\"opc-string\">\"libname/cellname\"</span>, args, env)",
     },
     {
         "module": "pcell",
@@ -2389,7 +2389,7 @@ const apirefs = [
         "syntax": "create_layout_from_script(scriptpath, args, cellenv)",
         "description": "create a layout with a cell script",
         "details": "Create a layout based on a cellscript.The 'args' and 'cellenv' parameters are supported for special cases, but typically not needed. If extensive use of cell parameters is required, a proper parametric cell might be better. This function is intended for use in helper scripts, e.g. for power scripts. This function returns a new object. The object is created in the cell script, as cell script are required to return an object.",
-        "examples": "pcell.create_layout_env_in_object(cell, \"libname/cellname\", args, env)",
+        "examples": "<span class=\"opc-module\">pcell</span>.create_layout_env_in_object(cell, <span class=\"opc-string\">\"libname/cellname\"</span>, args, env)",
     },
     {
         "module": "placement",
@@ -2397,7 +2397,7 @@ const apirefs = [
         "syntax": "create_floorplan_aspectratio(instances, utilization, aspectration)",
         "description": "create a floorplan configuration based on utilization and an aspectratio",
         "details": "Create a floorplan configuration based on utilization and an aspectratio. The 'instances' table is the result of parsing and processing verilog netlists. This function is intended to be called in a place-and-route-script for --import-verilog",
-        "examples": "local floorplan = placement.create_floorplan_aspectratio(instances, 0.8, 2 / 1)",
+        "examples": "local floorplan = <span class=\"opc-module\">placement</span>.create_floorplan_aspectratio(instances, <span class=\"opc-number\">0</span>.<span class=\"opc-number\">8</span>, <span class=\"opc-number\">2</span> / <span class=\"opc-number\">1</span>)",
     },
     {
         "module": "placement",
@@ -2405,7 +2405,7 @@ const apirefs = [
         "syntax": "create_floorplan_fixed_rows(instances, utilization, rows)",
         "description": "create a floorplan configuration based on utilization and a fixed number of rows",
         "details": "Create a floorplan configuration based on utilization and a fixed number of rows. The 'instances' table is the result of parsing and processing verilog netlists. This function is intended to be called in a place-and-route-script for --import-verilog",
-        "examples": "local floorplan = placement.create_floorplan_fixed_rows(instances, 0.8, 20)",
+        "examples": "local floorplan = <span class=\"opc-module\">placement</span>.create_floorplan_fixed_rows(instances, <span class=\"opc-number\">0</span>.<span class=\"opc-number\">8</span>, <span class=\"opc-number\">20</span>)",
     },
     {
         "module": "placement",
@@ -2413,7 +2413,7 @@ const apirefs = [
         "syntax": "optimize(instances, nets, floorplan)",
         "description": "run a placement optimization",
         "details": "Minimize wire length by optimizing the placement of the instances by a simulated annealing algorithm. This function returns a table with the rows and columns of the placement of the instances. It is intended to be called in a place-and-route-script for --import-verilog",
-        "examples": "local rows = placement.optimize(instances, nets, floorplan)",
+        "examples": "local rows = <span class=\"opc-module\">placement</span>.optimize(instances, nets, floorplan)",
     },
     {
         "module": "placement",
@@ -2421,7 +2421,7 @@ const apirefs = [
         "syntax": "manual(instances, plan)",
         "description": "execute a manual placement specification",
         "details": "Create a placement of instances manually. This function expects a row-column table with all instance names. Thus the instance names must match the ones found in the instances table (from the verilog netlist). This function then updates all required references in the row-column table, that are needed for further processing (e.g. routing). This function is useful for small designs, especially in a hierarchical flow",
-        "examples": "local plan = {\n    { \"inv\", \"nand1\", \"dff_out\" },\n    { \"nand2\", \"dff_buf\" },\n    { \"nand3\", \"dff_in\" },\n}\nlocal rows = placement.manual(instances, plan)\n",
+        "examples": "local plan = {\n    { <span class=\"opc-string\">\"inv\"</span>, <span class=\"opc-string\">\"nand1<span class=\"opc-number\">1</span>\"</span>, <span class=\"opc-string\">\"dff_out\"</span> },\n    { <span class=\"opc-string\">\"nand2<span class=\"opc-number\">2</span>\"</span>, <span class=\"opc-string\">\"dff_buf\"</span> },\n    { <span class=\"opc-string\">\"nand3<span class=\"opc-number\">3</span>\"</span>, <span class=\"opc-string\">\"dff_in\"</span> },\n}\nlocal rows = <span class=\"opc-module\">placement</span>.manual(instances, plan)\n",
     },
     {
         "module": "placement",
@@ -2429,7 +2429,7 @@ const apirefs = [
         "syntax": "insert_filler_names(rows, width)",
         "description": "insert fillers in standard cell placements",
         "details": "Equalize placement rows by inserting fillers in every row. The method tries to equalize spacing between cells. This function is intended to be called in a place-and-route-script for --import-verilog",
-        "examples": "placement.insert_filler_names(rows, 200)",
+        "examples": "<span class=\"opc-module\">placement</span>.insert_filler_names(rows, <span class=\"opc-number\">200</span>)",
     },
     {
         "module": "placement",
@@ -2437,7 +2437,7 @@ const apirefs = [
         "syntax": "create_reference_rows(cellnames, xpitch)",
         "description": "prepare a row placement table",
         "details": "Prepare a row placement table for further placement functions by parsing a definition given in 'cellnames'. This table contains the individual rows of the placment, which every row consiting of individual cells. Cell entries can either be given by just the name of the standard cell (the 'reference') or the instance name ('instance') and the reference name ('reference') This function is meant to be used in pcell definitions.",
-        "examples": "-- un-named mode:\nlocal rows = placement.create_reference_rows({\n    { \"inv\", \"nand1\", \"dff_out\" },\n    { \"nand2\", \"dff_buf\" },\n    { \"nand3\", \"dff_in\" },\n})\n\n-- named mode:\nlocal rows = placement.create_reference_rows({\n    {\n        { name = \"inv0\", reference = \"not_gate\" },\n        { name = \"nand1\", reference = \"nand_gate\" },\n        { name = \"dff_out\", reference = \"dffpq\" }\n    },\n    {\n        { name = \"nand2\", reference = \"nand_gate\" },\n        { name = \"dff_buf\", reference = \"dffpq\" }\n    },\n    {\n        { name = \"nand3\", reference = \"nand_gate\" },\n        { name = \"dff_in\", reference = \"dffpq\" }\n    },\n})",
+        "examples": "-- un-named mode:\nlocal rows = <span class=\"opc-module\">placement</span>.create_reference_rows({\n    { <span class=\"opc-string\">\"inv\"</span>, <span class=\"opc-string\">\"nand1<span class=\"opc-number\">1</span>\"</span>, <span class=\"opc-string\">\"dff_out\"</span> },\n    { <span class=\"opc-string\">\"nand2<span class=\"opc-number\">2</span>\"</span>, <span class=\"opc-string\">\"dff_buf\"</span> },\n    { <span class=\"opc-string\">\"nand3<span class=\"opc-number\">3</span>\"</span>, <span class=\"opc-string\">\"dff_in\"</span> },\n})\n\n-- named mode:\nlocal rows = <span class=\"opc-module\">placement</span>.create_reference_rows({\n    {\n        { name = <span class=\"opc-string\">\"inv0<span class=\"opc-number\">0</span>\"</span>, reference = <span class=\"opc-string\">\"not_gate\"</span> },\n        { name = <span class=\"opc-string\">\"nand1<span class=\"opc-number\">1</span>\"</span>, reference = <span class=\"opc-string\">\"nand_gate\"</span> },\n        { name = <span class=\"opc-string\">\"dff_out\"</span>, reference = <span class=\"opc-string\">\"dffpq\"</span> }\n    },\n    {\n        { name = <span class=\"opc-string\">\"nand2<span class=\"opc-number\">2</span>\"</span>, reference = <span class=\"opc-string\">\"nand_gate\"</span> },\n        { name = <span class=\"opc-string\">\"dff_buf\"</span>, reference = <span class=\"opc-string\">\"dffpq\"</span> }\n    },\n    {\n        { name = <span class=\"opc-string\">\"nand3<span class=\"opc-number\">3</span>\"</span>, reference = <span class=\"opc-string\">\"nand_gate\"</span> },\n        { name = <span class=\"opc-string\">\"dff_in\"</span>, reference = <span class=\"opc-string\">\"dffpq\"</span> }\n    },\n})",
     },
     {
         "module": "placement",
@@ -2453,7 +2453,7 @@ const apirefs = [
         "syntax": "rowwise(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a row-wise manner in a parent cell",
         "details": "Place cells in a row-wise manner in a parent cell. The cells definition contains definitions for every row, which in turn contain entries with two keys: 'reference' (an object) and 'instance' (an instance name). The placed cells are aligned by their alignment boxes and grow into the upper-right direction. This means that the first entry in the first row is the bottom-left-most cell. This function is useful for digital standard cell layouts (and in fact called by placement.digital, which offers a more high-level interface), but it can also be useful for regular analog structures. Flipping fine control can be obtained by passing 'flip = true/false' to entire rows or individually per cell entry with 'flipx' and 'flipy' (boolean switches).",
-        "examples": "local celldef = {\n    { -- first row (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second row\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.rowwise(parent, cellsdef)",
+        "examples": "local celldef = {\n    { -- first row (bottom)\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1<span class=\"opc-number\">1_1</span>\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2<span class=\"opc-number\">1_2</span>\"</span>\n        },\n    },\n    { -- second row\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1<span class=\"opc-number\">2_1</span>\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2<span class=\"opc-number\">2_2</span>\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.rowwise(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2461,7 +2461,7 @@ const apirefs = [
         "syntax": "rowwise_flat(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a row-wise manner in a parent cell (flat variant)",
         "details": "Like placement.rowwise, but merges cells into parents (flat)",
-        "examples": "local celldef = {\n    { -- first row (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second row\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.rowwise_flat(parent, cellsdef)",
+        "examples": "local celldef = {\n    { -- first row (bottom)\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1<span class=\"opc-number\">1_1</span>\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2<span class=\"opc-number\">1_2</span>\"</span>\n        },\n    },\n    { -- second row\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1<span class=\"opc-number\">2_1</span>\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2<span class=\"opc-number\">2_2</span>\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.rowwise_flat(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2469,7 +2469,7 @@ const apirefs = [
         "syntax": "columnwise(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a column-wise manner in a parent cell",
         "details": "Place cells in a column-wise manner in a parent cell. The cells definition contains definitions for every column, which in turn contain entries with two keys: 'reference' (an object) and 'instance' (an instance name). The placed cells are aligned by their alignment boxes and grow into the upper-right direction. This means that the first entry in the first column is the bottom-left-most cell. This function is useful for digital standard cell layouts (and in fact called by placement.digital, which offers a more high-level interface), but it can also be useful for regular analog structures. Flipping fine control can be obtained by passing 'flip = true/false' to entire columns or individually per cell entry with 'flipx' and 'flipy' (boolean switches).",
-        "examples": "local celldef = {\n    { -- first column (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second column\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.columnwise(parent, cellsdef)",
+        "examples": "local celldef = {\n    { -- first column (bottom)\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1<span class=\"opc-number\">1_1</span>\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2<span class=\"opc-number\">1_2</span>\"</span>\n        },\n    },\n    { -- second column\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1<span class=\"opc-number\">2_1</span>\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2<span class=\"opc-number\">2_2</span>\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.columnwise(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2477,7 +2477,7 @@ const apirefs = [
         "syntax": "columnwise_flat(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a column-wise manner in a parent cell (flat variant)",
         "details": "Like placement.columnwise, but merges cells into parents (flat).",
-        "examples": "local celldef = {\n    { -- first column (bottom)\n        {\n            reference = someobject,\n            instance = \"instance_1_1\"\n        },\n        {\n            reference = someobject,\n            instance = \"instance_1_2\"\n        },\n    },\n    { -- second column\n        {\n            reference = someotherobject,\n            instance = \"instance_2_1\"\n        },\n        {\n            reference = someotherobject,\n            instance = \"instance_2_2\"\n        },\n    }\n}\nplacement.columnwise_flat(parent, cellsdef)",
+        "examples": "local celldef = {\n    { -- first column (bottom)\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1<span class=\"opc-number\">1_1</span>\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2<span class=\"opc-number\">1_2</span>\"</span>\n        },\n    },\n    { -- second column\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1<span class=\"opc-number\">2_1</span>\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2<span class=\"opc-number\">2_2</span>\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.columnwise_flat(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2485,7 +2485,7 @@ const apirefs = [
         "syntax": "place_at_origins(toplevel, cell, basename, origins)",
         "description": "place cells in a toplevel cells at the specified origins",
         "details": "Place cells in a toplevel cells at the specified origins. The instances are named accordingly to the basename (with _1, _2, etc. appended). This is a more low-level placement function (compared to placement.place_within_boundary), which is called by the higher-level functions. In some cases, using this function directly can be useful. The function returns all placed children in a table.",
-        "examples": "local origins = {\n    point.create(0, -10000),\n    point.create(0, 10000),\n    point.create(0, 20000),\n    point.create(0, 30000)\n}\nplacement.place_at_origins(toplevel, filler, \"fill\", origins)",
+        "examples": "local origins = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">20000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">30000</span>)\n}\n<span class=\"opc-module\">placement</span>.place_at_origins(toplevel, filler, <span class=\"opc-string\">\"fill\"</span>, origins)",
     },
     {
         "module": "placement",
@@ -2493,7 +2493,7 @@ const apirefs = [
         "syntax": "place_on_grid(toplevel, cell, basename, basept, xpitch, ypitch, grid)",
         "description": "place cells in a toplevel cells corresponding to the given grid",
         "details": "Place cells in a toplevel cells corresponding to the given grid. The instances are named accordingly to the basename (with _1, _2, etc. appended). This function is a convenient low-level wrapper for placement.place_at_origins, where the individual points don't have to be typed out. The function returns all placed children in a table.",
-        "examples": "local grid = {\n    { 0, 1, 1 }\n    { 1, 1, 1 },\n    { 0, 0, 1 },\n}\nplacement.place_on_grid(toplevel, cell, \"cell\", point.create(0, 0), 100, 100, grid)",
+        "examples": "local grid = {\n    { <span class=\"opc-number\">0</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span> }\n    { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span> },\n    { <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">1</span> },\n}\n<span class=\"opc-module\">placement</span>.place_on_grid(toplevel,\n    cell,\n    <span class=\"opc-string\">\"cell\"</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>,\n    grid\n)",
     },
     {
         "module": "placement",
@@ -2501,7 +2501,7 @@ const apirefs = [
         "syntax": "place_within_boundary(toplevel, cell, basename, targetarea, excludes)",
         "description": "automatically place a cell multiple times in a toplevel cell (hierarchical)",
         "details": "Automatically place a cell multiple times in a toplevel cell. The cell instances will be placed in the given target area and given names based on the given basename. An optional table can hold list of points (polygons), which describe areas that should not be filled. The x- and y-pitch of the cell are inferred from the alignment box. The function returns all placed children in a table.",
-        "examples": "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\nplacement.place_within_boundary(toplevel, filler, \"fill\", targetarea, excludes)",
+        "examples": "local targetarea = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>)\n} local excludes = { {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>)\n}, -- possibly more exludes after this }\n<span class=\"opc-module\">placement</span>.place_within_boundary(toplevel,\n    filler,\n    <span class=\"opc-string\">\"fill\"</span>,\n    targetarea,\n    excludes\n)",
     },
     {
         "module": "placement",
@@ -2509,7 +2509,7 @@ const apirefs = [
         "syntax": "place_within_boundary_merge(toplevel, cell, targetarea, excludes)",
         "description": "automatically place a cell multiple times in a toplevel cell (flat)",
         "details": "Same as placement.place_within_boundary, but merges the cells (instead of adding them as children). Since only children need instance names, the 'basename' parameter is not present for this function.",
-        "examples": "local targetarea = {\n    point.create(-10000, -10000),\n    point.create(10000, -10000),\n    point.create(10000, 10000),\n    point.create(-10000, 10000)\n} local excludes = { {\n    point.create(-2000, -2000),\n    point.create(2000, -2000),\n    point.create(2000, 2000),\n    point.create(-2000, 2000)\n}, -- possibly more exludes after this }\nplacement.place_within_boundary_merge(toplevel, filler, targetarea, excludes)",
+        "examples": "local targetarea = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>)\n} local excludes = { {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>)\n}, -- possibly more exludes after this }\n<span class=\"opc-module\">placement</span>.place_within_boundary_merge(toplevel,\n    filler,\n    targetarea,\n    excludes\n)",
     },
     {
         "module": "placement",
@@ -2517,7 +2517,7 @@ const apirefs = [
         "syntax": "place_within_rectangular_boundary(toplevel, cell, basename, targetbl, targettr)",
         "description": "place fill in a rectangular boundary",
         "details": "Place fill in a rectangular boundary. This function behaves like placement.place_within_boundary, but it takes the corner points (bottom-left and top-right) as inputs. Furthermore, no excludes are accepted. This means that the entire rectangular boundary is filled. This function is magnitudes faster than placement.place_within_boundary (as no point-in-polygon checks are required and a more efficient data representation for the resulting array can be used), so consider using this function if no excludes are required.",
-        "examples": "local targetbl = point.create(-10000, -10000)\nlocal targettr = point.create(10000, 10000)\nplacement.place_within_rectangular_boundary(toplevel, filler, \"fill\", targetbl, targettr)",
+        "examples": "local targetbl = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>)\nlocal targettr = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>)\n<span class=\"opc-module\">placement</span>.place_within_rectangular_boundary(toplevel, filler, <span class=\"opc-string\">\"fill\"</span>, targetbl, targettr)",
     },
     {
         "module": "placement",
@@ -2525,7 +2525,7 @@ const apirefs = [
         "syntax": "place_within_layer_boundaries(toplevel, celllookup, basename, targetarea, xpitch, ypitch, layerexcludes, ignorelayer)",
         "description": "place cells in a boundary based on their layer content",
         "details": "Place cells in a boundary based on their layer content. This function is similar to placement.place_within_boundary, but uses non-binary excludes. A look-up table with cells is given, that defines the occupied layers of these cells and places only cells that don't have content in the excluded layers. The layerexcludes table contains the excludes in the respective layers. This function tries to maximize the number of placed cells, starting for every point with the first cell. After a cell is placed, its layers are used to block that region. That means that if cells exist with non-overlapping layer content, it is possible that multiple cells are placed per grid point. Therefore the order of the cells matters (first come, first serve). The sixth (optional) argument of this function is a singular generic layer that will be ignored when building the new excludes for subsequent cells. The reasoning behind is that if a certain layer is used as a marking layer as a full block, then all the cells in the cell lookup also need to contain this layer, which then in turn blocks the subsequent placing of further cells.",
-        "examples": "local celllut = {\n    {\n        cell = object1,\n        layers = {\n            generics.metal(1),\n            generics.metal(2),\n            generics.metal(3),\n            generics.metal(4),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            generics.metal(1),\n            generics.metal(2),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            generics.other(\"active\"),\n        },\n    },\n}\nlocal target = {\n    point.create(-10000, -10000),\n    point.create( 10000, -10000),\n    point.create( 10000,  10000),\n    point.create(-10000,  10000),\n}\nlocal excludes = {\n    {\n        excludes = { -- multiple polygons are possible\n            {\n                point.create(-5000, -5000),\n                point.create( 5000, -5000),\n                point.create( 5000,  5000),\n                point.create(-5000,  5000),\n            },\n            layers = {\n                generics.metal(1),\n                generics.metal(2),\n            },\n        },\n    }\n    {\n        excludes = { -- multiple polygons are possible\n            {\n                point.create( 2000,  1000),\n                point.create( 4000,  1000),\n                point.create( 4000,  8000),\n                point.create( 2000,  8000),\n            },\n            layers = {\n                generics.other(\"active\"),\n            },\n        },\n    }\n}\nplacement.place_within_layer_boundaries(toplevel, celllookup, \"fill\", targetarea, 1000, 1000, excludes)",
+        "examples": "local celllut = {\n    {\n        cell = object1<span class=\"opc-number\">1</span>,\n        layers = {\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">3</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">4</span>),\n        },\n    },\n    {\n        cell = object2<span class=\"opc-number\">2</span>,\n        layers = {\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n        },\n    },\n    {\n        cell = object2<span class=\"opc-number\">2</span>,\n        layers = {\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"active\"</span>),\n        },\n    },\n}\nlocal target = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">10000</span>,  <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>,  <span class=\"opc-number\">10000</span>),\n}\nlocal excludes = {\n    {\n        excludes = { -- multiple polygons are possible\n            {\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">5000</span>, -<span class=\"opc-number\">5000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">5000</span>, -<span class=\"opc-number\">5000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">5000</span>,  <span class=\"opc-number\">5000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">5000</span>,  <span class=\"opc-number\">5000</span>),\n            },\n            layers = {\n                <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n                <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n            },\n        },\n    }\n    {\n        excludes = { -- multiple polygons are possible\n            {\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">2000</span>,  <span class=\"opc-number\">1000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">4000</span>,  <span class=\"opc-number\">1000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">4000</span>,  <span class=\"opc-number\">8000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">2000</span>,  <span class=\"opc-number\">8000</span>),\n            },\n            layers = {\n                <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"active\"</span>),\n            },\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.place_within_layer_boundaries(toplevel,\n    celllookup,\n    <span class=\"opc-string\">\"fill\"</span>,\n    targetarea,\n    <span class=\"opc-number\">1000</span>, <span class=\"opc-number\">1000</span>,\n    excludes\n)",
     },
     {
         "module": "placement",
@@ -2533,7 +2533,7 @@ const apirefs = [
         "syntax": "calculate_grid(bl, tr, pitch, excludes)",
         "description": "prepare a grid for placement.place_boundary_grid",
         "details": "Calculate a grid of cell origins in a rectangular target area with the given binary excludes (in or out). This function returns a table which can be used as input for placement.place_boundary_grid.",
-        "examples": "local excludes = { {\n    point.create(2000, 2000),\n    point.create(8000, 2000),\n    point.create(8000, 20000),\n    point.create(2000, 20000)\n}, }\nplacement.calculate_grid(point.create(0, 0), point.create(100000, 100000), 10000, excludes)",
+        "examples": "local excludes = { {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">20000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">20000</span>)\n}, }\n<span class=\"opc-module\">placement</span>.calculate_grid(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">100000</span>), <span class=\"opc-number\">10000</span>, excludes)",
     },
     {
         "module": "placement",
@@ -2541,7 +2541,7 @@ const apirefs = [
         "syntax": "place_boundary_grid(toplevel, boundarycells, basept, grid, pitch, basename)",
         "description": "place cells on a regular grid with the given pitch",
         "details": "Place cells on a regular grid with the given pitch. The grid contains numeric entries of either 1 or 0, meaning 'place' or 'don't place'. This grid can be obtained by using placement.calculate_grid. The cells are placed on this grid, so that the proper cells are used at each of the grid points. This means that special cells are placed at the boundary of the grid (e.g., where there is no neighbouring cell to the left). The boundarycells table should contain sixteen (2^4) key-value pairs: cells for 'center', 'top', 'bottom', 'left', 'right', 'topleft', 'topright', 'topbottom', 'bottomleft', 'bottomright', 'leftright', 'topleftright', 'topbottomleft', 'topbottomright', 'bottomleftright' and 'topbottomleftright'",
-        "examples": "local grid = {\n    --[[ some grid definition --]]\n}\nlocal boundarycells = {\n    center = centercell,\n    top = topcell,\n    --[[ and so on --]]\n}\nplacement.place_boundary_grid(toplevel,\n    boundarycells,\n    point.create(0, 0),\n    grid,\n    10000,\n    \"gridcell\"\n)",
+        "examples": "local grid = {\n    --[[ some grid definition --]]\n}\nlocal boundarycells = {\n    center = centercell,\n    top = topcell,\n    --[[ and so on --]]\n}\n<span class=\"opc-module\">placement</span>.place_boundary_grid(toplevel,\n    boundarycells,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    grid,\n    <span class=\"opc-number\">10000</span>,\n    <span class=\"opc-string\">\"gridcell\"</span>\n)",
     },
     {
         "module": "point",
@@ -2549,7 +2549,7 @@ const apirefs = [
         "syntax": "create(x, y)",
         "description": "create a point",
         "details": "Create a point from an x- and y-coordinate.",
-        "examples": "local pt = point.create(0, 0)",
+        "examples": "local pt = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>)",
     },
     {
         "module": "point",
@@ -2557,7 +2557,7 @@ const apirefs = [
         "syntax": "combine_12(pt1, pt2)",
         "description": "create a new point by combining two points (1-2 variant)",
         "details": "Create a new point by combining the coordinates of two other points. The new point is made up by x1 and y2. This function is equivalent to combine_21 with swapped arguments.",
-        "examples": "local new = point.combine_12(pt1, pt2) -- equivalent to point.create(pt1:getx(), pt2:gety())",
+        "examples": "local new = <span class=\"opc-module\">point</span>.combine_12<span class=\"opc-number\">12</span>(pt1<span class=\"opc-number\">1</span>, pt2<span class=\"opc-number\">2</span>) -- equivalent to <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(pt1<span class=\"opc-number\">1</span>:getx(), pt2<span class=\"opc-number\">2</span>:gety())",
     },
     {
         "module": "point",
@@ -2565,7 +2565,7 @@ const apirefs = [
         "syntax": "combine_21(pt1, pt2)",
         "description": "create a new point by combining two points (2-1 variant)",
         "details": "Create a new point by combining the coordinates of two other points. The new point is made up by x2 and y1. This function is equivalent to combine_12 with swapped arguments.",
-        "examples": "local new = point.combine_21(pt1, pt2) -- equivalent to point.create(pt2:getx(), pt1:gety())",
+        "examples": "local new = <span class=\"opc-module\">point</span>.combine_21<span class=\"opc-number\">21</span>(pt1<span class=\"opc-number\">1</span>, pt2<span class=\"opc-number\">2</span>) -- equivalent to <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(pt2<span class=\"opc-number\">2</span>:getx(), pt1<span class=\"opc-number\">1</span>:gety())",
     },
     {
         "module": "point",
@@ -2573,7 +2573,7 @@ const apirefs = [
         "syntax": "combine(pt1, pt2)",
         "description": "create a new point by combining two points (average variant)",
         "details": "Combine two points into a new one by taking the arithmetic average of their coordinates, that is x = 0.5 * (x1 + x2), y = 0.5 * (y1 + y2).",
-        "examples": "local newpt = point.combine(pt1, pt2)",
+        "examples": "local newpt = <span class=\"opc-module\">point</span>.combine(pt1<span class=\"opc-number\">1</span>, pt2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "point",
@@ -2581,7 +2581,7 @@ const apirefs = [
         "syntax": "copy(point)",
         "description": "copy a point",
         "details": "Copy a point. Can be used as module function or as a point method.",
-        "examples": "local newpt = point.copy(pt)\nlocal newpt = pt:copy()",
+        "examples": "local newpt = <span class=\"opc-module\">point</span>.copy(pt)\nlocal newpt = pt:copy()",
     },
     {
         "module": "point",
@@ -2589,7 +2589,7 @@ const apirefs = [
         "syntax": "getx(point)",
         "description": "get the x-coordinate from a point",
         "details": "Get the x-coordinate from a point. Can be used as module function or as a point method.",
-        "examples": "local x = point.getx(pt)\nlocal x = pt:getx()",
+        "examples": "local x = <span class=\"opc-module\">point</span>.getx(pt)\nlocal x = pt:getx()",
     },
     {
         "module": "point",
@@ -2597,7 +2597,7 @@ const apirefs = [
         "syntax": "gety(point)",
         "description": "get the y-coordinate from a point",
         "details": "Get the y-coordinate from a point. Can be used as module function or as a point method.",
-        "examples": "local y = point.gety(pt)\nlocal y = pt:gety()",
+        "examples": "local y = <span class=\"opc-module\">point</span>.gety(pt)\nlocal y = pt:gety()",
     },
     {
         "module": "point",
@@ -2605,7 +2605,7 @@ const apirefs = [
         "syntax": "translate(point, x, y)",
         "description": "translate a point (xy variant)",
         "details": "Translate a point in x and y. Can be used as module function or as a point method.",
-        "examples": "point.translate(pt, 100, -20)\npt:translate(100, -20)",
+        "examples": "<span class=\"opc-module\">point</span>.translate(pt, <span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>)\npt:translate(<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>)",
     },
     {
         "module": "point",
@@ -2613,7 +2613,7 @@ const apirefs = [
         "syntax": "translate_x(point, x)",
         "description": "translate a point (x variant)",
         "details": "Translate a point in x. Can be used as module function or as a point method.",
-        "examples": "point.translate(pt, 100)\npt:translate(100)",
+        "examples": "<span class=\"opc-module\">point</span>.translate(pt, <span class=\"opc-number\">100</span>)\npt:translate(<span class=\"opc-number\">100</span>)",
     },
     {
         "module": "point",
@@ -2621,7 +2621,7 @@ const apirefs = [
         "syntax": "translate_y(point, y)",
         "description": "translate a point (y variant)",
         "details": "Translate a point in y. Can be used as module function or as a point method.",
-        "examples": "point.translate(pt, 100)\npt:translate(100)",
+        "examples": "<span class=\"opc-module\">point</span>.translate(pt, <span class=\"opc-number\">100</span>)\npt:translate(<span class=\"opc-number\">100</span>)",
     },
     {
         "module": "point",
@@ -2629,7 +2629,7 @@ const apirefs = [
         "syntax": "xdistance(pt1, pt2)",
         "description": "calculate the x-distance between two points",
         "details": "Calculate the x-distance between two points, (the ordering of input parameters matters, it is pt1.x - pt2.x).",
-        "examples": "local distance = point.xdistance(pt1, pt2)",
+        "examples": "local distance = <span class=\"opc-module\">point</span>.xdistance(pt1<span class=\"opc-number\">1</span>, pt2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "point",
@@ -2637,7 +2637,7 @@ const apirefs = [
         "syntax": "xdistance_abs(pt1, pt2)",
         "description": "calculate the x-distance between two points (absolute)",
         "details": "Calculate the x-distance between two points, but return the absolute (regardless of the ordering of input parameters).",
-        "examples": "local distance = point.xdistance_abs(pt1, pt2)",
+        "examples": "local distance = <span class=\"opc-module\">point</span>.xdistance_abs(pt1<span class=\"opc-number\">1</span>, pt2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "point",
@@ -2645,7 +2645,7 @@ const apirefs = [
         "syntax": "ydistance(pt1, pt2)",
         "description": "calculate the y-distance between two points",
         "details": "Calculate the y-distance between two points, (the ordering of input parameters matters, it is pt1.y - pt2.y).",
-        "examples": "local distance = point.ydistance(pt1, pt2)",
+        "examples": "local distance = <span class=\"opc-module\">point</span>.ydistance(pt1<span class=\"opc-number\">1</span>, pt2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "point",
@@ -2653,7 +2653,7 @@ const apirefs = [
         "syntax": "ydistance_abs(pt1, pt2)",
         "description": "calculate the y-distance between two points (absolute)",
         "details": "Calculate the y-distance between two points, but return the absolute (regardless of the ordering of input parameters).",
-        "examples": "local distance = point.ydistance_abs(pt1, pt2)",
+        "examples": "local distance = <span class=\"opc-module\">point</span>.ydistance_abs(pt1<span class=\"opc-number\">1</span>, pt2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "point",
@@ -2661,7 +2661,7 @@ const apirefs = [
         "syntax": "xaverage(point)",
         "description": "calculate the x-average of two points",
         "details": "Calculate the arithmetic average of the x-coordinates of two points.",
-        "examples": "local xmid = point.xaverage(pt1, pt2)",
+        "examples": "local xmid = <span class=\"opc-module\">point</span>.xaverage(pt1<span class=\"opc-number\">1</span>, pt2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "point",
@@ -2669,7 +2669,7 @@ const apirefs = [
         "syntax": "yaverage(point)",
         "description": "calculate the y-average of two points",
         "details": "Calculate the arithmetic average of the y-coordinates of two points.",
-        "examples": "local ymid = point.yaverage(pt1, pt2)",
+        "examples": "local ymid = <span class=\"opc-module\">point</span>.yaverage(pt1<span class=\"opc-number\">1</span>, pt2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "point",
@@ -2677,7 +2677,7 @@ const apirefs = [
         "syntax": "fix(pt, grid)",
         "description": "fix a point to a given grid",
         "details": "Fix the x- and y-coordinate from a point on a certain grid, that is 120 would become 100 on a grid of 100. This function behaves like floor(), no rounding is done.",
-        "examples": "point.create(120, 80):fix(100) -- yields (100, 0)",
+        "examples": "<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">120</span>, <span class=\"opc-number\">80</span>):fix(<span class=\"opc-number\">100</span>) -- yields (<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>)",
     },
     {
         "module": "point",
@@ -2685,7 +2685,7 @@ const apirefs = [
         "syntax": "operator+(pt1, pt2)",
         "description": "sum two points",
         "details": "Sum two points. This is the same as point.combine().",
-        "examples": "point.create(0, 0) + point.create(100, 0) -- yields (50, 0)",
+        "examples": "<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>) + <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>) -- yields (<span class=\"opc-number\">50</span>, <span class=\"opc-number\">0</span>)",
     },
     {
         "module": "point",
@@ -2693,7 +2693,7 @@ const apirefs = [
         "syntax": "operator-(pt1, pt2)",
         "description": "subtract two points",
         "details": "Create a new point representing the difference of two points.",
-        "examples": "point.create(0, 100) - point.create(50, 20) -- (-50, 80)",
+        "examples": "<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">100</span>) - <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">50</span>, <span class=\"opc-number\">20</span>) -- (-<span class=\"opc-number\">50</span>, <span class=\"opc-number\">80</span>)",
     },
     {
         "module": "point",
@@ -2701,7 +2701,7 @@ const apirefs = [
         "syntax": "operator..(pt1, pt2)",
         "description": "combine two points into a new one",
         "details": "Combine two points into a new one. Takes the x-coordinate from the first point and the y-coordinate from the second one. Equivalent to point.combine_12(pt1, pt2).",
-        "examples": "point.create(0, 100) .. point.create(100, 0) -- (0, 0)",
+        "examples": "<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">100</span>) .. <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>) -- (<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>)",
     },
     {
         "module": "point",
@@ -2709,7 +2709,7 @@ const apirefs = [
         "syntax": "xmirror(point, reference)",
         "description": "mirror a point (x-coordinate, copy)",
         "details": "Return a copy of the given point with the x-coordinate mirrored. A reference coordinate can be given, to which the x-coordinate is mirrored. If this is not present, 0 is used.",
-        "examples": "local newpt = pt:xmirror()\nlocal newpt2 = pt:xmirror(200)",
+        "examples": "local newpt = pt:xmirror()\nlocal newpt2<span class=\"opc-number\">2</span> = pt:xmirror(<span class=\"opc-number\">200</span>)",
     },
     {
         "module": "point",
@@ -2717,7 +2717,7 @@ const apirefs = [
         "syntax": "ymirror(point, reference)",
         "description": "mirror a point (y-coordinate, copy)",
         "details": "Return a copy of the given point with the y-coordinate mirrored. A reference coordinate can be given, to which the y-coordinate is mirrored. If this is not present, 0 is used.",
-        "examples": "local newpt = pt:ymirror()\nlocal newpt2 = pt:ymirror(200)",
+        "examples": "local newpt = pt:ymirror()\nlocal newpt2<span class=\"opc-number\">2</span> = pt:ymirror(<span class=\"opc-number\">200</span>)",
     },
     {
         "module": "point",
@@ -2725,7 +2725,7 @@ const apirefs = [
         "syntax": "unwrap(point)",
         "description": "get the x- and y-coordinates of a point",
         "details": "Get the x- and y-coordinate from a point. Equal to calling both getx() and gety(). Can be used as module function or as a point method.",
-        "examples": "local x, y = point.unwrap(pt)\nlocal x, y = pt:unwrap()",
+        "examples": "local x, y = <span class=\"opc-module\">point</span>.unwrap(pt)\nlocal x, y = pt:unwrap()",
     },
     {
         "module": "point",
@@ -2733,7 +2733,7 @@ const apirefs = [
         "syntax": "is_point(pt)",
         "description": "check if a value is a point",
         "details": "check that a given parameter is a point (with the metatable for points). Useful for overloaded functions",
-        "examples": "if point.is_point(pt) then\n    -- actions for points\nelse    -- actions for (e.g.) numbers\nend",
+        "examples": "if <span class=\"opc-module\">point</span>.is_point(pt) then\n    -- actions for points\nelse    -- actions for (e.<span class=\"opc-module\">g</span>.) numbers\nend",
     },
     {
         "module": "postprocess",
@@ -2741,7 +2741,7 @@ const apirefs = [
         "syntax": "remove_layer_shapes(cell, layer)",
         "description": "remove shapes on a given layer in a cell hierarchy",
         "details": "Remove shapes on a given layer in a cell hierarchy. This function traverses through the cell hierarchy and removes shapes in every referenced cell.",
-        "examples": "postprocess.remove_layer_shapes(cell, generics.metal(1))",
+        "examples": "<span class=\"opc-module\">postprocess</span>.remove_layer_shapes(cell, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>))",
     },
     {
         "module": "postprocess",
@@ -2749,7 +2749,7 @@ const apirefs = [
         "syntax": "remove_layer_shapes_flat(cell, layer)",
         "description": "remove shapes on a given layer in a cell (flat variant)",
         "details": "Remove shapes on a given layer in a cell. This function only and shapes in the given cell, without traversing through the cell hierarchy.",
-        "examples": "postprocess.remove_layer_shapes_flat(cell, generics.metal(1))",
+        "examples": "<span class=\"opc-module\">postprocess</span>.remove_layer_shapes_flat(cell, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>))",
     },
     {
         "module": "routing",
@@ -2773,7 +2773,7 @@ const apirefs = [
         "syntax": "get_grid()",
         "description": "get the technology grid",
         "details": "Get the manufacturing grid of the process node (in nanometer).",
-        "examples": "local grid = technology.get_grid()",
+        "examples": "local grid = <span class=\"opc-module\">technology</span>.get_grid()",
     },
     {
         "module": "technology",
@@ -2781,7 +2781,7 @@ const apirefs = [
         "syntax": "get_even_grid()",
         "description": "get the technology grid (even only)",
         "details": "Get the manufacturing grid of the process node (in nanometer). If the grid is not an even number, return the next even multiple of the grid (grid * 2). This function is useful when geometries that need to be on grid are calculated from given parameters and divided later on.",
-        "examples": "local grid = technology.get_even_grid()",
+        "examples": "local grid = <span class=\"opc-module\">technology</span>.get_even_grid()",
     },
     {
         "module": "technology",
@@ -2789,7 +2789,7 @@ const apirefs = [
         "syntax": "get_dimension(properties...)",
         "description": "get critical technology dimensions such as minimum metal width",
         "details": "Get critical technology dimensions such as minimum metal width. Predominantly used in pcell parameter definitions, but not necessarily restricted to that. There is a small set of technology properties that are used in the standard opc cells, but there is currently no proper definitions of the supported fields. See basic/mosfet and basic/cmos for examples. This function can be given multiple look-up strings, the first one that is found will be returned. If the maximum of several properties is required, use 'technology.get_dimension_max()'. For convenience, this function can also process 'nil' parameters, which will simply be ignored.",
-        "examples": "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_dimension(\"Minimum M1 Width\") \n        }\n    )\nend",
+        "examples": "function parameters()\n    <span class=\"opc-module\">pcell</span>.add_parameters(\n        {\n            <span class=\"opc-string\">\"width\"</span>,\n            <span class=\"opc-module\">technology</span>.get_dimension(<span class=\"opc-string\">\"Minimum M1<span class=\"opc-number\">1</span> Width\"</span>) \n        }\n    )\nend",
     },
     {
         "module": "technology",
@@ -2797,7 +2797,7 @@ const apirefs = [
         "syntax": "get_dimension_max(properties...)",
         "description": "get critical technology dimensions such as minimum metal width (max value)",
         "details": "Get critical technology dimensions such as minimum metal width. This is similar to technology.get_dimension, but returns the maximum value of all given properties.",
-        "examples": "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_dimension_max(\n                \"Minimum Gate Width\",\n                \"Analog Gate Width\"\n            )\n        }\n    )\nend",
+        "examples": "function parameters()\n    <span class=\"opc-module\">pcell</span>.add_parameters(\n        {\n            <span class=\"opc-string\">\"width\"</span>,\n            <span class=\"opc-module\">technology</span>.get_dimension_max(\n                <span class=\"opc-string\">\"Minimum Gate Width\"</span>,\n                <span class=\"opc-string\">\"Analog Gate Width\"</span>\n            )\n        }\n    )\nend",
     },
     {
         "module": "technology",
@@ -2805,7 +2805,7 @@ const apirefs = [
         "syntax": "get_dimension_min(properties...)",
         "description": "get critical technology dimensions such as minimum metal width (min value)",
         "details": "Get critical technology dimensions such as minimum metal width. This is similar to technology.get_dimension, but returns the minimum value of all given properties.",
-        "examples": "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_dimension_min(\n                \"Minimum Gate Space\",\n                \"Minimum Gate XSpace\"\n            )\n        }\n    )\nend",
+        "examples": "function parameters()\n    <span class=\"opc-module\">pcell</span>.add_parameters(\n        {\n            <span class=\"opc-string\">\"width\"</span>,\n            <span class=\"opc-module\">technology</span>.get_dimension_min(\n                <span class=\"opc-string\">\"Minimum Gate Space\"</span>,\n                <span class=\"opc-string\">\"Minimum Gate XSpace\"</span>\n            )\n        }\n    )\nend",
     },
     {
         "module": "technology",
@@ -2813,7 +2813,7 @@ const apirefs = [
         "syntax": "get_optional_dimension(properties..., fallback)",
         "description": "get optional technology dimensions",
         "details": "Like get_dimension, but this function does not raise an error if the dimension was not found but returns the given fallback value.",
-        "examples": "function parameters()\n    pcell.add_parameters(\n        {\n            \"width\",\n            technology.get_optional_dimension(\n                \"Minimum M1 Width\"\n            )\n        }\n    )\nend",
+        "examples": "function parameters()\n    <span class=\"opc-module\">pcell</span>.add_parameters(\n        {\n            <span class=\"opc-string\">\"width\"</span>,\n            <span class=\"opc-module\">technology</span>.get_optional_dimension(\n                <span class=\"opc-string\">\"Minimum M1<span class=\"opc-number\">1</span> Width\"</span>\n            )\n        }\n    )\nend",
     },
     {
         "module": "technology",
@@ -2821,7 +2821,7 @@ const apirefs = [
         "syntax": "has_feature(feature)",
         "description": "check technology features",
         "details": "Check if the chosen technology supports a certain feature. Currently available features: 'has_gatecut', 'allow_poly_routing', 'is_soi'.",
-        "examples": "if technology.has_feature(\"has_gatecut\") then\n    -- do something with gatecuts\nend",
+        "examples": "if <span class=\"opc-module\">technology</span>.has_feature(<span class=\"opc-string\">\"has_gatecut\"</span>) then\n    -- do something with gatecuts\nend",
     },
     {
         "module": "technology",
@@ -2829,7 +2829,7 @@ const apirefs = [
         "syntax": "has_layer(layerfunction, ...)",
         "description": "check technology layers",
         "details": "Check if the chosen technology supports a certain layer.",
-        "examples": "if technology.has_layer(generics.other, \"gatecut\") then\n    -- do something with gatecuts\nend",
+        "examples": "if <span class=\"opc-module\">technology</span>.has_layer(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>, <span class=\"opc-string\">\"gatecut\"</span>) then\n    -- do something with gatecuts\nend",
     },
     {
         "module": "technology",
@@ -2837,7 +2837,7 @@ const apirefs = [
         "syntax": "has_multiple_patterning(metalnumber)",
         "description": "check multiple patterning support/requirements",
         "details": "Check if the chosen metal layer (represented by the metal index) supports multiple patterning.",
-        "examples": "local metallayer\nif technology.has_multiple_patterning(1) then\n    metallayer = generics.mptmetal(1, 1)\nelse\n    metallayer = generics.metal(1)\nend",
+        "examples": "local metallayer\nif <span class=\"opc-module\">technology</span>.has_multiple_patterning(<span class=\"opc-number\">1</span>) then\n    metallayer = <span class=\"opc-module\">generics</span>.mptmetal(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span>)\nelse\n    metallayer = <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>)\nend",
     },
     {
         "module": "technology",
@@ -2845,7 +2845,7 @@ const apirefs = [
         "syntax": "has_metal(metalnumber)",
         "description": "check if a metal index is available",
         "details": "Check if the given metal layer is within the range of available metal layers. Negative numbers are resolved as in generics.metal.",
-        "examples": "if technology.has_metal(1) then ...",
+        "examples": "if <span class=\"opc-module\">technology</span>.has_metal(<span class=\"opc-number\">1</span>) then ...",
     },
     {
         "module": "technology",
@@ -2853,7 +2853,7 @@ const apirefs = [
         "syntax": "multiple_patterning_number(metalnumber)",
         "description": "get the number of masks for a given metal",
         "details": "Get the number of available mask for a metal layer that supports multiple patterning (otherwise the result is 0)",
-        "examples": "local nummasks = technology.multiple_patterning_number(1)\nfor i = 1, nummasks do\n    -- do something for every mask of this metal layer\nend",
+        "examples": "local nummasks = <span class=\"opc-module\">technology</span>.multiple_patterning_number(<span class=\"opc-number\">1</span>)\nfor i = <span class=\"opc-number\">1</span>, nummasks do\n    -- do something for every mask of this <span class=\"opc-function\">metal</span> layer\nend",
     },
     {
         "module": "technology",
@@ -2861,7 +2861,7 @@ const apirefs = [
         "syntax": "resolve_metal(index)",
         "description": "resolve negative metal indices",
         "details": "Resolve negative metal indices to their 'real' value (e.g. in a metal stack with five metals -1 becomes 5, -3 becomes 3). This function does not do anything if the index is positive",
-        "examples": "local metalindex = technology.resolve_metal(-2)",
+        "examples": "local metalindex = <span class=\"opc-module\">technology</span>.resolve_metal(-<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "technology",
@@ -2869,7 +2869,7 @@ const apirefs = [
         "syntax": "metal_layer_to_index(layer)",
         "description": "convert a metal layer to its positive index",
         "details": "Retrieve the numeric index of a metal layer. The function always returns positive indices. If a non-metal layer is given, the function returns 0.",
-        "examples": "local metalindex = technology.metal_layer_to_index(generics.metal(2)) -- 2",
+        "examples": "local metalindex = <span class=\"opc-module\">technology</span>.metal_layer_to_index(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>)) -- ",
     },
     {
         "module": "technology",
@@ -2877,7 +2877,7 @@ const apirefs = [
         "syntax": "get_number_of_metals()",
         "description": "get the number of metals",
         "details": "Get the number of metals in the layer stack. This value is given in the configuration file of a technology node.",
-        "examples": "local nummetals = technology.get_number_of_metals()",
+        "examples": "local nummetals = <span class=\"opc-module\">technology</span>.get_number_of_metals()",
     },
     {
         "module": "technology",
@@ -2885,7 +2885,7 @@ const apirefs = [
         "syntax": "list_techpaths()",
         "description": "list the current technology paths",
         "details": "list the current technology paths",
-        "examples": "technology.list_techpaths()",
+        "examples": "<span class=\"opc-module\">technology</span>.list_techpaths()",
     },
     {
         "module": "util",
@@ -2893,7 +2893,7 @@ const apirefs = [
         "syntax": "is_on_grid(value, grid)",
         "description": "check if a value is on a given grid",
         "details": "Check if a value is on a given grid. This function returns a boolean, and does not assert internally. This is for detecting off-grid situations in order to remedy them, not as a sanity check. Use util.check_grid if that is required.",
-        "examples": "util.check_grid(80, 10) -- true\nutil.check_grid(85, 10) -- false",
+        "examples": "<span class=\"opc-module\">util</span>.check_grid(<span class=\"opc-number\">80</span>, <span class=\"opc-number\">10</span>) -- true\n<span class=\"opc-module\">util</span>.check_grid(<span class=\"opc-number\">85</span>, <span class=\"opc-number\">10</span>) -- false",
     },
     {
         "module": "util",
@@ -2901,7 +2901,7 @@ const apirefs = [
         "syntax": "check_grid(grid, ...)",
         "description": "check that all given numbers are on integer multiples of the given grid",
         "details": "Check that all given numbers are on integer multiples of the given grid. This function calls assert, so aborts the entire program if the assertation fails. This is intended as a sanity check, not detection in order to solve this. Use util.is_on_grid if that is required.",
-        "examples": "util.check_grid(100, 100, 800, 42, 10000) -- will fail",
+        "examples": "<span class=\"opc-module\">util</span>.check_grid(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>, <span class=\"opc-number\">800</span>, <span class=\"opc-number\">42</span>, <span class=\"opc-number\">10000</span>) -- will fail",
     },
     {
         "module": "util",
@@ -2909,7 +2909,7 @@ const apirefs = [
         "syntax": "min(t)",
         "description": "retrieve the minimum value of a numeric array",
         "details": "Retrieve the minimum value of a numeric array. Returns the corresponding index as second return value",
-        "examples": "local min, idx = util.min({ 1, 4, 2, 3 }) -- 1, 1",
+        "examples": "local min, idx = <span class=\"opc-module\">util</span>.min({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) -- <span class=\"opc-number\">1</span>, ",
     },
     {
         "module": "util",
@@ -2917,7 +2917,7 @@ const apirefs = [
         "syntax": "max(t)",
         "description": "retrieve the maximum value of a numeric array",
         "details": "Retrieve the maximum value of a numeric array. Returns the corresponding index as second return value",
-        "examples": "local max, idx = util.max({ 1, 4, 2, 3 }) -- 4, 2",
+        "examples": "local max, idx = <span class=\"opc-module\">util</span>.max({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) -- <span class=\"opc-number\">4</span>, ",
     },
     {
         "module": "util",
@@ -2925,7 +2925,7 @@ const apirefs = [
         "syntax": "make_counter(start)",
         "description": "create a counter funciton",
         "details": "Create a counter function that increments and returns its current value everytime it is called. If a value is given, the counter starts at that value. The default is 1.",
-        "examples": "local counter = util.make_counter()\nprint(counter()) -- 1\nprint(counter()) -- 2\nprint(counter()) -- 3",
+        "examples": "local counter = <span class=\"opc-module\">util</span>.make_counter()\nprint(counter()) -- <span class=\"opc-number\">1</span>\nprint(counter()) -- <span class=\"opc-number\">2</span>\nprint(counter()) -- ",
     },
     {
         "module": "util",
@@ -2933,7 +2933,7 @@ const apirefs = [
         "syntax": "polygon_xmin(polygon)",
         "description": "retrieve the minimum x-value of a polygon",
         "details": "Retrieve the minimum x-value of all points of a polygon.",
-        "examples": "local value = util.polygon_xmin({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- -100",
+        "examples": "local value = <span class=\"opc-module\">util</span>.polygon_xmin({ <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>) }) -- -",
     },
     {
         "module": "util",
@@ -2941,7 +2941,7 @@ const apirefs = [
         "syntax": "polygon_xmax(polygon)",
         "description": "retrieve the maximum x-value of a polygon",
         "details": "Retrieve the maximum x-value of all points of a polygon.",
-        "examples": "local value = util.polygon_xmax({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 200",
+        "examples": "local value = <span class=\"opc-module\">util</span>.polygon_xmax({ <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>) }) -- ",
     },
     {
         "module": "util",
@@ -2949,7 +2949,7 @@ const apirefs = [
         "syntax": "polygon_ymin(polygon)",
         "description": "retrieve the minimum y-value of a polygon",
         "details": "Retrieve the minimum y-value of all points of a polygon.",
-        "examples": "local value = util.polygon_ymin({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 0",
+        "examples": "local value = <span class=\"opc-module\">util</span>.polygon_ymin({ <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>) }) -- ",
     },
     {
         "module": "util",
@@ -2957,7 +2957,7 @@ const apirefs = [
         "syntax": "polygon_ymax(polygon)",
         "description": "retrieve the maximum y-value of a polygon",
         "details": "Retrieve the maximum y-value of all points of a polygon.",
-        "examples": "local value = util.polygon_ymax({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 200",
+        "examples": "local value = <span class=\"opc-module\">util</span>.polygon_ymax({ <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>) }) -- ",
     },
     {
         "module": "util",
@@ -2965,7 +2965,7 @@ const apirefs = [
         "syntax": "xmirror(pts, xcenter)",
         "description": "copy and mirror (x only) a list of points",
         "details": "Create a copy of the points in pts (a table) with all x-coordinates mirrored with respect to xcenter.",
-        "examples": "local pts = { point.create(10, 0), point.create(20, 0) }\nutil.xmirror(pts, 0) -- { (-10, 0), (-20, 0) }",
+        "examples": "local pts = { <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">0</span>) }\n<span class=\"opc-module\">util</span>.xmirror(pts, <span class=\"opc-number\">0</span>) -- { (-<span class=\"opc-number\">10</span>, <span class=\"opc-number\">0</span>), (-<span class=\"opc-number\">20</span>, <span class=\"opc-number\">0</span>) }",
     },
     {
         "module": "util",
@@ -2973,7 +2973,7 @@ const apirefs = [
         "syntax": "ymirror(pts, ycenter)",
         "description": "copy and mirror (y only) a list of points",
         "details": "Create a copy of the points in pts (a table) with all y-coordinates mirrored with respect to ycenter.",
-        "examples": "local pts = { point.create(0, 10), point.create(0, 20) }\nutil.ymirror(pts, 0) -- { (0, -10), (0, -20) }",
+        "examples": "local pts = { <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">10</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">20</span>) }\n<span class=\"opc-module\">util</span>.ymirror(pts, <span class=\"opc-number\">0</span>) -- { (<span class=\"opc-number\">0</span>, -<span class=\"opc-number\">10</span>), (<span class=\"opc-number\">0</span>, -<span class=\"opc-number\">20</span>) }",
     },
     {
         "module": "util",
@@ -2981,7 +2981,7 @@ const apirefs = [
         "syntax": "xymirror(pts, xcenter, ycenter)",
         "description": "copy and mirror (x and y) a list of points",
         "details": "Create a copy of the points in pts (a table) with all x- and y-coordinates mirrored with respect to xcenter and ycenter, respectively.",
-        "examples": "local pts = { point.create(10, 10), point.create(20, 20) }\nutil.ymirror(pts, 0, 0) -- { (-10, -10), (-20, -20) }",
+        "examples": "local pts = { <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10</span>, <span class=\"opc-number\">10</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>) }\n<span class=\"opc-module\">util</span>.ymirror(pts, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>) -- { (-<span class=\"opc-number\">10</span>, -<span class=\"opc-number\">10</span>), (-<span class=\"opc-number\">20</span>, -<span class=\"opc-number\">20</span>) }",
     },
     {
         "module": "util",
@@ -2989,7 +2989,7 @@ const apirefs = [
         "syntax": "filter_forward(pts, fun)",
         "description": "filter a list of points through a filter function (forward variant)",
         "details": "Iterate forward through the list of points and create a new list with copied points that match the predicate. The predicate function is called with every point.",
-        "examples": "local pts = { ... }\nlocal predicate = function(pt) return pt:getx() > 0 end\nlocal newpts = util.filter_forward(pts, predicate)",
+        "examples": "local pts = { ... }\nlocal predicate = function(pt) return pt:getx() > <span class=\"opc-number\">0</span> end\nlocal newpts = <span class=\"opc-module\">util</span>.filter_forward(pts, predicate)",
     },
     {
         "module": "util",
@@ -2997,7 +2997,7 @@ const apirefs = [
         "syntax": "filter_backward(pts, fun)",
         "description": "filter a list of points through a filter function (backward variant)",
         "details": "Iterate backward through the list of points and create a new list with copied points that match the predicate. The predicate function is called with every point.",
-        "examples": "local pts = { ... }\nlocal predicate = function(pt) return pt:getx() > 0 end\nlocal newpts = util.filter_backward(pts, predicate)",
+        "examples": "local pts = { ... }\nlocal predicate = function(pt) return pt:getx() > <span class=\"opc-number\">0</span> end\nlocal newpts = <span class=\"opc-module\">util</span>.filter_backward(pts, predicate)",
     },
     {
         "module": "util",
@@ -3005,7 +3005,7 @@ const apirefs = [
         "syntax": "merge_forwards(pts, pts2)",
         "description": "append all points from pts2 to pts1 (forward variant)",
         "details": "Append all points from pts2 to pts1. Iterate pts2 forward. Operates in-place, thus pts is modified",
-        "examples": "util.merge_forward(pts, pts2)",
+        "examples": "<span class=\"opc-module\">util</span>.merge_forward(pts, pts2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "util",
@@ -3013,7 +3013,7 @@ const apirefs = [
         "syntax": "merge_backwards(pts, pts2)",
         "description": "append all points from pts2 to pts1 (backward variant)",
         "details": "Append all points from pts2 to pts1. Iterate pts2 backwards. Operates in-place, thus pts is modified",
-        "examples": "util.merge_backward(pts, pts2)",
+        "examples": "<span class=\"opc-module\">util</span>.merge_backward(pts, pts2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "util",
@@ -3021,7 +3021,7 @@ const apirefs = [
         "syntax": "merge_tables(t1, t2)",
         "description": "append all entries from t2 to t1",
         "details": "Create a new table with t1 and t2 concatenated. The elements of t2 are append after those of t1. Only the array entries of t1 and t2 are processed.",
-        "examples": "util.merge_tables({ 1, 2, 3 }, { 4, 5, 6 }) -- { 1, 2, 3, 4, 5, 6 }",
+        "examples": "<span class=\"opc-module\">util</span>.merge_tables({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }, { <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">6</span> }) -- { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">6</span> }",
     },
     {
         "module": "util",
@@ -3029,7 +3029,7 @@ const apirefs = [
         "syntax": "insert_table(main, t)",
         "description": "append all entries from t to main",
         "details": "Append all entries from t to main.",
-        "examples": "local t = { 1, 2, 3 }\nutil.insert_table(t, { 4, 5, 6 }) -- t is now { 1, 2, 3, 4, 5, 6 }",
+        "examples": "local <span class=\"opc-module\">t</span> = { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }\n<span class=\"opc-module\">util</span>.insert_table(<span class=\"opc-module\">t</span>, { <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">6</span> }) -- <span class=\"opc-module\">t</span> is now { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">6</span> }",
     },
     {
         "module": "util",
@@ -3037,7 +3037,7 @@ const apirefs = [
         "syntax": "reverse(pts)",
         "description": "reverse a point list",
         "details": "create a copy of the point array with the order of points reversed",
-        "examples": "local reversed = util.reverse(pts)",
+        "examples": "local reversed = <span class=\"opc-module\">util</span>.reverse(pts)",
     },
     {
         "module": "util",
@@ -3045,7 +3045,7 @@ const apirefs = [
         "syntax": "make_insert_xy(pts, index)",
         "description": "create a function that inserts points into a point array (xy variant)",
         "details": "Create a function that inserts points into a point array. XY mode, thus points are given as two coordinates. If an index is given, insert at that position. Mostly useful with 1 as an index or not index at all (append)",
-        "examples": "local pts = {}\nlocal _append = util.make_insert_xy(pts)\n_append(0, 0)\n_append(100, 0)\n_append(100, 100)\n_append(0, 100)",
+        "examples": "local pts = {}\nlocal _append = <span class=\"opc-module\">util</span>.make_insert_xy(pts)\n_append(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>)\n_append(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>)\n_append(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)\n_append(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">100</span>)",
     },
     {
         "module": "util",
@@ -3053,7 +3053,7 @@ const apirefs = [
         "syntax": "make_insert_pts(pts, index)",
         "description": "create a function that inserts points into a point array (point variant)",
         "details": "Create a function that inserts points into a point array. Point mode, thus points are given as single points. If an index is given, insert at that position. Mostly useful with 1 as an index or not index at all (append)",
-        "examples": "local pts = {}\nlocal _append = util.make_insert_pts(pts)\n_append(point.create(0, 0))\n_append(point.create(100, 0))\n_append(point.create(100, 100))\n_append(point.create(0, 100))",
+        "examples": "local pts = {}\nlocal _append = <span class=\"opc-module\">util</span>.make_insert_pts(pts)\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>))\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>))\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>))\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">100</span>))",
     },
     {
         "module": "util",
@@ -3061,7 +3061,7 @@ const apirefs = [
         "syntax": "rep(num, value)",
         "description": "create an list with a repetition of a value",
         "details": "Create an array-like table with one entry repeated N times. This is useful, for example, for specifying gate contacts for basic/cmos.",
-        "examples": "local gatecontactpos = util.rep(4, 0) -- { 0, 0, 0, 0 }",
+        "examples": "local gatecontactpos = <span class=\"opc-module\">util</span>.rep(<span class=\"opc-number\">4</span>, <span class=\"opc-number\">0</span>) -- { <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span> }",
     },
     {
         "module": "util",
@@ -3069,7 +3069,7 @@ const apirefs = [
         "syntax": "range(lower, upper, incr)",
         "description": "create an list with a numeric range",
         "details": "Create a table with numeric entries between lower and upper (both inclusive). The entries spacing is specified by the increment (default 1)",
-        "examples": "util.range(1, 5) -- { 1, 2, 3, 4, 5 }\nutil.range(2, 8, 3) -- { 2, 5, 8 }",
+        "examples": "<span class=\"opc-module\">util</span>.range(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">5</span>) -- { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span> }\n<span class=\"opc-module\">util</span>.range(<span class=\"opc-number\">2</span>, <span class=\"opc-number\">8</span>, <span class=\"opc-number\">3</span>) -- { <span class=\"opc-number\">2</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">8</span> }",
     },
     {
         "module": "util",
@@ -3077,7 +3077,7 @@ const apirefs = [
         "syntax": "remove(t, comp)",
         "description": "remove some elements of a table (the table is copied)",
         "details": "Create a shallow copy of a table with certain elements matching the given criteria removed. The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. If the result of the function call is 'true', the entry is NOT included in the results table.",
-        "examples": "util.remove({1, 2, 3, 4, 5}, 3) -- { 1, 2, 4, 5 }\nutil.remove({1, 2, 3, 4, 5}, function(e) return e % 2 == 0 end) -- { 1, 3, 5 }",
+        "examples": "<span class=\"opc-module\">util</span>.remove({<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>}, <span class=\"opc-number\">3</span>) -- { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span> }\n<span class=\"opc-module\">util</span>.remove({<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>}, function(e) return e % <span class=\"opc-number\">2</span> == <span class=\"opc-number\">0</span> end) -- { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">5</span> }",
     },
     {
         "module": "util",
@@ -3085,7 +3085,7 @@ const apirefs = [
         "syntax": "remove_index(t, index)",
         "description": "remove some elements of a table (the table is copied) (index variant)",
         "details": "Create a shallow copy of a table with the element(s) at the 'index(es)' removed. Index can be either a scalar integer or a table containing multiple indices which shall be removed",
-        "examples": "util.remove_index({10, 20, 30, 40, 50}, 3) -- { 10, 20, 40, 50 }",
+        "examples": "<span class=\"opc-module\">util</span>.remove_index({<span class=\"opc-number\">10</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">30</span>, <span class=\"opc-number\">40</span>, <span class=\"opc-number\">50</span>}, <span class=\"opc-number\">3</span>) -- { <span class=\"opc-number\">10</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">40</span>, <span class=\"opc-number\">50</span> }",
     },
     {
         "module": "util",
@@ -3093,7 +3093,7 @@ const apirefs = [
         "syntax": "remove_inplace(t, comp)",
         "description": "remove some elements of a table",
         "details": "Remove certain elements matching the given criteria. The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. If the result of the function call is 'true', the entry is NOT included in the results table.",
-        "examples": "util.remove({1, 2, 3, 4, 5}, 3) -- { 1, 2, 4, 5 }\nutil.remove({1, 2, 3, 4, 5}, function(e) return e % 2 == 0 end) -- { 1, 3, 5 }",
+        "examples": "<span class=\"opc-module\">util</span>.remove({<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>}, <span class=\"opc-number\">3</span>) -- { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span> }\n<span class=\"opc-module\">util</span>.remove({<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>}, function(e) return e % <span class=\"opc-number\">2</span> == <span class=\"opc-number\">0</span> end) -- { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">5</span> }",
     },
     {
         "module": "util",
@@ -3101,7 +3101,7 @@ const apirefs = [
         "syntax": "remove_index_inplace(t, index)",
         "description": "remove some elements of a table (index variant)",
         "details": "remove the element of the given table at the given index (actually just a wrapper for table.remove)",
-        "examples": "util.remove_index({10, 20, 30, 40, 50}, 3) -- { 10, 20, 40, 50 }",
+        "examples": "<span class=\"opc-module\">util</span>.remove_index({<span class=\"opc-number\">10</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">30</span>, <span class=\"opc-number\">40</span>, <span class=\"opc-number\">50</span>}, <span class=\"opc-number\">3</span>) -- { <span class=\"opc-number\">10</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">40</span>, <span class=\"opc-number\">50</span> }",
     },
     {
         "module": "util",
@@ -3109,7 +3109,7 @@ const apirefs = [
         "syntax": "fill_all_with(num, filler)",
         "description": "create an list with a repetition of a value",
         "details": "Create an array-like table with one entry repeated N times. This is useful, for example, for specifying gate contacts for basic/cmos",
-        "examples": "local gatecontactpos = util.fill_all_with(4, \"center\") -- { \"center\", \"center\", \"center\", \"center\" }",
+        "examples": "local gatecontactpos = <span class=\"opc-module\">util</span>.fill_all_with(<span class=\"opc-number\">4</span>, <span class=\"opc-string\">\"center\"</span>) -- { <span class=\"opc-string\">\"center\"</span>, <span class=\"opc-string\">\"center\"</span>, <span class=\"opc-string\">\"center\"</span>, <span class=\"opc-string\">\"center\"</span> }",
     },
     {
         "module": "util",
@@ -3117,7 +3117,7 @@ const apirefs = [
         "syntax": "fill_predicate_with(num, filler, predicate, other)",
         "description": "create an list with a repetition of a value, defined by a binary predicate function",
         "details": "Create an array-like table with two entries (total number of entries is N). This function (compared to fill_all_with, fill_odd_with and fill_even_with) allows for more complex patterns. To do this, a predicate (a function) is called on every index. If the predicate is true, the first entry is inserted, otherwise the second one. This function is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
-        "examples": "local contactpos = util.fill_predicate_with(8, \"power\", function(i) return i % 4 == 0 end, \"outer\")",
+        "examples": "local contactpos = <span class=\"opc-module\">util</span>.fill_predicate_with(<span class=\"opc-number\">8</span>, <span class=\"opc-string\">\"power\"</span>, function(i) return i % <span class=\"opc-number\">4</span> == <span class=\"opc-number\">0</span> end, <span class=\"opc-string\">\"outer\"</span>)",
     },
     {
         "module": "util",
@@ -3125,7 +3125,7 @@ const apirefs = [
         "syntax": "fill_even_with(num, filler, other)",
         "description": "create an list with an alternating repetition of two values (even variant)",
         "details": "Create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
-        "examples": "local gatecontactpos = util.fill_even_with(4, \"center\", \"upper\") -- { \"upper\", \"center\", \"upper\", \"center\" }",
+        "examples": "local gatecontactpos = <span class=\"opc-module\">util</span>.fill_even_with(<span class=\"opc-number\">4</span>, <span class=\"opc-string\">\"center\"</span>, <span class=\"opc-string\">\"upper\"</span>) -- { <span class=\"opc-string\">\"upper\"</span>, <span class=\"opc-string\">\"center\"</span>, <span class=\"opc-string\">\"upper\"</span>, <span class=\"opc-string\">\"center\"</span> }",
     },
     {
         "module": "util",
@@ -3133,7 +3133,7 @@ const apirefs = [
         "syntax": "fill_odd_with(num, filler, other)",
         "description": "create an list with an alternating repetition of two values (odd variant)",
         "details": "Create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'filler'",
-        "examples": "local gatecontactpos = util.fill_odd_with(4, \"center\", \"upper\") -- { \"center\", \"upper\", \"center\", \"upper\" }",
+        "examples": "local gatecontactpos = <span class=\"opc-module\">util</span>.fill_odd_with(<span class=\"opc-number\">4</span>, <span class=\"opc-string\">\"center\"</span>, <span class=\"opc-string\">\"upper\"</span>) -- { <span class=\"opc-string\">\"center\"</span>, <span class=\"opc-string\">\"upper\"</span>, <span class=\"opc-string\">\"center\"</span>, <span class=\"opc-string\">\"upper\"</span> }",
     },
     {
         "module": "util",
@@ -3141,7 +3141,7 @@ const apirefs = [
         "syntax": "clone_shallow(table)",
         "description": "create a shallow copy of a table",
         "details": "Create a shallow copy of a table. This function creates a copy of the given table, where all first-level values are copied. If those values are tables, they reference the same table as the original object.",
-        "examples": "local new = util.clone_shallow(t)",
+        "examples": "local new = <span class=\"opc-module\">util</span>.clone_shallow(<span class=\"opc-module\">t</span>)",
     },
     {
         "module": "util",
@@ -3149,7 +3149,7 @@ const apirefs = [
         "syntax": "clone_shallow_predicate(table, predicate)",
         "description": "create a shallow copy of a table with entries selected by a predicate function",
         "details": "Create a shallow copy of a table. This function creates a copy of the given table, where all first-level values are copied. If those values are tables, they reference the same table as the original object. This function only copies items where the given predicate function (called with the key and the value of the item) returns true.",
-        "examples": "local new = util.clone_shallow_predicate(t, function(k, v) if string.match(v, \"vdd.+\") end)",
+        "examples": "local new = <span class=\"opc-module\">util</span>.clone_shallow_predicate(<span class=\"opc-module\">t</span>, function(k, v) if string.match(v, <span class=\"opc-string\">\"vdd.+\"</span>) end)",
     },
     {
         "module": "util",
@@ -3157,7 +3157,7 @@ const apirefs = [
         "syntax": "clone_array_predicate(table, predicate)",
         "description": "create a shallow copy of an array-like table with entries selected by a predicate function",
         "details": "Create a shallow copy of an array-like table. This function creates a copy of the given table, where all first-level array values are copied. If those values are tables, they reference the same table as the original object. This function only copies items where the given predicate function (called with value of the item) returns true. The array indices might change as not all elements might be copied.",
-        "examples": "local new = util.clone_shallow_predicate(t, function(e) if string.match(e, \"vdd.+\") end)",
+        "examples": "local new = <span class=\"opc-module\">util</span>.clone_shallow_predicate(<span class=\"opc-module\">t</span>, function(e) if string.match(e, <span class=\"opc-string\">\"vdd.+\"</span>) end)",
     },
     {
         "module": "util",
@@ -3165,7 +3165,7 @@ const apirefs = [
         "syntax": "add_options(baseoptions, additionaloptions)",
         "description": "create a copy of a table and add extra key-value pairs",
         "details": "Create a copy of the baseoptions table and add all key-value pairs found in additionaloptions. This function clones baseoptions so the original is not altered. This copy is flat, so only the first-level elements are copied (e.g. tables will reference the same object). This function is useful to modify a set of base options for several devices such as mosfets, which only differ in a few options",
-        "examples": "local baseoptions = ...\nlocal fet = pcell.create_layout(\"basic/mosfet\", \"fet\", util.add_options(baseoptions, { gatelength = 100 }))",
+        "examples": "local baseoptions = ...\nlocal fet = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"fet\"</span>, <span class=\"opc-module\">util</span>.add_options(baseoptions, { gatelength = <span class=\"opc-number\">100</span> }))",
     },
     {
         "module": "util",
@@ -3173,7 +3173,7 @@ const apirefs = [
         "syntax": "ratio_split_even(value, ratio)",
         "description": "create two values that sum up to the input value and have the specified ratio",
         "details": "Create two values that sum up to the input value and have the specified ratio. The values are adjusted so that both of them are even, possibly changing the ratio slightly. The input value must be even",
-        "examples": "local pitch = 1000\nlocal width, space = util.ratio_split_even(pitch, 2) -- results in 668 and 332, the actual ratio then is 2.012",
+        "examples": "local pitch = <span class=\"opc-number\">1000</span>\nlocal width, space = <span class=\"opc-module\">util</span>.ratio_split_even(pitch, <span class=\"opc-number\">2</span>) -- results in <span class=\"opc-number\">668</span> and <span class=\"opc-number\">332</span>, the actual ratio then is <span class=\"opc-number\">2</span>.",
     },
     {
         "module": "util",
@@ -3181,7 +3181,7 @@ const apirefs = [
         "syntax": "ratio_split_multiple_of(value, ratio, multiple)",
         "description": "create two values that sum up to the input value and have the specified ratio (multiple variant)",
         "details": "Create two values that sum up to the input value and have the specified ratio. The values are adjusted so that both of them are multiples of the given value ('multiple'), possibly changing the ratio slightly. The input value must be divisable by 'multiple'. This function called with multiple == 2 behaves exactly like ratio_split_even",
-        "examples": "local pitch = 1000\nlocal width, space = util.ratio_split_even(pitch, 2, 20) -- results in 680 and 320, the actual ratio then is 2.125",
+        "examples": "local pitch = <span class=\"opc-number\">1000</span>\nlocal width, space = <span class=\"opc-module\">util</span>.ratio_split_even(pitch, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">20</span>) -- results in <span class=\"opc-number\">680</span> and <span class=\"opc-number\">320</span>, the actual ratio then is <span class=\"opc-number\">2</span>.",
     },
     {
         "module": "util",
@@ -3189,7 +3189,7 @@ const apirefs = [
         "syntax": "make_rectangle(center, width, height)",
         "description": "create a rectangle from a center point and the width and height",
         "details": "Create a rectangle from a center point and the width and height. This function returns two points (bottom-left and top-right). This function does not create any shapes, use geometry.rectanglebltr and similar functions for that.",
-        "examples": "local bl, tr = util.make_rectangle(point.create(0, 0), 100, 100)",
+        "examples": "local bl, tr = <span class=\"opc-module\">util</span>.make_rectangle(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)",
     },
     {
         "module": "util",
@@ -3197,7 +3197,7 @@ const apirefs = [
         "syntax": "polygon_rectangular_boundary(polygon)",
         "description": "calculate the bounding rectangle of a polygon",
         "details": "Calculate the encompassing rectangle of the given polygon. This function two points: 'bl' (bottom-left) and 'tr' (top-right).",
-        "examples": "local bl, tr = util.polygon_rectangular_boundary(polygon)",
+        "examples": "local bl, tr = <span class=\"opc-module\">util</span>.polygon_rectangular_boundary(polygon)",
     },
     {
         "module": "util",
@@ -3205,7 +3205,7 @@ const apirefs = [
         "syntax": "rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)",
         "description": "convert a rectangle to a rectangular polygon",
         "details": "Convert a two-point rectangle to a polygon describing this rectangle. Optionally, the polygon can be extended in the four directions (left/right/bottom/top). This function is useful for creating fill layer boundaries or fill target regions",
-        "examples": "local region = util.rectangle_to_polygon(point.create(-100, -100), point.create(100, 100), -100, 0, 0, 200)",
+        "examples": "local region = <span class=\"opc-module\">util</span>.rectangle_to_polygon(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>), -<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">200</span>)",
     },
     {
         "module": "util",
@@ -3213,7 +3213,7 @@ const apirefs = [
         "syntax": "is_rectilinear_polygon(polygon)",
         "description": "check whether a polygon is rectilinear",
         "details": "Check whether a given polygon is rectilinear (has only angles of 90 degrees)",
-        "examples": "util.is_rectilinear_polygon(polygon)",
+        "examples": "<span class=\"opc-module\">util</span>.is_rectilinear_polygon(polygon)",
     },
     {
         "module": "util",
@@ -3221,7 +3221,7 @@ const apirefs = [
         "syntax": "split_rectilinear_polygon(polygon)",
         "description": "split a rectilinear polygon into rectangles",
         "details": "Split a rectilinear polygon into non-overlapping rectangles. This function returns a table with one entry per rectangle. The rectangles are represented by something like '{ pt1 = point.create(...), pt2 = point.create(...) }'. The function checks whether the polygon is actually rectilinear and does not do anything in case it is not.",
-        "examples": "local rectangles = util.split_rectilinear_polygon(polygon)",
+        "examples": "local rectangles = <span class=\"opc-module\">util</span>.split_rectilinear_polygon(polygon)",
     },
     {
         "module": "util",
@@ -3229,7 +3229,7 @@ const apirefs = [
         "syntax": "fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext, xmultiple, ymultiple)",
         "description": "convert a rectangle to a rectangular polygon (gridded variant)",
         "details": "Convert a two-point rectangle to a polygon describing this rectangle. The polygon is extended so that its width and height are a integer multiple of the specified x- and y-grid. The polygon's width and height are always at least the width and height of the rectangle. Additionally, a minimum extension can be given in x- and y-direction, which can further increase the polygon's size. The resulting rectangle can be tuned so that it has an even or odd multiplicity in either of the directions. The keys \"even\" or \"odd\" can be used for the last two parameters 'xmultiple' and 'ymultiple'. If they are nil, the resulting rectangle is not modified from the original fitting.",
-        "examples": "local region = util.fit_rectangular_polygon(point.create(-127, -110), point.create(118, 109), 20, 20, 50, 50)",
+        "examples": "local region = <span class=\"opc-module\">util</span>.fit_rectangular_polygon(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">127</span>, -<span class=\"opc-number\">110</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">118</span>, <span class=\"opc-number\">109</span>), <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">50</span>, <span class=\"opc-number\">50</span>)",
     },
     {
         "module": "util",
@@ -3237,7 +3237,7 @@ const apirefs = [
         "syntax": "offset_polygon(polygon, offset)",
         "description": "grow or shrink (offset) a polygon outline",
         "details": "Calculate a new polygon from a given one with all lines shifted by a given offset. This function has potentially many uses, but as of version 0.10.0 it is mostly used for expanding layer boundaries to include mandatory spacing to automatically generated fill structures. Hence, it is only tested for positive offsets. Additionally, for extreme cases (acute angles with large offsets) self-intersecting polygons can occur. This function should fix these, but it currently does not. This is a bug. Submission of proper algorithms to solve this are welcome.",
-        "examples": "local new_polygon = util.offset_polygon(polygon, 100)",
+        "examples": "local new_polygon = <span class=\"opc-module\">util</span>.offset_polygon(polygon, <span class=\"opc-number\">100</span>)",
     },
     {
         "module": "util",
@@ -3245,7 +3245,7 @@ const apirefs = [
         "syntax": "rectangle_intersection(bl1, tr1, bl2, tr2)",
         "description": "compute the intersection of two rectangles",
         "details": "Compute the intersection of two rectangles and return it as a table with 'bl' (bottom-left) and 'tr' (top-right) entries. If no itersection exists, this function returns nil.",
-        "examples": "local region = util.rectangle_intersection(point.create(0, 0), point.create(100, 100), point.create(20, 20), point.create(200, 20))",
+        "examples": "local region = <span class=\"opc-module\">util</span>.rectangle_intersection(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">20</span>))",
     },
     {
         "module": "util",
@@ -3253,7 +3253,7 @@ const apirefs = [
         "syntax": "any_of(comp, table, ...)",
         "description": "check if any value in a table fulfills a condition",
         "details": "Return true if any of the values in the array part of the table compare true (either directly to the given value or the function call is true). If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.any_of are passed to the function, following the array element",
-        "examples": "util.any_of(42, { 1, 2, 3 }) -- false\nutil.any_of(\n    function(e) return e == 42 end,\n    { 1, 2, 3 }\n) -- also false",
+        "examples": "<span class=\"opc-module\">util</span>.any_of(<span class=\"opc-number\">42</span>, { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) -- false\n<span class=\"opc-module\">util</span>.any_of(\n    function(e) return e == <span class=\"opc-number\">42</span> end,\n    { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }\n) -- also false",
     },
     {
         "module": "util",
@@ -3261,7 +3261,7 @@ const apirefs = [
         "syntax": "all_of(comp, table, ...)",
         "description": "check if all value in a table fulfill a condition",
         "details": "Return true if all of the values in the array part of the table compare true (either directly to the given value or the function call is true). If a comparison function is given it is called with every element of the array and (if present) any additional parameters to util.all_of are passed to the function, following the array element",
-        "examples": "util.all_of(42, { 42, 42, 42 }) -- true\nutil.all_of(\n    function(e) return e == 42 end,\n    { 42, 2, 3 }\n) -- false",
+        "examples": "<span class=\"opc-module\">util</span>.all_of(<span class=\"opc-number\">42</span>, { <span class=\"opc-number\">42</span>, <span class=\"opc-number\">42</span>, <span class=\"opc-number\">42</span> }) -- true\n<span class=\"opc-module\">util</span>.all_of(\n    function(e) return e == <span class=\"opc-number\">42</span> end,\n    { <span class=\"opc-number\">42</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }\n) -- false",
     },
     {
         "module": "util",
@@ -3269,7 +3269,7 @@ const apirefs = [
         "syntax": "transform_points(pts, func)",
         "description": "transform all points in a list of points",
         "details": "Transform all points in a list of points. This function creates a copy of the point list (the points are copied too). Every point is transformed by the transformation function. Any return values of the function are ignored, the function should transform the given point in-place.",
-        "examples": "util.transform_points({\n    point.create(0, 0),\n    point.create(100, 100)\n    point.create(50, 200)\n}, function(pt) pt:translate(100, 100) end)",
+        "examples": "<span class=\"opc-module\">util</span>.transform_points({\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">50</span>, <span class=\"opc-number\">200</span>)\n}, function(pt) pt:translate(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>) end)",
     },
     {
         "module": "util",
@@ -3277,7 +3277,7 @@ const apirefs = [
         "syntax": "round_to_grid(coordinate, grid)",
         "description": "round a coordinate to a multiple of the given grid",
         "details": "Round a coordinate to a multiple of the given grid.",
-        "examples": "util.round_to_grid(120, 100) -- 100\nutil.round_to_grid(160, 100) -- 200",
+        "examples": "<span class=\"opc-module\">util</span>.round_to_grid(<span class=\"opc-number\">120</span>, <span class=\"opc-number\">100</span>) -- <span class=\"opc-number\">100</span>\n<span class=\"opc-module\">util</span>.round_to_grid(<span class=\"opc-number\">160</span>, <span class=\"opc-number\">100</span>) -- ",
     },
     {
         "module": "util",
@@ -3285,7 +3285,7 @@ const apirefs = [
         "syntax": "fix_to_grid_higher(coordinate, grid)",
         "description": "fix a coordinate to a multiple of the given grid (higher value)",
         "details": "Fix a coordinate to a multiple of the given grid. This function works like a 'ceil(ing)' function, so the resulting number is either higher or equal. This means that this function does not behave symmetrically for negative and positive input. If this is required, use util.fix_to_grid_abs_higher.",
-        "examples": "util.fix_to_grid_higher(120, 100) -- 200\nutil.fix_to_grid_higher(-120, 100) -- 100",
+        "examples": "<span class=\"opc-module\">util</span>.fix_to_grid_higher(<span class=\"opc-number\">120</span>, <span class=\"opc-number\">100</span>) -- <span class=\"opc-number\">200</span>\n<span class=\"opc-module\">util</span>.fix_to_grid_higher(-<span class=\"opc-number\">120</span>, <span class=\"opc-number\">100</span>) -- ",
     },
     {
         "module": "util",
@@ -3293,7 +3293,7 @@ const apirefs = [
         "syntax": "fix_to_grid_lower(coordinate, grid)",
         "description": "fix a coordinate to a multiple of the given grid (lower value)",
         "details": "Fix a coordinate to a multiple of the given grid. This function works like a 'floor(ing)' function, so the resulting number is either lower or equal. This means that this function does not behave symmetrically for negative and positive input. If this is required, use util.fix_to_grid_abs_lower.",
-        "examples": "util.fix_to_grid_lower(120, 100) -- 100\nutil.fix_to_grid_lower(-120, 100) -- 200",
+        "examples": "<span class=\"opc-module\">util</span>.fix_to_grid_lower(<span class=\"opc-number\">120</span>, <span class=\"opc-number\">100</span>) -- <span class=\"opc-number\">100</span>\n<span class=\"opc-module\">util</span>.fix_to_grid_lower(-<span class=\"opc-number\">120</span>, <span class=\"opc-number\">100</span>) -- ",
     },
     {
         "module": "util",
@@ -3301,7 +3301,7 @@ const apirefs = [
         "syntax": "fix_to_grid_abs_higher(coordinate, grid)",
         "description": "fix a coordinate to a multiple of the given grid (higher absolute value)",
         "details": "Fix a coordinate to a multiple of the given grid. This function works like a 'ceil(ing)' function, but it is computed on the absolute value, so the absolute of the resulting number is either higher or equal. This means that this function does behave symmetrically for negative and positive input. If this is unwanted, use util.fix_to_grid_higher.",
-        "examples": "util.fix_to_grid_abs_higher(120, 100) -- 200\nutil.fix_to_grid_abs_higher(-120, 100) -- 200",
+        "examples": "<span class=\"opc-module\">util</span>.fix_to_grid_abs_higher(<span class=\"opc-number\">120</span>, <span class=\"opc-number\">100</span>) -- <span class=\"opc-number\">200</span>\n<span class=\"opc-module\">util</span>.fix_to_grid_abs_higher(-<span class=\"opc-number\">120</span>, <span class=\"opc-number\">100</span>) -- ",
     },
     {
         "module": "util",
@@ -3309,7 +3309,7 @@ const apirefs = [
         "syntax": "fix_to_grid_abs_lower(coordinate, grid)",
         "description": "fix a coordinate to a multiple of the given grid (lower absolute value)",
         "details": "Fix a coordinate to a multiple of the given grid. This function works like a 'floor(ing)' function, but it is computed on the absolute value, so the absolute of the resulting number is either lower or equal. This means that this function does behave symmetrically for negative and positive input. If this is unwanted, use util.fix_to_grid_lower.",
-        "examples": "util.fix_to_grid_abs_lower(120, 100) -- 100\nutil.fix_to_grid_abs_lower(-120, 100) -- 100",
+        "examples": "<span class=\"opc-module\">util</span>.fix_to_grid_abs_lower(<span class=\"opc-number\">120</span>, <span class=\"opc-number\">100</span>) -- <span class=\"opc-number\">100</span>\n<span class=\"opc-module\">util</span>.fix_to_grid_abs_lower(-<span class=\"opc-number\">120</span>, <span class=\"opc-number\">100</span>) -- ",
     },
     {
         "module": "util",
@@ -3317,7 +3317,7 @@ const apirefs = [
         "syntax": "foreach(table, function, ...)",
         "description": "apply a function to every element of a table (table return)",
         "details": "Apply a function to every element of a given table. Return a new table containing the results of these calls in the order of the original elements. Additional arguments can be passed to the function.",
-        "examples": "util.foreach({ 1, 2, 3 }, generics.metal)",
+        "examples": "<span class=\"opc-module\">util</span>.foreach({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }, <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>)",
     },
     {
         "module": "util",
@@ -3325,7 +3325,7 @@ const apirefs = [
         "syntax": "reduce(table, function, initial, ...)",
         "description": "apply a function to every element of a table (scalar return)",
         "details": "Apply a function to every element of a given table. Return a scalar result of these calls. An initial value must be given (e.g. '0' for numeric operations). This sets the type of the result. Additional arguments can be passed to the function.",
-        "examples": "util.reduce({ 1, 2, 3 }, function(lhs, rhs) return lhs + rhs end, 0) -- 6",
+        "examples": "<span class=\"opc-module\">util</span>.reduce({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }, function(lhs, rhs) return lhs + rhs end, <span class=\"opc-number\">0</span>) -- ",
     },
     {
         "module": "util",
@@ -3333,7 +3333,7 @@ const apirefs = [
         "syntax": "find(table, value)",
         "description": "find a value in an array",
         "details": "Find a value in an array. This function returns the index of that value and the value itself. If multiple values match, only the first one is returned.",
-        "examples": "util.find({ 3, 4, 5 }, 4) -- 2, 4",
+        "examples": "<span class=\"opc-module\">util</span>.find({ <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span> }, <span class=\"opc-number\">4</span>) -- <span class=\"opc-number\">2</span>, ",
     },
     {
         "module": "util",
@@ -3341,7 +3341,7 @@ const apirefs = [
         "syntax": "find_predicate(table, comp, ...)",
         "description": "find a value in an array (predicate variant)",
         "details": "Like util.find, but call a function to do the comparison. The function is called with every one of the values, but not the index. If multiple values match, only the first one is returned.",
-        "examples": "util.find_predicate(\n    { 3, 4, 5 },\n    function(value)\n        return value == 4\n    end\n) -- 2, 4\nlocal target = 4\nutil.find(\n    { 3, 4, 5 },\n    function(value, t)\n        return value == t\n    end,\n    target\n) -- 2, 4\n",
+        "examples": "<span class=\"opc-module\">util</span>.find_predicate(\n    { <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span> },\n    function(value)\n        return value == <span class=\"opc-number\">4</span>\n    end\n) -- <span class=\"opc-number\">2</span>, <span class=\"opc-number\">4</span>\nlocal target = <span class=\"opc-number\">4</span>\n<span class=\"opc-module\">util</span>.find(\n    { <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span> },\n    function(value, <span class=\"opc-module\">t</span>)\n        return value == <span class=\"opc-module\">t</span>\n    end,\n    target\n) -- <span class=\"opc-number\">2</span>, <span class=\"opc-number\">4</span>\n",
     },
     {
         "module": "util",
@@ -3349,7 +3349,7 @@ const apirefs = [
         "syntax": "fit_lines_upper(total, size, space)",
         "description": "calculate the number of lines that fit in a dimension (upper variant)",
         "details": "Calculate the number of lines with the given size and space that fit into the given total width/height. This function rounds up.",
-        "examples": "util.fit_lines_upper(10000, 500, 500) -- 11",
+        "examples": "<span class=\"opc-module\">util</span>.fit_lines_upper(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">500</span>, <span class=\"opc-number\">500</span>) -- ",
     },
     {
         "module": "util",
@@ -3357,7 +3357,7 @@ const apirefs = [
         "syntax": "fit_lines_lower(total, size, space)",
         "description": "calculate the number of lines that fit in a dimension (lower variant)",
         "details": "Calculate the number of lines with the given size and space that fit into the given total width/height. This function rounds down.",
-        "examples": "util.fit_lines_lower(10000, 500, 500) -- 10",
+        "examples": "<span class=\"opc-module\">util</span>.fit_lines_lower(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">500</span>, <span class=\"opc-number\">500</span>) -- ",
     },
     {
         "module": "util",
@@ -3365,7 +3365,7 @@ const apirefs = [
         "syntax": "fit_lines_width_grid(total, width, numlines, grid)",
         "description": "calculate the number of lines that fit in a dimension (gridded variant)",
         "details": "Calculate the spacing of a given number of lines of a certain width that should fit in a region. This function can take a grid and will decrement the space until it fits on the grid",
-        "examples": "util.fit_lines_width_grid(10000, 1000, 8) -- 285\nutil.fit_lines_width_grid(10000, 1000, 8, 10) -- 280",
+        "examples": "<span class=\"opc-module\">util</span>.fit_lines_width_grid(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">1000</span>, <span class=\"opc-number\">8</span>) -- <span class=\"opc-number\">285</span>\n<span class=\"opc-module\">util</span>.fit_lines_width_grid(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">1000</span>, <span class=\"opc-number\">8</span>, <span class=\"opc-number\">10</span>) -- ",
     },
     {
         "module": "util",
@@ -3373,7 +3373,7 @@ const apirefs = [
         "syntax": "fit_lines_fullwidth_grid(total, fullwidth, numlines, grid)",
         "description": "calculate the number of lines that fit in a dimension (fullwidth gridded variant)",
         "details": "Calculate the spacing of a given number of lines of a certain width that should fit in a region. This function can take a grid and will decrement the space until it fits on the grid. This function is different than util.fit_lines_width_grid in that it does not take the width of an individual line but the combined width of all lines. This is useful when spacing for lines with unequal widths should be calculated.",
-        "examples": "util.fit_lines_fullwidth_grid(10000, 8000, 8) -- 285\nutil.fit_lines_lower(10000, 10000, 8, 10) -- 280",
+        "examples": "<span class=\"opc-module\">util</span>.fit_lines_fullwidth_grid(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">8000</span>, <span class=\"opc-number\">8</span>) -- <span class=\"opc-number\">285</span>\n<span class=\"opc-module\">util</span>.fit_lines_lower(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>, <span class=\"opc-number\">8</span>, <span class=\"opc-number\">10</span>) -- ",
     },
     {
         "module": "util",
@@ -3381,7 +3381,7 @@ const apirefs = [
         "syntax": "sum(t)",
         "description": "calculate the sum of all items of an numeric array",
         "details": "Calculate the sum of all items of an numeric array.",
-        "examples": "local sum = util.sum({ 1, 2, 3 }) -- 6",
+        "examples": "local sum = <span class=\"opc-module\">util</span>.sum({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) -- ",
     },
     {
         "module": "util",
@@ -3389,7 +3389,7 @@ const apirefs = [
         "syntax": "uniq(t)",
         "description": "copy only unique elements of a table",
         "details": "Create an array where only unique entries of the input array t are present. Equality is checked via the comparison operator '=='",
-        "examples": "local u = util.uniq({ 1, 2, 3, 1, 4, 5, 2, 1, 7 }) -- { 1, 2, 3, 4, 5, 7 }",
+        "examples": "local <span class=\"opc-module\">u</span> = <span class=\"opc-module\">util</span>.uniq({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">7</span> }) -- { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">7</span> }",
     },
     {
         "module": "util",
@@ -3397,7 +3397,7 @@ const apirefs = [
         "syntax": "intersection(s1, s2, t1, t2)",
         "description": "calculate the intersection point of two lines",
         "details": "Calculate the intersection point of two lines. If the intersection is found, it is returned. If the lines are parallel, nil is returned. If the lines are not parallel but don't intersect (because they are not infinite), their virtual intersection point is returned after nil (as second return value)",
-        "examples": "local ptreal, ptvirtual = util.intersection(spt1, spt2, tpt1, tpt2)",
+        "examples": "local ptreal, ptvirtual = <span class=\"opc-module\">util</span>.intersection(spt1<span class=\"opc-number\">1</span>, spt2<span class=\"opc-number\">2</span>, tpt1<span class=\"opc-number\">1</span>, tpt2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "util",
@@ -3405,7 +3405,7 @@ const apirefs = [
         "syntax": "rectangle_union(bl1, tr1, bl1, tr2)",
         "description": "calculate the rectangle union of two rectangles",
         "details": "Calculate the rectangle union of two rectangles. This only return a non-nil result if the union of the two rectangles is still a true rectangle. The calculated union is return as a table with 'bl' and 'tr' entries",
-        "examples": "local union = util.rectangle_union(bl1, tr1, bl2, tr2)",
+        "examples": "local union = <span class=\"opc-module\">util</span>.rectangle_union(bl1<span class=\"opc-number\">1</span>, tr1<span class=\"opc-number\">1</span>, bl2<span class=\"opc-number\">2</span>, tr2<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "util",
@@ -3413,6 +3413,6 @@ const apirefs = [
         "syntax": "tconcatfmt(t, sep, fmt)",
         "description": "create a string representation of the array elements of a table",
         "details": "Create a string representation of the array elements of a table. Similar to table.concat, but this allows to specify a format for every element. util.tconcatfmt(t, sep, \"%s\") is equivalent to table.concat(t, sep).",
-        "examples": "local str = util.tconcatfmt(t, \", \", \"<%s>\")",
+        "examples": "local str = <span class=\"opc-module\">util</span>.tconcatfmt(<span class=\"opc-module\">t</span>, <span class=\"opc-string\">\", \"</span>, <span class=\"opc-string\">\"<%s>\"</span>)",
     },
 ];

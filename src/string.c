@@ -64,6 +64,24 @@ void string_add_string(struct string* string, const char* str)
     }
 }
 
+void string_add_string_n(struct string* string, const char* str, size_t n)
+{
+    size_t num = 0;
+    while(*str)
+    {
+        if(num < n)
+        {
+            string_add_character(string, *str);
+        }
+        else
+        {
+            break;
+        }
+        ++num;
+        ++str;
+    }
+}
+
 void string_add_strings(struct string* string, size_t num, ...)
 {
     va_list strings;
