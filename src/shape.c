@@ -482,10 +482,11 @@ int shape_is_on_grid(const struct shape* shape, coordinate_t grid)
         }
         case CURVE:
         {
-            break;
+            // curves are not checked against the manufacturing grid
+            return 1;
         }
     }
-    return 1;
+    return 1; // make the compiler happy
 }
 
 int shape_get_rectangle_points(struct shape* shape, const struct point** bl, const struct point** tr)
