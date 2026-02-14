@@ -545,6 +545,7 @@
         { "width",              INTEGER,    NULL, "width of connection path" },
         { "anchor1",            STRING,     NULL, "first area anchor for connection" },
         { "anchor2",            STRING,     NULL, "second area anchor for connection" },
+        { "grid",               INTEGER,    NULL, "grid for generated points (default 1)" },
         { "matchtolerance",     STRING,     NULL, "tolerance matching factor for edges (default 1)" },
         { NULL }
     };
@@ -556,6 +557,7 @@
         "This function is currently very basic and only exists for testing purposes. "
         "Its interface is likely to change as well as its function. "
         "It will create a working (and often also DRC-clean) connection, so it should be somewhat usable. "
+        "The 'grid' ensures that generatd intermediate are on the specified grid. "
         "The tolerance matching factor (default: 1) determines which edges are acceptable for two-point connections. "
         "The idea behind this is that edges whose length match the width of the connection path (the 'width' parameter) can be used for more efficient two-point connections instead of three point connections. "
         "The default for this is 1, if only edges with an exact length 'width', the 'matchtolerance' should be 0.",

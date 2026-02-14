@@ -1,16 +1,19 @@
 local M = {}
 
-function M.connect_area_anchor(cell, layer, width, anchor1, anchor2, matchtolerance)
+function M.connect_area_anchor(cell, layer, width, anchor1, anchor2, grid, matchtolerance)
     check.set_next_function_name("layouthelpers.connect_area_anchor")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg(2, "width", "number", width)
     check.arg(3, "anchor1", "table", anchor1)
     check.arg(4, "anchor2", "table", anchor2)
-    check.arg_optional(5, "matchtolerance", "number", matchtolerance)
+    check.arg_optional(5, "grid", "number", grid)
+    check.arg_optional(6, "matchtolerance", "number", matchtolerance)
     local x1l, y1b = anchor1.bl:unwrap()
     local x1r, y1t = anchor1.tr:unwrap()
     local x2l, y2b = anchor2.bl:unwrap()
     local x2r, y2t = anchor2.tr:unwrap()
+    grid = grid or 1 -- FIXME: use grid
+    -- FIXME: after using grid, update documentation
     -- anchor 1 is x-bound by anchor 2
     if x1l >= x2l and x1r <= x2r then
         if y1b > y2t then
