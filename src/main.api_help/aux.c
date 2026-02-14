@@ -28,7 +28,9 @@
         MODULE_AUX,
         "create a shallow copy of a table",
         "This function creates a shallow copy of a table. It does not copy elements in the table, which means that nested tables refer to the same objects. The predicate function can be used to filter out unwanted entries. Only items where the predicate returns true are inserted. Without a predicate, all items are inserted.",
-        "aux.clone_shallow({ 1, 2, 3, \"foo\", \"bar\", \"baz\" }, function(k, v) return type(v) == \"number\") -- { 1, 2, 3 }",
+        "aux.clone_shallow({ 1, 2, 3, \"foo\", \"bar\", \"baz\" },\n"
+        "    function(k, v) return type(v) == \"number\"\n"
+        ") -- { 1, 2, 3 }",
         parameters
     ));
 }

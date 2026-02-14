@@ -114,7 +114,7 @@
         "create a layout based on a parametric cell",
         "Create a layout based on a parametric cell. "
         "A name has to be given, the parameters are optional. ",
-        "pcell.create_layout(\"stdcells/not_gate\", \"not_gate\", { pwidth = 600 })",
+        "pcell.create_layout(\"stdcells/not_gate\", \"not_gate\",\n    { pwidth = 600 }\n)",
         parameters
     ));
 }
@@ -133,7 +133,7 @@
         MODULE_PCELL,
         "create a layout of a parametric cell with a cell environment",
         "Create a layout based on a parametric cell with a given cell environment",
-        "pcell.create_layout_env(\"libname/cellname\", \"toplevel\", args, env)",
+        "pcell.create_layout_env(\n    \"libname/cellname\",\n     \"toplevel\",\n     args,\n     env\n)",
         parameters
     ));
 }
@@ -152,7 +152,7 @@
         "create a layout of a parametric cell in an already-existing cell",
         "Create a layout based on a parametric cell in an existing cell. "
         "This function does NOT return a new object but places everything from the pcell in the given object (first argument).",
-        "pcell.create_layout_in_object(cell, \"libname/cellname\", args)",
+        "pcell.create_layout_in_object(cell,\n    \"libname/cellname\",\n    args\n)",
         parameters
     ));
 }
@@ -172,7 +172,7 @@
         "create a layout of a parametric cell in an already-existing cell with a cell environment",
         "Create a layout based on a parametric cell with a given cell environment in an existing cell. "
         "This function does NOT return a new object but places everything from the pcell in the given object (first argument).",
-        "pcell.create_layout_env_in_object(cell, \"libname/cellname\", args, env)",
+        "pcell.create_layout_env_in_object(cell,\n    \"libname/cellname\",\n    args,\n    env\n)",
         parameters
     ));
 }
@@ -195,7 +195,7 @@
         "This function is intended for use in helper scripts, e.g. for power scripts. "
         "This function returns a new object. "
         "The object is created in the cell script, as cell script are required to return an object.",
-        "pcell.create_layout_env_in_object(cell, \"libname/cellname\", args, env)",
+        "pcell.create_layout_from_script(\"cellscript.lua\")",
         parameters
     ));
 }

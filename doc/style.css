@@ -142,12 +142,20 @@ footer {
     font-weight: bold;
 }
 
+.opc-luaidentifier {
+    color: #00c5cc;
+}
+
 .opc-number {
     color: #00aa00;
 }
 
 .opc-string {
     color: #dd2222;
+}
+
+.opc-comment {
+    color: #666666;
 }
 
 /* code highlighting (dark mode) */

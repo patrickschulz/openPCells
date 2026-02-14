@@ -904,7 +904,7 @@
         MODULE_GEOMETRY,
         "calculate via arrayzation in an area",
         "Calculates possible via arrayzation in an area and returns a table with the results. Internally, the same functions as for direct creation of vias is used, so the same results can be obtained. The table contains tables with the following items (one per solution): \"layer\" (the via cut layer), \"width\" and \"height\" of the to-be-drawn cuts, \"xrep\" and \"yrep\" (repetition in x and y of the cuts), \"xspace\" and \"yspace\" (spacing of the contacts), and \"xoffset\" and \"yoffset\" (x/y offset with regard to array placement, for instance for geometry.rectanglearray)",
-        "local via = geometry.calculate_viabltr(1, 3, point.create(-100, -20), point.create(100, 20))",
+        "local via = geometry.calculate_viabltr(\n    1, 3,\n     point.create(-100, -20),\n     point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -922,11 +922,11 @@
         { NULL }
     };
     vector_append(entries, _make_api_entry(
-        "calculate_viabltr",
+        "calculate_viabltr2",
         MODULE_GEOMETRY,
         "calculate via arrayzation in an area (via2 support)",
         "Calculates possible via arrayzation in an area and returns a table with the results. Internally, the same functions as for direct creation of vias is used, so the same results can be obtained. The table contains tables with the following items (one per solution): \"layer\" (the via cut layer), \"width\" and \"height\" of the to-be-drawn cuts, \"xrep\" and \"yrep\" (repetition in x and y of the cuts), \"xspace\" and \"yspace\" (spacing of the contacts), and \"xoffset\" and \"yoffset\" (x/y offset with regard to array placement, for instance for geometry.rectanglearray). This function is like viabltr2, where two regions are given, with possibly-different sizes. Note though that only consecutive metals can be given (with a difference of 1).",
-        "local via = geometry.calculate_viabltr(1, 3, point.create(-100, -20), point.create(100, 20))",
+        "local via = geometry.calculate_viabltr2(\n    1, 3,\n    point.create(-100, -20),\n    point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -948,7 +948,7 @@
         MODULE_GEOMETRY,
         "create vias in a rectangular area (bottom-left/top-right)",
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. Special properties can be passed to the via generation function: 'xcontinuous' (create vias that can be abutted in x-direction, boolean), 'ycontinuous' (create vias that can be abutted in y-direction, boolean), 'minxspace' (minimum x space), 'minyspace' (minimum y space), 'equal_pitch' (use equal spacing in both x- and y-direction, boolean) and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. This is useful to solve DRC issues. Numeric parameter)",
-        "geometry.viabltr(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "geometry.viabltr(cell,\n    1, 3,\n    point.create(-100, -20),\n    point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -970,7 +970,7 @@
         MODULE_GEOMETRY,
         "create vias in a rectangular area (arbitrary corners)",
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. Similar to geometry.rectanglepoints, the order o the points does not matter, any corner points of the rectangle can be given. Special properties can be passed to the via generation function: 'xcontinuous' (create vias that can be abutted in x-direction, boolean), 'ycontinuous' (create vias that can be abutted in y-direction, boolean), 'minxspace' (minimum x space), 'minyspace' (minimum y space), 'equal_pitch' (use equal spacing in both x- and y-direction, boolean) and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. This is useful to solve DRC issues. Numeric parameter)",
-        "geometry.viapoints(cell, 1, 3, point.create(100, 20), point.create(-100, -20))",
+        "geometry.viapoints(cell,\n    1, 3,\n    point.create(100, 20),\n    point.create(-100, -20)\n)",
         parameters
     ));
 }
@@ -1000,7 +1000,7 @@
         "Special properties can be passed to the via generation function: "
         "'minxspace' (minimum x space), 'minyspace' (minimum y space), and 'widthclass' (give a width of the surrounding metal that the via is placed in and create the via as if it had this width. "
         "This is useful to solve DRC issues. Numeric parameter)",
-        "geometry.viabltr2(cell, 1, 3, point.create(-100, -20), point.create(100, 20), point.create(-150, -50), point.create(150, 50))",
+        "geometry.viabltr2(cell,\n    1, 3,\n    point.create(-100, -20),\n    point.create(100, 20),\n    point.create(-150, -50),\n    point.create(150, 50)\n)",
         parameters
     ));
 }
@@ -1022,7 +1022,7 @@
         MODULE_GEOMETRY,
         "create vias in a rectangular area (bottom-left/top-right) (no-metal variant)",
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function is like viabltr, but no metals are drawn",
-        "geometry.viabarebltr(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "geometry.viabarebltr(cell,\n    1, 3,\n    point.create(-100, -20),\n    point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -1044,7 +1044,7 @@
         MODULE_GEOMETRY,
         "create vias in a rectangular area (bottom-left/top-right) (x-continuous variant)",
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in x-direction. For this, the space between cuts and the surroundings are equalized",
-        "geometry.viabltr_xcontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "geometry.viabltr_xcontinuous(cell,\n    1, 3, point.create(-100, -20),\n    point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -1066,7 +1066,7 @@
         MODULE_GEOMETRY,
         "create vias in a rectangular area (bottom-left/top-right) (y-continuous variant)",
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in y-direction. For this, the space between cuts and the surroundings are equalized",
-        "geometry.viabltr_ycontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "geometry.viabltr_ycontinuous(cell,\n    1, 3, point.create(-100, -20),\n    point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -1088,7 +1088,7 @@
         MODULE_GEOMETRY,
         "create vias in a rectangular area (bottom-left/top-right) (xy-continuous variant)",
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in both x- and y-direction. For this, the space between cuts and the surroundings are equalized",
-        "geometry.viabltr_continuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "geometry.viabltr_continuous(cell,\n    1, 3, point.create(-100, -20),\n    point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -1110,7 +1110,7 @@
         MODULE_GEOMETRY,
         "create vias in a rectangular area (bottom-left/top-right) (x-continuous no-metal variant)",
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in x-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_xcontinuous, but no metals are drawn",
-        "geometry.viabltr_xcontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "geometry.viabltr_xcontinuous(cell,\n    1, 3, point.create(-100, -20),\n    point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -1132,7 +1132,7 @@
         MODULE_GEOMETRY,
         "create vias in a rectangular area (bottom-left/top-right) (y-continuous no-metal variant)",
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in y-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_ycontinuous, but no metals are drawn",
-        "geometry.viabltr_ycontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "geometry.viabltr_ycontinuous(cell,\n    1, 3, point.create(-100, -20),\n    point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -1154,7 +1154,7 @@
         MODULE_GEOMETRY,
         "create vias in a rectangular area (bottom-left/top-right) (xy-continuous no-metal variant)",
         "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in both x- and y-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_continuous, but no metals are drawn",
-        "geometry.viabltr_continuous(cell, 1, 3, point.create(-100, -20), point.create(100, 20))",
+        "geometry.viabltr_continuous(cell,\n    1, 3, point.create(-100, -20),\n    point.create(100, 20)\n)",
         parameters
     ));
 }
@@ -1220,11 +1220,11 @@
         { NULL }
     };
     vector_append(entries, _make_api_entry(
-        "viabltr",
+        "viabarebltr2",
         MODULE_GEOMETRY,
         "create via in an area (via2 support, no-metal variant)",
         "Like geometry.viabltr2, but only create the via cuts, not the metal regions.",
-        "geometry.viabarebltr2(cell, 1, 3, point.create(-100, -20), point.create(100, 20), point.create(-150, -50), point.create(150, 50))",
+        "geometry.viabarebltr2(cell,\n    1, 3, point.create(-100, -20),\n    point.create(100, 20),\n    point.create(-150, -50),\n    point.create(150, 50)\n)",
         parameters
     ));
 }
@@ -1245,7 +1245,7 @@
         MODULE_GEOMETRY,
         "create contact in an area (bottom-left/top-right)",
         "Create contacts in a rectangular area with the given corner points in cell",
-        "geometry.contactbltr(cell, \"sourcedrain\", point.create(-20, -250), point.create(20, 500))",
+        "geometry.contactbltr(cell,\n    \"sourcedrain\",\n    point.create(-20, -250),\n    point.create(20, 500)\n)",
         parameters
     ));
 }
@@ -1290,7 +1290,7 @@
         MODULE_GEOMETRY,
         "create overlap contact in an area (bottom-left/top-right) (contact2 variant)",
         "Create contacts in a rectangular area with the given corner points in cell. This function supports unequal target regions for the FEOL layer and the metal 1 layer. The usage of this function only makes sense if contacts are defined with '[x/y]enclosure[1/2], instead of unnumbered enclosures.",
-        "geometry.contactbltr2(cell, \"sourcedrain\", point.create(-20, -250), point.create(20, 500), point.create(-10, -220), point.create(10, 400))",
+        "geometry.contactbltr2(cell,\n    \"sourcedrain\",\n    point.create(-20, -250),\n    point.create(20, 500),\n    point.create(-10, -220),\n    point.create(10, 400)\n)",
         parameters
     ));
 }
@@ -1311,7 +1311,7 @@
         MODULE_GEOMETRY,
         "create overlap contact in an area (bottom-left/top-right) (no-metal/no-FEOL variant)",
         "Create contacts in a rectangular area with the given corner points in cell. This function creates 'bare' contacts, so only the cut layers, no surrouning metals or semi-conductor layers",
-        "geometry.contactbarebltr(cell, \"sourcedrain\", point.create(-20, -250), point.create(20, 500))",
+        "geometry.contactbarebltr(cell,\n    \"sourcedrain\",\n    point.create(-20, -250),\n    point.create(20, 500)\n)",
         parameters
     ));
 }
@@ -1351,7 +1351,7 @@
         MODULE_GEOMETRY,
         "create a ring shape with unequal ring widths (corner-point variant)",
         "Create a ring shape with unequal ring widths in the given cell, defined by the corner points",
-        "geometry.unequal_ring_pts(cell, generics.other(\"nwell\"), point.create(-1000, -1000), point.create(1000, 1000), point.create(-800, -800), point.create(800, 800))",
+        "geometry.unequal_ring_pts(cell,\n    generics.other(\"nwell\"),\n    point.create(-1000, -1000),\n    point.create(1000, 1000),\n    point.create(-800, -800),\n    point.create(800, 800)\n)",
         parameters
     ));
 }
@@ -1375,7 +1375,7 @@
         MODULE_GEOMETRY,
         "create a ring shape with unequal ring widths",
         "Create a ring shape with unequal ring widths in the given cell",
-        "geometry.unequal_ring(cell, generics.other(\"nwell\"), point.create(0, 0), 2000, 2000, 100, 80, 20, 20)",
+        "geometry.unequal_ring(cell,\n    generics.other(\"nwell\"),\n    point.create(0, 0),\n    2000, 2000,\n    100, 80,\n    20, 20\n)",
         parameters
     ));
 }
@@ -1396,7 +1396,7 @@
         MODULE_GEOMETRY,
         "create a ring shape with equal ring widths",
         "Create a ring shape width equal ring widths in the given cell. Like geometry.unequal_ring, but all widths are the same",
-        "geometry.ring(cell, generics.other(\"nwell\"), point.create(0, 0), 2000, 2000, 100)",
+        "geometry.ring(cell,\n    generics.other(\"nwell\"),\n    point.create(0, 0),\n    2000, 2000,\n    100\n)",
         parameters
     ));
 }
@@ -1455,7 +1455,7 @@
         MODULE_GEOMETRY,
         "get one-sided outline points of a path",
         "Get one side of the edge points of a path given by the center points and the width. The sign of the width is significant: With positive values, the right-hand-side points are created, with negative values the left-hand-side (in the direction of the path). This function does not create any shapes.",
-        "local pts = geometry.get_side_path_points({ point.create(0, 0), point.create(1000, 0) }, 50)",
+        "local pts = geometry.get_side_path_points(\n    {\n        point.create(0, 0),\n        point.create(1000, 0)\n    },\n    50\n)",
         parameters
     ));
 }

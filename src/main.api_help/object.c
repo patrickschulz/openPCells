@@ -433,7 +433,7 @@
         MODULE_OBJECT,
         "add an area anchor to a cell (point/dimensions)",
         "Add an area anchor to a cell, defined by the the lower-left corner point and the width and height of the rectangular area.",
-        "cell:add_area_anchor_blwh(\n\"source\",\n    point.create(-100, -20),\n    200, 40\n)",
+        "cell:add_area_anchor_blwh(\n    \"source\",\n    point.create(-100, -20),\n    200, 40\n)",
         parameters
     ));
 }
@@ -1587,9 +1587,11 @@
         MODULE_OBJECT,
         "get the polygon outlines of all shapes of a cell (possibly filtered by a given layer)",
         "Return a table which contains polygon outlines of all shapes on a given layer or layers. "
-        ",Useful for instance for automatic filling. "
-        ",The given layer can be a singular generics layer or a table with several layers.",
-        "local outlines = cell:get_shape_outlines()\nlocal m1outlines = cell:get_shape_outlines(generics.metal(1))\nlocal all_metal_outlines = cell:get_shape_outlines(util.foreach(util.range(1, technology.resolve_metal(-1)), generics.metal))",
+        "Useful for instance for automatic filling. "
+        "The given layer can be a singular generics layer or a table with several layers.",
+        "local outlines = cell:get_shape_outlines()\n"
+        "local m1outlines = cell:get_shape_outlines(generics.metal(1))\n"
+        "local all_metal_outlines = cell:get_shape_outlines(\n    util.foreach(\n        util.range(\n            1,\n            technology.resolve_metal(-1)\n        ),\n        generics.metal\n    )\n)",
         parameters
     ));
 }

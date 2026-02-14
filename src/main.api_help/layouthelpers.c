@@ -561,7 +561,7 @@
         "The tolerance matching factor (default: 1) determines which edges are acceptable for two-point connections. "
         "The idea behind this is that edges whose length match the width of the connection path (the 'width' parameter) can be used for more efficient two-point connections instead of three point connections. "
         "The default for this is 1, if only edges with an exact length 'width', the 'matchtolerance' should be 0.",
-        "layouthelpers.connect_area_anchor(cell, generics.metal(3), 500, cell:get_area_anchor(\"anchor1\"), cell:get_area_anchor(\"anchor2\"))",
+        "layouthelpers.connect_area_anchor(cell,\n    generics.metal(3),\n    500,\n    cell:get_area_anchor(\"anchor1\"),\n    cell:get_area_anchor(\"anchor2\")\n)",
         parameters
     ));
 }
