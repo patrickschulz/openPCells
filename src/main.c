@@ -169,6 +169,8 @@ static void _print_general_info(void)
     puts("         opc --technology opc --export gds --cellscript script.lua");
     puts("");
     puts("You can find out more about the available command line options by running 'opc -h'.");
+    puts("As there are many command-line flags, they are searchable: 'opc -h xxx' searches all command-line options for 'xxx'.");
+    puts("Single characters only search single-character options.");
     puts("");
     puts("The documentation can be accessed in several ways, depending on the type of information:");
     puts("  * Information about pcells can be obtained by:");
