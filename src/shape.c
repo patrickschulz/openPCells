@@ -431,6 +431,63 @@ int shape_is_malformed(const struct shape* shape)
     }
 }
 
+int shape_is_on_grid(const struct shape* shape, coordinate_t grid)
+{
+    // FIXME: implement
+    switch(shape->type)
+    {
+        case RECTANGLE:
+        {
+            struct rectangle* rectangle = shape->content;
+            struct point* bl = _bl(rectangle);
+            struct point* tr = _tr(rectangle);
+            return point_is_on_grid(bl, grid) && point_is_on_grid(tr, grid);
+        }
+        case POLYGON:
+        case TRIANGULATED_POLYGON:
+        {
+            struct polygon_shape* polygon = shape->content;
+            struct vector_const_iterator* it = vector_const_iterator_create(polygon->points);
+            int ret = 1;
+            while(vector_const_iterator_is_valid(it))
+            {
+                struct point* pt = point_copy(vector_const_iterator_get(it));
+                if(!point_is_on_grid(pt, grid))
+                {
+                    ret = 0;
+                    break;
+                }
+                vector_const_iterator_next(it);
+            }
+            vector_const_iterator_destroy(it);
+            return ret;
+        }
+        case PATH:
+        {
+            struct path* path = shape->content;
+            struct vector_const_iterator* it = vector_const_iterator_create(path->points);
+            int ret = 1;
+            while(vector_const_iterator_is_valid(it))
+            {
+                struct point* pt = point_copy(vector_const_iterator_get(it));
+                if(!point_is_on_grid(pt, grid))
+                {
+                    ret = 0;
+                    break;
+                }
+                vector_const_iterator_next(it);
+            }
+            vector_const_iterator_destroy(it);
+            return ret;
+        }
+        case CURVE:
+        {
+            break;
+        }
+    }
+    return 1;
+}
+
 int shape_get_rectangle_points(struct shape* shape, const struct point** bl, const struct point** tr)
 {
     if(shape->type != RECTANGLE)

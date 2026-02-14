@@ -36,6 +36,7 @@ int shape_is_triangulated_polygon(const struct shape* shape);
 int shape_is_curve(const struct shape* shape);
 
 int shape_is_malformed(const struct shape* shape);
+int shape_is_on_grid(const struct shape* shape, coordinate_t grid);
 
 // rectangle access functions
 int shape_get_rectangle_points(struct shape* shape, const struct point** blp, const struct point** trp);

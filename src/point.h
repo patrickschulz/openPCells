@@ -41,4 +41,6 @@ void point_update_maximum(struct point** max, const struct point* pt);
 coordinate_t point_xdifference(const struct point* pt1, const struct point* pt2);
 coordinate_t point_ydifference(const struct point* pt1, const struct point* pt2);
 
+int point_is_on_grid(const struct point* pt, coordinate_t grid);
+
 #endif // OPC_POINT_H

@@ -199,6 +199,50 @@ void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* confi
     pcell_destroy_state(pcell_state);
 }
 
+static int _check_grid_in_cell(const struct object* cell, coordinate_t grid)
+{
+    int ret = 1;
+    struct shape_iterator* it = object_create_shape_iterator(cell);
+    while(shape_iterator_is_valid(it))
+    {
+        const struct shape* shape = shape_iterator_get(it);
+        if(!shape_is_on_grid(shape, grid))
+        {
+            ret = 0;
+            goto CHECK_GRID_IN_CELL_FINISH;
+        }
+        shape_iterator_next(it);
+    }
+CHECK_GRID_IN_CELL_FINISH:
+    shape_iterator_destroy(it);
+    return ret;
+}
+
+static int _check_grid(const struct object* toplevel, coordinate_t grid)
+{
+    if(!_check_grid_in_cell(toplevel, grid))
+    {
+        return 0;
+    }
+    int ret = 1;
+    struct const_vector* references = object_collect_references(toplevel);
+    struct const_vector_iterator* it = const_vector_iterator_create(references);
+    while(const_vector_iterator_is_valid(it))
+    {
+        const struct object* ref = const_vector_iterator_get(it);
+        if(!_check_grid_in_cell(ref, grid))
+        {
+            ret = 0;
+            goto CHECK_GRID_FINISH;
+        }
+        const_vector_iterator_next(it);
+    }
+CHECK_GRID_FINISH:
+    const_vector_iterator_destroy(it);
+    const_vector_destroy(references);
+    return ret;
+}
+
 static void _move_origin(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "origin"))
@@ -659,6 +703,20 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         fputs("errors while creating cell\n", stderr);
         retval = 0;
         goto DESTROY_OBJECT;
+    }
+
+    // check manufacturing grid
+    coordinate_t grid = technology_get_grid(techstate);
+    int on_grid = _check_grid(toplevel, grid);
+    int on_grid_fatal = 0;
+    if(!on_grid)
+    {
+        fputs("design contains off-grid shapes\n", stderr);
+        if(on_grid_fatal)
+        {
+            retval = 0;
+            goto DESTROY_OBJECT;
+        }
     }
 
     if(verbose)
