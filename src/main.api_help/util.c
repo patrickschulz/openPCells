@@ -101,7 +101,7 @@
         MODULE_UTIL,
         "retrieve the minimum x-value of a polygon",
         "Retrieve the minimum x-value of all points of a polygon.",
-        "local value = util.polygon_xmin({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- -100",
+        "local value = util.polygon_xmin({\n    point.create(0, 0),\n    point.create(100, 0),\n    point.create(200, 100),\n    point.create(-100, 200)\n}) -- -100",
         parameters
     ));
 }
@@ -117,7 +117,7 @@
         MODULE_UTIL,
         "retrieve the maximum x-value of a polygon",
         "Retrieve the maximum x-value of all points of a polygon.",
-        "local value = util.polygon_xmax({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 200",
+        "local value = util.polygon_xmax({\n    point.create(0, 0),\n    point.create(100, 0),\n    point.create(200, 100),\n    point.create(-100, 200)\n}) -- 200",
         parameters
     ));
 }
@@ -133,7 +133,7 @@
         MODULE_UTIL,
         "retrieve the minimum y-value of a polygon",
         "Retrieve the minimum y-value of all points of a polygon.",
-        "local value = util.polygon_ymin({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 0",
+        "local value = util.polygon_ymin({\n    point.create(0, 0),\n    point.create(100, 0),\n    point.create(200, 100),\n    point.create(-100, 200)\n}) -- 0",
         parameters
     ));
 }
@@ -149,7 +149,7 @@
         MODULE_UTIL,
         "retrieve the maximum y-value of a polygon",
         "Retrieve the maximum y-value of all points of a polygon.",
-        "local value = util.polygon_ymax({ point.create(0, 0), point.create(100, 0), point.create(200, 100), point.create(-100, 200) }) -- 200",
+        "local value = util.polygon_ymax({\n    point.create(0, 0),\n    point.create(100, 0),\n    point.create(200, 100),\n    point.create(-100, 200)\n}) -- 200",
         parameters
     ));
 }
@@ -294,7 +294,7 @@
         "Create a new table with t1 and t2 concatenated. "
         "The elements of t2 are append after those of t1. "
         "Only the array entries of t1 and t2 are processed.",
-        "util.merge_tables({ 1, 2, 3 }, { 4, 5, 6 }) -- { 1, 2, 3, 4, 5, 6 }",
+        "util.merge_tables(\n    { 1, 2, 3 },\n    { 4, 5, 6 }\n) -- { 1, 2, 3, 4, 5, 6 }",
         parameters
     ));
 }
@@ -311,7 +311,7 @@
         MODULE_UTIL,
         "append all entries from t to main",
         "Append all entries from t to main.",
-        "local t = { 1, 2, 3 }\nutil.insert_table(t, { 4, 5, 6 }) -- t is now { 1, 2, 3, 4, 5, 6 }",
+        "local t = { 1, 2, 3 }\nutil.insert_table(t, { 4, 5, 6 })\n-- t is now { 1, 2, 3, 4, 5, 6 }",
         parameters
     ));
 }
@@ -423,7 +423,7 @@
         "Create a shallow copy of a table with certain elements matching the given criteria removed. "
         "The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. "
         "If the result of the function call is 'true', the entry is NOT included in the results table.",
-        "util.remove({1, 2, 3, 4, 5}, 3) -- { 1, 2, 4, 5 }\nutil.remove({1, 2, 3, 4, 5}, function(e) return e % 2 == 0 end) -- { 1, 3, 5 }",
+        "util.remove({1, 2, 3, 4, 5}, 3) -- { 1, 2, 4, 5 }\nutil.remove({1, 2, 3, 4, 5},\n    function(e) return e % 2 == 0 end\n) -- { 1, 3, 5 }",
         parameters
     ));
 }
@@ -441,7 +441,7 @@
         "remove some elements of a table (the table is copied) (index variant)",
         "Create a shallow copy of a table with the element(s) at the 'index(es)' removed. "
         "Index can be either a scalar integer or a table containing multiple indices which shall be removed",
-        "util.remove_index({10, 20, 30, 40, 50}, 3) -- { 10, 20, 40, 50 }",
+        "util.remove_index(\n    { 10, 20, 30, 40, 50 },\n    3\n) -- { 10, 20, 40, 50 }",
         parameters
     ));
 }
@@ -460,7 +460,7 @@
         "Remove certain elements matching the given criteria. "
         "The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. "
         "If the result of the function call is 'true', the entry is NOT included in the results table.",
-        "util.remove({1, 2, 3, 4, 5}, 3) -- { 1, 2, 4, 5 }\nutil.remove({1, 2, 3, 4, 5}, function(e) return e % 2 == 0 end) -- { 1, 3, 5 }",
+        "util.remove({1, 2, 3, 4, 5}, 3) -- { 1, 2, 4, 5 }\nutil.remove(\n    { 1, 2, 3, 4, 5 },\n    function(e) return e % 2 == 0 end\n) -- { 1, 3, 5 }",
         parameters
     ));
 }
@@ -477,7 +477,7 @@
         MODULE_UTIL,
         "remove some elements of a table (index variant)",
         "remove the element of the given table at the given index (actually just a wrapper for table.remove)",
-        "util.remove_index({10, 20, 30, 40, 50}, 3) -- { 10, 20, 40, 50 }",
+        "util.remove_index(\n    { 10, 20, 30, 40, 50 },\n    3\n) -- { 10, 20, 40, 50 }",
         parameters
     ));
 }
@@ -495,7 +495,7 @@
         "create an list with a repetition of a value",
         "Create an array-like table with one entry repeated N times. "
         "This is useful, for example, for specifying gate contacts for basic/cmos",
-        "local gatecontactpos = util.fill_all_with(4, \"center\") -- { \"center\", \"center\", \"center\", \"center\" }",
+        "local gatecontactpos = util.fill_all_with(4, \"center\")\n-- { \"center\", \"center\", \"center\", \"center\" }",
         parameters
     ));
 }
@@ -519,7 +519,7 @@
         "If the predicate is true, the first entry is inserted, otherwise the second one. "
         "This function is useful, for example, for specifying gate contacts for basic/cmos. "
         "Counting starts at 1, so the first entry will be 'other'",
-        "local contactpos = util.fill_predicate_with(8, \"power\", function(i) return i % 4 == 0 end, \"outer\")",
+        "local contactpos = util.fill_predicate_with(\n    8,\n    \"power\",\n    function(i) return i % 4 == 0 end,\n    \"outer\"\n)",
         parameters
     ));
 }
@@ -540,7 +540,7 @@
         "Counting starts at 1. "
         "This is useful, for example, for specifying gate contacts for basic/cmos. "
         "Counting starts at 1, so the first entry will be 'other'",
-        "local gatecontactpos = util.fill_even_with(4, \"center\", \"upper\") -- { \"upper\", \"center\", \"upper\", \"center\" }",
+        "local gatecontactpos = util.fill_even_with(\n    4,\n    \"center\",\n    \"upper\"\n)\n-- { \"upper\", \"center\", \"upper\", \"center\" }",
         parameters
     ));
 }
@@ -561,7 +561,7 @@
         "Counting starts at 1. "
         "This is useful, for example, for specifying gate contacts for basic/cmos. "
         "Counting starts at 1, so the first entry will be 'filler'",
-        "local gatecontactpos = util.fill_odd_with(4, \"center\", \"upper\") -- { \"center\", \"upper\", \"center\", \"upper\" }",
+        "local gatecontactpos = util.fill_odd_with(\n    4,\n    \"center\",\n    \"upper\"\n)\n-- { \"center\", \"upper\", \"center\", \"upper\" }",
         parameters
     ));
 }
@@ -599,7 +599,7 @@
         "This function creates a copy of the given table, where all first-level values are copied. "
         "If those values are tables, they reference the same table as the original object. "
         "This function only copies items where the given predicate function (called with the key and the value of the item) returns true.",
-        "local new = util.clone_shallow_predicate(t, function(k, v) if string.match(v, \"vdd.+\") end)",
+        "local new = util.clone_shallow_predicate(t,\n    function(k, v) if string.match(v, \"vdd.+\") end\n)",
         parameters
     ));
 }
@@ -620,7 +620,7 @@
         "If those values are tables, they reference the same table as the original object. "
         "This function only copies items where the given predicate function (called with value of the item) returns true. "
         "The array indices might change as not all elements might be copied.",
-        "local new = util.clone_shallow_predicate(t, function(e) if string.match(e, \"vdd.+\") end)",
+        "local new = util.clone_shallow_predicate(t,\n    function(e) if string.match(e, \"vdd.+\") end\n)",
         parameters
     ));
 }
@@ -641,7 +641,7 @@
         "This copy is flat, so only the first-level elements are copied (e.g. "
         "tables will reference the same object). "
         "This function is useful to modify a set of base options for several devices such as mosfets, which only differ in a few options",
-        "local baseoptions = ...\nlocal fet = pcell.create_layout(\"basic/mosfet\", \"fet\", util.add_options(baseoptions, { gatelength = 100 }))",
+        "local baseoptions = ...\nlocal fet = pcell.create_layout(\"basic/mosfet\", \"fet\",\n    util.add_options(\n        baseoptions,\n        { gatelength = 100 }\n    )\n)",
         parameters
     ));
 }
@@ -660,7 +660,7 @@
         "Create two values that sum up to the input value and have the specified ratio. "
         "The values are adjusted so that both of them are even, possibly changing the ratio slightly. "
         "The input value must be even",
-        "local pitch = 1000\nlocal width, space = util.ratio_split_even(pitch, 2) -- results in 668 and 332, the actual ratio then is 2.012",
+        "local pitch = 1000\nlocal width, space = util.ratio_split_even(pitch, 2)\n-- results in 668 and 332, the actual ratio then is 2.012",
         parameters
     ));
 }
@@ -681,7 +681,7 @@
         "The values are adjusted so that both of them are multiples of the given value ('multiple'), possibly changing the ratio slightly. "
         "The input value must be divisable by 'multiple'. "
         "This function called with multiple == 2 behaves exactly like ratio_split_even",
-        "local pitch = 1000\nlocal width, space = util.ratio_split_even(pitch, 2, 20) -- results in 680 and 320, the actual ratio then is 2.125",
+        "local pitch = 1000\nlocal width, space = util.ratio_split_even(pitch, 2, 20)\n-- results in 680 and 320, the actual ratio then is 2.125",
         parameters
     ));
 }
@@ -701,7 +701,7 @@
         "Create a rectangle from a center point and the width and height. "
         "This function returns two points (bottom-left and top-right). "
         "This function does not create any shapes, use geometry.rectanglebltr and similar functions for that.",
-        "local bl, tr = util.make_rectangle(point.create(0, 0), 100, 100)",
+        "local bl, tr = util.make_rectangle(\n    point.create(0, 0),\n    100, 100\n)",
         parameters
     ));
 }
@@ -740,7 +740,7 @@
         "convert a rectangle to a rectangular polygon",
         "Convert a two-point rectangle to a polygon describing this rectangle. Optionally, the polygon can be extended in the four directions (left/right/bottom/top). "
         "This function is useful for creating fill layer boundaries or fill target regions",
-        "local region = util.rectangle_to_polygon(point.create(-100, -100), point.create(100, 100), -100, 0, 0, 200)",
+        "local region = util.rectangle_to_polygon(\n    point.create(-100, -100),\n    point.create(100, 100),\n    -100, 0, 0, 200\n)",
         parameters
     ));
 }
@@ -804,7 +804,7 @@
         "The resulting rectangle can be tuned so that it has an even or odd multiplicity in either of the directions. "
         "The keys \"even\" or \"odd\" can be used for the last two parameters 'xmultiple' and 'ymultiple'. "
         "If they are nil, the resulting rectangle is not modified from the original fitting.",
-        "local region = util.fit_rectangular_polygon(point.create(-127, -110), point.create(118, 109), 20, 20, 50, 50)",
+        "local region = util.fit_rectangular_polygon(\n    point.create(-127, -110),\n    point.create(118, 109),\n    20, 20, 50, 50\n)",
         parameters
     ));
 }
@@ -846,7 +846,7 @@
         "compute the intersection of two rectangles",
         "Compute the intersection of two rectangles and return it as a table with 'bl' (bottom-left) and 'tr' (top-right) entries. "
         "If no itersection exists, this function returns nil.",
-        "local region = util.rectangle_intersection(point.create(0, 0), point.create(100, 100), point.create(20, 20), point.create(200, 20))",
+        "local region = util.rectangle_intersection(\n    point.create(0, 0), point.create(100, 100),\n    point.create(20, 20), point.create(200, 20)\n)",
         parameters
     ));
 }
@@ -1044,7 +1044,7 @@
         "An initial value must be given (e.g. '0' for numeric operations). "
         "This sets the type of the result. "
         "Additional arguments can be passed to the function.",
-        "util.reduce({ 1, 2, 3 }, function(lhs, rhs) return lhs + rhs end, 0) -- 6",
+        "util.reduce(\n    { 1, 2, 3 },\n    function(lhs, rhs) return lhs + rhs end,\n    0 -- initial value\n) -- 6",
         parameters
     ));
 }
@@ -1197,7 +1197,7 @@
         "copy only unique elements of a table",
         "Create an array where only unique entries of the input array t are present. "
         "Equality is checked via the comparison operator '=='",
-        "local u = util.uniq({ 1, 2, 3, 1, 4, 5, 2, 1, 7 }) -- { 1, 2, 3, 4, 5, 7 }",
+        "local u = util.uniq({ 1, 2, 3, 1, 4, 5, 2, 1, 7 })\n-- { 1, 2, 3, 4, 5, 7 }",
         parameters
     ));
 }
@@ -1219,7 +1219,7 @@
         "If the intersection is found, it is returned. "
         "If the lines are parallel, nil is returned. "
         "If the lines are not parallel but don't intersect (because they are not infinite), their virtual intersection point is returned after nil (as second return value)",
-        "local ptreal, ptvirtual = util.intersection(spt1, spt2, tpt1, tpt2)",
+        "local ptreal, ptvirtual = util.intersection(\n    spt1, spt2,\n    tpt1, tpt2\n)",
         parameters
     ));
 }

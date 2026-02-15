@@ -216,7 +216,7 @@
         "Retrieve the numeric index of a metal layer. "
         "The function always returns positive indices. "
         "If a non-metal layer is given, the function returns 0.",
-        "local metalindex = technology.metal_layer_to_index(generics.metal(2)) -- 2",
+        "local metalindex =\n    technology.metal_layer_to_index(generics.metal(2)) -- 2",
         parameters
     ));
 }

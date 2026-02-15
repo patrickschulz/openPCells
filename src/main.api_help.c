@@ -889,6 +889,7 @@ static int _is_apifun(const char* str, size_t n)
 static int _is_luaidentifier(const char* str, size_t n)
 {
     const char* APIfun_lut[] = {
+        "local",
         "function",
         "do",
         "end",

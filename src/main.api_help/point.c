@@ -29,7 +29,7 @@
         "Create a new point by combining the coordinates of two other points. "
         "The new point is made up by x1 and y2. "
         "This function is equivalent to combine_21 with swapped arguments.",
-        "local new = point.combine_12(pt1, pt2) -- equivalent to point.create(pt1:getx(), pt2:gety())",
+        "local new = point.combine_12(pt1, pt2)\n-- equivalent to point.create(pt1:getx(), pt2:gety())",
         parameters
     ));
 }
@@ -48,7 +48,7 @@
         "Create a new point by combining the coordinates of two other points. "
         "The new point is made up by x2 and y1. "
         "This function is equivalent to combine_12 with swapped arguments.",
-        "local new = point.combine_21(pt1, pt2) -- equivalent to point.create(pt2:getx(), pt1:gety())",
+        "local new = point.combine_21(pt1, pt2)\n-- equivalent to point.create(pt2:getx(), pt1:gety())",
         parameters
     ));
 }

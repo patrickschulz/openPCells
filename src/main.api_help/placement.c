@@ -13,7 +13,7 @@
         "Create a floorplan configuration based on utilization and an aspectratio. "
         "The 'instances' table is the result of parsing and processing verilog netlists. "
         "This function is intended to be called in a place-and-route-script for --import-verilog",
-        "local floorplan = placement.create_floorplan_aspectratio(instances, 0.8, 2 / 1)",
+        "local floorplan = placement.create_floorplan_aspectratio(\n    instances,\n     0.8, 2 / 1\n)",
         parameters
     ));
 }
@@ -33,7 +33,7 @@
         "Create a floorplan configuration based on utilization and a fixed number of rows. "
         "The 'instances' table is the result of parsing and processing verilog netlists. "
         "This function is intended to be called in a place-and-route-script for --import-verilog",
-        "local floorplan = placement.create_floorplan_fixed_rows(instances, 0.8, 20)",
+        "local floorplan = placement.create_floorplan_fixed_rows(\n    instances,\n    0.8, 20\n)",
         parameters
     ));
 }
@@ -344,7 +344,7 @@
         "Furthermore, no excludes are accepted. "
         "This means that the entire rectangular boundary is filled. "
         "This function is magnitudes faster than placement.place_within_boundary (as no point-in-polygon checks are required and a more efficient data representation for the resulting array can be used), so consider using this function if no excludes are required.",
-        "local targetbl = point.create(-10000, -10000)\nlocal targettr = point.create(10000, 10000)\nplacement.place_within_rectangular_boundary(toplevel, filler, \"fill\", targetbl, targettr)",
+        "local targetbl = point.create(-10000, -10000)\nlocal targettr = point.create(10000, 10000)\nplacement.place_within_rectangular_boundary(\n    toplevel,\n    filler,\n    \"fill\",\n    targetbl, targettr\n)",
         parameters
     ));
 }
@@ -397,7 +397,7 @@
         "prepare a grid for placement.place_boundary_grid",
         "Calculate a grid of cell origins in a rectangular target area with the given binary excludes (in or out). "
         "This function returns a table which can be used as input for placement.place_boundary_grid.",
-        "local excludes = { {\n    point.create(2000, 2000),\n    point.create(8000, 2000),\n    point.create(8000, 20000),\n    point.create(2000, 20000)\n}, }\nplacement.calculate_grid(point.create(0, 0), point.create(100000, 100000), 10000, excludes)",
+        "local excludes = { {\n    point.create(2000, 2000),\n    point.create(8000, 2000),\n    point.create(8000, 20000),\n    point.create(2000, 20000)\n}, }\nplacement.calculate_grid(\n    point.create(0, 0),\n    point.create(100000, 100000),\n    10000,\n    excludes\n)",
         parameters
     ));
 }

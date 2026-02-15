@@ -5,7 +5,7 @@ const apirefs = [
         "syntax": "create()",
         "description": "create an alignment group",
         "details": "Create an alignment group that stores alignment boxes of several different objects. Objects are added subsequently and the alignment group can be given to any object.align/abut function as a target parameter.",
-        "examples": "local cell1 = ...\nlocal cell2 = ...\nlocal cell3 = ...\nlocal group = <span class=\"opc-module\">alignmentgroup</span>.<span class=\"opc-function\">create</span>()\ngroup:add(cell1)\ngroup:add(cell2)\ncell3:abut_bottom(group)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> cell1 = ...\n<span class=\"opc-luaidentifier\">local</span> cell2 = ...\n<span class=\"opc-luaidentifier\">local</span> cell3 = ...\n<span class=\"opc-luaidentifier\">local</span> group = <span class=\"opc-module\">alignmentgroup</span>.<span class=\"opc-function\">create</span>()\ngroup:add(cell1)\ngroup:add(cell2)\ncell3:abut_bottom(group)",
     },
     {
         "module": "alignmentgroup",
@@ -333,7 +333,7 @@ const apirefs = [
         "syntax": "premapped(name, entries)",
         "description": "Create an already-mapped layer with technology-specific data",
         "details": "Create a non-generic layer from specific layer data for a certain technology. The entries table should contain one table per supported export. The supplied key-value pairs in this table must match the key-value pairs that are expected by the exportThis layer is mostly useful in auto-generated opc layouts, that are (for instance) generated from virtuoso. The virtuoso export or the GDS import modules uses these for representing layers where no semantic information is available.",
-        "examples": "<span class=\"opc-module\">generics</span>.premapped(\n    <span class=\"opc-string\">\"specialmetal\"</span>,\n    {\n         gds = { layer = <span class=\"opc-number\">32</span>, purpose = <span class=\"opc-number\">17</span> },\n         SKILL = { layer = <span class=\"opc-string\">\"specialmetal\"</span>, purpose = <span class=\"opc-string\">\"drawing\"</span> }\n    }\n)",
+        "examples": "<span class=\"opc-module\">generics</span>.premapped(\n    <span class=\"opc-string\">\"specialmetal\"</span>,\n    {\n         gds = {\n            layer = <span class=\"opc-number\">32</span>,\n            purpose = <span class=\"opc-number\">17</span>\n        },\n         SKILL = {\n            layer = <span class=\"opc-string\">\"specialmetal\"</span>,\n            purpose = <span class=\"opc-string\">\"drawing\"</span>\n        }\n    }\n)",
     },
     {
         "module": "geometry",
@@ -421,7 +421,7 @@ const apirefs = [
         "syntax": "rectanglevlines_settings(cell, layer, pt1, pt2, numlines, ratio)",
         "description": "caculate the parameters to fill an area with vertical lines (defined by number of lines and width/space ratio)",
         "details": "Calculate the geometries of vertical lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglevlines, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines = \n    <span class=\"opc-module\">geometry</span>.rectanglevlines_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n        <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">20</span>, <span class=\"opc-number\">1</span> <span class=\"opc-comment\">-- numlines, ratio</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span> + offset, -<span class=\"opc-number\">100</span>,\n    numlines, <span class=\"opc-number\">1</span>,\n    width + space, <span class=\"opc-number\">0</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> width, height, space, offset, numlines = \n    <span class=\"opc-module\">geometry</span>.rectanglevlines_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n        <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">20</span>, <span class=\"opc-number\">1</span> <span class=\"opc-comment\">-- numlines, ratio</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span> + offset, -<span class=\"opc-number\">100</span>,\n    numlines, <span class=\"opc-number\">1</span>,\n    width + space, <span class=\"opc-number\">0</span>\n)",
     },
     {
         "module": "geometry",
@@ -429,7 +429,7 @@ const apirefs = [
         "syntax": "rectanglevlines_numlines_width_settings(pt1, pt2, numlines, width)",
         "description": "calculate the parameters to fill an area with vertical lines (defined by number of lines and line width)",
         "details": "Calculate the geometries of vertical lines to fill a rectangular area with a given number of lines and width. The function returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_width_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n        <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">4</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_width_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n        <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">4</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
     },
     {
         "module": "geometry",
@@ -437,7 +437,7 @@ const apirefs = [
         "syntax": "rectanglevlines_width_space_settings(cell, layer, pt1, pt2, width, space)",
         "description": "calculate the parameters to fill an area with vertical lines (defined by number of lines and line space)",
         "details": "Calculate the geometries of vertical lines to fill a rectangular area with a given width and spacing. This function is like geometry.rectanglevlines_width_space, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglevlines_width_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n        <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span> + offset, -<span class=\"opc-number\">100</span>,\n    numlines, <span class=\"opc-number\">1</span>,\n    width + space, <span class=\"opc-number\">0</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglevlines_width_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n        <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span> + offset, -<span class=\"opc-number\">100</span>,\n    numlines, <span class=\"opc-number\">1</span>,\n    width + space, <span class=\"opc-number\">0</span>\n)",
     },
     {
         "module": "geometry",
@@ -461,7 +461,7 @@ const apirefs = [
         "syntax": "rectanglehlines_settings(cell, layer, pt1, pt2, numlines, ratio)",
         "description": "calculate the parameters to fill an area with horizontal lines (defined by number of lines and width/space ratio)",
         "details": "Calculate the geometries of horizontal lines to fill a rectangular area with a given ratio between width and spacing. This function is like geometry.rectanglehlines, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n         <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n         <span class=\"opc-number\">20</span>, <span class=\"opc-number\">1</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n         <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n         <span class=\"opc-number\">20</span>, <span class=\"opc-number\">1</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
     },
     {
         "module": "geometry",
@@ -469,7 +469,7 @@ const apirefs = [
         "syntax": "rectanglehlines_height_space_settings(cell, layer, pt1, pt2, height, space)",
         "description": "calculate the parameters to fill an area with horizontal lines (defined by line height and line space)",
         "details": "Calculate the geometries of horizontal lines to fill a rectangular area with a given height and spacing. This function is like geometry.rectanglehlines_width_space, but it does not actually create the lines. It returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_height_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n         <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n         <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_height_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n         <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n         <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
     },
     {
         "module": "geometry",
@@ -477,7 +477,7 @@ const apirefs = [
         "syntax": "rectanglehlines_numlines_height_settings(pt1, pt2, numlines, height)",
         "description": "calculate the parameters to fill an area with horizontal lines (defined by number of lines and line height)",
         "details": "Calculate the geometries of horizontal lines to fill a rectangular area with a given number of lines and height. The function returns the width, height, space, offset and number of lines. These parameters can then be used to call geometry.rectanglearray. This function is useful if the parameters of the lines are required for further layout functions like placing vias.",
-        "examples": "local width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_height_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n         <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">4</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> width, height, space, offset, numlines =\n    <span class=\"opc-module\">geometry</span>.rectanglehlines_height_space_settings(\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n         <span class=\"opc-module\">point</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n        <span class=\"opc-number\">4</span>, <span class=\"opc-number\">20</span>\n)\n<span class=\"opc-module\">geometry</span>.rectanglearray(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n    width, height,\n    -<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span> + offset,\n    <span class=\"opc-number\">1</span>, numlines,\n    <span class=\"opc-number\">0</span>, height + space\n)",
     },
     {
         "module": "geometry",
@@ -669,7 +669,7 @@ const apirefs = [
         "syntax": "calculate_viabltr(firstmetal, lastmetal, bl, tr, properties)",
         "description": "calculate via arrayzation in an area",
         "details": "Calculates possible via arrayzation in an area and returns a table with the results. Internally, the same functions as for direct creation of vias is used, so the same results can be obtained. The table contains tables with the following items (one per solution): \"layer\" (the via cut layer), \"width\" and \"height\" of the to-be-drawn cuts, \"xrep\" and \"yrep\" (repetition in x and y of the cuts), \"xspace\" and \"yspace\" (spacing of the contacts), and \"xoffset\" and \"yoffset\" (x/y offset with regard to array placement, for instance for geometry.rectanglearray)",
-        "examples": "local via = <span class=\"opc-module\">geometry</span>.calculate_viabltr(\n    <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>,\n     <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>),\n     <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>)\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> via = <span class=\"opc-module\">geometry</span>.calculate_viabltr(\n    <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>,\n     <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>),\n     <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>)\n)",
     },
     {
         "module": "geometry",
@@ -677,7 +677,7 @@ const apirefs = [
         "syntax": "calculate_viabltr2(firstmetal, lastmetal, bl1, tr1, bl2, tr2, properties)",
         "description": "calculate via arrayzation in an area (via2 support)",
         "details": "Calculates possible via arrayzation in an area and returns a table with the results. Internally, the same functions as for direct creation of vias is used, so the same results can be obtained. The table contains tables with the following items (one per solution): \"layer\" (the via cut layer), \"width\" and \"height\" of the to-be-drawn cuts, \"xrep\" and \"yrep\" (repetition in x and y of the cuts), \"xspace\" and \"yspace\" (spacing of the contacts), and \"xoffset\" and \"yoffset\" (x/y offset with regard to array placement, for instance for geometry.rectanglearray). This function is like viabltr2, where two regions are given, with possibly-different sizes. Note though that only consecutive metals can be given (with a difference of 1).",
-        "examples": "local via = <span class=\"opc-module\">geometry</span>.calculate_viabltr2(\n    <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>)\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> via = <span class=\"opc-module\">geometry</span>.calculate_viabltr2(\n    <span class=\"opc-number\">1</span>, <span class=\"opc-number\">3</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">20</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">20</span>)\n)",
     },
     {
         "module": "geometry",
@@ -869,7 +869,7 @@ const apirefs = [
         "syntax": "get_side_path_points(pts, width)",
         "description": "get one-sided outline points of a path",
         "details": "Get one side of the edge points of a path given by the center points and the width. The sign of the width is significant: With positive values, the right-hand-side points are created, with negative values the left-hand-side (in the direction of the path). This function does not create any shapes.",
-        "examples": "local pts = <span class=\"opc-module\">geometry</span>.get_side_path_points(\n    {\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">1000</span>, <span class=\"opc-number\">0</span>)\n    },\n    <span class=\"opc-number\">50</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = <span class=\"opc-module\">geometry</span>.get_side_path_points(\n    {\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">1000</span>, <span class=\"opc-number\">0</span>)\n    },\n    <span class=\"opc-number\">50</span>\n)",
     },
     {
         "module": "geometry",
@@ -877,7 +877,7 @@ const apirefs = [
         "syntax": "path_points_to_polygon(pts, width)",
         "description": "get outline points of a path",
         "details": "Get the edge points of a path given by the center points and the width. This function does not create any shapes. The result of this function can be put into geometry.polygon to create the path shape.",
-        "examples": "local pts = <span class=\"opc-module\">geometry</span>.path_points_to_polygon(\n    {\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">1000</span>, <span class=\"opc-number\">0</span>)\n    },\n    <span class=\"opc-number\">50</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = <span class=\"opc-module\">geometry</span>.path_points_to_polygon(\n    {\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">1000</span>, <span class=\"opc-number\">0</span>)\n    },\n    <span class=\"opc-number\">50</span>\n)",
     },
     {
         "module": "geometry",
@@ -901,7 +901,7 @@ const apirefs = [
         "syntax": "process_parameters(_P)",
         "description": "process cell parameters (cell definition function)",
         "details": "Cell definition function. Process parameters after user values have been set. This can be used to re-evaluate parameters based on different settings. As an example the width of a metal line could be set to the minimum width value of the used metal. This can not be done in regular parameter definitions for cells. The function receives the table with all parameter values and should return a new table with altered parameters. Every parameter in this new table will overwrite a parameter in the main parameter table, but only if it was not explicitly modified when calling the cell. This function is optional.",
-        "examples": "<span class=\"opc-luaidentifier\">function</span> process_parameters(_P)\n    local <span class=\"opc-module\">t</span> = {}\n    <span class=\"opc-module\">t</span>.width = <span class=\"opc-module\">technology</span>.get_dimension(\n        string.format(<span class=\"opc-string\">\"Minimum M%<span class=\"opc-luaidentifier\">d</span> Width\"</span>),\n        _P.<span class=\"opc-function\">metal</span>\n    )\n    <span class=\"opc-module\">t</span>.length = _P.totallength <span class=\"opc-comment\">-- simple follower parameter</span>\n    return <span class=\"opc-module\">t</span>\n<span class=\"opc-luaidentifier\">end</span>",
+        "examples": "<span class=\"opc-luaidentifier\">function</span> process_parameters(_P)\n    <span class=\"opc-luaidentifier\">local</span> <span class=\"opc-module\">t</span> = {}\n    <span class=\"opc-module\">t</span>.width = <span class=\"opc-module\">technology</span>.get_dimension(\n        string.format(<span class=\"opc-string\">\"Minimum M%<span class=\"opc-luaidentifier\">d</span> Width\"</span>),\n        _P.<span class=\"opc-function\">metal</span>\n    )\n    <span class=\"opc-module\">t</span>.length = _P.totallength <span class=\"opc-comment\">-- simple follower parameter</span>\n    return <span class=\"opc-module\">t</span>\n<span class=\"opc-luaidentifier\">end</span>",
     },
     {
         "module": "<none>",
@@ -909,7 +909,7 @@ const apirefs = [
         "syntax": "prepare(_P)",
         "description": "prepare cell state (cell definition function)",
         "details": "Cell definition function. Prepare a state for further cell functions. This function is useful when some calculations/logic have to be run for different functions (for instance check() and layout()). In order to avoid code duplication, the prepare() function can be used. It receives the final parameters table (after a possible call to process_parameters()) and is expected to return a table as a common state for all following cell functions. This function is optional.",
-        "examples": "<span class=\"opc-luaidentifier\">function</span> prepare(_P)\n    local state = {}\n    state.metalwidths = <span class=\"opc-module\">util</span>.<span class=\"opc-luaidentifier\">rep</span>(_P.numlines, _P.linewidth)\n<span class=\"opc-luaidentifier\">end</span>",
+        "examples": "<span class=\"opc-luaidentifier\">function</span> prepare(_P)\n    <span class=\"opc-luaidentifier\">local</span> state = {}\n    state.metalwidths = <span class=\"opc-module\">util</span>.<span class=\"opc-luaidentifier\">rep</span>(_P.numlines, _P.linewidth)\n<span class=\"opc-luaidentifier\">end</span>",
     },
     {
         "module": "<none>",
@@ -989,7 +989,7 @@ const apirefs = [
         "syntax": "evenodddiv2(value)",
         "description": "divide a value by 2 and return floor and ceil of the division",
         "details": "divide a value by 2. If it is odd, return floor(val / 2) and ceil(val / 2), otherwise return val / 2",
-        "examples": "local low, high = evenodddiv2(<span class=\"opc-number\">13</span>) <span class=\"opc-comment\">-- return 6 and 7</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> low, high = evenodddiv2(<span class=\"opc-number\">13</span>) <span class=\"opc-comment\">-- return 6 and 7</span>",
     },
     {
         "module": "<none>",
@@ -997,7 +997,7 @@ const apirefs = [
         "syntax": "divevenup(value, div)",
         "description": "divide a value by divisor and return an even (possible higher) result",
         "details": "approximately divide a value by the divisor, so that the result is even. If this can't be achieved with the original value, increment it until it works",
-        "examples": "local result = divevenup(<span class=\"opc-number\">6</span>, <span class=\"opc-number\">2</span>) <span class=\"opc-comment\">-- returns 4</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> result = divevenup(<span class=\"opc-number\">6</span>, <span class=\"opc-number\">2</span>) <span class=\"opc-comment\">-- returns 4</span>",
     },
     {
         "module": "<none>",
@@ -1005,7 +1005,7 @@ const apirefs = [
         "syntax": "divevendown(value, div)",
         "description": "divide a value by divisor and return an even (possible lower) result",
         "details": "approximately divide a value by the divisor, so that the result is even. If this can't be achieved with the original value, decrement it until it works",
-        "examples": "local result = divevendown(<span class=\"opc-number\">6</span>, <span class=\"opc-number\">2</span>) <span class=\"opc-comment\">-- returns 2</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> result = divevendown(<span class=\"opc-number\">6</span>, <span class=\"opc-number\">2</span>) <span class=\"opc-comment\">-- returns 2</span>",
     },
     {
         "module": "<none>",
@@ -1021,7 +1021,7 @@ const apirefs = [
         "syntax": "quartercircle(quadrant, origin, radius, grid, allow45)",
         "description": "create a rasterized circle quarter",
         "details": "Create a rasterized circle quarter (a polygon) with the given parameters. The generated quadrant is the first (between 0 and 90 degrees). The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a circle shape.",
-        "examples": "local pts = <span class=\"opc-module\">graphics</span>.quartercircle(<span class=\"opc-number\">1</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">100</span>, <span class=\"opc-luaidentifier\">false</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = <span class=\"opc-module\">graphics</span>.quartercircle(<span class=\"opc-number\">1</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">100</span>, <span class=\"opc-luaidentifier\">false</span>\n)",
     },
     {
         "module": "graphics",
@@ -1029,7 +1029,7 @@ const apirefs = [
         "syntax": "quarterellipse(quadrant, origin, x-radius, y-radius, grid, allow45)",
         "description": "create a rasterized ellipse quarter",
         "details": "Create a rasterized ellipse quarter (a polygon) with the given parameters. The generated quadrant is the first (between 0 and 90 degrees). The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a ellipse shape.",
-        "examples": "local pts = <span class=\"opc-module\">graphics</span>.quarterellipse(<span class=\"opc-number\">1</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">10000</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-luaidentifier\">false</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = <span class=\"opc-module\">graphics</span>.quarterellipse(<span class=\"opc-number\">1</span>, <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">10000</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-luaidentifier\">false</span>\n)",
     },
     {
         "module": "graphics",
@@ -1037,7 +1037,7 @@ const apirefs = [
         "syntax": "circle(origin, radius, startangle, endangle, grid, allow45)",
         "description": "create a rasterized circle",
         "details": "Create a rasterized circle (a polygon) with the given parameters. The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a circle shape.",
-        "examples": "local pts = <span class=\"opc-module\">graphics</span>.circle(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">5000</span>,\n    <span class=\"opc-number\">0</span>, <span class=\"opc-number\">360</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-luaidentifier\">false</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = <span class=\"opc-module\">graphics</span>.circle(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">5000</span>,\n    <span class=\"opc-number\">0</span>, <span class=\"opc-number\">360</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-luaidentifier\">false</span>\n)",
     },
     {
         "module": "graphics",
@@ -1045,7 +1045,7 @@ const apirefs = [
         "syntax": "ellipse(origin, xradius, yradius, startangle, endangle, grid, allow45)",
         "description": "create a rasterized ellipse",
         "details": "Create a rasterized ellipse (a polygon) with the given parameters. The rasterization is governed by the grid, a finer grid produces more points, a looser grid fewer. With 'allow45' false, only a single x- or y-movement is allowed at each step, with 'allow45' true there can also be simultaneous x/y moves (diagonal edges). This function does not create any shapes, use with geometry.polygon if you want to actually have a ellipse shape.",
-        "examples": "local pts = <span class=\"opc-module\">graphics</span>.ellipse(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">10000</span>,\n    <span class=\"opc-number\">0</span>, <span class=\"opc-number\">360</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-luaidentifier\">false</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = <span class=\"opc-module\">graphics</span>.ellipse(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">10000</span>,\n    <span class=\"opc-number\">0</span>, <span class=\"opc-number\">360</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-luaidentifier\">false</span>\n)",
     },
     {
         "module": "graphics",
@@ -1053,7 +1053,7 @@ const apirefs = [
         "syntax": "circle(origin, numpoints, startangle)",
         "description": "create a coarsely-approximated circle",
         "details": "Create a coarse rendering of a circle, where points lying on the circle are simply connected by polygon edges. No rasterization is performed. This function creates regular polygons, for instance with 8 points an octagonal shape is generated.",
-        "examples": "local pts = <span class=\"opc-module\">graphics</span>.coarse_circle(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">0</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = <span class=\"opc-module\">graphics</span>.coarse_circle(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">0</span>\n)",
     },
     {
         "module": "layouthelpers",
@@ -1133,7 +1133,7 @@ const apirefs = [
         "syntax": "place_coplanar_waveguide(cell, layer, pts, swidth, gwidth, separation)",
         "description": "place a coplanar waveguide",
         "details": "Place a coplanar waveguide defined by the center path points. This function is almost the same as geometry.path but draws three paths in total (ground-signal-ground).",
-        "examples": "local pts = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">100000</span>)\n}\n<span class=\"opc-module\">layouthelpers</span>.place_coplanar_waveguide(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(-<span class=\"opc-number\">1</span>),\n    pts,\n    <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">100000</span>)\n}\n<span class=\"opc-module\">layouthelpers</span>.place_coplanar_waveguide(cell,\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(-<span class=\"opc-number\">1</span>),\n    pts,\n    <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>\n)",
     },
     {
         "module": "layouthelpers",
@@ -1141,7 +1141,7 @@ const apirefs = [
         "syntax": "place_stripline(cell, metalindex, pts, swidth, gwidth)",
         "description": "place a stripline",
         "details": "place a stripline defined by the center path points. This function is almost the same as geometry.path but draws three paths in total (ground-signal-ground). The layer argument is NOT a generic layer but a metal index (as striplines are assumed to be drawn in a metal). The metals below and above the signal layer are used for ground. Therefore, 'metalindex' must be 2 and the highest metal (-1).",
-        "examples": "local pts = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">100000</span>)\n}\n<span class=\"opc-module\">layouthelpers</span>.place_stripline(cell, <span class=\"opc-number\">4</span>, pts, <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">10000</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">100000</span>)\n}\n<span class=\"opc-module\">layouthelpers</span>.place_stripline(cell, <span class=\"opc-number\">4</span>, pts, <span class=\"opc-number\">5000</span>, <span class=\"opc-number\">10000</span>)",
     },
     {
         "module": "layouthelpers",
@@ -1149,7 +1149,7 @@ const apirefs = [
         "syntax": "collect_gridlines(t, cells, anchorname)",
         "description": "collect gridlines for placing vias",
         "details": "Combine overlapping/touching rectangular anchors into larger rectangles. This function expects a list of cells that all have at least the given area anchor. Then all overlaps are computed an inserted into the table. This function is useful when placing vias from a powergrid down to power bars. If only the individual anchors are used it can happen (depending on the type of the grid cell) that only partial vias can be placed. Merging the lines beforehand solves this.",
-        "examples": "local lines = {}\n<span class=\"opc-module\">layouthelpers</span>.collect_gridlines(lines, gridcells, <span class=\"opc-string\">\"vddline\"</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> lines = {}\n<span class=\"opc-module\">layouthelpers</span>.collect_gridlines(lines, gridcells, <span class=\"opc-string\">\"vddline\"</span>)",
     },
     {
         "module": "layouthelpers",
@@ -1157,7 +1157,7 @@ const apirefs = [
         "syntax": "place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth, hspace, plusshapes, minusshapes)",
         "description": "place a power grid",
         "details": "Create a power grid with vertical and horizontal lines that connect to given target shapes. The power grid lays out alternating lines for the 'plus' net and the 'minus' net (e.g., VDD and VSS). Target shapes for both these nets are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "examples": "local vddshapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">200</span>)\n    }\n}\nlocal vssshapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">800</span>),\n        <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">1000</span>)\n    }\n}\n<span class=\"opc-module\">layouthelpers</span>.place_powergrid(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-number\">5</span>, <span class=\"opc-number\">6</span>, <span class=\"opc-comment\">-- metal layers</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,<span class=\"opc-comment\">-- vertical width/space</span>\n     <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,<span class=\"opc-comment\">-- horizontal width/space</span>\n    vddshapes, vssshapes)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> vddshapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">200</span>)\n    }\n}\n<span class=\"opc-luaidentifier\">local</span> vssshapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">800</span>),\n        <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">1000</span>)\n    }\n}\n<span class=\"opc-module\">layouthelpers</span>.place_powergrid(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-number\">5</span>, <span class=\"opc-number\">6</span>, <span class=\"opc-comment\">-- metal layers</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,<span class=\"opc-comment\">-- vertical width/space</span>\n     <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,<span class=\"opc-comment\">-- horizontal width/space</span>\n    vddshapes, vssshapes)",
     },
     {
         "module": "layouthelpers",
@@ -1165,7 +1165,7 @@ const apirefs = [
         "syntax": "place_powervlines(cell, bl, tr, layer, width, space, powershapes)",
         "description": "place vertical power lines",
         "details": "Create power lines with vertical lines that connect to given target shapes. Target shapes for the power net are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "examples": "local powershapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">200</span>)\n    }\n}\n<span class=\"opc-module\">layouthelpers</span>.place_powervlines(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-number\">5</span>, <span class=\"opc-comment\">-- metal layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,<span class=\"opc-comment\">-- width/space</span>\n    powershapes\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> powershapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">200</span>)\n    }\n}\n<span class=\"opc-module\">layouthelpers</span>.place_powervlines(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-number\">5</span>, <span class=\"opc-comment\">-- metal layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,<span class=\"opc-comment\">-- width/space</span>\n    powershapes\n)",
     },
     {
         "module": "layouthelpers",
@@ -1173,7 +1173,7 @@ const apirefs = [
         "syntax": "place_powerhlines(cell, bl, tr, layer, width, space, powershapes)",
         "description": "place horizontal power lines",
         "details": "Create power lines with horizontal lines that connect to given target shapes. Target shapes for the power net are given in the form of tables containing { bl = ..., tr = ... } pairs.",
-        "examples": "local powershapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">200</span>)\n    }\n}\n<span class=\"opc-module\">layouthelpers</span>.place_powerhlines(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-number\">5</span>, <span class=\"opc-comment\">-- metal layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,<span class=\"opc-comment\">-- height/space</span>\n    powershapes)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> powershapes = {\n    {\n        bl = <span class=\"opc-module\">point</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">0</span>),\n        <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">200</span>)\n    }\n}\n<span class=\"opc-module\">layouthelpers</span>.place_powerhlines(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-number\">5</span>, <span class=\"opc-comment\">-- metal layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">800</span>,<span class=\"opc-comment\">-- height/space</span>\n    powershapes)",
     },
     {
         "module": "layouthelpers",
@@ -1181,7 +1181,7 @@ const apirefs = [
         "syntax": "place_vlines_numsets(cell, bl, tr, layer, width, netnames, numsets)",
         "description": "place vertical lines (number of sets)",
         "details": "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = <span class=\"opc-module\">layouthelpers</span>.place_vlines_numsets(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), <span class=\"opc-comment\">-- layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-comment\">-- width</span>\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, <span class=\"opc-comment\">-- net names </span>\n    <span class=\"opc-number\">4</span> <span class=\"opc-comment\">-- number of sets)</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> netshapes = <span class=\"opc-module\">layouthelpers</span>.place_vlines_numsets(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), <span class=\"opc-comment\">-- layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-comment\">-- width</span>\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, <span class=\"opc-comment\">-- net names </span>\n    <span class=\"opc-number\">4</span> <span class=\"opc-comment\">-- number of sets)</span>",
     },
     {
         "module": "layouthelpers",
@@ -1189,7 +1189,7 @@ const apirefs = [
         "syntax": "place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, excludes)",
         "description": "place vertical lines",
         "details": "Create vertical lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the available area and the width and space. Additionally a table with exclude polygons can be given. No lines will be drawn in these excludes. Note that the minimum fitting rectangle around the polygon is used, not the polygon itself. This might result in too pessimistic line placement. However, as most geometries are rectangles, in general this will work quite well. As excludes can cause short lines to be created, the 'minheight' parameter restricts the creation of too small lines. This can be 0 (zero), then all possible lines will be created. This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = <span class=\"opc-module\">layouthelpers</span>.place_vlines(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), <span class=\"opc-comment\">-- layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">400</span>, <span class=\"opc-comment\">-- width/space</span>\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, <span class=\"opc-comment\">-- net names)</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> netshapes = <span class=\"opc-module\">layouthelpers</span>.place_vlines(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">4000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), <span class=\"opc-comment\">-- layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">400</span>, <span class=\"opc-comment\">-- width/space</span>\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, <span class=\"opc-comment\">-- net names)</span>",
     },
     {
         "module": "layouthelpers",
@@ -1197,7 +1197,7 @@ const apirefs = [
         "syntax": "place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)",
         "description": "place horizontal lines (number of sets)",
         "details": "Create horizontal lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the number of given nets and the number of net sets (numnets * numsets). This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = <span class=\"opc-module\">layouthelpers</span>.place_hlines_numsets(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">4000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), <span class=\"opc-comment\">-- layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-comment\">-- height</span>\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, <span class=\"opc-comment\">-- net names </span>\n    <span class=\"opc-number\">4</span> <span class=\"opc-comment\">-- number of sets)</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> netshapes = <span class=\"opc-module\">layouthelpers</span>.place_hlines_numsets(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">4000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), <span class=\"opc-comment\">-- layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-comment\">-- height</span>\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, <span class=\"opc-comment\">-- net names </span>\n    <span class=\"opc-number\">4</span> <span class=\"opc-comment\">-- number of sets)</span>",
     },
     {
         "module": "layouthelpers",
@@ -1205,7 +1205,7 @@ const apirefs = [
         "syntax": "place_hlines(cell, bl, tr, layer, width, space, minwidth, netnames, excludes)",
         "description": "place horizontal lines",
         "details": "Create horizontal lines in a cell on a given layer. The target area is given as well as the width of the placed lines. The number of placed lines is calculated from the available area and the height and space. Additionally a table with exclude polygons can be given. No lines will be drawn in these excludes. Note that the minimum fitting rectangle around the polygon is used, not the polygon itself. This might result in too pessimistic line placement. However, as most geometries are rectangles, in general this will work quite well. As excludes can cause short lines to be created, the 'minwidth' parameter restricts the creation of too small lines. This can be 0 (zero), then all possible lines will be created. This function returns a table with a net target entry for every line, where one entry looks like this: { net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
-        "examples": "local netshapes = <span class=\"opc-module\">layouthelpers</span>.place_hlines(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">4000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), <span class=\"opc-comment\">-- layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">400</span>, <span class=\"opc-comment\">-- width/space</span>\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, <span class=\"opc-comment\">-- net names)</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> netshapes = <span class=\"opc-module\">layouthelpers</span>.place_hlines(cell,\n    <span class=\"opc-comment\">-- target area:</span>\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">4000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">5</span>), <span class=\"opc-comment\">-- layer</span>\n    <span class=\"opc-number\">400</span>, <span class=\"opc-number\">400</span>, <span class=\"opc-comment\">-- width/space</span>\n    { <span class=\"opc-string\">\"VDD\"</span>, <span class=\"opc-string\">\"VSS\"</span>, <span class=\"opc-string\">\"BIAS\"</span>, }, <span class=\"opc-comment\">-- net names)</span>",
     },
     {
         "module": "layouthelpers",
@@ -1453,7 +1453,7 @@ const apirefs = [
         "syntax": "add_child(cell, child, instname)",
         "description": "add a child (an instance) to a cell",
         "details": "Add a child object (instance) to the given cell. This make 'cell' the parent of the child (it manages its memory). This means that you should not use the original child object any more after this call (unless it is object.add_child or object.add_child_array)",
-        "examples": "local ref = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"mosfet\"</span>)\ncell:add_child(ref, <span class=\"opc-string\">\"mosinst0\"</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> ref = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"mosfet\"</span>)\ncell:add_child(ref, <span class=\"opc-string\">\"mosinst0\"</span>)",
     },
     {
         "module": "object",
@@ -1461,7 +1461,7 @@ const apirefs = [
         "syntax": "add_child_array(cell, child, instname, xrep, yrep, xpitch, ypitch)",
         "description": "add a child array (multiple instances) to a cell",
         "details": "Add a child as an arrayed object to the given cell. The child array has xrep * yrep elements, with a pitch of xpitch and ypitch, respectively. The array grows to the upper-left, with the first placed untranslated. The pitch does not have to be explicitly given: If the child has an alignment box, the xpitch and ypitch are deferred from this box, if they are not given in the call. In this case, it is an error if no alignment box is present in child. As with object.add_child: don't use the original child object after this call unless it is object.add_child or object.add_child_array",
-        "examples": "<span class=\"opc-comment\">-- with explicit xpitch and ypitch:</span>\nlocal ref = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"mosfet\"</span>)\ncell:add_child_array(ref, <span class=\"opc-string\">\"mosinst0\"</span>, <span class=\"opc-number\">8</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">200</span>, <span class=\"opc-number\">0</span>)\n<span class=\"opc-comment\">-- with alignment box:</span>\nlocal ref = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"mosfet\"</span>)\ncell:add_child_array(ref, <span class=\"opc-string\">\"mosinst0\"</span>, <span class=\"opc-number\">8</span>, <span class=\"opc-number\">1</span>)",
+        "examples": "<span class=\"opc-comment\">-- with explicit xpitch and ypitch:</span>\n<span class=\"opc-luaidentifier\">local</span> ref = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"mosfet\"</span>)\ncell:add_child_array(ref, <span class=\"opc-string\">\"mosinst0\"</span>, <span class=\"opc-number\">8</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">200</span>, <span class=\"opc-number\">0</span>)\n<span class=\"opc-comment\">-- with alignment box:</span>\n<span class=\"opc-luaidentifier\">local</span> ref = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"mosfet\"</span>)\ncell:add_child_array(ref, <span class=\"opc-string\">\"mosinst0\"</span>, <span class=\"opc-number\">8</span>, <span class=\"opc-number\">1</span>)",
     },
     {
         "module": "object",
@@ -1685,7 +1685,7 @@ const apirefs = [
         "syntax": "copy(cell)",
         "description": "copy an object",
         "details": "Copy an object.",
-        "examples": "local new = cell:copy()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> new = cell:copy()",
     },
     {
         "module": "object",
@@ -1693,7 +1693,7 @@ const apirefs = [
         "syntax": "create_object_handle(cell, reference)",
         "description": "create a light reference to an object for object:add_child()",
         "details": "Create an object handle of a reference cell and store it in a parent cell. This is used internally when a cell is added for the first time as child. This function is exposed to the user in order to explicitly create these handles. They are useful when multiple cells in a hierarchy add the same object as a child, which would not be possible otherwise (this would require either a complete copy of the object with a new name or the cell hierarchy would contain the same object twice)",
-        "examples": "local handle = <span class=\"opc-module\">object</span>.create_object_handle(parent, reference)\nsubcell1:add_child(handle, <span class=\"opc-string\">\"child\"</span>)\nsubcell2:add_child(handle, <span class=\"opc-string\">\"child\"</span>)\nparent:add_child(subcell1, <span class=\"opc-string\">\"sub1\"</span>)\nparent:add_child(subcell2, <span class=\"opc-string\">\"sub2\"</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> handle = <span class=\"opc-module\">object</span>.create_object_handle(parent, reference)\nsubcell1:add_child(handle, <span class=\"opc-string\">\"child\"</span>)\nsubcell2:add_child(handle, <span class=\"opc-string\">\"child\"</span>)\nparent:add_child(subcell1, <span class=\"opc-string\">\"sub1\"</span>)\nparent:add_child(subcell2, <span class=\"opc-string\">\"sub2\"</span>)",
     },
     {
         "module": "object",
@@ -1701,7 +1701,7 @@ const apirefs = [
         "syntax": "create(cellname)",
         "description": "create an object",
         "details": "Create a new object. A name must be given. Hierarchical exports use this name to identify layout cells and no checks for duplication are done. Therefore the user must make sure that every name is unique. Note that this will probably change in the future.",
-        "examples": "local cell = <span class=\"opc-module\">object</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-string\">\"toplevel\"</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> cell = <span class=\"opc-module\">object</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-string\">\"toplevel\"</span>)",
     },
     {
         "module": "object",
@@ -1709,7 +1709,7 @@ const apirefs = [
         "syntax": "create_pseudo()",
         "description": "create a pseudo-object",
         "details": "Create a new object without a name. This kind of object behaves exactly like a regular object, but it can't be added as a child to a parent object. It is intended to be used as a flat container for shapes that are merged into another cell. This function is there to express this intent, but other than this there are no advantages of using this function over object.create() (except that one does not have to come up with a name)",
-        "examples": "local container = <span class=\"opc-module\">object</span>.create_pseudo()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> container = <span class=\"opc-module\">object</span>.create_pseudo()",
     },
     {
         "module": "object",
@@ -1845,7 +1845,7 @@ const apirefs = [
         "syntax": "get_area_anchor_height(cell, anchorname)",
         "description": "get the height of an area anchor",
         "details": "Retrieve the height (an integer) of an area anchor from a cell. A non-existing anchor is an error.",
-        "examples": "local height = cell:get_area_anchor_height(<span class=\"opc-string\">\"sourcedrain1\"</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> height = cell:get_area_anchor_height(<span class=\"opc-string\">\"sourcedrain1\"</span>)",
     },
     {
         "module": "object",
@@ -1853,7 +1853,7 @@ const apirefs = [
         "syntax": "get_area_anchor_width(cell, anchorname)",
         "description": "get the width of an area anchor",
         "details": "Retrieve the width (an integer) of an area anchor from a cell. A non-existing anchor is an error.",
-        "examples": "local width = cell:get_area_anchor_width(<span class=\"opc-string\">\"sourcedrain1\"</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> width = cell:get_area_anchor_width(<span class=\"opc-string\">\"sourcedrain1\"</span>)",
     },
     {
         "module": "object",
@@ -1861,7 +1861,7 @@ const apirefs = [
         "syntax": "get_array_anchor(cell, xindex, yindex, anchorname)",
         "description": "get a regular anchor from a child array",
         "details": "Like object.get_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error.",
-        "examples": "local ref = <span class=\"opc-module\">object</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-string\">\"ref\"</span>)\nlocal array = cell:add_child_array(\n    ref,\n    <span class=\"opc-string\">\"refarray\"</span>,\n    <span class=\"opc-number\">20</span>, <span class=\"opc-number\">2</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">1000</span>\n)\nlocal anchor = array:get_array_anchor(<span class=\"opc-number\">4</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-string\">\"someanchor\"</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> ref = <span class=\"opc-module\">object</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-string\">\"ref\"</span>)\n<span class=\"opc-luaidentifier\">local</span> array = cell:add_child_array(\n    ref,\n    <span class=\"opc-string\">\"refarray\"</span>,\n    <span class=\"opc-number\">20</span>, <span class=\"opc-number\">2</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">1000</span>\n)\n<span class=\"opc-luaidentifier\">local</span> anchor = array:get_array_anchor(<span class=\"opc-number\">4</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-string\">\"someanchor\"</span>)",
     },
     {
         "module": "object",
@@ -1869,7 +1869,7 @@ const apirefs = [
         "syntax": "get_array_area_anchor(cell, xindex, yindex, anchorname)",
         "description": "get an area anchor from a child array",
         "details": "Like object.get_area_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error.",
-        "examples": "local ref = <span class=\"opc-module\">object</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-string\">\"ref\"</span>)\nlocal array = cell:add_child_array(\n    ref,\n    <span class=\"opc-string\">\"refarray\"</span>,\n    <span class=\"opc-number\">20</span>, <span class=\"opc-number\">2</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">1000</span>\n)\nlocal anchor = array:get_array_area_anchor(<span class=\"opc-number\">4</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-string\">\"someareaanchor\"</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> ref = <span class=\"opc-module\">object</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-string\">\"ref\"</span>)\n<span class=\"opc-luaidentifier\">local</span> array = cell:add_child_array(\n    ref,\n    <span class=\"opc-string\">\"refarray\"</span>,\n    <span class=\"opc-number\">20</span>, <span class=\"opc-number\">2</span>,\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">1000</span>\n)\n<span class=\"opc-luaidentifier\">local</span> anchor = array:get_array_area_anchor(<span class=\"opc-number\">4</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-string\">\"someareaanchor\"</span>)",
     },
     {
         "module": "object",
@@ -1877,7 +1877,7 @@ const apirefs = [
         "syntax": "get_boundary(cell)",
         "description": "get the boundary of a cell",
         "details": "Retrieve the boundary of an object. If no explicit boundary exists, it is calculated from the extrem coordinates of all shapes (bounding box). The boundary is returned as a table containing the points. A boundary is not necessarily rectangular, but automatically-calculated boundaries are. In any case, the boundary is returned as a polygon, even if it is rectangular. This can be converted into a rectangular representation by util.polygon_rectangular_boundary(boundary).",
-        "examples": "local boundary = cell:get_boundary()\n<span class=\"opc-comment\">-- get min/max points:</span>\nlocal bl, <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">util</span>.polygon_rectangular_boundary(boundary)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> boundary = cell:get_boundary()\n<span class=\"opc-comment\">-- get min/max points:</span>\n<span class=\"opc-luaidentifier\">local</span> bl, <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">util</span>.polygon_rectangular_boundary(boundary)",
     },
     {
         "module": "object",
@@ -1885,7 +1885,7 @@ const apirefs = [
         "syntax": "get_bounding_box(cell)",
         "description": "get the bounding box of a cell",
         "details": "Retrieve the rectangular bounding box of an object. This is different from object.get_boundary as it is always the true computed bounding box (the possibly present object boundary is not used) and the result is returned as a table describing a rectangle (with 'bl' and 'tr' entries).",
-        "examples": "local boundary = cell:get_bounding_box()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> boundary = cell:get_bounding_box()",
     },
     {
         "module": "object",
@@ -1893,7 +1893,7 @@ const apirefs = [
         "syntax": "get_layer_boundary(cell, layer)",
         "description": "get a layer boundary of a cell",
         "details": "Retrieve a layer boundary of an object. If the cell has no layer boundaries at all, an empty table is returned. Otherwise, if the layer boundary for the specified layer does not exist, the bounding box of the cell is returned. If the layer boundary exists, it is returned. For this case, object.set_empty_layer_boundary() is useful.",
-        "examples": "local layerboundary = cell:get_layer_boundary(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>))",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> layerboundary = cell:get_layer_boundary(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>))",
     },
     {
         "module": "object",
@@ -1901,7 +1901,7 @@ const apirefs = [
         "syntax": "get_layer_occupation(cell, layer)",
         "description": "get the layer occupation (bounding box) of a cell for a specific layer",
         "details": "Retrieve the extreme points of the overall layer occupation (including the sub-cells) of the given cell. This function returns a table with a bottom-left ('bl') and a top-right ('tr') point. This function does not depend on any existing layer boundaries, it always computes to real occupation. This might or might not be desirable, if precise control over the layer occupation is required it is recommended to use layer boundaries. This function is potentially slow, as it traverses the entire cell hierarchy and compares every shape layer to the given layer. If no layer is given, this function returns the bounding box.",
-        "examples": "local occupation = cell:get_layer_occupation(\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>)\n    )\n<span class=\"opc-module\">layouthelpers</span>.place_guardring(cell,\n    occupation.bl,\n    occupation.<span class=\"opc-luaidentifier\">tr</span>,\n    (...) <span class=\"opc-comment\">-- further options</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> occupation = cell:get_layer_occupation(\n    <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>)\n    )\n<span class=\"opc-module\">layouthelpers</span>.place_guardring(cell,\n    occupation.bl,\n    occupation.<span class=\"opc-luaidentifier\">tr</span>,\n    (...) <span class=\"opc-comment\">-- further options</span>\n)",
     },
     {
         "module": "object",
@@ -1909,7 +1909,7 @@ const apirefs = [
         "syntax": "get_shape_outlines(cell, layers)",
         "description": "get the polygon outlines of all shapes of a cell (possibly filtered by a given layer)",
         "details": "Return a table which contains polygon outlines of all shapes on a given layer or layers. Useful for instance for automatic filling. The given layer can be a singular generics layer or a table with several layers.",
-        "examples": "local outlines = cell:get_shape_outlines()\nlocal m1outlines = cell:get_shape_outlines(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>))\nlocal all_metal_outlines = cell:get_shape_outlines(\n    <span class=\"opc-module\">util</span>.foreach(\n        <span class=\"opc-module\">util</span>.range(\n            <span class=\"opc-number\">1</span>,\n            <span class=\"opc-module\">technology</span>.resolve_metal(-<span class=\"opc-number\">1</span>)\n        ),\n        <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>\n    )\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> outlines = cell:get_shape_outlines()\n<span class=\"opc-luaidentifier\">local</span> m1outlines = cell:get_shape_outlines(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>))\n<span class=\"opc-luaidentifier\">local</span> all_metal_outlines = cell:get_shape_outlines(\n    <span class=\"opc-module\">util</span>.foreach(\n        <span class=\"opc-module\">util</span>.range(\n            <span class=\"opc-number\">1</span>,\n            <span class=\"opc-module\">technology</span>.resolve_metal(-<span class=\"opc-number\">1</span>)\n        ),\n        <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>\n    )\n)",
     },
     {
         "module": "object",
@@ -1957,7 +1957,7 @@ const apirefs = [
         "syntax": "get_ports(cell)",
         "description": "get all ports",
         "details": "Return a table which contains key-value pairs with all ports of a cell. The key is the portname, the value the corresponding point.",
-        "examples": "local ports = cell:get_ports()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> ports = cell:get_ports()",
     },
     {
         "module": "object",
@@ -2277,7 +2277,7 @@ const apirefs = [
         "syntax": "width_height_alignmentbox(cell)",
         "description": "get the width and the height of the alignment box of an object",
         "details": "Get the width and the height of the alignment box of an object. A non-existing alignment box triggers an error.",
-        "examples": "local width, height = cell:width_height_alignmentbox()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> width, height = cell:width_height_alignmentbox()",
     },
     {
         "module": "object",
@@ -2285,7 +2285,7 @@ const apirefs = [
         "syntax": "get_name(cell)",
         "description": "return the name of the given object",
         "details": "Return the name of the given object.",
-        "examples": "local name = cell:get_name()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> name = cell:get_name()",
     },
     {
         "module": "object",
@@ -2397,7 +2397,7 @@ const apirefs = [
         "syntax": "create_floorplan_aspectratio(instances, utilization, aspectration)",
         "description": "create a floorplan configuration based on utilization and an aspectratio",
         "details": "Create a floorplan configuration based on utilization and an aspectratio. The 'instances' table is the result of parsing and processing verilog netlists. This function is intended to be called in a place-and-route-script for --import-verilog",
-        "examples": "local floorplan = <span class=\"opc-module\">placement</span>.create_floorplan_aspectratio(instances, <span class=\"opc-number\">0</span>.<span class=\"opc-number\">8</span>, <span class=\"opc-number\">2</span> / <span class=\"opc-number\">1</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> floorplan = <span class=\"opc-module\">placement</span>.create_floorplan_aspectratio(\n    instances,\n     <span class=\"opc-number\">0</span>.<span class=\"opc-number\">8</span>, <span class=\"opc-number\">2</span> / <span class=\"opc-number\">1</span>\n)",
     },
     {
         "module": "placement",
@@ -2405,7 +2405,7 @@ const apirefs = [
         "syntax": "create_floorplan_fixed_rows(instances, utilization, rows)",
         "description": "create a floorplan configuration based on utilization and a fixed number of rows",
         "details": "Create a floorplan configuration based on utilization and a fixed number of rows. The 'instances' table is the result of parsing and processing verilog netlists. This function is intended to be called in a place-and-route-script for --import-verilog",
-        "examples": "local floorplan = <span class=\"opc-module\">placement</span>.create_floorplan_fixed_rows(instances, <span class=\"opc-number\">0</span>.<span class=\"opc-number\">8</span>, <span class=\"opc-number\">20</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> floorplan = <span class=\"opc-module\">placement</span>.create_floorplan_fixed_rows(\n    instances,\n    <span class=\"opc-number\">0</span>.<span class=\"opc-number\">8</span>, <span class=\"opc-number\">20</span>\n)",
     },
     {
         "module": "placement",
@@ -2413,7 +2413,7 @@ const apirefs = [
         "syntax": "optimize(instances, nets, floorplan)",
         "description": "run a placement optimization",
         "details": "Minimize wire length by optimizing the placement of the instances by a simulated annealing algorithm. This function returns a table with the rows and columns of the placement of the instances. It is intended to be called in a place-and-route-script for --import-verilog",
-        "examples": "local rows = <span class=\"opc-module\">placement</span>.optimize(instances, nets, floorplan)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> rows = <span class=\"opc-module\">placement</span>.optimize(instances, nets, floorplan)",
     },
     {
         "module": "placement",
@@ -2421,7 +2421,7 @@ const apirefs = [
         "syntax": "manual(instances, plan)",
         "description": "execute a manual placement specification",
         "details": "Create a placement of instances manually. This function expects a row-column table with all instance names. Thus the instance names must match the ones found in the instances table (from the verilog netlist). This function then updates all required references in the row-column table, that are needed for further processing (e.g. routing). This function is useful for small designs, especially in a hierarchical flow",
-        "examples": "local plan = {\n    { <span class=\"opc-string\">\"inv\"</span>, <span class=\"opc-string\">\"nand1\"</span>, <span class=\"opc-string\">\"dff_out\"</span> },\n    { <span class=\"opc-string\">\"nand2\"</span>, <span class=\"opc-string\">\"dff_buf\"</span> },\n    { <span class=\"opc-string\">\"nand3\"</span>, <span class=\"opc-string\">\"dff_in\"</span> },\n}\nlocal rows = <span class=\"opc-module\">placement</span>.manual(instances, plan)\n",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> plan = {\n    { <span class=\"opc-string\">\"inv\"</span>, <span class=\"opc-string\">\"nand1\"</span>, <span class=\"opc-string\">\"dff_out\"</span> },\n    { <span class=\"opc-string\">\"nand2\"</span>, <span class=\"opc-string\">\"dff_buf\"</span> },\n    { <span class=\"opc-string\">\"nand3\"</span>, <span class=\"opc-string\">\"dff_in\"</span> },\n}\n<span class=\"opc-luaidentifier\">local</span> rows = <span class=\"opc-module\">placement</span>.manual(instances, plan)\n",
     },
     {
         "module": "placement",
@@ -2437,7 +2437,7 @@ const apirefs = [
         "syntax": "create_reference_rows(cellnames, xpitch)",
         "description": "prepare a row placement table",
         "details": "Prepare a row placement table for further placement functions by parsing a definition given in 'cellnames'. This table contains the individual rows of the placment, which every row consiting of individual cells. Cell entries can either be given by just the name of the standard cell (the 'reference') or the instance name ('instance') and the reference name ('reference') This function is meant to be used in pcell definitions.",
-        "examples": "<span class=\"opc-comment\">-- un-named mode:</span>\nlocal rows = <span class=\"opc-module\">placement</span>.create_reference_rows({\n    { <span class=\"opc-string\">\"inv\"</span>, <span class=\"opc-string\">\"nand1\"</span>, <span class=\"opc-string\">\"dff_out\"</span> },\n    { <span class=\"opc-string\">\"nand2\"</span>, <span class=\"opc-string\">\"dff_buf\"</span> },\n    { <span class=\"opc-string\">\"nand3\"</span>, <span class=\"opc-string\">\"dff_in\"</span> },\n})\n\n<span class=\"opc-comment\">-- named mode:</span>\nlocal rows = <span class=\"opc-module\">placement</span>.create_reference_rows({\n    {\n        { name = <span class=\"opc-string\">\"inv0\"</span>, reference = <span class=\"opc-string\">\"not_gate\"</span> },\n        { name = <span class=\"opc-string\">\"nand1\"</span>, reference = <span class=\"opc-string\">\"nand_gate\"</span> },\n        { name = <span class=\"opc-string\">\"dff_out\"</span>, reference = <span class=\"opc-string\">\"dffpq\"</span> }\n    },\n    {\n        { name = <span class=\"opc-string\">\"nand2\"</span>, reference = <span class=\"opc-string\">\"nand_gate\"</span> },\n        { name = <span class=\"opc-string\">\"dff_buf\"</span>, reference = <span class=\"opc-string\">\"dffpq\"</span> }\n    },\n    {\n        { name = <span class=\"opc-string\">\"nand3\"</span>, reference = <span class=\"opc-string\">\"nand_gate\"</span> },\n        { name = <span class=\"opc-string\">\"dff_in\"</span>, reference = <span class=\"opc-string\">\"dffpq\"</span> }\n    },\n})",
+        "examples": "<span class=\"opc-comment\">-- un-named mode:</span>\n<span class=\"opc-luaidentifier\">local</span> rows = <span class=\"opc-module\">placement</span>.create_reference_rows({\n    { <span class=\"opc-string\">\"inv\"</span>, <span class=\"opc-string\">\"nand1\"</span>, <span class=\"opc-string\">\"dff_out\"</span> },\n    { <span class=\"opc-string\">\"nand2\"</span>, <span class=\"opc-string\">\"dff_buf\"</span> },\n    { <span class=\"opc-string\">\"nand3\"</span>, <span class=\"opc-string\">\"dff_in\"</span> },\n})\n\n<span class=\"opc-comment\">-- named mode:</span>\n<span class=\"opc-luaidentifier\">local</span> rows = <span class=\"opc-module\">placement</span>.create_reference_rows({\n    {\n        { name = <span class=\"opc-string\">\"inv0\"</span>, reference = <span class=\"opc-string\">\"not_gate\"</span> },\n        { name = <span class=\"opc-string\">\"nand1\"</span>, reference = <span class=\"opc-string\">\"nand_gate\"</span> },\n        { name = <span class=\"opc-string\">\"dff_out\"</span>, reference = <span class=\"opc-string\">\"dffpq\"</span> }\n    },\n    {\n        { name = <span class=\"opc-string\">\"nand2\"</span>, reference = <span class=\"opc-string\">\"nand_gate\"</span> },\n        { name = <span class=\"opc-string\">\"dff_buf\"</span>, reference = <span class=\"opc-string\">\"dffpq\"</span> }\n    },\n    {\n        { name = <span class=\"opc-string\">\"nand3\"</span>, reference = <span class=\"opc-string\">\"nand_gate\"</span> },\n        { name = <span class=\"opc-string\">\"dff_in\"</span>, reference = <span class=\"opc-string\">\"dffpq\"</span> }\n    },\n})",
     },
     {
         "module": "placement",
@@ -2453,7 +2453,7 @@ const apirefs = [
         "syntax": "rowwise(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a row-wise manner in a parent cell",
         "details": "Place cells in a row-wise manner in a parent cell. The cells definition contains definitions for every row, which in turn contain entries with two keys: 'reference' (an object) and 'instance' (an instance name). The placed cells are aligned by their alignment boxes and grow into the upper-right direction. This means that the first entry in the first row is the bottom-left-most cell. This function is useful for digital standard cell layouts (and in fact called by placement.digital, which offers a more high-level interface), but it can also be useful for regular analog structures. Flipping fine control can be obtained by passing 'flip = true/false' to entire rows or individually per cell entry with 'flipx' and 'flipy' (boolean switches).",
-        "examples": "local celldef = {\n    { <span class=\"opc-comment\">-- first row (bottom)</span>\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2\"</span>\n        },\n    },\n    { <span class=\"opc-comment\">-- second row</span>\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.rowwise(parent, cellsdef)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> celldef = {\n    { <span class=\"opc-comment\">-- first row (bottom)</span>\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2\"</span>\n        },\n    },\n    { <span class=\"opc-comment\">-- second row</span>\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.rowwise(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2461,7 +2461,7 @@ const apirefs = [
         "syntax": "rowwise_flat(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a row-wise manner in a parent cell (flat variant)",
         "details": "Like placement.rowwise, but merges cells into parents (flat)",
-        "examples": "local celldef = {\n    { <span class=\"opc-comment\">-- first row (bottom)</span>\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2\"</span>\n        },\n    },\n    { <span class=\"opc-comment\">-- second row</span>\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.rowwise_flat(parent, cellsdef)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> celldef = {\n    { <span class=\"opc-comment\">-- first row (bottom)</span>\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2\"</span>\n        },\n    },\n    { <span class=\"opc-comment\">-- second row</span>\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.rowwise_flat(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2469,7 +2469,7 @@ const apirefs = [
         "syntax": "columnwise(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a column-wise manner in a parent cell",
         "details": "Place cells in a column-wise manner in a parent cell. The cells definition contains definitions for every column, which in turn contain entries with two keys: 'reference' (an object) and 'instance' (an instance name). The placed cells are aligned by their alignment boxes and grow into the upper-right direction. This means that the first entry in the first column is the bottom-left-most cell. This function is useful for digital standard cell layouts (and in fact called by placement.digital, which offers a more high-level interface), but it can also be useful for regular analog structures. Flipping fine control can be obtained by passing 'flip = true/false' to entire columns or individually per cell entry with 'flipx' and 'flipy' (boolean switches).",
-        "examples": "local celldef = {\n    { <span class=\"opc-comment\">-- first column (bottom)</span>\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2\"</span>\n        },\n    },\n    { <span class=\"opc-comment\">-- second column</span>\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.columnwise(parent, cellsdef)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> celldef = {\n    { <span class=\"opc-comment\">-- first column (bottom)</span>\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2\"</span>\n        },\n    },\n    { <span class=\"opc-comment\">-- second column</span>\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.columnwise(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2477,7 +2477,7 @@ const apirefs = [
         "syntax": "columnwise_flat(parent, cellsdef, flip, flipfirst)",
         "description": "place cells in a column-wise manner in a parent cell (flat variant)",
         "details": "Like placement.columnwise, but merges cells into parents (flat).",
-        "examples": "local celldef = {\n    { <span class=\"opc-comment\">-- first column (bottom)</span>\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2\"</span>\n        },\n    },\n    { <span class=\"opc-comment\">-- second column</span>\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.columnwise_flat(parent, cellsdef)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> celldef = {\n    { <span class=\"opc-comment\">-- first column (bottom)</span>\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_1\"</span>\n        },\n        {\n            reference = someobject,\n            instance = <span class=\"opc-string\">\"instance_1_2\"</span>\n        },\n    },\n    { <span class=\"opc-comment\">-- second column</span>\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_1\"</span>\n        },\n        {\n            reference = someotherobject,\n            instance = <span class=\"opc-string\">\"instance_2_2\"</span>\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.columnwise_flat(parent, cellsdef)",
     },
     {
         "module": "placement",
@@ -2485,7 +2485,7 @@ const apirefs = [
         "syntax": "place_at_origins(toplevel, cell, basename, origins)",
         "description": "place cells in a toplevel cells at the specified origins",
         "details": "Place cells in a toplevel cells at the specified origins. The instances are named accordingly to the basename (with _1, _2, etc. appended). This is a more low-level placement function (compared to placement.place_within_boundary), which is called by the higher-level functions. In some cases, using this function directly can be useful. The function returns all placed children in a table.",
-        "examples": "local origins = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">20000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">30000</span>)\n}\n<span class=\"opc-module\">placement</span>.place_at_origins(toplevel, filler, <span class=\"opc-string\">\"fill\"</span>, origins)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> origins = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">20000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">30000</span>)\n}\n<span class=\"opc-module\">placement</span>.place_at_origins(toplevel, filler, <span class=\"opc-string\">\"fill\"</span>, origins)",
     },
     {
         "module": "placement",
@@ -2493,7 +2493,7 @@ const apirefs = [
         "syntax": "place_on_grid(toplevel, cell, basename, basept, xpitch, ypitch, grid)",
         "description": "place cells in a toplevel cells corresponding to the given grid",
         "details": "Place cells in a toplevel cells corresponding to the given grid. The instances are named accordingly to the basename (with _1, _2, etc. appended). This function is a convenient low-level wrapper for placement.place_at_origins, where the individual points don't have to be typed out. The function returns all placed children in a table.",
-        "examples": "local grid = {\n    { <span class=\"opc-number\">0</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span> }\n    { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span> },\n    { <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">1</span> },\n}\n<span class=\"opc-module\">placement</span>.place_on_grid(toplevel,\n    cell,\n    <span class=\"opc-string\">\"cell\"</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>,\n    grid\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> grid = {\n    { <span class=\"opc-number\">0</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span> }\n    { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span> },\n    { <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">1</span> },\n}\n<span class=\"opc-module\">placement</span>.place_on_grid(toplevel,\n    cell,\n    <span class=\"opc-string\">\"cell\"</span>,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>,\n    grid\n)",
     },
     {
         "module": "placement",
@@ -2501,7 +2501,7 @@ const apirefs = [
         "syntax": "place_within_boundary(toplevel, cell, basename, targetarea, excludes)",
         "description": "automatically place a cell multiple times in a toplevel cell (hierarchical)",
         "details": "Automatically place a cell multiple times in a toplevel cell. The cell instances will be placed in the given target area and given names based on the given basename. An optional table can hold list of points (polygons), which describe areas that should not be filled. The x- and y-pitch of the cell are inferred from the alignment box. The function returns all placed children in a table.",
-        "examples": "local targetarea = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>)\n} local excludes = { {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>)\n}, <span class=\"opc-comment\">-- possibly more exludes after this }</span>\n<span class=\"opc-module\">placement</span>.place_within_boundary(toplevel,\n    filler,\n    <span class=\"opc-string\">\"fill\"</span>,\n    targetarea,\n    excludes\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> targetarea = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>)\n} <span class=\"opc-luaidentifier\">local</span> excludes = { {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>)\n}, <span class=\"opc-comment\">-- possibly more exludes after this }</span>\n<span class=\"opc-module\">placement</span>.place_within_boundary(toplevel,\n    filler,\n    <span class=\"opc-string\">\"fill\"</span>,\n    targetarea,\n    excludes\n)",
     },
     {
         "module": "placement",
@@ -2509,7 +2509,7 @@ const apirefs = [
         "syntax": "place_within_boundary_merge(toplevel, cell, targetarea, excludes)",
         "description": "automatically place a cell multiple times in a toplevel cell (flat)",
         "details": "Same as placement.place_within_boundary, but merges the cells (instead of adding them as children). Since only children need instance names, the 'basename' parameter is not present for this function.",
-        "examples": "local targetarea = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>)\n} local excludes = { {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>)\n}, <span class=\"opc-comment\">-- possibly more exludes after this }</span>\n<span class=\"opc-module\">placement</span>.place_within_boundary_merge(toplevel,\n    filler,\n    targetarea,\n    excludes\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> targetarea = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>)\n} <span class=\"opc-luaidentifier\">local</span> excludes = { {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, -<span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>)\n}, <span class=\"opc-comment\">-- possibly more exludes after this }</span>\n<span class=\"opc-module\">placement</span>.place_within_boundary_merge(toplevel,\n    filler,\n    targetarea,\n    excludes\n)",
     },
     {
         "module": "placement",
@@ -2517,7 +2517,7 @@ const apirefs = [
         "syntax": "place_within_rectangular_boundary(toplevel, cell, basename, targetbl, targettr)",
         "description": "place fill in a rectangular boundary",
         "details": "Place fill in a rectangular boundary. This function behaves like placement.place_within_boundary, but it takes the corner points (bottom-left and top-right) as inputs. Furthermore, no excludes are accepted. This means that the entire rectangular boundary is filled. This function is magnitudes faster than placement.place_within_boundary (as no point-in-polygon checks are required and a more efficient data representation for the resulting array can be used), so consider using this function if no excludes are required.",
-        "examples": "local targetbl = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>)\nlocal targettr = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>)\n<span class=\"opc-module\">placement</span>.place_within_rectangular_boundary(toplevel, filler, <span class=\"opc-string\">\"fill\"</span>, targetbl, targettr)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> targetbl = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>)\n<span class=\"opc-luaidentifier\">local</span> targettr = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10000</span>, <span class=\"opc-number\">10000</span>)\n<span class=\"opc-module\">placement</span>.place_within_rectangular_boundary(\n    toplevel,\n    filler,\n    <span class=\"opc-string\">\"fill\"</span>,\n    targetbl, targettr\n)",
     },
     {
         "module": "placement",
@@ -2525,7 +2525,7 @@ const apirefs = [
         "syntax": "place_within_layer_boundaries(toplevel, celllookup, basename, targetarea, xpitch, ypitch, layerexcludes, ignorelayer)",
         "description": "place cells in a boundary based on their layer content",
         "details": "Place cells in a boundary based on their layer content. This function is similar to placement.place_within_boundary, but uses non-binary excludes. A look-up table with cells is given, that defines the occupied layers of these cells and places only cells that don't have content in the excluded layers. The layerexcludes table contains the excludes in the respective layers. This function tries to maximize the number of placed cells, starting for every point with the first cell. After a cell is placed, its layers are used to block that region. That means that if cells exist with non-overlapping layer content, it is possible that multiple cells are placed per grid point. Therefore the order of the cells matters (first come, first serve). The sixth (optional) argument of this function is a singular generic layer that will be ignored when building the new excludes for subsequent cells. The reasoning behind is that if a certain layer is used as a marking layer as a full block, then all the cells in the cell lookup also need to contain this layer, which then in turn blocks the subsequent placing of further cells.",
-        "examples": "local celllut = {\n    {\n        cell = object1,\n        layers = {\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">3</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">4</span>),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"active\"</span>),\n        },\n    },\n}\nlocal target = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">10000</span>,  <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>,  <span class=\"opc-number\">10000</span>),\n}\nlocal excludes = {\n    {\n        excludes = { <span class=\"opc-comment\">-- multiple polygons are possible</span>\n            {\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">5000</span>, -<span class=\"opc-number\">5000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">5000</span>, -<span class=\"opc-number\">5000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">5000</span>,  <span class=\"opc-number\">5000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">5000</span>,  <span class=\"opc-number\">5000</span>),\n            },\n            layers = {\n                <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n                <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n            },\n        },\n    }\n    {\n        excludes = { <span class=\"opc-comment\">-- multiple polygons are possible</span>\n            {\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">2000</span>,  <span class=\"opc-number\">1000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">4000</span>,  <span class=\"opc-number\">1000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">4000</span>,  <span class=\"opc-number\">8000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">2000</span>,  <span class=\"opc-number\">8000</span>),\n            },\n            layers = {\n                <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"active\"</span>),\n            },\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.place_within_layer_boundaries(toplevel,\n    celllookup,\n    <span class=\"opc-string\">\"fill\"</span>,\n    targetarea,\n    <span class=\"opc-number\">1000</span>, <span class=\"opc-number\">1000</span>,\n    excludes\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> celllut = {\n    {\n        cell = object1,\n        layers = {\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">3</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">4</span>),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n        },\n    },\n    {\n        cell = object2,\n        layers = {\n            <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"active\"</span>),\n        },\n    },\n}\n<span class=\"opc-luaidentifier\">local</span> target = {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">10000</span>, -<span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">10000</span>,  <span class=\"opc-number\">10000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">10000</span>,  <span class=\"opc-number\">10000</span>),\n}\n<span class=\"opc-luaidentifier\">local</span> excludes = {\n    {\n        excludes = { <span class=\"opc-comment\">-- multiple polygons are possible</span>\n            {\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">5000</span>, -<span class=\"opc-number\">5000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">5000</span>, -<span class=\"opc-number\">5000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">5000</span>,  <span class=\"opc-number\">5000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">5000</span>,  <span class=\"opc-number\">5000</span>),\n            },\n            layers = {\n                <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>),\n                <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>),\n            },\n        },\n    }\n    {\n        excludes = { <span class=\"opc-comment\">-- multiple polygons are possible</span>\n            {\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">2000</span>,  <span class=\"opc-number\">1000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">4000</span>,  <span class=\"opc-number\">1000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">4000</span>,  <span class=\"opc-number\">8000</span>),\n                <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>( <span class=\"opc-number\">2000</span>,  <span class=\"opc-number\">8000</span>),\n            },\n            layers = {\n                <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">other</span>(<span class=\"opc-string\">\"active\"</span>),\n            },\n        },\n    }\n}\n<span class=\"opc-module\">placement</span>.place_within_layer_boundaries(toplevel,\n    celllookup,\n    <span class=\"opc-string\">\"fill\"</span>,\n    targetarea,\n    <span class=\"opc-number\">1000</span>, <span class=\"opc-number\">1000</span>,\n    excludes\n)",
     },
     {
         "module": "placement",
@@ -2533,7 +2533,7 @@ const apirefs = [
         "syntax": "calculate_grid(bl, tr, pitch, excludes)",
         "description": "prepare a grid for placement.place_boundary_grid",
         "details": "Calculate a grid of cell origins in a rectangular target area with the given binary excludes (in or out). This function returns a table which can be used as input for placement.place_boundary_grid.",
-        "examples": "local excludes = { {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">20000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">20000</span>)\n}, }\n<span class=\"opc-module\">placement</span>.calculate_grid(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">100000</span>), <span class=\"opc-number\">10000</span>, excludes)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> excludes = { {\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">2000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">8000</span>, <span class=\"opc-number\">20000</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">2000</span>, <span class=\"opc-number\">20000</span>)\n}, }\n<span class=\"opc-module\">placement</span>.calculate_grid(\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100000</span>, <span class=\"opc-number\">100000</span>),\n    <span class=\"opc-number\">10000</span>,\n    excludes\n)",
     },
     {
         "module": "placement",
@@ -2541,7 +2541,7 @@ const apirefs = [
         "syntax": "place_boundary_grid(toplevel, boundarycells, basept, grid, pitch, basename)",
         "description": "place cells on a regular grid with the given pitch",
         "details": "Place cells on a regular grid with the given pitch. The grid contains numeric entries of either 1 or 0, meaning 'place' or 'don't place'. This grid can be obtained by using placement.calculate_grid. The cells are placed on this grid, so that the proper cells are used at each of the grid points. This means that special cells are placed at the boundary of the grid (e.g., where there is no neighbouring cell to the left). The boundarycells table should contain sixteen (2^4) key-value pairs: cells for 'center', 'top', 'bottom', 'left', 'right', 'topleft', 'topright', 'topbottom', 'bottomleft', 'bottomright', 'leftright', 'topleftright', 'topbottomleft', 'topbottomright', 'bottomleftright' and 'topbottomleftright'",
-        "examples": "local grid = {\n    <span class=\"opc-comment\">--[[ some grid definition --]]</span>\n}\nlocal boundarycells = {\n    center = centercell,\n    top = topcell,\n    <span class=\"opc-comment\">--[[ and so on --]]</span>\n}\n<span class=\"opc-module\">placement</span>.place_boundary_grid(toplevel,\n    boundarycells,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    grid,\n    <span class=\"opc-number\">10000</span>,\n    <span class=\"opc-string\">\"gridcell\"</span>\n)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> grid = {\n    <span class=\"opc-comment\">--[[ some grid definition --]]</span>\n}\n<span class=\"opc-luaidentifier\">local</span> boundarycells = {\n    center = centercell,\n    top = topcell,\n    <span class=\"opc-comment\">--[[ and so on --]]</span>\n}\n<span class=\"opc-module\">placement</span>.place_boundary_grid(toplevel,\n    boundarycells,\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    grid,\n    <span class=\"opc-number\">10000</span>,\n    <span class=\"opc-string\">\"gridcell\"</span>\n)",
     },
     {
         "module": "point",
@@ -2549,7 +2549,7 @@ const apirefs = [
         "syntax": "create(x, y)",
         "description": "create a point",
         "details": "Create a point from an x- and y-coordinate.",
-        "examples": "local pt = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pt = <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>)",
     },
     {
         "module": "point",
@@ -2557,7 +2557,7 @@ const apirefs = [
         "syntax": "combine_12(pt1, pt2)",
         "description": "create a new point by combining two points (1-2 variant)",
         "details": "Create a new point by combining the coordinates of two other points. The new point is made up by x1 and y2. This function is equivalent to combine_21 with swapped arguments.",
-        "examples": "local new = <span class=\"opc-module\">point</span>.combine_12(pt1, pt2) <span class=\"opc-comment\">-- equivalent to point.create(pt1:getx(), pt2:gety())</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> new = <span class=\"opc-module\">point</span>.combine_12(pt1, pt2)\n<span class=\"opc-comment\">-- equivalent to point.create(pt1:getx(), pt2:gety())</span>",
     },
     {
         "module": "point",
@@ -2565,7 +2565,7 @@ const apirefs = [
         "syntax": "combine_21(pt1, pt2)",
         "description": "create a new point by combining two points (2-1 variant)",
         "details": "Create a new point by combining the coordinates of two other points. The new point is made up by x2 and y1. This function is equivalent to combine_12 with swapped arguments.",
-        "examples": "local new = <span class=\"opc-module\">point</span>.combine_21(pt1, pt2) <span class=\"opc-comment\">-- equivalent to point.create(pt2:getx(), pt1:gety())</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> new = <span class=\"opc-module\">point</span>.combine_21(pt1, pt2)\n<span class=\"opc-comment\">-- equivalent to point.create(pt2:getx(), pt1:gety())</span>",
     },
     {
         "module": "point",
@@ -2573,7 +2573,7 @@ const apirefs = [
         "syntax": "combine(pt1, pt2)",
         "description": "create a new point by combining two points (average variant)",
         "details": "Combine two points into a new one by taking the arithmetic average of their coordinates, that is x = 0.5 * (x1 + x2), y = 0.5 * (y1 + y2).",
-        "examples": "local newpt = <span class=\"opc-module\">point</span>.combine(pt1, pt2)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> newpt = <span class=\"opc-module\">point</span>.combine(pt1, pt2)",
     },
     {
         "module": "point",
@@ -2581,7 +2581,7 @@ const apirefs = [
         "syntax": "copy(point)",
         "description": "copy a point",
         "details": "Copy a point. Can be used as module function or as a point method.",
-        "examples": "local newpt = <span class=\"opc-module\">point</span>.copy(pt)\nlocal newpt = pt:copy()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> newpt = <span class=\"opc-module\">point</span>.copy(pt)\n<span class=\"opc-luaidentifier\">local</span> newpt = pt:copy()",
     },
     {
         "module": "point",
@@ -2589,7 +2589,7 @@ const apirefs = [
         "syntax": "getx(point)",
         "description": "get the x-coordinate from a point",
         "details": "Get the x-coordinate from a point. Can be used as module function or as a point method.",
-        "examples": "local x = <span class=\"opc-module\">point</span>.getx(pt)\nlocal x = pt:getx()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> x = <span class=\"opc-module\">point</span>.getx(pt)\n<span class=\"opc-luaidentifier\">local</span> x = pt:getx()",
     },
     {
         "module": "point",
@@ -2597,7 +2597,7 @@ const apirefs = [
         "syntax": "gety(point)",
         "description": "get the y-coordinate from a point",
         "details": "Get the y-coordinate from a point. Can be used as module function or as a point method.",
-        "examples": "local y = <span class=\"opc-module\">point</span>.gety(pt)\nlocal y = pt:gety()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> y = <span class=\"opc-module\">point</span>.gety(pt)\n<span class=\"opc-luaidentifier\">local</span> y = pt:gety()",
     },
     {
         "module": "point",
@@ -2629,7 +2629,7 @@ const apirefs = [
         "syntax": "xdistance(pt1, pt2)",
         "description": "calculate the x-distance between two points",
         "details": "Calculate the x-distance between two points, (the ordering of input parameters matters, it is pt1.x - pt2.x).",
-        "examples": "local distance = <span class=\"opc-module\">point</span>.xdistance(pt1, pt2)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> distance = <span class=\"opc-module\">point</span>.xdistance(pt1, pt2)",
     },
     {
         "module": "point",
@@ -2637,7 +2637,7 @@ const apirefs = [
         "syntax": "xdistance_abs(pt1, pt2)",
         "description": "calculate the x-distance between two points (absolute)",
         "details": "Calculate the x-distance between two points, but return the absolute (regardless of the ordering of input parameters).",
-        "examples": "local distance = <span class=\"opc-module\">point</span>.xdistance_abs(pt1, pt2)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> distance = <span class=\"opc-module\">point</span>.xdistance_abs(pt1, pt2)",
     },
     {
         "module": "point",
@@ -2645,7 +2645,7 @@ const apirefs = [
         "syntax": "ydistance(pt1, pt2)",
         "description": "calculate the y-distance between two points",
         "details": "Calculate the y-distance between two points, (the ordering of input parameters matters, it is pt1.y - pt2.y).",
-        "examples": "local distance = <span class=\"opc-module\">point</span>.ydistance(pt1, pt2)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> distance = <span class=\"opc-module\">point</span>.ydistance(pt1, pt2)",
     },
     {
         "module": "point",
@@ -2653,7 +2653,7 @@ const apirefs = [
         "syntax": "ydistance_abs(pt1, pt2)",
         "description": "calculate the y-distance between two points (absolute)",
         "details": "Calculate the y-distance between two points, but return the absolute (regardless of the ordering of input parameters).",
-        "examples": "local distance = <span class=\"opc-module\">point</span>.ydistance_abs(pt1, pt2)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> distance = <span class=\"opc-module\">point</span>.ydistance_abs(pt1, pt2)",
     },
     {
         "module": "point",
@@ -2661,7 +2661,7 @@ const apirefs = [
         "syntax": "xaverage(point)",
         "description": "calculate the x-average of two points",
         "details": "Calculate the arithmetic average of the x-coordinates of two points.",
-        "examples": "local xmid = <span class=\"opc-module\">point</span>.xaverage(pt1, pt2)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> xmid = <span class=\"opc-module\">point</span>.xaverage(pt1, pt2)",
     },
     {
         "module": "point",
@@ -2669,7 +2669,7 @@ const apirefs = [
         "syntax": "yaverage(point)",
         "description": "calculate the y-average of two points",
         "details": "Calculate the arithmetic average of the y-coordinates of two points.",
-        "examples": "local ymid = <span class=\"opc-module\">point</span>.yaverage(pt1, pt2)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> ymid = <span class=\"opc-module\">point</span>.yaverage(pt1, pt2)",
     },
     {
         "module": "point",
@@ -2709,7 +2709,7 @@ const apirefs = [
         "syntax": "xmirror(point, reference)",
         "description": "mirror a point (x-coordinate, copy)",
         "details": "Return a copy of the given point with the x-coordinate mirrored. A reference coordinate can be given, to which the x-coordinate is mirrored. If this is not present, 0 is used.",
-        "examples": "local newpt = pt:xmirror()\nlocal newpt2 = pt:xmirror(<span class=\"opc-number\">200</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> newpt = pt:xmirror()\n<span class=\"opc-luaidentifier\">local</span> newpt2 = pt:xmirror(<span class=\"opc-number\">200</span>)",
     },
     {
         "module": "point",
@@ -2717,7 +2717,7 @@ const apirefs = [
         "syntax": "ymirror(point, reference)",
         "description": "mirror a point (y-coordinate, copy)",
         "details": "Return a copy of the given point with the y-coordinate mirrored. A reference coordinate can be given, to which the y-coordinate is mirrored. If this is not present, 0 is used.",
-        "examples": "local newpt = pt:ymirror()\nlocal newpt2 = pt:ymirror(<span class=\"opc-number\">200</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> newpt = pt:ymirror()\n<span class=\"opc-luaidentifier\">local</span> newpt2 = pt:ymirror(<span class=\"opc-number\">200</span>)",
     },
     {
         "module": "point",
@@ -2725,7 +2725,7 @@ const apirefs = [
         "syntax": "unwrap(point)",
         "description": "get the x- and y-coordinates of a point",
         "details": "Get the x- and y-coordinate from a point. Equal to calling both getx() and gety(). Can be used as module function or as a point method.",
-        "examples": "local x, y = <span class=\"opc-module\">point</span>.unwrap(pt)\nlocal x, y = pt:unwrap()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> x, y = <span class=\"opc-module\">point</span>.unwrap(pt)\n<span class=\"opc-luaidentifier\">local</span> x, y = pt:unwrap()",
     },
     {
         "module": "point",
@@ -2773,7 +2773,7 @@ const apirefs = [
         "syntax": "get_grid()",
         "description": "get the technology grid",
         "details": "Get the manufacturing grid of the process node (in nanometer).",
-        "examples": "local grid = <span class=\"opc-module\">technology</span>.get_grid()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> grid = <span class=\"opc-module\">technology</span>.get_grid()",
     },
     {
         "module": "technology",
@@ -2781,7 +2781,7 @@ const apirefs = [
         "syntax": "get_even_grid()",
         "description": "get the technology grid (even only)",
         "details": "Get the manufacturing grid of the process node (in nanometer). If the grid is not an even number, return the next even multiple of the grid (grid * 2). This function is useful when geometries that need to be on grid are calculated from given parameters and divided later on.",
-        "examples": "local grid = <span class=\"opc-module\">technology</span>.get_even_grid()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> grid = <span class=\"opc-module\">technology</span>.get_even_grid()",
     },
     {
         "module": "technology",
@@ -2837,7 +2837,7 @@ const apirefs = [
         "syntax": "has_multiple_patterning(metalnumber)",
         "description": "check multiple patterning support/requirements",
         "details": "Check if the chosen metal layer (represented by the metal index) supports multiple patterning.",
-        "examples": "local metallayer\n<span class=\"opc-luaidentifier\">if</span> <span class=\"opc-module\">technology</span>.has_multiple_patterning(<span class=\"opc-number\">1</span>) then\n    metallayer = <span class=\"opc-module\">generics</span>.mptmetal(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span>)\n<span class=\"opc-luaidentifier\">else</span>\n    metallayer = <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>)\n<span class=\"opc-luaidentifier\">end</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> metallayer\n<span class=\"opc-luaidentifier\">if</span> <span class=\"opc-module\">technology</span>.has_multiple_patterning(<span class=\"opc-number\">1</span>) then\n    metallayer = <span class=\"opc-module\">generics</span>.mptmetal(<span class=\"opc-number\">1</span>, <span class=\"opc-number\">1</span>)\n<span class=\"opc-luaidentifier\">else</span>\n    metallayer = <span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">1</span>)\n<span class=\"opc-luaidentifier\">end</span>",
     },
     {
         "module": "technology",
@@ -2853,7 +2853,7 @@ const apirefs = [
         "syntax": "multiple_patterning_number(metalnumber)",
         "description": "get the number of masks for a given metal",
         "details": "Get the number of available mask for a metal layer that supports multiple patterning (otherwise the result is 0)",
-        "examples": "local nummasks = <span class=\"opc-module\">technology</span>.multiple_patterning_number(<span class=\"opc-number\">1</span>)\n<span class=\"opc-luaidentifier\">for</span> <span class=\"opc-luaidentifier\">i</span> = <span class=\"opc-number\">1</span>, nummasks <span class=\"opc-luaidentifier\">do</span>\n    <span class=\"opc-comment\">-- do something for every mask of this metal layer</span>\n<span class=\"opc-luaidentifier\">end</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> nummasks = <span class=\"opc-module\">technology</span>.multiple_patterning_number(<span class=\"opc-number\">1</span>)\n<span class=\"opc-luaidentifier\">for</span> <span class=\"opc-luaidentifier\">i</span> = <span class=\"opc-number\">1</span>, nummasks <span class=\"opc-luaidentifier\">do</span>\n    <span class=\"opc-comment\">-- do something for every mask of this metal layer</span>\n<span class=\"opc-luaidentifier\">end</span>",
     },
     {
         "module": "technology",
@@ -2861,7 +2861,7 @@ const apirefs = [
         "syntax": "resolve_metal(index)",
         "description": "resolve negative metal indices",
         "details": "Resolve negative metal indices to their 'real' value (e.g. in a metal stack with five metals -1 becomes 5, -3 becomes 3). This function does not do anything if the index is positive",
-        "examples": "local metalindex = <span class=\"opc-module\">technology</span>.resolve_metal(-<span class=\"opc-number\">2</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> metalindex = <span class=\"opc-module\">technology</span>.resolve_metal(-<span class=\"opc-number\">2</span>)",
     },
     {
         "module": "technology",
@@ -2869,7 +2869,7 @@ const apirefs = [
         "syntax": "metal_layer_to_index(layer)",
         "description": "convert a metal layer to its positive index",
         "details": "Retrieve the numeric index of a metal layer. The function always returns positive indices. If a non-metal layer is given, the function returns 0.",
-        "examples": "local metalindex = <span class=\"opc-module\">technology</span>.metal_layer_to_index(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>)) <span class=\"opc-comment\">-- 2</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> metalindex =\n    <span class=\"opc-module\">technology</span>.metal_layer_to_index(<span class=\"opc-module\">generics</span>.<span class=\"opc-function\">metal</span>(<span class=\"opc-number\">2</span>)) <span class=\"opc-comment\">-- 2</span>",
     },
     {
         "module": "technology",
@@ -2877,7 +2877,7 @@ const apirefs = [
         "syntax": "get_number_of_metals()",
         "description": "get the number of metals",
         "details": "Get the number of metals in the layer stack. This value is given in the configuration file of a technology node.",
-        "examples": "local nummetals = <span class=\"opc-module\">technology</span>.get_number_of_metals()",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> nummetals = <span class=\"opc-module\">technology</span>.get_number_of_metals()",
     },
     {
         "module": "technology",
@@ -2909,7 +2909,7 @@ const apirefs = [
         "syntax": "min(t)",
         "description": "retrieve the minimum value of a numeric array",
         "details": "Retrieve the minimum value of a numeric array. Returns the corresponding index as second return value",
-        "examples": "local min, idx = <span class=\"opc-module\">util</span>.min({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) <span class=\"opc-comment\">-- 1, 1</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> min, idx = <span class=\"opc-module\">util</span>.min({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) <span class=\"opc-comment\">-- 1, 1</span>",
     },
     {
         "module": "util",
@@ -2917,7 +2917,7 @@ const apirefs = [
         "syntax": "max(t)",
         "description": "retrieve the maximum value of a numeric array",
         "details": "Retrieve the maximum value of a numeric array. Returns the corresponding index as second return value",
-        "examples": "local max, idx = <span class=\"opc-module\">util</span>.max({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) <span class=\"opc-comment\">-- 4, 2</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> max, idx = <span class=\"opc-module\">util</span>.max({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) <span class=\"opc-comment\">-- 4, 2</span>",
     },
     {
         "module": "util",
@@ -2925,7 +2925,7 @@ const apirefs = [
         "syntax": "make_counter(start)",
         "description": "create a counter funciton",
         "details": "Create a counter function that increments and returns its current value everytime it is called. If a value is given, the counter starts at that value. The default is 1.",
-        "examples": "local counter = <span class=\"opc-module\">util</span>.make_counter()\nprint(counter()) <span class=\"opc-comment\">-- 1</span>\nprint(counter()) <span class=\"opc-comment\">-- 2</span>\nprint(counter()) <span class=\"opc-comment\">-- 3</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> counter = <span class=\"opc-module\">util</span>.make_counter()\nprint(counter()) <span class=\"opc-comment\">-- 1</span>\nprint(counter()) <span class=\"opc-comment\">-- 2</span>\nprint(counter()) <span class=\"opc-comment\">-- 3</span>",
     },
     {
         "module": "util",
@@ -2933,7 +2933,7 @@ const apirefs = [
         "syntax": "polygon_xmin(polygon)",
         "description": "retrieve the minimum x-value of a polygon",
         "details": "Retrieve the minimum x-value of all points of a polygon.",
-        "examples": "local value = <span class=\"opc-module\">util</span>.polygon_xmin({ <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>) }) <span class=\"opc-comment\">-- -100</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> value = <span class=\"opc-module\">util</span>.polygon_xmin({\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>)\n}) <span class=\"opc-comment\">-- -100</span>",
     },
     {
         "module": "util",
@@ -2941,7 +2941,7 @@ const apirefs = [
         "syntax": "polygon_xmax(polygon)",
         "description": "retrieve the maximum x-value of a polygon",
         "details": "Retrieve the maximum x-value of all points of a polygon.",
-        "examples": "local value = <span class=\"opc-module\">util</span>.polygon_xmax({ <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>) }) <span class=\"opc-comment\">-- 200</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> value = <span class=\"opc-module\">util</span>.polygon_xmax({\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>)\n}) <span class=\"opc-comment\">-- 200</span>",
     },
     {
         "module": "util",
@@ -2949,7 +2949,7 @@ const apirefs = [
         "syntax": "polygon_ymin(polygon)",
         "description": "retrieve the minimum y-value of a polygon",
         "details": "Retrieve the minimum y-value of all points of a polygon.",
-        "examples": "local value = <span class=\"opc-module\">util</span>.polygon_ymin({ <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>) }) <span class=\"opc-comment\">-- 0</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> value = <span class=\"opc-module\">util</span>.polygon_ymin({\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>)\n}) <span class=\"opc-comment\">-- 0</span>",
     },
     {
         "module": "util",
@@ -2957,7 +2957,7 @@ const apirefs = [
         "syntax": "polygon_ymax(polygon)",
         "description": "retrieve the maximum y-value of a polygon",
         "details": "Retrieve the maximum y-value of all points of a polygon.",
-        "examples": "local value = <span class=\"opc-module\">util</span>.polygon_ymax({ <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>) }) <span class=\"opc-comment\">-- 200</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> value = <span class=\"opc-module\">util</span>.polygon_ymax({\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, <span class=\"opc-number\">200</span>)\n}) <span class=\"opc-comment\">-- 200</span>",
     },
     {
         "module": "util",
@@ -2965,7 +2965,7 @@ const apirefs = [
         "syntax": "xmirror(pts, xcenter)",
         "description": "copy and mirror (x only) a list of points",
         "details": "Create a copy of the points in pts (a table) with all x-coordinates mirrored with respect to xcenter.",
-        "examples": "local pts = { <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">0</span>) }\n<span class=\"opc-module\">util</span>.xmirror(pts, <span class=\"opc-number\">0</span>) <span class=\"opc-comment\">-- { (-10, 0), (-20, 0) }</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = { <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">0</span>) }\n<span class=\"opc-module\">util</span>.xmirror(pts, <span class=\"opc-number\">0</span>) <span class=\"opc-comment\">-- { (-10, 0), (-20, 0) }</span>",
     },
     {
         "module": "util",
@@ -2973,7 +2973,7 @@ const apirefs = [
         "syntax": "ymirror(pts, ycenter)",
         "description": "copy and mirror (y only) a list of points",
         "details": "Create a copy of the points in pts (a table) with all y-coordinates mirrored with respect to ycenter.",
-        "examples": "local pts = { <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">10</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">20</span>) }\n<span class=\"opc-module\">util</span>.ymirror(pts, <span class=\"opc-number\">0</span>) <span class=\"opc-comment\">-- { (0, -10), (0, -20) }</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = { <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">10</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">20</span>) }\n<span class=\"opc-module\">util</span>.ymirror(pts, <span class=\"opc-number\">0</span>) <span class=\"opc-comment\">-- { (0, -10), (0, -20) }</span>",
     },
     {
         "module": "util",
@@ -2981,7 +2981,7 @@ const apirefs = [
         "syntax": "xymirror(pts, xcenter, ycenter)",
         "description": "copy and mirror (x and y) a list of points",
         "details": "Create a copy of the points in pts (a table) with all x- and y-coordinates mirrored with respect to xcenter and ycenter, respectively.",
-        "examples": "local pts = { <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10</span>, <span class=\"opc-number\">10</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>) }\n<span class=\"opc-module\">util</span>.ymirror(pts, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>) <span class=\"opc-comment\">-- { (-10, -10), (-20, -20) }</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = { <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">10</span>, <span class=\"opc-number\">10</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>) }\n<span class=\"opc-module\">util</span>.ymirror(pts, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>) <span class=\"opc-comment\">-- { (-10, -10), (-20, -20) }</span>",
     },
     {
         "module": "util",
@@ -2989,7 +2989,7 @@ const apirefs = [
         "syntax": "filter_forward(pts, fun)",
         "description": "filter a list of points through a filter function (forward variant)",
         "details": "Iterate forward through the list of points and create a new list with copied points that match the predicate. The predicate function is called with every point.",
-        "examples": "local pts = { ... }\nlocal predicate = <span class=\"opc-luaidentifier\">function</span>(pt) return pt:getx() > <span class=\"opc-number\">0</span> <span class=\"opc-luaidentifier\">end</span>\nlocal newpts = <span class=\"opc-module\">util</span>.filter_forward(pts, predicate)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = { ... }\n<span class=\"opc-luaidentifier\">local</span> predicate = <span class=\"opc-luaidentifier\">function</span>(pt) return pt:getx() > <span class=\"opc-number\">0</span> <span class=\"opc-luaidentifier\">end</span>\n<span class=\"opc-luaidentifier\">local</span> newpts = <span class=\"opc-module\">util</span>.filter_forward(pts, predicate)",
     },
     {
         "module": "util",
@@ -2997,7 +2997,7 @@ const apirefs = [
         "syntax": "filter_backward(pts, fun)",
         "description": "filter a list of points through a filter function (backward variant)",
         "details": "Iterate backward through the list of points and create a new list with copied points that match the predicate. The predicate function is called with every point.",
-        "examples": "local pts = { ... }\nlocal predicate = <span class=\"opc-luaidentifier\">function</span>(pt) return pt:getx() > <span class=\"opc-number\">0</span> <span class=\"opc-luaidentifier\">end</span>\nlocal newpts = <span class=\"opc-module\">util</span>.filter_backward(pts, predicate)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = { ... }\n<span class=\"opc-luaidentifier\">local</span> predicate = <span class=\"opc-luaidentifier\">function</span>(pt) return pt:getx() > <span class=\"opc-number\">0</span> <span class=\"opc-luaidentifier\">end</span>\n<span class=\"opc-luaidentifier\">local</span> newpts = <span class=\"opc-module\">util</span>.filter_backward(pts, predicate)",
     },
     {
         "module": "util",
@@ -3021,7 +3021,7 @@ const apirefs = [
         "syntax": "merge_tables(t1, t2)",
         "description": "append all entries from t2 to t1",
         "details": "Create a new table with t1 and t2 concatenated. The elements of t2 are append after those of t1. Only the array entries of t1 and t2 are processed.",
-        "examples": "<span class=\"opc-module\">util</span>.merge_tables({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }, { <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">6</span> }) <span class=\"opc-comment\">-- { 1, 2, 3, 4, 5, 6 }</span>",
+        "examples": "<span class=\"opc-module\">util</span>.merge_tables(\n    { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> },\n    { <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">6</span> }\n) <span class=\"opc-comment\">-- { 1, 2, 3, 4, 5, 6 }</span>",
     },
     {
         "module": "util",
@@ -3029,7 +3029,7 @@ const apirefs = [
         "syntax": "insert_table(main, t)",
         "description": "append all entries from t to main",
         "details": "Append all entries from t to main.",
-        "examples": "local <span class=\"opc-module\">t</span> = { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }\n<span class=\"opc-module\">util</span>.insert_table(<span class=\"opc-module\">t</span>, { <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">6</span> }) <span class=\"opc-comment\">-- t is now { 1, 2, 3, 4, 5, 6 }</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> <span class=\"opc-module\">t</span> = { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }\n<span class=\"opc-module\">util</span>.insert_table(<span class=\"opc-module\">t</span>, { <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">6</span> })\n<span class=\"opc-comment\">-- t is now { 1, 2, 3, 4, 5, 6 }</span>",
     },
     {
         "module": "util",
@@ -3037,7 +3037,7 @@ const apirefs = [
         "syntax": "reverse(pts)",
         "description": "reverse a point list",
         "details": "create a copy of the point array with the order of points reversed",
-        "examples": "local reversed = <span class=\"opc-module\">util</span>.reverse(pts)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> reversed = <span class=\"opc-module\">util</span>.reverse(pts)",
     },
     {
         "module": "util",
@@ -3045,7 +3045,7 @@ const apirefs = [
         "syntax": "make_insert_xy(pts, index)",
         "description": "create a function that inserts points into a point array (xy variant)",
         "details": "Create a function that inserts points into a point array. XY mode, thus points are given as two coordinates. If an index is given, insert at that position. Mostly useful with 1 as an index or not index at all (append)",
-        "examples": "local pts = {}\nlocal _append = <span class=\"opc-module\">util</span>.make_insert_xy(pts)\n_append(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>)\n_append(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>)\n_append(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)\n_append(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">100</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = {}\n<span class=\"opc-luaidentifier\">local</span> _append = <span class=\"opc-module\">util</span>.make_insert_xy(pts)\n_append(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>)\n_append(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>)\n_append(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)\n_append(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">100</span>)",
     },
     {
         "module": "util",
@@ -3053,7 +3053,7 @@ const apirefs = [
         "syntax": "make_insert_pts(pts, index)",
         "description": "create a function that inserts points into a point array (point variant)",
         "details": "Create a function that inserts points into a point array. Point mode, thus points are given as single points. If an index is given, insert at that position. Mostly useful with 1 as an index or not index at all (append)",
-        "examples": "local pts = {}\nlocal _append = <span class=\"opc-module\">util</span>.make_insert_pts(pts)\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>))\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>))\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>))\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">100</span>))",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pts = {}\n<span class=\"opc-luaidentifier\">local</span> _append = <span class=\"opc-module\">util</span>.make_insert_pts(pts)\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>))\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>))\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>))\n_append(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">100</span>))",
     },
     {
         "module": "util",
@@ -3061,7 +3061,7 @@ const apirefs = [
         "syntax": "rep(num, value)",
         "description": "create an list with a repetition of a value",
         "details": "Create an array-like table with one entry repeated N times. This is useful, for example, for specifying gate contacts for basic/cmos.",
-        "examples": "local gatecontactpos = <span class=\"opc-module\">util</span>.<span class=\"opc-luaidentifier\">rep</span>(<span class=\"opc-number\">4</span>, <span class=\"opc-number\">0</span>) <span class=\"opc-comment\">-- { 0, 0, 0, 0 }</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> gatecontactpos = <span class=\"opc-module\">util</span>.<span class=\"opc-luaidentifier\">rep</span>(<span class=\"opc-number\">4</span>, <span class=\"opc-number\">0</span>) <span class=\"opc-comment\">-- { 0, 0, 0, 0 }</span>",
     },
     {
         "module": "util",
@@ -3077,7 +3077,7 @@ const apirefs = [
         "syntax": "remove(t, comp)",
         "description": "remove some elements of a table (the table is copied)",
         "details": "Create a shallow copy of a table with certain elements matching the given criteria removed. The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. If the result of the function call is 'true', the entry is NOT included in the results table.",
-        "examples": "<span class=\"opc-module\">util</span>.remove({<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>}, <span class=\"opc-number\">3</span>) <span class=\"opc-comment\">-- { 1, 2, 4, 5 }</span>\n<span class=\"opc-module\">util</span>.remove({<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>}, <span class=\"opc-luaidentifier\">function</span>(<span class=\"opc-luaidentifier\">e</span>) return <span class=\"opc-luaidentifier\">e</span> % <span class=\"opc-number\">2</span> == <span class=\"opc-number\">0</span> <span class=\"opc-luaidentifier\">end</span>) <span class=\"opc-comment\">-- { 1, 3, 5 }</span>",
+        "examples": "<span class=\"opc-module\">util</span>.remove({<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>}, <span class=\"opc-number\">3</span>) <span class=\"opc-comment\">-- { 1, 2, 4, 5 }</span>\n<span class=\"opc-module\">util</span>.remove({<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>},\n    <span class=\"opc-luaidentifier\">function</span>(<span class=\"opc-luaidentifier\">e</span>) return <span class=\"opc-luaidentifier\">e</span> % <span class=\"opc-number\">2</span> == <span class=\"opc-number\">0</span> <span class=\"opc-luaidentifier\">end</span>\n) <span class=\"opc-comment\">-- { 1, 3, 5 }</span>",
     },
     {
         "module": "util",
@@ -3085,7 +3085,7 @@ const apirefs = [
         "syntax": "remove_index(t, index)",
         "description": "remove some elements of a table (the table is copied) (index variant)",
         "details": "Create a shallow copy of a table with the element(s) at the 'index(es)' removed. Index can be either a scalar integer or a table containing multiple indices which shall be removed",
-        "examples": "<span class=\"opc-module\">util</span>.remove_index({<span class=\"opc-number\">10</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">30</span>, <span class=\"opc-number\">40</span>, <span class=\"opc-number\">50</span>}, <span class=\"opc-number\">3</span>) <span class=\"opc-comment\">-- { 10, 20, 40, 50 }</span>",
+        "examples": "<span class=\"opc-module\">util</span>.remove_index(\n    { <span class=\"opc-number\">10</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">30</span>, <span class=\"opc-number\">40</span>, <span class=\"opc-number\">50</span> },\n    <span class=\"opc-number\">3</span>\n) <span class=\"opc-comment\">-- { 10, 20, 40, 50 }</span>",
     },
     {
         "module": "util",
@@ -3093,7 +3093,7 @@ const apirefs = [
         "syntax": "remove_inplace(t, comp)",
         "description": "remove some elements of a table",
         "details": "Remove certain elements matching the given criteria. The 'comp' parameter can either be a value, which will be compared directly to the entries or a comparison function. If the result of the function call is 'true', the entry is NOT included in the results table.",
-        "examples": "<span class=\"opc-module\">util</span>.remove({<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>}, <span class=\"opc-number\">3</span>) <span class=\"opc-comment\">-- { 1, 2, 4, 5 }</span>\n<span class=\"opc-module\">util</span>.remove({<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>}, <span class=\"opc-luaidentifier\">function</span>(<span class=\"opc-luaidentifier\">e</span>) return <span class=\"opc-luaidentifier\">e</span> % <span class=\"opc-number\">2</span> == <span class=\"opc-number\">0</span> <span class=\"opc-luaidentifier\">end</span>) <span class=\"opc-comment\">-- { 1, 3, 5 }</span>",
+        "examples": "<span class=\"opc-module\">util</span>.remove({<span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>}, <span class=\"opc-number\">3</span>) <span class=\"opc-comment\">-- { 1, 2, 4, 5 }</span>\n<span class=\"opc-module\">util</span>.remove(\n    { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span> },\n    <span class=\"opc-luaidentifier\">function</span>(<span class=\"opc-luaidentifier\">e</span>) return <span class=\"opc-luaidentifier\">e</span> % <span class=\"opc-number\">2</span> == <span class=\"opc-number\">0</span> <span class=\"opc-luaidentifier\">end</span>\n) <span class=\"opc-comment\">-- { 1, 3, 5 }</span>",
     },
     {
         "module": "util",
@@ -3101,7 +3101,7 @@ const apirefs = [
         "syntax": "remove_index_inplace(t, index)",
         "description": "remove some elements of a table (index variant)",
         "details": "remove the element of the given table at the given index (actually just a wrapper for table.remove)",
-        "examples": "<span class=\"opc-module\">util</span>.remove_index({<span class=\"opc-number\">10</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">30</span>, <span class=\"opc-number\">40</span>, <span class=\"opc-number\">50</span>}, <span class=\"opc-number\">3</span>) <span class=\"opc-comment\">-- { 10, 20, 40, 50 }</span>",
+        "examples": "<span class=\"opc-module\">util</span>.remove_index(\n    { <span class=\"opc-number\">10</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">30</span>, <span class=\"opc-number\">40</span>, <span class=\"opc-number\">50</span> },\n    <span class=\"opc-number\">3</span>\n) <span class=\"opc-comment\">-- { 10, 20, 40, 50 }</span>",
     },
     {
         "module": "util",
@@ -3109,7 +3109,7 @@ const apirefs = [
         "syntax": "fill_all_with(num, filler)",
         "description": "create an list with a repetition of a value",
         "details": "Create an array-like table with one entry repeated N times. This is useful, for example, for specifying gate contacts for basic/cmos",
-        "examples": "local gatecontactpos = <span class=\"opc-module\">util</span>.fill_all_with(<span class=\"opc-number\">4</span>, <span class=\"opc-string\">\"center\"</span>) <span class=\"opc-comment\">-- { \"center\", \"center\", \"center\", \"center\" }</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> gatecontactpos = <span class=\"opc-module\">util</span>.fill_all_with(<span class=\"opc-number\">4</span>, <span class=\"opc-string\">\"center\"</span>)\n<span class=\"opc-comment\">-- { \"center\", \"center\", \"center\", \"center\" }</span>",
     },
     {
         "module": "util",
@@ -3117,7 +3117,7 @@ const apirefs = [
         "syntax": "fill_predicate_with(num, filler, predicate, other)",
         "description": "create an list with a repetition of a value, defined by a binary predicate function",
         "details": "Create an array-like table with two entries (total number of entries is N). This function (compared to fill_all_with, fill_odd_with and fill_even_with) allows for more complex patterns. To do this, a predicate (a function) is called on every index. If the predicate is true, the first entry is inserted, otherwise the second one. This function is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
-        "examples": "local contactpos = <span class=\"opc-module\">util</span>.fill_predicate_with(<span class=\"opc-number\">8</span>, <span class=\"opc-string\">\"power\"</span>, <span class=\"opc-luaidentifier\">function</span>(<span class=\"opc-luaidentifier\">i</span>) return <span class=\"opc-luaidentifier\">i</span> % <span class=\"opc-number\">4</span> == <span class=\"opc-number\">0</span> <span class=\"opc-luaidentifier\">end</span>, <span class=\"opc-string\">\"outer\"</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> contactpos = <span class=\"opc-module\">util</span>.fill_predicate_with(\n    <span class=\"opc-number\">8</span>,\n    <span class=\"opc-string\">\"power\"</span>,\n    <span class=\"opc-luaidentifier\">function</span>(<span class=\"opc-luaidentifier\">i</span>) return <span class=\"opc-luaidentifier\">i</span> % <span class=\"opc-number\">4</span> == <span class=\"opc-number\">0</span> <span class=\"opc-luaidentifier\">end</span>,\n    <span class=\"opc-string\">\"outer\"</span>\n)",
     },
     {
         "module": "util",
@@ -3125,7 +3125,7 @@ const apirefs = [
         "syntax": "fill_even_with(num, filler, other)",
         "description": "create an list with an alternating repetition of two values (even variant)",
         "details": "Create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
-        "examples": "local gatecontactpos = <span class=\"opc-module\">util</span>.fill_even_with(<span class=\"opc-number\">4</span>, <span class=\"opc-string\">\"center\"</span>, <span class=\"opc-string\">\"upper\"</span>) <span class=\"opc-comment\">-- { \"upper\", \"center\", \"upper\", \"center\" }</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> gatecontactpos = <span class=\"opc-module\">util</span>.fill_even_with(\n    <span class=\"opc-number\">4</span>,\n    <span class=\"opc-string\">\"center\"</span>,\n    <span class=\"opc-string\">\"upper\"</span>\n)\n<span class=\"opc-comment\">-- { \"upper\", \"center\", \"upper\", \"center\" }</span>",
     },
     {
         "module": "util",
@@ -3133,7 +3133,7 @@ const apirefs = [
         "syntax": "fill_odd_with(num, filler, other)",
         "description": "create an list with an alternating repetition of two values (odd variant)",
         "details": "Create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'filler'",
-        "examples": "local gatecontactpos = <span class=\"opc-module\">util</span>.fill_odd_with(<span class=\"opc-number\">4</span>, <span class=\"opc-string\">\"center\"</span>, <span class=\"opc-string\">\"upper\"</span>) <span class=\"opc-comment\">-- { \"center\", \"upper\", \"center\", \"upper\" }</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> gatecontactpos = <span class=\"opc-module\">util</span>.fill_odd_with(\n    <span class=\"opc-number\">4</span>,\n    <span class=\"opc-string\">\"center\"</span>,\n    <span class=\"opc-string\">\"upper\"</span>\n)\n<span class=\"opc-comment\">-- { \"center\", \"upper\", \"center\", \"upper\" }</span>",
     },
     {
         "module": "util",
@@ -3141,7 +3141,7 @@ const apirefs = [
         "syntax": "clone_shallow(table)",
         "description": "create a shallow copy of a table",
         "details": "Create a shallow copy of a table. This function creates a copy of the given table, where all first-level values are copied. If those values are tables, they reference the same table as the original object.",
-        "examples": "local new = <span class=\"opc-module\">util</span>.clone_shallow(<span class=\"opc-module\">t</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> new = <span class=\"opc-module\">util</span>.clone_shallow(<span class=\"opc-module\">t</span>)",
     },
     {
         "module": "util",
@@ -3149,7 +3149,7 @@ const apirefs = [
         "syntax": "clone_shallow_predicate(table, predicate)",
         "description": "create a shallow copy of a table with entries selected by a predicate function",
         "details": "Create a shallow copy of a table. This function creates a copy of the given table, where all first-level values are copied. If those values are tables, they reference the same table as the original object. This function only copies items where the given predicate function (called with the key and the value of the item) returns true.",
-        "examples": "local new = <span class=\"opc-module\">util</span>.clone_shallow_predicate(<span class=\"opc-module\">t</span>, <span class=\"opc-luaidentifier\">function</span>(k, v) <span class=\"opc-luaidentifier\">if</span> string.match(v, <span class=\"opc-string\">\"vdd.+\"</span>) <span class=\"opc-luaidentifier\">end</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> new = <span class=\"opc-module\">util</span>.clone_shallow_predicate(<span class=\"opc-module\">t</span>,\n    <span class=\"opc-luaidentifier\">function</span>(k, v) <span class=\"opc-luaidentifier\">if</span> string.match(v, <span class=\"opc-string\">\"vdd.+\"</span>) <span class=\"opc-luaidentifier\">end</span>\n)",
     },
     {
         "module": "util",
@@ -3157,7 +3157,7 @@ const apirefs = [
         "syntax": "clone_array_predicate(table, predicate)",
         "description": "create a shallow copy of an array-like table with entries selected by a predicate function",
         "details": "Create a shallow copy of an array-like table. This function creates a copy of the given table, where all first-level array values are copied. If those values are tables, they reference the same table as the original object. This function only copies items where the given predicate function (called with value of the item) returns true. The array indices might change as not all elements might be copied.",
-        "examples": "local new = <span class=\"opc-module\">util</span>.clone_shallow_predicate(<span class=\"opc-module\">t</span>, <span class=\"opc-luaidentifier\">function</span>(<span class=\"opc-luaidentifier\">e</span>) <span class=\"opc-luaidentifier\">if</span> string.match(<span class=\"opc-luaidentifier\">e</span>, <span class=\"opc-string\">\"vdd.+\"</span>) <span class=\"opc-luaidentifier\">end</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> new = <span class=\"opc-module\">util</span>.clone_shallow_predicate(<span class=\"opc-module\">t</span>,\n    <span class=\"opc-luaidentifier\">function</span>(<span class=\"opc-luaidentifier\">e</span>) <span class=\"opc-luaidentifier\">if</span> string.match(<span class=\"opc-luaidentifier\">e</span>, <span class=\"opc-string\">\"vdd.+\"</span>) <span class=\"opc-luaidentifier\">end</span>\n)",
     },
     {
         "module": "util",
@@ -3165,7 +3165,7 @@ const apirefs = [
         "syntax": "add_options(baseoptions, additionaloptions)",
         "description": "create a copy of a table and add extra key-value pairs",
         "details": "Create a copy of the baseoptions table and add all key-value pairs found in additionaloptions. This function clones baseoptions so the original is not altered. This copy is flat, so only the first-level elements are copied (e.g. tables will reference the same object). This function is useful to modify a set of base options for several devices such as mosfets, which only differ in a few options",
-        "examples": "local baseoptions = ...\nlocal fet = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"fet\"</span>, <span class=\"opc-module\">util</span>.add_options(baseoptions, { gatelength = <span class=\"opc-number\">100</span> }))",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> baseoptions = ...\n<span class=\"opc-luaidentifier\">local</span> fet = <span class=\"opc-module\">pcell</span>.create_layout(<span class=\"opc-string\">\"basic/mosfet\"</span>, <span class=\"opc-string\">\"fet\"</span>,\n    <span class=\"opc-module\">util</span>.add_options(\n        baseoptions,\n        { gatelength = <span class=\"opc-number\">100</span> }\n    )\n)",
     },
     {
         "module": "util",
@@ -3173,7 +3173,7 @@ const apirefs = [
         "syntax": "ratio_split_even(value, ratio)",
         "description": "create two values that sum up to the input value and have the specified ratio",
         "details": "Create two values that sum up to the input value and have the specified ratio. The values are adjusted so that both of them are even, possibly changing the ratio slightly. The input value must be even",
-        "examples": "local pitch = <span class=\"opc-number\">1000</span>\nlocal width, space = <span class=\"opc-module\">util</span>.ratio_split_even(pitch, <span class=\"opc-number\">2</span>) <span class=\"opc-comment\">-- results in 668 and 332, the actual ratio then is 2.012</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pitch = <span class=\"opc-number\">1000</span>\n<span class=\"opc-luaidentifier\">local</span> width, space = <span class=\"opc-module\">util</span>.ratio_split_even(pitch, <span class=\"opc-number\">2</span>)\n<span class=\"opc-comment\">-- results in 668 and 332, the actual ratio then is 2.012</span>",
     },
     {
         "module": "util",
@@ -3181,7 +3181,7 @@ const apirefs = [
         "syntax": "ratio_split_multiple_of(value, ratio, multiple)",
         "description": "create two values that sum up to the input value and have the specified ratio (multiple variant)",
         "details": "Create two values that sum up to the input value and have the specified ratio. The values are adjusted so that both of them are multiples of the given value ('multiple'), possibly changing the ratio slightly. The input value must be divisable by 'multiple'. This function called with multiple == 2 behaves exactly like ratio_split_even",
-        "examples": "local pitch = <span class=\"opc-number\">1000</span>\nlocal width, space = <span class=\"opc-module\">util</span>.ratio_split_even(pitch, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">20</span>) <span class=\"opc-comment\">-- results in 680 and 320, the actual ratio then is 2.125</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> pitch = <span class=\"opc-number\">1000</span>\n<span class=\"opc-luaidentifier\">local</span> width, space = <span class=\"opc-module\">util</span>.ratio_split_even(pitch, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">20</span>)\n<span class=\"opc-comment\">-- results in 680 and 320, the actual ratio then is 2.125</span>",
     },
     {
         "module": "util",
@@ -3189,7 +3189,7 @@ const apirefs = [
         "syntax": "make_rectangle(center, width, height)",
         "description": "create a rectangle from a center point and the width and height",
         "details": "Create a rectangle from a center point and the width and height. This function returns two points (bottom-left and top-right). This function does not create any shapes, use geometry.rectanglebltr and similar functions for that.",
-        "examples": "local bl, <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">util</span>.make_rectangle(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> bl, <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">util</span>.make_rectangle(\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>),\n    <span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>\n)",
     },
     {
         "module": "util",
@@ -3197,7 +3197,7 @@ const apirefs = [
         "syntax": "polygon_rectangular_boundary(polygon)",
         "description": "calculate the bounding rectangle of a polygon",
         "details": "Calculate the encompassing rectangle of the given polygon. This function two points: 'bl' (bottom-left) and 'tr' (top-right).",
-        "examples": "local bl, <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">util</span>.polygon_rectangular_boundary(polygon)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> bl, <span class=\"opc-luaidentifier\">tr</span> = <span class=\"opc-module\">util</span>.polygon_rectangular_boundary(polygon)",
     },
     {
         "module": "util",
@@ -3205,7 +3205,7 @@ const apirefs = [
         "syntax": "rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)",
         "description": "convert a rectangle to a rectangular polygon",
         "details": "Convert a two-point rectangle to a polygon describing this rectangle. Optionally, the polygon can be extended in the four directions (left/right/bottom/top). This function is useful for creating fill layer boundaries or fill target regions",
-        "examples": "local region = <span class=\"opc-module\">util</span>.rectangle_to_polygon(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>), -<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">200</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> region = <span class=\"opc-module\">util</span>.rectangle_to_polygon(\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">100</span>, -<span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n    -<span class=\"opc-number\">100</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>, <span class=\"opc-number\">200</span>\n)",
     },
     {
         "module": "util",
@@ -3221,7 +3221,7 @@ const apirefs = [
         "syntax": "split_rectilinear_polygon(polygon)",
         "description": "split a rectilinear polygon into rectangles",
         "details": "Split a rectilinear polygon into non-overlapping rectangles. This function returns a table with one entry per rectangle. The rectangles are represented by something like '{ pt1 = point.create(...), pt2 = point.create(...) }'. The function checks whether the polygon is actually rectilinear and does not do anything in case it is not.",
-        "examples": "local rectangles = <span class=\"opc-module\">util</span>.split_rectilinear_polygon(polygon)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> rectangles = <span class=\"opc-module\">util</span>.split_rectilinear_polygon(polygon)",
     },
     {
         "module": "util",
@@ -3229,7 +3229,7 @@ const apirefs = [
         "syntax": "fit_rectangular_polygon(bl, tr, xgrid, ygrid, minxext, minyext, xmultiple, ymultiple)",
         "description": "convert a rectangle to a rectangular polygon (gridded variant)",
         "details": "Convert a two-point rectangle to a polygon describing this rectangle. The polygon is extended so that its width and height are a integer multiple of the specified x- and y-grid. The polygon's width and height are always at least the width and height of the rectangle. Additionally, a minimum extension can be given in x- and y-direction, which can further increase the polygon's size. The resulting rectangle can be tuned so that it has an even or odd multiplicity in either of the directions. The keys \"even\" or \"odd\" can be used for the last two parameters 'xmultiple' and 'ymultiple'. If they are nil, the resulting rectangle is not modified from the original fitting.",
-        "examples": "local region = <span class=\"opc-module\">util</span>.fit_rectangular_polygon(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">127</span>, -<span class=\"opc-number\">110</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">118</span>, <span class=\"opc-number\">109</span>), <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">50</span>, <span class=\"opc-number\">50</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> region = <span class=\"opc-module\">util</span>.fit_rectangular_polygon(\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(-<span class=\"opc-number\">127</span>, -<span class=\"opc-number\">110</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">118</span>, <span class=\"opc-number\">109</span>),\n    <span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>, <span class=\"opc-number\">50</span>, <span class=\"opc-number\">50</span>\n)",
     },
     {
         "module": "util",
@@ -3237,7 +3237,7 @@ const apirefs = [
         "syntax": "offset_polygon(polygon, offset)",
         "description": "grow or shrink (offset) a polygon outline",
         "details": "Calculate a new polygon from a given one with all lines shifted by a given offset. This function has potentially many uses, but as of version 0.10.0 it is mostly used for expanding layer boundaries to include mandatory spacing to automatically generated fill structures. Hence, it is only tested for positive offsets. Additionally, for extreme cases (acute angles with large offsets) self-intersecting polygons can occur. This function should fix these, but it currently does not. This is a bug. Submission of proper algorithms to solve this are welcome.",
-        "examples": "local new_polygon = <span class=\"opc-module\">util</span>.offset_polygon(polygon, <span class=\"opc-number\">100</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> new_polygon = <span class=\"opc-module\">util</span>.offset_polygon(polygon, <span class=\"opc-number\">100</span>)",
     },
     {
         "module": "util",
@@ -3245,7 +3245,7 @@ const apirefs = [
         "syntax": "rectangle_intersection(bl1, tr1, bl2, tr2)",
         "description": "compute the intersection of two rectangles",
         "details": "Compute the intersection of two rectangles and return it as a table with 'bl' (bottom-left) and 'tr' (top-right) entries. If no itersection exists, this function returns nil.",
-        "examples": "local region = <span class=\"opc-module\">util</span>.rectangle_intersection(<span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">20</span>))",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> region = <span class=\"opc-module\">util</span>.rectangle_intersection(\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">0</span>, <span class=\"opc-number\">0</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">100</span>, <span class=\"opc-number\">100</span>),\n    <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">20</span>, <span class=\"opc-number\">20</span>), <span class=\"opc-module\">point</span>.<span class=\"opc-function\">create</span>(<span class=\"opc-number\">200</span>, <span class=\"opc-number\">20</span>)\n)",
     },
     {
         "module": "util",
@@ -3325,7 +3325,7 @@ const apirefs = [
         "syntax": "reduce(table, function, initial, ...)",
         "description": "apply a function to every element of a table (scalar return)",
         "details": "Apply a function to every element of a given table. Return a scalar result of these calls. An initial value must be given (e.g. '0' for numeric operations). This sets the type of the result. Additional arguments can be passed to the function.",
-        "examples": "<span class=\"opc-module\">util</span>.reduce({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }, <span class=\"opc-luaidentifier\">function</span>(lhs, rhs) return lhs + rhs <span class=\"opc-luaidentifier\">end</span>, <span class=\"opc-number\">0</span>) <span class=\"opc-comment\">-- 6</span>",
+        "examples": "<span class=\"opc-module\">util</span>.reduce(\n    { <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> },\n    <span class=\"opc-luaidentifier\">function</span>(lhs, rhs) return lhs + rhs <span class=\"opc-luaidentifier\">end</span>,\n    <span class=\"opc-number\">0</span> <span class=\"opc-comment\">-- initial value</span>\n) <span class=\"opc-comment\">-- 6</span>",
     },
     {
         "module": "util",
@@ -3341,7 +3341,7 @@ const apirefs = [
         "syntax": "find_predicate(table, comp, ...)",
         "description": "find a value in an array (predicate variant)",
         "details": "Like util.find, but call a function to do the comparison. The function is called with every one of the values, but not the index. If multiple values match, only the first one is returned.",
-        "examples": "<span class=\"opc-module\">util</span>.find_predicate(\n    { <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span> },\n    <span class=\"opc-luaidentifier\">function</span>(value)\n        return value == <span class=\"opc-number\">4</span>\n    <span class=\"opc-luaidentifier\">end</span>\n) <span class=\"opc-comment\">-- 2, 4</span>\nlocal target = <span class=\"opc-number\">4</span>\n<span class=\"opc-module\">util</span>.find(\n    { <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span> },\n    <span class=\"opc-luaidentifier\">function</span>(value, <span class=\"opc-module\">t</span>)\n        return value == <span class=\"opc-module\">t</span>\n    <span class=\"opc-luaidentifier\">end</span>,\n    target\n) <span class=\"opc-comment\">-- 2, 4</span>\n",
+        "examples": "<span class=\"opc-module\">util</span>.find_predicate(\n    { <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span> },\n    <span class=\"opc-luaidentifier\">function</span>(value)\n        return value == <span class=\"opc-number\">4</span>\n    <span class=\"opc-luaidentifier\">end</span>\n) <span class=\"opc-comment\">-- 2, 4</span>\n<span class=\"opc-luaidentifier\">local</span> target = <span class=\"opc-number\">4</span>\n<span class=\"opc-module\">util</span>.find(\n    { <span class=\"opc-number\">3</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span> },\n    <span class=\"opc-luaidentifier\">function</span>(value, <span class=\"opc-module\">t</span>)\n        return value == <span class=\"opc-module\">t</span>\n    <span class=\"opc-luaidentifier\">end</span>,\n    target\n) <span class=\"opc-comment\">-- 2, 4</span>\n",
     },
     {
         "module": "util",
@@ -3381,7 +3381,7 @@ const apirefs = [
         "syntax": "sum(t)",
         "description": "calculate the sum of all items of an numeric array",
         "details": "Calculate the sum of all items of an numeric array.",
-        "examples": "local sum = <span class=\"opc-module\">util</span>.sum({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) <span class=\"opc-comment\">-- 6</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> sum = <span class=\"opc-module\">util</span>.sum({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span> }) <span class=\"opc-comment\">-- 6</span>",
     },
     {
         "module": "util",
@@ -3389,7 +3389,7 @@ const apirefs = [
         "syntax": "uniq(t)",
         "description": "copy only unique elements of a table",
         "details": "Create an array where only unique entries of the input array t are present. Equality is checked via the comparison operator '=='",
-        "examples": "local <span class=\"opc-module\">u</span> = <span class=\"opc-module\">util</span>.uniq({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">7</span> }) <span class=\"opc-comment\">-- { 1, 2, 3, 4, 5, 7 }</span>",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> <span class=\"opc-module\">u</span> = <span class=\"opc-module\">util</span>.uniq({ <span class=\"opc-number\">1</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">3</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">4</span>, <span class=\"opc-number\">5</span>, <span class=\"opc-number\">2</span>, <span class=\"opc-number\">1</span>, <span class=\"opc-number\">7</span> })\n<span class=\"opc-comment\">-- { 1, 2, 3, 4, 5, 7 }</span>",
     },
     {
         "module": "util",
@@ -3397,7 +3397,7 @@ const apirefs = [
         "syntax": "intersection(s1, s2, t1, t2)",
         "description": "calculate the intersection point of two lines",
         "details": "Calculate the intersection point of two lines. If the intersection is found, it is returned. If the lines are parallel, nil is returned. If the lines are not parallel but don't intersect (because they are not infinite), their virtual intersection point is returned after nil (as second return value)",
-        "examples": "local ptreal, ptvirtual = <span class=\"opc-module\">util</span>.intersection(spt1, spt2, tpt1, tpt2)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> ptreal, ptvirtual = <span class=\"opc-module\">util</span>.intersection(\n    spt1, spt2,\n    tpt1, tpt2\n)",
     },
     {
         "module": "util",
@@ -3405,7 +3405,7 @@ const apirefs = [
         "syntax": "rectangle_union(bl1, tr1, bl1, tr2)",
         "description": "calculate the rectangle union of two rectangles",
         "details": "Calculate the rectangle union of two rectangles. This only return a non-nil result if the union of the two rectangles is still a true rectangle. The calculated union is return as a table with 'bl' and 'tr' entries",
-        "examples": "local union = <span class=\"opc-module\">util</span>.rectangle_union(bl1, tr1, bl2, tr2)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> union = <span class=\"opc-module\">util</span>.rectangle_union(bl1, tr1, bl2, tr2)",
     },
     {
         "module": "util",
@@ -3413,6 +3413,6 @@ const apirefs = [
         "syntax": "tconcatfmt(t, sep, fmt)",
         "description": "create a string representation of the array elements of a table",
         "details": "Create a string representation of the array elements of a table. Similar to table.concat, but this allows to specify a format for every element. util.tconcatfmt(t, sep, \"%s\") is equivalent to table.concat(t, sep).",
-        "examples": "local str = <span class=\"opc-module\">util</span>.tconcatfmt(<span class=\"opc-module\">t</span>, <span class=\"opc-string\">\", \"</span>, <span class=\"opc-string\">\"<%s>\"</span>)",
+        "examples": "<span class=\"opc-luaidentifier\">local</span> str = <span class=\"opc-module\">util</span>.tconcatfmt(<span class=\"opc-module\">t</span>, <span class=\"opc-string\">\", \"</span>, <span class=\"opc-string\">\"<%s>\"</span>)",
     },
 ];
