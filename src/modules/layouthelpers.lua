@@ -550,6 +550,7 @@ function M.place_vias(cell, netshapes1, netshapes2, excludes, netfilter, onlyful
     check.arg_optional(5, "netfilter", "table", netfilter)
     check.arg_optional(6, "onlyfull", "boolean", onlyfull)
     check.arg_optional(7, "nocheck", "boolean", nocheck)
+    excludes = excludes or {}
     for i1 = 1, #netshapes1 do
         local connect = true
         if netfilter then
@@ -569,16 +570,17 @@ function M.place_vias(cell, netshapes1, netshapes2, excludes, netfilter, onlyful
                         local metal1 = technology.metal_layer_to_index(netshapes1[i1].layer)
                         local metal2 = technology.metal_layer_to_index(netshapes2[i2].layer)
                         local create = nocheck or geometry.check_viabltr(metal1, metal2, r.bl, r.tr)
-                        if excludes then
-                            for _, exclude in ipairs(excludes) do
-                                if util.rectangle_intersects_polygon(r, exclude) then
-                                    create = false
-                                    break
-                                end
+                        for _, exclude in ipairs(excludes) do
+                            if util.rectangle_intersects_polygon(r, exclude) then
+                                create = false
+                                break
                             end
                         end
                         if create then
                             geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
+                            -- FIXME: don't put every via in the excludes table, this slows down this function
+                            --        calculate a bit more intelligently which excludes are required (look at overlaps).
+                            table.insert(excludes, util.rectangle_to_polygon(r.bl, r.tr))
                         end
                     end
                 end
