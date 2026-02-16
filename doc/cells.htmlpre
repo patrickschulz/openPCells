@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+    @make_header top OpenPCells Documentation
+    <body>
+        @make_topbar top Cell Documentation
+        <p>
+        This is the main page for the documentation of the openPCells (opc) project.
+        </p>
+
+        <a href="cells/routing/bus.html">routing/bus</href>
+
+        @include footer.html
+    </body>
+</html>

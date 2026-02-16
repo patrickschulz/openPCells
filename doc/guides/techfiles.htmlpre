@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+    @make_header sub OpenPCells Documentation
+    <body>
+        @make_topbar sub Technology Files
+        <details open>
+            <summary>Introduction</summary>
+            <p>
+            This guide shows the process of adding new technology files.
+            </p>
+        </details>
+
+        <details open>
+            <summary>Overview</summary>
+            <p>
+            The pcells are defined in general layers (such as "gate" or "M1" or "lastmetal"), which have to be translated into a specific technology for cell generation.
+            Furthermore, vias and contacts have to be put into arrays, which requires knowledge about the technology.
+            The technology-defining files (the \enquote{techfiles}) describe the required rules and layer mappings.
+            In order to make it easy to start with techfiles they only need to contain what is required by the generated cell.
+            That means for example that an inductor with only one metal layer only the mapping for that metal is required.
+            If a cell is generated where some layers are missing in the techfile, you will see the following message (with the requested layer listed, in this case <code class="shellinline">metal(2)</code>):
+            </p>
+            <pre class="shell"><code>generics: got NULL layer: generics.metal(2)
+if this layer is not needed, set it to {} </code></pre>
+            <p>
+            This message shows you which layer has to be added to the techfile in order to make the cell run successfully.
+            This guide will explain how to add these layers and which information is required.
+            </p>
+        </details>
+
+        <details open>
+            <summary>Adding Technologies</summary>
+            <p>
+            A technology definition is a collection of files in one directory.
+            These files get loaded by opc when requested as technology, the directory has to be within one of the paths in the technology search path (see the <code class="shellinline">--techpath</code> command line option).
+            OpenPCells expects a technology to provide at least three files: <code class="shellinline">config.lua</code>, <code class="shellinline">layermap.lua</code> and <code class="shellinline">vias.lua</code>.
+            All these files return one lua table, so a basic (empty technology) has the following content for all of these files:
+            </p>
+            <pre class="opc"><code>return {} </code></pre>
+            <p>
+            Of course, this does not really make sense, so the following sections explore what (and when) to put into these files.
+            </p>
+        </details>
+
+        <details open>
+            <summary>Config</summary>
+            <p>
+            The config is pretty simple, as it only requires a few keys set.
+            Currently, only the number of metals in the stack is necessary for some calculations in specific cells, but the other options will be included in the project in the future.
+            More options are also likely to come.
+            </p>
+            <pre class="opc"><code>return {
+    grid = 1, -- in nanometers,
+    substrate_dopand = "p-substrate", -- dopand type of the substrate
+    has_triple_well = true, -- support for tripe-wells
+    is_SOI = false, -- silicon-on-insulator node
+    FEOL_method = "active_plus_implant", -- method for specifying active
+                                         -- (transistor) regions
+    has_gatecut = false, -- special layer for cutting gates
+    metals = 4, -- number of metals in the stack
+} </code></pre>
+            <p>
+            The <code class="opcinline">grid</code> defines the granularity of the shapes, <code class="opcinline">metals</code> is the total number of available metal (and interconnect) layers in this technology node.
+            <code class="opcinline">substrate_dopand</code> and <code class="opcinline">has_triple_well</code> configure the wells.
+            <code class="opcinline">is_SOI</code> is a simple boolean switch whether this technology node is a silicon-on-insulator process.
+            The front-end-of-line method (<code class="opcinline">FEOL_method</code>) configures the way active transistor regions are specified.
+            Supported options are <code class="opcinline">active_plus_implant</code>, <code class="opcinline">dedicated_active</code> or <code class="opcinline">asymmetric_active</code>.
+            </p>
+        </details>
+
+        <details open>
+            <summary>Layermap</summary>
+            <p>
+            The layermap includes information on the human-readable layer data as well as the stream numbers (virtuoso could also work just with the stream
+            numbers, but often the layers have internal numbers that are NOT the stream numbers).
+            Therefore every entry is a table containing a table for the layer and a table for the purpose:
+            </p>
+            <pre class="opc"><code>-- example for metal 1
+M1 = {
+    name = "metal1",
+    layer = {
+        gds = { layer = 8, purpose = 0 },
+        SKILL = { layer = "metal1", purpose = "drawing" },
+        svg = { style = "metal1", order = 4, color = "0000ff" },
+    }
+},
+-- example of an unused layer
+notused = {},</code></pre>
+            <p>
+            The needed layers depends on the cells that are being used, but the program will also tell you when you are missing something.
+            Therefore, you can also keep running it until it works.
+            The `opc` technology layer map contains most of the used layers and can be used as a reference.
+            </p>
+            <p>
+            The <code class="opcinline">name</code> field is optional, but helps when debugging cells.
+            In fact, only one entry in the <code class="opcinline">layer</code> subtable for the corresponding export type is required.
+            </p>
+        </details>
+
+        <details open>
+            <summary>Vias</summary>
+                <p>
+                The via rules file defines the via/contact geometries.
+                In general, via regions (specified as rectangles within cells) are turned into arrays of individual cuts, defined by the via technology file.
+                Therefore, the cut sizing must be given (<code class="opcinline">width</code> and <code class="opcinline">height</code>) as well as minimum space in x- and y-direction as well as outer enclosure (often different then inter-cut spacing).
+                </p>
+                <p>
+                Multiple entries are possible to accomodate the different ways of drawing vias.
+                Furthermore, via entries can be restricted to certain maximum widths and/or heights of the via regions, with the keys <code class="opcinline">maxwidth</code> and <code class="opcinline">maxheight</code>.
+                </p>
+                <pre class="opc"><code>viaM1M2 = {
+    entries = {
+        {
+            width = 100, height = 100,
+            xspace = 200, yspace = 200,
+            xenclosure = 50, yenclosure = 50
+        },
+        {
+            width = 100, height = 100,
+            xspace = 200, yspace = 200,
+            xenclosure = 100, yenclosure = 20
+        },
+    },
+}, </code></pre>
+        </details>
+
+        <details open>
+            <summary>Summary</summary>
+            <p>
+            This already concludes the information on writing techfiles.
+            There are some subleties here and there, but this document should be enough to get a basic technology mapping going.
+            In general, the more advanced the used cells are, the more complex these files will get.
+            This means on the other hand that only a few lines in each of these files are already enough to start using some of the cells and learning the opc workflow.
+            </p>
+        </details>
+
+        @include footer.html
+    </body>
+</html>
+

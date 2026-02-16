@@ -1,17 +1,8 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>sub OpenPCells Documentation</title>
-        <link rel="stylesheet" href="../style.css">
-    </head>
+    @make_header sub OpenPCells Documentation
     <body>
-        <div class="topbar">
-            <div class="topbar-content">
-                <a href="../index.html" class="title">OpenPCells Documentation</a>
-                <h2 class="subtitle">sub Writing Exports</h2>
-            </div>
-        </div>
+        @make_topbar sub Writing Exports
         <details open>
             <summary>Introduction</summary>
             <p>
@@ -405,11 +396,6 @@ end</code></pre>
 end</code></pre>
 
         </details>
-        <div class="footerbar">
-            <hr>
-            <footer>
-                OpenPCells Documentation &ndash; opc 0.27.7
-            </footer>
-        </div>
+        @include footer.html
     </body>
 </html>

@@ -1,0 +1,75 @@
+\definecolor{opc_black}{RGB}{43,40,40}
+\colorlet{opc_main}{DodgerBlue3!90}
+\colorlet{opc_main}{black!15}
+\colorlet{opc_secondary}{opc_black}
+%\colorlet{opc_secondary}{white}
+
+\setbeamercolor{section in head/foot}{fg=opc_secondary, bg=opc_main}
+\setbeamercolor{frametitle}{fg=opc_secondary, bg=opc_main}
+\setbeamercolor{framesubtitle}{fg=opc_secondary, bg=opc_main}
+\setbeamercolor{title page top}{fg=opc_secondary, bg=opc_main}
+\setbeamercolor{title page bottom}{fg=opc_black, bg=white}
+
+% blocks
+\setbeamerfont{block title}{series=\bfseries}
+\setbeamercolor*{block title}{fg=opc_secondary,bg=opc_main}
+\setbeamercolor*{block body}{fg=black,bg=opc_main!10!white}
+
+\setbeamercolor{enumerate item}{fg = black}
+
+\setbeamerfont{frametitle}{size=\large, series=\bfseries}
+\setbeamerfont{title}{size=\huge, series=\bfseries}
+\setbeamerfont{subtitle}{size=\small}
+\setbeamerfont{author}{size=\LARGE, series=\bfseries}
+\setbeamerfont{date}{size=\small}
+
+\setbeamercolor{itemize item}{fg=black}
+\setbeamercolor{itemize subitem}{fg=black}
+\setbeamertemplate{itemize item}[circle]
+\setbeamertemplate{itemize subitem}[-]
+
+\newdimen\opc@frametitlesep
+\opc@frametitlesep=2.5ex
+\newdimen\opc@footbarsep
+\opc@footbarsep=0.5ex
+
+% disable navigation
+\setbeamertemplate{navigation symbols}{}
+
+\def\maketitle{%
+    \ifbeamer@inframe
+      \titlepage
+    \else
+      \frame[plain]{\titlepage}
+    \fi
+    \setcounter{framenumber}{0}
+}
+
+% custom draw the title page above
+\setbeamertemplate{title page}{%
+    \begin{beamercolorbox}[wd=\paperwidth, ht=0.5\paperheight, center, sep=0pt]{title page top}
+        \usebeamerfont{title}\inserttitle\par
+        \vspace{0.5em}%
+        \usebeamerfont{subtitle}\insertsubtitle\par
+        \vspace{1em}%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=\paperwidth, ht=0.5\paperheight, center]{title page bottom}
+    \vbox to 0.5\paperheight{%
+        \vfil
+        \usebeamerfont{author}\insertauthor\par%
+        \vspace{0.5em}%
+        \usebeamerfont{date}\insertdate\par%
+        \vfil%
+    }%
+    \end{beamercolorbox}
+}
+
+\setbeamertemplate{frametitle}[default][left]
+
+\setbeamertemplate{footline}{
+    \nointerlineskip%
+    \usebeamerfont{frametitle}%
+    \begin{beamercolorbox}[wd=\paperwidth, sep=\opc@footbarsep]{section in head/foot}
+        \scriptsize Patrick Kurth\hfill\insertframenumber/\inserttotalframenumber%
+    \end{beamercolorbox}
+}

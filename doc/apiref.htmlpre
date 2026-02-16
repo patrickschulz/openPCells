@@ -1,17 +1,8 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>top OpenPCells Documentation</title>
-        <link rel="stylesheet" href="style.css">
-    </head>
+    @make_header top OpenPCells Documentation
     <body>
-        <div class="topbar">
-            <div class="topbar-content">
-                <a href="index.html" class="title">OpenPCells Documentation</a>
-                <h2 class="subtitle">top Application Interface Function Reference</h2>
-            </div>
-        </div>
+        @make_topbar top Application Interface Function Reference
         <div class="container">
             <p>
             This page contains searchable API function references.
@@ -35,12 +26,7 @@
                 </section>
             </li>
         </template>
-        <div class="footerbar">
-            <hr>
-            <footer>
-                OpenPCells Documentation &ndash; opc 0.27.7
-            </footer>
-        </div>
+        @include footer.html
         <script type="text/javascript" src="apirefs.js"></script>
         <script type="text/javascript" src="process_apirefs.js"></script>
     </body>

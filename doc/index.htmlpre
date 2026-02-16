@@ -1,17 +1,8 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>OpenPCells Documentation</title>
-        <link rel="stylesheet" href="style.css">
-    </head>
+    @make_header OpenPCells Documentation
     <body>
-        <div class="topbar">
-            <div class="topbar-content">
-                <a href="index.html" class="title">OpenPCells Documentation</a>
-                <h2 class="subtitle">Main Page</h2>
-            </div>
-        </div>
+        @make_topbar Main Page
         <p>
         This is the main page for the documentation of the openPCells (opc) project.
         </p>
@@ -35,11 +26,6 @@
             <p>Searchable documentation of the application programming interface (API) functions.</p>
             <p><a href=apiref.html>API Function Reference</a></p>
         </div>
-        <div class="footerbar">
-            <hr>
-            <footer>
-                OpenPCells Documentation &ndash; opc 0.27.7
-            </footer>
-        </div>
+        @include footer.html
     </body>
 </html>

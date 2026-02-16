@@ -1,17 +1,8 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>top OpenPCells Documentation</title>
-        <link rel="stylesheet" href="style.css">
-    </head>
+    @make_header top OpenPCells Documentation
     <body>
-        <div class="topbar">
-            <div class="topbar-content">
-                <a href="index.html" class="title">OpenPCells Documentation</a>
-                <h2 class="subtitle">top Usage Guides</h2>
-            </div>
-        </div>
+        @make_topbar top Usage Guides
         <p>
         This is the main page for the documentation of the openPCells (opc) project.
         </p>
@@ -61,11 +52,6 @@
             <p><a href=guides/export.html>Creating Custom Export Types</a></p>
         </div>
 
-        <div class="footerbar">
-            <hr>
-            <footer>
-                OpenPCells Documentation &ndash; opc 0.27.7
-            </footer>
-        </div>
+        @include footer.html
     </body>
 </html>

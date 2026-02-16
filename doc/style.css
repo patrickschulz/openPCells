@@ -6,7 +6,7 @@ body {
     margin: 0 auto;
     padding: 8pt;
     font-family: "sans-serif";
-    font-size: 100%;
+    font-size: 12pt;
     background: #ffffff;
     hyphens: auto;
 }
@@ -58,6 +58,7 @@ li {
     width: 100%;
     background-color: #f2f2f2;
     padding: 0pt 0pt 0pt 0pt;
+    margin: 0pt 0pt 10pt 0pt;
 }
 
 .topbar-content {
@@ -83,6 +84,44 @@ li {
     background-color: #f6f6f6;
 }
 
+table.parameters {
+    border: 2px solid;
+    border-collapse: collapse;
+}
+
+table.parameters th {
+    border: 1px solid;
+    padding: 5pt;
+    text-align: center;
+    font-weight: bold;
+}
+
+table.parameters td {
+    border: 1px solid;
+    padding: 5pt;
+    text-align: left;
+}
+
+col.name {
+    width: 15%;
+}
+
+col.type {
+    width: 15%;
+}
+
+col.info {
+    width: 40%;
+}
+
+col.default {
+    width: 15%;
+}
+
+col.allowed {
+    width: 15%;
+}
+
 pre.shell {
     background-color: #eeeeee;
     padding: 5pt;
@@ -91,11 +130,29 @@ pre.shell {
     font: monospace;
 }
 
+code.shellinline {
+    background-color: #eeeeee;
+    padding: 1pt;
+    font: monospace;
+}
+
 pre.opc {
     background-color: #eaeaff;
     padding: 5pt;
     border-radius: 2pt;
     font-size: 12pt;
+    font: monospace;
+}
+
+code.opcinline {
+    background-color: #eaeaff;
+    padding: 1pt;
+    font: monospace;
+}
+
+code.generic {
+    background-color: #eeeeee;
+    padding: 1pt;
     font: monospace;
 }
 

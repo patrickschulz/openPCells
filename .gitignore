@@ -20,6 +20,11 @@
 /src/debug
 /opc.1
 
+# generated documentation
+doc/*.html
+doc/guides/*.html
+doc/tutorials/*.html
+
 # generated layouts and helpers
 /openPCells.*
 /pfile.lua
