@@ -1,0 +1,1683 @@
+\begin{APIfunc}{geometry.rectanglebltr(cell, layer, bl, tr)}
+    Create a rectangular shape with the given corner points in cell
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the rectangle is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{bl}{point}
+            Bottom-left point of the generated rectangular shape;
+        \parameter{tr}{point}
+            Top-right point of the generated rectangular shape;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.rectanglepoints(cell, layer, pt1, pt2)}
+    Create a rectangular shape with the given corner points in cell. Similar to geometry.rectanglebltr, but any of the corner points can be given in any order
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the rectangle is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{pt1}{point}
+            First corner point of the generated rectangular shape;
+        \parameter{pt2}{point}
+            Second corner point of the generated rectangular shape;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.rectanglepath(cell, layer, pt1, pt2, width, extension)}
+    Create a rectangular shape that is defined by its path-like endpoints. This function behaves like geometry.path, but takes only two points, not a list of points. This function likely will be removed in the future, use geometry.rectanglebltr or geometry.rectanglepoints
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the rectangle is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{pt1}{point}
+            First path point of the generated rectangular shape;
+        \parameter{pt2}{point}
+            Second path point of the generated rectangular shape;
+        \parameter{width}{integer}
+            Width of the path-like shape;
+        \parameter{extension}{table}
+            optional table argument containing the start/end extensions;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.rectanglearray(cell, layer, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch)}
+    Create an array of rectangles with the given width, height, repetition and pitch in cell
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the rectangle is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{width}{integer}
+            Width of the generated rectangular shape;
+        \parameter{height}{integer}
+            Height of the generated rectangular shape;
+        \parameter{xshift}{integer}
+            Number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below;
+        \parameter{yshift}{integer}
+            Number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below;
+        \parameter{xrep}{integer}
+            Number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below;
+        \parameter{yrep}{integer}
+            Number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below;
+        \parameter{xpitch}{integer}
+            Pitch in x direction, used for repetition in x;
+        \parameter{ypitch}{integer}
+            Pitch in y direction, used for repetition in y;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.rectanglevlines(cell, layer, pt1, pt2, numlines, ratio)}
+    Fill a rectangular area with vertical lines with a given ratio between width and spacing
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the rectangle is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{pt1}{point}
+            First corner point of the target area;
+        \parameter{pt2}{point}
+            Second corner point of the target area;
+        \parameter{numlines}{integer}
+            Number of lines to be generated;
+        \parameter{ratio}{number}
+            Ratio between width and spacing of lines;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.rectanglehlines(cell, layer, pt1, pt2, numlines, ratio)}
+    Fill a rectangular area with horizontal lines with a given ratio between width and spacing
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the rectangle is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{pt1}{point}
+            First corner point of the target area;
+        \parameter{pt2}{point}
+            Second corner point of the target area;
+        \parameter{numlines}{integer}
+            Number of lines to be generated;
+        \parameter{ratio}{number}
+            Ratio between width and spacing of lines;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.rectangle\_fill\_in\_boundary(cell, layer, width, height, xpitch, ypitch, xstartshift, ystartshift, boundary, excludes)}
+    Fill a given boundary (a polygon) with rectangles of a given width and height. If given, the rectangles are not placed in the regions defined by the exclude rectangles. The excludes table should contain polygons
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the rectangle is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{width}{integer}
+            Width of the rectangles;
+        \parameter{height}{integer}
+            Height of the rectangles;
+        \parameter{xpitch}{integer}
+            Pitch in x-direction;
+        \parameter{ypitch}{integer}
+            Pitch in y-direction;
+        \parameter{xstartshift}{integer}
+            Shift the start of the rectangle placment algorithm in x-direction;
+        \parameter{ystartshift}{integer}
+            Shift the start of the rectangle placment algorithm in y-direction;
+        \parameter{boundary}{pointlist}
+            List of points defining fill boundary (a polygon);
+        \parameter{excludes}{table}
+            Collection of excludes (polygons);
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.polygon(cell, layer, pts)}
+    Create a polygon shape with the given points in cell
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the polygon is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{pts}{pointlist}
+            List of points that make up the polygon;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.path(cell, layer, pts, width, extension)}
+    Create a path shape with the given points and width in cell
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the path is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{pts}{pointlist}
+            List of points where the path passes through;
+        \parameter{width}{integer}
+            width of the path. Must be even;
+        \parameter{extension}{table}
+            optional table argument containing the start/end extensions;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.path\_manhatten(cell, layer, pts, width, extension)}
+    Create a manhatten path shape with the given points and width in cell. This only allows vertical or horizontal movements
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the path is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{pts}{pointlist}
+            List of points where the path passes through;
+        \parameter{width}{integer}
+            width of the path. Must be even;
+        \parameter{extension}{table}
+            optional table argument containing the start/end extensions;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.path\_2x(cell, layer, ptstart, ptend, width)}
+    Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in y-direction (similar to an 'L')
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the path is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{ptstart}{point}
+            Start point of the path;
+        \parameter{ptend}{point}
+            End point of the path;
+        \parameter{width}{integer}
+            width of the path. Must be even;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.path\_2y(cell, layer, ptstart, ptend, width)}
+    Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction (similar to an 'T')
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the path is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{ptstart}{point}
+            Start point of the path;
+        \parameter{ptend}{point}
+            End point of the path;
+        \parameter{width}{integer}
+            width of the path. Must be even;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.path\_cshape(cell, layer, ptstart, ptend, ptoffset, width)}
+    Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the x-coordinate of the offset point is taken, creating a shape resembling a (possibly inverter) 'C'
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the path is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{ptstart}{point}
+            Start point of the path;
+        \parameter{ptend}{point}
+            End point of the path;
+        \parameter{ptoffset}{point}
+            Offset point;
+        \parameter{width}{integer}
+            width of the path. Must be even;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.path\_ushape(cell, layer, ptstart, ptend, ptoffset, width)}
+    Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the y-coordinate of the offset point is taken, creating a shape resembling a (possibly inverter) 'U'
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the path is created;
+        \parameter{layer}{generics}
+            Layer of the generated rectangular shape;
+        \parameter{ptstart}{point}
+            Start point of the path;
+        \parameter{ptend}{point}
+            End point of the path;
+        \parameter{ptoffset}{point}
+            Offset point;
+        \parameter{width}{integer}
+            width of the path. Must be even;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.path\_points\_xy(ptstart, pts)}
+    Create a point list for use in geometry.path that contains only horizontal and vertical movements based on a list of points or scalars.
+This function only creates the resulting list of points, no shapes by itself.
+A movement can be a point, in which case two resulting movements are created: first x, than y (or vice versa, depending on the current state).
+A scalar movement moves relatively by that amount (in x or y, again depending on the state)
+This function does the same as geometry.path\_points\_yx, but starts in x-direction
+    \begin{APIparameters}
+        \parameter{ptstart}{point}
+            Start point of the path;
+        \parameter{pts}{pointlist}
+            List of points or scalars;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.path\_points\_yx(ptstart, pts)}
+    Create a point list for use in geometry.path that contains only horizontal and vertical movements based on a list of points or scalars.
+This function only creates the resulting list of points, no shapes by itself.
+A movement can be a point, in which case two resulting movements are created: first x, than y (or vice versa, depending on the current state).
+A scalar movement moves relatively by that amount (in x or y, again depending on the state)
+This function does the same as geometry.path\_points\_xy, but starts in y-direction
+    \begin{APIparameters}
+        \parameter{ptstart}{point}
+            Start point of the path;
+        \parameter{pts}{pointlist}
+            List of points or scalars;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.viabltr(cell, firstmetal, lastmetal, bl, tr)}
+    Create vias (single or stack) in a rectangular area with the given corner points in cell
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the via is created;
+        \parameter{firstmetal}{integer}
+            Number of the first metal. Negative values are possible;
+        \parameter{lastmetal}{integer}
+            Number of the last metal. Negative values are possible;
+        \parameter{bl}{point}
+            Bottom-left point of the generated rectangular shape;
+        \parameter{tr}{point}
+            Top-right point of the generated rectangular shape;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.viabarebltr(cell, firstmetal, lastmetal, bl, tr)}
+    Create vias (single or stack) in a rectangular area with the given corner points in cell. This function is like viabltr, but no metals are drawn
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the via is created;
+        \parameter{firstmetal}{integer}
+            Number of the first metal. Negative values are possible;
+        \parameter{lastmetal}{integer}
+            Number of the last metal. Negative values are possible;
+        \parameter{bl}{point}
+            Bottom-left point of the generated rectangular shape;
+        \parameter{tr}{point}
+            Top-right point of the generated rectangular shape;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.viabltr\_xcontinuous(cell, firstmetal, lastmetal, bl, tr)}
+    Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in x-direction. For this, the space between cuts and the surroundings are equalized
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the via is created;
+        \parameter{firstmetal}{integer}
+            Number of the first metal. Negative values are possible;
+        \parameter{lastmetal}{integer}
+            Number of the last metal. Negative values are possible;
+        \parameter{bl}{point}
+            Bottom-left point of the generated rectangular shape;
+        \parameter{tr}{point}
+            Top-right point of the generated rectangular shape;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.viabltr\_ycontinuous(cell, firstmetal, lastmetal, bl, tr)}
+    Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in y-direction. For this, the space between cuts and the surroundings are equalized
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the via is created;
+        \parameter{firstmetal}{integer}
+            Number of the first metal. Negative values are possible;
+        \parameter{lastmetal}{integer}
+            Number of the last metal. Negative values are possible;
+        \parameter{bl}{point}
+            Bottom-left point of the generated rectangular shape;
+        \parameter{tr}{point}
+            Top-right point of the generated rectangular shape;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.viabltr\_continuous(cell, firstmetal, lastmetal, bl, tr)}
+    Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in both x- and y-direction. For this, the space between cuts and the surroundings are equalized
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the via is created;
+        \parameter{firstmetal}{integer}
+            Number of the first metal. Negative values are possible;
+        \parameter{lastmetal}{integer}
+            Number of the last metal. Negative values are possible;
+        \parameter{bl}{point}
+            Bottom-left point of the generated rectangular shape;
+        \parameter{tr}{point}
+            Top-right point of the generated rectangular shape;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.contactbltr(cell, layer, bl, tr)}
+    Create contacts in a rectangular area with the given corner points in cell
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the contact is created;
+        \parameter{layer}{string}
+            Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain';
+        \parameter{bl}{point}
+            Bottom-left point of the generated rectangular shape;
+        \parameter{tr}{point}
+            Top-right point of the generated rectangular shape;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.contactbarebltr(cell, layer, bl, tr)}
+    Create contacts in a rectangular area with the given corner points in cell. This function creates 'bare' contacts, so only the cut layers, no surrouning metals or semi-conductor layers
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the contact is created;
+        \parameter{layer}{string}
+            Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain';
+        \parameter{bl}{point}
+            Bottom-left point of the generated rectangular shape;
+        \parameter{tr}{point}
+            Top-right point of the generated rectangular shape;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.cross(cell, layer, width, height, crosssize)}
+    Create a cross shape in the given cell. The cross is made up by two overlapping rectangles in horizontal and in vertical direction.
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the cross is created;
+        \parameter{layer}{generics}
+            Layer of the generated cross shape;
+        \parameter{width}{integer}
+            Width of the generated cross shape;
+        \parameter{height}{integer}
+            Height of the generated cross shape;
+        \parameter{crosssize}{integer}
+            Cross size of the generated cross shape (the 'width' of the rectangles making up the cross);
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.unequal\_ring\_pts(cell, layer, outerbl, outertr, innerbl, innertr)}
+    Create a ring shape with unequal ring widths in the given cell, defined by the corner points
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the ring is created;
+        \parameter{layer}{generics}
+            Layer of the generated ring shape;
+        \parameter{outerbl}{point}
+            Outer lower-left corner of the generated ring shape;
+        \parameter{outertr}{point}
+            Outer upper-right corner of the generated ring shape;
+        \parameter{innerbl}{point}
+            Inner lower-left corner of the generated ring shape;
+        \parameter{innertr}{point}
+            Inner upper-right corner of the generated ring shape;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.unequal\_ring(cell, layer, center, width, height, leftringwidth, rightringwidth, topringwidth, bottomringwidth)}
+    Create a ring shape with unequal ring widths in the given cell
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the ring is created;
+        \parameter{layer}{generics}
+            Layer of the generated ring shape;
+        \parameter{center}{point}
+            Center of the generated ring shape;
+        \parameter{width}{integer}
+            Width of the generated ring shape;
+        \parameter{height}{integer}
+            Height of the generated ring shape;
+        \parameter{leftringwidth}{integer}
+            Left ring width of the generated ring shape (the 'width' of the path making up the left part of the ring);
+        \parameter{rightringwidth}{integer}
+            Right ring width of the generated ring shape (the 'width' of the path making up the right part of the ring);
+        \parameter{topringwidth}{integer}
+            Top ring width of the generated ring shape (the 'width' of the path making up the top part of the ring);
+        \parameter{bottomringwidth}{integer}
+            Bottom ring width of the generated ring shape (the 'width' of the path making up the bottom part of the ring);
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.ring(cell, layer, center, width, height, ringwidth)}
+    Create a ring shape width equal ring widths in the given cell. Like geometry.unequal\_ring, but all widths are the same
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the ring is created;
+        \parameter{layer}{generics}
+            Layer of the generated ring shape;
+        \parameter{center}{point}
+            Center of the generated ring shape;
+        \parameter{width}{integer}
+            Width of the generated ring shape;
+        \parameter{height}{integer}
+            Height of the generated ring shape;
+        \parameter{ringwidth}{integer}
+            Ring width of the generated ring shape (the 'width' of the path making up the ring);
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{geometry.curve(cell, layer, origin, segments, grid, allow45)}
+    Create a curve shape width in the given cell. Segments must be added for a curve to be meaningful. See the functions for adding curve segments: curve.lineto, curve.arcto and curve.cubicto
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the ring is created;
+        \parameter{layer}{generics}
+            Layer of the generated ring shape;
+        \parameter{origin}{point}
+            Start point of the curve;
+        \parameter{segments}{table}
+            Table of curve segments;
+        \parameter{grid}{integer}
+            Grid for rasterization of the curve;
+        \parameter{allow45}{boolean}
+            Start point of the curve;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{set(...)}
+    define a set of possible values that a parameter can take. Only useful within a parameter definition of a pcell
+    \begin{APIparameters}
+        \parameter{...}{...}
+            variable number of arguments, usually strings or integers;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{interval(lower, upper)}
+    define an interval of possible values that a parameter can take. Only useful within a parameter definition of a pcell
+    \begin{APIparameters}
+        \parameter{lower}{integer}
+            lower (inklusive) bound of the interval;
+        \parameter{upper}{integer}
+            upper (inklusive) bound of the interval;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{even()}
+    define that a parameter must be even. Only useful within a parameter definition of a pcell
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{odd()}
+    define that a parameter must be odd. Only useful within a parameter definition of a pcell
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{positive()}
+    define that a parameter must be positive. Only useful within a parameter definition of a pcell
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{negative()}
+    define that a parameter must be negative. Only useful within a parameter definition of a pcell
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{pcell.set\_property(property, value)}
+    set a property of a pcell. Not many properties are supported currently, so this function is very rarely used. The base cell of the standard cell library uses it to be hidden, but that's the only current use
+    \begin{APIparameters}
+        \parameter{property}{string}
+            property to set;
+        \parameter{value}{any}
+            value of the property;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{pcell.add\_parameter(name, defaultvalue, opt)}
+    add a parameter to a pcell definition. Must be called in parameters(). The parameter options table can contain the following fields: 'argtype': (type of the parameter, usually deduced from the default value), 'posvals': possible parameter values, see functions 'even', 'odd', 'interval', 'positive', 'negative' and 'set'; 'follow': copy the values from the followed parameter to this one if not explicitly specified; 'readonly': make parameter readonly
+    \begin{APIparameters}
+        \parameter{name}{string}
+            parameter name;
+        \parameter{defaultvalue}{any}
+            default parameter value (can be any lua type);
+        \parameter{opt}{table}
+            options table;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{pcell.add\_parameters(args)}
+    add multiple parameters to a cell. Internally, this calls pcell.add\_parameter, so this function is merely a shorthand for multiple calls to pcell.parameter. Hint for the usage: in lua tables, a trailing comma after the last entry is explicitely allowed. However, this is a variable number of arguments for a function call, where the list has to be well-defined. A common error is a trailing comma after the last entry
+    \begin{APIparameters}
+        \parameter{args}{...}
+            argument list of single parameter entries;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{pcell.get\_parameters(cellname)}
+    access the (updated) parameter values of another cell
+    \begin{APIparameters}
+        \parameter{cellname}{string}
+            cellname of the cell whose parameters should be queried;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{pcell.check\_expression(expression, message)}
+    check valid parameter values with expressions. If parameter values depend on some other parameter or the posval function of parameter definitions do not offer enough flexibility, parameters can be checked with arbitrary lua expressions. This function must be called in parameters()
+    \begin{APIparameters}
+        \parameter{expression}{string}
+            expression to check;
+        \parameter{message}{string}
+            custom message which is displayed if the expression could not be satisfied;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{pcell.create\_layout(cellname, objectname, parameters)}
+    Create a layout based on a parametric cell
+    \begin{APIparameters}
+        \parameter{cellname}{string}
+            cellname of the to-be-generated layout cell in the form libname/cellname;
+        \parameter{objectname}{string}
+            name of the to-be-generated object. This name will be used as identifier in exports that support hierarchies (e.g. GDSII, SKILL);
+        \parameter{parameters}{table}
+            a table with key-value pairs to be used for the layout pcell. The parameter must exist in the pcell, otherwise this triggers an error;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{pcell.create\_layout\_env(cellname, objectname, parameters, environment)}
+    Create a layout based on a parametric cell with a given cell environment
+    \begin{APIparameters}
+        \parameter{cellname}{string}
+            cellname of the to-be-generated layout cell in the form libname/cellname;
+        \parameter{objectname}{string}
+            name of the to-be-generated object. This name will be used as identifier in exports that support hierarchies (e.g. GDSII, SKILL);
+        \parameter{parameters}{table}
+            a table with key-value pairs to be used for the layout pcell. The parameter must exist in the pcell, otherwise this triggers an error;
+        \parameter{environment}{table}
+            a table containing the environment for all cells called from this cell. The content of the environment can contain anything and is defined by the cells. It is useful in order to pass a set of common options to multiple cells;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{tech.get\_dimension(property)}
+    Get critical technology dimensions such as minimum metal width. Predominantly used in pcell parameter definitions, but not necessarily restricted to that. There is a small set of technology properties that are used in the standard opc cells, but there is currently no proper definitions of the supported fields. See basic/mosfet and basic/cmos for examples
+    \begin{APIparameters}
+        \parameter{property}{string}
+            technology property name;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{tech.has\_layer(layer)}
+    Check if the chosen technology supports a certain layer
+    \begin{APIparameters}
+        \parameter{layer}{generics}
+            generic layer which should be checked;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{tech.resolve\_metal(index)}
+    resolve negative metal indices to their 'real' value (e.g. in a metal stack with five metals -1 becomes 5, -3 becomes 3). This function does not do anything if the index is positive
+    \begin{APIparameters}
+        \parameter{index}{integer}
+            metal index to be resolved;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{placement.create\_floorplan\_aspectratio(instances, utilization, aspectration)}
+    create a floorplan configuration based on utilization and an aspectratio. The 'instances' table is the result of parsing and processing verilog netlists. This function is intended to be called in a place-and-route-script for --import-verilog
+    \begin{APIparameters}
+        \parameter{instances}{table}
+            instances table;
+        \parameter{utilization}{number}
+            utilization factor, must be between 0 and 1;
+        \parameter{aspectration}{number}
+            aspectratio (width / height) of the floorplan;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{placement.create\_floorplan\_fixed\_rows(instances, utilization, rows)}
+    create a floorplan configuration based on utilization and a fixed number of rows. The 'instances' table is the result of parsing and processing verilog netlists. This function is intended to be called in a place-and-route-script for --import-verilog
+    \begin{APIparameters}
+        \parameter{instances}{table}
+            instances table;
+        \parameter{utilization}{number}
+            utilization factor, must be between 0 and 1;
+        \parameter{rows}{integer}
+            number of rows;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{placement.optimize(instances, nets, floorplan)}
+    minimize wire length by optimizing the placement of the instances by a simulated annealing algorithm. This function returns a table with the rows and columns of the placement of the instances. It is intended to be called in a place-and-route-script for --import-verilog
+    \begin{APIparameters}
+        \parameter{instances}{table}
+            instances table;
+        \parameter{nets}{table}
+            nets table;
+        \parameter{floorplan}{table}
+            floorplan configuration;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{placement.manual(instances, plan)}
+    create a placement of instances manually. This function expects a row-column table with all instance names. Thus the instance names must match the ones found in the instances table (from the verilog netlist). This function then updates all required references in the row-column table, that are needed for further processing (e.g. routing). This function is useful for small designs, especially in a hierarchical flow
+    \begin{APIparameters}
+        \parameter{instances}{table}
+            instances table;
+        \parameter{plan}{table}
+            row-column table;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{placement.insert\_filler\_names(rows, width)}
+    equalize placement rows by inserting fillers in every row.The method tries to equalize spacing between cells.This function is intended to be called in a place-and-route-script for --import-verilog
+    \begin{APIparameters}
+        \parameter{rows}{table}
+            placement rows table;
+        \parameter{width}{integer}
+            width as multiple of transistor gates. Must be equal to or larger than every row;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{placement.create\_reference\_rows(cellnames, xpitch)}
+    prepare a row placement table for further placement functions by parsing a definition given in 'cellnames'.This table contains the individual rows of the placment, which every row consiting of individual cells.Cell entries can either be given by just the name of the standard cell (the 'reference') or the instance name ('instance') and the reference name ('reference')This function is meant to be used in pcell definitions
+    \begin{APIparameters}
+        \parameter{cellnames}{table}
+            row placement table with cellnames;
+        \parameter{xpitch}{integer}
+            minimum cell pitch in x direction;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{placement.digital()}
+    
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{placement.rowwise()}
+    
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{routing.legalize()}
+    
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{routing.route()}
+    
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{curve.lineto(point)}
+    create a line segment for a curve
+    \begin{APIparameters}
+        \parameter{point}{point}
+            destination point of the line segment;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{curve.arcto(startangle, endangle, radius, clockwise)}
+    create an arc segment for a curve
+    \begin{APIparameters}
+        \parameter{startangle}{number}
+            start angle of the line segment;
+        \parameter{endangle}{number}
+            end angle of the line segment;
+        \parameter{radius}{integer}
+            radius of the line segment;
+        \parameter{clockwise}{boolean}
+            flag if arc is drawn clock-wise or counter-clock-wise;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{curve.cubicto(ctp1, ctp2, endpt)}
+    create a cubic bezier segment for a curve
+    \begin{APIparameters}
+        \parameter{ctp1}{point}
+            first control point;
+        \parameter{ctp2}{point}
+            second control point;
+        \parameter{endpt}{point}
+            destination point of the cubic bezier segment;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.create(cellname)}
+    create a new object. A name must be given. Hierarchical exports use this name to identify layout cells and no checks for duplication are done. Therefore the user must make sure that every name is unique. Note that this will probably change in the future
+    \begin{APIparameters}
+        \parameter{cellname}{string}
+            the name of the layout cell;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.copy(cell)}
+    copy an object
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object to copy;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.exchange(cell, othercell)}
+    Take over internal state of the other object, effectively making this the main cell. The object handle to 'othercell' must not be used afterwards as this object is destroyed. This function is only really useful in cells that act as a parameter wrapper for other cells (e.g. dffpq -> dff)
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object which should take over the other object;
+        \parameter{othercell}{object}
+            Object which should be taken over. The object handle must not be used after this operation;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.add\_anchor(cell, name, where)}
+    add an anchor to an object
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            object to which an anchor should be added;
+        \parameter{name}{string}
+            name of the anchor;
+        \parameter{where}{point}
+            location of the anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.add\_area\_anchor\_bltr(cell, name, bl, tr)}
+    Similar to add\_area\_anchor, but takes to lower-left and upper-right corner points of the rectangular area
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            object to which an anchor should be added;
+        \parameter{name}{string}
+            name of the anchor;
+        \parameter{bl}{point}
+            bottom-left point of the rectangular area;
+        \parameter{tr}{point}
+            bottom-left point of the rectangular area;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.get\_anchor(cell, anchorname)}
+    Retrieve an anchor from a cell. This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. A non-existing anchor is an error
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            object to get an anchor from;
+        \parameter{anchorname}{string}
+            name of the anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.get\_alignment\_anchor(cell, anchorname)}
+    Retrieve an alignemtn anchor from a cell. These anchors are the defining points of the alignment box. Valid anchor names are 'outerbl', 'outerbr', 'outertl', 'outertr', 'innerbl', 'innerbr', 'innertl' and 'innertr'. This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. A non-existing anchor is an error
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            object to get an anchor from;
+        \parameter{anchorname}{string}
+            name of the alignment anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.get\_area\_anchor(cell, anchorname)}
+    Retrieve an area anchor from a cell. This function returns a table containing two points (bl (bottom-left) and tr (top-right)) that contain the position of the specified area anchor, corrected by the cell transformation. A non-existing anchor is an error
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            object to get an anchor from;
+        \parameter{anchorname}{string}
+            name of the anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.get\_array\_anchor(cell, xindex, yindex, anchorname)}
+    Like object.get\_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            object to get an anchor from;
+        \parameter{xindex}{integer}
+            x-index;
+        \parameter{yindex}{integer}
+            y-index;
+        \parameter{anchorname}{string}
+            name of the anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.get\_array\_area\_anchor(cell, xindex, yindex, anchorname)}
+    Like object.get\_area\_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            object to get an anchor from;
+        \parameter{xindex}{integer}
+            x-index;
+        \parameter{yindex}{integer}
+            y-index;
+        \parameter{anchorname}{string}
+            name of the anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.add\_port(cell, name, layer, where)}
+    add a port to a cell. Works like add\_anchor, but additionally a layer is expected
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            object to which a port should be added;
+        \parameter{name}{string}
+            name of the port;
+        \parameter{layer}{generics}
+            layer of the port;
+        \parameter{where}{point}
+            location of the port;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.add\_bus\_port(cell, name, layer, where, startindex, endindex, xpitch, ypitch)}
+    add a bus port (multiple ports like vout[0:4]) to a cell. The port expression is portname[startindex:endindex] and portname[i] is placed at 'where' with an offset of ((i - 1) * xpitch, (i - 1) * ypitch)
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            object to which a port should be added;
+        \parameter{name}{string}
+            base name of the port;
+        \parameter{layer}{generics}
+            layer of the port;
+        \parameter{where}{point}
+            location of the port;
+        \parameter{startindex}{integer}
+            start index of the bus port;
+        \parameter{endindex}{integer}
+            end index of the bus port;
+        \parameter{xpitch}{integer}
+            pitch in x direction;
+        \parameter{ypitch}{integer}
+            pitch in y direction;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.get\_ports(cell)}
+    return a table which contains key-value pairs with all ports of a cell. The key is the portname, the value the corresponding point.
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            object to get the ports from;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.set\_alignment\_box(cell, bl, tr)}
+    set the alignment box of an object. Overwrites any previous existing alignment boxes
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to add the alignment box to;
+        \parameter{bl}{point}
+            bottom-left corner of alignment box;
+        \parameter{tr}{point}
+            top-right corner of alignment box;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.inherit\_alignment\_box(cell, othercell)}
+    inherit the alignment box from another cell. This EXPANDS the current alignment box, if any is present. This means that this function can be called multiple times with different objects to establish an overall alignment box
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to add the alignment box to;
+        \parameter{othercell}{object}
+            cell to inherit the alignment box from;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.inherit\_area\_anchor(cell, othercell, anchorname)}
+    inherit an area anchor from another cell.
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to add the anchor to;
+        \parameter{othercell}{object}
+            cell to inherit the anchor from;
+        \parameter{anchorname}{string}
+            anchor name of the to-be-inherited anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.inherit\_area\_anchor\_as(cell, othercell, anchorname, newname)}
+    inherit an area anchor from another cell under a different name.
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to add the anchor to;
+        \parameter{othercell}{object}
+            cell to inherit the anchor from;
+        \parameter{anchorname}{string}
+            anchor name of the to-be-inherited anchor;
+        \parameter{newname}{string}
+            new name of the inherited anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.inherit\_boundary(cell, othercell)}
+    inherit the boundary from another cell.
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to add the boundar to;
+        \parameter{othercell}{object}
+            cell to inherit the boundary from;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.extend\_alignment\_box(cell, extouterblx, extouterbly, extoutertrx, extoutertry, extinnerblx, extinnerbly, extinnertrx, extinnertry)}
+    extend an existing object alignment box. Takes eight values for the extension of the four corner points making up the alignment box
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to add the alignment box to;
+        \parameter{extouterblx}{integer}
+            extension of outer-left coordinate;
+        \parameter{extouterbly}{integer}
+            extension of outer-bottom coordinate;
+        \parameter{extoutertrx}{integer}
+            extension of outer-right coordinate;
+        \parameter{extoutertry}{integer}
+            extension of outer-top coordinate;
+        \parameter{extinnerblx}{integer}
+            extension of inner-left coordinate;
+        \parameter{extinnerbly}{integer}
+            extension of inner-bottom coordinate;
+        \parameter{extinnertrx}{integer}
+            extension of inner-right coordinate;
+        \parameter{extinnertry}{integer}
+            extension of inner-top coordinate;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.width\_height\_alignmentbox(cell)}
+    get the width and the height of the alignment box. A non-existing alignment box triggers an error
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to compute width and height;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.move\_to(cell, x, y)}
+    move the cell to the specified coordinates (absolute movement). If x is a point, x and y are taken from this point
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be moved;
+        \parameter{x}{integer}
+            x coordinate (can be a point, in this case x and y are taken from this point);
+        \parameter{y}{integer}
+            y coordinate;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.reset\_translation(cell)}
+    reset all previous translations (transformations are kept)
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be resetted;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.translate(cell, x, y)}
+    translate the cell by the specified offsets (relative movement). If x is a point, x and y are taken from this point
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be translated;
+        \parameter{x}{integer}
+            x offset (can be a point, in this case x and y are taken from this point);
+        \parameter{y}{integer}
+            y offset;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.translate\_x(cell, x)}
+    translate the cell by the specified x offset (relative movement).
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be translated;
+        \parameter{x}{integer}
+            x offset;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.translate\_y(cell, y)}
+    translate the cell by the specified y offset (relative movement).
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be translated;
+        \parameter{y}{integer}
+            y offset;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.abut\_left(cell, targercell)}
+    translate the cell so that its alignment box is abutted to the left of the alignment box of the specified target cell. This only changes the y coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be abutted;
+        \parameter{targercell}{object}
+            abutment target cell;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.abut\_right(cell, targercell)}
+    translate the cell so that its alignment box is abutted to the right of the alignment box of the specified target cell. This only changes the y coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be abutted;
+        \parameter{targercell}{object}
+            abutment target cell;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.abut\_top(cell, targercell)}
+    translate the cell so that its alignment box is abutted to the top of the alignment box of the specified target cell. This only changes the y coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be abutted;
+        \parameter{targercell}{object}
+            abutment target cell;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.abut\_bottom(cell, targercell)}
+    translate the cell so that its alignment box is abutted to the bottom of the alignment box of the specified target cell. This only changes the y coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be abutted;
+        \parameter{targercell}{object}
+            abutment target cell;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.align\_left(cell, targercell)}
+    translate the cell so that its alignment box is aligned to the left of the alignment box of the specified target cell. This only changes the x coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be aligned;
+        \parameter{targercell}{object}
+            alignment target cell;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.align\_right(cell, targercell)}
+    translate the cell so that its alignment box is aligned to the right of the alignment box of the specified target cell. This only changes the x coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be aligned;
+        \parameter{targercell}{object}
+            alignment target cell;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.align\_top(cell, targercell)}
+    translate the cell so that its alignment box is aligned to the top of the alignment box of the specified target cell. This only changes the y coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be aligned;
+        \parameter{targercell}{object}
+            alignment target cell;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.align\_bottom(cell, targercell)}
+    translate the cell so that its alignment box is aligned to the bottom of the alignment box of the specified target cell. This only changes the y coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be aligned;
+        \parameter{targercell}{object}
+            alignment target cell;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.abut\_area\_anchor\_left(cell, anchorname, targercell, targetanchorname)}
+    translate the cell so that the specified area anchor is abutted to the left of the target area anchor of the specified target cell. This only changes the x coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be moved;
+        \parameter{anchorname}{string}
+            abutment anchor;
+        \parameter{targercell}{object}
+            alignment target cell;
+        \parameter{targetanchorname}{string}
+            target abutment anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.abut\_area\_anchor\_right(cell, anchorname, targercell, targetanchorname)}
+    translate the cell so that the specified area anchor is abutted to the right of the target area anchor of the specified target cell. This only changes the x coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be moved;
+        \parameter{anchorname}{string}
+            abutment anchor;
+        \parameter{targercell}{object}
+            alignment target cell;
+        \parameter{targetanchorname}{string}
+            target abutment anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.abut\_area\_anchor\_top(cell, anchorname, targercell, targetanchorname)}
+    translate the cell so that the specified area anchor is abutted to the top of the target area anchor of the specified target cell. This only changes the y coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be moved;
+        \parameter{anchorname}{string}
+            abutment anchor;
+        \parameter{targercell}{object}
+            alignment target cell;
+        \parameter{targetanchorname}{string}
+            target abutment anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.abut\_area\_anchor\_bottom(cell, anchorname, targercell, targetanchorname)}
+    translate the cell so that the specified area anchor is abutted to the bottom of the target area anchor of the specified target cell. This only changes the y coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be moved;
+        \parameter{anchorname}{string}
+            abutment anchor;
+        \parameter{targercell}{object}
+            alignment target cell;
+        \parameter{targetanchorname}{string}
+            target abutment anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.align\_area\_anchor(cell, anchorname, targercell, targetanchorname)}
+    translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. This changes both the x and the y coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be moved;
+        \parameter{anchorname}{string}
+            alignment anchor;
+        \parameter{targercell}{object}
+            alignment target cell;
+        \parameter{targetanchorname}{string}
+            target alignment anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.align\_area\_anchor\_left(cell, anchorname, targercell, targetanchorname)}
+    translate the cell so that the specified area anchor is aligned to the left of the target area anchor of the specified target cell. This only changes the x coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be moved;
+        \parameter{anchorname}{string}
+            alignment anchor;
+        \parameter{targercell}{object}
+            alignment target cell;
+        \parameter{targetanchorname}{string}
+            target alignment anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.align\_area\_anchor\_right(cell, anchorname, targercell, targetanchorname)}
+    translate the cell so that the specified area anchor is aligned to the right of the target area anchor of the specified target cell. This only changes the x coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be moved;
+        \parameter{anchorname}{string}
+            alignment anchor;
+        \parameter{targercell}{object}
+            alignment target cell;
+        \parameter{targetanchorname}{string}
+            target alignment anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.align\_area\_anchor\_top(cell, anchorname, targercell, targetanchorname)}
+    translate the cell so that the specified area anchor is aligned to the top of the target area anchor of the specified target cell. This only changes the y coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be moved;
+        \parameter{anchorname}{string}
+            alignment anchor;
+        \parameter{targercell}{object}
+            alignment target cell;
+        \parameter{targetanchorname}{string}
+            target alignment anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.align\_area\_anchor\_bottom(cell, anchorname, targercell, targetanchorname)}
+    translate the cell so that the specified area anchor is aligned to the bottom of the target area anchor of the specified target cell. This only changes the y coordinate
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell to be moved;
+        \parameter{anchorname}{string}
+            alignment anchor;
+        \parameter{targercell}{object}
+            alignment target cell;
+        \parameter{targetanchorname}{string}
+            target alignment anchor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.mirror\_at\_xaxis()}
+    mirror the entire object at the x axis
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.mirror\_at\_yaxis()}
+    mirror the entire object at the y axis
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.mirror\_at\_origin()}
+    mirror the entire object at the origin
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.rotate\_90\_left()}
+    rotate the entire object 90 degrees counter-clockwise with respect to the origin
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.rotate\_90\_right()}
+    rotate the entire object 90 degrees clockwise with respect to the origin
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.flipx()}
+    flip the entire object in x direction. This is similar to mirror\_at\_yaxis (note the x vs. y), but is done in-place. The object is translated so that it is still in its original location. Works best on objects with an alignment box, since this is used to calculate the required translation. On other objects, this operation can be time-consuming as an accurate bounding box has to be computed. It is recommended not to use this function on objects without an alignment box because the result is not always ideal
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.flipy()}
+    flip the entire object in y direction. This is similar to mirror\_at\_xaxis (note the y vs. x), but is done in-place. The object is translated so that it is still in its original location. Works best on objects with an alignment box, since this is used to calculate the required translation. On other objects, this operation can be time-consuming as an accurate bounding box has to be computed. It is recommended not to use this function on objects without an alignment box because the result is not always ideal
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.move\_point(cell, source, target)}
+    translate (move) the object so that the source point lies on the target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell which should be moved;
+        \parameter{source}{point}
+            source point;
+        \parameter{target}{point}
+            target point;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.move\_point\_x(cell, source, target)}
+    translate (move) the object so that the x-coorindate of the source point lies on the x-coordinate target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell which should be moved;
+        \parameter{source}{point}
+            source point;
+        \parameter{target}{point}
+            target point;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.move\_point\_y(cell, source, target)}
+    translate (move) the object so that the y-coorindate of the source point lies on the y-coordinate target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            cell which should be moved;
+        \parameter{source}{point}
+            source point;
+        \parameter{target}{point}
+            target point;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.add\_child(cell, child, instname)}
+    Add a child object (instance) to the given cell. This make 'cell' the parent of the child (it manages its memory). This means that you should not use the original child object any more after this call (unless it is object.add\_child or object.add\_child\_array)
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object to which the child is added;
+        \parameter{child}{object}
+            Child to add;
+        \parameter{instname}{string}
+            Instance name (not used by all exports);
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.add\_child\_array(cell, child, instname, xrep, yrep, xpitch, ypitch)}
+    Add a child as an arrayed object to the given cell. The child array has xrep * yrep elements, with a pitch of xpitch and ypitch, respectively. The array grows to the upper-left, with the first placed untranslated. The pitch does not have to be explicitly given: If the child has an alignment box, the xpitch and ypitch are deferred from this box, if they are not given in the call. In this case, it is an error if no alignment box is present in child. As with object.add\_child: don't use the original child object after this call unless it is object.add\_child or object.add\_child\_array
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object to which the child is added;
+        \parameter{child}{object}
+            Child to add;
+        \parameter{instname}{string}
+            Instance name (not used by all exports);
+        \parameter{xrep}{integer}
+            Number of repetitions in x direction;
+        \parameter{yrep}{integer}
+            Number of repetitions in y direction;
+        \parameter{xpitch}{integer}
+            Optional itch in x direction, used for repetition in x. If not given, this parameter is derived from the alignment box;
+        \parameter{ypitch}{integer}
+            Optional itch in y direction, used for repetition in y. If not given, this parameter is derived from the alignment box;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.merge\_into(cell, othercell)}
+    add all shapes and children from othercell to the cell -> 'dissolve' othercell in cell
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object to which the child is added;
+        \parameter{othercell}{object}
+            Other layout cell to be merged into the cell;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{object.flatten(cell)}
+    resolve the cell by placing all shapes from all children in the parent cell. This operates in-place and modifies the object. Copy the cell if this is unwanted
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object which should be flattened;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.metal(index)}
+    create a generic layer representing a metal. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc.
+    \begin{APIparameters}
+        \parameter{index}{integer}
+            metal index;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.metalport(index)}
+    create a generic layer representing a metal port. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc.
+    \begin{APIparameters}
+        \parameter{index}{integer}
+            metal index;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.metalexclude(index)}
+    create a generic layer representing a metal exclude where automatic filling is blocked. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc.
+    \begin{APIparameters}
+        \parameter{index}{integer}
+            metal index;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.viacut(m1index, m2index)}
+    create a generic layer representing a via cut. This does not calculate the right size for the via cuts. This function is rarely used directly. Via cuts are generated by geometry.via[bltr]. If you are using this function as a user, it is likely you are doing something wrong
+    \begin{APIparameters}
+        \parameter{m1index}{integer}
+            first metal index;
+        \parameter{m2index}{integer}
+            second metal index;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.contact(region)}
+    create a generic layer representing a contact. This does not calculate the right size for the contact cuts. This function is rarely used directly. Contact cuts are generated by geometry.contact[bltr]. If you are using this function as a user, it is likely you are doing something wrong
+    \begin{APIparameters}
+        \parameter{region}{string}
+            region which should be contacted. Possible values: "sourcedrain", "gate" and "active";
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.oxide(index)}
+    create a generic layer representing a marking layer for MOSFET gate oxide thickness (e.g. for core or I/O devices)
+    \begin{APIparameters}
+        \parameter{index}{integer}
+            oxide thickness index. Conventionally starts with 1, but depends on the technology mapping;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.implant(polarity)}
+    Create a generic layer representing MOSFET source/drain implant polarity
+    \begin{APIparameters}
+        \parameter{polarity}{string}
+            identifier for the type (polarity) of the implant. Can be "n" or "p";
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.vthtype(index)}
+    Create a generic layer representing MOSFET source/drain threshold voltage marking layers
+    \begin{APIparameters}
+        \parameter{index}{integer}
+            threshold voltage marking layer index. Conventionally starts with 1, but depends on the technology mapping;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.other(identifier)}
+    create a generic layer representing 'something else'. This is for layers that do not need special processing, such as "gate"
+    \begin{APIparameters}
+        \parameter{identifier}{string}
+            layer identifier;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.otherport(identifier)}
+    create a generic layer representing a port for 'something else'. This is for layers that do not need special processing, such as "gate"
+    \begin{APIparameters}
+        \parameter{identifier}{string}
+            layer identifier;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.special()}
+    Create a 'special' layer. This is used to mark certain things in layouts (usually for debugging, like anchors or alignment boxes). This is not intended to translate to any meaningful layer for fabrication
+    \begin{APIparameters}
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{generics.premapped(name, entries)}
+    Create a non-generic layer from specific layer data for a certain technology. The entries table should contain one table per supported export. The supplied key-value pairs in this table must match the key-value pairs that are expected by the export
+    \begin{APIparameters}
+        \parameter{name}{string}
+            layer name. Can be nil;
+        \parameter{entries}{table}
+            key-value pairs for the entries;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.copy(point)}
+    copy a point. Can be used as module function or as a point method
+    \begin{APIparameters}
+        \parameter{point}{point}
+            point which should be copied;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.unwrap(point)}
+    unwrap: get the x- and y-coordinate from a point. Can be used as module function or as a point method
+    \begin{APIparameters}
+        \parameter{point}{point}
+            point which should be unwrapped;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.getx(point)}
+    get the x-coordinate from a point. Can be used as module function or as a point method
+    \begin{APIparameters}
+        \parameter{point}{point}
+            point whose x-coordinate should be queried;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.gety(point)}
+    get the y-coordinate from a point. Can be used as module function or as a point method
+    \begin{APIparameters}
+        \parameter{point}{point}
+            point whose y-coordinate should be queried;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.translate(point, x, y)}
+    translate a point in x and y. Can be used as module function or as a point method
+    \begin{APIparameters}
+        \parameter{point}{point}
+            point to translate;
+        \parameter{x}{integer}
+            x delta by which the point should be translated;
+        \parameter{y}{integer}
+            y delta by which the point should be translated;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.translate\_x(point, x)}
+    translate a point in x. Can be used as module function or as a point method
+    \begin{APIparameters}
+        \parameter{point}{point}
+            point to translate;
+        \parameter{x}{integer}
+            x delta by which the point should be translated;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.translate\_y(point, y)}
+    translate a point in y. Can be used as module function or as a point method
+    \begin{APIparameters}
+        \parameter{point}{point}
+            point to translate;
+        \parameter{y}{integer}
+            y delta by which the point should be translated;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.create(x, y)}
+    create a point from an x- and y-coordinate
+    \begin{APIparameters}
+        \parameter{x}{integer}
+            x-coordinate of new point;
+        \parameter{y}{integer}
+            y-coordinate of new point;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.combine\_12(pt1, pt2)}
+    create a new point by combining the coordinates of two other points. The new point is made up by x1 and y2
+    \begin{APIparameters}
+        \parameter{pt1}{point}
+            point for the x-coordinate of the new point;
+        \parameter{pt2}{point}
+            point for the y-coordinate of the new point;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.combine\_21(pt1, pt2)}
+    create a new point by combining the coordinates of two other points. The new point is made up by x2 and y1. This function is equivalent to combine\_12 with swapped arguments
+    \begin{APIparameters}
+        \parameter{pt1}{point}
+            point for the y-coordinate of the new point;
+        \parameter{pt2}{point}
+            point for the x-coordinate of the new point;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.combine(pt1, pt2)}
+    combine two points into a new one by taking the arithmetic average of their coordinates, that is x = 0.5 * (x1 + x2), y = 0.5 * (y1 + y2)
+    \begin{APIparameters}
+        \parameter{pt1}{point}
+            first point for the new point;
+        \parameter{pt2}{point}
+            second point for the new point;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.xdistance(pt1, pt2)}
+    calculate the distance in x between two points
+    \begin{APIparameters}
+        \parameter{pt1}{point}
+            first point for the distance;
+        \parameter{pt2}{point}
+            second point for the distance;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.ydistance(pt1, pt2)}
+    calculate the distance in y between two points
+    \begin{APIparameters}
+        \parameter{pt1}{point}
+            first point for the distance;
+        \parameter{pt2}{point}
+            second point for the distance;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.fix(pt, grid)}
+    fix the x- and y-coordinate from a point on a certain grid, that is 120 would become 100 on a grid of 100. This function behaves like floor(), no rounding is done
+    \begin{APIparameters}
+        \parameter{pt}{point}
+            point to fix to the grid;
+        \parameter{grid}{integer}
+            grid on which the coordinates should be fixed;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.operator+(pt1, pt2)}
+    sum two points. This is the same as point.combine
+    \begin{APIparameters}
+        \parameter{pt1}{point}
+            first point for the sum;
+        \parameter{pt2}{point}
+            second point for the sum;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.operator-(pt1, pt2)}
+    create a new point representing the difference of two points
+    \begin{APIparameters}
+        \parameter{pt1}{point}
+            first point for the subtraction (the minuend);
+        \parameter{pt2}{point}
+            second point for the subtraction (the subtrahend);
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{point.operator..(pt1, pt2)}
+    combine two points into a new one. Takes the x-coordinate from the first point and the y-coordinate from the second one. Equivalent to point.combine\_12(pt1, pt2)
+    \begin{APIparameters}
+        \parameter{pt1}{point}
+            point for the x-coordinate of the new point;
+        \parameter{pt2}{point}
+            point for the y-coordinate of the new point;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.xmirror(pts, xcenter)}
+    create a copy of the points in pts (a table) with all x-coordinates mirrored with respect to xcenter
+    \begin{APIparameters}
+        \parameter{pts}{pointlist}
+            list of points;
+        \parameter{xcenter}{integer}
+            mirror center;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.ymirror(pts, ycenter)}
+    create a copy of the points in pts (a table) with all y-coordinates mirrored with respect to ycenter
+    \begin{APIparameters}
+        \parameter{pts}{pointlist}
+            list of points;
+        \parameter{ycenter}{integer}
+            mirror center;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.xymirror(pts, xcenter, ycenter)}
+    create a copy of the points in pts (a table) with all x- and y-coordinates mirrored with respect to xcenter and ycenter, respectively
+    \begin{APIparameters}
+        \parameter{pts}{pointlist}
+            list of points;
+        \parameter{xcenter}{integer}
+            mirror center x-coordinate;
+        \parameter{ycenter}{integer}
+            mirror center y-coordinate;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.filter\_forward(pts, fun)}
+    iterate forward through the list of points and create a new list with points that match the predicate. The predicate function is called with every point.
+    \begin{APIparameters}
+        \parameter{pts}{pointlist}
+            point array to append to;
+        \parameter{fun}{function}
+            filter function;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.filter\_backward(pts, fun)}
+    iterate backward through the list of points and create a new list with points that match the predicate. The predicate function is called with every point.
+    \begin{APIparameters}
+        \parameter{pts}{pointlist}
+            point array to append to;
+        \parameter{fun}{function}
+            filter function;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.merge\_forwards(pts, pts2)}
+    append all points from pts2 to pts1. Iterate pts2 forward. Operates in-place, thus pts is modified
+    \begin{APIparameters}
+        \parameter{pts}{pointlist}
+            point array to append to;
+        \parameter{pts2}{pointlist}
+            point array to append from;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.merge\_backwards(pts, pts2)}
+    append all points from pts2 to pts1. Iterate pts2 backwards. Operates in-place, thus pts is modified
+    \begin{APIparameters}
+        \parameter{pts}{pointlist}
+            point array to append to;
+        \parameter{pts2}{pointlist}
+            point array to append from;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.reverse(pts)}
+    create a copy of the point array with the order of points reversed
+    \begin{APIparameters}
+        \parameter{pts}{pointlist}
+            point array;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.make\_insert\_xy(pts, index)}
+    create a function that inserts points into a point array. XY mode, thus points are given as two coordinates. If an index is given, insert at that position. Mostly useful with 1 as an index or not index at all (append)
+    \begin{APIparameters}
+        \parameter{pts}{pointlist}
+            point array;
+        \parameter{index}{integer}
+            optional index;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.make\_insert\_pts(pts, index)}
+    create a function that inserts points into a point array. Point mode, thus points are given as single points. If an index is given, insert at that position. Mostly useful with 1 as an index or not index at all (append)
+    \begin{APIparameters}
+        \parameter{pts}{pointlist}
+            point array;
+        \parameter{index}{integer}
+            optional index;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.fill\_all\_with(num, filler)}
+    create an array-like table with one entry repeated N times. This is useful, for example, for specifying gate contacts for basic/cmos
+    \begin{APIparameters}
+        \parameter{num}{integer}
+            number of repetitions;
+        \parameter{filler}{any}
+            value which should be repeated. Can be anything, but probably most useful with strings or numbers;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.fill\_predicate\_with(num, filler, predicate, other)}
+    create an array-like table with two entries (total number of entries is N). This function (compared to fill\_all\_with, fill\_odd\_with and fill\_even\_with) allows for more complex patterns. To do this, a predicate (a function) is called on every index. If the predicate is true, the first entry is inserted, otherwise the second one. This function is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'
+    \begin{APIparameters}
+        \parameter{num}{integer}
+            number of repetitions;
+        \parameter{filler}{any}
+            value which should be repeated at even numbers. Can be anything, but probably most useful with strings or numbers;
+        \parameter{predicate}{function}
+            predicate which is called with every index;
+        \parameter{other}{any}
+            value which should be repeated at odd numbers. Can be anything, but probably most useful with strings or numbers;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.fill\_even\_with(num, filler, other)}
+    create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'
+    \begin{APIparameters}
+        \parameter{num}{integer}
+            number of repetitions;
+        \parameter{filler}{any}
+            value which should be repeated at even numbers. Can be anything, but probably most useful with strings or numbers;
+        \parameter{other}{any}
+            value which should be repeated at odd numbers. Can be anything, but probably most useful with strings or numbers;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.fill\_odd\_with(num, filler, other)}
+    create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'filler'
+    \begin{APIparameters}
+        \parameter{num}{integer}
+            number of repetitions;
+        \parameter{filler}{any}
+            value which should be repeated at odd numbers. Can be anything, but probably most useful with strings or numbers;
+        \parameter{other}{any}
+            value which should be repeated at even numbers. Can be anything, but probably most useful with strings or numbers;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.add\_options(baseoptions, additionaloptions)}
+    create a copy of the baseoptions table and add all key-value pairs found in additionaloptions. This function clones baseoptions so the original is not altered. This copy is flat, so only the first-level elements are copied (e.g. tables will reference the same object). This function is useful to modify a set of base options for several devices such as mosfets, which only differ in a few options
+    \begin{APIparameters}
+        \parameter{baseoptions}{table}
+            base options;
+        \parameter{additionaloptions}{table}
+            additional options;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{util.ratio\_split\_even(value, ratio)}
+    create two values that sum up to the input value and have the specified ratio. The values are adjusted so that both of them are even, slightly changing the ratio. The input value must be even
+    \begin{APIparameters}
+        \parameter{value}{integer}
+            value for division;
+        \parameter{ratio}{number}
+            target ratio of the two result values;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{enable(bool, value)}
+    multiply a value with 1 or 0, depending on a boolean parameter. Essentially val * (bool and 1 or 0)
+    \begin{APIparameters}
+        \parameter{bool}{boolean}
+            boolean for enable/disable;
+        \parameter{value}{number}
+            value to be enabled/disabled;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{evenodddiv2(value)}
+    divide a value by 2. If it is odd, return floor(val / 2) and ceil(val / 2), otherwise return val / 2
+    \begin{APIparameters}
+        \parameter{value}{integer}
+            value to divide;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{divevenup(value, div)}
+    approximately divide a value by the divisor, so that the result is even. If this can't be achieved with the original value, increment it until it works
+    \begin{APIparameters}
+        \parameter{value}{integer}
+            value to divide;
+        \parameter{div}{integer}
+            divisor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{divevendown(value, div)}
+    approximately divide a value by the divisor, so that the result is even. If this can't be achieved with the original value, decrement it until it works
+    \begin{APIparameters}
+        \parameter{value}{integer}
+            value to divide;
+        \parameter{div}{integer}
+            divisor;
+    \end{APIparameters}
+\end{APIfunc}
+\begin{APIfunc}{dprint(...)}
+    debug print. Works like regular print (which is not available in pcell definitions). Only prints something when opc is called with --enable-dprint
+    \begin{APIparameters}
+        \parameter{...}{...}
+            variable arguments that should be printed;
+    \end{APIparameters}
+\end{APIfunc}
