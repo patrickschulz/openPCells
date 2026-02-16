@@ -212,6 +212,7 @@ function process_parameters(_P)
     t.sourcedrainstrapwidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     if _P.insertglobalguardringlines and _P.connectguardringtogloballines then
         t.guardringwidth = technology.get_dimension_max(
+            "Minimum Active Contact Region Size",
             string.format("Minimum M%d Width", _P.interconnectmetal + 1),
             string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1)
         )
