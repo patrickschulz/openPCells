@@ -92,7 +92,7 @@ while [[ $# -gt 0 ]]; do
             exit 1
         fi
         ;;
-    --help)
+    -h | --help)
         echo "supported options:"
         echo "--cell-path               set install path for cells (default: ${CELL_PATH})"
         echo "--tech-path               set install path for technology files (default: ${TECH_PATH})"
@@ -132,7 +132,7 @@ opc-debug: \$(DEPENDENCIES)
 	@\$(MAKE) -C src opc-debug
 	@mv src/opc-debug .
 
-opc.1: src/cmdoptions_def.c src/generate_manpage
+opc.1: src/cmdoptions_def.c src/generate_manpage.c
 	@\$(MAKE) -C src opc.1
 	mv src/opc.1 .
 
@@ -155,7 +155,7 @@ install: opc opc.1
 
 .PHONY: doc
 doc:
-	@\$(MAKE) -C doc full
+	@\$(MAKE) -C doc all
 
 .PHONY: test
 test: opc
