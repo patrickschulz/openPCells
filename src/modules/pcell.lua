@@ -145,6 +145,7 @@ local function _load_cell(state, cellname, env)
             "config",
             "parameters",
             "process_parameters",
+            "check_pre",
             "prepare",
             "check",
             "anchors",
@@ -541,6 +542,18 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
     end
 
     local parameters = _get_parameters(state, cellname, cellargs)
+
+    -- check parameters (pre)
+    if cell.funcs.check_pre then
+        local ret, msg = cell.funcs.check_pre(parameters)
+        if not ret then
+            if not msg then
+                moderror(string.format("parameter pre-check for cell '%s' (%s) failed, but no message was returned. If present, the 'check' function has to return true on success", cellname, tostring(obj)))
+            else
+                moderror(string.format("parameter pre-check for cell '%s' (%s) failed: %s", cellname, tostring(obj), msg))
+            end
+        end
+    end
 
     -- run prepare() function (if available) to set cell state
     local cellstate = nil

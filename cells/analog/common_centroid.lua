@@ -220,6 +220,15 @@ function process_parameters(_P)
     return t
 end
 
+function check_pre(_P)
+    for i = 1, #_P.pattern do
+        if type(_P.pattern[i]) ~= "table" then
+            return false, string.format("erroneous pattern format: row %d is not a table", i)
+        end
+    end
+    return true
+end
+
 function prepare(_P)
     local state = {}
 
