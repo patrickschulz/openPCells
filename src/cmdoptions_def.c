@@ -67,7 +67,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "debug-cell", NO_ARG, "show detailed
 /* Miscellaneous Functions */
 cmdoptions_add_section(cmdoptions, "Miscellaneous functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "no-user-config", NO_ARG, "don't load the user config");
-cmdoptions_add_option(cmdoptions, 'w', "watch", NO_ARG, "start 'watch' mode. This continuously monitors the specified cell and regenerates the layout upon changes in the file.");
+cmdoptions_add_option(cmdoptions, 'w', "watch", NO_ARG, "start 'watch' mode. This continuously monitors the specified cell and regenerates the layout upon changes in the file. Note: This implementation of this switch is currently very rudimentary. It is not tested thoroughly and might not work with every editor. Additionally, it currently only supports cellscripts, not cells.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "template", SINGLE_ARG, "print a template for the specified cell. The template shows the main parameters and usage of the cell");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "template-auto", SINGLE_ARG, "print a template for the specified cell. The template shows the main parameters and usage of the cell. This options differs from --template in that it alwasy generates output, even if no template is defined. In this case, it simply generates a 'template' call by placing all available parameters in the call.");
 

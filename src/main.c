@@ -7,11 +7,14 @@
  *  in other files (main.XXX.c, e.g. main.cell.c)
  */
 
+#include <errno.h> // open()
 #include <fcntl.h> // open()
-#include <sys/stat.h> // S_IRUSR etc.
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/inotify.h>
+#include <sys/stat.h> // S_IRUSR etc.
 #include <unistd.h>
 
 #include "lua/lua.h"
@@ -155,6 +158,15 @@ static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions, c
         lua_close(L);
     }
     return ret == LUA_OK;
+}
+
+// global variable for sharing between signal handler and watch function
+int run_watch = 1;
+// signal handler for catching ctrl-c in watch mode
+void handler(int sig)
+{
+    (void)sig;
+    run_watch = 0;
 }
 
 static void _print_general_info(void)
@@ -464,14 +476,6 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CONFIG;
     }
 
-    // FIXME
-    if(cmdoptions_was_provided_long(cmdoptions, "watch"))
-    {
-        puts("sorry, watch mode is currently not implemented");
-        returnvalue = 1;
-        goto DESTROY_CONFIG;
-    }
-
     if(cmdoptions_was_provided_long(cmdoptions, "disable-gatecut"))
     {
         struct vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
@@ -641,12 +645,83 @@ int main(int argc, const char* const * argv)
             goto DESTROY_CONFIG;
         }
         int verbose = cmdoptions_was_provided_long(cmdoptions, "verbose");
-        int ret = main_create_and_export_cell(cmdoptions, config, create_cell_script, verbose);
-        if(!ret)
+        int watch = cmdoptions_was_provided_long(cmdoptions, "watch");
+        if(watch)
         {
-            returnvalue = 1;
+            // get paths of relevant files
+            const char* filename = cmdoptions_get_argument_long(cmdoptions, "cellscript");
+            int fdnotify = inotify_init1(IN_NONBLOCK);
+            if(fdnotify < 0)
+            {
+                fprintf(stderr, "inotity_init failed: %s\n", strerror(errno));
+            }
+
+            int wd = inotify_add_watch(fdnotify, filename, IN_MODIFY);
+            if(wd < 0)
+            {
+                fprintf(stderr, "inotify_add_watch failed: %s\n", strerror(errno));
+            }
+
+            signal(SIGINT, handler);
+
+            while(run_watch)
+            {
+                sleep(1);
+                char buffer[4096];
+                struct inotify_event *event = NULL;
+
+                int len = read(fdnotify, buffer, sizeof(buffer));
+
+                if(len > 0)
+                {
+                    event = (struct inotify_event *) buffer;
+                    while(event != NULL)
+                    {
+                        if(event->mask & (IN_MODIFY | IN_IGNORED))
+                        {
+                            int ret = main_create_and_export_cell(cmdoptions, config, create_cell_script, verbose);
+                            if(!ret)
+                            {
+                                returnvalue = 1;
+                                goto DESTROY_CONFIG;
+                            }
+                            if(event->mask & IN_IGNORED) // file was moved, re-add watch
+                            {
+                                wd = inotify_add_watch(fdnotify, filename, IN_MODIFY);
+                                if(wd < 0)
+                                {
+                                    exit(0);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // ignored
+                        }
+                        fflush(stdout);
+                        len -= sizeof(*event) + event->len;
+
+                        if(len > 0)
+                        {
+                            event = event + sizeof(event) + event->len;
+                        }
+                        else
+                        {
+                            event = NULL;
+                        }
+                    }
+                }
+            }
         }
-        goto DESTROY_CONFIG;
+        else
+        {
+            int ret = main_create_and_export_cell(cmdoptions, config, create_cell_script, verbose);
+            if(!ret)
+            {
+                returnvalue = 1;
+            }
+            goto DESTROY_CONFIG;
+        }
     }
 
     // should not trigger
