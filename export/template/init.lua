@@ -103,8 +103,17 @@ end
 function M.write_cell_array(identifier, instbasename, x, y, orientation, xrep, yrep, xpitch, ypitch)
 end
 
--- * optional *
+-- * mandatory *
 -- how to write a port/label for layout topology data (e.g. LVS)
+function M.write_port(name, layer, where, sizehint)
+end
+
+-- * optional *
+-- how to write a label for layout topology data (e.g. LVS)
+-- this function is used for labels if present
+-- for many exports, this is not necessary, as there is only a semantic
+-- difference between ports and labels. If ports need special treatment,
+-- both functions should be defined
 function M.write_port(name, layer, where, sizehint)
 end
 
