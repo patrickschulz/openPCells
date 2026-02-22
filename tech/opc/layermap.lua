@@ -21,6 +21,7 @@ return {
             gds = { layer = 234, purpose = 0 },
             SKILL = { layer = "text", purpose = "drawing" },
             debug = { layer = "text" },
+            json = { layer = "text" },
         }
     },
     active = {
@@ -30,6 +31,7 @@ return {
             SKILL = { layer = "active", purpose = "drawing" },
             debug = { layer = "active" },
             svg = { style = "active", order = 2, color = "38c316" },
+            json = { layer = "active" },
         }
     },
     nwell = {
@@ -39,6 +41,7 @@ return {
             SKILL = { layer = "nwell", purpose = "drawing" },
             debug = { layer = "nwell" },
             svg = { color = "ccffff", order = 1, nooutline = true },
+            json = { layer = "nwell" },
         }
     },
     deepnwell = {
@@ -48,6 +51,7 @@ return {
             SKILL = { layer = "deepnwell", purpose = "drawing" },
             debug = { layer = "deepnwell" },
             svg = { color = "ccffff", order = 1 },
+            json = { layer = "deepnwell" },
         }
     },
     pimplant = {
@@ -57,6 +61,7 @@ return {
             SKILL = { layer = "pimplant", purpose = "drawing" },
             debug = { layer = "pimplant" },
             svg = { color = "333333", ignore = true },
+            json = { layer = "pimplant" },
         }
     },
     nimplant = {
@@ -66,6 +71,7 @@ return {
             SKILL = { layer = "nimplant", purpose = "drawing" },
             debug = { layer = "nimplant" },
             svg = { color = "333333", ignore = true },
+            json = { layer = "nimplant" },
         }
     },
     gate = {
@@ -75,6 +81,7 @@ return {
             SKILL = { layer = "poly", purpose = "drawing" },
             debug = { layer = "poly" },
             svg = { style = "gate", order = 3, color = "ff0000" },
+            json = { layer = "gate" },
         }
     },
     contactactive = {
@@ -84,6 +91,7 @@ return {
             SKILL = { layer = "contactactive", purpose = "drawing" },
             debug = { layer = "contactactive" },
             svg = { style = "contactactive", order = 5, color = "ffff00" },
+            json = { layer = "contactactive" },
         }
     },
     contactsourcedrain = {
@@ -93,6 +101,7 @@ return {
             SKILL = { layer = "contactsourcedrain", purpose = "drawing" },
             debug = { layer = "contactsourcedrain" },
             svg = { style = "contactsourcedrain", order = 5, color = "ffff00" },
+            json = { layer = "contactsourcedrain" },
         }
     },
     contactgate = {
@@ -102,6 +111,7 @@ return {
             SKILL = { layer = "contactgate", purpose = "drawing" },
             debug = { layer = "contactgate" },
             svg = { style = "contactgate", order = 5, color = "ffffff" },
+            json = { layer = "contactgate" },
         }
     },
     M1 = {
@@ -111,6 +121,7 @@ return {
             SKILL = { layer = "metal1", purpose = "drawing" },
             debug = { layer = "metal1" },
             svg = { style = "metal1", order = 4, color = "0000ff" },
+            json = { layer = "M1" },
         }
     },
     M1exclude = {},
@@ -121,6 +132,7 @@ return {
             SKILL = { layer = "via1", purpose = "drawing" },
             debug = { layer = "via1" },
             svg = { style = "via1", order = 7, color = "fff000" },
+            json = { layer = "viacutM1M2" },
         }
     },
     M2 = {
@@ -130,6 +142,7 @@ return {
             SKILL = { layer = "metal2", purpose = "drawing" },
             debug = { layer = "metal2" },
             svg = { style = "metal2", order = 6, color = "ff00ff" },
+            json = { layer = "M2" },
         }
     },
     M2exclude = {},
@@ -140,6 +153,7 @@ return {
             SKILL = { layer = "via2", purpose = "drawing" },
             debug = { layer = "via2" },
             svg = { color = "ff1212" },
+            json = { layer = "viacutM2M3" },
         }
     },
     M3 = {
@@ -149,6 +163,7 @@ return {
             SKILL = { layer = "metal3", purpose = "drawing" },
             debug = { layer = "metal3" },
             svg = { color = "ff1212", order = 8 },
+            json = { layer = "M3" },
         }
     },
     M3exclude = {},

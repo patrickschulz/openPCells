@@ -520,6 +520,13 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CONFIG;
     }
 
+    // layout viewer
+    if(cmdoptions_was_provided_long(cmdoptions, "viewer"))
+    {
+        system("xdg-open" " " OPC_DOC_PATH "/tools/layout_viewer.html");
+        goto DESTROY_CONFIG;
+    }
+
     // technology file generation assistant
     if(cmdoptions_was_provided_long(cmdoptions, "techfile-assistant"))
     {

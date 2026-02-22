@@ -120,6 +120,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-hierarchy", SINGLE_AR
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-definitions", SINGLE_ARG, "show cell definitions in a GDS stream file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-depth", SINGLE_ARG, "maximum depth for gds traversal (affects --show-gds-hierarchy)");
 cmdoptions_add_option(cmdoptions, 'e', "execute-lua-script", SINGLE_ARG, "execute a lua script, as if called with regular lua");
+cmdoptions_add_option(cmdoptions, 'V', "viewer", NO_SHORT, "launch the browser-based layout viewer (for JSON-based layout files)");
 
 /* Diagnostic Functions */
 cmdoptions_add_section(cmdoptions, "Diagnostic functions");
