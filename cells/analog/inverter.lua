@@ -650,7 +650,7 @@ function layout(inverter, _P)
     if _P.nmoswelltapnet ~= "" then
         if _P.drawnmoslowerwelltap then
             inverter:add_net_shape(
-                _P.vddnet, 
+                _P.nmoswelltapnet, 
                 inverter:get_area_anchor("nmoslowerwelltap_boundary").bl,
                 inverter:get_area_anchor("nmoslowerwelltap_boundary").tr,
                 generics.metal(1)
@@ -658,7 +658,7 @@ function layout(inverter, _P)
         end
         if _P.drawnmosleftwelltap then
             inverter:add_net_shape(
-                _P.vddnet, 
+                _P.nmoswelltapnet, 
                 inverter:get_area_anchor("nmosleftwelltap_boundary").bl,
                 inverter:get_area_anchor("nmosleftwelltap_boundary").tr,
                 generics.metal(1)
@@ -666,7 +666,7 @@ function layout(inverter, _P)
         end
         if _P.drawnmosrightwelltap then
             inverter:add_net_shape(
-                _P.vddnet, 
+                _P.nmoswelltapnet, 
                 inverter:get_area_anchor("nmosrightwelltap_boundary").bl,
                 inverter:get_area_anchor("nmosrightwelltap_boundary").tr,
                 generics.metal(1)
@@ -676,7 +676,7 @@ function layout(inverter, _P)
     if _P.pmoswelltapnet ~= "" then
         if _P.drawpmosupperwelltap then
             inverter:add_net_shape(
-                _P.vddnet, 
+                _P.pmoswelltapnet, 
                 inverter:get_area_anchor("pmosupperwelltap_boundary").bl,
                 inverter:get_area_anchor("pmosupperwelltap_boundary").tr,
                 generics.metal(1)
@@ -684,7 +684,7 @@ function layout(inverter, _P)
         end
         if _P.drawpmosleftwelltap then
             inverter:add_net_shape(
-                _P.vddnet, 
+                _P.pmoswelltapnet, 
                 inverter:get_area_anchor("pmosleftwelltap_boundary").bl,
                 inverter:get_area_anchor("pmosleftwelltap_boundary").tr,
                 generics.metal(1)
@@ -692,7 +692,7 @@ function layout(inverter, _P)
         end
         if _P.drawpmosrightwelltap then
             inverter:add_net_shape(
-                _P.vddnet, 
+                _P.pmoswelltapnet, 
                 inverter:get_area_anchor("pmosrightwelltap_boundary").bl,
                 inverter:get_area_anchor("pmosrightwelltap_boundary").tr,
                 generics.metal(1)
