@@ -149,7 +149,11 @@ function parameters()
         { "drawguardring",                              false },
         { "guardringwidth",                             technology.get_dimension("Minimum Active Contact Region Size") },
         { "guardringspace",                             technology.get_dimension("Minimum Active Space") },
-        { "guardringdeepwelloffset",                    0 }
+        { "guardringdeepwelloffset",                    0 },
+        { "vddnet",                                     "" },
+        { "vssnet",                                     "" },
+        { "nmoswelltapnet",                             "" },
+        { "pmoswelltapnet",                             "" }
     )
 end
 
@@ -626,4 +630,73 @@ function layout(inverter, _P)
         cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).tr
     )
 
+    -- power net shapes
+    if _P.vddnet ~= "" then
+        inverter:add_net_shape(
+            _P.vddnet, 
+            inverter:get_area_anchor("vddbar").bl,
+            inverter:get_area_anchor("vddbar").tr,
+            generics.metal(1)
+        )
+    end
+    if _P.vssnet ~= "" then
+        inverter:add_net_shape(
+            _P.vssnet, 
+            inverter:get_area_anchor("vssbar").bl,
+            inverter:get_area_anchor("vssbar").tr,
+            generics.metal(1)
+        )
+    end
+    if _P.nmoswelltapnet ~= "" then
+        if _P.drawnmoslowerwelltap then
+            inverter:add_net_shape(
+                _P.vddnet, 
+                inverter:get_area_anchor("nmoslowerwelltap_boundary").bl,
+                inverter:get_area_anchor("nmoslowerwelltap_boundary").tr,
+                generics.metal(1)
+            )
+        end
+        if _P.drawnmosleftwelltap then
+            inverter:add_net_shape(
+                _P.vddnet, 
+                inverter:get_area_anchor("nmosleftwelltap_boundary").bl,
+                inverter:get_area_anchor("nmosleftwelltap_boundary").tr,
+                generics.metal(1)
+            )
+        end
+        if _P.drawnmosrightwelltap then
+            inverter:add_net_shape(
+                _P.vddnet, 
+                inverter:get_area_anchor("nmosrightwelltap_boundary").bl,
+                inverter:get_area_anchor("nmosrightwelltap_boundary").tr,
+                generics.metal(1)
+            )
+        end
+    end
+    if _P.pmoswelltapnet ~= "" then
+        if _P.drawpmoslowerwelltap then
+            inverter:add_net_shape(
+                _P.vddnet, 
+                inverter:get_area_anchor("pmoslowerwelltap_boundary").bl,
+                inverter:get_area_anchor("pmoslowerwelltap_boundary").tr,
+                generics.metal(1)
+            )
+        end
+        if _P.drawpmosleftwelltap then
+            inverter:add_net_shape(
+                _P.vddnet, 
+                inverter:get_area_anchor("pmosleftwelltap_boundary").bl,
+                inverter:get_area_anchor("pmosleftwelltap_boundary").tr,
+                generics.metal(1)
+            )
+        end
+        if _P.drawpmosrightwelltap then
+            inverter:add_net_shape(
+                _P.vddnet, 
+                inverter:get_area_anchor("pmosrightwelltap_boundary").bl,
+                inverter:get_area_anchor("pmosrightwelltap_boundary").tr,
+                generics.metal(1)
+            )
+        end
+    end
 end
