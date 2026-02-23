@@ -25,7 +25,6 @@ Here is a list of goals that I want to implement before opc moves on to version 
 All things in this list are not finished and perhaps the best entry points for development support.
 Some of these things are also not particularly hard to do, they just require some work.
 Especially with HTML-based stuff (cell display, searchable documentation) I could use some help, because my knowledge of how to properly do this is limited.
-* browser-based cell display (essentially a gds viewer, although the internal format can be what we want)
 * searchable HTML documentation
 * functioning digital place&route
 * up-to-date documentation
