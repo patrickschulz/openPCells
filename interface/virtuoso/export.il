@@ -1,5 +1,5 @@
 procedure(OPCExportConvertCoordToOPCUnit(c)
-    fix(c * 1000)
+    round(c * 1000)
 ) ; OPCExportConvertCoordToOPCUnit
 
 procedure(OPCExportFormatPoint(pt)
