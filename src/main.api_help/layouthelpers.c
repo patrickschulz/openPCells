@@ -509,7 +509,7 @@
         "Create vias in a cell connecting net shapes on different layers. "
         "This function is similar to layouthelpers.place_vias, but much slower, as it adds an exclude shape for every placed via. "
         "This helps when net shapes overlap, which might result in DRC errors. "
-        "However, for most use cases, 'place_vias' should be used. ",
+        "However, for most use cases, 'place_vias' should be used. "
         "This function creates vias between the given layers. "
         "If not net filter is given, all netshapes with matching nets are connected. "
         "A table with exclusion polygons can be given, which is useful when vias across several layers are created. "
