@@ -191,7 +191,7 @@ static void _print_general_info(void)
     puts("      '-P': List parameters of a given cell (with filter)");
     puts("      '-A': List anchors of a given cell (with filter)");
     puts("  * Information about API functions can be obtained by '--api-search'/'--api-help'");
-    puts("  * HTML documentation can be opened via '-d/--html-documentation'");
+    puts("  * HTML documentation can be opened via '-D/--html-documentation'");
     puts("  * A tutorial showing the usage of opc can be accessed by '--tutorial'");
 }
 
