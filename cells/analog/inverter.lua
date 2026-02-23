@@ -674,11 +674,11 @@ function layout(inverter, _P)
         end
     end
     if _P.pmoswelltapnet ~= "" then
-        if _P.drawpmoslowerwelltap then
+        if _P.drawpmosupperwelltap then
             inverter:add_net_shape(
                 _P.vddnet, 
-                inverter:get_area_anchor("pmoslowerwelltap_boundary").bl,
-                inverter:get_area_anchor("pmoslowerwelltap_boundary").tr,
+                inverter:get_area_anchor("pmosupperwelltap_boundary").bl,
+                inverter:get_area_anchor("pmosupperwelltap_boundary").tr,
                 generics.metal(1)
             )
         end
