@@ -22,4 +22,5 @@ unless(boundp('OPCSettingsForm)
 )
 
 ; set required environment variables
+envSetVal("layout" "extractEnabled" 'boolean nil)
 envSetVal("layout" "extractKeepShapeAssignment" 'boolean t)
