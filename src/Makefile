@@ -83,6 +83,8 @@ OBJS:= \
 	main.api_help.o \
 	main.assistant.o \
 	main.cell.o \
+	main.cellbase.o \
+	main.config.o \
 	main.functions.o \
 	main.gds.o \
 	main.tutorial.o \
@@ -404,6 +406,11 @@ main.cell.o: main.cell.c main.cell.h hashmap.h \
  filesystem.h gdsparser.h geometry.h info.h \
  main.functions.h pcell.h postprocess.h util_cmodule.h \
  util.h _config.h
+main.cellbase.o: main.cellbase.c main.cellbase.h hashmap.h pcell.h \
+ lua/lua.h lua/luaconf.h object.h bltrshape.h point.h technology.h \
+ tagged_value.h vector.h polygon.h shape.h transformationmatrix.h \
+ _config.h
+main.config.o: main.config.c main.config.h cmdoptions.h hashmap.h
 main.functions.o: main.functions.c main.functions.h lua/lua.h \
  lua/luaconf.h technology.h vector.h hashmap.h \
  lua/lauxlib.h lua/lua.h lua_util.h filesystem.h \

@@ -35,6 +35,7 @@
 #include "main.api_help.h"
 #include "main.assistant.h"
 #include "main.cell.h"
+#include "main.config.h"
 #include "main.functions.h"
 #include "main.gds.h"
 #include "main.import.h"
@@ -42,123 +43,6 @@
 
 #include "_scriptmanager.h"
 #include "_modulemanager.h"
-
-static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions, char** msg)
-{
-    /* prepare config */
-    struct vector* techpaths = vector_create(8, free);
-    hashmap_insert(config, "techpaths", techpaths);
-    struct vector* prepend_cellpaths = vector_create(8, free);
-    hashmap_insert(config, "prepend_cellpaths", prepend_cellpaths);
-    struct vector* append_cellpaths = vector_create(8, free);
-    hashmap_insert(config, "append_cellpaths", append_cellpaths);
-    struct vector* ignoredlayers = vector_create(8, free);
-    hashmap_insert(config, "ignoredlayers", ignoredlayers);
-
-    // set/load technology search paths
-    vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
-    if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
-    {
-        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
-        while(*arg)
-        {
-            vector_append(techpaths, util_strdup(*arg));
-            ++arg;
-        }
-    }
-
-    int no_user_config = cmdoptions_was_provided_long(cmdoptions, "no-user-config");
-    int ret = LUA_OK;
-
-    if(!no_user_config)
-    {
-        const char* home = getenv("HOME");
-        if(!home)
-        {
-            home = ".";
-        }
-        size_t len = strlen(home) + strlen("/.opcconfig.lua");
-        char* filename = malloc(len + 1);
-        snprintf(filename, len + 1, "%s/.opcconfig.lua", home);
-        if(!filesystem_exists(filename))
-        {
-            free(filename);
-            return 1; /* non-existing user config is not an error */
-        }
-        lua_State* L = util_create_basic_lua_state();
-        ret = luaL_dofile(L, filename);
-        free(filename);
-        if(ret == LUA_OK)
-        {
-            /* techpaths */
-            techpaths = hashmap_get(config, "techpaths");
-            lua_getfield(L, -1, "techpaths");
-            if(!lua_isnil(L, -1))
-            {
-                lua_pushnil(L);
-                while(lua_next(L, -2) != 0)
-                {
-                    const char* path = lua_tostring(L, -1);
-                    vector_append(techpaths, util_strdup(path));
-                    lua_pop(L, 1);
-                }
-            }
-            lua_pop(L, 1); // pop techpaths table (or nil)
-            // remove entry
-            lua_pushnil(L);
-            lua_setfield(L, -2, "techpaths");
-
-            // cellpaths
-            prepend_cellpaths = hashmap_get(config, "prepend_cellpaths");
-            lua_getfield(L, -1, "prepend_cellpaths");
-            if(!lua_isnil(L, -1))
-            {
-                lua_pushnil(L);
-                while(lua_next(L, -2) != 0)
-                {
-                    const char* path = lua_tostring(L, -1);
-                    vector_append(prepend_cellpaths, util_strdup(path));
-                    lua_pop(L, 1);
-                }
-            }
-            lua_pop(L, 1); // pop prepend_cellpaths table (or nil)
-            // remove entry
-            lua_pushnil(L);
-            lua_setfield(L, -2, "prepend_cellpaths");
-
-            append_cellpaths = hashmap_get(config, "append_cellpaths");
-            lua_getfield(L, -1, "append_cellpaths");
-            if(!lua_isnil(L, -1))
-            {
-                lua_pushnil(L);
-                while(lua_next(L, -2) != 0)
-                {
-                    const char* path = lua_tostring(L, -1);
-                    vector_append(append_cellpaths, util_strdup(path));
-                    lua_pop(L, 1);
-                }
-            }
-            lua_pop(L, 1); // pop append_cellpaths table (or nil)
-            // remove entry
-            lua_pushnil(L);
-            lua_setfield(L, -2, "append_cellpaths");
-
-            lua_pushnil(L);
-            while(lua_next(L, -2) != 0)
-            {
-                fprintf(stderr, "unknown config entry '%s'\n", lua_tostring(L, -2));
-                lua_pop(L, 1);
-                ret = LUA_ERRRUN;
-            }
-        }
-        else
-        {
-            *msg = util_strdup(lua_tostring(L, -1));
-        }
-        lua_close(L);
-    }
-    return ret == LUA_OK;
-}
 
 // global variable for sharing between signal handler and watch function
 int run_watch = 1;
@@ -304,11 +188,12 @@ int main(int argc, const char* const * argv)
 
     // load config
     struct hashmap* config = hashmap_create(NULL);
-    char* configerror = NULL;
-    if(!_load_config(config, cmdoptions, &configerror))
+    int load_user_config = 1;
+    error_t config_status = main_load_config(config, cmdoptions, load_user_config);
+    if(error_is_failure(&config_status))
     {
-        fprintf(stderr, "error while loading user config: %s\n", configerror);
-        free(configerror);
+        error_print(&config_status, "error while loading user config: ", "\n");
+        error_clean(&config_status);
         returnvalue = 1;
         goto DESTROY_CONFIG;
     }

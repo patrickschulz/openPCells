@@ -2,6 +2,7 @@
 #define OPC_LUA_UTIL_H
 
 #include "lua/lua.h"
+#include "lua/lauxlib.h"
 
 int util_msghandler(lua_State *L);
 lua_State* util_create_minimal_lua_state(void);

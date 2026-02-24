@@ -13,6 +13,7 @@
 #include "geometry.h"
 #include "hashmap.h"
 #include "info.h"
+#include "main.cellbase.h"
 #include "main.functions.h"
 #include "pcell.h"
 #include "postprocess.h"
@@ -53,47 +54,6 @@ static int _parse_point(const char* arg, int* xptr, int* yptr)
     return 1;
 }
 
-static void _prepare_cellpaths(struct pcell_state* pcell_state, struct cmdoptions* cmdoptions, struct hashmap* config)
-{
-    if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
-    {
-        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
-        while(*arg)
-        {
-
-            pcell_append_cellpath(pcell_state, *arg);
-            ++arg;
-        }
-    }
-    struct vector* config_prepend_cellpaths = hashmap_get(config, "prepend_cellpaths");
-    if(config_prepend_cellpaths)
-    {
-        for(unsigned int i = 0; i < vector_size(config_prepend_cellpaths); ++i)
-        {
-            pcell_append_cellpath(pcell_state, vector_get(config_prepend_cellpaths, i));
-        }
-    }
-    if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
-    {
-        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
-        while(*arg)
-        {
-            pcell_append_cellpath(pcell_state, *arg);
-            ++arg;
-        }
-    }
-    struct vector* config_append_cellpaths = hashmap_get(config, "append_cellpaths");
-    if(config_append_cellpaths)
-    {
-        for(unsigned int i = 0; i < vector_size(config_append_cellpaths); ++i)
-        {
-            pcell_append_cellpath(pcell_state, vector_get(config_append_cellpaths, i));
-        }
-    }
-    // add default path
-    pcell_append_cellpath(pcell_state, OPC_CELL_PATH "/cells");
-}
-
 void main_show_cell_info(const char* cellname, struct cmdoptions* cmdoptions, struct hashmap* config)
 {
     struct pcell_state* pcell_state = pcell_initialize_state();
@@ -101,7 +61,7 @@ void main_show_cell_info(const char* cellname, struct cmdoptions* cmdoptions, st
     {
         fputs("could not initialize pcell state\n", stderr);
     }
-    _prepare_cellpaths(pcell_state, cmdoptions, config);
+    main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
 
     pcell_show_cell_info(pcell_state, cellname);
     pcell_destroy_state(pcell_state);
@@ -110,7 +70,7 @@ void main_show_cell_info(const char* cellname, struct cmdoptions* cmdoptions, st
 void main_list_cells_cellpaths(const char** cellnames_ptr, struct cmdoptions* cmdoptions, struct hashmap* config)
 {
     struct pcell_state* pcell_state = pcell_initialize_state();
-    _prepare_cellpaths(pcell_state, cmdoptions, config);
+    main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
     if(cmdoptions_was_provided_long(cmdoptions, "list"))
     {
         const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
@@ -159,7 +119,7 @@ void main_list_cell_parameters(const char* cellname, const char* parametersforma
         fputs("could not initialize pcell state\n", stderr);
         goto LIST_PARAMETERS_DESTROY_TECHNOLOGY;
     }
-    _prepare_cellpaths(pcell_state, cmdoptions, config);
+    main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
 
     struct const_vector* parameternames = const_vector_adapt_from_pointer_array((void**)parameternames_ptr);
 
@@ -182,7 +142,7 @@ void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* confi
         fputs("could not initialize pcell state\n", stderr);
         return;
     }
-    _prepare_cellpaths(pcell_state, cmdoptions, config);
+    main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
 
     // cellname
     const char* cellname = cmdoptions_get_argument_long(cmdoptions, "anchors");
@@ -609,7 +569,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     {
         pcell_set_verbose(pcell_state);
     }
-    _prepare_cellpaths(pcell_state, cmdoptions, config);
+    main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
     const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
     struct const_vector* cellargs = const_vector_adapt_from_pointer_array((void**)ptr);
     const char* cellname;

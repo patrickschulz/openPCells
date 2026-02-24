@@ -507,6 +507,24 @@ void pcell_list_anchors(struct pcell_state* pcell_state, const char* cellname, c
     lua_close(L);
 }
 
+void pcell_create_cell_documentation(struct pcell_state* pcell_state, const char* cellname)
+{
+    lua_State* L = _prepare_layout_generation(pcell_state, NULL); // no technology state needed
+
+    // assemble cell arguments
+    lua_newtable(L);
+    // cell name
+    lua_pushstring(L, cellname);
+    lua_setfield(L, -2, "cell");
+
+    int retval = script_call_create_cell_documentation(L);
+    if(retval != LUA_OK)
+    {
+        puts("error while running create_cell_documentation.lua");
+    }
+    lua_close(L);
+}
+
 static int lpcell_get_cell_filename(lua_State* L)
 {
     struct lpcell* lpcell = luaL_checkudata(L, 1, "LPCELL");
