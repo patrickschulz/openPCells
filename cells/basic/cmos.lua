@@ -96,6 +96,10 @@ function parameters()
         { "nmoswelltapwellrightextension",                                          technology.get_dimension("Minimum Well Extension") },
         { "nmoswelltapwelltopextension",                                            technology.get_dimension("Minimum Well Extension") },
         { "nmoswelltapwellbottomextension",                                         technology.get_dimension("Minimum Well Extension") },
+        { "nmoswelltapoxidetypeleftextension",                                      technology.get_dimension("Minimum Oxide Extension") },
+        { "nmoswelltapoxidetyperightextension",                                     technology.get_dimension("Minimum Oxide Extension") },
+        { "nmoswelltapoxidetypetopextension",                                       technology.get_dimension("Minimum Oxide Extension") },
+        { "nmoswelltapoxidetypebottomextension",                                    technology.get_dimension("Minimum Oxide Extension") },
         { "drawpmosupperwelltap(Draw pMOS Upper Well Tap)",                         false },
         { "drawpmosleftwelltap(Draw pMOS Left Well Tap)",                           false },
         { "drawpmosrightwelltap(Draw pMOS Right Well Tap)",                         false },
@@ -114,6 +118,10 @@ function parameters()
         { "pmoswelltapwellrightextension",                                          technology.get_dimension("Minimum Well Extension") },
         { "pmoswelltapwelltopextension",                                            technology.get_dimension("Minimum Well Extension") },
         { "pmoswelltapwellbottomextension",                                         technology.get_dimension("Minimum Well Extension") },
+        { "pmoswelltapoxidetypeleftextension",                                      technology.get_dimension("Minimum Oxide Extension") },
+        { "pmoswelltapoxidetyperightextension",                                     technology.get_dimension("Minimum Oxide Extension") },
+        { "pmoswelltapoxidetypetopextension",                                       technology.get_dimension("Minimum Oxide Extension") },
+        { "pmoswelltapoxidetypebottomextension",                                    technology.get_dimension("Minimum Oxide Extension") },
         { "welltapcontinuouscontact(Well Tap Draw Continuous Contacts)",            true },
         { "drawactivedummy",                                                        false },
         { "activedummywidth",                                                       technology.get_optional_dimension("Minimum Active Width", 0) },
@@ -284,6 +292,8 @@ function layout(cmos, _P)
     local leftpmoswell, rightpmoswell
     local leftnmosimplant, rightnmosimplant
     local leftpmosimplant, rightpmosimplant
+    local leftnmosoxide, rightnmosoxide
+    local leftpmosoxide, rightpmosoxide
     local firstgate
     if _P.drawtransistors then
         -- common transistor options
@@ -833,6 +843,8 @@ function layout(cmos, _P)
                 leftpmoswell = pfet:get_area_anchor("well")
                 leftnmosimplant = nfet:get_area_anchor("implant")
                 leftpmosimplant = pfet:get_area_anchor("implant")
+                leftnmosoxide = nfet:get_area_anchor("oxide")
+                leftpmosoxide = pfet:get_area_anchor("oxide")
             end
             if i == fingers then
                 rightndrainarea = nfet:get_area_anchor("sourcedrainactiveright")
@@ -841,6 +853,8 @@ function layout(cmos, _P)
                 rightpmoswell = pfet:get_area_anchor("well")
                 rightnmosimplant = nfet:get_area_anchor("implant")
                 rightpmosimplant = pfet:get_area_anchor("implant")
+                rightnmosoxide = nfet:get_area_anchor("oxide")
+                rightpmosoxide = pfet:get_area_anchor("oxide")
             end
         end
         nopt.drawtopgatecut = true
@@ -915,6 +929,10 @@ function layout(cmos, _P)
         extendwellright = _P.pmoswelltapwellrightextension,
         extendwelltop = _P.pmoswelltapwelltopextension,
         extendwellbottom = _P.pmoswelltapwellbottomextension,
+        extendoxidetypeleft = _P.pmoswelltapoxidetypeleftextension,
+        extendoxidetyperight = _P.pmoswelltapoxidetyperightextension,
+        extendoxidetypetop = _P.pmoswelltapoxidetypetopextension,
+        extendoxidetypebottom = _P.pmoswelltapoxidetypebottomextension,
         ycontinuous = false,
     }
     local nmoswelltap_opt = {
@@ -930,6 +948,10 @@ function layout(cmos, _P)
         extendwellright = _P.nmoswelltapwellrightextension,
         extendwelltop = _P.nmoswelltapwelltopextension,
         extendwellbottom = _P.nmoswelltapwellbottomextension,
+        extendoxidetypeleft = _P.nmoswelltapoxidetypeleftextension,
+        extendoxidetyperight = _P.nmoswelltapoxidetyperightextension,
+        extendoxidetypetop = _P.nmoswelltapoxidetypetopextension,
+        extendoxidetypebottom = _P.nmoswelltapoxidetypebottomextension,
         ycontinuous = false,
     }
     if _P.drawpmosupperwelltap then
@@ -960,9 +982,26 @@ function layout(cmos, _P)
                 welltap:get_area_anchor("well").t
             )
         )
+        geometry.rectanglebltr(cmos, generics.oxide(_P.oxidetype),
+            point.create(
+                math.min(
+                    leftnmosoxide.tl:getx(),
+                    welltap:get_area_anchor("oxide").l
+                ),
+                leftnmosoxide.tl:gety()
+            ),
+            point.create(
+                math.max(
+                    rightpmosoxide.tr:getx(),
+                    welltap:get_area_anchor("oxide").r
+                ),
+                welltap:get_area_anchor("oxide").t
+            )
+        )
         cmos:inherit_area_anchor_as(welltap, "boundary", "pmosupperwelltap_boundary")
         cmos:inherit_area_anchor_as(welltap, "well", "pmosupperwelltap_well")
         cmos:inherit_area_anchor_as(welltap, "implant", "pmosupperwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "oxide", "pmosupperwelltap_oxide")
         cmos:inherit_area_anchor_as(welltap, "soiopen", "pmosupperwelltap_soiopen")
     end
     if _P.drawpmosleftwelltap then
@@ -983,9 +1022,17 @@ function layout(cmos, _P)
             ),
             leftpmoswell.tl
         )
+        geometry.rectanglebltr(cmos, generics.oxide(_P.oxidetype),
+            point.create(
+                welltap:get_area_anchor("oxide").l,
+                leftpmosoxide.bl:gety()
+            ),
+            leftpmosoxide.tl
+        )
         cmos:inherit_area_anchor_as(welltap, "boundary", "pmosleftwelltap_boundary")
         cmos:inherit_area_anchor_as(welltap, "well", "pmosleftwelltap_well")
         cmos:inherit_area_anchor_as(welltap, "implant", "pmosleftwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "oxide", "pmosleftwelltap_oxide")
         cmos:inherit_area_anchor_as(welltap, "soiopen", "pmosleftwelltap_soiopen")
     end
     if _P.drawpmosrightwelltap then
@@ -1006,9 +1053,17 @@ function layout(cmos, _P)
                 rightpmoswell.tr:gety()
             )
         )
+        geometry.rectanglebltr(cmos, generics.oxide(_P.oxidetype),
+            rightpmosoxide.br,
+            point.create(
+                welltap:get_area_anchor("oxide").r,
+                rightpmosoxide.tr:gety()
+            )
+        )
         cmos:inherit_area_anchor_as(welltap, "boundary", "pmosrightwelltap_boundary")
         cmos:inherit_area_anchor_as(welltap, "well", "pmosrightwelltap_well")
         cmos:inherit_area_anchor_as(welltap, "implant", "pmosrightwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "oxide", "pmosrightwelltap_oxide")
         cmos:inherit_area_anchor_as(welltap, "soiopen", "pmosrightwelltap_soiopen")
     end
     if _P.drawnmoslowerwelltap then
@@ -1033,9 +1088,20 @@ function layout(cmos, _P)
             ),
             rightnmoswell.br
         )
+        geometry.rectanglebltr(cmos, generics.oxide(_P.oxidetype),
+            point.create(
+                math.min(
+                    leftnmosoxide.bl:getx(),
+                    welltap:get_area_anchor("oxide").l
+                ),
+                welltap:get_area_anchor("oxide").b
+            ),
+            rightnmosoxide.br
+        )
         cmos:inherit_area_anchor_as(welltap, "boundary", "nmoslowerwelltap_boundary")
         cmos:inherit_area_anchor_as(welltap, "well", "nmoslowerwelltap_well")
         cmos:inherit_area_anchor_as(welltap, "implant", "nmoslowerwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "oxide", "nmoslowerwelltap_oxide")
         cmos:inherit_area_anchor_as(welltap, "soiopen", "nmoslowerwelltap_soiopen")
     end
     if _P.drawnmosleftwelltap then
@@ -1056,9 +1122,17 @@ function layout(cmos, _P)
             ),
             leftnmoswell.tl
         )
+        geometry.rectanglebltr(cmos, generics.oxide(_P.oxidetype),
+            point.create(
+                welltap:get_area_anchor("oxide").l,
+                leftnmosoxide.bl:gety()
+            ),
+            leftnmosoxide.tl
+        )
         cmos:inherit_area_anchor_as(welltap, "boundary", "nmosleftwelltap_boundary")
         cmos:inherit_area_anchor_as(welltap, "well", "nmosleftwelltap_well")
         cmos:inherit_area_anchor_as(welltap, "implant", "nmosleftwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "oxide", "nmosleftwelltap_oxide")
         cmos:inherit_area_anchor_as(welltap, "soiopen", "nmosleftwelltap_soiopen")
     end
     if _P.drawnmosrightwelltap then
@@ -1079,9 +1153,17 @@ function layout(cmos, _P)
                 rightnmoswell.tr:gety()
             )
         )
+        geometry.rectanglebltr(cmos, generics.oxide(_P.oxidetype),
+            rightnmosoxide.br,
+            point.create(
+                welltap:get_area_anchor("oxide").r,
+                rightnmosoxide.tr:gety()
+            )
+        )
         cmos:inherit_area_anchor_as(welltap, "boundary", "nmosrightwelltap_boundary")
         cmos:inherit_area_anchor_as(welltap, "well", "nmosrightwelltap_well")
         cmos:inherit_area_anchor_as(welltap, "implant", "nmosrightwelltap_implant")
+        cmos:inherit_area_anchor_as(welltap, "oxide", "nmosrightwelltap_oxide")
         cmos:inherit_area_anchor_as(welltap, "soiopen", "nmosrightwelltap_soiopen")
     end
 

@@ -350,6 +350,10 @@ function anchors()
         "region of the well"
     )
     pcell.add_area_anchor_documentation(
+        "oxide",
+        "region of the oxide type layer"
+    )
+    pcell.add_area_anchor_documentation(
         "leftactivedummy",
         "region of the left dummy active diffusion",
         "(drawactive == true) and (drawleftactivedummy == true)"
@@ -1151,27 +1155,26 @@ function layout(transistor, _P)
     transistor:add_area_anchor_bltr("implant", implantbl, implanttr)
 
     -- oxide thickness
+    local oxidebl = point.create(
+        _P.oxidetypealignleftwithactive and
+            -leftactauxext - _P.extendoxidetypeleft or
+            -leftactauxext - _P.extendoxidetypeleft,
+        _P.oxidetypealignbottomwithactive and
+            -_P.extendoxidetypebottom or
+            gatebly - _P.extendoxidetypebottom
+    )
+    local oxidetr = point.create(
+        _P.oxidetypealignrightwithactive and
+            activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight or
+            activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight,
+        _P.oxidetypealigntopwithactive and
+            _P.fingerwidth + _P.extendoxidetypetop or
+            gatetry + _P.extendoxidetypetop
+    )
     if _P.drawoxidetype then
-        geometry.rectanglebltr(transistor,
-            generics.oxide(_P.oxidetype),
-            point.create(
-                _P.oxidetypealignleftwithactive and
-                    -leftactauxext - _P.extendoxidetypeleft or
-                    -leftactauxext - _P.extendoxidetypeleft,
-                _P.oxidetypealignbottomwithactive and
-                    -_P.extendoxidetypebottom or
-                    gatebly - _P.extendoxidetypebottom
-            ),
-            point.create(
-                _P.oxidetypealignrightwithactive and
-                    activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight or
-                    activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight,
-                _P.oxidetypealigntopwithactive and
-                    _P.fingerwidth + _P.extendoxidetypetop or
-                    gatetry + _P.extendoxidetypetop
-            )
-        )
+        geometry.rectanglebltr(transistor, generics.oxide(_P.oxidetype), oxidebl, oxidetr)
     end
+    transistor:add_area_anchor_bltr("oxide", oxidebl, oxidetr)
 
     -- rotation marker
     if _P.drawrotationmarker then

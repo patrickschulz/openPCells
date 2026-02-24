@@ -107,6 +107,11 @@ function layout(welltap, _P)
         point.create(_P.width + _P.extendimplantright, _P.height + _P.extendimplanttop)
     )
     welltap:add_area_anchor_bltr(
+        "oxide",
+        point.create(-_P.extendoxidetypeleft, -_P.extendoxidetypebottom),
+        point.create(_P.width + _P.extendoxidetyperight, _P.height + _P.extendoxidetypetop)
+    )
+    welltap:add_area_anchor_bltr(
         "soiopen",
         point.create(-_P.extendsoiopenleft, -_P.extendsoiopenbottom),
         point.create(_P.width + _P.extendsoiopenright, _P.height + _P.extendsoiopentop)
