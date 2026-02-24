@@ -51,6 +51,7 @@ Especially with HTML-based stuff (cell display, searchable documentation) I coul
 * proper and thorough testing
 * pcell module implementation mostly in C, lua only as an interface
 * properly support pcells written in C (requires pcell module C implementation)
+* integer-based calculations and proper grid support (functions for 'breaking' grid in a defined way)
 
 ## Important Types
 There are a few types that are used throughout the project.
