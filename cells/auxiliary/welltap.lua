@@ -1,25 +1,30 @@
 function parameters()
     pcell.add_parameters(
         { "contype",                    "p" },
+        { "oxidetype",                  1 },
         { "width",                      5000, posvals = positive() },
         { "height",                     5000, posvals = positive() },
-        { "extendall",                  50 },
-        { "extendalltop",               50, follow = "extendall" },
-        { "extendallbottom",            50, follow = "extendall" },
-        { "extendallleft",              50, follow = "extendall" },
-        { "extendallright",             50, follow = "extendall" },
-        { "extendimplantleft",          50, follow = "extendallleft" },
-        { "extendimplantright",         50, follow = "extendallright" },
-        { "extendimplanttop",           50, follow = "extendalltop" },
-        { "extendimplantbottom",        50, follow = "extendallbottom" },
-        { "extendsoiopenleft",          50, follow = "extendallleft" },
-        { "extendsoiopenright",         50, follow = "extendallright" },
-        { "extendsoiopentop",           50, follow = "extendalltop" },
-        { "extendsoiopenbottom",        50, follow = "extendallbottom" },
-        { "extendwellleft",             50, follow = "extendallleft" },
-        { "extendwellright",            50, follow = "extendallright" },
-        { "extendwelltop",              50, follow = "extendalltop" },
-        { "extendwellbottom",           50, follow = "extendallbottom" },
+        { "extendall",                  0 },
+        { "extendalltop",               0, follow = "extendall" },
+        { "extendallbottom",            0, follow = "extendall" },
+        { "extendallleft",              0, follow = "extendall" },
+        { "extendallright",             0, follow = "extendall" },
+        { "extendimplantleft",          technology.get_dimension("Minimum Implant Extension"), follow = "extendallleft" },
+        { "extendimplantright",         technology.get_dimension("Minimum Implant Extension"), follow = "extendallright" },
+        { "extendimplanttop",           technology.get_dimension("Minimum Implant Extension"), follow = "extendalltop" },
+        { "extendimplantbottom",        technology.get_dimension("Minimum Implant Extension"), follow = "extendallbottom" },
+        { "extendsoiopenleft",          technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "extendallleft" },
+        { "extendsoiopenright",         technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "extendallright" },
+        { "extendsoiopentop",           technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "extendalltop" },
+        { "extendsoiopenbottom",        technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "extendallbottom" },
+        { "extendwellleft",             technology.get_dimension("Minimum Well Extension"), follow = "extendallleft" },
+        { "extendwellright",            technology.get_dimension("Minimum Well Extension"), follow = "extendallright" },
+        { "extendwelltop",              technology.get_dimension("Minimum Well Extension"), follow = "extendalltop" },
+        { "extendwellbottom",           technology.get_dimension("Minimum Well Extension"), follow = "extendallbottom" },
+        { "extendoxidetypeleft",        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallleft" },
+        { "extendoxidetyperight",       technology.get_dimension("Minimum Oxide Extension"), follow = "extendallright" },
+        { "extendoxidetypetop",         technology.get_dimension("Minimum Oxide Extension"), follow = "extendalltop" },
+        { "extendoxidetypebottom",      technology.get_dimension("Minimum Oxide Extension"), follow = "extendallbottom" },
         { "xcontinuous",                false },
         { "ycontinuous",                false }
     )
@@ -39,6 +44,10 @@ function anchors()
         "region of the implant"
     )
     pcell.add_area_anchor_documentation(
+        "oxide",
+        "region of the oxide type layer"
+    )
+    pcell.add_area_anchor_documentation(
         "soiopen",
         "region of the soi opening layer. Always present, but only meaningful in an SOI node"
     )
@@ -53,6 +62,10 @@ function layout(welltap, _P)
     geometry.rectanglebltr(welltap, generics.implant(_P.contype),
         point.create(-_P.extendimplantleft, -_P.extendimplantbottom),
         point.create(_P.width + _P.extendimplantright, _P.height + _P.extendimplanttop)
+    )
+    geometry.rectanglebltr(welltap, generics.oxide(_P.oxidetype),
+        point.create(-_P.extendoxidetypeleft, -_P.extendoxidetypebottom),
+        point.create(_P.width + _P.extendoxidetyperight, _P.height + _P.extendoxidetypetop)
     )
     geometry.rectanglebltr(welltap, generics.feol("soiopen"),
         point.create(-_P.extendsoiopenleft, -_P.extendsoiopenbottom),
