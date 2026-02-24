@@ -381,7 +381,7 @@ local function _calculate_line_breaks(xy, size, cstart, cstop, blockages)
 end
 
 function M.place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, excludes)
-    check.set_next_function_name("layouthelpers.place_hlines_excludes")
+    check.set_next_function_name("layouthelpers.place_vlines")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
     check.arg_func(3, "tr", "point", bl, point.is_point)
@@ -453,7 +453,6 @@ function M.place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, 
     return netshapes
 end
 
-
 function M.place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)
     local numnets = #netnames
     local width, height, space, offset, numlines = geometry.rectanglehlines_numlines_height_settings(
@@ -481,7 +480,7 @@ function M.place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)
 end
 
 function M.place_hlines(cell, bl, tr, layer, height, space, minwidth, netnames, excludes)
-    check.set_next_function_name("layouthelpers.place_hlines_excludes")
+    check.set_next_function_name("layouthelpers.place_hlines")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
     check.arg_func(3, "tr", "point", bl, point.is_point)
