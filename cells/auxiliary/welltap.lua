@@ -4,6 +4,7 @@ function parameters()
         { "oxidetype",                  1 },
         { "width",                      5000, posvals = positive() },
         { "height",                     5000, posvals = positive() },
+        { "drawoxidetype",              true },
         { "extendall",                  0 },
         { "extendalltop",               0, follow = "extendall" },
         { "extendallbottom",            0, follow = "extendall" },
@@ -46,6 +47,7 @@ function anchors()
     pcell.add_area_anchor_documentation(
         "oxide",
         "region of the oxide type layer"
+        "drawoxidetype == true"
     )
     pcell.add_area_anchor_documentation(
         "soiopen",
@@ -63,10 +65,12 @@ function layout(welltap, _P)
         point.create(-_P.extendimplantleft, -_P.extendimplantbottom),
         point.create(_P.width + _P.extendimplantright, _P.height + _P.extendimplanttop)
     )
-    geometry.rectanglebltr(welltap, generics.oxide(_P.oxidetype),
-        point.create(-_P.extendoxidetypeleft, -_P.extendoxidetypebottom),
-        point.create(_P.width + _P.extendoxidetyperight, _P.height + _P.extendoxidetypetop)
-    )
+    if _P.drawoxidetype then
+        geometry.rectanglebltr(welltap, generics.oxide(_P.oxidetype),
+            point.create(-_P.extendoxidetypeleft, -_P.extendoxidetypebottom),
+            point.create(_P.width + _P.extendoxidetyperight, _P.height + _P.extendoxidetypetop)
+        )
+    end
     geometry.rectanglebltr(welltap, generics.feol("soiopen"),
         point.create(-_P.extendsoiopenleft, -_P.extendsoiopenbottom),
         point.create(_P.width + _P.extendsoiopenright, _P.height + _P.extendsoiopentop)
@@ -106,11 +110,13 @@ function layout(welltap, _P)
         point.create(-_P.extendimplantleft, -_P.extendimplantbottom),
         point.create(_P.width + _P.extendimplantright, _P.height + _P.extendimplanttop)
     )
-    welltap:add_area_anchor_bltr(
-        "oxide",
-        point.create(-_P.extendoxidetypeleft, -_P.extendoxidetypebottom),
-        point.create(_P.width + _P.extendoxidetyperight, _P.height + _P.extendoxidetypetop)
-    )
+    if _P.drawoxidetype then
+        welltap:add_area_anchor_bltr(
+            "oxide",
+            point.create(-_P.extendoxidetypeleft, -_P.extendoxidetypebottom),
+            point.create(_P.width + _P.extendoxidetyperight, _P.height + _P.extendoxidetypetop)
+        )
+    end
     welltap:add_area_anchor_bltr(
         "soiopen",
         point.create(-_P.extendsoiopenleft, -_P.extendsoiopenbottom),

@@ -933,6 +933,8 @@ function layout(cmos, _P)
         extendoxidetyperight = _P.pmoswelltapoxidetyperightextension,
         extendoxidetypetop = _P.pmoswelltapoxidetypetopextension,
         extendoxidetypebottom = _P.pmoswelltapoxidetypebottomextension,
+        drawoxidetype = true,
+        oxidetype = _P.oxidetype,
         ycontinuous = false,
     }
     local nmoswelltap_opt = {
@@ -952,6 +954,8 @@ function layout(cmos, _P)
         extendoxidetyperight = _P.nmoswelltapoxidetyperightextension,
         extendoxidetypetop = _P.nmoswelltapoxidetypetopextension,
         extendoxidetypebottom = _P.nmoswelltapoxidetypebottomextension,
+        drawoxidetype = true,
+        oxidetype = _P.oxidetype,
         ycontinuous = false,
     }
     if _P.drawpmosupperwelltap then
