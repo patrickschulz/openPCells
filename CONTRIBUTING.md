@@ -79,6 +79,11 @@ Some of these things are also not particularly hard to do, they just require som
 * pcell module implementation mostly in C, lua only as an interface
 * properly support pcells written in C (requires pcell module C implementation)
 * integer-based calculations and proper grid support (functions for 'breaking' grid in a defined way)
+* set up a nice-looking website for the project with
+    - official documentation and guides
+    - mailing list/forum/something else?
+    - download
+    - integrated layout viewer (a simplified version of the current browser-based viewer) with cell list
 
 ## Important Types
 There are a few types that are used throughout the project.
