@@ -2,9 +2,10 @@
 
 #include "lua/lauxlib.h"
 
-#include <string.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -18,12 +19,17 @@ int filesystem_mkdir(const char* path)
      Slightly modified for use in lua
      >> 
      */
-    for (char* p = strchr(path + 1, '/'); p; p = strchr(p + 1, '/'))
+    char* copy = malloc(strlen(path) + 1);
+    strcpy(copy, path);
+    for(char* p = strchr(copy + 1, '/'); p; p = strchr(p + 1, '/'))
     {
         *p = '\0';
-        if (mkdir(path, mode) == -1) {
-            if (errno != EEXIST) {
+        if(mkdir(copy, mode) == -1)
+        {
+            if (errno != EEXIST)
+            {
                 *p = '/';
+                free(copy);
                 return 0;
             }
         }
@@ -31,12 +37,16 @@ int filesystem_mkdir(const char* path)
     }
     /* << */
     /* create last part of path */
-    if (mkdir(path, mode) == -1) {
-        if (errno != EEXIST) {
+    if (mkdir(copy, mode) == -1)
+    {
+        if (errno != EEXIST)
+        {
+            free(copy);
             return 0;
         }
     }
 
+    free(copy);
     return 1;
 }
 
