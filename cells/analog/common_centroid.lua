@@ -834,9 +834,10 @@ function layout(cell, _P, _env, state)
         local sourcestrap_space_occupation = 0
         if _P.usesourcestraps then
             if _P.gatepos == "doublerow" then
-                if (not evenrow and not _P.sourcestrapsinside) or
-                   (evenrow and _P.sourcestrapsinside) then
+                if (not evenrow and not _P.sourcestrapsinside) then
                     sourcestrap_space_occupation = _P.sourcedrainstrapwidth + 2 * _P.sourcedrainstrapspace
+                elseif (evenrow and _P.sourcestrapsinside) then
+                    sourcestrap_space_occupation = 2 * (_P.sourcedrainstrapwidth + _P.sourcedrainstrapspace)
                 end
             end
         end
@@ -874,7 +875,7 @@ function layout(cell, _P, _env, state)
             end
         end
         if (gatestrap_space_occupation > 0) and (gateline_space_occupation > 0) then
-            extraspace = 2 * _P.gatelinespace
+            extraspace = extraspace + 2 * _P.gatelinespace
         end
 
         -- gate straps and gate lines can overlap
@@ -893,6 +894,12 @@ function layout(cell, _P, _env, state)
             gateline_space_occupation +
             interconnectline_space_occupation +
             extraspace
+
+        dprint("sourcestrap_space_occupation", sourcestrap_space_occupation)
+        dprint("gatestrap_space_occupation", gatestrap_space_occupation)
+        dprint("gateline_space_occupation", gateline_space_occupation)
+        dprint("interconnectline_space_occupation", interconnectline_space_occupation)
+        dprint("extraspace", extraspace)
     end
     -- fix zero-shift rows
     for row = 1, state.numrows do
