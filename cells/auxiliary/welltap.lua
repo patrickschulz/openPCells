@@ -46,7 +46,7 @@ function anchors()
     )
     pcell.add_area_anchor_documentation(
         "oxide",
-        "region of the oxide type layer"
+        "region of the oxide type layer",
         "drawoxidetype == true"
     )
     pcell.add_area_anchor_documentation(
