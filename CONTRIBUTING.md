@@ -167,13 +167,16 @@ A few particularities are listed here:
  * similarily, white space at the end of the line is highly frowned upon. It shows up red in git diffs.
 
  * there is no hard limit on the line length, make it reasonable. Do not break at 80, that is too short.
+
  * prepend the namespace of a module:
 
     // in module foo.c
     int foo_create(void);
 
  * static functions don't prepend the module name and start with an underscore
+
  * Yes, I'm aware that identifiers starting with an underscore are reserved.
-   I believe it is unlikely that this will be an issue at some points, but I will change this in the future.
+   I believe it is unlikely that this will be an issue at some point, but I will change this in the future.
    I'm still in search of a solution that allows easy spotting of private identifiers without clutter.
+
  * In geneneral (a few expections exist) structs and enums are *not* typedef'd. Use the full qualifier.
