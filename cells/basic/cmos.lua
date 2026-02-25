@@ -122,7 +122,7 @@ function parameters()
         { "pmoswelltapoxidetyperightextension",                                     technology.get_dimension("Minimum Oxide Extension") },
         { "pmoswelltapoxidetypetopextension",                                       technology.get_dimension("Minimum Oxide Extension") },
         { "pmoswelltapoxidetypebottomextension",                                    technology.get_dimension("Minimum Oxide Extension") },
-        { "welltapcontinuouscontact(Well Tap Draw Continuous Contacts)",            true },
+        { "welltapcontinuouscontact(Well Tap Draw Continuous Contacts)",            false },
         { "drawactivedummy",                                                        false },
         { "activedummywidth",                                                       technology.get_optional_dimension("Minimum Active Width", 0) },
         { "activedummyspace",                                                       technology.get_optional_dimension("Minimum Active Space", 0) },
