@@ -192,7 +192,7 @@ int main(int argc, const char* const * argv)
     error_t config_status = main_load_config(config, cmdoptions, load_user_config);
     if(error_is_failure(&config_status))
     {
-        error_print(&config_status, "error while loading user config: ", "\n");
+        error_printf(&config_status, "%s: ", "error while loading user config");
         error_clean(&config_status);
         returnvalue = 1;
         goto DESTROY_CONFIG;

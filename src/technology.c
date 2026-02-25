@@ -601,26 +601,29 @@ VIA_EXIT:
     return e;
 }
 
-static int _load_config(struct technology_state* techstate, const char* name, const char** errmsg)
+static error_t _load_config(struct technology_state* techstate, const char* name)
 {
     lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, name);
+    error_t error_status = error_success();
     if(ret != LUA_OK)
     {
-        //const char* msg = lua_tostring(L, -1);
-        //fprintf(stderr, "error while loading config file: %s\n", msg);
-        *errmsg = "error while loading technology configuration file";
+        error_set_failure(&error_status);
+        error_add(&error_status, "error while loading technology configuration file: ");
+        const char* msg = lua_tostring(L, -1);
+        error_add(&error_status, msg);
         lua_close(L);
-        return 0;
+        return error_status;
     }
 
     // grid
     lua_getfield(L, -1, "grid");
     if(lua_isnil(L, -1))
     {
-        *errmsg = "technology configuration file specify the manufacturing grid";
+        error_set_failure(&error_status);
+        error_add(&error_status, "technology configuration file specify the manufacturing grid");
         lua_close(L);
-        return 0;
+        return error_status;
     }
     techstate->config->grid = lua_tointeger(L, -1);
     lua_pop(L, 1); // pop grid
@@ -629,9 +632,10 @@ static int _load_config(struct technology_state* techstate, const char* name, co
     lua_getfield(L, -1, "metals");
     if(lua_isnil(L, -1))
     {
-        *errmsg = "technology configuration file does not contain the number of metals ('metals' entry)";
+        error_set_failure(&error_status);
+        error_add(&error_status, "technology configuration file does not contain the number of metals ('metals' entry)");
         lua_close(L);
-        return 0;
+        return error_status;
     }
     techstate->config->metals = lua_tointeger(L, -1);
     lua_pop(L, 1); // pop metals
@@ -649,9 +653,10 @@ static int _load_config(struct technology_state* techstate, const char* name, co
             lua_rawgeti(L, -1, i);
             if(!lua_istable(L, -1))
             {
-                *errmsg = "error while loading technology config: multiple_patterning is not a table";
+                error_set_failure(&error_status);
+                error_add(&error_status, "error while loading technology config: multiple_patterning is not a table");
                 lua_close(L);
-                return 0;
+                return error_status;
             }
             struct mpentry* entry = malloc(sizeof(*entry));
             lua_getfield(L, -1, "metal");
@@ -670,9 +675,10 @@ static int _load_config(struct technology_state* techstate, const char* name, co
     lua_getfield(L, -1, "is_soi");
     if(lua_isnil(L, -1))
     {
-        *errmsg = "technology configuration file does not contain info about the wafer type of this process node('is_soi' entry)";
+        error_set_failure(&error_status);
+        error_add(&error_status, "technology configuration file does not contain info about the wafer type of this process node('is_soi' entry)");
         lua_close(L);
-        return 0;
+        return error_status;
     }
     techstate->config->is_soi = lua_toboolean(L, -1);
     lua_pop(L, 1); // pop is_soi
@@ -681,9 +687,10 @@ static int _load_config(struct technology_state* techstate, const char* name, co
     lua_getfield(L, -1, "allow_poly_routing");
     if(lua_isnil(L, -1))
     {
-        *errmsg = "technology configuration file does not contain info about poly routing ('allow_poly_routing' entry)";
+        error_set_failure(&error_status);
+        error_add(&error_status, "technology configuration file does not contain info about poly routing ('allow_poly_routing' entry)");
         lua_close(L);
-        return 0;
+        return error_status;
     }
     techstate->config->allow_poly_routing = lua_toboolean(L, -1);
     lua_pop(L, 1); // pop allow_poly_routing
@@ -692,15 +699,16 @@ static int _load_config(struct technology_state* techstate, const char* name, co
     lua_getfield(L, -1, "has_gatecut");
     if(lua_isnil(L, -1))
     {
-        *errmsg = "technology configuration file does not contain info about the gate cut layer ('has_gatecut' entry)";
+        error_set_failure(&error_status);
+        error_add(&error_status, "technology configuration file does not contain info about the gate cut layer ('has_gatecut' entry)");
         lua_close(L);
-        return 0;
+        return error_status;
     }
     techstate->config->has_gatecut = lua_toboolean(L, -1);
     lua_pop(L, 1); // pop has_gatecut
 
     lua_close(L);
-    return 1;
+    return error_status;
 }
 
 static int _load_constraints(struct technology_state* techstate, const char* name)
@@ -730,7 +738,6 @@ static int _load_constraints(struct technology_state* techstate, const char* nam
 int technology_load(const struct vector* techpaths, struct technology_state* techstate, const struct const_vector* ignoredlayers)
 {
     char* layermapname = _get_tech_filename(techpaths, techstate->name, "layermap");
-    const char* errmsg;
     if(!layermapname)
     {
         fprintf(stderr, "technology: no techfile for technology '%s' found\n", techstate->name);
@@ -768,10 +775,11 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
         free(configname);
         return 0;
     }
-    ret = _load_config(techstate, configname, &errmsg);
-    if(!ret)
+    error_t config_status = _load_config(techstate, configname);
+    if(error_is_failure(&config_status))
     {
-        fprintf(stderr, "technology: errrors while loading technology config file ('%s'):\n%s\n", configname, errmsg);
+        error_printf(&config_status, "technology: errrors while loading technology config file ('%s'): ", configname);
+        error_clean(&config_status);
         free(configname);
         return 0;
     }

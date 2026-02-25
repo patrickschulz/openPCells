@@ -54,7 +54,14 @@ void error_add(error_t* e , const char* message)
     e->message = new;
 }
 
-void error_print(error_t* e, const char* pre, const char* post)
+void error_printf(error_t* e, const char* fmt, ...)
 {
-    fprintf(stderr, "%s%s%s", e->message, pre, post);
+    va_list args;
+    va_start(args, fmt);
+    char* str = strprintfv(fmt, args);
+    va_end(args);
+    fputs(str, stderr);
+    fputs(e->message, stderr);
+    fputc('\n', stderr);
+    free(str);
 }

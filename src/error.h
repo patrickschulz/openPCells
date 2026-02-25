@@ -14,6 +14,6 @@ int error_is_success(error_t* e);
 int error_is_failure(error_t* e);
 void error_prepend(error_t* e , const char* message);
 void error_add(error_t* e , const char* message);
-void error_print(error_t* e, const char* pre, const char* post);
+void error_printf(error_t* e, const char* fmt, ...);
 
 #endif /* OPC_ERROR_H */

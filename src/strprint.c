@@ -1,7 +1,6 @@
-#include "string.h"
+#include "strprint.h"
 
 #include <assert.h>
-#include <stdarg.h>
 
 static void _add_digit(struct string* string, int i)
 {
@@ -54,10 +53,17 @@ void strprint_uinteger(struct string* string, unsigned int i)
 
 char* strprintf(const char* fmt, ...)
 {
+    va_list args;
+    va_start(args, fmt);
+    char* str = strprintfv(fmt, args);
+    va_end(args);
+    return str;
+}
+
+char* strprintfv(const char* fmt, va_list args)
+{
     struct string* str = string_create();
     const char* ptr = fmt;
-    va_list ap;
-    va_start(ap, fmt);
     while(*ptr)
     {
         if(*ptr == '%')
@@ -74,19 +80,19 @@ char* strprintf(const char* fmt, ...)
                     break;
                 case 's':
                 {
-                    const char* s = va_arg(ap, const char*);
+                    const char* s = va_arg(args, const char*);
                     string_add_string(str, s);
                     break;
                 }
                 case 'd':
                 {
-                    int i = va_arg(ap, int);
+                    int i = va_arg(args, int);
                     strprint_integer(str, i);
                     break;
                 }
                 case 'u':
                 {
-                    unsigned int i = va_arg(ap, unsigned int);
+                    unsigned int i = va_arg(args, unsigned int);
                     strprint_integer(str, i);
                     break;
                 }
