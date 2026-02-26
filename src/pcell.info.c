@@ -3,6 +3,7 @@
 #include "_scriptmanager.h"
 #include "lua_util.h"
 #include "pcell.common.h"
+#include "ldir.h"
 
 #define OPC_PCELL_IMPLEMENTATION
 #include "pcell.def.h"
@@ -12,6 +13,7 @@ void pcell_create_cell_documentation(struct pcell_state* pcell_state)
 {
     lua_State* L = util_create_basic_lua_state();
     pcellcommon_load_pcell_library(L, pcell_state);
+    open_ldir_lib(L);
 
     // assemble cell arguments
     lua_newtable(L);
