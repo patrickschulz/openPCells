@@ -39,6 +39,7 @@
 #include "main.functions.h"
 #include "main.gds.h"
 #include "main.import.h"
+#include "main.lua.h"
 #include "main.tutorial.h"
 
 #include "_scriptmanager.h"

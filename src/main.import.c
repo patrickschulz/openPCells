@@ -13,6 +13,7 @@
 #include "lrouter.h"
 #include "lua_util.h"
 #include "main.functions.h"
+#include "main.lua.h"
 #include "util_cmodule.h"
 #include "util.h"
 

@@ -87,11 +87,14 @@ OBJS:= \
 	main.config.o \
 	main.functions.o \
 	main.gds.o \
+	main.lua.o \
 	main.tutorial.o \
 	main.import.o \
 	netlist.o \
 	object.o \
 	pcell.o \
+	pcell.common.o \
+	pcell.state.o \
 	placement.o \
 	point.o \
 	polygon.o \
@@ -170,7 +173,7 @@ generate_manpage: cmdoptions.h cmdoptions.c print.c generate_manpage.c
 _scriptmanager.c: _embed_compiled_lua_file scripts/*.lua
 	@echo '#include "_scriptmanager.h"' > __scriptmanager.c
 	@echo '#include <stddef.h>' >> __scriptmanager.c
-	@echo '#include "main.functions.h"' >> __scriptmanager.c
+	@echo '#include "main.lua.h"' >> __scriptmanager.c
 	./_embed_compiled_lua_file --script scripts/show_cell_info.lua script_call show_cell_info __scriptmanager.c
 	./_embed_compiled_lua_file --script scripts/create_cell_documentation.lua script_call create_cell_documentation __scriptmanager.c
 	./_embed_compiled_lua_file --script scripts/list_cells.lua script_call list_cells __scriptmanager.c
@@ -197,7 +200,7 @@ _scriptmanager.h:
 _modulemanager.c: _embed_compiled_lua_file modules/*.lua
 	@echo '#include "_modulemanager.h"' > _modulemanager.c
 	@echo '#include <stddef.h>' >> _modulemanager.c
-	@echo '#include "main.functions.h"' >> _modulemanager.c
+	@echo '#include "main.lua.h"' >> _modulemanager.c
 	./_embed_compiled_lua_file --module modules/alignmentgroup.lua module_load alignmentgroup _modulemanager.c
 	./_embed_compiled_lua_file --module modules/aux.lua module_load aux _modulemanager.c
 	./_embed_compiled_lua_file --module modules/check.lua module_load check _modulemanager.c
@@ -423,6 +426,8 @@ main.functions.o: main.functions.c main.functions.h lua/lua.h \
 main.gds.o: main.gds.c main.gds.h cmdoptions.h \
  main.functions.h lua/lua.h lua/luaconf.h technology.h \
  vector.h hashmap.h gdsparser.h
+main.lua.o: main.lua.c main.lua.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
+ lua/lua.h lua_util.h
 main.import.o: main.import.c main.import.h vector.h \
  lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
  cdl_parser.h filesystem.h lplacement.h polygon.h \
@@ -441,6 +446,10 @@ pcell.o: pcell.c pcell.h lua/lua.h lua/luaconf.h \
  lua/lauxlib.h lua/lua.h cells.h main.functions.h \
  util.h lua_util.h ldir.h lobject.h ldebug.h \
  _scriptmanager.h _modulemanager.h
+pcell.common.o: pcell.common.c pcell.common.h lua/lua.h lua/luaconf.h \
+ technology.h hashmap.h tagged_value.h vector.h lua/lauxlib.h lua/lua.h \
+ _modulemanager.h main.lua.h util.h pcell.def.h
+pcell.state.o: pcell.state.c pcell.def.h
 placement.o: placement.c placement.h object.h hashmap.h \
  polygon.h point.h shape.h technology.h lua/lua.h \
  lua/luaconf.h vector.h transformationmatrix.h geometry.h \
