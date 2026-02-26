@@ -48,10 +48,44 @@ static struct object* _process_object(lua_State* L, int retval)
     }
 }
 
+static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, struct technology_state* techstate)
+{
+    lua_State* L = util_create_basic_lua_state();
+    main_load_opc_libraries(L);
+
+    // register techstate
+    if(techstate)
+    {
+        lua_pushlightuserdata(L, techstate);
+        lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
+    }
+
+    // load main modules
+    module_load_alignmentgroup(L);
+    module_load_aux(L);
+    module_load_check(L);
+    module_load_globals(L);
+    module_load_graphics(L);
+    module_load_load(L);
+    module_load_placement(L);
+    module_load_routing(L);
+    module_load_util(L);
+    module_load_layouthelpers(L);
+
+    int ret = pcellcommon_load_pcell_library(L, pcell_state);
+    if(!ret)
+    {
+        lua_close(L);
+        return NULL;
+    }
+
+    return L;
+}
+
 struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, struct technology_state* techstate, const char* scriptname, const char* toplevelname, struct const_vector* cellargs, const char *cellenvfilename, int dodebug)
 {
     (void)toplevelname;
-    lua_State* L = pcellcommon_prepare_layout_generation(pcell_state, techstate);
+    lua_State* L = _prepare_layout_generation(pcell_state, techstate);
     struct object* toplevel = NULL;
     if(!L)
     {
@@ -90,7 +124,7 @@ create_layout_from_script_finish:
 
 struct object* pcell_create_layout_env(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* toplevelname, const char* cellenvfilename, int dodebug)
 {
-    lua_State* L = pcellcommon_prepare_layout_generation(pcell_state, techstate);
+    lua_State* L = _prepare_layout_generation(pcell_state, techstate);
     if(!L)
     {
         return NULL;
@@ -134,7 +168,7 @@ create_layout_finish:
 
 void pcell_show_cell_info(struct pcell_state* pcell_state, const char* cellname)
 {
-    lua_State* L = pcellcommon_prepare_layout_generation(pcell_state, NULL);
+    lua_State* L = _prepare_layout_generation(pcell_state, NULL);
 
     // assemble cell arguments
     lua_newtable(L);
@@ -230,7 +264,7 @@ struct object* pcell_create_layout(const char* cellname, struct technology_state
 
 void pcell_list_parameters(struct pcell_state* pcell_state, struct technology_state* techstate, const char* cellname, const char* parametersformat, struct const_vector* parameternames)
 {
-    lua_State* L = pcellcommon_prepare_layout_generation(pcell_state, techstate);
+    lua_State* L = _prepare_layout_generation(pcell_state, techstate);
 
     // assemble cell arguments
     lua_newtable(L);
@@ -274,7 +308,7 @@ void pcell_list_parameters(struct pcell_state* pcell_state, struct technology_st
 
 void pcell_list_anchors(struct pcell_state* pcell_state, const char* cellname, const char* anchorsformat, struct const_vector* anchornames)
 {
-    lua_State* L = pcellcommon_prepare_layout_generation(pcell_state, NULL); // don't need technology
+    lua_State* L = _prepare_layout_generation(pcell_state, NULL); // don't need technology
 
     // assemble cell arguments
     lua_newtable(L);
@@ -316,7 +350,7 @@ void pcell_list_anchors(struct pcell_state* pcell_state, const char* cellname, c
 
 void pcell_create_cell_documentation(struct pcell_state* pcell_state, const char* cellname)
 {
-    lua_State* L = pcellcommon_prepare_layout_generation(pcell_state, NULL); // no technology state needed
+    lua_State* L = _prepare_layout_generation(pcell_state, NULL); // no technology state needed
 
     // assemble cell arguments
     lua_newtable(L);

@@ -1,18 +1,30 @@
-#include "pcell.common.h"
-
 #include <stdio.h>
 
 #include "_scriptmanager.h"
+#include "lua_util.h"
+#include "pcell.common.h"
 
-void pcell_create_cell_documentation(struct pcell_state* pcell_state, const char* cellname)
+#define OPC_PCELL_IMPLEMENTATION
+#include "pcell.def.h"
+#undef OPC_PCELL_IMPLEMENTATION
+
+void pcell_create_cell_documentation(struct pcell_state* pcell_state)
 {
-    lua_State* L = pcellcommon_prepare_layout_generation(pcell_state, NULL); // no technology state needed
+    lua_State* L = util_create_basic_lua_state();
+    pcellcommon_load_pcell_library(L, pcell_state);
 
     // assemble cell arguments
     lua_newtable(L);
-    // cell name
-    lua_pushstring(L, cellname);
-    lua_setfield(L, -2, "cell");
+    // cell paths
+    lua_newtable(L);
+    for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
+    {
+        lua_pushstring(L, vector_get_const(pcell_state->cellpaths, i));
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_setfield(L, -2, "cellpaths");
+
+    lua_setglobal(L, "args");
 
     int retval = script_call_create_cell_documentation(L);
     if(retval != LUA_OK)

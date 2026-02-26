@@ -213,7 +213,6 @@ _modulemanager.c: _embed_compiled_lua_file modules/*.lua
 	./_embed_compiled_lua_file --module modules/pcell.lua module_load pcell _modulemanager.c
 	./_embed_compiled_lua_file --module modules/placement.lua module_load placement _modulemanager.c
 	./_embed_compiled_lua_file --module modules/routing.lua module_load routing _modulemanager.c
-	./_embed_compiled_lua_file --module modules/stack.lua module_load stack _modulemanager.c
 	./_embed_compiled_lua_file --module modules/util.lua module_load util _modulemanager.c
 	./_embed_compiled_lua_file --module modules/verilog.lua module_load verilog _modulemanager.c
 	./_embed_compiled_lua_file --module modules/verilogprocessor.lua module_load verilogprocessor _modulemanager.c
@@ -234,7 +233,6 @@ _modulemanager.h: modules/*.lua
 	@echo 'int module_load_pcell(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_placement(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_routing(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_stack(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_util(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_verilog(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_verilogprocessor(lua_State* L);' >> _modulemanager.h
@@ -248,6 +246,9 @@ create_latex_API_doc: create_latex_API_doc.c main.api_help.c main.api_help.h vec
 
 create_HTML_API_doc: create_HTML_API_doc.c main.api_help.c main.api_help/*.c main.api_help.h vector.c vector.h util.c util.h terminal.c terminal.h
 	$(CC) $(CFLAGS) create_HTML_API_doc.c main.api_help.c print.c string.c terminal.c util.c vector.c -o create_HTML_API_doc
+
+create_cell_documentation: create_cell_documentation.c _scriptmanager.h _scriptmanager.c _modulemanager.h _modulemanager.c liblua_release.a
+	$(CC) $(CFLAGS) create_cell_documentation.c main.config.c main.lua.c main.cellbase.c cmdoptions.c lua_util.c print.c filesystem.c error.c hashmap.c vector.c util.c string.c strprint.c pcell.info.c pcell.state.c pcell.common.c _scriptmanager.c _modulemanager.c liblua_release.a -o create_cell_documentation -lm
 
 .PHONY: clean
 clean:

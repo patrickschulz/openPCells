@@ -115,32 +115,9 @@ static void _create_lua_state(lua_State* L, struct pcell_state* pcell_state)
     // no return value, as the value on the stack is used
 }
 
-lua_State* pcellcommon_prepare_layout_generation(struct pcell_state* pcell_state, struct technology_state* techstate)
+int pcellcommon_load_pcell_library(lua_State* L, struct pcell_state* pcell_state)
 {
-    lua_State* L = util_create_basic_lua_state();
-    main_load_opc_libraries(L);
-
-    // register techstate
-    if(techstate)
-    {
-        lua_pushlightuserdata(L, techstate);
-        lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
-    }
-
-    // load main modules
-    module_load_alignmentgroup(L);
-    module_load_aux(L);
-    module_load_check(L);
-    module_load_globals(L);
-    module_load_graphics(L);
-    module_load_load(L);
-    module_load_stack(L); // must be loaded before pcell (FIXME: explicitly create the lua pcell state)
     module_load_pcell(L);
-    module_load_placement(L);
-    module_load_routing(L);
-    module_load_util(L);
-    module_load_layouthelpers(L);
-
     _open_lpcell_lib(L);
 
     lua_getglobal(L, "pcell");
@@ -151,7 +128,7 @@ lua_State* pcellcommon_prepare_layout_generation(struct pcell_state* pcell_state
     {
         fputs("could not initialize pcell state\n", stderr);
         lua_close(L);
-        return NULL;
+        return 0;
     }
 
     if(pcell_state->verbose)
@@ -163,10 +140,10 @@ lua_State* pcellcommon_prepare_layout_generation(struct pcell_state* pcell_state
         {
             fputs("error while calling pcell.set_verbose()", stderr);
             lua_close(L);
-            return NULL;
+            return 0;
         }
     }
-    return L;
+    return 1;
 }
 
 static int _read_table_from_file(lua_State* L, const char* filename)

@@ -6,6 +6,7 @@
 /src/_embed_compiled_lua_file
 /src/_embed_compiled_lua_file_debug
 /src/_embed_compiled_lua_file_release
+/src/create_cell_documentation
 /src/create_latex_API_doc
 /src/create_HTML_API_doc
 /src/_config.h
