@@ -384,6 +384,36 @@ local function _resolve_cellname(state, cellname)
     return string.format("%s/%s", libpart, cellpart)
 end
 
+--------------------------------------------------------------------------------
+-- inline stack module, needed for pcell state
+local stack = {}
+
+local stackmeta = {}
+stackmeta.__index = stackmeta
+
+function stack.create()
+    local self = {}
+    setmetatable(self, stackmeta)
+    return self
+end
+
+function stackmeta.push(self, value)
+    table.insert(self, value)
+end
+
+function stackmeta.top(self)
+    return self[#self]
+end
+
+function stackmeta.pop(self)
+    table.remove(self)
+end
+
+function stackmeta.peek(self)
+    return #self > 0
+end
+--------------------------------------------------------------------------------
+
 -- main state storing various data
 -- only the public functions use this state as upvalue to conceal it from the user
 -- all local implementing functions get state as first parameter
