@@ -336,6 +336,7 @@ function util.rectangle_intersection(bl1, tr1, bl2, tr2, onlyfull)
     local trx = math.min(tr1x, tr2x)
     local try = math.min(tr1y, tr2y)
     if trx > blx and try > bly then
+        local success = false
         if not onlyfull then
             success = true
         else -- full intersection
