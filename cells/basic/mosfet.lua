@@ -2966,11 +2966,11 @@ function layout(transistor, _P)
                     local sourceanchor = transistor:get_area_anchor_fmt("sourcedrain%d", i)
                     geometry.rectanglepoints(transistor, generics.metal(1),
                         point.create(
-                            0.5 * (sourceanchor.l + sourceanchor.r) - _P.connectsourcewidth / 2,
+                            sourceanchor.l,
                             transistor:get_area_anchor("innerguardring")[target]
                         ),
                         point.create(
-                            0.5 * (sourceanchor.l + sourceanchor.r) + _P.connectsourcewidth / 2,
+                            sourceanchor.r,
                             sourceanchor[target]
                         )
                     )
