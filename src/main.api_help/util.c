@@ -834,10 +834,11 @@
 /* util.rectangle_intersection(value, ratio) */
 {
     struct parameter parameters[] = {
-        { "bl1", POINT, NULL, "lower-left corner of the first rectangle" },
-        { "tr1", POINT, NULL, "upper-right corner of the first rectangle" },
-        { "bl2", POINT, NULL, "lower-left corner of the second rectangle" },
-        { "tr2", POINT, NULL, "upper-right corner of the second rectangle" },
+        { "bl1",        POINT,      NULL,       "lower-left corner of the first rectangle" },
+        { "tr1",        POINT,      NULL,       "upper-right corner of the first rectangle" },
+        { "bl2",        POINT,      NULL,       "lower-left corner of the second rectangle" },
+        { "tr2",        POINT,      NULL,       "upper-right corner of the second rectangle" },
+        { "onlyfull",   BOOLEAN,    "false",    "only consider full overlaps" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
@@ -845,7 +846,8 @@
         MODULE_UTIL,
         "compute the intersection of two rectangles",
         "Compute the intersection of two rectangles and return it as a table with 'bl' (bottom-left) and 'tr' (top-right) entries. "
-        "If no itersection exists, this function returns nil.",
+        "If no itersection exists, this function returns nil. "
+        "If 'onlyfull' is given, this function only reports intersections as true where there is a full overlap in at least one direction (x or y).",
         "local region = util.rectangle_intersection(\n    point.create(0, 0), point.create(100, 100),\n    point.create(20, 20), point.create(200, 20)\n)",
         parameters
     ));
