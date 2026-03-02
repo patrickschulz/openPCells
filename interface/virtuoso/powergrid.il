@@ -185,10 +185,12 @@ procedure(OPCPowergridWriteInitial(file)
             "    elseif vmetal then"
             "        for _, shape in ipairs(vlines) do"
             "            cell:add_port(shape.net, generics.metalport(vmetal), shape.bl, sizehint)"
+            "            cell:add_net_shape(shape.net, shape.bl, shape.tr, shape.layer)"
             "        end"
             "    elseif hmetal then"
             "        for _, shape in ipairs(hlines) do"
             "            cell:add_port(shape.net, generics.metalport(hmetal), shape.bl, sizehint)"
+            "            cell:add_net_shape(shape.net, shape.bl, shape.tr, shape.layer)"
             "        end"
             "    end"
             "    -- add labels to grid-level netshapes for virtual-connect LVS"
@@ -307,3 +309,19 @@ procedure(OPCDeletePowergridScript()
         )
     )
 ) ; OPCDeletePowergridScript
+
+/*
+procedure(OPCCollectNetShapes()
+    let(
+        (cv group)
+        cv = geGetEditCellView()
+        group = dbCreateFigGroup(cv "opcnetshapes")
+        foreach(instance cv->instances
+            foreach(shape instance->master->shapes
+                dbCopyFig(cv shape)
+                dbAddFig
+            ) ; foreach shapes
+        ) ; foreach instances
+    ) ; let
+) ;
+*/
