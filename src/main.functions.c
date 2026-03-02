@@ -9,6 +9,7 @@
 
 #include "filesystem.h"
 #include "pcell.h"
+#include "layouthelpers_cmodule.h"
 #include "util_cmodule.h"
 
 #include "ldir.h"
@@ -37,6 +38,7 @@ void main_load_opc_libraries(lua_State* L)
     open_lpostprocess(L);
     open_lpolygon_lib(L);
     open_lutil_cmodule_lib(L);
+    open_llayouthelpers_cmodule_lib(L);
     // FIXME: these libraries are probably not needed for cell creation (they are used in place & route scripts)
     open_lplacer_lib(L);
     open_lrouter_lib(L);

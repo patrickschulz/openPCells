@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 
+#include "bltrshape.h"
 #include "point.h"
 #include "vector.h"
 
@@ -125,6 +126,22 @@ int simple_polygon_is_rectangle(const struct simple_polygon* simple_polygon)
         }
     }
     return 0;
+}
+
+int simple_polygon_is_rectilinear(const struct simple_polygon* simple_polygon)
+{
+    for(size_t i = 1; i < vector_size(simple_polygon->points); ++i)
+    {
+        struct point* pt1 = vector_get(simple_polygon->points, i - 1);
+        struct point* pt2 = vector_get(simple_polygon->points, i);
+        coordinate_t xdiff = point_getx(pt1) - point_getx(pt2);
+        coordinate_t ydiff = point_gety(pt1) - point_gety(pt2);
+        if((xdiff != 0) && (ydiff != 0))
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 int polygon_container_is_empty(const struct polygon_container* polygon_container)
@@ -312,23 +329,41 @@ int simple_polygon_intersects_rectangle(
     coordinate_t trx, coordinate_t try
 )
 {
-    // FIXME: this check is not sufficient, a more sophisticated polygon intersection test is required
-    for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
+    if(simple_polygon_is_rectilinear(simple_polygon))
     {
-        struct point* cpti1 = vector_get(simple_polygon->points, i);
-        struct point* cpti2 = vector_get(simple_polygon->points, (i + 1) % vector_size(simple_polygon->points));
-        struct point bl = { .x = blx, .y = bly };
-        struct point tl = { .x = blx, .y = try };
-        struct point tr = { .x = trx, .y = try };
-        struct point br = { .x = trx, .y = bly };
-        if(
-            _is_intersection(cpti1, cpti2, &bl, &tl) ||
-            _is_intersection(cpti1, cpti2, &tl, &tr) ||
-            _is_intersection(cpti1, cpti2, &tr, &br) ||
-            _is_intersection(cpti1, cpti2, &br, &bl)
-        )
+        struct bltrshape* rect = bltrshape_create_xy_no_net(blx, bly, trx, try);
+        struct vector* rects = simple_polygon_split_rectilinear_polygon(simple_polygon);
+        for(size_t i = 0; i < vector_size(rects); ++i)
         {
-            return 1;
+            struct bltrshape* r = vector_get(rects, i);
+            if(bltrshape_is_intersection(rect, r, 0)) // 0: also partial intersections
+            {
+                bltrshape_destroy(rect);
+                vector_destroy(rects);
+                return 1;
+            }
+        }
+    }
+    else
+    {
+        // FIXME: this check is not sufficient, a more sophisticated polygon intersection test is required
+        for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
+        {
+            struct point* cpti1 = vector_get(simple_polygon->points, i);
+            struct point* cpti2 = vector_get(simple_polygon->points, (i + 1) % vector_size(simple_polygon->points));
+            struct point bl = { .x = blx, .y = bly };
+            struct point tl = { .x = blx, .y = try };
+            struct point tr = { .x = trx, .y = try };
+            struct point br = { .x = trx, .y = bly };
+            if(
+                _is_intersection(cpti1, cpti2, &bl, &tl) ||
+                _is_intersection(cpti1, cpti2, &tl, &tr) ||
+                _is_intersection(cpti1, cpti2, &tr, &br) ||
+                _is_intersection(cpti1, cpti2, &br, &bl)
+            )
+            {
+                return 1;
+            }
         }
     }
     return 0;
@@ -484,6 +519,160 @@ coordinate_t polygon_container_get_maxy(const struct polygon_container* polygon_
         polygon_container_const_iterator_next(it);
     }
     return maxy;
+}
+
+/*
+Split rectilinear polygon algorithm (only works on rectilinear polygons):
+
+    Pk: the leftmost point with the smallest Y-coordinate.
+    Pl: the leftmost point except Pk with the smallest Y-coordinate.
+    Pm: the leftmost point with the smallest Y-coordinate among the set of points satisfying Pk.x <= x < Pl.x && Pk.y < y
+    F(x, y): if the point array contains (x, y), remove (x, y) from the point array, otherwise add (x, y) into the point array.
+
+while (polygon is not empty) {
+    Find Pk, Pl, Pm.
+    Form the rectangle: <Pk, (Pl.x, Pm.y)>
+    F(Pk)
+    F(Pl)
+    F(Pk.x, Pm.y)
+    F(Pl.x, Pm.y)
+}
+*/
+
+// helper function 'F' for split_rectilinear_polygon (srp)
+static void _srp_F(struct simple_polygon* polygon, struct point* pt)
+{
+    int idx = -1;
+    for(size_t i = 0; i < vector_size(polygon->points); ++i)
+    {
+        struct point* ppt = vector_get(polygon->points, i);
+        if(point_is_equal(pt, ppt))
+        {
+            idx = i;
+            break;
+        }
+    }
+    if(idx >= 0)
+    {
+        vector_remove(polygon->points, idx);
+    }
+    else
+    {
+        vector_append(polygon->points, pt);
+    }
+}
+
+// FIXME: taken from shape.c, perhaps put it in a shared file
+static int _is_counterclockwise(const struct vector* points)
+{
+    double sum = 0.0;
+    const struct point* pt1 = vector_get_const(points, vector_size(points) - 1);
+    for(size_t i = 0; i < vector_size(points); i++)
+    {
+        const struct point* pt2 = vector_get_const(points, i);
+        sum += (pt2->x - pt1->x) * (pt2->y + pt1->y);
+        pt1 = pt2;
+    }
+    return sum < 0.0;
+}
+
+static void _check_counterclockwise(struct vector* points)
+{
+    if(!_is_counterclockwise(points))
+    {
+        vector_reverse(points);
+    }
+}
+
+struct vector* simple_polygon_split_rectilinear_polygon(const struct simple_polygon* simple_polygon)
+{
+    if(!simple_polygon_is_rectilinear(simple_polygon))
+    {
+        return NULL;
+    }
+    // copy polygon as it is modified
+    struct simple_polygon* polygon = simple_polygon_copy(simple_polygon);
+    _check_counterclockwise(polygon->points);
+    struct vector* rectangles = vector_create(8, bltrshape_destroy);
+
+    while(vector_size(polygon->points) > 1)
+    {
+        // find Pk
+        struct point* Pk = NULL;
+        for(size_t i = 0; i < vector_size(polygon->points); ++i)
+        {
+            struct point* pt = vector_get(polygon->points, i);
+            if(!Pk)
+            {
+                Pk = point_copy(pt);
+            }
+            else
+            {
+                if(
+                    (point_gety(pt) < point_gety(Pk)) ||
+                    ((point_gety(pt) == point_gety(Pk)) && (point_getx(pt) < point_getx(Pk)))
+                )
+                {
+                    Pk = point_copy(pt);
+                }
+            }
+        }
+        // find Pl
+        struct point* Pl = NULL;
+        for(size_t i = 0; i < vector_size(polygon->points); ++i)
+        {
+            struct point* pt = vector_get(polygon->points, i);
+            if(Pk && !point_is_equal(pt, Pk))
+            {
+                if(!Pl)
+                {
+                    Pl = point_copy(pt);
+                }
+                else
+                {
+                    if(
+                        (point_gety(pt) < point_gety(Pl)) ||
+                        ((point_gety(pt) == point_gety(Pl)) && (point_getx(pt) < point_getx(Pl)))
+                    )
+                    {
+                        Pl = point_copy(pt);
+                    }
+                }
+            }
+        }
+        // find Pm
+        // Pk:getx() <= Pm:getx() < Pl:getx() && Pk:gety() < Pm:gety()
+        struct point* Pm = NULL;
+        for(size_t i = 0; i < vector_size(polygon->points); ++i)
+        {
+            struct point* pt = vector_get(polygon->points, i);
+            if(point_getx(pt) >= point_getx(Pk) && point_getx(pt) < point_getx(Pl) && point_gety(pt) > point_gety(Pk))
+            {
+                if(!Pm)
+                {
+                    Pm = point_copy(pt);
+                }
+                else
+                {
+                    if(point_gety(pt) < point_gety(Pm))
+                    {
+                        Pm = point_copy(pt);
+                    }
+                }
+            }
+        }
+        vector_append(rectangles, bltrshape_create_xy_no_net(
+            point_getx(Pk),
+            point_gety(Pk),
+            point_getx(Pl),
+            point_gety(Pm)
+        ));
+        _srp_F(polygon, Pk);
+        _srp_F(polygon, Pl);
+        _srp_F(polygon, point_create(point_getx(Pk), point_gety(Pm)));
+        _srp_F(polygon, point_create(point_getx(Pl), point_gety(Pm)));
+    }
+    return rectangles;
 }
 
 struct simple_polygon_iterator {

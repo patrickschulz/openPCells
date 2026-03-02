@@ -65,6 +65,7 @@ void technology_ignore_missing_exports(struct technology_state* techstate);
 
 struct generics* technology_get_layer(struct technology_state* state, const char* layername);
 int technology_resolve_metal(const struct technology_state* state, int metalnum);
+int technology_metal_layer_to_index(const struct technology_state* techstate, const struct generics* metallayer);
 int technology_has_multiple_patterning(const struct technology_state* state, int metalnum);
 int technology_has_feature(const struct technology_state* techstate, const char* feature);
 

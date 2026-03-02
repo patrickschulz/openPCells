@@ -2,6 +2,7 @@
 #define OPC_POLYGON_H
 
 #include "point.h"
+#include "vector.h"
 
 struct simple_polygon;
 struct polygon_container;
@@ -16,6 +17,7 @@ void simple_polygon_destroy(void* p);
 void polygon_container_destroy(void* p);
 void polygon_container_add(struct polygon_container* polygon_container, struct simple_polygon* simple_polygon);
 int simple_polygon_is_rectangle(const struct simple_polygon* simple_polygon);
+int simple_polygon_is_rectilinear(const struct simple_polygon* simple_polygon);
 int polygon_container_is_empty(const struct polygon_container* polygon_container);
 int polygon_is_point_in_simple_polygon(const struct simple_polygon* polygon, coordinate_t x, coordinate_t y);
 int polygon_is_point_in_polygon_container(const struct polygon_container* polygon_container, coordinate_t x, coordinate_t y);
@@ -28,6 +30,7 @@ coordinate_t polygon_container_get_minx(const struct polygon_container* polygon_
 coordinate_t polygon_container_get_maxx(const struct polygon_container* polygon_container);
 coordinate_t polygon_container_get_miny(const struct polygon_container* polygon_container);
 coordinate_t polygon_container_get_maxy(const struct polygon_container* polygon_container);
+struct vector* simple_polygon_split_rectilinear_polygon(const struct simple_polygon* simple_polygon);
 
 struct simple_polygon_iterator;
 struct simple_polygon_iterator* simple_polygon_iterator_create(struct simple_polygon* simple_polygon);

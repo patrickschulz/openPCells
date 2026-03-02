@@ -1,6 +1,4 @@
-local M = {}
-
-function M.connect_area_anchor(cell, layer, width, anchor1, anchor2, grid, matchtolerance)
+function layouthelpers.connect_area_anchor(cell, layer, width, anchor1, anchor2, grid, matchtolerance)
     check.set_next_function_name("layouthelpers.connect_area_anchor")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg(2, "width", "number", width)
@@ -117,7 +115,7 @@ function M.connect_area_anchor(cell, layer, width, anchor1, anchor2, grid, match
     end
 end
 
-function M.via_area_anchor_multiple(cell, startmetal, endmetal, fmt, startindex, endindex, increment)
+function layouthelpers.via_area_anchor_multiple(cell, startmetal, endmetal, fmt, startindex, endindex, increment)
     local f = string.gsub(fmt, "%%", "%%d")
     startindex = startindex or 1
     endindex = endindex or 1
@@ -130,7 +128,7 @@ function M.via_area_anchor_multiple(cell, startmetal, endmetal, fmt, startindex,
     end
 end
 
-function M.place_bus(cell, layer, pathpoints, numbits, width, space)
+function layouthelpers.place_bus(cell, layer, pathpoints, numbits, width, space)
     for i = 1, numbits do
         local offset = (i - 1 - (numbits - 1) / 2) * (width + space)
         local pts = geometry.get_side_path_points(pathpoints, offset)
@@ -138,7 +136,7 @@ function M.place_bus(cell, layer, pathpoints, numbits, width, space)
     end
 end
 
-function M.place_powervlines(cell, bl, tr, layer, width, space, powershapes)
+function layouthelpers.place_powervlines(cell, bl, tr, layer, width, space, powershapes)
     local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(
         bl, tr,
         width, space
@@ -165,7 +163,7 @@ function M.place_powervlines(cell, bl, tr, layer, width, space, powershapes)
     end
 end
 
-function M.place_powerhlines(cell, bl, tr, layer, height, space, powershapes)
+function layouthelpers.place_powerhlines(cell, bl, tr, layer, height, space, powershapes)
     local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(
         bl, tr,
         height, space
@@ -192,7 +190,7 @@ function M.place_powerhlines(cell, bl, tr, layer, height, space, powershapes)
     end
 end
 
-function M.place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth, hspace, plusshapes, minusshapes)
+function layouthelpers.place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth, hspace, plusshapes, minusshapes)
     check.set_next_function_name("layouthelpers.place_powergrid")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -311,7 +309,7 @@ function M.place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth,
     end
 end
 
-function M.place_vlines_numsets(cell, bl, tr, layer, width, netnames, numsets)
+function layouthelpers.place_vlines_numsets(cell, bl, tr, layer, width, netnames, numsets)
     local numnets = #netnames
     local width, height, space, offset, numlines = geometry.rectanglevlines_numlines_width_settings(
         bl, tr,
@@ -380,7 +378,7 @@ local function _calculate_line_breaks(xy, size, cstart, cstop, blockages)
     return pts
 end
 
-function M.place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, excludes)
+function layouthelpers.place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, excludes)
     check.set_next_function_name("layouthelpers.place_vlines")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -400,14 +398,14 @@ function M.place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, 
     local blockages = {}
     if excludes then
         for _, exclude in ipairs(excludes) do
-            if util.is_rectilinear_polygon(exclude) then
-                local excluderects = util.split_rectilinear_polygon(exclude)
+            if polygon.is_rectilinear_polygon(exclude) then
+                local excluderects = polygon.split_rectilinear_polygon(exclude)
                 for _, rect in ipairs(excluderects) do
                     table.insert(blockages, {
-                        c1      = math.min(rect.pt1:getx(), rect.pt2:getx()),
-                        c2      = math.max(rect.pt1:getx(), rect.pt2:getx()),
-                        start   = math.min(rect.pt1:gety(), rect.pt2:gety()),
-                        stop    = math.max(rect.pt1:gety(), rect.pt2:gety()),
+                        c1      = math.min(rect.bl:getx(), rect.tr:getx()),
+                        c2      = math.max(rect.bl:getx(), rect.tr:getx()),
+                        start   = math.min(rect.bl:gety(), rect.tr:gety()),
+                        stop    = math.max(rect.bl:gety(), rect.tr:gety()),
                     })
                 end
             else
@@ -453,7 +451,7 @@ function M.place_vlines(cell, bl, tr, layer, width, space, minheight, netnames, 
     return netshapes
 end
 
-function M.place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)
+function layouthelpers.place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)
     local numnets = #netnames
     local width, height, space, offset, numlines = geometry.rectanglehlines_numlines_height_settings(
         bl, tr,
@@ -479,7 +477,7 @@ function M.place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)
     return netshapes
 end
 
-function M.place_hlines(cell, bl, tr, layer, height, space, minwidth, netnames, excludes)
+function layouthelpers.place_hlines(cell, bl, tr, layer, height, space, minwidth, netnames, excludes)
     check.set_next_function_name("layouthelpers.place_hlines")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -540,7 +538,8 @@ function M.place_hlines(cell, bl, tr, layer, height, space, minwidth, netnames, 
     return netshapes
 end
 
-function M.place_vias(cell, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)
+--[[
+function layouthelpers.place_vias(cell, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)
     check.set_next_function_name("layouthelpers.place_vias")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg(2, "netshapes1", "table", netshapes1)
@@ -570,7 +569,7 @@ function M.place_vias(cell, netshapes1, netshapes2, excludes, netfilter, onlyful
                         local metal2 = technology.metal_layer_to_index(netshapes2[i2].layer)
                         local create = nocheck or geometry.check_viabltr(metal1, metal2, r.bl, r.tr)
                         for _, exclude in ipairs(excludes) do
-                            if util.rectangle_intersects_polygon(r, exclude) then
+                            if polygon.rectangle_intersects_polygon(r, exclude) then
                                 create = false
                                 break
                             end
@@ -584,8 +583,9 @@ function M.place_vias(cell, netshapes1, netshapes2, excludes, netfilter, onlyful
         end
     end
 end
+--]]
 
-function M.place_vias_no_overlaps(cell, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)
+function layouthelpers.place_vias_no_overlaps(cell, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)
     check.set_next_function_name("layouthelpers.place_vias")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg(2, "netshapes1", "table", netshapes1)
@@ -633,7 +633,7 @@ function M.place_vias_no_overlaps(cell, netshapes1, netshapes2, excludes, netfil
     end
 end
 
-function M.place_unequal_net_vias(cell, netshapes1, netshapes2, onlyfull, nocheck)
+function layouthelpers.place_unequal_net_vias(cell, netshapes1, netshapes2, onlyfull, nocheck)
     check.set_next_function_name("layouthelpers.place_unequal_vias")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg(2, "netshapes1", "table", netshapes1)
@@ -659,7 +659,7 @@ function M.place_unequal_net_vias(cell, netshapes1, netshapes2, onlyfull, nochec
     end
 end
 
-function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
+function layouthelpers.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -686,7 +686,7 @@ function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
     end
 end
 
-function M.place_guardring_quantized(cell, bl, tr, xspace, yspace, basexsize, baseysize, anchorprefix, options)
+function layouthelpers.place_guardring_quantized(cell, bl, tr, xspace, yspace, basexsize, baseysize, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -720,7 +720,7 @@ function M.place_guardring_quantized(cell, bl, tr, xspace, yspace, basexsize, ba
     end
 end
 
-function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, wellxoffset, wellyoffset, anchorprefix, options)
+function layouthelpers.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, wellxoffset, wellyoffset, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring_with_hole")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -757,7 +757,7 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
     end
 end
 
-function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xspace, yspace, basexsize, baseysize, wellxoffset, wellyoffset, anchorprefix, options)
+function layouthelpers.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xspace, yspace, basexsize, baseysize, wellxoffset, wellyoffset, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring_with_hole")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -800,7 +800,7 @@ function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xsp
     end
 end
 
-function M.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, anchorprefix1, anchorprefix2, options)
+function layouthelpers.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, anchorprefix1, anchorprefix2, options)
     check.set_next_function_name("layouthelpers.place_double_guardring")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -859,7 +859,7 @@ function M.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, an
     end
 end
 
-function M.place_welltap(cell, bl, tr, anchorprefix, options)
+function layouthelpers.place_welltap(cell, bl, tr, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_welltap")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -884,7 +884,7 @@ function M.place_welltap(cell, bl, tr, anchorprefix, options)
 end
 
 --[[
-function M.place_maximum_width_via(cell, startmetal, endmetal, bl, tr)
+function layouthelpers.place_maximum_width_via(cell, startmetal, endmetal, bl, tr)
     local regionwidth = point.xdistance_abs(bl, tr)
     local regionheight = point.ydistance_abs(bl, tr)
     if regionwidth > regionheight then
@@ -925,7 +925,7 @@ function M.place_maximum_width_via(cell, startmetal, endmetal, bl, tr)
 end
 --]]
 
-function M.place_maximum_width_via(cell, firstmetal, lastmetal, pt1, pt2)
+function layouthelpers.place_maximum_width_via(cell, firstmetal, lastmetal, pt1, pt2)
     geometry.rectanglepoints(cell, generics.special(), pt1, pt2)
     local regionwidth = point.xdistance_abs(pt1, pt2)
     local regionheight = point.ydistance_abs(pt1, pt2)
@@ -1010,7 +1010,7 @@ function M.place_maximum_width_via(cell, firstmetal, lastmetal, pt1, pt2)
     end
 end
 
-function M.place_coplanar_waveguide(cell, layer, pts, swidth, gwidth, sep)
+function layouthelpers.place_coplanar_waveguide(cell, layer, pts, swidth, gwidth, sep)
     local gnd1pts = geometry.get_side_path_points(pts, swidth / 2 + sep + gwidth / 2)
     local gnd2pts = geometry.get_side_path_points(pts, -swidth / 2 - sep - gwidth / 2)
     geometry.path_polygon(cell, layer, pts, swidth)
@@ -1018,20 +1018,20 @@ function M.place_coplanar_waveguide(cell, layer, pts, swidth, gwidth, sep)
     geometry.path_polygon(cell, layer, gnd2pts, gwidth)
 end
 
-function M.place_stripline(cell, signalmetal, pts, swidth, gwidth)
-    local m = technology.resolve_metal(signalmetal)
-    if m == 1 then
-        error(string.format("layouthelpers.place_stripline: the signal metal index must be higher than 1, got: %d"))
+function layouthelpers.place_stripline(cell, signalmetal, pts, swidth, gwidth)
+    local layouthelpers = technology.resolve_metal(signalmetal)
+    if signalmetal == 1 then
+        error(string.format("layouthelpers.place_stripline: the signal metal index must be higher than 1, got: %d", signalmetal))
     end
-    if m == technology.resolve_metal(-1) then
-        error(string.format("layouthelpers.place_stripline: the signal metal index can't be the highest metal, got: %d"))
+    if signalmetal == technology.resolve_metal(-1) then
+        error(string.format("layouthelpers.place_stripline: the signal metal index can't be the highest metal, got: %d", signalmetal))
     end
     geometry.path_polygon(cell, generics.metal(signalmetal - 1), pts, gwidth)
     geometry.path_polygon(cell, generics.metal(signalmetal), pts, swidth)
     geometry.path_polygon(cell, generics.metal(signalmetal + 1), pts, gwidth)
 end
 
-function M.collect_gridlines(t, cells, anchorname)
+function layouthelpers.collect_gridlines(t, cells, anchorname)
     for _, cell in ipairs(cells) do
         local bl = cell:get_area_anchor(anchorname).bl
         local tr = cell:get_area_anchor(anchorname).tr
@@ -1050,7 +1050,7 @@ function M.collect_gridlines(t, cells, anchorname)
     end
 end
 
-function M.annotate_netshapes(cell, netshapes, sizehint)
+function layouthelpers.annotate_netshapes(cell, netshapes, sizehint)
     for _, netshape in ipairs(netshapes) do
         local blx = netshape.bl:getx()
         local bly = netshape.bl:gety()
@@ -1062,5 +1062,3 @@ function M.annotate_netshapes(cell, netshapes, sizehint)
         cell:add_label(netshape.net, netshape.layer, point.create(trx, try), sizehint)
     end
 end
-
-return M

@@ -1994,6 +1994,7 @@ static int lobject_mark_area_anchor_as_net(lua_State* L)
 
 static void _fill_netshape_table(lua_State* L, const char* netname, struct bltrshape* netshape, int i)
 {
+    // FIXME: could use bltrshape_push_table, but this uses the netshape's net, there might be a difference
     lua_newtable(L);
     /* net */
     lua_pushstring(L, netname);

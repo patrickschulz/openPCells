@@ -2365,7 +2365,7 @@ struct bltrshape* object_get_layer_occupation(const struct object* cell, const s
             trx0 = MAX2(trx0, trx);
             try0 = MAX2(try0, try);
         }
-        return bltrshape_create_xy(blx0, bly0, trx0, try0, NULL);
+        return bltrshape_create_xy_no_net(blx0, bly0, trx0, try0);
     }
     else
     {
@@ -2373,7 +2373,7 @@ struct bltrshape* object_get_layer_occupation(const struct object* cell, const s
         object_get_minmax_xy_layer(obj, &blx, &bly, &trx, &try, NULL, NULL); // no extra transformation matrix (FIXME: is this correct?)
         transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
         transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
-        return bltrshape_create_xy(blx, bly, trx, try, NULL);
+        return bltrshape_create_xy_no_net(blx, bly, trx, try);
     }
 }
 
@@ -2473,7 +2473,7 @@ void object_add_net_shape(struct object* cell, const char* netname, const struct
         hashmap_insert(cell->content.full.nets, netname, v);
     }
     struct vector* nets = hashmap_get(cell->content.full.nets, netname);
-    struct bltrshape* netarea = bltrshape_create(bl, tr, layer);
+    struct bltrshape* netarea = bltrshape_create(bl, tr, layer, netname);
     _transform_to_local_coordinates(cell, bltrshape_get_bl(netarea));
     _transform_to_local_coordinates(cell, bltrshape_get_tr(netarea));
     vector_append(nets, netarea);

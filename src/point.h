@@ -42,5 +42,6 @@ coordinate_t point_xdifference(const struct point* pt1, const struct point* pt2)
 coordinate_t point_ydifference(const struct point* pt1, const struct point* pt2);
 
 int point_is_on_grid(const struct point* pt, coordinate_t grid);
+int point_is_equal(const struct point* pt1, const struct point* pt2);
 
 #endif // OPC_POINT_H

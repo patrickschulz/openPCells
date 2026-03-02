@@ -54,6 +54,7 @@ OBJS:= \
 	graphics.o \
 	hashmap.o \
 	info.o \
+	layouthelpers_cmodule.o \
 	lcheck.o \
 	ldebug.o \
 	ldir.o \
@@ -278,219 +279,201 @@ clean:
 # * _scriptmanager.o
 # * main.o
 arith.o: arith.c arith.h point.h
-bltrshape.o: bltrshape.c bltrshape.h point.h
+bltrshape.o: bltrshape.c bltrshape.h point.h technology.h lua/lua.h \
+ lua/luaconf.h hashmap.h tagged_value.h vector.h
 buffer.o: buffer.c buffer.h
-cdl_parser.o: cdl_parser.c cdl_parser.h buffer.h string.h \
- cdl_tokenlist.h vector.h
-cdl_tokenlist.o: cdl_tokenlist.c cdl_tokenlist.h string.h \
+cdl_parser.o: cdl_parser.c cdl_parser.h netlist.h lua/lua.h lua/luaconf.h \
+ buffer.h cdl_tokenlist.h string.h hashmap.h helpers.h util.h vector.h
+cdl_tokenlist.o: cdl_tokenlist.c cdl_tokenlist.h string.h helpers.h \
  vector.h
-cells.o: cells.c pcell.h lua/lua.h lua/luaconf.h \
- object.h hashmap.h polygon.h point.h shape.h \
- technology.h vector.h transformationmatrix.h geometry.h \
- cells/powergrid.c
+cells.o: cells.c pcell.h lua/lua.h lua/luaconf.h object.h bltrshape.h \
+ point.h technology.h hashmap.h tagged_value.h vector.h polygon.h shape.h \
+ transformationmatrix.h geometry.h cells/powergrid.c
 cmdoptions.o: cmdoptions.c cmdoptions.h print.h
 cmdoptions_def.o: cmdoptions_def.c
 cpu.o: cpu.c cpu.h
-error.o: error.h error.c
-export.o: export.c export.h object.h hashmap.h \
- polygon.h point.h shape.h technology.h lua/lua.h \
- lua/luaconf.h vector.h transformationmatrix.h \
- lua/lauxlib.h lua/lua.h export_common.h export_writer.h \
- filesystem.h gdsexport.h lua_util.h skillexport.h \
- util.h
-export_common.o: export_common.c export_common.h object.h \
- hashmap.h polygon.h point.h shape.h technology.h \
- lua/lua.h lua/luaconf.h vector.h transformationmatrix.h
-export_writer.o: export_writer.c export_writer.h lua/lua.h \
- lua/luaconf.h export_common.h object.h hashmap.h \
- polygon.h point.h shape.h technology.h vector.h \
- transformationmatrix.h tagged_value.h util.h
-filesystem.o: filesystem.c filesystem.h lua/lua.h \
+embed_compiled_lua_file.o: embed_compiled_lua_file.c lua/lua.h \
  lua/luaconf.h lua/lauxlib.h lua/lua.h
-gdsexport.o: gdsexport.c gdsexport.h export_common.h \
- object.h hashmap.h polygon.h point.h shape.h \
- technology.h lua/lua.h lua/luaconf.h vector.h \
- transformationmatrix.h math.h tagged_value.h geometry.h \
+error.o: error.c error.h strprint.h string.h
+export.o: export.c export.h object.h bltrshape.h point.h technology.h \
+ lua/lua.h lua/luaconf.h hashmap.h tagged_value.h vector.h polygon.h \
+ shape.h transformationmatrix.h lua/lauxlib.h lua/lua.h export_common.h \
+ export_writer.h filesystem.h gdsexport.h lua_util.h skillexport.h util.h
+export_common.o: export_common.c export_common.h object.h bltrshape.h \
+ point.h technology.h lua/lua.h lua/luaconf.h hashmap.h tagged_value.h \
+ vector.h polygon.h shape.h transformationmatrix.h
+export_writer.o: export_writer.c export_writer.h lua/lua.h lua/luaconf.h \
+ export_common.h object.h bltrshape.h point.h technology.h hashmap.h \
+ tagged_value.h vector.h polygon.h shape.h transformationmatrix.h util.h
+filesystem.o: filesystem.c filesystem.h lua/lua.h lua/luaconf.h \
+ lua/lauxlib.h lua/lua.h
+gdsexport.o: gdsexport.c gdsexport.h export_common.h object.h bltrshape.h \
+ point.h technology.h lua/lua.h lua/luaconf.h hashmap.h tagged_value.h \
+ vector.h polygon.h shape.h transformationmatrix.h math.h geometry.h \
  util.h
-gdsparser.o: gdsparser.c gdsparser.h lua/lua.h \
- lua/luaconf.h vector.h lua/lauxlib.h lua/lua.h \
- math.h filesystem.h point.h hashmap.h lua_util.h \
- util.h
-geometry.o: geometry.c geometry.h technology.h lua/lua.h \
- lua/luaconf.h vector.h hashmap.h object.h polygon.h \
- point.h shape.h transformationmatrix.h math.h
-geometry_triangulate.o: geometry_triangulate.c math.h point.h \
- vector.h
-graphics.o: graphics.c graphics.h point.h vector.h \
- math.h
+gdsparser.o: gdsparser.c gdsparser.h lua/lua.h lua/luaconf.h vector.h \
+ lua/lauxlib.h lua/lua.h filesystem.h hashmap.h helpers.h lua_util.h \
+ math.h point.h util.h
+geometry.o: geometry.c geometry.h technology.h lua/lua.h lua/luaconf.h \
+ hashmap.h tagged_value.h vector.h object.h bltrshape.h point.h polygon.h \
+ shape.h transformationmatrix.h helpers.h math.h
+geometry_triangulate.o: geometry_triangulate.c math.h point.h vector.h
+graphics.o: graphics.c graphics.h point.h vector.h math.h
 hashmap.o: hashmap.c hashmap.h util.h
-info.o: info.c info.h object.h hashmap.h polygon.h \
- point.h shape.h technology.h lua/lua.h lua/luaconf.h \
- vector.h transformationmatrix.h
+info.o: info.c info.h object.h bltrshape.h point.h technology.h lua/lua.h \
+ lua/luaconf.h hashmap.h tagged_value.h vector.h polygon.h shape.h \
+ transformationmatrix.h
+layouthelpers_cmodule.o: layouthelpers_cmodule.c
 lcheck.o: lcheck.c lcheck.h lua/lua.h lua/luaconf.h
 ldebug.o: ldebug.c ldebug.h lua/lua.h lua/luaconf.h
-ldir.o: ldir.c ldir.h lua/lua.h lua/luaconf.h \
- lua/lauxlib.h lua/lua.h util.h
-lgenerics.o: lgenerics.c lgenerics.h lua/lua.h \
- lua/luaconf.h lua/lauxlib.h lua/lua.h technology.h \
- vector.h hashmap.h
+ldir.o: ldir.c ldir.h lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
+ util.h
+lgenerics.o: lgenerics.c lgenerics.h lua/lua.h lua/luaconf.h \
+ lua/lauxlib.h lua/lua.h technology.h hashmap.h tagged_value.h vector.h
 lgeometry.o: lgeometry.c lgeometry.h lua/lua.h lua/luaconf.h \
  lua/lauxlib.h lua/lua.h arith.h point.h geometry.h technology.h \
  hashmap.h tagged_value.h vector.h object.h bltrshape.h polygon.h shape.h \
  transformationmatrix.h graphics.h lcheck.h lgenerics.h lobject.h \
  lplacement.h lpoint.h lutil.h placement.h
-limport.o: limport.c limport.h lua/lua.h lua/luaconf.h \
- lua/lauxlib.h lua/lua.h import.h
-lobject.o: lobject.c lobject.h lua/lua.h lua/luaconf.h \
- object.h hashmap.h polygon.h point.h shape.h \
- technology.h vector.h transformationmatrix.h \
- lua/lauxlib.h lua/lua.h bltrshape.h lpoint.h \
- lcheck.h
-lplacement.o: lplacement.c lplacement.h lua/lua.h \
- lua/luaconf.h polygon.h point.h lua/lauxlib.h \
- lua/lua.h lcheck.h lgenerics.h lobject.h object.h \
- hashmap.h shape.h technology.h vector.h \
+limport.o: limport.c limport.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
+ lua/lua.h _modulemanager.h cdl_parser.h netlist.h
+lobject.o: lobject.c lobject.h lua/lua.h lua/luaconf.h object.h \
+ bltrshape.h point.h technology.h hashmap.h tagged_value.h vector.h \
+ polygon.h shape.h transformationmatrix.h lua/lauxlib.h lua/lua.h \
+ geometry.h lcheck.h lpoint.h
+lplacement.o: lplacement.c lplacement.h lua/lua.h lua/luaconf.h polygon.h \
+ point.h lua/lauxlib.h lua/lua.h lcheck.h lgenerics.h lobject.h object.h \
+ bltrshape.h technology.h hashmap.h tagged_value.h vector.h shape.h \
  transformationmatrix.h lpoint.h lutil.h placement.h
-lplacer.o: lplacer.c lua/lua.h lua/luaconf.h \
- lua/lauxlib.h lua/lua.h lplacer_nonoverlapping.h \
- lplacer_classic.h
-lplacer_classic.o: lplacer_classic.c lplacer_classic.h \
- lua/lua.h lua/luaconf.h lplacer_common.h hashmap.h \
- lplacer_rand.h math.h util.h
+lplacer.o: lplacer.c lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
+ lplacer_nonoverlapping.h lplacer_classic.h
+lplacer_classic.o: lplacer_classic.c lplacer_classic.h lua/lua.h \
+ lua/luaconf.h lplacer_common.h hashmap.h lplacer_rand.h helpers.h math.h \
+ util.h
 lplacer_common.o: lplacer_common.c lplacer_common.h lua/lua.h \
  lua/luaconf.h hashmap.h
 lplacer_nonoverlapping.o: lplacer_nonoverlapping.c \
- lplacer_nonoverlapping.h lua/lua.h lua/luaconf.h \
- lplacer_common.h hashmap.h lplacer_rand.h
-lplacer_rand.o: lplacer_rand.c lplacer_rand.h lua/lua.h \
- lua/luaconf.h
-lpoint.o: lpoint.c lpoint.h lua/lua.h lua/luaconf.h \
- point.h lua/lauxlib.h lua/lua.h math.h
-lpolygon.o: lpolygon.c lpolygon.h lua/lauxlib.h lua/luaconf.h lua/lua.h \
- polygon.h point.h
-lpostprocess.o: lpostprocess.c lpostprocess.h lua/lua.h \
- lua/luaconf.h lua/lauxlib.h lua/lua.h postprocess.h \
- object.h hashmap.h polygon.h point.h shape.h \
- technology.h vector.h transformationmatrix.h lobject.h
-lrouter.o: lrouter.c lua/lua.h lua/luaconf.h \
- lua/lauxlib.h lua/lua.h lrouter_net.h lrouter_field.h \
- vector.h lrouter_route.h lrouter_moves.h
+ lplacer_nonoverlapping.h lua/lua.h lua/luaconf.h lplacer_common.h \
+ hashmap.h lplacer_rand.h helpers.h
+lplacer_rand.o: lplacer_rand.c lplacer_rand.h lua/lua.h lua/luaconf.h
+lpoint.o: lpoint.c lpoint.h lua/lua.h lua/luaconf.h point.h lua/lauxlib.h \
+ lua/lua.h arith.h math.h
+lpolygon.o: lpolygon.c lpolygon.h lua/lua.h lua/luaconf.h polygon.h \
+ point.h lua/lauxlib.h lua/lua.h lpoint.h
+lpostprocess.o: lpostprocess.c lpostprocess.h lua/lua.h lua/luaconf.h \
+ lua/lauxlib.h lua/lua.h postprocess.h object.h bltrshape.h point.h \
+ technology.h hashmap.h tagged_value.h vector.h polygon.h shape.h \
+ transformationmatrix.h lobject.h
+lrouter.o: lrouter.c lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
+ lrouter_net.h lrouter_field.h vector.h lrouter_route.h lrouter_moves.h
 lrouter_field.o: lrouter_field.c lrouter_field.h
-lrouter_min_heap.o: lrouter_min_heap.c lrouter_field.h \
- lrouter_min_heap.h
-lrouter_moves.o: lrouter_moves.c lua/lua.h lua/luaconf.h \
- lua/lauxlib.h lua/lua.h lrouter_moves.h
-lrouter_net.o: lrouter_net.c lrouter_net.h lrouter_field.h \
- vector.h util.h
-lrouter_queue.o: lrouter_queue.c lrouter_queue.h \
- lrouter_field.h
-lrouter_route.o: lrouter_route.c lrouter_route.h \
- lrouter_net.h lrouter_field.h vector.h \
- lrouter_min_heap.h
-lterminal.o: lterminal.c lterminal.h lua/lua.h \
- lua/luaconf.h terminal.h
-lua_util.o: lua_util.c lua_util.h lua/lua.h lua/luaconf.h \
- lua/lauxlib.h lua/lua.h lua/lualib.h
-lutil.o: lutil.c lutil.h lua/lua.h lua/luaconf.h \
- polygon.h point.h lpoint.h
-main.api_help.o: main.api_help.c main.api_help.h \
- terminal.h print.h util.h vector.h \
- main.api_help/aux.c main.api_help/curve.c \
- main.api_help/generics.c main.api_help/geometry.c \
- main.api_help/global.c main.api_help/graphics.c \
+lrouter_min_heap.o: lrouter_min_heap.c lrouter_min_heap.h lrouter_field.h \
+ helpers.h
+lrouter_moves.o: lrouter_moves.c lua/lua.h lua/luaconf.h lua/lauxlib.h \
+ lua/lua.h lrouter_moves.h
+lrouter_net.o: lrouter_net.c lrouter_net.h lrouter_field.h vector.h \
+ util.h
+lrouter_queue.o: lrouter_queue.c lrouter_queue.h lrouter_field.h \
+ helpers.h
+lrouter_route.o: lrouter_route.c lrouter_route.h lrouter_net.h \
+ lrouter_field.h vector.h helpers.h lrouter_min_heap.h
+lterminal.o: lterminal.c lterminal.h lua/lua.h lua/luaconf.h \
+ lua/lauxlib.h lua/lua.h terminal.h
+lua_util.o: lua_util.c lua_util.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
+ lua/lua.h lua/lualib.h
+lutil.o: lutil.c lutil.h lua/lua.h lua/luaconf.h polygon.h point.h \
+ lpoint.h
+main.api_help.o: main.api_help.c main.api_help.h print.h string.h \
+ terminal.h util.h vector.h main.api_help/alignmentgroup.c \
+ main.api_help/aux.c main.api_help/curve.c main.api_help/generics.c \
+ main.api_help/geometry.c main.api_help/global.c main.api_help/graphics.c \
  main.api_help/layouthelpers.c main.api_help/object.c \
- main.api_help/pcell.c main.api_help/placement.c \
- main.api_help/placer.c main.api_help/point.c \
- main.api_help/router.c main.api_help/routing.c \
- main.api_help/technology.c main.api_help/util.c
-main.assistant.o: main.assistant.c lua_util.h lua/lua.h \
- lua/luaconf.h
-main.cell.o: main.cell.c main.cell.h hashmap.h \
- cmdoptions.h lua/lauxlib.h lua/luaconf.h lua/lua.h \
- export.h object.h polygon.h point.h shape.h \
- technology.h lua/lua.h vector.h transformationmatrix.h \
- filesystem.h gdsparser.h geometry.h info.h \
- main.functions.h pcell.h postprocess.h util_cmodule.h \
- util.h _config.h
-main.cellbase.o: main.cellbase.c main.cellbase.h hashmap.h pcell.h \
- lua/lua.h lua/luaconf.h object.h bltrshape.h point.h technology.h \
- tagged_value.h vector.h polygon.h shape.h transformationmatrix.h \
- _config.h
-main.config.o: main.config.c main.config.h cmdoptions.h hashmap.h
+ main.api_help/pcell.c main.api_help/placement.c main.api_help/placer.c \
+ main.api_help/point.c main.api_help/postprocess.c main.api_help/router.c \
+ main.api_help/routing.c main.api_help/technology.c main.api_help/util.c
+main.assistant.o: main.assistant.c _config.h main.functions.h lua/lua.h \
+ lua/luaconf.h technology.h hashmap.h tagged_value.h vector.h print.h \
+ starray.h string.h strprint.h terminal.h util.h
+main.cellbase.o: main.cellbase.c main.cellbase.h cmdoptions.h hashmap.h \
+ pcell.h lua/lua.h lua/luaconf.h object.h bltrshape.h point.h \
+ technology.h tagged_value.h vector.h polygon.h shape.h \
+ transformationmatrix.h _config.h
+main.cell.o: main.cell.c main.cell.h cmdoptions.h hashmap.h lua/lauxlib.h \
+ lua/luaconf.h lua/lua.h _config.h export.h object.h bltrshape.h point.h \
+ technology.h lua/lua.h tagged_value.h vector.h polygon.h shape.h \
+ transformationmatrix.h filesystem.h gdsparser.h geometry.h info.h \
+ main.cellbase.h pcell.h main.functions.h postprocess.h util_cmodule.h \
+ util.h
+main.config.o: main.config.c main.config.h cmdoptions.h error.h hashmap.h \
+ _config.h filesystem.h lua/lua.h lua/luaconf.h lua_util.h lua/lauxlib.h \
+ lua/lua.h util.h vector.h
 main.functions.o: main.functions.c main.functions.h lua/lua.h \
- lua/luaconf.h technology.h vector.h hashmap.h \
- lua/lauxlib.h lua/lua.h lua_util.h filesystem.h \
- pcell.h object.h polygon.h point.h shape.h \
- transformationmatrix.h util_cmodule.h ldir.h lgenerics.h \
- lgeometry.h lobject.h lplacement.h lplacer.h \
- lpoint.h lpostprocess.h lrouter.h
-main.gds.o: main.gds.c main.gds.h cmdoptions.h \
- main.functions.h lua/lua.h lua/luaconf.h technology.h \
- vector.h hashmap.h gdsparser.h
+ lua/luaconf.h technology.h hashmap.h tagged_value.h vector.h \
+ lua/lauxlib.h lua/lua.h lua_util.h filesystem.h pcell.h object.h \
+ bltrshape.h point.h polygon.h shape.h transformationmatrix.h \
+ layouthelpers_cmodule.h util_cmodule.h ldir.h lgenerics.h lgeometry.h \
+ lobject.h lplacement.h lplacer.h lpoint.h lpolygon.h lpostprocess.h \
+ lrouter.h
+main.gds.o: main.gds.c main.gds.h cmdoptions.h main.functions.h lua/lua.h \
+ lua/luaconf.h technology.h hashmap.h tagged_value.h vector.h gdsparser.h
+main.import.o: main.import.c main.import.h vector.h lua/lua.h \
+ lua/luaconf.h lua/lauxlib.h lua/lua.h cdl_parser.h netlist.h \
+ filesystem.h limport.h lplacement.h polygon.h point.h lplacer.h \
+ lrouter.h lua_util.h main.functions.h technology.h hashmap.h \
+ tagged_value.h main.lua.h util_cmodule.h util.h _modulemanager.h
 main.lua.o: main.lua.c main.lua.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lua/lua.h lua_util.h
-main.import.o: main.import.c main.import.h vector.h \
- lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
- cdl_parser.h filesystem.h lplacement.h polygon.h \
- point.h lplacer.h lrouter.h lua_util.h \
- main.functions.h technology.h hashmap.h _modulemanager.h \
- util_cmodule.h util.h
-main.tutorial.o: main.tutorial.c main.tutorial.h print.h \
- terminal.h
-netlist.o: netlist.c netlist.h
-object.o: object.c object.h hashmap.h polygon.h \
- point.h shape.h technology.h lua/lua.h lua/luaconf.h \
- vector.h transformationmatrix.h bltrshape.h util.h
-pcell.o: pcell.c pcell.h lua/lua.h lua/luaconf.h \
- object.h hashmap.h polygon.h point.h shape.h \
- technology.h vector.h transformationmatrix.h \
- lua/lauxlib.h lua/lua.h cells.h main.functions.h \
- util.h lua_util.h ldir.h lobject.h ldebug.h \
- _scriptmanager.h _modulemanager.h
+main.tutorial.o: main.tutorial.c main.tutorial.h print.h terminal.h
+netlist.o: netlist.c netlist.h lua/lua.h lua/luaconf.h util.h vector.h
+object.o: object.c object.h bltrshape.h point.h technology.h lua/lua.h \
+ lua/luaconf.h hashmap.h tagged_value.h vector.h polygon.h shape.h \
+ transformationmatrix.h helpers.h tuple.h util.h
+pcell.o: pcell.c pcell.h lua/lua.h lua/luaconf.h object.h bltrshape.h \
+ point.h technology.h hashmap.h tagged_value.h vector.h polygon.h shape.h \
+ transformationmatrix.h lua/lauxlib.h lua/lua.h cells.h main.functions.h \
+ main.lua.h util.h lua_util.h ldir.h lobject.h ldebug.h pcell.common.h \
+ pcell.def.h _scriptmanager.h _modulemanager.h
 pcell.common.o: pcell.common.c pcell.common.h lua/lua.h lua/luaconf.h \
- technology.h hashmap.h tagged_value.h vector.h lua/lauxlib.h lua/lua.h \
- _modulemanager.h main.lua.h util.h pcell.def.h
-pcell.state.o: pcell.state.c pcell.def.h
-placement.o: placement.c placement.h object.h hashmap.h \
- polygon.h point.h shape.h technology.h lua/lua.h \
- lua/luaconf.h vector.h transformationmatrix.h geometry.h \
- util.h
+ lua/lauxlib.h lua/lua.h _modulemanager.h main.lua.h main.functions.h \
+ technology.h hashmap.h tagged_value.h vector.h util.h lua_util.h \
+ pcell.def.h
+pcell.info.o: pcell.info.c _scriptmanager.h lua/lua.h lua/luaconf.h \
+ lua_util.h lua/lauxlib.h lua/lua.h pcell.common.h ldir.h pcell.def.h \
+ vector.h
+pcell.state.o: pcell.state.c pcell.def.h vector.h util.h
+placement.o: placement.c placement.h object.h bltrshape.h point.h \
+ technology.h lua/lua.h lua/luaconf.h hashmap.h tagged_value.h vector.h \
+ polygon.h shape.h transformationmatrix.h geometry.h util.h
 point.o: point.c point.h
 polygon.o: polygon.c polygon.h point.h vector.h
-postprocess.o: postprocess.c postprocess.h object.h \
- hashmap.h polygon.h point.h shape.h technology.h \
- lua/lua.h lua/luaconf.h vector.h transformationmatrix.h \
- union.h
-print.o: print.c
-shape.o: shape.c shape.h point.h polygon.h \
- technology.h lua/lua.h lua/luaconf.h vector.h \
- hashmap.h transformationmatrix.h math.h graphics.h \
- geometry.h object.h
-skillexport.o: skillexport.c skillexport.h export_common.h \
- object.h hashmap.h polygon.h point.h shape.h \
- technology.h lua/lua.h lua/luaconf.h vector.h \
- transformationmatrix.h tagged_value.h util.h
-spectre_parser.o: spectre_parser.c parser.h buffer.h device.h \
- string.h tokenlist.h vector.h
-spectre_tokenlist.o: spectre_tokenlist.c tokenlist.h vector.h
+postprocess.o: postprocess.c postprocess.h object.h bltrshape.h point.h \
+ technology.h lua/lua.h lua/luaconf.h hashmap.h tagged_value.h vector.h \
+ polygon.h shape.h transformationmatrix.h union.h
+print.o: print.c starray.h ztstring.h
+shape.o: shape.c shape.h point.h polygon.h technology.h lua/lua.h \
+ lua/luaconf.h hashmap.h tagged_value.h vector.h transformationmatrix.h \
+ math.h graphics.h geometry.h object.h bltrshape.h
+skillexport.o: skillexport.c skillexport.h export_common.h object.h \
+ bltrshape.h point.h technology.h lua/lua.h lua/luaconf.h hashmap.h \
+ tagged_value.h vector.h polygon.h shape.h transformationmatrix.h util.h
 string.o: string.c string.h
-strprint.o: strprint.c string.h
+strprint.o: strprint.c strprint.h string.h
 tagged_value.o: tagged_value.c tagged_value.h util.h
-technology.o: technology.c technology.h lua/lua.h \
- lua/luaconf.h vector.h hashmap.h lua/lauxlib.h \
- lua/lua.h util.h lua_util.h tagged_value.h ldebug.h
+technology.o: technology.c technology.h lua/lua.h lua/luaconf.h hashmap.h \
+ tagged_value.h vector.h lua/lauxlib.h lua/lua.h error.h filesystem.h \
+ lua_util.h strprint.h string.h util.h
 terminal.o: terminal.c terminal.h
-transformationmatrix.o: transformationmatrix.c \
- transformationmatrix.h point.h
+transformationmatrix.o: transformationmatrix.c transformationmatrix.h \
+ point.h
 tuple.o: tuple.c tuple.h
-union.o: union.c union.h point.h vector.h shape.h \
- polygon.h technology.h lua/lua.h lua/luaconf.h \
- hashmap.h transformationmatrix.h
+union.o: union.c union.h point.h vector.h shape.h polygon.h technology.h \
+ lua/lua.h lua/luaconf.h hashmap.h tagged_value.h transformationmatrix.h
 util.o: util.c util.h
-util_cmodule.o: util_cmodule.c util_cmodule.h lua/lua.h \
- lua/luaconf.h lua/lauxlib.h lua/lua.h lua/lualib.h \
- lpoint.h point.h union.h vector.h
+util_cmodule.o: util_cmodule.c util_cmodule.h lua/lua.h lua/luaconf.h \
+ lua/lauxlib.h lua/lua.h lua/lualib.h lpoint.h point.h union.h vector.h
 vector.o: vector.c vector.h
+ztstring.o: ztstring.c ztstring.h
+
 #############################################################
 
 # lua object files and build rules
