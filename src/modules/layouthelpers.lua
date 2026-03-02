@@ -497,12 +497,24 @@ function layouthelpers.place_hlines(cell, bl, tr, layer, height, space, minwidth
     local blockages = {}
     if excludes then
         for _, exclude in ipairs(excludes) do
-            table.insert(blockages, {
-                start   = util.polygon_xmin(exclude),
-                stop    = util.polygon_xmax(exclude),
-                c1      = util.polygon_ymin(exclude),
-                c2      = util.polygon_ymax(exclude)
-            })
+            if polygon.is_rectilinear_polygon(exclude) then
+                local excluderects = polygon.split_rectilinear_polygon(exclude)
+                for _, rect in ipairs(excluderects) do
+                    table.insert(blockages, {
+                        c1      = math.min(rect.bl:gety(), rect.tr:gety()),
+                        c2      = math.max(rect.bl:gety(), rect.tr:gety()),
+                        start   = math.min(rect.bl:getx(), rect.tr:getx()),
+                        stop    = math.max(rect.bl:getx(), rect.tr:getx()),
+                    })
+                end
+            else
+                table.insert(blockages, {
+                    c1      = util.polygon_ymin(exclude),
+                    c2      = util.polygon_ymax(exclude),
+                    start   = util.polygon_xmin(exclude),
+                    stop    = util.polygon_xmax(exclude)
+                })
+            end
         end
     end
     local y = bl:gety() + offset
