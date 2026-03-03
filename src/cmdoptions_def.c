@@ -138,4 +138,10 @@ cmdoptions_add_option(cmdoptions, 'h', "help", NO_ARG, "display help");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "stdout-to", SINGLE_ARG, "redirect standard output to the given file (will be overwritten)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "stderr-to", SINGLE_ARG, "redirect standard error to the given file (will be overwritten)");
 
+/* Developer Functions */
+cmdoptions_add_section(cmdoptions, "Developer functions");
+#ifdef OPC_ENABLE_TIMING
+cmdoptions_add_option(cmdoptions, NO_SHORT, "time", NO_ARG, "Report program timing information. This significantly slows down the program run-time. This switch requires the compile-time define 'OPC_ENABLE_TIMING' to be set. This option is intended for the development, not the usage of openPCells.");
+#endif
+
 // vim: nowrap

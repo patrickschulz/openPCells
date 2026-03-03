@@ -9,6 +9,7 @@
 
 #include <errno.h> // open()
 #include <fcntl.h> // open()
+#include <time.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +30,7 @@
 #include "lua_util.h"
 #include "pcell.h"
 #include "tagged_value.h"
+#include "timeperf.h"
 #include "util.h"
 #include "version.h"
 
@@ -132,6 +134,12 @@ int main(int argc, const char* const * argv)
     cmdoptions_append_help_message(cmdoptions, "");
     cmdoptions_append_help_message(cmdoptions, "For more information on a specific command-line option you can also pass this to --help, e.g. opc --help --read-gds");
 
+#ifdef OPC_ENABLE_TIMING
+    // initialize variables for timing report
+    int do_timing = 0;
+    clock_t c_start;
+#endif
+
     if(!cmdoptions_parse(cmdoptions, argc, argv))
     {
         returnvalue = 1;
@@ -176,6 +184,16 @@ int main(int argc, const char* const * argv)
         }
         dup2(stderrp, STDERR_FILENO);
     }
+
+#ifdef OPC_ENABLE_TIMING
+    // report timing
+    if(cmdoptions_was_provided_long(cmdoptions, "time"))
+    {
+        timeperf_enable();
+        do_timing = 1;
+        c_start = clock();
+    }
+#endif
 
     // execute lua script
     if(cmdoptions_was_provided_long(cmdoptions, "execute-lua-script"))
@@ -655,6 +673,14 @@ DESTROY_CONFIG: ;
     }
 DESTROY_CMDOPTIONS:
     cmdoptions_destroy(cmdoptions);
+
+#ifdef OPC_ENABLE_TIMING
+    if(do_timing)
+    {
+        clock_t c_end = clock();
+        printf("total CPU time: %.3f\n", (double)(c_end - c_start) / CLOCKS_PER_SEC);
+    }
+#endif
     return returnvalue;
 }
 

@@ -8,13 +8,14 @@
 
 #include "cells.h"
 
-#include "main.functions.h"
-#include "main.lua.h"
-#include "util.h"
-#include "lua_util.h"
+#include "ldebug.h"
 #include "ldir.h"
 #include "lobject.h"
-#include "ldebug.h"
+#include "lua_util.h"
+#include "main.functions.h"
+#include "main.lua.h"
+#include "timeperf.h"
+#include "util.h"
 
 #include "pcell.common.h"
 #define OPC_PCELL_IMPLEMENTATION
@@ -71,6 +72,7 @@ static lua_State* _prepare_layout_generation(struct pcell_state* pcell_state, st
     module_load_routing(L);
     module_load_util(L);
     module_load_layouthelpers(L);
+    module_load_profiler(L);
 
     int ret = pcellcommon_load_pcell_library(L, pcell_state);
     if(!ret)
@@ -86,6 +88,13 @@ struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, 
 {
     (void)toplevelname;
     lua_State* L = _prepare_layout_generation(pcell_state, techstate);
+    if(timeperf_is_enabled())
+    {
+        lua_getglobal(L, "profiler");
+        lua_getfield(L, -1, "start");
+        lua_call(L, 0, 0);
+        lua_pop(L, 1);
+    }
     struct object* toplevel = NULL;
     if(!L)
     {
@@ -118,6 +127,15 @@ struct object* pcell_create_layout_from_script(struct pcell_state* pcell_state, 
     int retval = main_lua_pcall(L, 4, 2);
     toplevel = _process_object(L, retval);
 create_layout_from_script_finish:
+    if(timeperf_is_enabled())
+    {
+        lua_getglobal(L, "profiler");
+        lua_getfield(L, -1, "stop");
+        lua_call(L, 0, 0);
+        lua_getfield(L, -1, "display");
+        lua_call(L, 0, 0);
+        lua_pop(L, 1);
+    }
     lua_close(L);
     return toplevel;
 }

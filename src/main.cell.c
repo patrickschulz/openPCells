@@ -4,8 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "lua/lauxlib.h"
-
 #include "_config.h"
 #include "export.h"
 #include "filesystem.h"
