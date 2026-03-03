@@ -2,7 +2,7 @@
 #define OPC_VERSION_H
 
 #define OPC_VERSION_MAJOR 0
-#define OPC_VERSION_MINOR 29
+#define OPC_VERSION_MINOR 30
 #define OPC_VERSION_REVISION 0
 
 #endif /* OPC_VERSION_H */
