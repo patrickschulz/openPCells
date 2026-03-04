@@ -60,7 +60,7 @@ struct bltrshape* bltrshape_create_from_table(lua_State* L, int index)
     return bltrshape;
 }
 
-void bltrshape_push_table(lua_State* L, struct bltrshape* bltrshape)
+void bltrshape_push_table(lua_State* L, const struct bltrshape* bltrshape)
 {
     lua_newtable(L);
     /* net */

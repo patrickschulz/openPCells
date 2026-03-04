@@ -13,7 +13,7 @@ struct bltrshape* bltrshape_create_xy_no_net(coordinate_t blx, coordinate_t bly,
 struct bltrshape* bltrshape_create(const struct point* bl, const struct point* tr, const struct generics* layer, const char* net);
 struct bltrshape* bltrshape_create_no_net(const struct point* bl, const struct point* tr);
 struct bltrshape* bltrshape_create_from_table(lua_State* L, int index);
-void bltrshape_push_table(lua_State* L, struct bltrshape* bltrshape);
+void bltrshape_push_table(lua_State* L, const struct bltrshape* bltrshape);
 void bltrshape_destroy(void* v);
 void* bltrshape_copy(const void* v); /* const void* v because it is used as copy constructor */
 struct point* bltrshape_get_bl(struct bltrshape* bltrshape);

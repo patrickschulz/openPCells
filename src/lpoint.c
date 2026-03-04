@@ -307,7 +307,6 @@ static int lpoint_ydistance_abs(lua_State* L)
     return 1;
 }
 
-
 static int lpoint_equal(lua_State* L)
 {
     struct lpoint* lhs = lpoint_checkpoint(L, -2);

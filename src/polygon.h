@@ -26,6 +26,10 @@ struct vector* polygon_container_line_intersections(const struct polygon_contain
 int simple_polygon_intersects_rectangle(const struct simple_polygon* simple_polygon, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 int polygon_container_intersects_rectangle(const struct polygon_container* polygon_container, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 void simple_polygon_append(struct simple_polygon* simple_polygon, struct point* pt);
+coordinate_t simple_polygon_get_minx(const struct simple_polygon* simple_polygon);
+coordinate_t simple_polygon_get_maxx(const struct simple_polygon* simple_polygon);
+coordinate_t simple_polygon_get_miny(const struct simple_polygon* simple_polygon);
+coordinate_t simple_polygon_get_maxy(const struct simple_polygon* simple_polygon);
 coordinate_t polygon_container_get_minx(const struct polygon_container* polygon_container);
 coordinate_t polygon_container_get_maxx(const struct polygon_container* polygon_container);
 coordinate_t polygon_container_get_miny(const struct polygon_container* polygon_container);

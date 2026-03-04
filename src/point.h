@@ -25,6 +25,10 @@ struct point* point_create(coordinate_t x, coordinate_t y);
 void point_destroy(void* pt); // void*, otherwise we get a warning while destroying vectors
 void* point_copy(const void* v);
 
+// coordinate arrays
+coordinate_t* point_create_coordinate_array(size_t size);
+void point_destroy_coordinate_array(void* v);
+
 coordinate_t point_getx(const struct point* pt);
 coordinate_t point_gety(const struct point* pt);
 void point_setx(struct point* pt, coordinate_t x);
@@ -38,10 +42,17 @@ struct point* point_create_maximum(void);
 void point_update_minimum(struct point** min, const struct point* pt);
 void point_update_maximum(struct point** max, const struct point* pt);
 
+coordinate_t point_xaverage(const struct point* lhr, const struct point* rhs, coordinate_t grid);
+coordinate_t point_yaverage(const struct point* lhr, const struct point* rhs, coordinate_t grid);
+coordinate_t point_xdistance(const struct point* lhr, const struct point* rhs);
+coordinate_t point_ydistance(const struct point* lhr, const struct point* rhs);
+coordinate_t point_xdistance_abs(const struct point* lhr, const struct point* rhs);
+coordinate_t point_ydistance_abs(const struct point* lhr, const struct point* rhs);
 coordinate_t point_xdifference(const struct point* pt1, const struct point* pt2);
 coordinate_t point_ydifference(const struct point* pt1, const struct point* pt2);
 
 int point_is_on_grid(const struct point* pt, coordinate_t grid);
 int point_is_equal(const struct point* pt1, const struct point* pt2);
+
 
 #endif // OPC_POINT_H

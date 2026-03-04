@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 
+#include "arith.h"
+
 struct point* point_create(coordinate_t x, coordinate_t y)
 {
     struct point* pt = malloc(sizeof(*pt));
@@ -20,6 +22,18 @@ void* point_copy(const void* v)
     const struct point* pt = v;
     struct point* new = point_create(pt->x, pt->y);
     return new;
+}
+
+// coordinate arrays
+coordinate_t* point_create_coordinate_array(size_t size)
+{
+    coordinate_t* array = malloc(size * sizeof(*array));
+    return array;
+}
+
+void point_destroy_coordinate_array(void* v)
+{
+    free(v);
 }
 
 inline coordinate_t point_getx(const struct point* pt)
@@ -81,6 +95,51 @@ void point_update_maximum(struct point** max, const struct point* pt)
         (*max)->y = pt->y;
     }
 }
+
+coordinate_t point_xaverage(const struct point* lhs, const struct point* rhs, coordinate_t grid)
+{
+    return arith_div_grid(lhs->x + rhs->x, 2, grid);
+}
+
+coordinate_t point_yaverage(const struct point* lhs, const struct point* rhs, coordinate_t grid)
+{
+    return arith_div_grid(lhs->y + rhs->y, 2, grid);
+}
+
+coordinate_t point_xdistance(const struct point* lhs, const struct point* rhs)
+{
+    return lhs->x - rhs->x;
+}
+
+coordinate_t point_ydistance(const struct point* lhs, const struct point* rhs)
+{
+    return lhs->y - rhs->y;
+}
+
+coordinate_t point_xdistance_abs(const struct point* lhs, const struct point* rhs)
+{
+    if(lhs->x < rhs->x)
+    {
+        return rhs->x - lhs->x;
+    }
+    else
+    {
+        return lhs->x - rhs->x;
+    }
+}
+
+coordinate_t point_ydistance_abs(const struct point* lhs, const struct point* rhs)
+{
+    if(lhs->y < rhs->y)
+    {
+        return rhs->y - lhs->y;
+    }
+    else
+    {
+        return lhs->y - rhs->y;
+    }
+}
+
 
 coordinate_t point_xdifference(const struct point* pt1, const struct point* pt2)
 {

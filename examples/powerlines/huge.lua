@@ -1,9 +1,11 @@
 --math.randomseed(1)
 
+print("running 'huge.lua' power grid example. This will take a few seconds")
+
 local cell = object.create("cell")
 
 -- place shapes that should not be covered
-local numshapes = 300000
+local numshapes = 1000000
 for i = 1, numshapes do
     local xoffset = 1000 * math.random(1, 1000)
     local yoffset = 1000 * math.random(1, 1000)
