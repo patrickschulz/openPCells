@@ -13,6 +13,7 @@
 #include "info.h"
 #include "main.cellbase.h"
 #include "main.functions.h"
+#include "pcell.state.h"
 #include "pcell.h"
 #include "postprocess.h"
 #include "technology.h"
@@ -566,6 +567,10 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     if(verbose)
     {
         pcell_set_verbose(pcell_state);
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "disable-parameter-checks"))
+    {
+        pcell_disable_parameter_checks(pcell_state);
     }
     main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
     const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);

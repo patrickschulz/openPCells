@@ -143,6 +143,19 @@ int pcellcommon_load_pcell_library(lua_State* L, struct pcell_state* pcell_state
             return 0;
         }
     }
+
+    if(!pcell_state->run_parameter_checks)
+    {
+        lua_getglobal(L, "pcell");
+        lua_getfield(L, -1, "disable_parameter_checks");
+        retval = main_lua_pcall(L, 0, 0);
+        if(retval != LUA_OK)
+        {
+            fputs("error while calling pcell.disable_parameter_checks()", stderr);
+            lua_close(L);
+            return 0;
+        }
+    }
     return 1;
 }
 

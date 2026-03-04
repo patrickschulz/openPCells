@@ -15,6 +15,7 @@ struct pcell_state* pcell_initialize_state(void)
     pcell_state->enable_dprint = 0;
     pcell_state->enable_debug = 0;
     pcell_state->verbose = 0;
+    pcell_state->run_parameter_checks = 1;
     return pcell_state;
 }
 
@@ -52,6 +53,11 @@ void pcell_enable_dprint(struct pcell_state* pcell_state)
 void pcell_set_verbose(struct pcell_state* pcell_state)
 {
     pcell_state->verbose = 1;
+}
+
+void pcell_disable_parameter_checks(struct pcell_state* pcell_state)
+{
+    pcell_state->run_parameter_checks = 0;
 }
 
 void pcell_prepend_cellpath(struct pcell_state* pcell_state, const char* path)

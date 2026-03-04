@@ -8,6 +8,7 @@ void pcell_enable_debug(struct pcell_state* pcell_state);
 void pcell_set_dprint_target(struct pcell_state* pcell_state, const char* filename);
 void pcell_enable_dprint(struct pcell_state* pcell_state);
 void pcell_set_verbose(struct pcell_state* pcell_state);
+void pcell_disable_parameter_checks(struct pcell_state* pcell_state);
 void pcell_prepend_cellpath(struct pcell_state* pcell_state, const char* path);
 void pcell_append_cellpath(struct pcell_state* pcell_state, const char* path);
 

@@ -423,6 +423,7 @@ local state = {
     cellrefs = {},
     debug = false,
     verbose = false,
+    run_parameter_checks = true,
     internal_state = nil
 }
 
@@ -539,6 +540,10 @@ function pcell.set_verbose()
     state.verbose = true
 end
 
+function pcell.disable_parameter_checks()
+    state.run_parameter_checks = false
+end
+
 local function _create_layout_internal(state, obj, cellname, cellargs, env)
     if state.verbose then
         print(string.format("creating layout cell '%s'", cellname))
@@ -592,7 +597,7 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
     end
 
     -- check parameters
-    if cell.funcs.check then
+    if state.run_parameter_checks and cell.funcs.check then
         local ret, msg = cell.funcs.check(parameters, cellstate)
         if not ret then
             if not msg then

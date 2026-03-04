@@ -16,6 +16,7 @@ struct pcell_state {
     int enable_dprint;
     int enable_debug;
     int verbose;
+    int run_parameter_checks;
 };
 
 #endif /* OPC_PCELL_DEF_H */
