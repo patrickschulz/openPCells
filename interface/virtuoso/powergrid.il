@@ -324,4 +324,11 @@ procedure(OPCCollectNetShapes()
         ) ; foreach instances
     ) ; let
 ) ;
+
+mapcar(lambda( (instTerm)
+    list(nil 
+        'name instTerm->name 
+        'shapes setof(shape master->shapes shape->net->name == instTerm->term->net->name)
+    )
+))
 */
