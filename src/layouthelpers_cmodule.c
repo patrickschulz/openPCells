@@ -343,23 +343,17 @@ static int _compare_nets(const void* net1v, const void* net2v)
     return strcmp(net1v, net2v) == 0;
 }
 
-// function M.place_vias(cell, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)
-int llayouthelpers_place_vias(lua_State* L)
+void layouthelpers_place_vias(
+    struct technology_state* techstate,
+    struct object* cell,
+    struct vector* netshapes1,
+    struct vector* netshapes2,
+    struct polygon_container* excludes,
+    struct vector* netfilter,
+    int onlyfull,
+    int nocheck
+)
 {
-    // get techstate
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    // get parameters
-    struct lobject* lobject = lobject_check(L, 1);
-    struct object* cell = lobject_get_full(L, lobject);
-    struct vector* netshapes1 = _get_netshapes(L, 2);
-    struct vector* netshapes2 = _get_netshapes(L, 3);
-    struct polygon_container* excludes;
-    lplacement_create_exclude_vectors(L, &excludes, 4);
-    struct vector* netfilter = lutil_get_string_table(L, 5);
-    int onlyfull = lua_toboolean(L, 6);
-    int nocheck = lua_toboolean(L, 7);
     for(size_t i1 = 0; i1 < vector_size(netshapes1); ++i1)
     {
         struct bltrshape* netshape1 = vector_get(netshapes1, i1);
@@ -410,6 +404,25 @@ int llayouthelpers_place_vias(lua_State* L)
             }
         }
     }
+}
+
+int llayouthelpers_place_vias(lua_State* L)
+{
+    // get techstate
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    // get parameters
+    struct lobject* lobject = lobject_check(L, 1);
+    struct object* cell = lobject_get_full(L, lobject);
+    struct vector* netshapes1 = _get_netshapes(L, 2);
+    struct vector* netshapes2 = _get_netshapes(L, 3);
+    struct polygon_container* excludes;
+    lplacement_create_exclude_vectors(L, &excludes, 4);
+    struct vector* netfilter = lutil_get_string_table(L, 5);
+    int onlyfull = lua_toboolean(L, 6);
+    int nocheck = lua_toboolean(L, 7);
+    layouthelpers_place_vias(techstate, cell, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck);
     return 0;
 }
 
