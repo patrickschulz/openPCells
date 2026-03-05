@@ -29,6 +29,14 @@ void export_data_append_two_bytes_unchecked(struct export_data* data, uint16_t d
 void export_data_append_four_bytes_unchecked(struct export_data* data, uint32_t datum);
 void export_data_append_string_unchecked(struct export_data* data, const char* str, size_t length);
 
+// 'unchecked and manual' functions, don't allocate memory and don't advance length
+void export_data_append_nullbyte_unchecked_manual(struct export_data* data, size_t offset);
+void export_data_append_byte_unchecked_manual(struct export_data* data, size_t offset, unsigned char byte);
+void export_data_append_two_bytes_unchecked_manual(struct export_data* data, size_t offset, uint16_t datum);
+void export_data_append_four_bytes_unchecked_manual(struct export_data* data, size_t offset, uint32_t datum);
+void export_data_append_string_unchecked_manual(struct export_data* data, size_t offset, const char* str, size_t length);
+void export_data_advance_length(struct export_data* data, size_t length);
+
 // output
 void export_data_write_to_file(struct export_data* data, FILE* file);
 

@@ -198,6 +198,12 @@ static inline void _write_length_unchecked(struct export_data* data, uint8_t len
     export_data_append_byte_unchecked(data, length);
 }
 
+static inline void _write_length_unchecked_manual(struct export_data* data, size_t offset, uint8_t length)
+{
+    export_data_append_byte_unchecked_manual(data, offset, 0);
+    export_data_append_byte_unchecked_manual(data, offset + 1, length);
+}
+
 static inline void _write_ENDEL(struct export_data* data)
 {
     export_data_append_two_bytes(data, 4);
@@ -205,11 +211,11 @@ static inline void _write_ENDEL(struct export_data* data)
     export_data_append_byte(data, DATATYPE_NONE);
 }
 
-static inline void _write_ENDEL_unchecked(struct export_data* data)
+static inline void _write_ENDEL_unchecked(struct export_data* data, size_t offset)
 {
-    export_data_append_two_bytes_unchecked(data, 4);
-    export_data_append_byte_unchecked(data, RECORDTYPE_ENDEL);
-    export_data_append_byte_unchecked(data, DATATYPE_NONE);
+    export_data_append_two_bytes_unchecked_manual(data, offset, 4);
+    export_data_append_byte_unchecked_manual(data, offset + 2, RECORDTYPE_ENDEL);
+    export_data_append_byte_unchecked_manual(data, offset + 3, DATATYPE_NONE);
 }
 
 static inline void _write_layer(struct export_data* data, uint8_t type, uint8_t datatype, const struct hashmap* layer)
@@ -239,25 +245,25 @@ static inline void _write_layer(struct export_data* data, uint8_t type, uint8_t 
 static inline void _write_layer_unchecked(struct export_data* data, uint8_t type, const struct hashmap* layer)
 {
     // BOUNDARY (4 bytes)
-    _write_length_unchecked(data, 4);
-    export_data_append_byte_unchecked(data, type);
-    export_data_append_byte_unchecked(data, DATATYPE_NONE);
+    _write_length_unchecked_manual(data, 0, 4);
+    export_data_append_byte_unchecked_manual(data, 2, type);
+    export_data_append_byte_unchecked_manual(data, 3, DATATYPE_NONE);
 
     // LAYER (6 bytes)
-    _write_length_unchecked(data, 6);
-    export_data_append_byte_unchecked(data, RECORDTYPE_LAYER);
-    export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
+    _write_length_unchecked_manual(data, 4, 6);
+    export_data_append_byte_unchecked_manual(data, 6, RECORDTYPE_LAYER);
+    export_data_append_byte_unchecked_manual(data, 7, DATATYPE_TWO_BYTE_INTEGER);
     const struct tagged_value* vl = hashmap_get_const(layer, "layer");
     int layernum = tagged_value_get_integer(vl);
-    export_data_append_two_bytes_unchecked(data, (int16_t)layernum);
+    export_data_append_two_bytes_unchecked_manual(data, 8, (int16_t)layernum);
 
     // DATATYPE (6 bytes)
-    _write_length_unchecked(data, 6);
-    export_data_append_byte_unchecked(data, RECORDTYPE_DATATYPE);
-    export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
+    _write_length_unchecked_manual(data, 10, 6);
+    export_data_append_byte_unchecked_manual(data, 12, RECORDTYPE_DATATYPE);
+    export_data_append_byte_unchecked_manual(data, 13, DATATYPE_TWO_BYTE_INTEGER);
     const struct tagged_value* vp = hashmap_get_const(layer, "purpose");
     int layerpurpose = tagged_value_get_integer(vp);
-    export_data_append_two_bytes_unchecked(data, (int16_t)layerpurpose);
+    export_data_append_two_bytes_unchecked_manual(data, 14, (int16_t)layerpurpose);
 }
 
 static inline void _write_string(struct export_data* data, const char* str, uint8_t recordtype)
@@ -397,24 +403,26 @@ static void _at_end_cell(struct export_data* data, int istoplevel)
 static void _write_rectangle(struct export_data* data, const struct hashmap* layer, const struct point* bl, const struct point* tr)
 {
     export_data_ensure_additional_capacity(data, 64); // a rectangle has exactly 64 bytes
-    _write_layer_unchecked(data, RECORDTYPE_BOUNDARY, layer);
+    _write_layer_unchecked(data, RECORDTYPE_BOUNDARY, layer); // 16 bytes
 
     // XY (44 bytes)
-    _write_length_unchecked(data, 44);
-    export_data_append_byte_unchecked(data, RECORDTYPE_XY);
-    export_data_append_byte_unchecked(data, DATATYPE_FOUR_BYTE_INTEGER);
-    export_data_append_four_bytes_unchecked(data, bl->x);
-    export_data_append_four_bytes_unchecked(data, bl->y);
-    export_data_append_four_bytes_unchecked(data, tr->x);
-    export_data_append_four_bytes_unchecked(data, bl->y);
-    export_data_append_four_bytes_unchecked(data, tr->x);
-    export_data_append_four_bytes_unchecked(data, tr->y);
-    export_data_append_four_bytes_unchecked(data, bl->x);
-    export_data_append_four_bytes_unchecked(data, tr->y);
-    export_data_append_four_bytes_unchecked(data, bl->x);
-    export_data_append_four_bytes_unchecked(data, bl->y);
+    _write_length_unchecked_manual(data, 16, 44);
+    export_data_append_byte_unchecked_manual(data, 18, RECORDTYPE_XY);
+    export_data_append_byte_unchecked_manual(data, 19, DATATYPE_FOUR_BYTE_INTEGER);
+    export_data_append_four_bytes_unchecked_manual(data, 20, bl->x);
+    export_data_append_four_bytes_unchecked_manual(data, 24, bl->y);
+    export_data_append_four_bytes_unchecked_manual(data, 28, tr->x);
+    export_data_append_four_bytes_unchecked_manual(data, 32, bl->y);
+    export_data_append_four_bytes_unchecked_manual(data, 36, tr->x);
+    export_data_append_four_bytes_unchecked_manual(data, 40, tr->y);
+    export_data_append_four_bytes_unchecked_manual(data, 44, bl->x);
+    export_data_append_four_bytes_unchecked_manual(data, 48, tr->y);
+    export_data_append_four_bytes_unchecked_manual(data, 52, bl->x);
+    export_data_append_four_bytes_unchecked_manual(data, 56, bl->y);
 
-    _write_ENDEL_unchecked(data); // 4 bytes
+    _write_ENDEL_unchecked(data, 60); // 4 bytes
+
+    export_data_advance_length(data, 64);
 }
 
 static void _write_polygon(struct export_data* data, const struct hashmap* layer, const struct vector* points)
