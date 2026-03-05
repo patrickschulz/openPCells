@@ -606,21 +606,37 @@ void main_API_help(const char* funcname)
     _destroy_api_entries(entries);
 }
 
-void main_API_search(const char* name)
+void main_API_search(const char** names)
 {
     struct vector* entries = _initialize_api_entries();
     struct vector_const_iterator* it = vector_const_iterator_create(entries);
     struct const_vector* found_entries = const_vector_create(1);
+    // fill results vector with everything, then filter
     while(vector_const_iterator_is_valid(it))
     {
         const struct api_entry* entry = vector_const_iterator_get(it);
-        if(_is_func_match(name, entry->funcname, _stringify_module(entry->module)))
-        {
-            const_vector_append(found_entries, entry);
-        }
+        const_vector_append(found_entries, entry);
         vector_const_iterator_next(it);
     }
     vector_const_iterator_destroy(it);
+    // now filter, apply filter names consecutively
+    if(const_vector_size(found_entries) > 0)
+    {
+        for(int i = const_vector_size(found_entries) - 1; i >= 0; --i)
+        {
+            const struct api_entry* entry = const_vector_get(found_entries, i);
+            const char** ptr = names;
+            while(*ptr)
+            {
+                if(!_is_func_match(*ptr, entry->funcname, _stringify_module(entry->module)))
+                {
+                    const_vector_remove(found_entries, i);
+                    break;
+                }
+                ++ptr;
+            }
+        }
+    }
     if(const_vector_size(found_entries) == 0)
     {
         puts("no entries found");

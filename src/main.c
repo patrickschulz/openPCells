@@ -344,8 +344,13 @@ int main(int argc, const char* const * argv)
     }
     if(cmdoptions_was_provided_long(cmdoptions, "api-search"))
     {
-        const char* funcname = cmdoptions_get_argument_long(cmdoptions, "api-search");
-        main_API_search(funcname);
+        if(cmdoptions_no_positional_parameters(cmdoptions))
+        {
+            fprintf(stderr, "%s\n", "--api-search requires at least one parameter");
+            goto DESTROY_CONFIG;
+        }
+        const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
+        main_API_search(ptr);
         goto DESTROY_CONFIG;
     }
     if(cmdoptions_was_provided_long(cmdoptions, "api-list"))
