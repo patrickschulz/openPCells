@@ -2134,7 +2134,7 @@ function layout(transistor, _P)
                     for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal - 1 do
                         local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
                         local shift2 = (_P.gatespace + sourcemetalwidths[sourcemetal + 1]) / 2
-                        geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
+                        geometry.viabarebltr2(transistor, sourcemetal, sourcemetal + 1,
                             point.create(blx - shift1 - leftext, bly1),
                             point.create(trx - shift1 + rightext + sourcemetalwidths[sourcemetal], bly1 + _P.connectsourcewidth),
                             point.create(blx - shift2 - leftext, bly1),
