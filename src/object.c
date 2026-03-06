@@ -2640,6 +2640,21 @@ void object_inherit_net_shapes(struct object* cell, const struct object* other, 
     }
 }
 
+int object_has_net(const struct object* cell, const char* netname)
+{
+    const struct object* obj = cell;
+    if(object_is_proxy(cell))
+    {
+        obj = cell->content.proxy.reference;
+    }
+    if(obj->content.full.nets && hashmap_exists(obj->content.full.nets, netname))
+    {
+        const struct vector* nets = hashmap_get(obj->content.full.nets, netname);
+        return vector_size(nets) > 0;
+    }
+    return 0;
+}
+
 void object_clear_alignment_box(struct object* cell)
 {
     free(cell->content.full.alignmentbox);

@@ -2068,6 +2068,16 @@ static int lobject_inherit_net_shapes(lua_State* L)
     return 0;
 }
 
+static int lobject_has_net(lua_State* L)
+{
+    lcheck_check_numargs1(L, 2, "object.has_net");
+    struct lobject* cell = lobject_check(L, 1);
+    const char* netname = luaL_checkstring(L, 2);
+    int has_net = object_has_net(lobject_get(L, cell), netname);
+    lua_pushboolean(L, has_net);
+    return 1;
+}
+
 int open_lobject_lib(lua_State* L)
 {
     // create metatable for objects
@@ -2214,6 +2224,7 @@ int open_lobject_lib(lua_State* L)
         { "get_net_shapes",                         lobject_get_net_shapes                      },
         { "get_array_net_shapes",                   lobject_get_array_net_shapes                },
         { "inherit_net_shapes",                     lobject_inherit_net_shapes                  },
+        { "has_net",                                lobject_has_net                             },
         { "__gc",                                   lobject_destroy                             },
         { "__tostring",                             lobject_tostring                            },
         { NULL,                                     NULL                                        }

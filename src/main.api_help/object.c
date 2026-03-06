@@ -1703,6 +1703,23 @@
     ));
 }
 
+/* object.has_net */
+{
+    struct parameter parameters[] = {
+        { "cell",       OBJECT,     NULL, "object to add the net shapes to" },
+        { "netname",    STRING,     NULL, "name of the net to check" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "has_net",
+        MODULE_OBJECT,
+        "check if an object has shapes on a given net",
+        "Check if an object has shapes on a given net. "
+        "local has_net = cell:has_net(othercell, \"vdd\")",
+        parameters
+    ));
+}
+
 /* object.get_ports */
 {
     struct parameter parameters[] = {
