@@ -1714,7 +1714,7 @@
         "has_net",
         MODULE_OBJECT,
         "check if an object has shapes on a given net",
-        "Check if an object has shapes on a given net. "
+        "Check if an object has shapes on a given net.",
         "local has_net = cell:has_net(othercell, \"vdd\")",
         parameters
     ));
