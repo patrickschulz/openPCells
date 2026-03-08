@@ -428,7 +428,7 @@ function check(_P, state)
     -- check gate position for an odd number of rows
     if #state.pattern % 2 == 1 then
         if _P.gatepos == "doublerow" then
-            return false, "if the pattern contains an odd number of rows, the gate position must be 'top' or 'bottom'."
+            return false, "if the pattern contains an odd number of rows, the gate position ('gatepos') must be 'top' or 'bottom'."
         end
     end
 
