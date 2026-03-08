@@ -177,7 +177,8 @@ function parameters()
         { "globallines_label_sizehint", technology.get_optional_dimension("Default Label Size", 0), follow = "lines_label_sizehint" },
         { "instancename", nil },
         { "instancenameincenter", true },
-        { "instancelabelsizehint", technology.get_optional_dimension("Default Label Size", 0) }
+        { "instancelabelsizehint", technology.get_optional_dimension("Default Label Size", 0) },
+        { "include_device_index_in_name", false }
     )
 end
 
@@ -894,12 +895,6 @@ function layout(cell, _P, _env, state)
             gateline_space_occupation +
             interconnectline_space_occupation +
             extraspace
-
-        dprint("sourcestrap_space_occupation", sourcestrap_space_occupation)
-        dprint("gatestrap_space_occupation", gatestrap_space_occupation)
-        dprint("gateline_space_occupation", gateline_space_occupation)
-        dprint("interconnectline_space_occupation", interconnectline_space_occupation)
-        dprint("extraspace", extraspace)
     end
     -- fix zero-shift rows
     for row = 1, state.numrows do
@@ -1020,8 +1015,15 @@ function layout(cell, _P, _env, state)
             drawbotgate = _P.gatepos == "bottom"
         end
         for deviceindex, device in ipairs(devicerow) do
+            local instancename
+            if _P.include_device_index_in_name then
+                instancename = string.format("%d_%d", device.device, device.index)
+            else
+                instancename = string.format("%d", device.device)
+            end
             local devopts = util.add_options(fetoptions, {
                 name = string.format("M_%d_%d_%d", device.device, device.row, device.index),
+                instancename = instancename,
                 fingers = _P.fingers,
                 drawtopgate = drawtopgate,
                 drawbotgate = drawbotgate,
