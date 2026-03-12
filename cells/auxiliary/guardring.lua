@@ -37,7 +37,12 @@ function parameters()
         { "drawdeepwell",                                   false },
         { "deepwelloffset",                                 technology.get_optional_dimension("Deep Well Offset", 0) },
         { "fit",                                            false },
-        { "failifnotfit",                                   false }
+        { "failifnotfit",                                   false },
+        { "net",                                            "" },
+        { "addtopnet",                                      false },
+        { "addbottomnet",                                   false },
+        { "addleftnet",                                     false },
+        { "addrightnet",                                    false }
     )
 end
 
@@ -487,4 +492,40 @@ function layout(guardring, _P)
         point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth),
         point.create(-_P.ringwidth, holeheight + _P.ringwidth),
     })
+
+    -- add net to segments
+    if _P.net ~= "" then
+        if util.any_of("top", _P.drawsegments) and _P.addtopnet then
+            guardring:add_net_shape(
+                _P.net,
+                guardring:get_area_anchor("topsegment").bl,
+                guardring:get_area_anchor("topsegment").tr,
+                generics.metal(_P.topmetal)
+            )
+        end
+        if util.any_of("bottom", _P.drawsegments) and _P.addbottomnet then
+            guardring:add_net_shape(
+                _P.net,
+                guardring:get_area_anchor("bottomsegment").bl,
+                guardring:get_area_anchor("bottomsegment").tr,
+                generics.metal(_P.bottommetal)
+            )
+        end
+        if util.any_of("left", _P.drawsegments) and _P.addleftnet then
+            guardring:add_net_shape(
+                _P.net,
+                guardring:get_area_anchor("leftsegment").bl,
+                guardring:get_area_anchor("leftsegment").tr,
+                generics.metal(_P.leftmetal)
+            )
+        end
+        if util.any_of("right", _P.drawsegments) and _P.addrightnet then
+            guardring:add_net_shape(
+                _P.net,
+                guardring:get_area_anchor("rightsegment").bl,
+                guardring:get_area_anchor("rightsegment").tr,
+                generics.metal(_P.rightmetal)
+            )
+        end
+    end
 end
