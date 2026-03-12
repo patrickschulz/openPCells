@@ -2918,6 +2918,8 @@ function layout(transistor, _P)
             wellouterextension = _P.guardringwellouterextension,
             implantinnerextension = _P.guardringimplantinnerextension,
             implantouterextension = _P.guardringimplantouterextension,
+            oxidetypeinnerextension = _P.guardringoxidetypeinnerextension,
+            oxidetypeouterextension = _P.guardringoxidetypeouterextension,
             soiopeninnerextension = _P.guardringsoiopeninnerextension,
             soiopenouterextension = _P.guardringsoiopenouterextension,
         })
