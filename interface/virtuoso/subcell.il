@@ -256,7 +256,7 @@ procedure(OPCSubCellUpdate()
         (opcgroups)
         opcgroups = OPCSubCellGet()
         foreach(opcgroup opcgroups
-            when(opcgroup->opcprotect == "FALSE"
+            when(!opcgroup->opcprotect || opcgroup->opcprotect == "FALSE"
                 if(setof(p opcgroup->prop p->name == "opcpath") ; group is an opc group (cellscript)
                     then
                         OPCUpdateCellscriptCallback(
