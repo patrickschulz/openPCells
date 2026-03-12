@@ -54,6 +54,10 @@ function parameters()
         { "wellalignrightwithactive", false, follow = "wellalignwithactive" },
         { "wellaligntopwithactive", false, follow = "wellalignwithactive" },
         { "wellalignbottomwithactive", false, follow = "wellalignwithactive" },
+        { "equalize_FEOL", true },
+        { "equalize_implant", true, follow = "equalize_FEOL" },
+        { "equalize_well", true, follow = "equalize_FEOL" },
+        { "equalize_oxidetype", true, follow = "equalize_FEOL" },
         { "extendall", 0 },
         { "extendalltop", 0, follow = "extendall" },
         { "extendallbottom", 0, follow = "extendall" },
@@ -79,14 +83,45 @@ function parameters()
 end
 
 function layout(cell, _P)
-    local source = pcell.create_layout("basic/mosfet", "_source", {
+    local baseopt = {
         oxidetype = _P.oxidetype,
+        drawimplant = not _P.equalize_implant,
+        drawoxidetype = not _P.equalize_oxidetype,
+        drawwell = not _P.equalize_well,
+        sdwidth = _P.sdwidth,
+        actext = _P.actext,
+        implantalignleftwithactive = _P.implantalignleftwithactive,
+        implantalignrightwithactive = _P.implantalignrightwithactive,
+        implantaligntopwithactive = _P.implantaligntopwithactive,
+        implantalignbottomwithactive = _P.implantalignbottomwithactive,
+        oxidetypealignleftwithactive = _P.oxidetypealignleftwithactive,
+        oxidetypealignrightwithactive = _P.oxidetypealignrightwithactive,
+        oxidetypealigntopwithactive = _P.oxidetypealigntopwithactive,
+        oxidetypealignbottomwithactive = _P.oxidetypealignbottomwithactive,
+        vthtypealignleftwithactive = _P.vthtypealignleftwithactive,
+        vthtypealignrightwithactive = _P.vthtypealignrightwithactive,
+        vthtypealigntopwithactive = _P.vthtypealigntopwithactive,
+        vthtypealignbottomwithactive = _P.vthtypealignbottomwithactive,
+        wellalignleftwithactive = _P.wellalignleftwithactive,
+        wellalignrightwithactive = _P.wellalignrightwithactive,
+        wellaligntopwithactive = _P.wellaligntopwithactive,
+        wellalignbottomwithactive = _P.wellalignbottomwithactive,
+        extendimplantleft = _P.extendimplantleft,
+        extendimplantright = _P.extendimplantright,
+        extendoxidetypeleft = _P.extendoxidetypeleft,
+        extendoxidetyperight = _P.extendoxidetyperight,
+        extendvthtypeleft = _P.extendvthtypeleft,
+        extendvthtyperight = _P.extendvthtyperight,
+        extendwellleft = _P.extendwellleft,
+        extendwellright = _P.extendwellright,
+    }
+
+    local source = pcell.create_layout("basic/mosfet", "_source", util.add_options(baseopt, {
         vthtype = _P.sourcevthtype,
         fingers = _P.sourcefingers,
         gatelength = _P.sourcelength,
         gatespace = _P.sourcegatespace,
         fingerwidth = _P.sourcewidth,
-        sdwidth = _P.sdwidth,
         sourcemetal = 1,
         connectsource = true,
         connectsourcewidth = _P.powerwidth,
@@ -98,49 +133,23 @@ function layout(cell, _P)
         drawtopgate = true,
         topgatewidth = _P.gatestrapwidth,
         topgatespace = _P.gatestrapspace,
-        implantalignleftwithactive = _P.implantalignleftwithactive,
-        implantalignrightwithactive = _P.implantalignrightwithactive,
-        implantaligntopwithactive = _P.implantaligntopwithactive,
-        implantalignbottomwithactive = _P.implantalignbottomwithactive,
-        oxidetypealignleftwithactive = _P.oxidetypealignleftwithactive,
-        oxidetypealignrightwithactive = _P.oxidetypealignrightwithactive,
-        oxidetypealigntopwithactive = _P.oxidetypealigntopwithactive,
-        oxidetypealignbottomwithactive = _P.oxidetypealignbottomwithactive,
-        vthtypealignleftwithactive = _P.vthtypealignleftwithactive,
-        vthtypealignrightwithactive = _P.vthtypealignrightwithactive,
-        vthtypealigntopwithactive = _P.vthtypealigntopwithactive,
-        vthtypealignbottomwithactive = _P.vthtypealignbottomwithactive,
-        wellalignleftwithactive = _P.wellalignleftwithactive,
-        wellalignrightwithactive = _P.wellalignrightwithactive,
-        wellaligntopwithactive = _P.wellaligntopwithactive,
-        wellalignbottomwithactive = _P.wellalignbottomwithactive,
-        extendimplantleft = _P.extendimplantleft,
-        extendimplantright = _P.extendimplantright,
         extendimplanttop = _P.continuousimplant and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendimplanttop,
         extendimplantbottom = _P.extendimplantbottom,
-        extendoxidetypeleft = _P.extendoxidetypeleft,
-        extendoxidetyperight = _P.extendoxidetyperight,
         extendoxidetypetop = _P.continuousoxidetype and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendoxidetypetop,
         extendoxidetypebottom = _P.extendoxidetypebottom,
-        extendvthtypeleft = _P.extendvthtypeleft,
-        extendvthtyperight = _P.extendvthtyperight,
         extendvthtypetop = _P.continuousvthtype and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendvthtypetop,
         extendvthtypebottom = _P.extendvthtypebottom,
-        extendwellleft = _P.extendwellleft,
-        extendwellright = _P.extendwellright,
         extendwelltop = _P.continuouswell and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendwelltop,
         extendwellbottom = _P.extendwellbottom,
         topgatepolytopbottomextension = _P.gateext,
-        actext = _P.actext,
-    })
-    local cascode = pcell.create_layout("basic/mosfet", "_cascode", {
-        oxidetype = _P.oxidetype,
+    }))
+
+    local cascode = pcell.create_layout("basic/mosfet", "_cascode", util.add_options(baseopt, {
         vthtype = _P.cascodevthtype,
         fingers = _P.cascodefingers,
         gatelength = _P.cascodelength,
         gatespace = _P.cascodegatespace,
         fingerwidth = _P.cascodewidth,
-        sdwidth = _P.sdwidth,
         sourcemetal = _P.interconnectmetal,
         connectsource = true,
         connectsourcewidth = _P.sdstrapwidth,
@@ -152,42 +161,17 @@ function layout(cell, _P)
         drawbotgate = true,
         botgatewidth = _P.gatestrapwidth,
         botgatespace = _P.gatestrapspace,
-        implantalignleftwithactive = _P.implantalignleftwithactive,
-        implantalignrightwithactive = _P.implantalignrightwithactive,
-        implantaligntopwithactive = _P.implantaligntopwithactive,
-        implantalignbottomwithactive = _P.implantalignbottomwithactive,
-        oxidetypealignleftwithactive = _P.oxidetypealignleftwithactive,
-        oxidetypealignrightwithactive = _P.oxidetypealignrightwithactive,
-        oxidetypealigntopwithactive = _P.oxidetypealigntopwithactive,
-        oxidetypealignbottomwithactive = _P.oxidetypealignbottomwithactive,
-        vthtypealignleftwithactive = _P.vthtypealignleftwithactive,
-        vthtypealignrightwithactive = _P.vthtypealignrightwithactive,
-        vthtypealigntopwithactive = _P.vthtypealigntopwithactive,
-        vthtypealignbottomwithactive = _P.vthtypealignbottomwithactive,
-        wellalignleftwithactive = _P.wellalignleftwithactive,
-        wellalignrightwithactive = _P.wellalignrightwithactive,
-        wellaligntopwithactive = _P.wellaligntopwithactive,
-        wellalignbottomwithactive = _P.wellalignbottomwithactive,
-        extendimplantleft = _P.extendimplantleft,
-        extendimplantright = _P.extendimplantright,
         extendimplanttop = _P.extendimplanttop,
         extendimplantbottom = _P.continuousimplant and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendimplantbottom,
-        extendoxidetypeleft = _P.extendoxidetypeleft,
-        extendoxidetyperight = _P.extendoxidetyperight,
         extendoxidetypetop = _P.extendoxidetypetop,
         extendoxidetypebottom = _P.continuousoxidetype and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendoxidetypebottom,
-        extendvthtypeleft = _P.extendvthtypeleft,
-        extendvthtyperight = _P.extendvthtyperight,
         extendvthtypetop = _P.extendvthtypetop,
         extendvthtypebottom = _P.continuousvthtype and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendvthtypebottom,
-        extendwellleft = _P.extendwellleft,
-        extendwellright = _P.extendwellright,
         extendwelltop = _P.extendwelltop,
         extendwellbottom = _P.continuouswell and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendwellbottom,
         botgatepolytopbottomextension = _P.gateext,
-        actext = _P.actext,
         diodeconnected = _P.diodeconnected,
-    })
+    }))
     cascode:align_center_x(source)
     cascode:align_area_anchor_y("sourcestrap", source, "drainstrap")
     cell:merge_into(source)
@@ -228,6 +212,94 @@ function layout(cell, _P)
             point.create(
                 source:get_area_anchor("sourcedrain-1").r,
                 source:get_area_anchor("topgatestrap").t
+            )
+        )
+    end
+
+    -- equalize FEOL layers
+    if _P.equalize_implant then
+        geometry.rectanglebltr(cell, generics.implant(_P.channeltype == "nmos" and "n" or "p"),
+            point.create(
+                math.min(
+                    source:get_area_anchor("implant").l,
+                    cascode:get_area_anchor("implant").l
+                ),
+                math.min(
+                    source:get_area_anchor("implant").b,
+                    cascode:get_area_anchor("implant").b
+                )
+            ),
+            point.create(
+                math.max(
+                    source:get_area_anchor("implant").r,
+                    cascode:get_area_anchor("implant").r
+                ),
+                math.max(
+                    source:get_area_anchor("implant").t,
+                    cascode:get_area_anchor("implant").t
+                )
+            )
+        )
+    end
+    if _P.equalize_well then
+        local well
+        if _P.channeltype == "nmos" then
+            if _P.flippedwell then
+                well = "n"
+            else
+                well = "p"
+            end
+        else
+            if _P.flippedwell then
+                well = "p"
+            else
+                well = "n"
+            end
+        end
+        geometry.rectanglebltr(cell, generics.well(well),
+            point.create(
+                math.min(
+                    source:get_area_anchor("well").l,
+                    cascode:get_area_anchor("well").l
+                ),
+                math.min(
+                    source:get_area_anchor("well").b,
+                    cascode:get_area_anchor("well").b
+                )
+            ),
+            point.create(
+                math.max(
+                    source:get_area_anchor("well").r,
+                    cascode:get_area_anchor("well").r
+                ),
+                math.max(
+                    source:get_area_anchor("well").t,
+                    cascode:get_area_anchor("well").t
+                )
+            )
+        )
+    end
+    if _P.equalize_oxidetype then
+        geometry.rectanglebltr(cell, generics.oxide(_P.oxidetype),
+            point.create(
+                math.min(
+                    source:get_area_anchor("oxide").l,
+                    cascode:get_area_anchor("oxide").l
+                ),
+                math.min(
+                    source:get_area_anchor("oxide").b,
+                    cascode:get_area_anchor("oxide").b
+                )
+            ),
+            point.create(
+                math.max(
+                    source:get_area_anchor("oxide").r,
+                    cascode:get_area_anchor("oxide").r
+                ),
+                math.max(
+                    source:get_area_anchor("oxide").t,
+                    cascode:get_area_anchor("oxide").t
+                )
             )
         )
     end
