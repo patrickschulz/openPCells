@@ -457,6 +457,7 @@ function layouthelpers.place_guardring(cell, bl, tr, xspace, yspace, anchorprefi
     guardring:translate(-xspace, -yspace)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
+    cell:inherit_net_shapes(guardring)
     if anchorprefix then
         cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
@@ -491,6 +492,7 @@ function layouthelpers.place_guardring_quantized(cell, bl, tr, xspace, yspace, b
     guardring:translate_y(-(holeheight - targetheight) / 2)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
+    cell:inherit_net_shapes(guardring)
     if anchorprefix then
         cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
@@ -528,6 +530,7 @@ function layouthelpers.place_guardring_with_hole(cell, bl, tr, holebl, holetr, x
     guardring:translate(-xspace, -yspace)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
+    cell:inherit_net_shapes(guardring)
     if anchorprefix then
         cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
@@ -571,6 +574,7 @@ function layouthelpers.place_guardring_with_hole_quantized(cell, bl, tr, holebl,
     guardring:translate(-(holewidth - targetwidth) / 2, -(holeheight - targetheight) / 2)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
+    cell:inherit_net_shapes(guardring)
     if anchorprefix then
         cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
@@ -608,6 +612,7 @@ function layouthelpers.place_double_guardring(cell, bl, tr, xspace, yspace, inne
     guardring1:translate(-xspace, -yspace)
     cell:merge_into(guardring1)
     cell:inherit_alignment_box(guardring1)
+    cell:inherit_net_shapes(guardring1)
     if anchorprefix1 then
         cell:inherit_all_anchors_with_prefix(guardring1, anchorprefix1)
     end
@@ -630,6 +635,7 @@ function layouthelpers.place_double_guardring(cell, bl, tr, xspace, yspace, inne
     guardring2:translate(-2 * xspace - options.ringwidth, -2 * yspace - options.ringwidth)
     cell:merge_into(guardring2)
     cell:inherit_alignment_box(guardring2)
+    cell:inherit_net_shapes(guardring2)
     if anchorprefix2 then
         cell:inherit_all_anchors_with_prefix(guardring2, anchorprefix2)
     end
@@ -654,6 +660,7 @@ function layouthelpers.place_welltap(cell, bl, tr, anchorprefix, options)
     welltap:move_point(welltap:get_area_anchor("boundary").bl, bl)
     cell:merge_into(welltap)
     cell:inherit_alignment_box(welltap)
+    cell:inherit_net_shapes(welltap)
     if anchorprefix then
         cell:inherit_all_anchors_with_prefix(welltap, anchorprefix)
     end
