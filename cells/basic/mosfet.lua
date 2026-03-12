@@ -639,8 +639,8 @@ function check(_P)
     end
     if _P.connectguardringtosource then
         if _P.guardringconnectionmethod == "strap" then
-            if _P.connectsourceinline or (_P.connectsourceinverse and not _P.connectsourceboth) then
-                return false, "'connectguardringtosource' (with method == 'strap') can only be used when there is a regular, non-inversed source strap (also no inline source connections). This might change in the future, but the current detection logic is simple. However, the current implementation should work for many cases."
+            if _P.connectsourceinline then
+                return false, "'connectguardringtosource' (with method == 'strap') can not be used with 'inline' source strap connections."
             end
         end
     end
@@ -2938,7 +2938,20 @@ function layout(transistor, _P)
         )
         -- FIXME: very rudimentaty, does not check properly for source metals, location of source straps etc.
         if _P.connectguardringtosource then
-            local target = _P.channeltype == "nmos" and "b" or "t"
+            local target
+            if _P.channeltype == "nmos" then
+                if _P.connectsourceinverse then
+                    target = "t"
+                else
+                    target = "b"
+                end
+            else -- "pmos"
+                if _P.connectsourceinverse then
+                    target = "b"
+                else
+                    target = "t"
+                end
+            end
             if _P.guardringconnectionmethod == "strap" then
                 local sourceanchor = transistor:get_area_anchor("sourcestrap")
                 geometry.rectanglepoints(transistor, generics.metal(_P.sourcestraptopmetal),
