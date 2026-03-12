@@ -73,10 +73,10 @@ static void _print_general_info(void)
     puts("");
     puts("The documentation can be accessed in several ways, depending on the type of information:");
     puts("  * Information about pcells can be obtained by:");
-    puts("      '-L': List available cells");
-    puts("      '-I': Show information about a given cell");
-    puts("      '-P': List parameters of a given cell (with filter)");
-    puts("      '-A': List anchors of a given cell (with filter)");
+    puts("      '--list-cells': List available cells");
+    puts("      '--cell-info': Show information about a given cell");
+    puts("      '--cell-parameters': List parameters of a given cell (with filter)");
+    puts("      '--cell-anchors': List anchors of a given cell (with filter)");
     puts("  * Information about API functions can be obtained by '--api-search'/'--api-help'");
     puts("  * HTML documentation can be opened via '-D/--html-documentation'");
     puts("  * A tutorial showing the usage of opc can be accessed by '--tutorial'");
@@ -506,7 +506,7 @@ int main(int argc, const char* const * argv)
 
     // list + listcellpaths
     if(cmdoptions_was_provided_long(cmdoptions, "list-cellpaths") ||
-       cmdoptions_was_provided_long(cmdoptions, "list"))
+       cmdoptions_was_provided_long(cmdoptions, "list-cells"))
     {
         const char** cellnames = cmdoptions_get_positional_parameters(cmdoptions);
         main_list_cells_cellpaths(cellnames, cmdoptions, config);
@@ -514,10 +514,10 @@ int main(int argc, const char* const * argv)
     }
 
     // cell parameters (only names)
-    if(cmdoptions_was_provided_long(cmdoptions, "parameters"))
+    if(cmdoptions_was_provided_long(cmdoptions, "cell-parameters"))
     {
         // cell name
-        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters");
+        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell-parameters");
         // parameter format
         const char* parametersformat = "%n";
         // parameter names
@@ -540,7 +540,7 @@ int main(int argc, const char* const * argv)
     }
 
     // cell anchors (FIXME: broken)
-    if(cmdoptions_was_provided_long(cmdoptions, "anchors"))
+    if(cmdoptions_was_provided_long(cmdoptions, "cell-anchors"))
     {
         main_list_cell_anchors(cmdoptions, config);
         goto DESTROY_CONFIG;

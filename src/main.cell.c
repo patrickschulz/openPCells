@@ -70,7 +70,7 @@ void main_list_cells_cellpaths(const char** cellnames_ptr, struct cmdoptions* cm
 {
     struct pcell_state* pcell_state = pcell_initialize_state();
     main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
-    if(cmdoptions_was_provided_long(cmdoptions, "list"))
+    if(cmdoptions_was_provided_long(cmdoptions, "list-cells"))
     {
         const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
         struct const_vector* cellnames = const_vector_adapt_from_pointer_array((void**)cellnames_ptr);
@@ -144,7 +144,7 @@ void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* confi
     main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
 
     // cellname
-    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "anchors");
+    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell-anchors");
 
     // parameter format
     const char* anchorsformat = cmdoptions_get_argument_long(cmdoptions, "anchors-format");
