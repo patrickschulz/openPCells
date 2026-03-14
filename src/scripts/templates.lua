@@ -16,7 +16,9 @@ local template_lookup = {
     connectdrain = true,
     drainmetal = 3,
     drawguardring = true,
-})]],
+})
+
+return mosfet]],
 
     ["basic/cmos"] =
 [[local cmos = pcell.create_layout("basic/cmos", "_cmos", {
@@ -46,7 +48,9 @@ local template_lookup = {
     extendallbottom = 0,
     extendallleft = 0,
     extendallright = 0,
-})]],
+})
+
+return ]],
 
     ["auxiliary/guardring"] =
 [[local guardring = pcell.create_layout("auxiliary/guardring", "_guardring", {
@@ -72,7 +76,9 @@ local template_lookup = {
     fillinnerimplant = true,
     innerimplantpolarity = "n", -- can be opposite than the main guardring type
     innerimplantspace = 0, -- abutted to the outer implant, but a gap can be introduced
-})]],
+})
+
+return guardring]],
 
     ["basic/stacked_mosfet_array"] =
 [[local row1 = {
@@ -105,7 +111,9 @@ local rows = {
 local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     rows = rows,
     separation = 500,
-})]],
+})
+
+return array]],
 
     ["basic/polyresistor"] =
 [[local resistor = pcell.create_layout("basic/polyresistor", "_resistor", {
@@ -122,7 +130,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     extendlvsmarkerx = 20,
     extendlvsmarkery = 20,
     contactheight = 200,
-})]],
+})
+
+return resistor]],
 
     ["auxiliary/metalgrid"] =
 [[local metalgrid = pcell.create_layout("auxiliary/metalgrid", "_grid", {
@@ -134,10 +144,12 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     mvspace = 500,
     mhlines = 2,
     mvlines = 2,
-})]],
+})
+
+return metalgrid]],
 
     ["passive/capacitor/mom"] =
-[[local metalgrid = pcell.create_layout("passive/capacitor/mom", "_momcap", {
+[[local capacitor = pcell.create_layout("passive/capacitor/mom", "_momcap", {
         fingers = 4,
         fingerwidth = 100,
         fingerspace = 100,
@@ -146,7 +158,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
         railwidth = 100,
         firstmetal = 1,
         lastmetal = 2,
-})]],
+})
+
+return capacitor]],
 
     ["passive/inductor/octagonal"] =
 [[local inductor = pcell.create_layout("passive/inductor/octagonal", "_inductor", {
@@ -161,7 +175,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     viaoverlapextension = 0,
     extsep = 6000,
     allow45 = true,
-})]],
+})
+
+return inductor]],
     ["basic/ldmos"] =
 [[local ldmos = pcell.create_layout("basic/ldmos", "_ldmos", {
     fingers = 4,
@@ -184,7 +200,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     guardringbottomsep = 200,
     guardringleftsep = 200,
     guardringrightsep = 200,
-})]],
+})
+
+return ldmos]],
 
     ["auxiliary/welltap"] =
 [[local welltap = pcell.create_layout("auxiliary/welltap", "_welltap", {
@@ -193,7 +211,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     height = 5000,
     extendall = 50, -- more fine-grained variants exist for left/right/top/bottom
                     -- also individual parameters for implant/well/soiopen
-})]],
+})
+
+return welltap]],
 
     ["analog/common_centroid"] =
 [[local cc = pcell.create_layout("analog/common_centroid", "_common_centroid", {
@@ -227,7 +247,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
         { pin = \"drain\", net = 2 },
         { pin = \"gate\", net = 1 },
     },
-})]],
+})
+
+return cc]],
 
     ["analog/inverter"] =
 [[local inverter = pcell.create_layout("analog/inverter", "_inverter", {
@@ -262,7 +284,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     nmoswelltapwidth = 200,
     nmoswelltapspace = 800,
     --nmoswelltap{implant|soiopen|well}{left|right|top|bottom}extension = xxx,
-})]],
+})
+
+return inverter]],
 
 }
 
