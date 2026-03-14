@@ -28,6 +28,7 @@ procedure(OPCAboutCallback()
                 "About OpenPCells"
                 layout
                 ?buttonLayout 'OKCancel
+                ?sizePolicy 'fixed
             )
         )
     ) ; unless
