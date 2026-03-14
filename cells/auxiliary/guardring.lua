@@ -508,7 +508,7 @@ function layout(guardring, _P)
                 _P.net,
                 guardring:get_area_anchor("bottomsegment").bl,
                 guardring:get_area_anchor("bottomsegment").tr,
-                generics.metal(_P.bottommetal)
+                generics.metal(_P.topmetal)
             )
         end
         if util.any_of("left", _P.drawsegments) and _P.addleftnet then
@@ -516,7 +516,7 @@ function layout(guardring, _P)
                 _P.net,
                 guardring:get_area_anchor("leftsegment").bl,
                 guardring:get_area_anchor("leftsegment").tr,
-                generics.metal(_P.leftmetal)
+                generics.metal(_P.topmetal)
             )
         end
         if util.any_of("right", _P.drawsegments) and _P.addrightnet then
@@ -524,7 +524,7 @@ function layout(guardring, _P)
                 _P.net,
                 guardring:get_area_anchor("rightsegment").bl,
                 guardring:get_area_anchor("rightsegment").tr,
-                generics.metal(_P.rightmetal)
+                generics.metal(_P.topmetal)
             )
         end
     end
