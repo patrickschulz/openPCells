@@ -46,6 +46,13 @@ function parameters()
     )
 end
 
+function check(_P)
+    if _P.net ~= "" and not (_P.addtopnet or _P.addbottomnet or _P.addleftnet or _P.addrightnet) then
+        return false, "if a non-empty net is given, at least one segment must be specified as to be added to the net (e.g. 'addtopnet = true')"
+    end
+    return true
+end
+
 function anchors()
     pcell.add_area_anchor_documentation(
         "topsegment",
