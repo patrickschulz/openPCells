@@ -1,6 +1,5 @@
 #include "layouthelpers_cmodule.h"
 
-#include <stdlib.h> // qsort
 #include <string.h> // strcmp
 
 #include "lua/lauxlib.h"
@@ -98,8 +97,12 @@ struct vector* layouthelpers_place_vlines(
 )
 {
     struct vector* netshapes = vector_create(8, bltrshape_destroy);
+    // FIXME: adapt for polygon boundary
+    coordinate_t start = point_getx(bl);
     coordinate_t stop = point_getx(tr);
-    coordinate_t totalwidth = point_xdistance_abs(tr, bl);
+    coordinate_t ymin = point_gety(bl);
+    coordinate_t ymax = point_gety(tr);
+    coordinate_t totalwidth = stop - start;
     coordinate_t offset = (totalwidth - totalwidth / (width + space) * (width + space) + space) / 2;
     size_t netcounter = 1;
     // find line blockages
@@ -139,16 +142,16 @@ struct vector* layouthelpers_place_vlines(
         }
         polygon_container_iterator_destroy(it);
     }
-    coordinate_t x = point_getx(bl) + offset;
+    coordinate_t x = start + offset;
     while(x < stop)
     {
-        struct vector* ypts = _calculate_line_breaks(x, width, point_gety(bl), point_gety(tr), blockages);
+        struct vector* ypts = _calculate_line_breaks(x, width, ymin, ymax, blockages);
         for(size_t i = 0; i < vector_size(ypts); ++i)
         {
             coordinate_t* pt = vector_get(ypts, i);
             // clip to boundary
-            pt[0] = MAX2(pt[0], point_gety(bl));
-            pt[1] = MIN2(pt[1], point_gety(tr));
+            pt[0] = MAX2(pt[0], ymin);
+            pt[1] = MIN2(pt[1], ymax);
             // check for illegal (out-of-range) points
             if(
                 (pt[0] < pt[1]) &&
