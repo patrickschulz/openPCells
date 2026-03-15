@@ -522,6 +522,58 @@ function anchors()
     )
 end
 
+function check_pre(_P)
+    if not technology.has_metal(_P.sourcestartmetal) then
+        return false,
+            string.format(
+                "'sourcestartmetal' is %d, but the technology node does not have a metal %d",
+                _P.sourcestartmetal,
+                _P.sourcestartmetal
+            )
+    end
+    if not technology.has_metal(_P.sourceendmetal) then
+        return false,
+            string.format(
+                "'sourceendmetal' is %d, but the technology node does not have a metal %d",
+                _P.sourceendmetal,
+                _P.sourceendmetal
+            )
+    end
+    if not technology.has_metal(_P.drainstartmetal) then
+        return false,
+            string.format(
+                "'drainstartmetal' is %d, but the technology node does not have a metal %d",
+                _P.drainstartmetal,
+                _P.drainstartmetal
+            )
+    end
+    if not technology.has_metal(_P.drainendmetal) then
+        return false,
+            string.format(
+                "'drainendmetal' is %d, but the technology node does not have a metal %d",
+                _P.drainendmetal,
+                _P.drainendmetal
+            )
+    end
+    if not technology.has_metal(_P.topgatemetal) then
+        return false,
+            string.format(
+                "'topgatemetal' is %d, but the technology node does not have a metal %d",
+                _P.topgatemetal,
+                _P.topgatemetal
+            )
+    end
+    if not technology.has_metal(_P.botgatemetal) then
+        return false,
+            string.format(
+                "'botgatemetal' is %d, but the technology node does not have a metal %d",
+                _P.botgatemetal,
+                _P.botgatemetal
+            )
+    end
+    return true
+end
+
 local function _get_metal_width(metal)
     local metalstr = string.format("Minimum M%d Width", metal)
         local viastr
