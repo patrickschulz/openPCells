@@ -36,7 +36,7 @@ function parameters()
         { "extendlvsmarkerx", 0 },
         { "extendlvsmarkery", 0 },
         { "conntype", "parallel", posvals = set("none", "parallel", "series", "custom") },
-        { "customconnections", {} },
+        { "customconnections", {}, info = "Specify custom connections for a mixture of series and parallel connections in a resistor array. Use with 'conntype = \"custom\"'. This parameter expects a table with table entries for every connection. Each connection entry must specify the x- and y-indices for start and end as well as a resistor pin (plus/minus). A possible entry is: { pin1 = \"plus\", x1 = 1, y1 = 2, pin2 = \"plus\", x1 = 2, y1 = 2 }." },
         { "customplusminus", {} },
         { "invertseriesconnections", false },
         { "drawrotationmarker", false },
