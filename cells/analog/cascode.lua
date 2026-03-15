@@ -78,7 +78,8 @@ function parameters()
         { "extendwelltop", technology.get_dimension("Minimum Well Extension"), follow = "extendalltop" },
         { "extendwellbottom", technology.get_dimension("Minimum Well Extension"), follow = "extendallbottom" },
         { "extendwellleft", technology.get_dimension("Minimum Well Extension"), follow = "extendallleft" },
-        { "extendwellright", technology.get_dimension("Minimum Well Extension"), follow = "extendallright" }
+        { "extendwellright", technology.get_dimension("Minimum Well Extension"), follow = "extendallright" },
+        { "sourcenet", "" }
     )
 end
 
@@ -311,4 +312,14 @@ function layout(cell, _P)
     -- anchors
     cell:inherit_all_anchors_with_prefix(source, "source_")
     cell:inherit_all_anchors_with_prefix(cascode, "cascode_")
+
+    -- nets
+    if _P.sourcenet ~= "" then
+        cell:add_net_shape(
+            _P.sourcenet,
+            source:get_area_anchor("sourcestrap").bl,
+            source:get_area_anchor("sourcestrap").tr,
+            generics.metal(1)
+        )
+    end
 end
