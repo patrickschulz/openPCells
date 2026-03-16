@@ -104,7 +104,7 @@ struct vector* layouthelpers_place_vlines(
     coordinate_t ymax = point_gety(tr);
     coordinate_t totalwidth = stop - start;
     coordinate_t offset = (totalwidth - totalwidth / (width + space) * (width + space) + space) / 2;
-    size_t netcounter = 1;
+    size_t netcounter = 0;
     // find line blockages
     struct vector* blockages = vector_create(128, point_destroy_coordinate_array);
     if(excludes)
@@ -190,7 +190,7 @@ struct vector* layouthelpers_place_hlines(
     coordinate_t stop = point_gety(tr);
     coordinate_t totalheight = point_ydistance_abs(tr, bl);
     coordinate_t offset = (totalheight - totalheight / (height + space) * (height + space) + space) / 2;
-    size_t netcounter = 1;
+    size_t netcounter = 0;
     // find line blockages
     struct vector* blockages = vector_create(128, point_destroy_coordinate_array);
     if(excludes)
