@@ -313,6 +313,8 @@ function parameters()
         { "guardringoxidetypeouterextension",                                                           technology.get_dimension("Minimum Oxide Extension") },
         { "connectguardringtosource",                                                                   false },
         { "guardringconnectionmethod",                                                                  "strap", posvals = set("strap", "individual") },
+        { "guardring_enable_horizontal_net_strips",                                                     true },
+        { "guardring_enable_vertical_net_strips",                                                       false },
         { "botwelltapwidth",                                                                            technology.get_dimension("Minimum M1 Width") },
         { "botwelltapspace",                                                                            technology.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                                                       0 },
@@ -329,6 +331,7 @@ function parameters()
         { "gatenet",                                                                                    nil, info = "add net identification to gate straps" },
         { "sourcenet",                                                                                  nil, info = "add net identification to source straps" },
         { "drainnet",                                                                                   nil, info = "add net identification to drain straps" },
+        { "bulknet",                                                                                    nil, info = "add net identification to the bulk contacts (guardring/welltaps)" },
         { "netlabelsizehint",                                                                           technology.get_optional_dimension("Default Label Size", 0) },
         { "instancename",                                                                               nil, info = "draw an instance name in a non-physical text layer. This has no relevance for the device, it is merely a identification/debugging help for layouting." },
         { "instancelabelsizehint",                                                                      technology.get_optional_dimension("Default Label Size", 0), info = "Label size hint for instance label." }
@@ -2974,12 +2977,19 @@ function layout(transistor, _P)
             oxidetypeouterextension = _P.guardringoxidetypeouterextension,
             soiopeninnerextension = _P.guardringsoiopeninnerextension,
             soiopenouterextension = _P.guardringsoiopenouterextension,
+            -- nets
+            net = _P.bulknet,
+            addtopnet = _P.guardring_enable_horizontal_net_strips,
+            addbottomnet = _P.guardring_enable_horizontal_net_strips,
+            addleftnet = _P.guardring_enable_vertical_net_strips,
+            addrightnet = _P.guardring_enable_vertical_net_strips,
         })
         local gtargetx = -leftactauxext - guardringleftext
         local gtargety = -guardringbotext
         guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, gtargety))
         guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
         transistor:merge_into(guardring)
+        transistor:inherit_net_shapes(guardring)
         transistor:add_area_anchor_bltr("outerguardring",
             guardring:get_area_anchor("outerboundary").bl,
             guardring:get_area_anchor("outerboundary").tr
