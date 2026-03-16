@@ -196,6 +196,8 @@ procedure(OPCPowergridWriteInitial(file)
             "        layouthelpers.place_vias("
             "            cell,"
             "            vlines, hlines"
+            "            nil, nil, -- no excludes, no filter"
+            "            only_full_vias
             "        )"
             "    elseif vmetal then"
             "        for _, shape in ipairs(vlines) do"
