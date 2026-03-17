@@ -198,7 +198,7 @@ procedure(OPCPowergridWriteInitial(file)
             "            cell,"
             "            vlines, hlines"
             "            nil, nil, -- no excludes, no filter"
-            "            only_full_vias
+            "            only_full_vias"
             "        )"
             "    elseif vmetal then"
             "        for _, shape in ipairs(vlines) do"
