@@ -190,10 +190,10 @@ function layout(resistor, _P)
                 point.create(blxmetal, bly2metal),
                 point.create(trxmetal, try2metal)
             )
-            _add_contact_anchor(resistor, string.format("contact_minus_%d_%d", x, y), point.create(blxpoly, bly1poly), point.create(trxpoly, try1poly))
-            _add_contact_anchor(resistor, string.format("contact_minus_-%d_-%d", _P.nxfingers - x + 1, y), point.create(blxpoly, bly1poly), point.create(trxpoly, try1poly))
-            _add_contact_anchor(resistor, string.format("contact_plus_%d_%d", x, y), point.create(blxpoly, bly2poly), point.create(trxpoly, try2poly))
-            _add_contact_anchor(resistor, string.format("contact_plus_-%d_-%d", _P.nxfingers - x + 1, y), point.create(blxpoly, bly2poly), point.create(trxpoly, try2poly))
+            _add_contact_anchor(resistor, string.format("contact_minus_%d_%d", x, y), point.create(blxmetal, bly1metal), point.create(trxmetal, try1metal))
+            _add_contact_anchor(resistor, string.format("contact_minus_-%d_-%d", _P.nxfingers - x + 1, y), point.create(blxmetal, bly1metal), point.create(trxmetal, try1metal))
+            _add_contact_anchor(resistor, string.format("contact_plus_%d_%d", x, y), point.create(blxmetal, bly2metal), point.create(trxmetal, try2metal))
+            _add_contact_anchor(resistor, string.format("contact_plus_-%d_-%d", _P.nxfingers - x + 1, y), point.create(blxmetal, bly2metal), point.create(trxmetal, try2metal))
         end
     end
 
