@@ -331,7 +331,7 @@ function parameters()
         { "gatenet",                                                                                    nil, info = "add net identification to gate straps" },
         { "sourcenet",                                                                                  nil, info = "add net identification to source straps" },
         { "drainnet",                                                                                   nil, info = "add net identification to drain straps" },
-        { "bulknet",                                                                                    nil, info = "add net identification to the bulk contacts (guardring/welltaps)" },
+        { "bulknet",                                                                                    "", info = "add net identification to the bulk contacts (guardring/welltaps)" },
         { "netlabelsizehint",                                                                           technology.get_optional_dimension("Default Label Size", 0) },
         { "instancename",                                                                               nil, info = "draw an instance name in a non-physical text layer. This has no relevance for the device, it is merely a identification/debugging help for layouting." },
         { "instancelabelsizehint",                                                                      technology.get_optional_dimension("Default Label Size", 0), info = "Label size hint for instance label." }
