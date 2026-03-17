@@ -1226,7 +1226,7 @@ function layout(transistor, _P)
             _P.fingerwidth + _P.extendoxidetypetop or
             gatetry + _P.extendoxidetypetop
     )
-    if _P.drawoxidetype then
+    if _P.drawoxidetype and (not _P.drawguardring or (_P.guardringdrawoxidetype and _P.guardringfilloxidetype)) then -- if a guardring is present, it draws the inner/MOSFET oxidetype
         geometry.rectanglebltr(transistor, generics.oxide(_P.oxidetype), oxidebl, oxidetr)
     end
     transistor:add_area_anchor_bltr("oxide", oxidebl, oxidetr)
