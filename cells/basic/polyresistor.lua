@@ -173,8 +173,8 @@ function layout(resistor, _P)
             local bly2 = _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension
             local trx2 = (x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width
             local try2 = _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight
-            geometry.contactbltr(resistor, "gate", point.create(blx1, bly1), point.create(trx1, try1))
-            geometry.contactbltr(resistor, "gate", point.create(blx2, bly2), point.create(trx2, try2))
+            geometry.contactbltr(resistor, "poly", point.create(blx1, bly1), point.create(trx1, try1))
+            geometry.contactbltr(resistor, "poly", point.create(blx2, bly2), point.create(trx2, try2))
             _add_contact_anchor(resistor, string.format("contact_minus_%d_%d", x, y), point.create(blx1, bly1), point.create(trx1, try1))
             _add_contact_anchor(resistor, string.format("contact_minus_-%d_-%d", _P.nxfingers - x + 1, y), point.create(blx1, bly1), point.create(trx1, try1))
             _add_contact_anchor(resistor, string.format("contact_plus_%d_%d", x, y), point.create(blx2, bly2), point.create(trx2, try2))
@@ -188,11 +188,11 @@ function layout(resistor, _P)
             if _P.yspace > 0 then
                 for y = 1, _P.nyfingers do
                     local yshift = (y - 1) * ypitch
-                    geometry.contactbltr(resistor, "gate",
+                    geometry.contactbltr(resistor, "poly",
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
-                    geometry.contactbltr(resistor, "gate",
+                    geometry.contactbltr(resistor, "poly",
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                     )
@@ -208,7 +208,7 @@ function layout(resistor, _P)
             else
                 for y = 1, _P.nyfingers + 1 do
                     local yshift = (y - 1) * ypitch
-                    geometry.contactbltr(resistor, "gate",
+                    geometry.contactbltr(resistor, "poly",
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
@@ -223,11 +223,11 @@ function layout(resistor, _P)
             if _P.yspace > 0 then
                 for y = 1, _P.nyfingers do
                     local yshift = (y - 1) * ypitch
-                    geometry.contactbltr(resistor, "gate",
+                    geometry.contactbltr(resistor, "poly",
                         point.create((x + _P.leftdummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.leftdummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
-                    geometry.contactbltr(resistor, "gate",
+                    geometry.contactbltr(resistor, "poly",
                         point.create((x + _P.leftdummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension),
                         point.create((x + _P.leftdummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                     )
@@ -243,7 +243,7 @@ function layout(resistor, _P)
             else
                 for y = 1, _P.nyfingers + 1 do
                     local yshift = (y - 1) * ypitch
-                    geometry.contactbltr(resistor, "gate",
+                    geometry.contactbltr(resistor, "poly",
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), _P.extraextension + yshift),
                         point.create((x + _P.nonresdummies + _P.leftdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, _P.extraextension + yshift + _P.contactheight)
                     )
