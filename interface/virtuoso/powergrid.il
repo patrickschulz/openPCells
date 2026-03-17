@@ -196,7 +196,7 @@ procedure(OPCPowergridWriteInitial(file)
             "    if hmetal and vmetal then"
             "        layouthelpers.place_vias("
             "            cell,"
-            "            vlines, hlines"
+            "            vlines, hlines,"
             "            nil, nil, -- no excludes, no filter"
             "            only_full_vias"
             "        )"
