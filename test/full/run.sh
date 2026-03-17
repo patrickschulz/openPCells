@@ -20,7 +20,7 @@ function do_cell_test()
     ${opcexec} ${commonargs} --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
     if [ $? -ne 0 ]; then
         echo
-        ${opcexec} ${commonargs} --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1}
+        ${opcexec} ${commonargs} --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1} --debug-cell
     fi
     if ../helpers/test_compare ${1} ${3}; then
         printf "\033[1;32mcell test succeeded: %s (%s)\n\033[0m" ${1} ${2}
