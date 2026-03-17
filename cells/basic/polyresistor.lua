@@ -164,21 +164,36 @@ function layout(resistor, _P)
     -- contacts
     for x = 1, _P.nxfingers do
         for y = 1, _P.nyfingers do
+            local xshift = (x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace)
             local yshift = (y - 1) * ypitch
-            local blx1 = (x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace)
-            local bly1 = _P.extraextension + yshift
-            local trx1 = (x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width
-            local try1 = _P.extraextension + yshift + _P.contactheight
-            local blx2 = (x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace)
-            local bly2 = _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension
-            local trx2 = (x + _P.leftdummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width
-            local try2 = _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight
-            geometry.contactbltr(resistor, "poly", point.create(blx1, bly1), point.create(trx1, try1))
-            geometry.contactbltr(resistor, "poly", point.create(blx2, bly2), point.create(trx2, try2))
-            _add_contact_anchor(resistor, string.format("contact_minus_%d_%d", x, y), point.create(blx1, bly1), point.create(trx1, try1))
-            _add_contact_anchor(resistor, string.format("contact_minus_-%d_-%d", _P.nxfingers - x + 1, y), point.create(blx1, bly1), point.create(trx1, try1))
-            _add_contact_anchor(resistor, string.format("contact_plus_%d_%d", x, y), point.create(blx2, bly2), point.create(trx2, try2))
-            _add_contact_anchor(resistor, string.format("contact_plus_-%d_-%d", _P.nxfingers - x + 1, y), point.create(blx2, bly2), point.create(trx2, try2))
+            local blxpoly = xshift
+            local trxpoly = xshift + _P.width
+            local blxmetal = xshift
+            local trxmetal = xshift + _P.width
+            local bly1poly = yshift
+            local try1poly = 2 * _P.extraextension + yshift + _P.contactheight
+            local bly2poly = yshift + _P.length + _P.contactheight + 2 * _P.extension
+            local try2poly = 2 * _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight
+            local bly1metal = _P.extraextension + yshift
+            local try1metal = _P.extraextension + yshift + _P.contactheight
+            local bly2metal = _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension
+            local try2metal = _P.extraextension + yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight
+            geometry.contactbltr2(resistor, "poly",
+                point.create(blxpoly, bly1poly),
+                point.create(trxpoly, try1poly),
+                point.create(blxmetal, bly1metal),
+                point.create(trxmetal, try1metal)
+            )
+            geometry.contactbltr2(resistor, "poly",
+                point.create(blxpoly, bly2poly),
+                point.create(trxpoly, try2poly),
+                point.create(blxmetal, bly2metal),
+                point.create(trxmetal, try2metal)
+            )
+            _add_contact_anchor(resistor, string.format("contact_minus_%d_%d", x, y), point.create(blxpoly, bly1poly), point.create(trxpoly, try1poly))
+            _add_contact_anchor(resistor, string.format("contact_minus_-%d_-%d", _P.nxfingers - x + 1, y), point.create(blxpoly, bly1poly), point.create(trxpoly, try1poly))
+            _add_contact_anchor(resistor, string.format("contact_plus_%d_%d", x, y), point.create(blxpoly, bly2poly), point.create(trxpoly, try2poly))
+            _add_contact_anchor(resistor, string.format("contact_plus_-%d_-%d", _P.nxfingers - x + 1, y), point.create(blxpoly, bly2poly), point.create(trxpoly, try2poly))
         end
     end
 
