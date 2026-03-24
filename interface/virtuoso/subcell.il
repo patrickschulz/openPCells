@@ -28,7 +28,7 @@ procedure(OPCSubCellCreateScript()
             hiCreateStringField(
                 ?name 'OPCSubCellScriptName
                 ?value ""
-                ?prompt "Name of Sub-Cell"
+                ?prompt "Group Name"
             )
             hiCreateStringField(
                 ?name 'OPCSubCellScriptTemplate
@@ -63,7 +63,7 @@ procedure(OPCSubCellCreateCell()
             hiCreateStringField(
                 ?name 'OPCSubCellCellGroupname
                 ?value ""
-                ?prompt "Group Name for Cell Creation"
+                ?prompt "Group Name"
             )
         )
         ?callback "OPCSubCellCellCreateCallback()"

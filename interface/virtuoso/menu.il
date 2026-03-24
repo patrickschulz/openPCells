@@ -36,7 +36,7 @@ procedure(OPCCreateLayoutMenu()
                 designmenupulldown
             )
             edit = hiCreateMenuItem(?name 'OPCEditCellScript ?itemText "Edit Design" ?callback "OPCEditCallback()")
-            updatehierarchical = hiCreateMenuItem(?name 'OPCCellScriptHierarchical ?itemText "Update Design (Hierarchy)" ?callback "OPCUpdateCellscriptCallback(?hierarchical t)")
+            updatehierarchical = hiCreateMenuItem(?name 'OPCCellScriptHierarchical ?itemText "Update Design (Hierarchical)" ?callback "OPCUpdateCellscriptCallback(?hierarchical t)")
             updateflat = hiCreateMenuItem(?name 'OPCCellScriptFlat ?itemText "Update Design (flat)" ?callback "OPCUpdateCellscriptCallback(?hierarchical nil)")
             remove = hiCreateMenuItem(?name 'OPCCellScriptRemove ?itemText "Delete Design File" ?callback "OPCDeleteDesignFile()")
             designmenupulldown = hiCreatePulldownMenu('OPCDesignMenuPulldown "" list(edit updatehierarchical updateflat remove))
