@@ -23,6 +23,7 @@
 
 # generated documentation
 doc/*.html
+doc/includes/footer.html
 doc/guides/*.html
 doc/tutorials/*.html
 doc/cells/**.html
