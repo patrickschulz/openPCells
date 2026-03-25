@@ -3191,7 +3191,24 @@ static void _get_all_shapes_helper(const struct object* cell, const struct gener
         {
             struct shape* shape = vector_disown_element(subshapes, i);
             shape_apply_transformation(shape, child->trans);
-            vector_append(shapes, shape);
+            if(object_is_child_array(child))
+            {
+                coordinate_t xpitch = object_get_child_xpitch(child);
+                coordinate_t ypitch = object_get_child_ypitch(child);
+                for(unsigned int x = 1; x <= object_get_child_xrep(child); ++x)
+                {
+                    for(unsigned int y = 1; y <= object_get_child_yrep(child); ++y)
+                    {
+                        struct shape* copy = shape_copy(shape);
+                        shape_translate(copy, (x - 1) * xpitch, (y - 1) * ypitch);
+                        vector_append(shapes, copy);
+                    }
+                }
+            }
+            else
+            {
+                vector_append(shapes, shape);
+            }
         }
         child_iterator_next(it);
     }
