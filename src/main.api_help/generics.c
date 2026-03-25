@@ -116,7 +116,7 @@
 /* generics.contact */
 {
     struct parameter parameters[] = {
-        { "region", STRING, NULL, "region which should be contacted. Possible values: \"sourcedrain\", \"gate\" and \"active\"" },
+        { "region", STRING, NULL, "region which should be contacted. Possible values: \"sourcedrain\", \"gate\", \"poly\" and \"active\"" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
@@ -169,15 +169,18 @@
 /* generics.well */
 {
     struct parameter parameters[] = {
-        { "polarity", STRING, NULL, "identifier for the type (polarity) of the well. Can be \"n\" or \"p\"" },
+        { "polarity",   STRING,     NULL, "identifier for the type (polarity) of the well. Can be \"n\" or \"p\"" },
+        { "type",       STRING,     NULL, "type of well, can be \"regular\" (the default) or \"deep\"" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
         "well",
         MODULE_GENERICS,
         "create an n-well or p-well layer",
-        "Create a generic layer representing a well.",
-        "generics.well(\"n\")",
+        "Create a generic layer representing a well. "
+        "This can either be a regular well or a deep well, depending on the 'type' parameter. "
+        "Regular wells are the default.",
+        "generics.well(\"n\")\ngenerics.well(\"n\", \"deep\")",
         parameters
     ));
 }
@@ -388,6 +391,21 @@
         "create a 'special' layer",
         "Create a 'special' layer. This is used to mark certain things in layouts (usually for debugging, like anchors or alignment boxes). This is not intended to translate to any meaningful layer for fabrication",
         "generics.special()",
+        parameters
+    ));
+}
+
+/* generics.text */
+{
+    struct parameter parameters[] = {
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "text",
+        MODULE_GENERICS,
+        "create a 'text' layer",
+        "Create a 'text' layer. This can be used to place generic labels without any connectivity information, for instance to label IP.",
+        "generics.text()",
         parameters
     ));
 }
