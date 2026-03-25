@@ -14,6 +14,7 @@ all: $(HTMLFILES) apirefs.js
 .PHONY: clean
 clean:
 	@rm -f $(HTMLFILES)
+	@rm -rf includes
 
 .PHONY: celldoc
 celldoc: ../src/create_cell_documentation
@@ -27,11 +28,7 @@ apirefs.js:
 %.html: %.htmlpre includes/footer.html
 	@lua process_html.lua $*
 
-includes/footer.html: ../opc
-	@echo "<div class=\"footerbar\">" > includes/footer.html
-	@echo "    <hr>" >> includes/footer.html
-	@echo "    <footer>" >> includes/footer.html
-	@echo -n "        OpenPCells Documentation &ndash; " >> includes/footer.html
-	@../opc --version >> includes/footer.html
-	@echo "    </footer>" >> includes/footer.html
-	@echo "</div>" >> includes/footer.html
+includes/footer.html: ../src/version.h
+	@gcc create_footer.c -o create_footer
+	@./create_footer
+	@rm create_footer
