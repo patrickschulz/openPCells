@@ -425,7 +425,14 @@ int main(int argc, const char* const * argv)
     // read gds
     if(cmdoptions_was_provided_long(cmdoptions, "read-gds"))
     {
-        main_gds_read(cmdoptions);
+        struct technology_state* techstate = NULL;
+        if(cmdoptions_was_provided_long(cmdoptions, "technology"))
+        {
+            const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
+            const struct vector* techpaths = hashmap_get_const(config, "techpaths");
+            techstate = main_create_techstate(techpaths, techname, NULL);
+        }
+        main_gds_read(cmdoptions, techstate);
         goto DESTROY_CONFIG;
     }
 

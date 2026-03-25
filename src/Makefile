@@ -210,12 +210,14 @@ _modulemanager.c: _embed_compiled_lua_file modules/*.lua
 	./_embed_compiled_lua_file --module modules/globals.lua module_load globals _modulemanager.c
 	./_embed_compiled_lua_file --module modules/graphics.lua module_load graphics _modulemanager.c
 	./_embed_compiled_lua_file --module modules/import.lua module_load import _modulemanager.c
+	./_embed_compiled_lua_file --module modules/generics.lua module_load generics _modulemanager.c
 	./_embed_compiled_lua_file --module modules/layouthelpers.lua module_load layouthelpers _modulemanager.c
 	./_embed_compiled_lua_file --module modules/load.lua module_load load _modulemanager.c
 	./_embed_compiled_lua_file --module modules/pcell.lua module_load pcell _modulemanager.c
 	./_embed_compiled_lua_file --module modules/placement.lua module_load placement _modulemanager.c
 	./_embed_compiled_lua_file --module modules/profiler.lua module_load profiler _modulemanager.c
 	./_embed_compiled_lua_file --module modules/routing.lua module_load routing _modulemanager.c
+	./_embed_compiled_lua_file --module modules/tools.lua module_load tools _modulemanager.c
 	./_embed_compiled_lua_file --module modules/util.lua module_load util _modulemanager.c
 	./_embed_compiled_lua_file --module modules/verilog.lua module_load verilog _modulemanager.c
 	./_embed_compiled_lua_file --module modules/verilogprocessor.lua module_load verilogprocessor _modulemanager.c
@@ -231,12 +233,14 @@ _modulemanager.h: modules/*.lua
 	@echo 'int module_load_globals(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_graphics(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_import(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_generics(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_layouthelpers(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_load(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_pcell(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_placement(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_profiler(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_routing(lua_State* L);' >> _modulemanager.h
+	@echo 'int module_load_tools(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_util(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_verilog(lua_State* L);' >> _modulemanager.h
 	@echo 'int module_load_verilogprocessor(lua_State* L);' >> _modulemanager.h

@@ -8,6 +8,8 @@
 
 #include "lua/lauxlib.h"
 
+#include "_modulemanager.h"
+
 #include "filesystem.h"
 #include "hashmap.h"
 #include "helpers.h"
@@ -857,14 +859,20 @@ static void _destroy_mapping(void* v)
     free(mapping);
 }
 
-struct vector* gdsparser_create_layermap(const char* filename)
+struct vector* gdsparser_create_layermap(struct technology_state* techstate)
 {
-    if(!filename)
+    if(!techstate)
     {
         return NULL;
     }
-    lua_State* L = util_create_minimal_lua_state();
-    int ret = luaL_dofile(L, filename);
+    lua_State* L = util_create_basic_lua_state();
+    module_load_tools(L);
+    // call tools.reverse_layermap
+    lua_getglobal(L, "tools");
+    lua_getfield(L, -1, "reverse_layermap");
+    technology_push_layermap_table(L, techstate);
+    lua_pushstring(L, "gds"); // target export
+    int ret = lua_pcall(L, 2, 1, 0);
     if(ret != LUA_OK)
     {
         const char* msg = lua_tostring(L, -1);
@@ -921,6 +929,7 @@ struct vector* gdsparser_create_layermap(const char* filename)
 
         vector_append(map, layermapping);
     }
+    lua_pop(L, 1); // pop "tools" module table
     lua_close(L);
     return map;
 }

@@ -3,9 +3,10 @@
 
 #include "lua/lua.h"
 
+#include "technology.h"
 #include "vector.h"
 
-struct vector* gdsparser_create_layermap(const char* filename);
+struct vector* gdsparser_create_layermap(struct technology_state* techstate);
 void gdsparser_destroy_layermap(struct vector* layermap);
 int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* layermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose);
 int gdsparser_show_records(const char* filename, int raw);

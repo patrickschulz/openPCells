@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "_modulemanager.h"
+
 #include "error.h"
 #include "filesystem.h"
 #include "lua_util.h"
@@ -246,7 +248,8 @@ static int _check_layer_content(lua_State* L, const char* layername)
 
 static int _load_layermap(struct technology_state* techstate, const char* name, const struct const_vector* ignoredlayers)
 {
-    lua_State* L = util_create_minimal_lua_state();
+    lua_State* L = util_create_basic_lua_state();
+    module_load_generics(L);
     int ret = luaL_dofile(L, name);
     if(ret != LUA_OK)
     {
@@ -900,6 +903,76 @@ static void _write_layermap(const struct technology_state* techstate, const char
     fputs("}\n", file);
     fclose(file);
     free(path);
+}
+
+static void _push_layer_export(lua_State* L, const struct generics_entry* entry)
+{
+    lua_newtable(L);
+    struct hashmap_iterator* it = hashmap_iterator_create(entry->data);
+    while(hashmap_iterator_is_valid(it))
+    {
+        const char* key = hashmap_iterator_key(it);
+        struct tagged_value* value = hashmap_iterator_value(it);
+        if(tagged_value_is_integer(value))
+        {
+            int number = tagged_value_get_integer(value);
+            lua_pushinteger(L, number);
+        }
+        else if(tagged_value_is_number(value))
+        {
+            double number = tagged_value_get_integer(value);
+            lua_pushnumber(L, number);
+        }
+        else if(tagged_value_is_string(value))
+        {
+            const char* str = tagged_value_get_const_string(value);
+            lua_pushstring(L, str);
+        }
+        else // boolean
+        {
+            int b = tagged_value_get_boolean(value);
+            lua_pushboolean(L, b);
+        }
+        lua_setfield(L, -2, key);
+        hashmap_iterator_next(it);
+    }
+    hashmap_iterator_destroy(it);
+    lua_setfield(L, -2, entry->exportname);
+}
+
+static void _push_layer(lua_State* L, const struct generics* layer)
+{
+    if(!layer->prettyname && vector_size(layer->entries) == 0) // empty layer
+    {
+        // do nothing
+    }
+    else
+    {
+        lua_newtable(L);
+        if(layer->prettyname)
+        {
+            lua_pushstring(L, layer->prettyname);
+            lua_setfield(L, -2, "name");
+        }
+        lua_newtable(L);
+        for(size_t i = 0; i < vector_size(layer->entries); ++i)
+        {
+            struct generics_entry* entry = vector_get(layer->entries, i);
+            _push_layer_export(L, entry);
+        }
+        lua_setfield(L, -2, "layer");
+        lua_setfield(L, -2, layer->name);
+    }
+}
+
+void technology_push_layermap_table(lua_State* L, const struct technology_state* techstate)
+{
+    lua_newtable(L);
+    for(size_t i = 0; i < vector_size(techstate->layertable); ++i)
+    {
+        const struct generics* layer = vector_get(techstate->layertable, i);
+        _push_layer(L, layer);
+    }
 }
 
 static void _write_viaentry(FILE* file, const struct viaentry* entry)
