@@ -5,7 +5,8 @@ HTMLFILES:= \
 	guides.html \
 	guides/export.html \
 	guides/user.html \
-	guides/techfiles.html
+	guides/techfiles.html \
+	guides/virtuoso.html
 
 .PHONY: all
 all: $(HTMLFILES) apirefs.js
@@ -25,3 +26,12 @@ apirefs.js:
 
 %.html: %.htmlpre includes/footer.html
 	@lua process_html.lua $*
+
+includes/footer.html: ../opc
+	@echo "<div class=\"footerbar\">" > includes/footer.html
+	@echo "    <hr>" >> includes/footer.html
+	@echo "    <footer>" >> includes/footer.html
+	@echo -n "        OpenPCells Documentation &ndash; " >> includes/footer.html
+	@../opc --version >> includes/footer.html
+	@echo "    </footer>" >> includes/footer.html
+	@echo "</div>" >> includes/footer.html

@@ -2,7 +2,7 @@
 <html lang="en">
     @make_header top OpenPCells Documentation
     <body>
-        @make_topbar top Usage Guides
+        @make_topbar Usage Guides
         <p>
         This is the main page for the documentation of the openPCells (opc) project.
         </p>

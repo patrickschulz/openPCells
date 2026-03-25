@@ -84,7 +84,34 @@ li {
     background-color: #f6f6f6;
 }
 
-table.parameters {
+.description-list {
+    font-weight: bold;
+}
+
+.description-list p {
+    font-weight: normal;
+}
+
+table.description {
+    border: 2px solid;
+    border-collapse: collapse;
+}
+
+table.description th {
+    border: 1px solid;
+    padding: 5pt;
+    text-align: center;
+    font-weight: bold;
+}
+
+table.description td {
+    border: 1px solid;
+    padding: 5pt;
+    text-align: left;
+}
+
+table.description {
+    width: 100%;
     border: 2px solid;
     border-collapse: collapse;
 }
