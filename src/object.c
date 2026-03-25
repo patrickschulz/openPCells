@@ -3183,8 +3183,16 @@ static void _get_all_shapes_helper(const struct object* cell, const struct gener
     struct child_iterator* it = object_create_child_iterator(cell);
     while(child_iterator_is_valid(it))
     {
+        struct vector* subshapes = vector_create(64, NULL); // no destructor, shapes are moved to parent 'shapes' vector
         const struct object* child = child_iterator_get(it);
-        _get_all_shapes_helper(child, layers, numlayers, maxlevel, shapes);
+        _get_all_shapes_helper(child->content.proxy.reference, layers, numlayers, maxlevel, subshapes);
+        // apply child transformation and add to parent 'shapes' vector
+        for(int i = vector_size(subshapes) - 1; i >= 0; --i)
+        {
+            struct shape* shape = vector_disown_element(subshapes, i);
+            shape_apply_transformation(shape, child->trans);
+            vector_append(shapes, shape);
+        }
         child_iterator_next(it);
     }
     child_iterator_destroy(it);
