@@ -187,18 +187,18 @@ procedure(OPCCreateSettingsForm()
         cmdadditionalargs = hiCreateStringField(
             ?name 'OPCSettingsCmdAdditionalArgs
             ?value ""
-            ?prompt "Additional Command Line Arguments"
+            ?prompt "Additional Command-Line Arguments"
         )
         editcmd = hiCreateStringField(
             ?name 'OPCSettingsEditCmd
             ?value "xterm -fa monaco -fs 13 -e 'vim %s'"
-            ?prompt "Edit command for update"
+            ?prompt "Editor Command"
         )
         deletefile = hiCreateRadioField(
             ?name 'OPCSettingsDeleteFile
             ?choices list("true" "false")
             ?value "true"
-            ?prompt "Delete cell file after creation"
+            ?prompt "Delete Shapes File After Creation"
         )
         calloptionsgrid = hiCreateVerticalBoxLayout(
             'OPCSettingsCallOptionsGrid
