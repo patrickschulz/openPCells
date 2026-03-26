@@ -262,3 +262,6 @@ do_cell_test strongARM_comparator_00 analog/strongARM_comparator gds
 
 # cellscript test for layouthelpers.connect_area_anchors
 do_cellscript_test cellscript_connect_area_anchors gds
+
+# cellscript test for object.get_shape_outlines
+do_cellscript_test cellscript_get_shape_outlines gds
