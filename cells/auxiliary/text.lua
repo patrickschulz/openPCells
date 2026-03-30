@@ -1152,7 +1152,12 @@ function layout(text, _P)
                         for _, pt in ipairs(outline) do
                             minx = math.min(_P.scale * _P.lettersize * pt.x, minx)
                             maxx = math.max(_P.scale * _P.lettersize * pt.x, maxx)
-                            table.insert(pts, point.create(_P.scale * _P.lettersize * pt.x + x, _P.scale * _P.lettersize * pt.y + y))
+                            table.insert(pts,
+                                point.create(
+                                    math.floor(_P.scale * _P.lettersize * pt.x + x),
+                                    math.floor(_P.scale * _P.lettersize * pt.y + y)
+                                )
+                            )
                         end
                         geometry.polygon(text, generics.metal(_P.metalnum), pts)
                         width = math.max(width, maxx - minx)
