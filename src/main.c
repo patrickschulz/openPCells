@@ -137,7 +137,6 @@ int main(int argc, const char* const * argv)
 #ifdef OPC_ENABLE_TIMING
     // initialize variables for timing report
     int do_timing = 0;
-    clock_t c_start;
 #endif
 
     if(!cmdoptions_parse(cmdoptions, argc, argv))
@@ -189,9 +188,10 @@ int main(int argc, const char* const * argv)
     // report timing
     if(cmdoptions_was_provided_long(cmdoptions, "time"))
     {
+        timeperf_initialize();
         timeperf_enable();
+        TIMEPERF_START();
         do_timing = 1;
-        c_start = clock();
     }
 #endif
 
@@ -689,8 +689,8 @@ DESTROY_CMDOPTIONS:
 #ifdef OPC_ENABLE_TIMING
     if(do_timing)
     {
-        clock_t c_end = clock();
-        printf("total CPU time: %.3f\n", (double)(c_end - c_start) / CLOCKS_PER_SEC);
+        TIMEPERF_STOP();
+        timeperf_print_summary();
     }
 #endif
     return returnvalue;

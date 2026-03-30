@@ -19,8 +19,9 @@
 #include "util.h"
 #include "vector.h"
 
-enum datatypes
-{
+#include "timeperf.h"
+
+enum datatypes {
     NONE                = 0x00,
     BIT_ARRAY           = 0x01,
     TWO_BYTE_INTEGER    = 0x02,
@@ -151,6 +152,7 @@ static int _read_raw_stream_noerror(const char* filename, struct stream** stream
 
 static struct stream* _read_raw_stream(const char* filename)
 {
+    TIMEPERF_START();
     struct stream* stream = NULL;
     long errorbyte = 0;
     int status = _read_raw_stream_noerror(filename, &stream, &errorbyte);
@@ -163,6 +165,7 @@ static struct stream* _read_raw_stream(const char* filename)
         }
         return NULL;
     }
+    TIMEPERF_STOP();
     return stream;
 }
 
@@ -315,6 +318,7 @@ void _destroy_hierarchy_cellref(void* v)
 
 static struct vector* _read_cells(const char* filename)
 {
+    TIMEPERF_START();
     struct vector* cells = vector_create(1, _destroy_hierarchy_cellref);
     struct stream* stream = _read_raw_stream(filename);
     if(!stream)
@@ -369,6 +373,7 @@ static struct vector* _read_cells(const char* filename)
         }
     }
     _destroy_stream(stream);
+    TIMEPERF_STOP();
     return cells;
 }
 
@@ -422,6 +427,7 @@ static int _is_not_referenced(const char* name, struct const_vector* referenced)
 
 static struct const_vector* _get_toplevel_cells(struct vector* cells)
 {
+    TIMEPERF_START();
     struct vector_iterator* it;
 
     struct const_vector* referenced = const_vector_create(1);
@@ -458,6 +464,7 @@ static struct const_vector* _get_toplevel_cells(struct vector* cells)
 
     const_vector_destroy(referenced);
 
+    TIMEPERF_STOP();
     return toplevelcells;
 }
 
@@ -1730,6 +1737,7 @@ static void _create_libdir(const char* libname, const char* importname)
 
 int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
+    TIMEPERF_START();
     // read gds in two passes
     // first: find names of top-level cell and all sub-cells
     // second: parse file and translate all structures
@@ -1830,6 +1838,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
     vector_destroy(cells);
     const_vector_destroy(cellnames);
     const_vector_destroy(toplevelcells);
+    TIMEPERF_STOP();
     return 1;
 }
 
