@@ -242,6 +242,10 @@ do_cell_test metalgrid_01 auxiliary/metalgrid gds
 do_cell_test metalgrid_02 auxiliary/metalgrid gds
 do_cell_test metalgrid_03 auxiliary/metalgrid gds
 
+# cell test for auxiliary/text
+do_cell_test text_00 auxiliary/text gds
+do_cell_test text_01 auxiliary/text gds
+
 # stdcells
 do_cell_test not_gate_00 stdcells/not_gate gds
 do_cell_test nor_gate_00 stdcells/nor_gate gds

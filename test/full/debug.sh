@@ -3,7 +3,7 @@ if [ ! $# -gt 0 ]; then
     exit 1
 fi
 if [ ! $# -gt 1 ]; then
-    echo "no command given, can be 'diff' or 'update'"
+    echo "no command given, can be 'diff', 'show' or 'update'"
     exit 1
 fi
 
@@ -15,6 +15,10 @@ if [ $2 = "diff" ]; then
     vim -d ${testfile} ${reffile}
     rm ${testfile}
     rm ${reffile}
+fi
+
+if [ $2 = "show" ]; then
+    klayout test_$1.gds reference_$1.gds
 fi
 
 if [ $2 = "update" ]; then
