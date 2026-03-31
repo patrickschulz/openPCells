@@ -18,7 +18,7 @@ LUA_FILES = $(SRC_PATH)/lua/lapi.c $(SRC_PATH)/lua/lauxlib.c $(SRC_PATH)/lua/lba
 HELPER_FILES = helper.c $(SRC_PATH)/error.c $(SRC_PATH)/filesystem.c $(SRC_PATH)/hashmap.c $(SRC_PATH)/lua_util.c $(SRC_PATH)/string.c $(SRC_PATH)/strprint.c $(SRC_PATH)/tagged_value.c $(SRC_PATH)/util.c $(SRC_PATH)/vector.c $(SRC_PATH)/technology.c $(LUA_FILES)
 
 object.test: object.c helper.h helper.c check.h check.c
-	$(CC) $(PPFLAGS) -g -Wall -Wextra -I ../../ $(HELPER_FILES) object.c check.c ../../src/arith.c ../../src/object.c ../../src/shape.c ../../src/bltrshape.c ../../src/polygon.c ../../src/transformationmatrix.c ../../src/geometry.c ../../src/geometry_triangulate.c ../../src/point.c ../../src/lpoint.c ../../src/graphics.c ../../src/tuple.c -o object.test $(LIBS)
+	$(CC) $(PPFLAGS) -g -Wall -Wextra -I ../../ $(HELPER_FILES) object.c check.c ../../src/arith.c ../../src/object.c ../../src/shape.c ../../src/bltrshape.c ../../src/polygon.c ../../src/transformationmatrix.c ../../src/geometry.c ../../src/geometry_triangulate.c ../../src/point.c ../../src/lpoint.c ../../src/graphics.c ../../src/tuple.c ../../src/_modulemanager.c -o object.test $(LIBS)
 
 polygon.test: polygon.c helper.h helper.c check.h check.c
 	$(CC) $(PPFLAGS) -Wall -Wextra -I ../../ $(HELPER_FILES) polygon.c check.c ../../src/arith.c ../../src/polygon.c ../../src/point.c ../../src/bltrshape.c ../../src/lpoint.c -o polygon.test $(LIBS)
