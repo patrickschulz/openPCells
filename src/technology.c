@@ -657,7 +657,7 @@ static error_t _load_config(struct technology_state* techstate, const char* name
             if(!lua_istable(L, -1))
             {
                 error_set_failure(&error_status);
-                error_add(&error_status, "error while loading technology config: multiple_patterning is not a table");
+                error_add(&error_status, "error while loading technology config: multiple_patterning entry is not a table");
                 lua_close(L);
                 return error_status;
             }
@@ -671,6 +671,13 @@ static error_t _load_config(struct technology_state* techstate, const char* name
             lua_pop(L, 1); // pop entry
             vector_append(techstate->config->multiple_patterning_metals, entry);
         }
+    }
+    else if(!lua_isnil(L, -1))
+    {
+        error_set_failure(&error_status);
+        error_add(&error_status, "error while loading technology config: 'multiple_patterning' is not a table");
+        lua_close(L);
+        return error_status;
     }
     lua_pop(L, 1); // pop multiple_patterning
 
