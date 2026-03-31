@@ -25,6 +25,8 @@ function layout(tgate, _P)
         gatespace = _P.gspace,
         fingers = _P.fingers,
         sdwidth = _P.sdwidth,
+        topgateadjustforsdstraps = false,
+        botgateadjustforsdstraps = false,
         connectsource = true,
         connectsourcewidth = _P.sdwidth,
         connectsourcespace = _P.sdspace,

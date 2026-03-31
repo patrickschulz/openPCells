@@ -92,6 +92,8 @@ function layout(ccp, _P)
         drawbottomactivedummy = _P.drawactivedummies,
         bottomactivedummywidth = _P.activedummywidth,
         bottomactivedummyspace = _P.activedummyspace,
+        topgateadjustforsdstraps = false,
+        botgateadjustforsdstraps = false,
         sdwidth = _P.sdwidth,
         topgatewidth = topgatewidth,
         topgatespace = topgatespace,

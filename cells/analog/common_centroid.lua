@@ -927,6 +927,8 @@ function layout(cell, _P, _env, state)
         drainsize = _P.sourcedrainsize,
         sourcealign = "center",
         drainalign = "center",
+        topgateadjustforsdstraps = false, -- gate strap spacing is calculated manually
+        botgateadjustforsdstraps = false, -- gate strap spacing is calculated manually
         topgateleftextension = _P.gatestrapleftext,
         botgateleftextension = _P.gatestrapleftext,
         topgaterightextension = _P.gatestraprightext,
