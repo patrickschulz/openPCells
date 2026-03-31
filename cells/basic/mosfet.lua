@@ -184,11 +184,11 @@ function parameters()
         { "drawdrainvia(Draw Drain Via)",                                                               true },
         { "drawfirstdrainvia(Draw First Drain Via)",                                                    true },
         { "drawlastdrainvia(Draw Last Drain Via)",                                                      true },
-        { "drainmetal(Drain Connection Metal)",                                                         1 },
-        { "drainstartmetal(Drain Connection First Metal)",                                              1, follow = "drainmetal" },
-        { "drainendmetal(Drain Connection Last Metal)",                                                 1, follow = "drainmetal" },
+        { "drainmetal(Drain Connection Metal)",                                                         1, info = "Highest metal of all drain connections. In the default settings, vias are placed on the active drain regions of the transistor, up to 'drainmetal'. Additionally (if present), the drain connection strap is drawn in this metal. This is a wrapper parameter, finer control can be achieved with 'drainstartmetal' and 'drainendmetal' (for the start/end of the via stack on the drain strap), and 'drainviametal' (which controls the highest metal on the active drain regions." },
+        { "drainstartmetal(Drain Connection First Metal)",                                              1, follow = "drainmetal", info = "Lowest metal of the drain strap placed beside (above/below) the transistor. A stack of vias is placed on the drain strap (which starts on 'drainstartmetal') and goes up to 'drainendmetal'. The drain strap metals are controlled with 'drainstartmetal' and 'drainendmetal'. All drain metals can be easily controlled by 'drainmetal'." },
+        { "drainendmetal(Drain Connection Last Metal)",                                                 1, follow = "drainmetal", info = "Highest metal of the drain strap placed beside (above/below) the transistor. A stack of vias is placed on the drain strap (which starts on 'sourcestartmetal') and goes up to 'sourceendmetal'. The source strap metals are controlled with 'sourcestartmetal' and 'sourceendmetal'. All source metals can be easily controlled by 'sourcemetal'." },
         { "restrictdrainmetalstostrap",                                                                 true },
-        { "drainviametal(Drain Via Metal)",                                                             1, follow = "drainendmetal" },
+        { "drainviametal(Drain Via Metal)",                                                             1, follow = "drainstartmetal", info = "Highest metal of the drain regions directly on the transistor. A stack of vias is placed on the metal-1-region of the drain terminals, which goes up to the value of this parameter. The drain strap metals are controlled with 'drainstartmetal' and 'drainendmetal'. All drain metals can be easily controlled by 'drainmetal'." },
         { "drainstraptopmetal(Drain Strap Top Metal)",                                                  1, follow = "drainendmetal" },
         { "connectdraininline(Connect Drain Inline of Transistor)",                                     false },
         { "connectdraininlineoffset(Offset for Inline Drain Connection)",                               0 },
@@ -716,28 +716,40 @@ function layout(transistor, _P)
         if _P.channeltype == "nmos" then
             if _P.drawdrainconnections and not _P.connectdraininverse then
                 local space = _P.connectdrainspace + _P.connectdrainwidth
-                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                if _P.topgatemetal >= _P.drainviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
             end
             if _P.drawsourceconnections and _P.connectsourceinverse then
                 local space = _P.connectsourcespace + _P.connectsourcewidth
-                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                if _P.topgatemetal >= _P.sourceviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
             end
             if _P.drawsourceconnections and _P.connectsourceboth then
                 local space = _P.connectsourceotherspace + _P.connectsourceotherwidth
-                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                if _P.topgatemetal >= _P.sourceviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
             end
         else -- _P.channeltype == "pmos"
             if _P.drawsourceconnections and not _P.connectsourceinverse then
                 local space = _P.connectsourcespace + _P.connectsourcewidth
-                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                if _P.topgatemetal >= _P.sourceviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
             end
             if _P.drawdrainconnections and _P.connectdraininverse then
                 local space = _P.connectdrainspace + _P.connectdrainwidth
-                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                if _P.topgatemetal >= _P.drainviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
             end
             if _P.drawdrainconnections and _P.connectdrainboth then
                 local space = _P.connectdrainotherspace + _P.connectdrainotherwidth
-                topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                if _P.topgatemetal >= _P.drainviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
             end
         end
     end
@@ -745,27 +757,39 @@ function layout(transistor, _P)
     if _P.drawbotgate then
         if _P.channeltype == "nmos" then
             if _P.drawsourceconnections and not _P.connectsourceinverse then
-                botgatesdstrapspace = _P.connectsourcespace + _P.connectsourcewidth
+                if _P.botgatemetal >= _P.sourceviametal then
+                    botgatesdstrapspace = _P.connectsourcespace + _P.connectsourcewidth
+                end
             end
             if _P.drawdrainconnections and _P.connectdraininverse then
                 local space = _P.connectdrainspace + _P.connectdrainwidth
-                botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                if _P.botgatemetal >= _P.drainviametal then
+                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                end
             end
             if _P.drawdrainconnections and _P.connectdrainboth then
                 local space = _P.connectdrainotherspace + _P.connectdrainotherwidth
-                botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                if _P.botgatemetal >= _P.drainviametal then
+                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                end
             end
         else -- _P.channeltype == "pmos"
             if _P.drawdrainconnections and not _P.connectdraininverse then
-                botgatesdstrapspace = _P.connectdrainspace + _P.connectdrainwidth
+                if _P.botgatemetal >= _P.drainviametal then
+                    botgatesdstrapspace = _P.connectdrainspace + _P.connectdrainwidth
+                end
             end
             if _P.drawsourceconnections and _P.connectsourceinverse then
                 local space = _P.connectsourcespace + _P.connectsourcewidth
-                botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                if _P.botgatemetal >= _P.sourceviametal then
+                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                end
             end
             if _P.drawsourceconnections and _P.connectsourceboth then
                 local space = _P.connectsourceotherspace + _P.connectsourceotherwidth
-                botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                if _P.botgatemetal >= _P.sourceviametal then
+                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                end
             end
         end
     end
