@@ -1,5 +1,5 @@
 return {
-    outline = {
+    [generics.outline()] = {
         name = "_outline",
         layer = {
             gds = { layer = 255, purpose = 255 },
@@ -7,7 +7,7 @@ return {
             debug = { layer = "_outline" },
         }
     },
-    special = {
+    [generics.special()] = {
         name = "_special",
         layer = {
             gds = { layer = 0, purpose = 0 },
@@ -15,7 +15,7 @@ return {
             debug = { layer = "_special" },
         }
     },
-    text = {
+    [generics.text()] = {
         name = "text",
         layer = {
             gds = { layer = 234, purpose = 0 },
@@ -24,7 +24,7 @@ return {
             json = { layer = "text" },
         }
     },
-    active = {
+    [generics.active()] = {
         name = "active",
         layer = {
             gds = { layer = 1, purpose = 0 },
@@ -34,7 +34,7 @@ return {
             json = { layer = "active" },
         }
     },
-    nwell = {
+    [generics.well("n")] = {
         name = "nwell",
         layer = {
             gds = { layer = 3, purpose = 0 },
@@ -44,7 +44,7 @@ return {
             json = { layer = "nwell" },
         }
     },
-    deepnwell = {
+    [generics.well("n", "deep")] = {
         name = "deepnwell",
         layer = {
             gds = { layer = 33, purpose = 0 },
@@ -54,7 +54,7 @@ return {
             json = { layer = "deepnwell" },
         }
     },
-    pimplant = {
+    [generics.implant("p")] = {
         name = "pimplant",
         layer = {
             gds = { layer = 4, purpose = 0 },
@@ -64,7 +64,7 @@ return {
             json = { layer = "pimplant" },
         }
     },
-    nimplant = {
+    [generics.implant("n")] = {
         name = "nimplant",
         layer = {
             gds = { layer = 5, purpose = 0 },
@@ -74,7 +74,7 @@ return {
             json = { layer = "nimplant" },
         }
     },
-    gate = {
+    [generics.gate()] = {
         name = "poly",
         layer = {
             gds = { layer = 6, purpose = 0 },
@@ -84,7 +84,7 @@ return {
             json = { layer = "gate" },
         }
     },
-    contactactive = {
+    [generics.contact("active")] = {
         name = "contactactive",
         layer = {
             gds = { layer = 7, purpose = 0 },
@@ -94,7 +94,7 @@ return {
             json = { layer = "contactactive" },
         }
     },
-    contactsourcedrain = {
+    [generics.contact("sourcedrain")] = {
         name = "contactsourcedrain",
         layer = {
             gds = { layer = 7, purpose = 0 },
@@ -104,7 +104,7 @@ return {
             json = { layer = "contactsourcedrain" },
         }
     },
-    contactgate = {
+    [generics.contact("gate")] = {
         name = "contactgate",
         layer = {
             gds = { layer = 7, purpose = 0 },
@@ -114,7 +114,17 @@ return {
             json = { layer = "contactgate" },
         }
     },
-    M1 = {
+    [generics.contact("poly")] = {
+        name = "contactpoly",
+        layer = {
+            gds = { layer = 7, purpose = 0 },
+            SKILL = { layer = "contactpoly", purpose = "drawing" },
+            debug = { layer = "contactpoly" },
+            svg = { style = "contactpoly", order = 5, color = "ffffff" },
+            json = { layer = "contactpoly" },
+        }
+    },
+    [generics.metal(1)] = {
         name = "metal1",
         layer = {
             gds = { layer = 8, purpose = 0 },
@@ -124,8 +134,8 @@ return {
             json = { layer = "M1" },
         }
     },
-    M1exclude = {},
-    viacutM1M2 = {
+    [generics.metalexclude(1)] = {},
+    [generics.viacut(1, 2)] = {
         name = "via1",
         layer = {
             gds = { layer = 9, purpose = 0 },
@@ -135,7 +145,7 @@ return {
             json = { layer = "viacutM1M2" },
         }
     },
-    M2 = {
+    [generics.metal(2)] = {
         name = "metal2",
         layer = {
             gds = { layer = 10, purpose = 0 },
