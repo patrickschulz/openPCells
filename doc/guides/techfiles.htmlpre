@@ -7,11 +7,50 @@
             <summary>Introduction</summary>
             <p>
             This guide shows the process of adding new technology files.
+            Technology files are required to generate layouts for specific and real technology nodes.
+            Internally, openPCells has a generic model of a layer stack, which is then translated to the actual layer stack.
+            Additionally, openPCells must know how to create via arrays, because in most technology nodes there are only very limited ways of creating via cuts.
             </p>
         </details>
 
         <details open>
             <summary>Overview</summary>
+            <p>
+            OpenPCells requires a set of technology files for layout generation.
+            These files are grouped in a folder with the name of the technology node (used by <code class="shellinline">--technology &lt;techname&gt;</code>):
+            </p>
+            <ul class="description-list">
+                <li>
+                    config.lua
+                    <p>
+                    Defines key features of a technology, such as whether the node is an SOI node, whether it has triple wells etc.
+                    </p>
+                </li>
+                <li>
+                    layermap.lua
+                    <p>
+                    Defines mapping of generic layers to specific layers.
+                    Several export types can be supported (e.g. gds, SKILL, etc.)
+                    </p>
+                </li>
+                <li>
+                    vias.lua
+                    <p>
+                    Defines possible arrayzations of via cuts depending on the cut size, required enclosures and x- and y-spacings.
+                    Multiple entries can be given for via cuts, to support more complex design rules.
+                    </p>
+                </li>
+                <li>
+                    constraints.lua
+                    <p>
+                    Defines minimum/maximum values for critical geometric values, such as &quot;Minimum M1 Width&quot;.
+                    </p>
+                </li>
+            </ul>
+            <p>
+            The four files need to be present and some features in them are mandatory.
+            Each of them will be explained in more detail subsequently.
+            </p>
             <p>
             The pcells are defined in general layers (such as "gate" or "M1" or "lastmetal"), which have to be translated into a specific technology for cell generation.
             Furthermore, vias and contacts have to be put into arrays, which requires knowledge about the technology.
@@ -33,7 +72,7 @@ if this layer is not needed, set it to {} </code></pre>
             <p>
             A technology definition is a collection of files in one directory.
             These files get loaded by opc when requested as technology, the directory has to be within one of the paths in the technology search path (see the <code class="shellinline">--techpath</code> command line option).
-            OpenPCells expects a technology to provide at least three files: <code class="shellinline">config.lua</code>, <code class="shellinline">layermap.lua</code> and <code class="shellinline">vias.lua</code>.
+            OpenPCells expects a technology to provide at least four files: <code class="shellinline">config.lua</code>, <code class="shellinline">layermap.lua</code>, <code class="shellinline">constraints.lua</code> and <code class="shellinline">vias.lua</code>.
             All these files return one lua table, so a basic (empty technology) has the following content for all of these files:
             </p>
             <pre class="opc"><code>return {} </code></pre>
@@ -66,6 +105,30 @@ if this layer is not needed, set it to {} </code></pre>
             The front-end-of-line method (<code class="opcinline">FEOL_method</code>) configures the way active transistor regions are specified.
             Supported options are <code class="opcinline">active_plus_implant</code>, <code class="opcinline">dedicated_active</code> or <code class="opcinline">asymmetric_active</code>.
             </p>
+            <p>
+            The technology loading routine looks for certain fields, but there is no definite list of required features.
+            At the moment of this writing the config file needs to define the following properties:
+            </p>
+            <ul>
+                <li>
+                    <code>grid</code>: Sets the manufacturing grid. Expects an integer.
+                </li>
+                <li>
+                    <code>metals</code>: Sets the number of metals. Expects an integer.
+                </li>
+                <li>
+                    <code>multiple_patterning</code>: Defines multiple-patterning for some metals. Here a table is expected, with a table entry for every multiple-patterning metal like this: <code class="luainline">{ metal = 1, number = 2 }</code> (for two masks for metal 1).
+                </li>
+                <li>
+                    <code>is_soi</code>: Defines whether this node is a silicon-on-insulator process. Expects a boolean.
+                </li>
+                <li>
+                    <code>allow_poly_routing</code>: Defines whether the gate material (polysilicon) can be used for routing, allowing arbitrary shapes on poly. Expects a boolean.
+                </li>
+                <li>
+                    <code>has_gatecut</code>: Defines whether this technology has support for gate cutting layers. Expects a boolean.
+                </li>
+            </ul>
         </details>
 
         <details open>
@@ -122,6 +185,46 @@ notused = {},</code></pre>
         },
     },
 }, </code></pre>
+        </details>
+
+        <details open>
+            <summary>Constraints</summary>
+                <p>
+                The constraints file defines critical geometric values as base values for parametric cells.
+                This includes values as the minimum gate length, minimum metal spacing and more.
+                The required values depend on the used cells:
+                As with other properties in the technology files, only those which are required by the used cells need to be defined.
+                However, below an example of a constraint file will be given that satisfies the needs of the standard opc cells.
+                </p>
+                <pre class="opc"><code>return {
+    ["Default Label Size"]                          = 200,
+    -- active diffusion constraints
+    ["Minimum Active Width"]                        = 200,
+    ["Minimum Active Space"]                        = 200,
+    -- gate constraints
+    ["Minimum Gate Extension"]                      = 100,
+    ["Minimum Gate Length"]                         = 200,
+    ["Minimum Gate Width"]                          = 500,
+    ["Minimum Gate XSpace"]                         = 300,
+    ["Minimum Gate YSpace"]                         = 300,
+    -- minimum size for source/drain contacts
+    ["Minimum Source/Drain Contact Region Size"]    = 280,
+    -- minimum size for active contacts
+    ["Minimum Active Contact Region Size"]          = 280,
+    -- minimum size for gate contacts
+    ["Minimum Gate Contact Region Size"]            = 280,
+    -- minimum FEOL layer extensions
+    ["Minimum Well Extension"]                      = 100,
+    ["Minimum Implant Extension"]                   = 100,
+    ["Minimum Oxide Extension"]                     = 80,
+    ["Minimum Silicideblocker Extension"]           = 200,
+    -- metal definitions
+    ["Minimum M1 Width"]                            = 200,
+    ["Minimum M1 Space"]                            = 200,
+    -- more metals...
+    ["Minimum M1M2 Viawidth"]                       = 260,
+    -- more vias...
+}</code></pre>
         </details>
 
         <details open>
