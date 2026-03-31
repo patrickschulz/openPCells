@@ -134,15 +134,15 @@ function parameters()
         { "sourceviasize(Source Via Size)",                                                             technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize", info = "Same as 'sourcesize', but for source vias." },
         { "drainsize(Drain Size)",                                                                      technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fingerwidth", info = "Size of the drain contact regions. This parameter follows 'fingerwidth', so per default the contact regions have the width of a transistor finger. 'drainsize' can be larger than 'fingerwidth'., If the size is smaller than 'fingerwidth', the drain contact alignment ('drainalign') is relevant." },
         { "drainviasize(Drain Via Size)",                                                               technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize", info = "Same as 'drainsize', but for drain vias." },
-        { "sourcealign(Source Alignment)",                                                              "bottom", posvals = set("top", "bottom", "center"), info = "Alignment of the source contacts. Only relevant when source contacts are smaller than 'fingerwidth' (see 'sourcesize'). Possible values: 'top' (source contacts grow down from the top into the active region) and 'bottom' (source contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
+        { "sourcealign(Source Alignment)",                                                              "bottom", posvals = set("top", "bottom", "center"), info = "Alignment of the source contacts. Only relevant if source contacts are smaller than 'fingerwidth' (see 'sourcesize'). Possible values: 'top' (source contacts grow down from the top into the active region) and 'bottom' (source contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
         { "sourceviaalign(Source Via Alignment)",                                                       "bottom", posvals = set("top", "bottom", "center"), follow = "sourcealign" },
-        { "drainalign(Drain Alignment)",                                                                "top", posvals = set("top", "bottom", "center"), info = "Alignment of the drain contacts. Only relevant when drain contacts are smaller than 'fingerwidth' (see 'drainsize'). Possible values: 'top' (drain contacts grow down from the top into the active region) and 'bottom' (drain contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
+        { "drainalign(Drain Alignment)",                                                                "top", posvals = set("top", "bottom", "center"), info = "Alignment of the drain contacts. Only relevant if drain contacts are smaller than 'fingerwidth' (see 'drainsize'). Possible values: 'top' (drain contacts grow down from the top into the active region) and 'bottom' (drain contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fingerwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
         { "drainviaalign(Drain Via Alignment)",                                                         "top", posvals = set("top", "bottom", "center"), follow = "drainalign", info = "Same as 'drainalign' for drain vias." },
-        { "drawsourcevia(Draw Source Via)",                                                             true, info = "Draw required vias from metal 1 to the source metal. Only useful when 'sourcemetal' is not 1." },
-        { "drawfirstsourcevia(Draw First Source Via)",                                                  true, info = "Draw a via on the first source region (counted from the left). This switch can be useful when connecting dummies to other devices." },
-        { "drawlastsourcevia(Draw Last Source Via)",                                                    true, info = "Draw a via on the last source region (counted from the left). This switch can be useful when connecting dummies to other devices." },
+        { "drawsourcevia(Draw Source Via)",                                                             true, info = "Draw required vias from metal 1 to the source metal. Only useful if 'sourcemetal' is not 1." },
+        { "drawfirstsourcevia(Draw First Source Via)",                                                  true, info = "Draw a via on the first source region (counted from the left). This switch can be useful if connecting dummies to other devices." },
+        { "drawlastsourcevia(Draw Last Source Via)",                                                    true, info = "Draw a via on the last source region (counted from the left). This switch can be useful if connecting dummies to other devices." },
         { "connectsource(Connect Source)",                                                              false, info = "Connect all parallel source regions by a metal strap. This strap either lies outside or inside of the active region (see parameter 'connectsourceinline'). For nMOS devices, the outer source strap is below the active region, for pMOS devices the outer source strap is above the active region. This can be changed with 'connectsourceinverse')." },
-        { "drawsourcestrap(Draw Source Strap)",                                                         false, follow = "connectsource", info = "Draw the source strap. This parameter follows 'connectsource', so per default the source strap is drawn. This parameter is useful when the source strap (or what it should connect to) is drawn by some other structures." },
+        { "drawsourcestrap(Draw Source Strap)",                                                         false, follow = "connectsource", info = "Draw the source strap. This parameter follows 'connectsource', so per default the source strap is drawn. This parameter is useful if the source strap (or what it should connect to) is drawn by some other structures." },
         { "drawsourceconnections(Draw Source Connections)",                                             false, follow = "connectsource", info = "Draw the connections to the source strap. This parameter follows 'connectsource', so per default the connections between the source regions and the source strap are drawn. This parameter is rarely useful, only in situations where the source strap is not used but the source is connected." },
         { "connectsourceboth(Connect Source on Both Sides)",                                            false, info = "Connect the source on both sides of the active region. The \"other\" source strap is controlled by the connectsourceother* parameters, which all follow the main connectsource* parameters. This means that per default the \"other\" source strap mirrors the main one." },
         { "connectsourcewidth(Source Rails Metal Width)",                                               technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
@@ -334,7 +334,9 @@ function parameters()
         { "bulknet",                                                                                    "", info = "add net identification to the bulk contacts (guardring/welltaps)" },
         { "netlabelsizehint",                                                                           technology.get_optional_dimension("Default Label Size", 0) },
         { "instancename",                                                                               nil, info = "draw an instance name in a non-physical text layer. This has no relevance for the device, it is merely a identification/debugging help for layouting." },
-        { "instancelabelsizehint",                                                                      technology.get_optional_dimension("Default Label Size", 0), info = "Label size hint for instance label." }
+        { "instancelabelsizehint",                                                                      technology.get_optional_dimension("Default Label Size", 0), info = "Label size hint for instance label." },
+        { "grid",                                                                                       0, info = "put all access shapes (gate straps, source straps, guardring metals, etc.) on the specified grid. If this parameter is 0 it is ignored, otherwise the relevant shapes are shifted according to the grid. Therefore the given relevenat spacing (e.g. connectsourcespace) become minimal values, not exact values." },
+        { "centershapegrid",                                                                            true, info = "use the center of the rectangular access shapes as grid targets, not the edges. This is useful if access shapes are conneted by paths whose center lines lie on the grid. This is the default bevavior." }
     )
 end
 
@@ -597,12 +599,31 @@ function process_parameters(_P)
         t.connectdrainwidth = _P.sdmetalwidths[_P.drainendmetal]
     end
     -- FIXME: also include drainviametal, take maximum distance
+    -- fill top/bot gatespace for later use
+    t.topgatespace = _P.topgatespace
+    t.botgatespace = _P.botgatespace
     t.topgatewidth = math.max(technology.get_dimension("Minimum Gate Contact Region Size"), _get_metal_width(_P.topgatemetal))
     if _P.topgatemetal < _P.sourceviametal then
         t.topgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.topgatemetal))
     end
+    t.botgatewidth = math.max(technology.get_dimension("Minimum Gate Contact Region Size"), _get_metal_width(_P.botgatemetal))
     if _P.botgatemetal < _P.sourceviametal then
         t.botgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.botgatemetal))
+    end
+    -- modify spacings to put access shapes on grid
+    if _P.grid > 0 then
+        if _P.centershapegrid then
+            t.connectsourcespace = util.fix_to_grid_abs_higher(t.connectsourcespace + t.connectsourcewidth / 2, _P.grid) - t.connectsourcewidth / 2
+            t.connectdrainspace = util.fix_to_grid_abs_higher(t.connectdrainspace + t.connectdrainwidth / 2, _P.grid) - t.connectdrainwidth / 2
+            t.topgatespace = util.fix_to_grid_abs_higher(t.topgatespace + _P.topgatewidth / 2, _P.grid) - _P.topgatewidth / 2
+            t.botgatespace = util.fix_to_grid_abs_higher(t.botgatespace + _P.botgatewidth / 2, _P.grid) - _P.botgatewidth / 2
+        else
+            -- only adjust spacing, edge alignment to grid is enforced via parameter checks
+            t.connectsourcespace = util.fix_to_grid_abs_higher(t.connectsourcespace, _P.grid)
+            t.connectdrainspace = util.fix_to_grid_abs_higher(t.connectdrainspace, _P.grid)
+            t.topgatespace = util.fix_to_grid_abs_higher(t.topgatespace, _P.grid)
+            t.botgatespace = util.fix_to_grid_abs_higher(t.botgatespace, _P.grid)
+        end
     end
     return t
 end
@@ -653,13 +674,13 @@ function check(_P)
         end
     end
     if _P.shortdevice and ((_P.sourcesize % 2) ~= (_P.sdwidth % 2)) then
-        return false, string.format("sourcesize and sdwidth must both be even or odd when shortdevice is true (%d vs. %d)", _P.sourcesize, _P.sdwidth)
+        return false, string.format("sourcesize and sdwidth must both be even or odd if shortdevice is true (%d vs. %d)", _P.sourcesize, _P.sdwidth)
     end
     if not (not _P.endleftwithgate or (_P.gatelength % 2 == 0)) then
-        return false, string.format("gatelength must be even when endleftwithgate is true (gatelength: %d)", _P.gatelength)
+        return false, string.format("gatelength must be even if endleftwithgate is true (gatelength: %d)", _P.gatelength)
     end
     if not (not _P.endrightwithgate or (_P.gatelength % 2 == 0)) then
-        return false, string.format("gatelength must be even when endrightwithgate is true (gatelength: %d)", _P.gatelength)
+        return false, string.format("gatelength must be even if endrightwithgate is true (gatelength: %d)", _P.gatelength)
     end
     if _P.leftendgatelength % 2 ~= 0 then
         return false, string.format("leftendgatelength must be even (%d)", _P.leftendgatelength)
@@ -683,12 +704,12 @@ function check(_P)
     if _P.usesdmetalwidthtable then
         for i = 1, _P.sourcestraptopmetal do
             if not _P.sdmetalwidths[i] then
-                return false, string.format("when 'usesdmetalwidthtable' is true, 'sdmetalwidths' needs to define widths for all used metals, up to '_P.sourcestraptopmetal' (%d). Missing entry for metal %d", _P.sourcestraptopmetal, i)
+                return false, string.format("if 'usesdmetalwidthtable' is true, 'sdmetalwidths' needs to define widths for all used metals, up to '_P.sourcestraptopmetal' (%d). Missing entry for metal %d", _P.sourcestraptopmetal, i)
             end
         end
         for i = 1, _P.drainstraptopmetal do
             if not _P.sdmetalwidths[i] then
-                return false, string.format("when 'usesdmetalwidthtable' is true, 'sdmetalwidths' needs to define widths for all used metals, up to '_P.drainstraptopmetal' (%d). Missing entry for metal %d", _P.drainstraptopmetal, i)
+                return false, string.format("if 'usesdmetalwidthtable' is true, 'sdmetalwidths' needs to define widths for all used metals, up to '_P.drainstraptopmetal' (%d). Missing entry for metal %d", _P.drainstraptopmetal, i)
             end
         end
     end
@@ -696,6 +717,34 @@ function check(_P)
         if _P.guardringconnectionmethod == "strap" then
             if _P.connectsourceinline then
                 return false, "'connectguardringtosource' (with method == 'strap') can not be used with 'inline' source strap connections."
+            end
+        end
+    end
+    if _P.grid > 0 then
+        if not _P.centershapegrid then
+            if _P.connectsource and not util.is_on_grid(_P.connectsourcewidth, _P.grid) then
+                return false, string.format(
+                    "if access shape edges are put on grid (_P.centershapegrid == false), the source strap width must be a multiple of the grid: %d (connectsourcewidth) - %d (grid)",
+                    _P.connectsourcewidth, _P.grid
+                )
+            end
+            if _P.connectdrain and not util.is_on_grid(_P.connectdrainwidth, _P.grid) then
+                return false, string.format(
+                    "if access shape edges are put on grid (_P.centershapegrid == false), the drain strap width must be a multiple of the grid: %d (connectdrainwidth) - %d (grid)",
+                    _P.connectdrainwidth, _P.grid
+                )
+            end
+            if _P.drawtopgate and not util.is_on_grid(_P.topgatewidth, _P.grid) then
+                return false, string.format(
+                    "if access shape edges are put on grid (_P.centershapegrid == false), the topgate strap width must be a multiple of the grid: %d (topgatewidth) - %d (grid)",
+                    _P.topgatewidth, _P.grid
+                )
+            end
+            if _P.drawbotgate and not util.is_on_grid(_P.botgatewidth, _P.grid) then
+                return false, string.format(
+                    "if access shape edges are put on grid (_P.centershapegrid == false), the botgate strap width must be a multiple of the grid: %d (botgatewidth) - %d (grid)",
+                    _P.botgatewidth, _P.grid
+                )
             end
         end
     end
