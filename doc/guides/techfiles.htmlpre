@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en">
-    @make_header sub OpenPCells Documentation
+    @make_header OpenPCells Documentation
     <body>
-        @make_topbar sub Technology Files
+        @make_topbar Technology Files
         <details open>
             <summary>Introduction</summary>
             <p>
@@ -10,14 +10,21 @@
             Technology files are required to generate layouts for specific and real technology nodes.
             Internally, openPCells has a generic model of a layer stack, which is then translated to the actual layer stack.
             Additionally, openPCells must know how to create via arrays, because in most technology nodes there are only very limited ways of creating via cuts.
+            Also a few technology properties should need to be known to support the internal parametric cells of the OpenPCells project.
+            All required definitions and files will be described and explained subsequently.
+            </p>
+            <p>
+            In general the (non-physical) <code class="shellinline">opc</code> technology supplied by the openPCells project can be used as a starting point and reference.
+            It is used internally to test functionality and cells.
             </p>
         </details>
 
         <details open>
-            <summary>Overview</summary>
+            <summary>Adding Technologies</summary>
             <p>
-            OpenPCells requires a set of technology files for layout generation.
-            These files are grouped in a folder with the name of the technology node (used by <code class="shellinline">--technology &lt;techname&gt;</code>):
+            A technology node definition is a collection of files in one directory.
+            These files get loaded by opc when requested as technology, the directory has to be within one of the paths in the technology search path (see the <code class="shellinline">--techpath</code> command line option).
+            OpenPCells expects a technology to provide at least four files: 
             </p>
             <ul class="description-list">
                 <li>
@@ -47,116 +54,201 @@
                     </p>
                 </li>
             </ul>
-            <p>
-            The four files need to be present and some features in them are mandatory.
-            Each of them will be explained in more detail subsequently.
-            </p>
-            <p>
-            The pcells are defined in general layers (such as "gate" or "M1" or "lastmetal"), which have to be translated into a specific technology for cell generation.
-            Furthermore, vias and contacts have to be put into arrays, which requires knowledge about the technology.
-            The technology-defining files (the \enquote{techfiles}) describe the required rules and layer mappings.
-            In order to make it easy to start with techfiles they only need to contain what is required by the generated cell.
-            That means for example that an inductor with only one metal layer only the mapping for that metal is required.
-            If a cell is generated where some layers are missing in the techfile, you will see the following message (with the requested layer listed, in this case <code class="shellinline">metal(2)</code>):
-            </p>
-            <pre class="shell"><code>generics: got NULL layer: generics.metal(2)
-if this layer is not needed, set it to {} </code></pre>
-            <p>
-            This message shows you which layer has to be added to the techfile in order to make the cell run successfully.
-            This guide will explain how to add these layers and which information is required.
-            </p>
-        </details>
 
-        <details open>
-            <summary>Adding Technologies</summary>
             <p>
-            A technology definition is a collection of files in one directory.
-            These files get loaded by opc when requested as technology, the directory has to be within one of the paths in the technology search path (see the <code class="shellinline">--techpath</code> command line option).
-            OpenPCells expects a technology to provide at least four files: <code class="shellinline">config.lua</code>, <code class="shellinline">layermap.lua</code>, <code class="shellinline">constraints.lua</code> and <code class="shellinline">vias.lua</code>.
-            All these files return one lua table, so a basic (empty technology) has the following content for all of these files:
+            All these files must return exactly one lua table, so a basic (empty) technology file has the following content:
             </p>
             <pre class="opc"><code>return {} </code></pre>
             <p>
             Of course, this does not really make sense, so the following sections explore what (and when) to put into these files.
+            </p>
+            <p>
+            The four files need to be present and some definitions in them are mandatory.
+            Each of them will be explained in more detail subsequently.
             </p>
         </details>
 
         <details open>
             <summary>Config</summary>
             <p>
-            The config is pretty simple, as it only requires a few keys set.
-            Currently, only the number of metals in the stack is necessary for some calculations in specific cells, but the other options will be included in the project in the future.
-            More options are also likely to come.
-            </p>
-            <pre class="opc"><code>return {
-    grid = 1, -- in nanometers,
-    substrate_dopand = "p-substrate", -- dopand type of the substrate
-    has_triple_well = true, -- support for tripe-wells
-    is_SOI = false, -- silicon-on-insulator node
-    FEOL_method = "active_plus_implant", -- method for specifying active
-                                         -- (transistor) regions
-    has_gatecut = false, -- special layer for cutting gates
-    metals = 4, -- number of metals in the stack
-} </code></pre>
-            <p>
-            The <code class="opcinline">grid</code> defines the granularity of the shapes, <code class="opcinline">metals</code> is the total number of available metal (and interconnect) layers in this technology node.
-            <code class="opcinline">substrate_dopand</code> and <code class="opcinline">has_triple_well</code> configure the wells.
-            <code class="opcinline">is_SOI</code> is a simple boolean switch whether this technology node is a silicon-on-insulator process.
-            The front-end-of-line method (<code class="opcinline">FEOL_method</code>) configures the way active transistor regions are specified.
-            Supported options are <code class="opcinline">active_plus_implant</code>, <code class="opcinline">dedicated_active</code> or <code class="opcinline">asymmetric_active</code>.
-            </p>
-            <p>
+            The config file requires a few keys set.
             The technology loading routine looks for certain fields, but there is no definite list of required features.
-            At the moment of this writing the config file needs to define the following properties:
+            At the moment of this writing the config file supports the following properties:
             </p>
             <ul>
                 <li>
-                    <code>grid</code>: Sets the manufacturing grid. Expects an integer.
+                    <code class="luainline">grid</code>
+                    <p>Sets the manufacturing grid. Expects an integer. Mandatory.</p>
                 </li>
                 <li>
-                    <code>metals</code>: Sets the number of metals. Expects an integer.
+                    <code class="luainline">metals</code>
+                    <p>Sets the number of metals. Expects an integer. Mandatory.</p>
                 </li>
                 <li>
-                    <code>multiple_patterning</code>: Defines multiple-patterning for some metals. Here a table is expected, with a table entry for every multiple-patterning metal like this: <code class="luainline">{ metal = 1, number = 2 }</code> (for two masks for metal 1).
+                    <code class="luainline">multiple_patterning</code>
+                    <p>Defines multiple-patterning for some metals. Here a table is expected, with a table entry for every multiple-patterning metal like this: <code class="luainline">{ metal = 1, number = 2 }</code> (for two masks for metal 1). This entry is optional.</p>
                 </li>
                 <li>
-                    <code>is_soi</code>: Defines whether this node is a silicon-on-insulator process. Expects a boolean.
+                    <code class="luainline">is_soi</code>
+                    <p>Defines whether this node is a silicon-on-insulator process. Expects a boolean. Mandatory.</p>
                 </li>
                 <li>
-                    <code>allow_poly_routing</code>: Defines whether the gate material (polysilicon) can be used for routing, allowing arbitrary shapes on poly. Expects a boolean.
+                    <code class="luainline">allow_poly_routing</code>
+                    <p>Defines whether the gate material (polysilicon) can be used for routing, allowing arbitrary shapes on poly. Expects a boolean. Mandatory.</p>
                 </li>
                 <li>
-                    <code>has_gatecut</code>: Defines whether this technology has support for gate cutting layers. Expects a boolean.
+                    <code class="luainline">has_gatecut</code>
+                    <p>Defines whether this technology has support for gate cutting layers. Expects a boolean. Mandatory.</p>
                 </li>
             </ul>
+            <p>
+            More options are also likely to come.
+            </p>
+            <p>
+            An example of a possible config file (taken from the <code class="shellinline">opc</code> technology files) is given below:
+            </p>
+            <pre class="opc"><code>return {
+    grid = 1,
+    metals = 10,
+    allow_poly_routing = false,
+    is_soi = false,
+    has_gatecut = false,
+}</code></pre>
         </details>
 
         <details open>
             <summary>Layermap</summary>
             <p>
-            The layermap includes information on the human-readable layer data as well as the stream numbers (virtuoso could also work just with the stream
-            numbers, but often the layers have internal numbers that are NOT the stream numbers).
-            Therefore every entry is a table containing a table for the layer and a table for the purpose:
+            The layers in openPCells are defined in general layers (such as "gate" or "M1" or "lastmetal"), which have to be translated into a specific technology for cell generation.
+            In order to make it easy to start with techfiles they only need to contain what is required by the generated cell.
+            That means for example that for an inductor with only one metal layer only the mapping for that metal is required.
+            If a cell is generated where some layers are missing in the techfile, you will see the following message (with the requested layer listed, in this case <code class="shellinline">metal(2)</code>):
             </p>
-            <pre class="opc"><code>-- example for metal 1
-M1 = {
-    name = "metal1",
-    layer = {
-        gds = { layer = 8, purpose = 0 },
-        SKILL = { layer = "metal1", purpose = "drawing" },
-        svg = { style = "metal1", order = 4, color = "0000ff" },
-    }
-},
--- example of an unused layer
-notused = {},</code></pre>
+            <pre class="shell"><code>generics: got NULL layer: generics.metal(2)
+if this layer is not needed, set it to {} </code></pre>
             <p>
-            The needed layers depends on the cells that are being used, but the program will also tell you when you are missing something.
-            Therefore, you can also keep running it until it works.
-            The `opc` technology layer map contains most of the used layers and can be used as a reference.
+            This message shows you which layer has to be added to the techfile in order to make the cell run successfully.
+            This section will explain how to add these layers and which information is required.
             </p>
             <p>
-            The <code class="opcinline">name</code> field is optional, but helps when debugging cells.
-            In fact, only one entry in the <code class="opcinline">layer</code> subtable for the corresponding export type is required.
+            The layermap shall define entries for specific layers, which are pre-defined within openPCells.
+            The layers use symbolic names such as <code class="luainline">generics.well("n")</code>, which have no physical correspondence in the specific technology node.
+            Hence the layermap provides a mapping from these symbolic layers to specific representation.
+            The mapping can include a variety of things, the required data within the definition depend on the used export.
+            For instance, the gds export needs a layer number and a purpose pair (so-called layer-purpose-pair, lpp).
+            The SKILL export also uses these properties, but as human-readable strings, not numbers.
+            Other exports are easy to add, the layermap does not restrict the internal representation.
+            </p>
+            <p>
+            Every entry of the layermap is a table which contains a sub-table (with the key <code class="luainline">layer</code>) which defines one entry for every supported export.
+            An example given below shows a layer map that defines (only) the first metal layer, <code class="luainline">M1</code>:
+            </p>
+            <pre class="opc"><code>return { -- top-level table
+    -- example for metal 1
+    M1 = {
+        name = "metal1",
+        layer = {
+            gds = { layer = 8, purpose = 0 },
+            SKILL = { layer = "metal1", purpose = "drawing" },
+            svg = { style = "metal1", order = 4, color = "0000ff" },
+        }
+    },
+}</code></pre>
+            <p>
+            The required layers are currently not strictly defined.
+            For one, this depends on the actual technology node, as different technology nodes might need different layers and have more a fewer metal layers.
+            Additionally, OpenPCells does not really define required layers.
+            This happens implicitly by the needs of the used pcells.
+            Therefore, for adding new technologies one can simply use the simplest layermap until opc reports missing layers.
+            A list of required layers for a standard triple-well p-bulk CMOS process node is given by the following list:
+            </p>
+            <ul class="description-list">
+                <li>
+                    active
+                    <p>
+                    The layer for active diffusions.
+                    </p>
+                </li>
+                <li>
+                    gate
+                    <p>
+                    The layer for gates, usually polysilicon.
+                    </p>
+                </li>
+                <li>
+                    contactactive, contactsourcedrain contactgate, contactpoly
+                    <p>
+                    The layer for contacts from the specified regions (e.g. &quot;active&quot;) to the first interconnect layer.
+                    Some technology nodes use the same contact for all these regions, others might not, hence they are separated.
+                    If these don't have to be distinguished, they can simply be all mapped to the same content.
+                    &quot;sourcedrain&qout; contacts are the contacts from the source drain regions, &quot;gate&quot; contacts the gates.
+                    &quot;active&qout; and &qout;poly&quot; physically contact the same regions, but there might be extra contacts to contact raw polysilicon (for instance for a resistor) instead of polysilicon-for-gates.
+                    </p>
+                </li>
+                <li>
+                    pimplant
+                    <p>
+                    The layer for p-implants for forming p-diffusions.
+                    </p>
+                </li>
+                <li>
+                    nimplant
+                    <p>
+                    The layer for p-implants for forming n-diffusions.
+                    </p>
+                </li>
+                <li>
+                    nwell
+                    <p>
+                    The layer for n-wells.
+                    </p>
+                </li>
+                <li>
+                    deepnwell
+                    <p>
+                    The layer for deep n-wells, for forming isolated p-wells in a triple-well process.
+                    </p>
+                </li>
+                <li>
+                    oxide&lt;N&gt;
+                    <p>
+                    The layer for oxide thickness modification.
+                    Typically, oxide1 is an empty layer and thicker oxides are then achieved with oxide2, but this can be defined differently.
+                    </p>
+                </li>
+                <li>
+                    metal&lt;N&gt;
+                    <p>
+                    The &lt;N&gt;th metal, where &lt;N&gt; starts at 1.
+                    The first metal does not need to be an actual metal, it should be the lowest interconnect layer above the active/gate regions (not contacts).
+                    </p>
+                </li>
+                <li>
+                    viacutM&lt;N&gt;M&lt;N + 1&gt;
+                    <p>
+                    The via cut layer from metal &lt;N&gt; to &lt;N + 1&gt;.
+                    Theoretically direct vias from, say, M1 to M3 are possible, but internally one-level vias (e.g. viacutM1M2) are assumed.
+                    </p>
+                </li>
+            </ul>
+            <p>
+            The layer mappings also allow a field <code class="opcinline">name</code>. This is optional, but helps when debugging cells.
+            </p>
+            <p>
+            The layermap keys (e.g. &quot;M1&quot;) require knowledge of the internal naming scheme of layers.
+            This is now considered the legacy way of specifying layer names.
+            Recent OpenPCells releases support the use of the layer names as they are used in layout files:
+            </p>
+            <pre class="opc"><code>return {
+    [generics.active()] = ...,
+    [generics.gate()] = ...,
+    [generics.implant("p")] = ...,
+    [generics.metal(1)] = ...,
+    [generics.viacut(1, 2)] = ...,
+}</code></pre>
+            <p>
+            The use of the square brackets around the key names is required by lua, as otherwise the key is read as a string in the form of a standard lua identifier.
+            Without the brackets the lua compiler will raise syntax errors.
             </p>
         </details>
 
@@ -170,6 +262,7 @@ notused = {},</code></pre>
                 <p>
                 Multiple entries are possible to accomodate the different ways of drawing vias.
                 Furthermore, via entries can be restricted to certain maximum widths and/or heights of the via regions, with the keys <code class="opcinline">maxwidth</code> and <code class="opcinline">maxheight</code>.
+                The following example is adapted from the <code class="shellinline">opc</code> technology files:
                 </p>
                 <pre class="opc"><code>viaM1M2 = {
     entries = {
@@ -185,6 +278,25 @@ notused = {},</code></pre>
         },
     },
 }, </code></pre>
+                <p>
+                In their simplest form, vias have the same enclosures for both layers.
+                However, this is not true for many technology nodes.
+                For competitive DRC-clean vias more complex definitions are sometimes required.
+                In this case, the enclosures can be given separately for both layers:
+                </p>
+                <pre class="opc"><code>viaM1M2 = {
+    entries = {
+        {
+            width = 100, height = 100,
+            xspace = 200, yspace = 200,
+            xenclosure1 = 50, yenclosure1 = 50
+            xenclosure2 = 80, yenclosure2 = 80
+        },
+    },
+}, </code></pre>
+                <p>
+                These viacut values are used for the via*2 and contact*2 functions, which are used internally in several cells, especially <code class="luainline">basic/mosfet</code>.
+                </p>
         </details>
 
         <details open>
@@ -225,6 +337,13 @@ notused = {},</code></pre>
     ["Minimum M1M2 Viawidth"]                       = 260,
     -- more vias...
 }</code></pre>
+                <p>
+                Most constraints should be self-explanatory.
+                The Viawidth entries are different from the metal width entries in that OpenPCells expects to be able to find a legal via arrayzation in a square region with that size.
+                Some default parameters of the opc pcells use these values, so make sure that the given viawidths match at least one entry in the via arrayzation file (vias.lua), or the cell generation will fail.
+                This is important as debugging why a generation fails is hard without a layout to look at.
+                If metal spacings or widths are too small, the layout can still be looked at, it will just not be DRC clean.
+                <p>
         </details>
 
         <details open>
@@ -241,3 +360,7 @@ notused = {},</code></pre>
     </body>
 </html>
 
+<!--
+            Furthermore, vias and contacts have to be put into arrays, which requires knowledge about the technology.
+            The technology-defining files (the \enquote{techfiles}) describe the required rules and layer mappings.
+-->

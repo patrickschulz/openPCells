@@ -25,9 +25,9 @@ p {
 
 summary {
     font-weight: bold;
-    font-size: 2em;
+    font-size: 1.5em;
     color: #000000;
-    padding: 10pt 4pt 4pt 4pt;
+    padding: 4pt 4pt 4pt 4pt;
     margin-bottom: 10pt;
     border-bottom: 2px solid #aaaaaa;
 }
@@ -159,6 +159,12 @@ pre.shell {
 
 code.shellinline {
     background-color: #eeeeee;
+    padding: 1pt;
+    font: monospace;
+}
+
+code.luainline {
+    background-color: #eaeaff;
     padding: 1pt;
     font: monospace;
 }
