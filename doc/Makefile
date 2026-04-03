@@ -2,6 +2,7 @@ HTMLFILES:= \
 	index.html \
 	cells.html \
 	apiref.html \
+	tutorials/beginner.html \
 	guides.html \
 	guides/export.html \
 	guides/user.html \

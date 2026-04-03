@@ -248,6 +248,20 @@ footer {
     color: #666666;
 }
 
+svg {
+    margin: 0pt;
+}
+
+.diagram-text {
+    font-size: 100%;
+}
+
+.diagram-box {
+    fill: none;
+    stroke: green;
+    stroke-width: 2px;
+}
+
 /* code highlighting (dark mode) */
 /*
 .opc-module {

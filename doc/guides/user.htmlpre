@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en">
-    @make_header sub OpenPCells Documentation
+    @make_header OpenPCells Documentation
     <body>
-        @make_topbar sub opc Command-Line User Guide
+        @make_topbar opc Command-Line User Guide
         <details open>
             <summary>Introduction</summary>
             <p>
