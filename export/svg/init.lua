@@ -8,59 +8,66 @@ local __scale = 1
 local __xoffsetmanual = 0
 local __yoffsetmanual = 0
 local __forcetransparency = false
-local __forcetransparancyfactor = 0.8
+local __forcetransparencyfactor = 0.8
+local __useviewbox = false
 function M.set_options(opt)
-    for i = 1, #opt do
+    local i = 1
+    while i <= #opt do
         local arg = opt[i]
         if arg == "-b" or arg == "--black-background" then
             __blackbackground = true
-        end
-        if arg == "-t" or arg == "--transparent-background" then
+        elseif arg == "-t" or arg == "--transparent-background" then
             __transparentbackground = true
-        end
-        if arg == "--force-transparancy" then
+        elseif arg == "--force-transparency" then
             __forcetransparency = true
-        end
-        if arg == "--xoffset" then
+        elseif arg == "--transparency-factor" then
+            if i < #opt then
+                __forcetransparencyfactor = tonumber(opt[i + 1])
+            else
+                error("svg export: --transparency-factor: argument expected")
+            end
+            i = i + 1
+        elseif arg == "--xoffset" then
             if i < #opt then
                 __xoffsetmanual = tonumber(opt[i + 1])
             else
                 error("svg export: --xoffset: argument expected")
             end
             i = i + 1
-        end
-        if arg == "--yoffset" then
+        elseif arg == "--yoffset" then
             if i < #opt then
                 __yoffsetmanual = tonumber(opt[i + 1])
             else
                 error("svg export: --yoffset: argument expected")
             end
             i = i + 1
-        end
-        if arg == "--xmargin" then
+        elseif arg == "--xmargin" then
             if i < #opt then
                 __xmargin = tonumber(opt[i + 1])
             else
                 error("svg export: --xmargin: argument expected")
             end
             i = i + 1
-        end
-        if arg == "--ymargin" then
+        elseif arg == "--ymargin" then
             if i < #opt then
                 __ymargin = tonumber(opt[i + 1])
             else
                 error("svg export: --ymargin: argument expected")
             end
             i = i + 1
-        end
-        if arg == "-s" or arg == "--scale" then
+        elseif arg == "-s" or arg == "--scale" then
             if i < #opt then
                 __scale = tonumber(opt[i + 1])
             else
                 error("svg export: --scale: argument (a number) expected")
             end
             i = i + 1
+        elseif arg == "--use-viewbox" then
+            __useviewbox = true
+        else
+            error("svg export: unknown argument '" .. arg .. "'")
         end
+        i = i + 1
     end
 end
 
@@ -69,7 +76,7 @@ function M.initialize(minx, maxx, miny, maxy)
     local width = maxx - minx
     local height = maxy - miny
     __xoffset = -minx * __scale + __xmargin + __xoffsetmanual
-    __yoffset = -miny * __scale + __ymargin + __yoffsetmanual
+    __yoffset = maxy * __scale + __ymargin + __yoffsetmanual
     __width = width * __scale + 2 * __xmargin
     __height = height * __scale + 2 * __ymargin
 end
@@ -124,9 +131,12 @@ function M.at_begin()
     if y % 2 == 1 then y = y + 1 end
     local lines = {
         string.format('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'),
-        --string.format('<svg width="%d" height="%d" viewBox="-%d -%d %d %d">', x, y, x/ 2, y / 2, x, y),
-        string.format('<svg width="%d" height="%d">', x, y),
     }
+    if __useviewbox then
+        table.insert(lines, string.format('<svg width="100%%" viewBox="%d %d %d %d">', 0, 0, x, y))
+    else
+        table.insert(lines, string.format('<svg width="%d" height="%d">', x, y))
+    end
     if not __transparentbackground then
         local fill = "ffffff"
         if __blackbackground then
@@ -143,7 +153,7 @@ end
 
 local function _get_style(layer)
     if __forcetransparency then
-        return string.format("fill:#%s; opacity:%s; fill-opacity:%s", layer.color, __forcetransparancyfactor, __forcetransparancyfactor)
+        return string.format("fill:#%s; opacity:%s; fill-opacity:%s", layer.color, __forcetransparencyfactor, __forcetransparencyfactor)
     else
         return string.format("fill:#%s; opacity:%s; fill-opacity:%s", layer.color, layer.drawopacity or "1", layer.fillopacity or "1")
     end
@@ -154,8 +164,10 @@ local function _format_x_coordinate(x)
 end
 
 local function _format_y_coordinate(y, mirroroffset)
-    mirroroffset = mirroroffset or 0
-    return string.format("%d", __height - (mirroroffset + math.floor(__scale * y) + __yoffset))
+    --mirroroffset = mirroroffset or 0
+    local mirroroffset = 0
+    --return string.format("%d", __height - (mirroroffset + math.floor(__scale * y) + __yoffset))
+    return string.format("%d", -math.floor(__scale * y) + __yoffset)
 end
 
 local function _format_point(pt)
@@ -172,9 +184,9 @@ function M.write_rectangle(layer, bl, tr)
     end
     local pointstr = string.format('x="%d" y="%d" width="%d" height="%d"',
         _format_x_coordinate(bl.x),
-        _format_y_coordinate(bl.y, tr.y - bl.y),
-        tr.x - bl.x,
-        tr.y - bl.y
+        _format_y_coordinate(tr.y),
+        __scale * (tr.x - bl.x),
+        __scale * (tr.y - bl.y)
     )
     _insert_ordered_content(layer.order or 0, string.format('<rect style = "%s" %s />', _get_style(layer), pointstr))
 end
