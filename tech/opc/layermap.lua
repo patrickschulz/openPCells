@@ -22,6 +22,7 @@ return {
             SKILL = { layer = "text", purpose = "drawing" },
             debug = { layer = "text" },
             json = { layer = "text" },
+            svg = { style = "text", order = 1, color = "ffffff" },
         }
     },
     [generics.active()] = {
@@ -172,7 +173,7 @@ return {
             gds = { layer = 12, purpose = 0 },
             SKILL = { layer = "metal3", purpose = "drawing" },
             debug = { layer = "metal3" },
-            svg = { color = "ff1212", order = 8 },
+            svg = { color = "ffae00", order = 8 },
             json = { layer = "M3" },
         }
     },
@@ -192,7 +193,7 @@ return {
             gds = { layer = 14, purpose = 0 },
             SKILL = { layer = "metal4", purpose = "drawing" },
             debug = { layer = "metal4" },
-            svg = { color = "808080" },
+            svg = { color = "ddff00" },
         }
     },
     M4exclude = {},
