@@ -4,6 +4,7 @@ HTMLFILES:= \
 	apiref.html \
 	tutorials/beginner.html \
 	guides.html \
+	guides/pcells.html \
 	guides/export.html \
 	guides/user.html \
 	guides/techfiles.html \
