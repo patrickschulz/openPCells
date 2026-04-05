@@ -7,8 +7,8 @@ local __ymargin = 0
 local __scale = 1
 local __xoffsetmanual = 0
 local __yoffsetmanual = 0
-local __forcetransparency = false
-local __forcetransparencyfactor = 0.8
+local __notransparency = false
+local __transparencyfactor = 0.8
 local __useviewbox = false
 function M.set_options(opt)
     local i = 1
@@ -18,11 +18,11 @@ function M.set_options(opt)
             __blackbackground = true
         elseif arg == "-t" or arg == "--transparent-background" then
             __transparentbackground = true
-        elseif arg == "--force-transparency" then
-            __forcetransparency = true
+        elseif arg == "--no-transparency" then
+            __notransparency = true
         elseif arg == "--transparency-factor" then
             if i < #opt then
-                __forcetransparencyfactor = tonumber(opt[i + 1])
+                __transparencyfactor = tonumber(opt[i + 1])
             else
                 error("svg export: --transparency-factor: argument expected")
             end
@@ -152,10 +152,10 @@ function M.at_end()
 end
 
 local function _get_style(layer)
-    if __forcetransparency then
-        return string.format("fill:#%s; opacity:%s; fill-opacity:%s", layer.color, __forcetransparencyfactor, __forcetransparencyfactor)
-    else
+    if __notransparency then
         return string.format("fill:#%s; opacity:%s; fill-opacity:%s", layer.color, layer.drawopacity or "1", layer.fillopacity or "1")
+    else
+        return string.format("fill:#%s; opacity:%s; fill-opacity:%s", layer.color, __transparencyfactor, __transparencyfactor)
     end
 end
 
