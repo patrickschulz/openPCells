@@ -5,6 +5,7 @@
         @make_topbar Main Page
         <p>
         This is the main page for the documentation of the openPCells (opc) project.
+        The documentation is split into various parts, see below.
         </p>
 
         <div class="documentation-section">
@@ -13,7 +14,7 @@
         </div>
 
         <div class="documentation-section">
-            <p>A collection of guides covering various things such as automated fill generation or cell preparation.</p>
+            <p>A collection of guides covering various specific things such as automated fill generation, power grids, or cell preparation.</p>
             <p><a href=guides.html>Guides</a></p>
         </div>
 
