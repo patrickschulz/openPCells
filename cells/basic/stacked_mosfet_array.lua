@@ -47,7 +47,7 @@ function parameters()
         { "guardringoxidetypeinnerextension", technology.get_dimension("Minimum Oxide Extension") },
         { "guardringoxidetypeouterextension", technology.get_dimension("Minimum Oxide Extension") },
         { "checkshorts", true },
-        { "instancename", "" }
+        { "instancenameincenter", false }
     )
 end
 
@@ -397,6 +397,7 @@ function layout(cell, _P)
                     drawanalogmarker = _select_parameter("drawanalogmarker", device, row),
                     checkshorts = _select_parameter("checkshorts", device, row, _P),
                     instancename = device.instancename or device.name,
+                    instancenameincenter = _select_parameter("instancenameincenter", device, row, _P),
                 })
                 if not status then -- call failed, but show detailed error here
                     cellerror(string.format("could not create device %d in row %d (\"%s\"): %s", devnum, rownum, device.name, mosfet))

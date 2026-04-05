@@ -1026,6 +1026,7 @@ function layout(cell, _P, _env, state)
             local devopts = util.add_options(fetoptions, {
                 name = string.format("M_%d_%d_%d", device.device, device.row, device.index),
                 instancename = instancename,
+                instancenameincenter = _P.instancenameincenter,
                 fingers = _P.fingers,
                 drawtopgate = drawtopgate,
                 drawbotgate = drawbotgate,
