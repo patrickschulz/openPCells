@@ -153,6 +153,15 @@ install: opc opc.1
 	mkdir -p \${DESTDIR}${DOC_PATH}
 	cp -R doc \${DESTDIR}${DOC_PATH}
 
+.PHONY: uninstall
+uninstall:
+	rm -m 755 -D opc \${DESTDIR}${BIN_PATH}/${EXE_NAME}
+	irm -m 644 -D opc.1 \${DESTDIR}${MAN_PATH}/${EXE_NAME}.1
+	rm -rf \${DESTDIR}${CELL_PATH}
+	rm -p \${DESTDIR}${TECH_PATH}
+	rm -p \${DESTDIR}${EXPORT_PATH}
+	rm -p \${DESTDIR}${DOC_PATH}
+
 .PHONY: doc
 doc:
 	@\$(MAKE) -C doc all
