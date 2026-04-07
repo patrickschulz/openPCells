@@ -1103,66 +1103,45 @@ class LayoutViewer {
             fileInput.addEventListener('change', (e) => {
                 if (e.target.files[0]) {
                     this.selectedFile = e.target.files[0];
+                    console.log(this.selectedFile)
                     this.loadLayoutDataFromFile(this.selectedFile);
                 }
             });
         }
 
         // Reload button - reload the file, keeping previous data if read fails
+        console.log(reloadBtn)
         if (reloadBtn) {
             reloadBtn.addEventListener('click', () => {
                 if (this.selectedFile) {
                     // Pass true to keepDataOnError so we don't lose data if reload fails
+                    console.log(this.selectedFile)
                     this.loadLayoutDataFromFile(this.selectedFile, true);
                 }
             });
-            // Disabled for now due to browser FileReader limitations
-            reloadBtn.disabled = true;
         }
     }
 
-    loadLayoutDataFromFile(file, keepDataOnError = false, retryCount = 0) {
-        // Read the selected file
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                if (!Array.isArray(data)) {
-                    throw new Error('JSON data is not an array');
-                }
-                this.shapes = data;
-                this.reinitializeView();
-                this.updateCurrentFileLabel(file.name);
-                console.log('Layout data loaded successfully:', data.length, 'shapes');
-            } catch (error) {
-                console.error('Failed to parse JSON file:', error);
-                alert('Failed to load file: ' + error.message);
-                if (!keepDataOnError) {
-                    this.shapes = [];
-                    this.reinitializeView();
-                }
+    async loadLayoutDataFromFile(file, keepDataOnError = false) {
+        console.log('loadLayoutDataFromFile')
+        try {
+            const fileText = await file.text();
+            const data = JSON.parse(fileText);
+            if (!Array.isArray(data)) {
+                throw new Error('JSON data is not an array');
             }
-        };
-        reader.onerror = (error) => {
-            console.error('Failed to read file:', error);
-
-            // Retry once after a short delay in case file is temporarily locked
-            if (retryCount < 1) {
-                console.log('Retrying file read after 500ms...');
-                setTimeout(() => {
-                    this.loadLayoutDataFromFile(file, keepDataOnError, retryCount + 1);
-                }, 500);
-                return;
-            }
-
-            alert('Failed to read file');
+            this.shapes = data;
+            this.reinitializeView();
+            this.updateCurrentFileLabel(file.name);
+            console.log('Layout data loaded successfully:', data.length, 'shapes');
+        } catch (error) {
+            console.error('Failed to parse JSON file:', error);
+            alert('Failed to load file: ' + error.message);
             if (!keepDataOnError) {
                 this.shapes = [];
                 this.reinitializeView();
             }
-        };
-        console.log('Reading file:', file.name);
-        reader.readAsText(file);
+        }
     }
 
     updateCurrentFileLabel(fileName) {
