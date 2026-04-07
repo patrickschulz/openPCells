@@ -1,6 +1,5 @@
 HTMLFILES:= \
 	index.html \
-	cells.html \
 	apiref.html \
 	tutorials/beginner.html \
 	guides.html \
@@ -11,16 +10,20 @@ HTMLFILES:= \
 	guides/virtuoso.html
 
 .PHONY: all
-all: $(HTMLFILES) apirefs.js
+all: $(HTMLFILES) celldoc apirefs.js
 
 .PHONY: clean
 clean:
 	@rm -f $(HTMLFILES)
 	@rm -rf includes
+	@rm -rf cells
 
 .PHONY: celldoc
 celldoc: ../src/create_cell_documentation
-	../src/create_cell_documentation cells
+	@rm -rf celldoc cells.html cells.htmlpre
+	@../src/create_cell_documentation cells.htmlpre cells
+	@lua process_html.lua cells
+	@find cells -name '*.htmlpre' -exec sh -c 'lua process_html.lua $${1/.htmlpre/}' sh {} \;
 
 apirefs.js:
 

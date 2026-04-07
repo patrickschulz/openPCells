@@ -4,16 +4,18 @@
 #include "lua_util.h"
 #include "pcell.common.h"
 #include "ldir.h"
+#include "filesystem.h"
 
 #define OPC_PCELL_IMPLEMENTATION
 #include "pcell.def.h"
 #undef OPC_PCELL_IMPLEMENTATION
 
-void pcell_create_cell_documentation(struct pcell_state* pcell_state)
+void pcell_create_cell_documentation(struct pcell_state* pcell_state, const char* indexfilename, const char* basepath)
 {
     lua_State* L = util_create_basic_lua_state();
     pcellcommon_load_pcell_library(L, pcell_state);
     open_ldir_lib(L);
+    open_lfilesystem_lib(L);
 
     // assemble cell arguments
     lua_newtable(L);
@@ -25,6 +27,12 @@ void pcell_create_cell_documentation(struct pcell_state* pcell_state)
         lua_rawseti(L, -2, i + 1);
     }
     lua_setfield(L, -2, "cellpaths");
+    // index file name
+    lua_pushstring(L, indexfilename);
+    lua_setfield(L, -2, "indexfilename");
+    // basepath
+    lua_pushstring(L, basepath);
+    lua_setfield(L, -2, "basepath");
 
     lua_setglobal(L, "args");
 

@@ -26,7 +26,8 @@ doc/*.html
 doc/includes/footer.html
 doc/guides/*.html
 doc/tutorials/*.html
-doc/cells/**.html
+doc/cells.htmlpre
+doc/cells
 
 # generated layouts and helpers
 /openPCells.*

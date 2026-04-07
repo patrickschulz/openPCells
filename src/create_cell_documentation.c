@@ -1,12 +1,22 @@
 #include <stddef.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
+#include "filesystem.h"
 #include "main.cellbase.h"
 #include "main.config.h"
 #include "pcell.info.h"
 
-int main(void)
+int main(int argc, const char** argv)
 {
+    if(argc != 3)
+    {
+        fputs("create_cell_documentation: requires exactly two arguments: the index html file name and the output base path\n", stderr);
+        return 1;
+    }
+    const char* indexfilename = argv[1];
+    const char* basepath = argv[2];
+
     // load config (standard cell paths are set here)
     struct hashmap* config = hashmap_create(NULL);
     int load_user_config = 0;
@@ -28,7 +38,8 @@ int main(void)
     }
     main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
 
-    pcell_create_cell_documentation(pcell_state);
+    filesystem_mkdir(basepath, 0755);
+    pcell_create_cell_documentation(pcell_state, indexfilename, basepath);
     pcell_destroy_state(pcell_state);
 }
 
