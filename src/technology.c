@@ -1088,7 +1088,7 @@ static void _write_constraints(const struct technology_state* techstate, const c
 void technology_write_definition_files(const struct technology_state* techstate, const char* basepath)
 {
     char* path = _make_path(basepath, techstate->name);
-    filesystem_mkdir(path);
+    filesystem_mkdir(path, 0755);
     _write_config(techstate, path);
     _write_layermap(techstate, path);
     _write_viarules(techstate, path);

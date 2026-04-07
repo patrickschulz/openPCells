@@ -1737,7 +1737,7 @@ static void _create_libdir(const char* libname, const char* importname)
     size_t len = strlen(libname) + strlen(importname) + 1; // +1: '/'
     char* path = malloc(len + 1);
     snprintf(path, len + 1, "%s/%s", libname, importname);
-    filesystem_mkdir(path);
+    filesystem_mkdir(path, 0755);
     free(path);
 }
 

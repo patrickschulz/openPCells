@@ -10,10 +10,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int filesystem_mkdir(const char* path)
+int filesystem_mkdir(const char* path, mode_t mode)
 {
-    mode_t mode = 0777;
-
     /* 
      Code by Yaroslav Stavnichiy, taken from https://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
      Slightly modified for use in lua
@@ -58,7 +56,7 @@ int filesystem_exists(const char* path)
 static int lfilesystem_mkdir(lua_State* L)
 {
     const char* path = lua_tostring(L, 1);
-    int ret = filesystem_mkdir(path);
+    int ret = filesystem_mkdir(path, 0777); // FIXME: make mode accessible from lua
     lua_pushboolean(L, ret);
     return 1;
 }
