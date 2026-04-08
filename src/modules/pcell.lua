@@ -238,10 +238,24 @@ local function _get_parameters(state, cellname, cellargs)
     -- assemble arguments for the cell layout function
     local P = {}
 
+    -- install meta method for non-existing parameters as safety check
+    -- this avoids arithmetic-with-nil-errors and raises an error instead
+    setmetatable(P, {
+        __index = function(_, k)
+            error(string.format("trying to access undefined parameter '%s'", k))
+        end,
+    })
+    --  install meta method for disabling setting non-existing parameters as safety check
+    setmetatable(P, {
+        __newindex = function(_, k)
+            error(string.format("trying to add a new key '%s' to the parameter table", k))
+        end,
+    })
+
     -- (1) fill with default values
     local Pset = {}
     for _, entry in ipairs(cellparams) do
-        P[entry.name] = entry.value
+        rawset(P, entry.name, entry.value)
         Pset[entry.name] = true
     end
 
@@ -251,7 +265,7 @@ local function _get_parameters(state, cellname, cellargs)
         for name, value in pairs(cellargs) do
             assert(Pset[name],
                 string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cellname))
-            P[name] = value
+            rawset(P, name, value)
             explicit[name] = true
         end
     end
@@ -275,7 +289,7 @@ local function _get_parameters(state, cellname, cellargs)
             not explicit[entry.name] -- don't overwrite explicitly-given parameters
             and explicit[entry.target] -- only follow explicitly-given parameters
         then
-            P[entry.name] = P[entry.target]
+            rawset(P, entry.name, rawget(P, entry.target))
             -- make followed parameter explicit in case other parameters follow this one
             explicit[entry.name] = true
         end
@@ -283,32 +297,26 @@ local function _get_parameters(state, cellname, cellargs)
 
     -- (4) run process_parameters() function (if available)
     if cell.funcs.process_parameters then
-        local t = cell.funcs.process_parameters(P)
-        if not t or type(t) ~= "table" then
-            moderror(string.format("'process_parameters' for cell '%s' ran, but no table was returned. If present, the 'process_parameters' function has to return a table with updated parameter values.", cellname))
+        -- copy parameter table to prevent overwriting of explicitly-defined parameters
+        local t = {}
+        for k, v in pairs(P) do
+            t[k] = v
         end
+        cell.funcs.process_parameters(t)
         for k, v in pairs(t) do
             if not Pset[k] then
-                error(string.format("'process_parameters' set the parameter '%s', but this has no matching parameter in cell '%s', maybe it was spelled wrong?", k, cellname))
+                error(string.format("'process_parameters' sets the parameter '%s', but this has no matching parameter in cell '%s', maybe it was spelled wrong?", k, cellname))
             end
             if not explicit[k] then
-                P[k] = v
+                rawset(P, k, v)
             end
         end
     end
 
     -- (5) run parameter checks
     for _, entry in ipairs(cellparams) do
-        paramlib.check_constraints(entry, P[entry.name])
+        paramlib.check_constraints(entry, rawget(P, entry.name))
     end
-
-    -- install meta method for non-existing parameters as safety check
-    -- this avoids arithmetic-with-nil-errors and raises an error instead
-    setmetatable(P, {
-        __index = function(_, k)
-            error(string.format("trying to access undefined parameter value '%s'", k))
-        end,
-    })
 
     return P
 end

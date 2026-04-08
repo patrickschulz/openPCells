@@ -590,43 +590,41 @@ local function _get_metal_width(metal)
 end
 
 function process_parameters(_P)
-    local t = {}
-    t.connectsourcewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.sourcemetal))
-    t.connectsourcespace = technology.get_dimension(string.format("Minimum M%d Space", _P.sourcemetal))
-    t.connectdrainwidth = technology.get_dimension(string.format("Minimum M%d Width", _P.drainmetal))
-    t.connectdrainspace = technology.get_dimension(string.format("Minimum M%d Space", _P.drainmetal))
+    _P.connectsourcewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.sourcemetal))
+    _P.connectsourcespace = technology.get_dimension(string.format("Minimum M%d Space", _P.sourcemetal))
+    _P.connectdrainwidth = technology.get_dimension(string.format("Minimum M%d Width", _P.drainmetal))
+    _P.connectdrainspace = technology.get_dimension(string.format("Minimum M%d Space", _P.drainmetal))
     if _P.usesdmetalwidthtable then
-        t.connectsourcewidth = _P.sdmetalwidths[_P.sourceendmetal]
-        t.connectdrainwidth = _P.sdmetalwidths[_P.drainendmetal]
+        _P.connectsourcewidth = _P.sdmetalwidths[_P.sourceendmetal]
+        _P.connectdrainwidth = _P.sdmetalwidths[_P.drainendmetal]
     end
     -- FIXME: also include drainviametal, take maximum distance
     -- fill top/bot gatespace for later use
-    t.topgatespace = _P.topgatespace
-    t.botgatespace = _P.botgatespace
-    t.topgatewidth = math.max(technology.get_dimension("Minimum Gate Contact Region Size"), _get_metal_width(_P.topgatemetal))
+    _P.topgatespace = _P.topgatespace
+    _P.botgatespace = _P.botgatespace
+    _P.topgatewidth = math.max(technology.get_dimension("Minimum Gate Contact Region Size"), _get_metal_width(_P.topgatemetal))
     if _P.topgatemetal < _P.sourceviametal then
-        t.topgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.topgatemetal))
+        _P.topgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.topgatemetal))
     end
-    t.botgatewidth = math.max(technology.get_dimension("Minimum Gate Contact Region Size"), _get_metal_width(_P.botgatemetal))
+    _P.botgatewidth = math.max(technology.get_dimension("Minimum Gate Contact Region Size"), _get_metal_width(_P.botgatemetal))
     if _P.botgatemetal < _P.sourceviametal then
-        t.botgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.botgatemetal))
+        _P.botgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.botgatemetal))
     end
     -- modify spacings to put access shapes on grid
     if _P.grid > 0 then
         if _P.centershapegrid then
-            t.connectsourcespace = util.fix_to_grid_abs_higher(t.connectsourcespace + t.connectsourcewidth / 2, _P.grid) - t.connectsourcewidth / 2
-            t.connectdrainspace = util.fix_to_grid_abs_higher(t.connectdrainspace + t.connectdrainwidth / 2, _P.grid) - t.connectdrainwidth / 2
-            t.topgatespace = util.fix_to_grid_abs_higher(t.topgatespace + _P.topgatewidth / 2, _P.grid) - _P.topgatewidth / 2
-            t.botgatespace = util.fix_to_grid_abs_higher(t.botgatespace + _P.botgatewidth / 2, _P.grid) - _P.botgatewidth / 2
+            _P.connectsourcespace = util.fix_to_grid_abs_higher(_P.connectsourcespace + _P.connectsourcewidth / 2, _P.grid) - _P.connectsourcewidth / 2
+            _P.connectdrainspace = util.fix_to_grid_abs_higher(_P.connectdrainspace + _P.connectdrainwidth / 2, _P.grid) - _P.connectdrainwidth / 2
+            _P.topgatespace = util.fix_to_grid_abs_higher(_P.topgatespace + _P.topgatewidth / 2, _P.grid) - _P.topgatewidth / 2
+            _P.botgatespace = util.fix_to_grid_abs_higher(_P.botgatespace + _P.botgatewidth / 2, _P.grid) - _P.botgatewidth / 2
         else
             -- only adjust spacing, edge alignment to grid is enforced via parameter checks
-            t.connectsourcespace = util.fix_to_grid_abs_higher(t.connectsourcespace, _P.grid)
-            t.connectdrainspace = util.fix_to_grid_abs_higher(t.connectdrainspace, _P.grid)
-            t.topgatespace = util.fix_to_grid_abs_higher(t.topgatespace, _P.grid)
-            t.botgatespace = util.fix_to_grid_abs_higher(t.botgatespace, _P.grid)
+            _P.connectsourcespace = util.fix_to_grid_abs_higher(_P.connectsourcespace, _P.grid)
+            _P.connectdrainspace = util.fix_to_grid_abs_higher(_P.connectdrainspace, _P.grid)
+            _P.topgatespace = util.fix_to_grid_abs_higher(_P.topgatespace, _P.grid)
+            _P.botgatespace = util.fix_to_grid_abs_higher(_P.botgatespace, _P.grid)
         end
     end
-    return t
 end
 
 function check(_P)

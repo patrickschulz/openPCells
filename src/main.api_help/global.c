@@ -23,8 +23,16 @@
         "process_parameters",
         MODULE_NONE,
         "process cell parameters (cell definition function)",
-        "Cell definition function. Process parameters after user values have been set. This can be used to re-evaluate parameters based on different settings. As an example the width of a metal line could be set to the minimum width value of the used metal. This can not be done in regular parameter definitions for cells. The function receives the table with all parameter values and should return a new table with altered parameters. Every parameter in this new table will overwrite a parameter in the main parameter table, but only if it was not explicitly modified when calling the cell. This function is optional.",
-        "function process_parameters(_P)\n    local t = {}\n    t.width = technology.get_dimension(\n        string.format(\"Minimum M%d Width\"),\n        _P.metal\n    )\n    t.length = _P.totallength -- simple follower parameter\n    return t\nend",
+        "Cell definition function. "
+        "Process parameters after user values have been set. "
+        "This can be used to re-evaluate parameters based on different settings. "
+        "As an example the width of a metal line could be set to the minimum width value of the used metal. "
+        "This can not be done in regular parameter definitions for cells. "
+        "The function receives the table with all parameter values and can modify existing parameters. "
+        "It can not add new parameters. "
+        "This function can only alter parameter values if they were not explicitly modified when calling the cell. "
+        "This function is optional.",
+        "function process_parameters(_P)\n    _P.width = technology.get_dimension(\n        string.format(\"Minimum M%d Width\"),\n        _P.metal\n    )\n    _P.length = _P.totallength -- simple follower parameter\nend",
         parameters
     ));
 }

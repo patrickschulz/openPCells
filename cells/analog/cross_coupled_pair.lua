@@ -39,10 +39,8 @@ local function _get_metal_width(metal)
 end
 
 function process_parameters(_P)
-    local t = {}
-    t.gatestrapwidth = _get_metal_width(_P.crossingmetal)
-    t.sdwidth = _get_metal_width(_P.drainmetal)
-    return t
+    _P.gatestrapwidth = _get_metal_width(_P.crossingmetal)
+    _P.sdwidth = _get_metal_width(_P.drainmetal)
 end
 
 function check(_P)

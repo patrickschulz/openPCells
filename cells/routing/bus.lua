@@ -28,32 +28,29 @@ function parameters()
 end
 
 function process_parameters(_P)
-    local t = {}
     local maxmetal = math.max(_P.hmetal, _P.vmetal)
 
-    t.hwidth = technology.get_dimension_max(
+    _P.hwidth = technology.get_dimension_max(
         string.format("Minimum M%d Width", _P.hmetal),
         string.format("Minimum M%dM%d Viawidth", maxmetal - 1, maxmetal)
     )
-    t.hspace = technology.get_dimension(string.format("Minimum M%d Space", _P.hmetal))
-    t.vwidth = technology.get_dimension_max(
+    _P.hspace = technology.get_dimension(string.format("Minimum M%d Space", _P.hmetal))
+    _P.vwidth = technology.get_dimension_max(
         string.format("Minimum M%d Width", _P.vmetal),
         string.format("Minimum M%dM%d Viawidth", maxmetal - 1, maxmetal)
     )
-    t.vspace = technology.get_dimension(string.format("Minimum M%d Space", _P.vmetal))
-    t.viaext = technology.get_dimension_max(
+    _P.vspace = technology.get_dimension(string.format("Minimum M%d Space", _P.vmetal))
+    _P.viaext = technology.get_dimension_max(
         string.format("Minimum M%d Width", _P.hmetal),
         string.format("Minimum M%d Width", _P.vmetal),
         string.format("Minimum M%dM%d Viawidth", maxmetal - 1, maxmetal)
     )
-    t.hext = 2 * t.viaext
-    return t
+    _P.hext = 2 * _P.viaext
 end
 
 function prepare(_P)
     local state = {}
 end
-
 
 function check(_P)
     if not _P.shift_bus_for_vias and _P.vregshift == 0 then
