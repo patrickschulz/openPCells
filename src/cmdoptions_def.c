@@ -1,11 +1,11 @@
 /* Main Generation Functions */
 cmdoptions_add_section(cmdoptions, "Main generation functions");
 cmdoptions_add_option(cmdoptions, 'T', "technology", SINGLE_ARG, "specify technology");
-cmdoptions_add_option(cmdoptions, 'C', "cell", SINGLE_ARG, "specify cell");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "cell", SINGLE_ARG, "specify cell");
 cmdoptions_add_option(cmdoptions, 'E', "export", MULTI_ARGS, "specify export type (multiple arguments possible). Some export types re-use layer data defined for other export types (for example, GDSII and OASIS layer/purpose pairs often use the same data). It is possible to specify the used data by prefixing it separated with a colon (':') -> 'gds:oasis' uses the GDSII layers for the oasis export type. While it is possible to use something like 'gds:gds', this is not needed.");
 //cmdoptions_add_option(cmdoptions, NO_SHORT, "export-layers", SINGLE_ARG, "specify which layer data from the technology layer map is given to the export. If this matches the name of the export (e.g. gds and gds) then this option is not needed. It is only useful if an export uses layer definition intended for another export (e.g. magic and SKILL)");
 cmdoptions_add_option(cmdoptions, 'X', "export-options", MULTI_ARGS, "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). An overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h");
-cmdoptions_add_option(cmdoptions, 'c', "cellscript", SINGLE_ARG, "execute cell script. With this option, --cell is not needed to create a layout. The layout described in the cell script is generated, so the called file must return an object.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "cellscript", SINGLE_ARG, "execute cell script. With this option, --cell is not needed to create a layout. The layout described in the cell script is generated, so the called file must return an object.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "cellscript-args", MULTI_ARGS, "pass arguments to cellscripts (use with --cellscript). Can be called multiple times");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "cell-environment", SINGLE_ARG, "read cell environment from the given file");
 
