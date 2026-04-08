@@ -456,6 +456,11 @@ function check(_P, state)
         return false, "the array must contain more than one active device (unless 'allow_single_device' is true)"
     end
 
+    -- check that only inner OR outer guardrings are present
+    if _P.drawinnerguardrings and _P.drawouterguardring then
+        return false, "'drawinnerguardrings' and 'drawouterguardring' are mutually exclusive, they can't be enabled at the same time"
+    end
+
     -- gate connection mode
     if _P.equalgatenets and _P.usegateconnections then
         return false, "'equalgatenets' and 'usegateconnections' must not be true at the same time"
