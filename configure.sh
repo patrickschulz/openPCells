@@ -166,6 +166,10 @@ while [[ $# -gt 0 ]]; do
         echo "This allows for installations via:"
         echo "% make"
         echo "% make DESTDIR=/some/directory/ install"
+        echo ""
+        echo "NOTE:"
+        echo "parallel make (make -j) can cause problems,"
+        echo "try running without -j if you experience issues."
         exit
         ;;
     *)
