@@ -188,38 +188,36 @@ function parameters()
 end
 
 function process_parameters(_P)
-    local t = {}
     -- calculate minimum row shift (needed if no interconnect lines are drawn between rows)
-    t.minimum_row_shift = math.max(
+    _P.minimum_row_shift = math.max(
         technology.get_optional_dimension("Minimum Active Space", 0),
         math.max(
             technology.get_optional_dimension("Minimum Gate Space", 0),
             technology.get_optional_dimension("Minimum Gate XSpace", 0)
         ) + 2 * technology.get_optional_dimension("Minimum Gate Extension", 0)
     )
-    t.gatefeedlinewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.gatemetal))
+    _P.gatefeedlinewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.gatemetal))
     if _P.gatelinemetal > 1 then
-        t.gatelinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.gatelinemetal - 1, _P.gatelinemetal))
+        _P.gatelinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.gatelinemetal - 1, _P.gatelinemetal))
     else
-        t.gatelinewidth = technology.get_dimension("Minimum M1 Width")
+        _P.gatelinewidth = technology.get_dimension("Minimum M1 Width")
     end
     if _P.gatelinemetal > 1 then
-        t.gatelineviawidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.gatelinemetal - 1, _P.gatelinemetal))
+        _P.gatelineviawidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.gatelinemetal - 1, _P.gatelinemetal))
     end
-    t.interconnectlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
-    t.gateoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
-    t.sourceoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
-    t.drainoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
-    t.guardringoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
-    t.sourcedrainstrapwidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
+    _P.interconnectlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
+    _P.gateoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
+    _P.sourceoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
+    _P.drainoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
+    _P.guardringoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
+    _P.sourcedrainstrapwidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     if _P.insertglobalguardringlines and _P.connectguardringtogloballines then
-        t.guardringwidth = technology.get_dimension_max(
+        _P.guardringwidth = technology.get_dimension_max(
             "Minimum Active Contact Region Size",
             string.format("Minimum M%d Width", _P.interconnectmetal + 1),
             string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1)
         )
     end
-    return t
 end
 
 function check_pre(_P)
