@@ -206,11 +206,7 @@ function process_parameters(_P)
     if _P.gatelinemetal > 1 then
         t.gatelineviawidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.gatelinemetal - 1, _P.gatelinemetal))
     end
-    if _P.interconnectmetal > 1 then
-        t.interconnectlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal - 1, _P.interconnectmetal))
-    else
-        t.interconnectlinewidth = technology.get_dimension("Minimum M1 Width")
-    end
+    t.interconnectlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     t.gateoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     t.sourceoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     t.drainoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
