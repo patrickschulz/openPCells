@@ -764,9 +764,124 @@ end
 function layout(cell, _P, _env, state)
     local activepattern = state.activepattern
 
+    -- calculate minimum space requirements for every row
+    -- from this, the required rowshifts can be calculated in a subsequent step
+    -- FIXME: this next code block is currently not used
+    local function _iclines_top(rownum, interconnectlinepos, gatepos)
+        if gatepos == "doublerow" then
+            if interconnectlinepos == "gate" then
+                return rownum % 2 == 1
+            else
+                return rownum % 2 == 0
+            end
+        else -- gatepos ~= "doublerow"
+            if interconnectlinepos == "gate" then
+                return gatepos == "top"
+            else
+                return gatepos ~= "top"
+            end
+        end
+    end
+    local rowpaddings = {}
+    for row = 1, state.numrows do
+        local evenrow = row % 2 == 0
+
+        -- interconnect lines occupation
+        local devices = activepattern[1]
+        local sourcelines
+        if _P.usesourcestraps then
+            sourcelines = 0
+        else
+            sourcelines = #util.uniq(util.foreach(devices, state._map_device_index_to_source))
+        end
+        local drainlines = #util.uniq(util.foreach(devices, state._map_device_index_to_drain))
+        interconnectline_space_occupation =
+            (sourcelines + drainlines) * (_P.interconnectlinespace + _P.interconnectlinewidth)
+            - _P.interconnectlinespace
+
+        -- gate strap occupation
+        local gatestrap_space_occupation = _P.gatestrapspace + _P.gatestrapwidth
+
+        -- source strap occupation
+        local sourcestrap_space_occupation = 0
+        if _P.usesourcestraps then
+            sourcestrap_space_occupation = _P.sourcedrainstrapwidth + _P.sourcedrainstrapspace
+        end
+
+        -- gate lines occupation
+        local gateline_space_occupation = 0
+        if _P.gatepos == "doublerow" then
+            if evenrow then -- gate line row shifts only apply to even rows
+                local doublerowdevices = util.merge_tables(activepattern[row - 1], activepattern[row])
+                local numgates = #util.uniq(util.foreach(doublerowdevices, state._map_device_index_to_gate))
+                gateline_space_occupation = numgates * _P.gatelinewidth + (numgates - 1) * _P.gatelinespace
+            end
+        else -- _P.gatepos ~= "doublerow"
+            local numgates = #util.uniq(util.foreach(activepattern[row], state._map_device_index_to_gate))
+            gateline_space_occupation = numgates * (_P.gatelinespace + _P.gatelinewidth)
+            if _P.gatestrapsincenter then
+                if gatestrap_space_occupation > gateline_space_occupation then
+                    gateline_space_occupation = 0
+                else
+                    gatestrap_space_occupation = 0
+                end
+            end
+        end
+
+        -- fill rowpadding table with calculated values, depending on position
+        rowpadding = { top = {}, bottom = {} }
+
+        -- interconnect lines
+        if _iclines_top(row, _P.interconnectlinepos, _P.gatepos) then
+            rowpadding.top.interconnectlines = interconnectline_space_occupation
+            rowpadding.bottom.interconnectlines = 0
+        else
+            rowpadding.top.interconnectlines = 0
+            rowpadding.bottom.interconnectlines = interconnectline_space_occupation
+        end
+
+        -- gate straps
+        if _P.gatepos == "doublerow" then
+            if evenrow then
+                rowpadding.top.gatestraps = 0
+                rowpadding.bottom.gatestraps = gatestrap_space_occupation
+            else
+                rowpadding.top.gatestraps = gatestrap_space_occupation
+                rowpadding.bottom.gatestraps = 0
+            end
+        else
+            if _P.gatepos == "top" then
+                rowpadding.top.gatestraps = gatestrap_space_occupation
+                rowpadding.bottom.gatestraps = 0
+            else
+                rowpadding.top.gatestraps = 0
+                rowpadding.bottom.gatestraps = gatestrap_space_occupation
+            end
+        end
+
+        -- gate lines
+        rowpadding.top.gatelines = gateline_space_occupation
+        rowpadding.bottom.gatelines = gateline_space_occupation
+
+        -- source straps
+        if _P.gatepos == "doublerow" then
+            if (not evenrow and not _P.sourcestrapsinside) then
+                --rowpadding.top.sourcestrap = sourcestrap_space_occupation
+                --rowpadding.bottom.sourcestrap = sourcestrap_space_occupation
+            elseif (evenrow and _P.sourcestrapsinside) then
+                --rowpadding.top.sourcestrap = sourcestrap_space_occupation
+                --rowpadding.bottom.sourcestrap = sourcestrap_space_occupation
+            end
+        end
+
+        rowpaddings[row] = rowpadding
+    end
+
     -- calculate required minimum row space for every row
-    -- every row gets their own source/drain lines, gate lines are shared between two rows ('doublerow')
-    -- as gate lines are shared, they are referenced to the lower row, so all odd rows
+    --   * every row gets their own source/drain lines
+    --   * gate lines are shared between two rows (gatepos == 'doublerow') or
+    --     every row gets their own gate lines (gatepos == 'top' or 'bottom')
+    --   * if gate lines are shared, they are referenced to the lower row, so all odd rows
     local rowshifts = {}
     rowshifts[1] = 0
     for row = 2, state.numrows do -- skip first row, no shift needed
