@@ -9,7 +9,7 @@ function info()
         "The local nets (source/drain/gate) are distributed in rows via so-called gate/interconnect lines and the connected between rows by global/output lines.",
         "The device pattern is given with numeric indices starting at one, so a typical differential pair could be represented by { { 1, 2 }, { 2, 1 } }, where every inner table represents one row.",
         "The property of every device can then be controlled via cell parameters such as gatelength, fingerwidth etc.",
-        "The inner nets can also be shorted together, when for instance one of the devices is in a diode-connected configuration, or when several sources are connected together. These connections are controlled via 'sourceconnections' and 'connectgatetosourcedrain'.",
+        "The inner nets can also be shorted together, if for instance one of the devices is in a diode-connected configuration, or if several sources are connected together. These connections are controlled via 'sourceconnections' and 'connectgatetosourcedrain'.",
         "A typical cell configuration could look like this:",
         "{",
         "    pattern = {",
@@ -471,7 +471,7 @@ function check(_P, state)
         return false, "'equaldrainnets' and 'usedrainconnections' must not be true at the same time"
     end
 
-    -- check that (when 'usesourceconnections' is used):
+    -- check that (if 'usesourceconnections' is used):
     -- * all devices are present
     -- * no device is present more than once
     if _P.usesourceconnections then
@@ -479,19 +479,19 @@ function check(_P, state)
         for _, entry in ipairs(_P.sourceconnections) do
             for _, index in ipairs(entry) do
                 if connected_devices[index] then
-                    return false, string.format("when source connections are used, no device must be present more than once. Spurious device: %d", index)
+                    return false, string.format("if source connections are used, no device must be present more than once. Spurious device: %d", index)
                 end
                 connected_devices[index] = true
             end
         end
         for index = 1, state.numdevices do
             if not connected_devices[index] then
-                return false, string.format("when source connections are used, all devices must be present. Missing device: %d", index)
+                return false, string.format("if source connections are used, all devices must be present. Missing device: %d", index)
             end
         end
     end
 
-    -- check that (when 'usedrainconnections' is used):
+    -- check that (if 'usedrainconnections' is used):
     -- * all devices are present
     -- * no device is present more than once
     if _P.usedrainconnections then
@@ -499,14 +499,14 @@ function check(_P, state)
         for _, entry in ipairs(_P.drainconnections) do
             for _, index in ipairs(entry) do
                 if connected_devices[index] then
-                    return false, string.format("when drain connections are used, no device must be present more than once. Spurious device: %d", index)
+                    return false, string.format("if drain connections are used, no device must be present more than once. Spurious device: %d", index)
                 end
                 connected_devices[index] = true
             end
         end
         for index = 1, state.numdevices do
             if not connected_devices[index] then
-                return false, string.format("when drain connections are used, all devices must be present. Missing device: %d", index)
+                return false, string.format("if drain connections are used, all devices must be present. Missing device: %d", index)
             end
         end
     end
@@ -532,7 +532,7 @@ function check(_P, state)
 
     -- check shorted gates (not possible with multiple gate nets)
     if _P.shortgates and #nets.gate > 1 then
-        return false, "gates can not be shorted ('shortgates' == true) when not all gate nets equal"
+        return false, "gates can not be shorted ('shortgates' == true) if not all gate nets equal"
     end
 
     -- check for unspecified gate connections
@@ -547,7 +547,7 @@ function check(_P, state)
                 end
             end
             if not found then
-                return false, string.format("when gate connections are used, every gate connection must be specified. Missing gate connection: %d", i)
+                return false, string.format("if gate connections are used, every gate connection must be specified. Missing gate connection: %d", i)
             end
         end
     end
@@ -564,7 +564,7 @@ function check(_P, state)
                 end
             end
             if not found then
-                return false, string.format("when source connections are used, every source connection must be specified. Missing source connection: %d", i)
+                return false, string.format("if source connections are used, every source connection must be specified. Missing source connection: %d", i)
             end
         end
     end
@@ -581,7 +581,7 @@ function check(_P, state)
                 end
             end
             if not found then
-                return false, string.format("when drain connections are used, every drain connection must be specified. Missing drain connection: %d", i)
+                return false, string.format("if drain connections are used, every drain connection must be specified. Missing drain connection: %d", i)
             end
         end
     end
@@ -599,19 +599,19 @@ function check(_P, state)
         return false, "if gates are connected on both sides, dummy gates must be connected to the active gates"
     end
 
-    -- check number of gate nets when gate straps are in center
+    -- check number of gate nets if gate straps are in center
     if _P.gatestrapsincenter and #nets.gate > 1 then
-        return false, "gate straps can not be placed in the center when there is more than one gate net"
+        return false, "gate straps can not be placed in the center if there is more than one gate net"
     end
 
-    -- check gate position when gate straps are in center
+    -- check gate position if gate straps are in center
     if _P.gatestrapsincenter and _P.gatepos ~= "doublerow" then
-        return false, "gate straps can not be placed in the center when the gate placement is not 'doublerow'."
+        return false, "gate straps can not be placed in the center if the gate placement is not 'doublerow'."
     end
 
     -- check shorts between gates and inner guardrings
     if _P.gatestrapsincenter and _P.drawinnerguardrings then
-        return false, "gate straps can not be placed in the center when inner guard rings are present"
+        return false, "gate straps can not be placed in the center if inner guard rings are present"
     end
 
     -- check for gate line shorts
@@ -644,14 +644,14 @@ function check(_P, state)
         return false, "if guard rings are present, interconnection lines can not be on metal 1 (interconnectmetal)"
     end
 
-    -- check for presence of inner/outer guardring when global guardring lines are used
+    -- check for presence of inner/outer guardring if global guardring lines are used
     if _P.insertglobalguardringlines and not (_P.drawinnerguardrings or _P.drawouterguardring) then
-        return false, "global guardring lines can only be inserted when an outer guardring is present"
+        return false, "global guardring lines can only be inserted if an outer guardring is present"
     end
 
     -- check for shorts between source and drain
     if _P.interconnectlinepos == "offside" and _P.usesourcestraps and not _P.sourcestrapsinside and _P.sourcemetal == _P.drainmetal then
-        return false, "if interconnectlines are positioned 'offside' and source straps are used, the drain and source connections can not be on the same metal"
+        return false, "if interconnectlines are positioned 'offside' and source straps are used (with 'not _P.sourcestrapsinside'), the drain and source connections can not be on the same metal"
     end
 
     -- check for shorts between gate and source
@@ -686,7 +686,7 @@ function check(_P, state)
 
     if #_P.connectgatetosourcedrain ~= 0 then
         if _P.equalgatenets and #_P.connectgatetosourcedrain ~= 1 then
-            return false, string.format("if gates are connected to source/drain nets, not more than one net shall be specified when equalgatenets == true (given nets: '%s')", table.concat(_P.connectgatetosourcedrain, ", "))
+            return false, string.format("if gates are connected to source/drain nets, not more than one net shall be specified if equalgatenets == true (given nets: '%s')", table.concat(_P.connectgatetosourcedrain, ", "))
         end
         -- FIXME: check if connected nets exist
     end
@@ -708,7 +708,7 @@ function check(_P, state)
     if _P.usesourcestraps then
         local numsources = #util.uniq(util.foreach(util.range(1, state.numdevices), state._map_device_index_to_source))
         if numsources > 1 then
-            return false, "when source straps with non-equal source nets are used, the sources can't reliably be connected by output lines. Use source interconnect lines"
+            return false, "if source straps with non-equal source nets are used, the sources can't reliably be connected by output lines. Use source interconnect lines"
         end
     end
 
@@ -720,13 +720,13 @@ function check(_P, state)
             for _, net in ipairs(nets[pin]) do
                 if not util.any_of(net, pnets) then
                     if pin ~= "gate" or #state.pattern > 2 then
-                        return false, string.format("when global line nets are specified manually ('usegloballines'), all required nets must be present in 'globallines'. Missing net: '%s%d'", pin, net)
+                        return false, string.format("if global line nets are specified manually ('usegloballines'), all required nets must be present in 'globallines'. Missing net: '%s%d'", pin, net)
                     end
                 end
             end
             for _, net in ipairs(pnets) do
                 if not util.any_of(net, nets[pin]) then
-                    return false, string.format("when global line nets are specified manually ('usegloballines'), only the required nets must be present in 'globallines'. Specified unknown net net: '%s%d'", pin, net)
+                    return false, string.format("if global line nets are specified manually ('usegloballines'), only the required nets must be present in 'globallines'. Specified unknown net net: '%s%d'", pin, net)
                 end
             end
         end
