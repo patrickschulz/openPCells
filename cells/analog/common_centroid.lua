@@ -1009,6 +1009,43 @@ function layout(cell, _P, _env, state)
             end
         end
 
+        --[[
+        local rpb1 = rowpaddings[row - 1].bottom
+        local rpt1 = rowpaddings[row - 1].top
+        local rpb2 = rowpaddings[row].bottom
+        local rpt2 = rowpaddings[row].top
+
+        local extraspace = 0
+
+        -- source straps
+        local sourcestrap_space_occupation = 0
+
+        -- gate straps
+        local gatestrap_space_occupation = rpb2.gatestraps + rpt1.gatestraps
+        -- space between gate straps of different rows
+        if (rpb2.gatestraps > 0) and (rpt1.gatestraps > 0) then
+            extraspace = extraspace + _P.interconnectlinespace
+        end
+
+        -- gate lines
+        local gateline_space_occupation = 0
+
+        -- interconnect lines
+        local interconnectline_space_occupation = rpb2.interconnectlines + rpt1.interconnectlines
+        -- space to mosfet of first set
+        if rpt1.interconnectlines > 0 then
+            extraspace = extraspace + _P.interconnectlinespace
+        end
+        -- space to mosfet of second set
+        if rpb2.interconnectlines > 0 then
+            extraspace = extraspace + _P.interconnectlinespace
+        end
+        -- space between line sets
+        if (rpb2.interconnectlines > 0) and (rpt1.interconnectlines > 0) then
+            extraspace = extraspace + _P.interconnectlinespace
+        end
+        --]]
+
         rowshifts[row] =
             sourcestrap_space_occupation +
             gatestrap_space_occupation +
