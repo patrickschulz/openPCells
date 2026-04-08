@@ -439,7 +439,7 @@ int main(int argc, const char* const * argv)
     // layout viewer
     if(cmdoptions_was_provided_long(cmdoptions, "viewer"))
     {
-        system("xdg-open" " " OPC_DOC_PATH "/tools/layout_viewer.html");
+        system("xdg-open" " " OPC_TOOLS_PATH "/tools/layout_viewer.html");
         goto DESTROY_CONFIG;
     }
 
