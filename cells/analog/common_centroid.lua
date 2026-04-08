@@ -188,6 +188,12 @@ function parameters()
 end
 
 function process_parameters(_P)
+    if _P.drawinnerguardrings then
+        _P.gatemetal = math.max(_P.gatemetal, 2)
+        _P.sourcemetal = math.max(_P.sourcemetal, 2)
+        _P.drainmetal = math.max(_P.drainmetal, 2)
+        _P.interconnectmetal = math.max(_P.interconnectmetal, math.max(_P.drainmetal, _P.sourcemetal) + 1)
+    end
     -- calculate minimum row shift (needed if no interconnect lines are drawn between rows)
     _P.minimum_row_shift = math.max(
         technology.get_optional_dimension("Minimum Active Space", 0),
