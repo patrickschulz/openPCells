@@ -1510,7 +1510,7 @@ function layout(cell, _P, _env, state)
                             numsourcelines = 0
                         end
                         local numdrainlines = #util.uniq(util.foreach(devindices, state._map_device_index_to_drain))
-                        local yshift_sourcedrainline = 
+                        local yshift_sourcedrainline =
                             (numsourcelines + numdrainlines) * _P.interconnectlinewidth +
                             (numsourcelines + numdrainlines + 1) * _P.interconnectlinespace
                         yshift = math.max(yshift_gatestrap, yshift_sourcedrainline)
