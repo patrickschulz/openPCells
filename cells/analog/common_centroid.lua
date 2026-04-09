@@ -3,6 +3,7 @@
 --   * make interconnectline merging possible
 --   * add automatic common-centroid placement from device list
 --   * add support for net names (e.g. 'biasp' instead of 'drain2')
+--   * add support for mosfet-pitch-matched output lines
 function info()
     local lines = {
         "This cell implements a common-centroid array of several MOSFET devices.",
