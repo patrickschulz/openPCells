@@ -1328,8 +1328,8 @@ function layout(cell, _P, _env, state)
 
     -- outer row interconnectlines space occupation, needed for guardring separation calculation
     -- not needed for shifting rows (ignored by stacked_mosfet_array anyway), but for calculating guardring y hole extension
-    local firstrowinterconnectline_space_occupation = 0
-    local lastrowinterconnectline_space_occupation = 0
+    local firstrow_padding = 0
+    local lastrow_padding = 0
     do
         local firstrowdevices = activepattern[1]
         local numsourcelines
@@ -1342,7 +1342,7 @@ function layout(cell, _P, _env, state)
         local numlines = numsourcelines + numdrainlines
         local interconnectline_space_occupation = 0 -- no space correction here (as opposed to other odd rows)
             + (numlines + 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
-        firstrowinterconnectline_space_occupation = interconnectline_space_occupation
+        firstrow_padding = interconnectline_space_occupation
     end
     do
         local lastrowdevices = activepattern[state.numrows]
@@ -1356,7 +1356,7 @@ function layout(cell, _P, _env, state)
         local numlines = numsourcelines + numdrainlines
         local interconnectline_space_occupation = 0 -- no space correction here (as opposed to other odd rows)
             + (numlines + 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
-        lastrowinterconnectline_space_occupation = interconnectline_space_occupation
+        lastrow_padding = interconnectline_space_occupation
     end
 
     -- outer guardring
@@ -1376,8 +1376,8 @@ function layout(cell, _P, _env, state)
         local outerguardringysep
         local outerguardringyshift
         if _P.interconnectlinepos == "offside" then
-            outerguardringysep = math.max(2 * _P.guardringminysep, firstrowinterconnectline_space_occupation + lastrowinterconnectline_space_occupation)
-            outerguardringyshift = 0.5 * (lastrowinterconnectline_space_occupation - firstrowinterconnectline_space_occupation)
+            outerguardringysep = math.max(2 * _P.guardringminysep, firstrow_padding + lastrow_padding)
+            outerguardringyshift = 0.5 * (lastrow_padding - firstrow_padding)
         else
             outerguardringysep = 2 * _P.guardringminysep
             outerguardringyshift = 0
