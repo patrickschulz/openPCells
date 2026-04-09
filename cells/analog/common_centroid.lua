@@ -181,6 +181,7 @@ function parameters()
         { "gatelines_label_sizehint", technology.get_optional_dimension("Default Label Size", 0), follow = "lines_label_sizehint" },
         { "interconnectlines_label_sizehint", technology.get_optional_dimension("Default Label Size", 0), follow = "lines_label_sizehint" },
         { "globallines_label_sizehint", technology.get_optional_dimension("Default Label Size", 0), follow = "lines_label_sizehint" },
+        { "labelsincenter", true },
         { "instancename", nil },
         { "instancenameincenter", true },
         { "instancelabelsizehint", technology.get_optional_dimension("Default Label Size", 0) },
@@ -2376,16 +2377,31 @@ function layout(cell, _P, _env, state)
     if _P.annotate_gatelines then
         for _, line in ipairs(gatelines) do
             local anchor = string.format("gateline_%d_%d", line.rownum, line.index)
+            local y
+            if _P.labelsincenter then
+                y = 0.5 * (
+                    cell:get_area_anchor_fmt(anchor).b +
+                    cell:get_area_anchor_fmt(anchor).t
+                )
+            else
+                y = cell:get_area_anchor_fmt(anchor).b
+            end
             cell:add_label(
                 string.format("gate%d", line.index),
                 generics.metal(_P.gatelinemetal),
-                cell:get_area_anchor_fmt(anchor).br,
+                point.create(
+                    cell:get_area_anchor_fmt(anchor).l,
+                    y
+                ),
                 _P.gatelines_label_sizehint
             )
             cell:add_label(
                 string.format("gate%d", line.index),
                 generics.metal(_P.gatelinemetal),
-                cell:get_area_anchor_fmt(anchor).bl,
+                point.create(
+                    cell:get_area_anchor_fmt(anchor).r,
+                    y
+                ),
                 _P.gatelines_label_sizehint
             )
         end
@@ -2395,16 +2411,31 @@ function layout(cell, _P, _env, state)
     if _P.annotate_interconnectlines then
         for _, line in ipairs(interconnectlines) do
             local anchor = string.format("interconnectline_%d_%s", line.rownum, line.net)
+            local y
+            if _P.labelsincenter then
+                y = 0.5 * (
+                    cell:get_area_anchor_fmt(anchor).b +
+                    cell:get_area_anchor_fmt(anchor).t
+                )
+            else
+                y = cell:get_area_anchor_fmt(anchor).b
+            end
             cell:add_label(
                 string.format("%s", line.net),
                 generics.metal(_P.interconnectmetal),
-                cell:get_area_anchor_fmt(anchor).br,
+                point.create(
+                    cell:get_area_anchor_fmt(anchor).l,
+                    y
+                ),
                 _P.interconnectlines_label_sizehint
             )
             cell:add_label(
                 string.format("%s", line.net),
                 generics.metal(_P.interconnectmetal),
-                cell:get_area_anchor_fmt(anchor).bl,
+                point.create(
+                    cell:get_area_anchor_fmt(anchor).r,
+                    y
+                ),
                 _P.interconnectlines_label_sizehint
             )
         end
@@ -2419,16 +2450,31 @@ function layout(cell, _P, _env, state)
             else
                 anchor = string.format("outputconnectline_%s%d", line.base, line.device)
             end
+            local x
+            if _P.labelsincenter then
+                x = 0.5 * (
+                    cell:get_area_anchor_fmt(anchor).l +
+                    cell:get_area_anchor_fmt(anchor).r
+                )
+            else
+                x = cell:get_area_anchor_fmt(anchor).l
+            end
             cell:add_label(
                 string.format("%s%d", line.base, line.device),
                 generics.metal(_P.interconnectmetal + 1),
-                cell:get_area_anchor_fmt(anchor).tl,
+                point.create(
+                    x,
+                    cell:get_area_anchor_fmt(anchor).b
+                ),
                 _P.globallines_label_sizehint
             )
             cell:add_label(
                 string.format("%s%d", line.base, line.device),
                 generics.metal(_P.interconnectmetal + 1),
-                cell:get_area_anchor_fmt(anchor).bl,
+                point.create(
+                    x,
+                    cell:get_area_anchor_fmt(anchor).t
+                ),
                 _P.globallines_label_sizehint
             )
         end
