@@ -81,7 +81,7 @@ local function _check_follower_cycle(followers)
     return true
 end
 
-function parammeta.add(self, name, value, argtype, posvals, info, follow, readonly)
+function parammeta.add(self, name, value, argtype, posvals, info, follow, readonly, explicit)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
     if not pname then pname = name end -- no display name
     if _has_parameter(self, pname) then
@@ -95,6 +95,7 @@ function parammeta.add(self, name, value, argtype, posvals, info, follow, readon
         posvals   = posvals,
         info      = info,
         readonly  = not not readonly,
+        explicit  = not not explicit,
     }
     table.insert(self.values, new)
     if follow then
@@ -206,9 +207,9 @@ local function _get_cell(state, cellname, nocallparams)
     return rawget(state.loadedcells, cellname)
 end
 
-local function _add_parameter_internal(cell, name, value, argtype, posvals, info, follow, readonly)
+local function _add_parameter_internal(cell, name, value, argtype, posvals, info, follow, readonly, explicit)
     argtype = argtype or type(value)
-    cell.parameters:add(name, value, argtype, posvals, info, follow, readonly)
+    cell.parameters:add(name, value, argtype, posvals, info, follow, readonly, explicit)
 end
 
 local function _inherit_parameters(state, cellname, othercellname, excludelist)
@@ -270,7 +271,14 @@ local function _get_parameters(state, cellname, cellargs)
         end
     end
 
-    -- (3) handle followers
+    -- (3) check that explicit parameters are given
+    for _, entry in ipairs(cellparams) do
+        if entry.explicit and not explicit[entry.name] then
+            error(string.format("the parameter '%s' of cell '%s' needs to be set explicitly", entry.name, cellname))
+        end
+    end
+
+    -- (4) handle followers
     -- copy table as it is modified
     local followers = aux.clone_shallow(cell.parameters:get_followers())
     local ordered = {}
@@ -295,7 +303,7 @@ local function _get_parameters(state, cellname, cellargs)
         end
     end
 
-    -- (4) run process_parameters() function (if available)
+    -- (5) run process_parameters() function (if available)
     if cell.funcs.process_parameters then
         -- copy parameter table to prevent overwriting of explicitly-defined parameters
         local t = {}
@@ -313,7 +321,7 @@ local function _get_parameters(state, cellname, cellargs)
         end
     end
 
-    -- (5) run parameter checks
+    -- (6) run parameter checks
     for _, entry in ipairs(cellparams) do
         paramlib.check_constraints(entry, rawget(P, entry.name))
     end
@@ -332,7 +340,7 @@ local function _check_parameter(parameter)
     end
     for k in pairs(parameter) do
         if not ((k == 1) or (k == 2)) then -- skip name and value
-            if not util.any_of(k, { "argtype", "posvals", "info", "follow", "readonly" }) then
+            if not util.any_of(k, { "argtype", "posvals", "info", "follow", "readonly", "explicit" }) then
                 error(string.format("parameter check: parameter definition has extra unknown key: '%s'", k))
             end
         end
@@ -360,7 +368,8 @@ local function _add_parameters(state, cellname, ...)
         _add_parameter_internal(
             cell,
             name, value,
-            parameter.argtype, parameter.posvals, parameter.info, parameter.follow, parameter.readonly
+            parameter.argtype, parameter.posvals, parameter.info, parameter.follow,
+            parameter.readonly, parameter.explicit
         )
     end
 end
