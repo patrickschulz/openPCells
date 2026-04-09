@@ -871,15 +871,34 @@ function layout(cell, _P, _env, state)
         rowpadding.bottom.gatelines = gateline_space_occupation
 
         -- source straps
+        -- FIXME: this is old and unchecked
         if _P.gatepos == "doublerow" then
             if (not evenrow and not _P.sourcestrapsinside) then
-                --rowpadding.top.sourcestrap = sourcestrap_space_occupation
-                --rowpadding.bottom.sourcestrap = sourcestrap_space_occupation
+                rowpadding.top.sourcestrap = sourcestrap_space_occupation
+                rowpadding.bottom.sourcestrap = 0
             elseif (evenrow and _P.sourcestrapsinside) then
-                --rowpadding.top.sourcestrap = sourcestrap_space_occupation
-                --rowpadding.bottom.sourcestrap = sourcestrap_space_occupation
+                rowpadding.top.sourcestrap = 0
+                rowpadding.bottom.sourcestrap = sourcestrap_space_occupation
+            else
+                rowpadding.top.sourcestrap = 0
+                rowpadding.bottom.sourcestrap = 0
             end
+        else
+            rowpadding.top.sourcestrap = 0
+            rowpadding.bottom.sourcestrap = 0
         end
+
+        -- meta-all property
+        rowpadding.top.all =
+            rowpadding.top.gatestraps +
+            rowpadding.top.gatelines +
+            rowpadding.top.sourcestrap +
+            rowpadding.top.interconnectlines
+        rowpadding.bottom.all =
+            rowpadding.bottom.gatestraps +
+            rowpadding.bottom.gatelines +
+            rowpadding.bottom.sourcestrap +
+            rowpadding.bottom.interconnectlines
 
         rowpaddings[row] = rowpadding
     end
