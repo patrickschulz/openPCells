@@ -37,7 +37,7 @@ end
 
 function parameters()
     pcell.add_parameters(
-        { "pattern", { { 1, 2, 1 }, { 2, 1, 2 } }, info = "pattern specification of the common centroid array. For every row a table should be specified, individual devices are indicated by a numeric index, starting at 1. These indices later also correspond to the net numbers (e.g. device 2 -> gate2/source2/drain2). The indices must be consecutive, for instance { { 1, 2, 4 } } is not allowed. Dummy/filler devices can be specified by '0', these devices are controlled via the '*dummy*' parameters." },
+        { "pattern", { { 1, 2, 1 }, { 2, 1, 2 } }, explicit = true, info = "pattern specification of the common centroid array. For every row a table should be specified, individual devices are indicated by a numeric index, starting at 1. These indices later also correspond to the net numbers (e.g. device 2 -> gate2/source2/drain2). The indices must be consecutive, for instance { { 1, 2, 4 } } is not allowed. Dummy/filler devices can be specified by '0', these devices are controlled via the '*dummy*' parameters." },
         { "minimum_row_shift", 0, info = "Minimum row shift between device rows (active-to-active spacing) where no other spacing constraints are present. In the default settings this does not happen, but with the 'gate' interconnect lines placement method for instance there are no metal lines between odd-even rows. This value is set to accomodate minimum spacing requirements between gates and active regions, but can be modified with this parameter." },
         { "channeltype", "nmos", posvals = set("nmos", "pmos"), info = "Channel type of the array devices ('nmos' or 'pmos')." },
         { "implantalignwithactive", false, info = "Change the reference points for the distance parameters for the implant type layer. See the parameter for basic/mosfet for more information." },
@@ -157,6 +157,7 @@ function parameters()
         { "guardringwidth", technology.get_dimension("Minimum Active Contact Region Size") },
         { "guardringminxsep", technology.get_dimension_max("Minimum Active Space", "Minimum M1 Space") },
         { "guardringminysep", technology.get_dimension_max("Minimum Active Space", "Minimum M1 Space") },
+        { "guardringextrametalspace", technology.get_dimension("Minimum M1 Space") },
         { "guardringfillimplant", true },
         { "guardringfillwell", true },
         { "guardringdrawoxidetype", true },
@@ -219,6 +220,7 @@ function process_parameters(_P)
     _P.drainoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     _P.guardringoutputlinewidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
     _P.sourcedrainstrapwidth = technology.get_dimension(string.format("Minimum M%dM%d Viawidth", _P.interconnectmetal, _P.interconnectmetal + 1))
+    _P.guardringextrametalspace = technology.get_dimension(string.format("Minimum M%d Space", _P.interconnectmetal))
     if _P.insertglobalguardringlines and _P.connectguardringtogloballines then
         _P.guardringwidth = technology.get_dimension_max(
             "Minimum Active Contact Region Size",
@@ -771,196 +773,88 @@ end
 function layout(cell, _P, _env, state)
     local activepattern = state.activepattern
 
-    -- calculate minimum space requirements for every row
-    -- from this, the required rowshifts can be calculated in a subsequent step
-    -- FIXME: this next code block is currently not used
-    local function _iclines_top(rownum, interconnectlinepos, gatepos)
-        if gatepos == "doublerow" then
-            if interconnectlinepos == "gate" then
-                return rownum % 2 == 1
-            else
-                return rownum % 2 == 0
-            end
-        else -- gatepos ~= "doublerow"
-            if interconnectlinepos == "gate" then
-                return gatepos == "top"
-            else
-                return gatepos ~= "top"
-            end
-        end
-    end
-    local rowpaddings = {}
-    for row = 1, state.numrows do
-        local evenrow = row % 2 == 0
-
-        -- interconnect lines occupation
-        local devices = activepattern[1]
-        local sourcelines
-        if _P.usesourcestraps then
-            sourcelines = 0
-        else
-            sourcelines = #util.uniq(util.foreach(devices, state._map_device_index_to_source))
-        end
-        local drainlines = #util.uniq(util.foreach(devices, state._map_device_index_to_drain))
-        interconnectline_space_occupation =
-            (sourcelines + drainlines) * (_P.interconnectlinespace + _P.interconnectlinewidth)
-            - _P.interconnectlinespace
-
-        -- gate strap occupation
-        local gatestrap_space_occupation = _P.gatestrapspace + _P.gatestrapwidth
-
-        -- source strap occupation
-        local sourcestrap_space_occupation = 0
-        if _P.usesourcestraps then
-            sourcestrap_space_occupation = _P.sourcedrainstrapwidth + _P.sourcedrainstrapspace
-        end
-
-        -- gate lines occupation
-        local gateline_space_occupation = 0
-        if _P.gatepos == "doublerow" then
-            if evenrow then -- gate line row shifts only apply to even rows
-                local doublerowdevices = util.merge_tables(activepattern[row - 1], activepattern[row])
-                local numgates = #util.uniq(util.foreach(doublerowdevices, state._map_device_index_to_gate))
-                gateline_space_occupation = numgates * _P.gatelinewidth + (numgates - 1) * _P.gatelinespace
-            end
-        else -- _P.gatepos ~= "doublerow"
-            local numgates = #util.uniq(util.foreach(activepattern[row], state._map_device_index_to_gate))
-            gateline_space_occupation = numgates * (_P.gatelinespace + _P.gatelinewidth)
-            if _P.gatestrapsincenter then
-                if gatestrap_space_occupation > gateline_space_occupation then
-                    gateline_space_occupation = 0
-                else
-                    gatestrap_space_occupation = 0
-                end
-            end
-        end
-
-        -- fill rowpadding table with calculated values, depending on position
-        rowpadding = { top = {}, bottom = {} }
-
-        -- interconnect lines
-        if _iclines_top(row, _P.interconnectlinepos, _P.gatepos) then
-            rowpadding.top.interconnectlines = interconnectline_space_occupation
-            rowpadding.bottom.interconnectlines = 0
-        else
-            rowpadding.top.interconnectlines = 0
-            rowpadding.bottom.interconnectlines = interconnectline_space_occupation
-        end
-
-        -- gate straps
-        if _P.gatepos == "doublerow" then
-            if evenrow then
-                rowpadding.top.gatestraps = 0
-                rowpadding.bottom.gatestraps = gatestrap_space_occupation
-            else
-                rowpadding.top.gatestraps = gatestrap_space_occupation
-                rowpadding.bottom.gatestraps = 0
-            end
-        else
-            if _P.gatepos == "top" then
-                rowpadding.top.gatestraps = gatestrap_space_occupation
-                rowpadding.bottom.gatestraps = 0
-            else
-                rowpadding.top.gatestraps = 0
-                rowpadding.bottom.gatestraps = gatestrap_space_occupation
-            end
-        end
-
-        -- gate lines
-        rowpadding.top.gatelines = gateline_space_occupation
-        rowpadding.bottom.gatelines = gateline_space_occupation
-
-        -- source straps
-        -- FIXME: this is old and unchecked
-        if _P.gatepos == "doublerow" then
-            if (not evenrow and not _P.sourcestrapsinside) then
-                rowpadding.top.sourcestrap = sourcestrap_space_occupation
-                rowpadding.bottom.sourcestrap = 0
-            elseif (evenrow and _P.sourcestrapsinside) then
-                rowpadding.top.sourcestrap = 0
-                rowpadding.bottom.sourcestrap = sourcestrap_space_occupation
-            else
-                rowpadding.top.sourcestrap = 0
-                rowpadding.bottom.sourcestrap = 0
-            end
-        else
-            rowpadding.top.sourcestrap = 0
-            rowpadding.bottom.sourcestrap = 0
-        end
-
-        -- meta-all property
-        rowpadding.top.all =
-            rowpadding.top.gatestraps +
-            rowpadding.top.gatelines +
-            rowpadding.top.sourcestrap +
-            rowpadding.top.interconnectlines
-        rowpadding.bottom.all =
-            rowpadding.bottom.gatestraps +
-            rowpadding.bottom.gatelines +
-            rowpadding.bottom.sourcestrap +
-            rowpadding.bottom.interconnectlines
-
-        rowpaddings[row] = rowpadding
-    end
-
     -- calculate required minimum row space for every row
     --   * every row gets their own source/drain lines
     --   * gate lines are shared between two rows (gatepos == 'doublerow') or
     --     every row gets their own gate lines (gatepos == 'top' or 'bottom')
     --   * if gate lines are shared, they are referenced to the lower row, so all odd rows
-    local rowshifts = {}
-    rowshifts[1] = 0
-    for row = 2, state.numrows do -- skip first row, no shift needed
+    local rowspacings = {}
+    for row = 1, state.numrows + 1 do -- also calculate spacing below the first and above the last row
         local evenrow = row % 2 == 0
+        local firstrow = row == 1
+        local lastrow = row == state.numrows + 1
+        local innerrow = not (firstrow or lastrow)
 
         -- interconnect lines occupation
         local interconnectline_space_occupation = 0
         if _P.gatepos == "doublerow" then
-            if (evenrow and (_P.interconnectlinepos == "gate")) or
-               (not evenrow and (_P.interconnectlinepos == "offside")) then
-                local lowerrowdevices = activepattern[row - 1]
-                local numlowersourcelines
-                if _P.usesourcestraps then
-                    numlowersourcelines = 0
-                else
-                    numlowersourcelines = #util.uniq(util.foreach(lowerrowdevices, state._map_device_index_to_source))
+            if firstrow then
+                if _P.interconnectlinepos == "offside" then
+                    local rowdevices = activepattern[row]
+                    local numsourcelines
+                    if _P.usesourcestraps then
+                        numsourcelines = 0
+                    else
+                        numsourcelines = #util.uniq(util.foreach(rowdevices, state._map_device_index_to_source))
+                    end
+                    local numdrainlines = #util.uniq(util.foreach(rowdevices, state._map_device_index_to_drain))
+                    local numlines = numsourcelines + numdrainlines
+                    interconnectline_space_occupation = (numlines - 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
+               end
+            elseif lastrow then
+                if _P.interconnectlinepos == "offside" then
+                    local rowdevices = activepattern[row - 1]
+                    local numsourcelines
+                    if _P.usesourcestraps then
+                        numsourcelines = 0
+                    else
+                        numsourcelines = #util.uniq(util.foreach(rowdevices, state._map_device_index_to_source))
+                    end
+                    local numdrainlines = #util.uniq(util.foreach(rowdevices, state._map_device_index_to_drain))
+                    local numlines = numsourcelines + numdrainlines
+                    interconnectline_space_occupation = (numlines - 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
                 end
-                local numlowerdrainlines = #util.uniq(util.foreach(lowerrowdevices, state._map_device_index_to_drain))
-                local numlowerlines = numlowersourcelines + numlowerdrainlines
-                local upperrowdevices = activepattern[row]
-                local numuppersourcelines
-                if _P.usesourcestraps then
-                    numuppersourcelines = 0
-                else
-                    numuppersourcelines = #util.uniq(util.foreach(upperrowdevices, state._map_device_index_to_source))
+            else
+                if (evenrow and (_P.interconnectlinepos == "gate")) or
+                   (not evenrow and (_P.interconnectlinepos == "offside")) then
+                    local lowerrowdevices = activepattern[row - 1]
+                    local numlowersourcelines
+                    if _P.usesourcestraps then
+                        numlowersourcelines = 0
+                    else
+                        numlowersourcelines = #util.uniq(util.foreach(lowerrowdevices, state._map_device_index_to_source))
+                    end
+                    local numlowerdrainlines = #util.uniq(util.foreach(lowerrowdevices, state._map_device_index_to_drain))
+                    local numlowerlines = numlowersourcelines + numlowerdrainlines
+                    local upperrowdevices = activepattern[row]
+                    local numuppersourcelines
+                    if _P.usesourcestraps then
+                        numuppersourcelines = 0
+                    else
+                        numuppersourcelines = #util.uniq(util.foreach(upperrowdevices, state._map_device_index_to_source))
+                    end
+                    local numupperdrainlines = #util.uniq(util.foreach(upperrowdevices, state._map_device_index_to_drain))
+                    local numupperlines = numuppersourcelines + numupperdrainlines
+                    interconnectline_space_occupation = - 2 * _P.interconnectlinespace
+                        + numlowerlines * (_P.interconnectlinespace + _P.interconnectlinewidth)
+                        + numupperlines * (_P.interconnectlinespace + _P.interconnectlinewidth)
+                elseif not evenrow and (_P.interconnectlinepos ~= "offside") then
+                    -- FIXME
                 end
-                local numupperdrainlines = #util.uniq(util.foreach(upperrowdevices, state._map_device_index_to_drain))
-                local numupperlines = numuppersourcelines + numupperdrainlines
-                interconnectline_space_occupation = - 2 * _P.interconnectlinespace
-                    + numlowerlines * (_P.interconnectlinespace + _P.interconnectlinewidth)
-                    + numupperlines * (_P.interconnectlinespace + _P.interconnectlinewidth)
-            elseif not evenrow and (_P.interconnectlinepos ~= "offside") then
-                --if _P.usesourcestraps and not _P.sourcestrapsinside then
-                --    local numsourcenets = #util.uniq(util.foreach(util.range(1, state.numdevices), state._map_device_index_to_source))
-                --    -- FIXME: this checks across all rows, only check specific involved rows
-                --    if numsourcenets > 1 then
-                --        interconnectline_space_occupation = 2 * _P.sourcedrainstrapwidth + 3 * _P.sourcedrainstrapspace
-                --    else
-                --        interconnectline_space_occupation = _P.sourcedrainstrapwidth + 2 * _P.sourcedrainstrapspace
-                --    end
-                --end
             end
         else --_P.gatepos ~= "doublerow"
-            local rowdevices = activepattern[row]
-            local numsourcelines
-            if _P.usesourcestraps then
-                numsourcelines = 0
-            else
-                numsourcelines = #util.uniq(util.foreach(rowdevices, state._map_device_index_to_source))
+            if row <= state.numrows then
+                local rowdevices = activepattern[row]
+                local numsourcelines
+                if _P.usesourcestraps then
+                    numsourcelines = 0
+                else
+                    numsourcelines = #util.uniq(util.foreach(rowdevices, state._map_device_index_to_source))
+                end
+                local numdrainlines = #util.uniq(util.foreach(rowdevices, state._map_device_index_to_drain))
+                local numlines = numsourcelines + numdrainlines
+                interconnectline_space_occupation = (numlines - 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
             end
-            local numdrainlines = #util.uniq(util.foreach(rowdevices, state._map_device_index_to_drain))
-            local numlines = numsourcelines + numdrainlines
-            interconnectline_space_occupation = (numlines - 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
         end
 
         -- gate strap occupation
@@ -974,18 +868,36 @@ function layout(cell, _P, _env, state)
                 end
             end
         else -- _P.gatepos ~= "doublerow"
-            gatestrap_space_occupation = _P.gatestrapspace + _P.gatestrapwidth
+            if firstrow then
+                if _P.gatepos == "bottom" then
+                    gatestrap_space_occupation = _P.gatestrapspace + _P.gatestrapwidth
+                end
+            elseif lastrow then
+                if _P.gatepos == "top" then
+                    gatestrap_space_occupation = _P.gatestrapspace + _P.gatestrapwidth
+                end
+            else
+                gatestrap_space_occupation = _P.gatestrapspace + _P.gatestrapwidth
+            end
         end
 
         -- source strap occupation
         local sourcestrap_space_occupation = 0
         if _P.usesourcestraps then
             if _P.gatepos == "doublerow" then
-                if (not evenrow and not _P.sourcestrapsinside) then
-                    sourcestrap_space_occupation = _P.sourcedrainstrapwidth + 2 * _P.sourcedrainstrapspace
-                elseif (evenrow and _P.sourcestrapsinside) then
-                    sourcestrap_space_occupation = 2 * (_P.sourcedrainstrapwidth + _P.sourcedrainstrapspace)
+                if firstrow or lastrow then
+                    if not _P.sourcestrapsinside then
+                        sourcestrap_space_occupation = _P.sourcedrainstrapwidth + _P.sourcedrainstrapspace
+                    end
+                else -- inner row
+                    if (not evenrow and not _P.sourcestrapsinside) then
+                        sourcestrap_space_occupation = _P.sourcedrainstrapwidth + 2 * _P.sourcedrainstrapspace
+                    elseif (evenrow and _P.sourcestrapsinside) then
+                        sourcestrap_space_occupation = 2 * (_P.sourcedrainstrapwidth + _P.sourcedrainstrapspace)
+                    end
                 end
+            else
+                -- FIXME
             end
         end
 
@@ -998,13 +910,27 @@ function layout(cell, _P, _env, state)
                 gateline_space_occupation = numgates * _P.gatelinewidth + (numgates - 1) * _P.gatelinespace
             end
         else -- _P.gatepos ~= "doublerow"
-            local numgates = #util.uniq(util.foreach(activepattern[row], state._map_device_index_to_gate))
-            gateline_space_occupation = numgates * (_P.gatelinespace + _P.gatelinewidth)
-            if _P.gatestrapsincenter then
-                if gatestrap_space_occupation > gateline_space_occupation then
-                    gateline_space_occupation = 0
-                else
-                    gatestrap_space_occupation = 0
+            local targetrow
+            if firstrow then
+                if _P.gatepos == "bottom" then
+                    targetrow = 1
+                end
+            elseif row ~= state.numrows + 1 then -- inner rows
+                targetrow = row
+            else -- last row
+                if _P.gatepos == "top" then
+                    targetrow = row - 1
+                end
+            end
+            if targetrow then
+                local numgates = #util.uniq(util.foreach(activepattern[targetrow], state._map_device_index_to_gate))
+                gateline_space_occupation = numgates * (_P.gatelinespace + _P.gatelinewidth)
+                if _P.gatestrapsincenter then
+                    if gatestrap_space_occupation > gateline_space_occupation then
+                        gateline_space_occupation = 0
+                    else
+                        gatestrap_space_occupation = 0
+                    end
                 end
             end
         end
@@ -1012,17 +938,23 @@ function layout(cell, _P, _env, state)
         -- add spacing between different lines
         local extraspace = 0
         if interconnectline_space_occupation > 0 then
-            extraspace = 2 * _P.interconnectlinespace
-            if _P.gatepos == "doublerow" then
-                if gateline_space_occupation > 0 then
-                    extraspace = extraspace + 2 * _P.interconnectlinespace
-                else
-                    extraspace = extraspace + _P.interconnectlinespace
+            if firstrow or lastrow then
+                extraspace = _P.interconnectlinespace
+            else
+                extraspace = 2 * _P.interconnectlinespace
+                if _P.gatepos == "doublerow" then
+                    if gateline_space_occupation > 0 then
+                        extraspace = extraspace + 2 * _P.interconnectlinespace
+                    else
+                        extraspace = extraspace + _P.interconnectlinespace
+                    end
                 end
             end
         end
         if (gatestrap_space_occupation > 0) and (gateline_space_occupation > 0) then
-            extraspace = extraspace + 2 * _P.gatelinespace
+            if innerrow then
+                extraspace = extraspace + 2 * _P.gatelinespace
+            end
         end
 
         -- gate straps and gate lines can overlap
@@ -1035,55 +967,24 @@ function layout(cell, _P, _env, state)
             end
         end
 
-        --[[
-        local rpb1 = rowpaddings[row - 1].bottom
-        local rpt1 = rowpaddings[row - 1].top
-        local rpb2 = rowpaddings[row].bottom
-        local rpt2 = rowpaddings[row].top
-
-        local extraspace = 0
-
-        -- source straps
-        local sourcestrap_space_occupation = 0
-
-        -- gate straps
-        local gatestrap_space_occupation = rpb2.gatestraps + rpt1.gatestraps
-        -- space between gate straps of different rows
-        if (rpb2.gatestraps > 0) and (rpt1.gatestraps > 0) then
-            extraspace = extraspace + _P.interconnectlinespace
-        end
-
-        -- gate lines
-        local gateline_space_occupation = 0
-
-        -- interconnect lines
-        local interconnectline_space_occupation = rpb2.interconnectlines + rpt1.interconnectlines
-        -- space to mosfet of first set
-        if rpt1.interconnectlines > 0 then
-            extraspace = extraspace + _P.interconnectlinespace
-        end
-        -- space to mosfet of second set
-        if rpb2.interconnectlines > 0 then
-            extraspace = extraspace + _P.interconnectlinespace
-        end
-        -- space between line sets
-        if (rpb2.interconnectlines > 0) and (rpt1.interconnectlines > 0) then
-            extraspace = extraspace + _P.interconnectlinespace
-        end
-        --]]
-
-        rowshifts[row] =
+        dprint(string.format("%-10d %-40s %8d", row, "sourcestrap_space_occupation", sourcestrap_space_occupation))
+        dprint(string.format("%-10d %-40s %8d", row, "gatestrap_space_occupation", gatestrap_space_occupation))
+        dprint(string.format("%-10d %-40s %8d", row, "gateline_space_occupation", gateline_space_occupation))
+        dprint(string.format("%-10d %-40s %8d", row, "interconnectline_space_occupation", interconnectline_space_occupation))
+        dprint(string.format("%-10d %-40s %8d", row, "extraspace", extraspace))
+        dprint()
+        rowspacings[row] =
             sourcestrap_space_occupation +
             gatestrap_space_occupation +
             gateline_space_occupation +
             interconnectline_space_occupation +
             extraspace
     end
+    -- copy row spacings to row shifts
     -- fix zero-shift rows
-    for row = 1, state.numrows do
-        if rowshifts[row] == 0 then
-            rowshifts[row] = _P.minimum_row_shift
-        end
+    local rowshifts = { 0 } -- first row shift is ignored
+    for row = 2, state.numrows do
+        rowshifts[row] = math.max(rowspacings[row], _P.minimum_row_shift)
     end
     -- apply maximum row shift to all rows (unless 'allow_unequal_rowshifts' is true)
     local maxrowshift = util.max(rowshifts)
@@ -1348,36 +1249,9 @@ function layout(cell, _P, _env, state)
 
     -- outer row interconnectlines space occupation, needed for guardring separation calculation
     -- not needed for shifting rows (ignored by stacked_mosfet_array anyway), but for calculating guardring y hole extension
-    local firstrow_padding = 0
-    local lastrow_padding = 0
-    do
-        local firstrowdevices = activepattern[1]
-        local numsourcelines
-        if _P.usesourcestraps then
-            numsourcelines = 0
-        else
-            numsourcelines = #util.uniq(util.foreach(firstrowdevices, state._map_device_index_to_source))
-        end
-        local numdrainlines = #util.uniq(util.foreach(firstrowdevices, state._map_device_index_to_drain))
-        local numlines = numsourcelines + numdrainlines
-        local interconnectline_space_occupation = 0 -- no space correction here (as opposed to other odd rows)
-            + (numlines + 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
-        firstrow_padding = interconnectline_space_occupation
-    end
-    do
-        local lastrowdevices = activepattern[state.numrows]
-        local numsourcelines
-        if _P.usesourcestraps then
-            numsourcelines = 0
-        else
-            numsourcelines = #util.uniq(util.foreach(lastrowdevices, state._map_device_index_to_source))
-        end
-        local numdrainlines = #util.uniq(util.foreach(lastrowdevices, state._map_device_index_to_drain))
-        local numlines = numsourcelines + numdrainlines
-        local interconnectline_space_occupation = 0 -- no space correction here (as opposed to other odd rows)
-            + (numlines + 1) * _P.interconnectlinespace + numlines * _P.interconnectlinewidth
-        lastrow_padding = interconnectline_space_occupation
-    end
+    local firstrow_padding = rowspacings[1]
+    local lastrow_padding = rowspacings[state.numrows + 1]
+    dprint(firstrow_padding, lastrow_padding)
 
     -- outer guardring
     local guardring -- needed later for connecting global lines
@@ -1392,21 +1266,34 @@ function layout(cell, _P, _env, state)
         local holewidth_gate = point.xdistance_abs(lowergateboundingbox.bl, lowergateboundingbox.tr)
         local holeheight_gate = point.ydistance_abs(lowergateboundingbox.bl, uppergateboundingbox.tr)
         local holewidth = math.max(holewidth_active, holewidth_gate)
-        local holeheight = math.max(holeheight_active, holeheight_gate)
+        local holeheight = holeheight_active
+        dprint("holeheight_active", holeheight_active)
         local outerguardringysep
         local outerguardringyshift
-        if _P.interconnectlinepos == "offside" then
-            outerguardringysep = math.max(2 * _P.guardringminysep, firstrow_padding + lastrow_padding)
-            outerguardringyshift = 0.5 * (lastrow_padding - firstrow_padding)
-        else
+        if 2 * _P.guardringminysep > firstrow_padding + lastrow_padding + 2 * _P.guardringextrametalspace then
             outerguardringysep = 2 * _P.guardringminysep
             outerguardringyshift = 0
+        else
+            outerguardringysep = firstrow_padding + lastrow_padding + 2 * _P.guardringextrametalspace
+            outerguardringyshift = 0.5 * (lastrow_padding - firstrow_padding)
+        end
+        holeheight = holeheight_active + outerguardringysep
+        dprint("holeheight", holeheight)
+        local guardringtarget = active.bl:gety()
+        -- the row paddings are calculated with regard to the active region
+        -- it is possible (though unlikely) that after adding row paddings
+        -- the guardring still touches the gates. Therefore the height needs to
+        -- be checked against the minimum height requirement from the gates
+        if holeheight < holeheight_gate then
+            dprint("holeheight dominated by gate height")
+            holeheight = holeheight_gate
+            guardringtarget = lowergateboundingbox.bl:gety()
         end
         guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             ringwidth = _P.guardringwidth,
             holewidth = holewidth + 2 * guardringxsep,
-            holeheight = holeheight + outerguardringysep,
+            holeheight = holeheight,
             fillwell = _P.guardringfillwell,
             fillinnerimplant = _P.guardringfillimplant,
             innerimplantpolarity = _P.channeltype == "nmos" and "n" or "p",
@@ -1426,7 +1313,7 @@ function layout(cell, _P, _env, state)
         guardring:move_point_y(guardring:get_area_anchor("innerboundary").bl,
             point.create(
                 0, -- dont'care
-                math.min(active.bl:gety(), lowergateboundingbox.bl:gety())
+                guardringtarget
             )
         )
         guardring:translate(-guardringxsep, -0.5 * outerguardringysep + outerguardringyshift)
@@ -1958,50 +1845,8 @@ function layout(cell, _P, _env, state)
     end
 
     -- calculate maximum/minimum y coordinates for global lines
-    local outputlineminy
-    local outputlinemaxy
-    if _P.interconnectlinepos == "inline" then
-        local lowerrowdevices = state._get_devices(function(device) return device.row == 1 end)
-        local lowerdevice = lowerrowdevices[1]
-        local upperrowdevices = state._get_devices(function(device) return device.row == state.numrows end)
-        local upperdevice = upperrowdevices[1]
-        outputlineminy = _get_dev_anchor(lowerdevice, "active").b
-        outputlinemaxy = _get_dev_anchor(upperdevice, "active").t
-    elseif _P.interconnectlinepos == "gate" then
-        local lowerrowdevices = state._get_devices(function(device) return device.row == 1 end)
-        local lowerdevice = lowerrowdevices[1]
-        local upperrowdevices = state._get_devices(function(device) return device.row == state.numrows end)
-        local upperdevice = upperrowdevices[1]
-        outputlineminy = _get_dev_anchor(lowerdevice, "active").b
-        outputlinemaxy = _get_dev_anchor(upperdevice, "active").t
-    else -- "offside"
-        local lowerdevindices = state._get_uniq_row_devices_single(1)
-        local lowerdevices = state._get_devices(function(device) return device.row == 1 end)
-        local lowerdevice = lowerdevices[1]
-        local skipstrap = _P.usesourcestraps and _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth or 0
-        local numlowerlines = #lowerdevindices
-        if not _P.usesourcestraps then
-            if _P.equalsourcenets then
-                numlowerlines = numlowerlines + 1
-            else
-                numlowerlines = numlowerlines + numlowerlines
-            end
-        end
-        outputlineminy = _get_dev_anchor(lowerdevice, "active").b - (skipstrap + _P.interconnectlinespace + _P.interconnectlinewidth + (numlowerlines - 1) * (_P.interconnectlinespace + _P.interconnectlinewidth))
-        local upperdevindices = state._get_uniq_row_devices_single(state.numrows)
-        local upperdevices = state._get_devices(function(device) return device.row == state.numrows end)
-        local upperdevice = upperdevices[1]
-        local numupperlines = #upperdevindices
-        if not _P.usesourcestraps then
-            if _P.equalsourcenets then
-                numupperlines = numupperlines + 1
-            else
-                numupperlines = numupperlines + numupperlines
-            end
-        end
-        local skipstrap = _P.usesourcestraps and _P.sourcedrainstrapspace + _P.sourcedrainstrapwidth or 0
-        outputlinemaxy = _get_dev_anchor(upperdevice, "active").t + (skipstrap + _P.interconnectlinespace + _P.interconnectlinewidth + (numupperlines - 1) * (_P.interconnectlinespace + _P.interconnectlinewidth))
-    end
+    local outputlineminy = 0 - rowspacings[1]
+    local outputlinemaxy = state.numrows * _P.fingerwidth + util.sum(rowspacings) - rowspacings[1]
     if _P.insertglobalguardringlines then
         if _P.drawouterguardring then
             local guardringboundary = cell:get_area_anchor("outerguardring")
