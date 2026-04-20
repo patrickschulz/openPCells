@@ -762,7 +762,28 @@ end
 function pcell.info(cellname)
     local cell = _get_cell(state, cellname)
     if cell.funcs.info then
-        print(cell.funcs.info())
+        local t = cell.funcs.info()
+        if type(t) == "string" then
+            print(t)
+        elseif type(t) == "table" then
+            print("Brief:")
+            if t.brief then
+                print(t.brief)
+            end
+            print()
+            print("Detail:")
+            if t.detail then
+                print(table.concat(t.detail, "\n"))
+            end
+            print()
+            print("Example:")
+            if t.example then
+                print(t.example)
+            end
+            print()
+        else
+            error(string.format("info() must return a string or a table, got '%s'", type(t)))
+        end
     else
         print(string.format("no info function available for '%s'", cellname))
     end
