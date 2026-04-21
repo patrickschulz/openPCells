@@ -145,8 +145,8 @@ while [[ $# -gt 0 ]]; do
         echo
         echo "The switch --prefix provides an easy way"
         echo "of installing to a non-default location."
-        echo "The following configuration shows how to install to /opt/:"
-        echo "% ./configure.sh --prefix /opt"
+        echo "The following configuration shows how to install to /opt/local:"
+        echo "% ./configure.sh --prefix /opt/local"
         echo ""
         echo "For a installation that does not keep the path scheme,"
         echo "several switches must be given (the following is an example"
