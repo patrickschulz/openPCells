@@ -585,7 +585,7 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
         local ret, msg = cell.funcs.requirements()
         if not ret then
             if not msg then
-                moderror(string.format("requirements check for cell '%s' (%s) failed, but no message was returned. If present, the 'check' function has to return true on success", cellname, tostring(obj)))
+                moderror(string.format("requirements check for cell '%s' (%s) failed, but no message was returned. If present, the 'requirements' function must return true on success", cellname, tostring(obj)))
             else
                 moderror(string.format("requirements check for cell '%s' (%s) failed: %s", cellname, tostring(obj), msg))
             end
@@ -599,7 +599,7 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
         local ret, msg = cell.funcs.check_pre(parameters)
         if not ret then
             if not msg then
-                moderror(string.format("parameter pre-check for cell '%s' (%s) failed, but no message was returned. If present, the 'check' function has to return true on success", cellname, tostring(obj)))
+                moderror(string.format("parameter pre-check for cell '%s' (%s) failed, but no message was returned. If present, the 'check_pre' function must return true on success", cellname, tostring(obj)))
             else
                 moderror(string.format("parameter pre-check for cell '%s' (%s) failed: %s", cellname, tostring(obj), msg))
             end
@@ -617,7 +617,7 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
         local ret, msg = cell.funcs.check(parameters, cellstate)
         if not ret then
             if not msg then
-                moderror(string.format("parameter check for cell '%s' (%s) failed, but no message was returned. If present, the 'check' function has to return true on success", cellname, tostring(obj)))
+                moderror(string.format("parameter check for cell '%s' (%s) failed, but no message was returned. If present, the 'check' function must return true on success", cellname, tostring(obj)))
             else
                 moderror(string.format("parameter check for cell '%s' (%s) failed: %s", cellname, tostring(obj), msg))
             end
