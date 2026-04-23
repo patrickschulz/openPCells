@@ -5,8 +5,7 @@ function info()
         "This cell is also useful on its own and meant to be employed for implementing single transistors.",
         "It tries to mimic typical pcell behaviour often found for elementary MOSFET devices in PDKs, so it can connect source/drain regions, draw multiple fingers, gate straps, guardrings etc.",
         "This cell features more than 250 parameters, but most of them are only required for special cases.",
-        "If the technology files are set up properly, a simple call with parameters like",
-        "shoud be sufficient for a DRC-clean transistor."
+        "If the technology files are set up properly, a simple call with parameters like 'fingers = 8' and 'fingerwidth = 500' shoud be sufficient for a DRC-clean transistor."
     }
     local example = [[{
     channeltype = "nmos",
