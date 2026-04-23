@@ -239,19 +239,18 @@ local function _get_parameters(state, cellname, cellargs)
     -- assemble arguments for the cell layout function
     local P = {}
 
-    -- install meta method for non-existing parameters as safety check
-    -- this avoids arithmetic-with-nil-errors and raises an error instead
-    setmetatable(P, {
+    local meta = {
+        -- install meta method for non-existing parameters as safety check
+        -- this avoids arithmetic-with-nil-errors and raises an error instead
         __index = function(_, k)
             error(string.format("trying to access undefined parameter '%s'", k))
         end,
-    })
-    --  install meta method for disabling setting non-existing parameters as safety check
-    setmetatable(P, {
+        --  install meta method for disabling setting non-existing parameters as safety check
         __newindex = function(_, k)
             error(string.format("trying to add a new key '%s' to the parameter table", k))
         end,
-    })
+    }
+    setmetatable(P, meta)
 
     -- (1) fill with default values
     local Pset = {}
