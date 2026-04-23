@@ -339,6 +339,8 @@ function parameters()
         { "instancename",                                                                               nil, info = "draw an instance name in a non-physical text layer. This has no relevance for the device, it is merely a identification/debugging help for layouting." },
         { "instancenameincenter",                                                                       false, info = "put the instance name in the center of the active region, not on the lower left corner" },
         { "instancelabelsizehint",                                                                      technology.get_optional_dimension("Default Label Size", 0), info = "Label size hint for instance label." },
+        { "drawinstancebox",                                                                            false },
+        { "instancebox_includeguardring",                                                               true },
         { "grid",                                                                                       0, info = "put all access shapes (gate straps, source straps, guardring metals, etc.) on the specified grid. If this parameter is 0 it is ignored, otherwise the relevant shapes are shifted according to the grid. Therefore the given relevenat spacing (e.g. connectsourcespace) become minimal values, not exact values." },
         { "centershapegrid",                                                                            true, info = "use the center of the rectangular access shapes as grid targets, not the edges. This is useful if access shapes are conneted by paths whose center lines lie on the grid. This is the default bevavior." }
     )
@@ -3213,6 +3215,21 @@ function layout(transistor, _P)
             pt,
             _P.instancelabelsizehint
         )
+    end
+
+    -- instance box
+    if _P.drawinstancebox then
+        if _P.instancebox_includeguardring and _P.drawguardring then
+            geometry.rectanglebltr(transistor, generics.other("text"),
+                transistor:get_area_anchor("outerguardring").bl,
+                transistor:get_area_anchor("outerguardring").tr
+            )
+        else
+            geometry.rectanglebltr(transistor, generics.other("text"),
+                transistor:get_area_anchor("active").bl,
+                transistor:get_area_anchor("active").tr
+            )
+        end
     end
 end
 
