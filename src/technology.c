@@ -2378,6 +2378,18 @@ const struct generics* generics_create_fill(struct technology_state* techstate, 
     return layer;
 }
 
+const struct generics* generics_create_text(struct technology_state* techstate)
+{
+    const struct generics* layer = _get_or_create_layer(techstate, "text");
+    return layer;
+}
+
+const struct generics* generics_create_error(struct technology_state* techstate)
+{
+    const struct generics* layer = _get_or_create_layer(techstate, "error");
+    return layer;
+}
+
 const struct generics* generics_create_other(struct technology_state* techstate, const char* layername)
 {
     const struct generics* layer = _get_or_create_layer(techstate, layername);

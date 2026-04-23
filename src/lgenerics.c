@@ -352,6 +352,36 @@ static int lgenerics_create_fill(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_text(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_text(techstate);
+    if(!layer)
+    {
+        lua_pushstring(L, "generics: got NULL layer: generics.text()\nif this layer is not needed, set it to {}");
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
+static int lgenerics_create_error(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_error(techstate);
+    if(!layer)
+    {
+        lua_pushstring(L, "generics: got NULL layer: generics.error()\nif this layer is not needed, set it to {}");
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
 static int lgenerics_create_other(lua_State* L)
 {
     const char* str = luaL_checkstring(L, 1);
@@ -464,6 +494,8 @@ int open_lgenerics_lib(lua_State* L)
         { "devicelabel",              lgenerics_create_devicelabel       },
         { "exclude",                  lgenerics_create_exclude           },
         { "fill",                     lgenerics_create_fill              },
+        { "text",                     lgenerics_create_text              },
+        { "error",                    lgenerics_create_error             },
         { "other",                    lgenerics_create_other             },
         { "otherport",                lgenerics_create_otherport         },
         { "outline",                  lgenerics_create_outline           },
