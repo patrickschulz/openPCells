@@ -101,6 +101,44 @@ procedure(OPCExportGetViaTMatrix(via)
     ) ; let
 ) ; OPCExportGetViaTMatrix
 
+procedure(OPCExportGetShapePathSeg(shape)
+    ; FIXME: handle path extensions
+    ; FIXME: use proper comparison function for numbers
+    let(
+        (x1 y1 x2 y2 net netpt1 netpt2)
+        x1 = xCoord(shape->beginPt)
+        y1 = yCoord(shape->beginPt)
+        x2 = xCoord(shape->endPt)
+        y2 = yCoord(shape->endPt)
+        if((x1 != x2) && (y1 != y2)
+            then ; non-orthogonal
+                net = nil
+            else ; orthogonal, also export net shape
+                if(x1 == x2
+                    then
+                        netpt1 = list(
+                            x1 - shape->width / 2
+                            y1
+                        )
+                        netpt2 = list(
+                            x1 - shape->width / 2
+                            y2
+                        )
+                    else ; y1 == y2
+                        netpt1 = list(
+                            x1
+                            y1 - shape->width / 2
+                        )
+                        netpt2 = list(
+                            x2
+                            y1 - shape->width / 2
+                        )
+                )
+        )
+        list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width net netpt1 netpt2)
+    )
+) ; OPCExportGetShapePathSeg
+
 procedure(OPCExportGetShape(shape)
     case(shape->objType
         ("rect"
@@ -113,7 +151,7 @@ procedure(OPCExportGetShape(shape)
             list("path" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points) shape->width)
         ) ; path
         ("pathSeg"
-            list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width)
+            OPCExportGetShapePathSeg(shape)
         ) ; path
         (t nil) ; ignore everything else
     ) ; case objType
@@ -269,6 +307,17 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
                     OPCExportFormatPoints(nthelem(3 shape))
                     OPCExportConvertCoordToOPCUnit(nthelem(4 shape))
                 )
+                when(nthelem(5 shape) ; has net
+                    newline(file)
+                    fprintf(file
+                        "%s:add_net_shape(\"%s\", %s, %s, %s)"
+                        cellname
+                        nthelem(5 shape)
+                        OPCExportFormatPoint(nthelem(6 shape))
+                        OPCExportFormatPoint(nthelem(7 shape))
+                        OPCExportFormatLayer(cadr(shape))
+                    )
+                ) ; when net
             ) ; path
         ) ; case shape type
         newline(file)
