@@ -125,6 +125,7 @@ function parameters()
         { "outerdummies", 0 },
         { "outerdummyrows", 0 },
         { "outerdummiesfingerwidth", technology.get_dimension("Minimum Gate Width"), follow = "fingerwidth", info = "Specifies the fingerwidth of devices in outer dummy rows." },
+        { "outerdummiessourcedrainsize", technology.get_dimension("Minimum Gate Width"), follow = "outerdummiesfingerwidth" },
         { "outerdummygatelength", technology.get_dimension("Minimum Gate Length") }, -- FIXME: basic/stacked_mosfet_array does not support this
         { "connectdummygatestoactive", false },
         { "connectdummies", true },
@@ -967,12 +968,6 @@ function layout(cell, _P, _env, state)
             end
         end
 
-        dprint(string.format("%-10d %-40s %8d", row, "sourcestrap_space_occupation", sourcestrap_space_occupation))
-        dprint(string.format("%-10d %-40s %8d", row, "gatestrap_space_occupation", gatestrap_space_occupation))
-        dprint(string.format("%-10d %-40s %8d", row, "gateline_space_occupation", gateline_space_occupation))
-        dprint(string.format("%-10d %-40s %8d", row, "interconnectline_space_occupation", interconnectline_space_occupation))
-        dprint(string.format("%-10d %-40s %8d", row, "extraspace", extraspace))
-        dprint()
         rowspacings[row] =
             sourcestrap_space_occupation +
             gatestrap_space_occupation +
@@ -1191,6 +1186,8 @@ function layout(cell, _P, _env, state)
         end
         if isdummyrow then
             row.width = _P.outerdummiesfingerwidth
+            row.sourcesize = _P.outerdummiessourcedrainsize
+            row.drainsize = _P.outerdummiessourcedrainsize
         end
         table.insert(rows, row)
     end
@@ -1251,7 +1248,6 @@ function layout(cell, _P, _env, state)
     -- not needed for shifting rows (ignored by stacked_mosfet_array anyway), but for calculating guardring y hole extension
     local firstrow_padding = rowspacings[1]
     local lastrow_padding = rowspacings[state.numrows + 1]
-    dprint(firstrow_padding, lastrow_padding)
 
     -- outer guardring
     local guardring -- needed later for connecting global lines
@@ -1267,7 +1263,6 @@ function layout(cell, _P, _env, state)
         local holeheight_gate = point.ydistance_abs(lowergateboundingbox.bl, uppergateboundingbox.tr)
         local holewidth = math.max(holewidth_active, holewidth_gate)
         local holeheight = holeheight_active
-        dprint("holeheight_active", holeheight_active)
         local outerguardringysep
         local outerguardringyshift
         if 2 * _P.guardringminysep > firstrow_padding + lastrow_padding + 2 * _P.guardringextrametalspace then
@@ -1278,14 +1273,12 @@ function layout(cell, _P, _env, state)
             outerguardringyshift = 0.5 * (lastrow_padding - firstrow_padding)
         end
         holeheight = holeheight_active + outerguardringysep
-        dprint("holeheight", holeheight)
         local guardringtarget = active.bl:gety()
         -- the row paddings are calculated with regard to the active region
         -- it is possible (though unlikely) that after adding row paddings
         -- the guardring still touches the gates. Therefore the height needs to
         -- be checked against the minimum height requirement from the gates
         if holeheight < holeheight_gate then
-            dprint("holeheight dominated by gate height")
             holeheight = holeheight_gate
             guardringtarget = lowergateboundingbox.bl:gety()
         end

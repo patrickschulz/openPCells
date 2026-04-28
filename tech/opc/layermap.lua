@@ -25,6 +25,16 @@ return {
             svg = { style = "text", order = 1, color = "ffffff" },
         }
     },
+    [generics.error()] = {
+        name = "text",
+        layer = {
+            gds = { layer = 235, purpose = 0 },
+            SKILL = { layer = "error", purpose = "drawing" },
+            debug = { layer = "error" },
+            json = { layer = "error" },
+            svg = { style = "error", order = 1, color = "ff0000" },
+        }
+    },
     [generics.active()] = {
         name = "active",
         layer = {

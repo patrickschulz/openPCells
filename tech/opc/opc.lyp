@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ff00ff</frame-color>
   <fill-color>#ff00ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -18,6 +19,7 @@
   <source>0/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#73d216</frame-color>
   <fill-color>#73d216</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -35,6 +37,7 @@
   <source>1/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#f380ff</frame-color>
   <fill-color>#f380ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -52,6 +55,7 @@
   <source>2/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#f3ff80</frame-color>
   <fill-color>#f3ff80</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -69,6 +73,7 @@
   <source>3/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#00ffff</frame-color>
   <fill-color>#00ffff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -86,6 +91,7 @@
   <source>4/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ff9d9d</frame-color>
   <fill-color>#ff9d9d</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -103,6 +109,7 @@
   <source>5/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ff0000</frame-color>
   <fill-color>#ff0000</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -120,6 +127,7 @@
   <source>6/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ffffff</frame-color>
   <fill-color>#ffffff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -137,6 +145,7 @@
   <source>7/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#0000ff</frame-color>
   <fill-color>#0000ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -154,6 +163,7 @@
   <source>8/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#0000ff</frame-color>
   <fill-color>#0000ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -171,6 +181,7 @@
   <source>8/1@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ddff00</frame-color>
   <fill-color>#ddff00</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -188,6 +199,7 @@
   <source>9/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ff00ff</frame-color>
   <fill-color>#ff00ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -205,6 +217,7 @@
   <source>10/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ff00ff</frame-color>
   <fill-color>#ff00ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -222,6 +235,7 @@
   <source>10/1@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#c0c0c0</frame-color>
   <fill-color>#c0c0c0</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -229,7 +243,7 @@
   <dither-pattern>I5</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -239,6 +253,7 @@
   <source>11/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ffae00</frame-color>
   <fill-color>#ffae00</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -246,7 +261,7 @@
   <dither-pattern>C8</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -256,6 +271,7 @@
   <source>12/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ffffff</frame-color>
   <fill-color>#ffffff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -273,6 +289,7 @@
   <source>13/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ddff00</frame-color>
   <fill-color>#ddff00</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -290,6 +307,7 @@
   <source>14/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ffffff</frame-color>
   <fill-color>#ffffff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -307,6 +325,7 @@
   <source>15/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#0080ff</frame-color>
   <fill-color>#0080ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -324,6 +343,7 @@
   <source>16/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ffffff</frame-color>
   <fill-color>#ffffff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -341,6 +361,7 @@
   <source>17/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ff0000</frame-color>
   <fill-color>#ff0000</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -358,6 +379,7 @@
   <source>18/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ffffff</frame-color>
   <fill-color>#ffffff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -375,6 +397,7 @@
   <source>19/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#8000ff</frame-color>
   <fill-color>#8000ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -392,6 +415,7 @@
   <source>20/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ddff00</frame-color>
   <fill-color>#ddff00</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -409,6 +433,7 @@
   <source>21/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#008000</frame-color>
   <fill-color>#008000</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -426,6 +451,7 @@
   <source>22/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ffff00</frame-color>
   <fill-color>#ffff00</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -443,6 +469,7 @@
   <source>23/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ff00ff</frame-color>
   <fill-color>#ff00ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -460,6 +487,7 @@
   <source>24/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ddff00</frame-color>
   <fill-color>#ddff00</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -477,6 +505,7 @@
   <source>25/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#8000ff</frame-color>
   <fill-color>#8000ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -494,6 +523,7 @@
   <source>26/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#ffffff</frame-color>
   <fill-color>#ffffff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -511,6 +541,7 @@
   <source>33/0@1</source>
  </properties>
  <properties>
+  <expanded>false</expanded>
   <frame-color>#8000ff</frame-color>
   <fill-color>#8000ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -562,6 +593,24 @@
   <animation>0</animation>
   <name>outline drawing</name>
   <source>255/255@1</source>
+ </properties>
+ <properties>
+  <expanded>false</expanded>
+  <frame-color>#ff0000</frame-color>
+  <fill-color>#ff0000</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>I1</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>true</visible>
+  <transparent>false</transparent>
+  <width>2</width>
+  <marked>true</marked>
+  <xfill>true</xfill>
+  <animation>0</animation>
+  <name>error drawing</name>
+  <source>235/0@1</source>
  </properties>
  <name/>
  <custom-dither-pattern>

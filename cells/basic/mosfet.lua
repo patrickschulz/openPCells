@@ -59,6 +59,7 @@ function parameters()
         { "gatelength(Gate Length)",                                                                    technology.get_dimension("Minimum Gate Length"), argtype = "integer", info = "drawn gate length (channel length)" },
         { "gatespace(Gate Spacing)",                                                                    technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), argtype = "integer", info = "gate space between the polysilicon lines" },
         { "allow_poly_connections",                                                                     technology.has_feature("allow_poly_routing") },
+        { "minimum_gate_contact_size",                                                                  technology.get_dimension("Minimum Gate Contact Region Size") },
         { "topgatepolyextension",                                                                       0 },
         { "topgatepolyleftrightextension",                                                              technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "topgatepolyextension" },
         { "topgatepolyleftextension",                                                                   technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "topgatepolyleftrightextension" },
@@ -101,9 +102,9 @@ function parameters()
         { "rightendgatelength(Right End Gate Length)",                                                  0, follow = "gatelength" },
         { "rightendgatespace(Right End Gate Space)",                                                    0, follow = "gatespace" },
         { "drawtopgate(Draw Top Gate Contact)",                                                         false, info = "draw gate contacts on the upper side of the active region. The contact region width is the gate length, the height is 'topgatewidth'. The space to the active region is 'topgatespace'." },
-        { "drawtopgatestrap(Draw Top Gate Strap)",                                                      false, follow = "drawtopgate", info = "Connect all top gate contacts by a metal strap. Follows 'drawtopgate'." },
+        { "drawtopgatestrap(Draw Top Gate Strap)",                                                      false, follow = "drawtopgate", info = "Connect all top gate contacts by a metal strap. Follows 'drawtopgate'. If this is false but 'drawtopgate' is true then no metal is drawn, which will probably result in DRC errors. This option is meant for situations where the gate strap is drawn manually." },
         { "topgateadjustforsdstraps",                                                                   true },
-        { "topgatewidth(Top Gate Width)",                                                               technology.get_dimension("Minimum Gate Contact Region Size"), argtype = "integer", info = "Width of the metal strap connecting all top gate contacts." },
+        { "topgatewidth(Top Gate Width)",                                                               technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "Width of the metal strap connecting all top gate contacts." },
         { "topgateleftextension(Top Gate Left Extension)",                                              0, info = "Left extension of top gate metal strap. Positive values extend the strap on the left side beyond (to the left) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
         { "topgaterightextension(Top Gate Right Extension)",                                            0, info = "Right extension of top gate metal strap. Positive values extend the strap on the right side beyond (to the right) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
         { "topgatespace(Top Gate Space)",                                                               technology.get_dimension("Minimum M1 Space"), argtype = "integer", info = "Space between the active region and the lower edge of the top gate contacts/metal strap" },
@@ -111,9 +112,9 @@ function parameters()
         { "drawtopgatevia(Draw Top Gate Via)",                                                          true, info = "Enable the drawing of vias on the top gate metal strap. This only makes a difference if 'topgatemetal' is higher than 1." },
         { "topgatecontinuousvia(Top Gate Continuous Via)",                                              false, info = "Make the drawn via of the top gate metal strap a continuous via." },
         { "drawbotgate(Draw Bottom Gate Contact)",                                                      false, info = "draw gate contacts on the upper side of the active region. The contact region width is the gate length, the height is 'topgatewidth'. The space to the active region is 'topgatespace'." },
-        { "drawbotgatestrap(Draw Bottom Gate Strap)",                                                   false, follow = "drawbotgate" },
+        { "drawbotgatestrap(Draw Bottom Gate Strap)",                                                   false, follow = "drawbotgate", info = "Connect all bottom gate contacts by a metal strap. Follows 'drawbotgate'. If this is false but 'drawbotgate' is true then no metal is drawn, which will probably result in DRC errors. This option is meant for situations where the gate strap is drawn manually." },
         { "botgateadjustforsdstraps",                                                                   true },
-        { "botgatewidth(Bottom Gate Width)",                                                            technology.get_dimension("Minimum Gate Contact Region Size"), argtype = "integer", info = "Width of the metal strap connecting all bottom gate contacts." },
+        { "botgatewidth(Bottom Gate Width)",                                                            technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "Width of the metal strap connecting all bottom gate contacts." },
         { "botgateleftextension(Bottom Gate Left Extension)",                                           0, info = "Left extension of bottom gate metal strap. Positive values extend the strap on the left side beyond (to the left) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
         { "botgaterightextension(Bottom Gate Right Extension)",                                         0, info = "Right extension of bottom gate metal strap. Positive values extend the strap on the right side beyond (to the right) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
         { "botgatespace(Bottom Gate Space)",                                                            technology.get_dimension("Minimum M1 Space"), argtype = "integer", info = "Space between the active region and the lower edge of the bottom gate contacts/metal strap" },
@@ -607,11 +608,11 @@ function process_parameters(_P)
     -- fill top/bot gatespace for later use
     _P.topgatespace = _P.topgatespace
     _P.botgatespace = _P.botgatespace
-    _P.topgatewidth = math.max(technology.get_dimension("Minimum Gate Contact Region Size"), _get_metal_width(_P.topgatemetal))
+    _P.topgatewidth = math.max(technology.get_dimension("Minimum M1 Width"), _get_metal_width(_P.topgatemetal))
     if _P.topgatemetal < _P.sourceviametal then
         _P.topgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.topgatemetal))
     end
-    _P.botgatewidth = math.max(technology.get_dimension("Minimum Gate Contact Region Size"), _get_metal_width(_P.botgatemetal))
+    _P.botgatewidth = math.max(technology.get_dimension("Minimum M1 Width"), _get_metal_width(_P.botgatemetal))
     if _P.botgatemetal < _P.sourceviametal then
         _P.botgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.botgatemetal))
     end
@@ -1467,15 +1468,16 @@ function layout(transistor, _P)
 
     -- gate contacts
     local gatecontacttype = _P.drawrotationmarker and "gaterotated" or "gate"
-    local contactfun = geometry.contactbltr2
+    local contactfun = geometry.contactbarebltr2
+    local contactext = math.max(0, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
     if _P.drawtopgate then
         if _P.allow_poly_connections then
             contactfun(transistor,
                 gatecontacttype,
                 point.create(gateblx + (1 - 1) * gatepitch, _P.fingerwidth + topgatespace - _P.topgatepolybottomextension),
                 point.create(gatetrx + (_P.fingers - 1) * gatepitch, _P.fingerwidth + topgatespace + _P.topgatewidth + _P.topgatepolytopextension),
-                point.create(gateblx + (1 - 1) * gatepitch, _P.fingerwidth + topgatespace),
-                point.create(gatetrx + (_P.fingers - 1) * gatepitch, _P.fingerwidth + topgatespace + _P.topgatewidth),
+                point.create(gateblx + (1 - 1) * gatepitch - contactext, _P.fingerwidth + topgatespace),
+                point.create(gatetrx + (_P.fingers - 1) * gatepitch + contactext, _P.fingerwidth + topgatespace + _P.topgatewidth),
                 string.format(
                     "top gate contact:\n    x parameters: gatelength (%d)\n    y parameters: topgatewidth (%d)",
                     _P.gatelength, _P.topgatewidth
@@ -1487,8 +1489,8 @@ function layout(transistor, _P)
                     gatecontacttype,
                     point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace - _P.topgatepolybottomextension),
                     point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace + _P.topgatewidth + _P.topgatepolytopextension),
-                    point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace),
-                    point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace + _P.topgatewidth),
+                    point.create(gateblx + (i - 1) * gatepitch - contactext, _P.fingerwidth + topgatespace),
+                    point.create(gatetrx + (i - 1) * gatepitch + contactext, _P.fingerwidth + topgatespace + _P.topgatewidth),
                     string.format(
                         "top gate contact:\n    x parameters: gatelength (%d)\n    y parameters: topgatewidth (%d)",
                         _P.gatelength, _P.topgatewidth
@@ -1502,8 +1504,10 @@ function layout(transistor, _P)
         end
     end
     if _P.fingers > 0 and _P.drawtopgatestrap then
-        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.topgateleftextension, _P.fingerwidth + topgatespace)
-        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.topgaterightextension, _P.fingerwidth + topgatespace + _P.topgatewidth)
+        local contactleftext = math.max(_P.topgateleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
+        local contactrightext = math.max(_P.topgaterightextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
+        local bl = point.create(gateblx + (1 - 1) * gatepitch - contactleftext, _P.fingerwidth + topgatespace)
+        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + contactrightext, _P.fingerwidth + topgatespace + _P.topgatewidth)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
         if rawget(_P, "gatenet") then
@@ -1517,9 +1521,11 @@ function layout(transistor, _P)
             )
         end
         if _P.allow_poly_connections then
+            local contactleftpolytext = math.max(_P.topgatepolyleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
+            local contactrightpolyext = math.max(_P.topgatepolyrightextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
             geometry.rectanglebltr(transistor, generics.gate(),
-                point.create(bl:getx() + _P.topgateleftextension - _P.topgatepolyleftextension, bl:gety() - _P.topgatepolybottomextension),
-                point.create(tr:getx() - _P.topgaterightextension + _P.topgatepolyrightextension, gatetry + _P.topgatepolytopextension)
+                point.create(bl:getx() + contactleftpolyext, bl:gety() - _P.topgatepolybottomextension),
+                point.create(tr:getx() - contactrightpolyext, gatetry + _P.topgatepolytopextension)
             )
         end
         if _P.drawtopgatevia and _P.topgatemetal > 1 then
@@ -1528,8 +1534,8 @@ function layout(transistor, _P)
             else
                 geometry.viabltr(transistor, 1, _P.topgatemetal, bl, tr,
                     string.format(
-                        "top gate strap via:\n    x parameters:\n        gatelength (%d)\n        (fingers - 1) * (gatelength + gatespace) (%d)\n        topgateleftextension (%d)\n        topgaterightextension (%d)\n    y parameters:\n        topgatewidth (%d)",
-                        _P.gatelength, (_P.fingers - 1) * gatepitch, _P.topgateleftextension, _P.topgaterightextension, _P.topgatewidth
+                        "top gate strap via:\n    x parameters:\n        gatelength (%d)\n        (fingers - 1) * (gatelength + gatespace) (%d)\n        top gate left extension (%d)\n        top gate right extension (%d)\n    y parameters:\n        topgatewidth (%d)",
+                        _P.gatelength, (_P.fingers - 1) * gatepitch, contactleftext, contactrightext, _P.topgatewidth
                     )
                 )
             end
@@ -1541,8 +1547,8 @@ function layout(transistor, _P)
                 gatecontacttype,
                 point.create(gateblx + (1 - 1) * gatepitch, -botgatespace - _P.botgatewidth - _P.botgatepolybottomextension),
                 point.create(gatetrx + (_P.fingers - 1) * gatepitch, -botgatespace + _P.botgatepolytopextension),
-                point.create(gateblx + (1 - 1) * gatepitch, -botgatespace - _P.botgatewidth),
-                point.create(gatetrx + (_P.fingers - 1) * gatepitch, -botgatespace),
+                point.create(gateblx + (1 - 1) * gatepitch - contactext, -botgatespace - _P.botgatewidth),
+                point.create(gatetrx + (_P.fingers - 1) * gatepitch + contactext, -botgatespace),
                 string.format("bot gate contact:\n    x parameters: gatelength (%d)\n    y parameters: botgatewidth (%d)", _P.gatelength, _P.botgatewidth)
             )
         else
@@ -1551,8 +1557,8 @@ function layout(transistor, _P)
                     gatecontacttype,
                     point.create(gateblx + (i - 1) * gatepitch, -botgatespace - _P.botgatewidth - _P.botgatepolybottomextension),
                     point.create(gatetrx + (i - 1) * gatepitch, -botgatespace + _P.botgatepolytopextension),
-                    point.create(gateblx + (i - 1) * gatepitch, -botgatespace - _P.botgatewidth),
-                    point.create(gatetrx + (i - 1) * gatepitch, -botgatespace),
+                    point.create(gateblx + (i - 1) * gatepitch - contactext, -botgatespace - _P.botgatewidth),
+                    point.create(gatetrx + (i - 1) * gatepitch + contactext, -botgatespace),
                     string.format("bot gate contact:\n    x parameters: gatelength (%d)\n    y parameters: botgatewidth (%d)", _P.gatelength, _P.botgatewidth)
                 )
                 transistor:add_area_anchor_bltr(string.format("botgate%d", i),
@@ -1563,12 +1569,14 @@ function layout(transistor, _P)
         end
     end
     if _P.fingers > 0 and _P.drawbotgatestrap then
-        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.botgateleftextension, -botgatespace - _P.botgatewidth)
-        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.botgaterightextension, -botgatespace)
+        local contactleftext = math.max(_P.botgateleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
+        local contactrightext = math.max(_P.botgaterightextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
+        local bl = point.create(gateblx + (1 - 1) * gatepitch - contactleftext, -botgatespace - _P.botgatewidth)
+        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + contactrightext, -botgatespace)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
         if rawget(_P, "gatenet") then
-            transistor:mark_area_anchor_as_net("botgatestrap", _P.gatenet, generics.metal(_P.topgatemetal))
+            transistor:mark_area_anchor_as_net("botgatestrap", _P.gatenet, generics.metal(_P.botgatemetal))
             transistor:add_label(_P.gatenet, generics.metal(_P.botgatemetal),
                 point.create(
                     0.5 * (transistor:get_area_anchor("botgatestrap").l + transistor:get_area_anchor("botgatestrap").r),
@@ -1578,9 +1586,11 @@ function layout(transistor, _P)
             )
         end
         if _P.allow_poly_connections then
+            local contactleftpolytext = math.max(_P.topgatepolyleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
+            local contactrightpolyext = math.max(_P.topgatepolyrightextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
             geometry.rectanglebltr(transistor, generics.gate(),
-                point.create(bl:getx() + _P.botgateleftextension - _P.botgatepolyleftextension, gatebly - _P.botgatepolybottomextension),
-                point.create(tr:getx() - _P.botgaterightextension + _P.botgatepolyrightextension, tr:gety() + _P.botgatepolytopextension)
+                point.create(bl:getx() + contactleftext - contactleftpolytext, gatebly - _P.botgatepolybottomextension),
+                point.create(tr:getx() - contactrightext + contactrightpolyext, tr:gety() + _P.botgatepolytopextension)
             )
         end
         if _P.drawbotgatevia and _P.botgatemetal > 1 then
@@ -1588,7 +1598,7 @@ function layout(transistor, _P)
                 geometry.viabltr_xcontinuous(transistor, 1, _P.botgatemetal, bl, tr)
             else
                 geometry.viabltr(transistor, 1, _P.botgatemetal, bl, tr,
-                    string.format("bot gate strap via:\n    x parameters:\n        gatelength (%d)\n        fingers * (gatelength + gatespace) (%d)\n        botgateleftextension (%d)\n        botgaterightextension (%d)\n    y parameters:\n        botgatewidth (%d)", _P.gatelength, _P.fingers * gatepitch, _P.botgateleftextension, _P.botgaterightextension, _P.botgatewidth)
+                    string.format("bot gate strap via:\n    x parameters:\n        gatelength (%d)\n        fingers * (gatelength + gatespace) (%d)\n        bottom gate left extension (%d)\n        bottom gate right extension (%d)\n    y parameters:\n        botgatewidth (%d)", _P.gatelength, _P.fingers * gatepitch, contactleftext, contactrightext, _P.botgatewidth)
                 )
             end
         end
