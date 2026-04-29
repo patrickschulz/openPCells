@@ -74,6 +74,7 @@ tags
 /devinfo
 /wip
 /version1.0
+todo
 
 # test unversioned files
 /test/helpers/test_compare
