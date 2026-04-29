@@ -28,6 +28,35 @@ function paramlib.check_constraints(parameter, value)
             if value < posvals.values.lower or value > posvals.values.upper then
                 moderror(string.format("parameter '%s' (%s) out of range from %s to %s", name, value, posvals.values.lower, posvals.values.upper))
             end
+        elseif posvals.type == "greaterzero" then
+            if value < 1 then
+                moderror(string.format("parameter '%s' (%s) must be greater than zero", name, value))
+            end
+        elseif posvals.type == "greaterequalzero" then
+            if value < 0 then
+                moderror(string.format("parameter '%s' (%s) must be greater than/equal to zero", name, value))
+            end
+        elseif posvals.type == "greaterzero_even" then
+            if value < 1 then
+                moderror(string.format("parameter '%s' (%s) must be greater than zero", name, value))
+            end
+            if value % 2 ~= 0 then
+                moderror(string.format("parameter '%s' (%s) must be even", name, value))
+            end
+        elseif posvals.type == "greaterequalzero_even" then
+            if value < 0 then
+                moderror(string.format("parameter '%s' (%s) must be greater than/equal to zero", name, value))
+            end
+            if value % 2 ~= 0 then
+                moderror(string.format("parameter '%s' (%s) must be even", name, value))
+            end
+        elseif posvals.type == "greaterzero_odd" then
+            if value < 1 then
+                moderror(string.format("parameter '%s' (%s) must be greater than zero", name, value))
+            end
+            if value % 2 ~= 1 then
+                moderror(string.format("parameter '%s' (%s) must be odd", name, value))
+            end
         elseif posvals.type == "even" then
             if value % 2 ~= 0 then
                 moderror(string.format("parameter '%s' (%s) must be even", name, value))
@@ -471,6 +500,11 @@ function state.create_cellenv(state, cellname, ovrenv)
         rawget = rawget,
         set = function(...) return { type = "set", values = { ... } } end,
         interval = function(lower, upper) return { type = "interval", values = { lower = lower, upper = upper }} end,
+        greaterzero = function() return { type = "greaterzero" } end,
+        greaterequalzero = function() return { type = "greaterequalzero" } end,
+        greaterzero_even = function() return { type = "greaterzero_even" } end,
+        greaterequalzero_even = function() return { type = "greaterequalzero_even" } end,
+        greaterzero_odd = function() return { type = "greaterzero_odd" } end,
         even = function() return { type = "even" } end,
         odd = function() return { type = "odd" } end,
         positive = function() return { type = "positive" } end,
