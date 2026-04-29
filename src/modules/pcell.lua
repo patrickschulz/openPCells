@@ -629,7 +629,7 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
     local parameters = _get_parameters(state, cellname, cellargs)
 
     -- check parameters (pre)
-    if cell.funcs.check_pre then
+    if state.run_parameter_checks and cell.funcs.check_pre then
         local ret, msg = cell.funcs.check_pre(parameters)
         if not ret then
             if not msg then
