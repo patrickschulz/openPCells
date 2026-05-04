@@ -900,6 +900,17 @@ function util.reduce(t, f, initial, ...)
     return value
 end
 
+function util.select_key(t, key)
+    check.set_next_function_name("util.select_key")
+    check.arg(1, "t", "table", t)
+    check.arg(2, "key", "string", key)
+    local result = {}
+    for _, e in ipairs(t) do
+        table.insert(result, t[key])
+    end
+    return result
+end
+
 function util.fit_lines_upper(total, size, space)
     check.set_next_function_name("util.fit_lines_upper")
     check.arg(1, "total", "number", total)

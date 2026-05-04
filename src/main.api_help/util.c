@@ -1051,6 +1051,26 @@
     ));
 }
 
+/* util.select_key(table, key) */
+{
+    struct parameter parameters[] = {
+        { "table",      TABLE,      NULL, "table (array-like)" },
+        { "key",        STRING,     NULL, "key for table access" },
+        { NULL }
+    };
+    vector_append(entries, _make_api_entry(
+        "reduce",
+        MODULE_UTIL,
+        "return a table that contains the value of the the given key of every array element in t",
+        "Return a table that contains the value of the the given key of every array element in t. "
+        "This function receives an array-like table which contains table entries. "
+        "The array is iterated and every entry's value indicated by 'key' is accessed and put into a table. "
+        "No nil checks are performed, the resulting table might contain holes if some entries have nil values.",
+        "util.select_key(\n    { {a = 1}, {a = 2}, {a = 3} },\n    \"a\"\n) -- { 1, 2, 3 }",
+        parameters
+    ));
+}
+
 /* util.find(coordinate, grid) */
 {
     struct parameter parameters[] = {
