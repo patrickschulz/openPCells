@@ -1028,7 +1028,7 @@
     ));
 }
 
-/* util.reduce(coordinate, grid) */
+/* util.reduce(table, function, initial, ...) */
 {
     struct parameter parameters[] = {
         { "table",      TABLE,      NULL, "table (array-like)" },
