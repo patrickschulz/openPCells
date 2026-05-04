@@ -113,169 +113,141 @@ local function _newline(lines)
     table.insert(lines, "")
 end
 
-function M.analog(file, devices, placement, routes)
+function M.analog(file, settings, devices, groups, places, routes)
     local lines = {}
-    -- start cellscript
-    _section(lines, "top-level cell")
+    local level = 0
+    local function _insert(fmt, ...)
+        table.insert(lines, string.rep(" ", 4 * level) .. string.format(fmt, ...))
+    end
+    local function _increase()
+        level = level + 1
+    end
+    local function _decrease()
+        level = level - 1
+    end
+    -- top-level cell
     table.insert(lines, "local toplevel = object.create(\"toplevel\")")
-    -- device creation
     _newline(lines)
-    _section(lines, "devices")
+    -- important value settings
+    _insert("local interconnectlinewidth = %d", (settings and settings.interconnectlinewidth) or 100)
+    _insert("local interconnectlinespace = %d", (settings and settings.interconnectlinespace) or 100)
+    _newline(lines)
+    -- begin of device bases
+    _insert("local devicebases = {")
+    _increase()
     for _, device in ipairs(devices) do
-        table.insert(lines, string.format("-- * %s *", device.name))
-        table.insert(lines, "-- nets:")
-        for k, v in pairs(device.connections) do
-            table.insert(lines, string.format("--  %s = %s", k, v))
-        end
-        local paramt = {}
+        -- start of device
+        _insert("-- * %s *", device.name)
+        _insert("[\"%sbase\"] = {", device.name)
+        _increase()
+        -- parameters
         for k, v in pairs(device.parameters) do
             if type(v) == "number" then
-                table.insert(paramt, string.format("%s = %d", k, math.floor(v + 0.5)))
+                _insert("%s = %d,", k, math.floor(v + 0.5))
             else
-                table.insert(paramt, string.format("%s = %q", k, v))
+                _insert("%s = %q,", k, v)
             end
         end
-        -- set source/drain metals (FIXME: only for testing, this should be done somewhere else)
-        table.insert(paramt, string.format("sourcemetal = %d", 2))
-        table.insert(paramt, string.format("drainmetal = %d", 2))
-        -- add nets to source/drain/gate
-        table.insert(paramt, string.format("gatenet = \"%s\"", device.connections["gate"]))
-        table.insert(paramt, string.format("drainnet = \"%s\"", device.connections["drain"]))
-        table.insert(paramt, string.format("sourcenet = \"%s\"", device.connections["source"]))
-        -- add instance name
-        table.insert(paramt, string.format("instancename = \"%s\"", device.name))
-        local fmt = "local %s = pcell.create_layout(\"basic/mosfet\", \"_%s\", {\n    %s\n})"
-        table.insert(lines, string.format(fmt, device.name, device.name, table.concat(paramt, ",\n    ")))
+        _decrease()
+        _insert("},")
+        -- end of device
     end
-    -- placement
-    _newline(lines)
-    _section(lines, "placement")
-    table.insert(lines, "local placementskip = technology.get_optional_dimension(\"Placementskip\")")
-    local group = stack.create()
-    local allgroups = 0
-    local groupcontent = stack.create()
-    for _, entry in ipairs(placement) do
-        if entry.what == "initial" then
-            -- do nothing, initial placement can be anywhere
-            -- FIXME: perhaps provide an option to specify placement?
-            if groupcontent:peek() then
-                table.insert(groupcontent:top(), entry.object)
-            end
-        elseif entry.what == "abut" then
-            local x
-            local y
-            local xskip
-            local yskip
-            if entry.where == "top" then
-                x = "align_center_x"
-                y = "abut_top"
-                xskip = "placementskip"
-                yskip = "0"
-            elseif entry.where == "bottom" then
-                x = "align_center_x"
-                y = "abut_bottom"
-                xskip = "-placementskip"
-                yskip = "0"
-            elseif entry.where == "left" then
-                x = "abut_left"
-                y = "align_center_y"
-                xskip = "0"
-                yskip = "-placementskip"
-            elseif entry.where == "right" then
-                x = "abut_right"
-                y = "align_center_y"
-                xskip = "0"
-                yskip = "placementskip"
-            else
-                error(string.format("generator.analog: placement entry has unknown 'where' type: '%s'", entry.where))
-            end
-            table.insert(lines, string.format("%s:%s(%s)", entry.object, x, entry.reference))
-            table.insert(lines, string.format("%s:%s(%s)", entry.object, y, entry.reference))
-            table.insert(lines, string.format("%s:translate(%s, %s)", entry.object, xskip, yskip))
-            if groupcontent:peek() then
-                table.insert(groupcontent:top(), entry.object)
-            end
-        elseif entry.what == "place" then
-            local x
-            local y
-            if entry.where == "top" then
-                x = "align_center_x"
-                y = "place_top"
-            elseif entry.where == "bottom" then
-                x = "align_center_x"
-                y = "place_bottom"
-            elseif entry.where == "left" then
-                x = "place_left"
-                y = "align_center_y"
-            elseif entry.where == "right" then
-                x = "place_right"
-                y = "align_center_y"
-            else
-                error(string.format("generator.analog: placement entry has unknown 'where' type: '%s'", entry.where))
-            end
-            table.insert(lines, string.format("%s:%s(%s)", entry.object, x, entry.reference))
-            table.insert(lines, string.format("%s:%s(%s)", entry.object, y, entry.reference))
-            if groupcontent:peek() then
-                table.insert(groupcontent:top(), entry.object)
-            end
-        elseif entry.what == "startgroup" then
-            allgroups = allgroups + 1
-            group:push(string.format("ag%d", allgroups))
-            table.insert(lines, string.format("local %s = alignmentgroup.create()", group:top()))
-            groupcontent:push({})
-        elseif entry.what == "endgroup" then
-            local groupname = group:top()
-            for _, member in ipairs(groupcontent:top()) do
-                table.insert(lines, string.format("%s:add(%s)", groupname, member))
-            end
-            group:pop()
-            groupcontent:pop()
-            if groupcontent:peek() then
-                table.insert(groupcontent:top(), groupname)
-            end
-        else
-            error(string.format("generator.analog: placement entry has unknown 'what' type: '%s'", entry.what))
-        end
-    end
-    -- placement for unspecified devices
-    _newline(lines)
-    _section(lines, "placement (unspecified devices)")
-    do
-        local lastdevice
-        for _, device in ipairs(devices) do
-            if lastdevice then
-                table.insert(lines, string.format("%s:place_right(%s)", device.name, lastdevice.name))
-                table.insert(lines, string.format("%s:translate(%s, %s)", device.name, "placementskip", 0))
-            end
-            lastdevice = device
-        end
-    end
-    -- merging
-    _newline(lines)
-    _section(lines, "merging")
+    _decrease()
+    _insert("}")
+    -- end of device bases
+    -- begin of devices
+    _insert("local devices = {")
+    _increase()
     for _, device in ipairs(devices) do
-        table.insert(lines, string.format("toplevel:merge_into(%s)", device.name))
-    end
-    _newline(lines)
-    _section(lines, "routing")
-    table.insert(lines, "local routes = {")
-    for _, route in ipairs(routes) do
-        for i = 2, #route.pins do
-            table.insert(lines, string.format("    -- %s:", route.net))
-            table.insert(lines, "    {")
-            table.insert(lines, string.format("        startmetal = %d,", 1))
-            table.insert(lines, string.format("        startpt = %s:get_area_anchor(\"%s\").bl,", route.pins[i - 1].instance, route.pins[i - 1].pin))
-            table.insert(lines, string.format("        endpt = %s:get_area_anchor(\"%s\").bl,", route.pins[i].instance, route.pins[i].pin))
-            table.insert(lines, string.format("        width = %d,", 200))
-            table.insert(lines, "    },")
+        -- start of device
+        _insert("-- * %s *", device.name)
+        _insert("{")
+        _increase()
+        -- name
+        _insert("name = \"%s\",", device.name)
+        -- name
+        _insert("base = \"%sbase\",", device.name)
+        -- grid position
+        _insert("x = %d,", places[device.name].x)
+        _insert("y = %d,", places[device.name].y)
+        -- nets
+        _insert("nets = {")
+        _increase()
+        for k, v in pairs(device.connections) do
+            _insert("%s = \"%s\",", k, v)
         end
+        _decrease()
+        _insert("},")
+        -- end of nets
+        _decrease()
+        _insert("},")
+        -- end of device
     end
-    table.insert(lines, "}")
-    table.insert(lines, string.format("routing.route_custom(toplevel, routes)")) 
-    -- end cellscript
+    _decrease()
+    _insert("}")
+    -- end of devices
+    --[[
+    _insert("intergridlines = {")
+    _increase()
+    for _, route in ipairs(routes.vertical) do
+        _insert("{")
+        _increase()
+        _insert("net = \"%s\",", route.net)
+        _insert("xgrid = %d,", route.xgrid)
+        _insert("xline = %d,", route.xline)
+        _insert("ygridstart = %d,", route.ygridstart)
+        _insert("ygridend = %d,", route.ygridend)
+        _insert("ylinestart = %d,", route.ylinestart)
+        _insert("ylineend = %d,", route.ylineend)
+        _decrease()
+        _insert("},")
+    end
+    _decrease()
+    _insert("},")
+    -- end of intergridlines
+    _insert("gridlines = {")
+    _increase()
+    for _, route in ipairs(routes.horizontal) do
+        _insert("{")
+        _increase()
+        _insert("net = \"%s\",", route.net)
+        _insert("xgridstart = %d,", route.xgridstart)
+        _insert("xgridend = %d,", route.xgridend)
+        _insert("xlinestart = %d,", route.xlinestart)
+        _insert("xlineend = %d,", route.xlineend)
+        _insert("ygrid = %d,", route.ygrid)
+        _insert("yline = %d,", route.yline)
+        _decrease()
+        _insert("},")
+    end
+    _decrease()
+    _insert("},")
+    -- end of gridlines
+    _insert("netlabel_size = 50,")
+    _decrease()
+    _insert("})")
+    -- end of analog/circuit
+    -- merge circuit into toplevel
+    --]]
+    -- device creation
     _newline(lines)
-    _section(lines, "final return")
-    table.insert(lines, "return toplevel")
+    _insert("local circuit = pcell.create_layout(\"analog/circuit\", \"circuit\", {")
+    _increase()
+    _insert("allow_failed_grid_connections = true,")
+    _insert("check_grid_connections = false,")
+    _insert("devicebases = devicebases,")
+    _insert("devices = devices,")
+    _insert("devicegroups = devicegroups,")
+    _insert("interconnectlinewidth = interconnectlinewidth,")
+    _insert("interconnectlinespace = interconnectlinespace,")
+    _insert("vlines = vlines,")
+    _insert("hlines = hlines,")
+    _decrease()
+    _insert("})")
+    _newline(lines)
+    _insert("toplevel:merge_into(circuit)")
+    _newline(lines)
+    _insert("return toplevel")
     file:write(table.concat(lines, '\n'))
 end
 

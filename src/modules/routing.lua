@@ -227,4 +227,162 @@ function M.route_custom(cell, routes)
     end
 end
 
+local function _get_next_x(blocked_lines, xgrid)
+    local row = blocked_lines[xgrid]
+    local xline = 3
+    while row[xline] do
+        xline = xline + 1
+    end
+    row[xline] = true
+    return xline
+end
+
+local function _get_next_y(blocked_lines, ygrid)
+    local row = blocked_lines[ygrid]
+    local yline = -1
+    while row[yline] do
+        yline = yline + 1
+    end
+    row[yline] = true
+    return yline
+end
+
+local function _insert_horizontal_line(routes, net, blocked_lines, xgrid1, xgrid2, pin1, pin2, ygrid)
+    local xlineend
+    if xgrid1 == xgrid2 then
+        --xlineend = _get_next_x(blocked_lines, xgrid1)
+        xlineend = 3
+    else
+        xlineend = 2
+    end
+    local y = _get_next_y(blocked_lines, ygrid)
+    table.insert(routes.horizontal, {
+        net = net.net,
+        xgridstart = xgrid1,
+        xgridend = xgrid2,
+        xlinestart = pin1,
+        xlineend = pin2,
+        ygrid = ygrid,
+        yline = y,
+    })
+end
+
+local function _insert_vertical_line(routes, net, blocked_lines, ygrid1, ygrid2, pin1, pin2, xgrid)
+    local ylineend
+    if ygrid1 == ygrid2 then
+        --ylineend = _get_next_y(blocked_lines, ygrid1)
+        ylineend = 3
+    else
+        ylineend = 2
+    end
+    local x = _get_next_x(blocked_lines, xgrid)
+    table.insert(routes.vertical, {
+        net = net.net,
+        xgrid = xgrid,
+        xline = x,
+        ygridstart = ygrid1,
+        ygridend = ygrid2,
+        ylinestart = pin1,
+        ylineend = pin2,
+    })
+end
+
+-- FIXME: this is taken from analog/circuit, but this should be resolved in the cell, not here
+local function _map_pin_index(pin)
+    local map = { 
+        bulk   = -2,
+        source = -1,
+        gate   = 1,
+        drain  = 2,
+    }
+    return map[pin]
+end
+
+function M.route_analog(devices, places, dontroute)
+    local routes = {
+        horizontal = {},
+        vertical = {},
+    }
+    local nets = {}
+    for _, device in ipairs(devices) do
+        for pin, net in pairs(device.connections) do
+            if not util.any_of(net, dontroute or {}) then
+                local _, entry = util.find_predicate(nets, function(entry) return entry.net == net end)
+                if not entry then
+                    entry = {
+                        net = net,
+                        devices = {}
+                    }
+                    table.insert(nets, entry)
+                end
+                table.insert(entry.devices, {
+                    device = device,
+                    pin = pin,
+                })
+            end
+        end
+    end
+    for _, net in ipairs(nets) do
+        print(net.net, #net.devices)
+        for _, device in ipairs(net.devices) do
+            print(device.device.name, device.pin)
+        end
+        print()
+    end
+    -- prepare blocked-line table
+    local blocked_lines = {
+        x = {},
+        y = {}
+    }
+    local xmaxgrid = 0
+    local ymaxgrid = 0
+    for _, place in pairs(places) do
+        xmaxgrid = math.max(xmaxgrid, place.x)
+        ymaxgrid = math.max(ymaxgrid, place.y)
+    end
+    for x = 1, xmaxgrid do
+        blocked_lines[x] = {}
+    end
+    for y = 1, ymaxgrid do
+        blocked_lines[y] = {}
+    end
+    -- perform routing
+    for _, net in ipairs(nets) do
+        for i = 1, #net.devices - 1 do
+            local device1 = net.devices[i].device
+            local device2 = net.devices[i].device
+            local p1 = places[device1.name]
+            local p2 = places[device2.name]
+            local pin1 = _map_pin_index(net.devices[i].pin)
+            local pin2 = _map_pin_index(net.devices[i + 1].pin)
+            print(p1.x, p2.x, p1.y, p2.y, pin1, pin2)
+            if p1.y == p2.y then
+                _insert_horizontal_line(routes, net, blocked_lines, p1.x, p2.x, pin1, pin2, p1.y)
+            else
+                --_insert_horizontal_line(routes, net, blocked_lines, p1.x, p1.x, -2, 3, p1.y)
+                --_insert_vertical_line(routes, net, blocked_lines, p1.x, p1.x, -2, 3, p1.y)
+                --table.insert(routes.vertical, {
+                --    net = net.net,
+                --    xgrid = p1.x,
+                --    xline = 3,
+                --    ygridstart = p1.y,
+                --    ygridend = p2.y,
+                --    ylinestart = -2,
+                --    ylineend = 2,
+                --})
+                --table.insert(routes.horizontal, {
+                --    net = net.net,
+                --    xgridstart = p2.x,
+                --    xgridend = p2.x,
+                --    xlinestart = -2,
+                --    xlineend = 3,
+                --    ygrid = p2.y,
+                --    yline = -1,
+                --})
+            end
+        end
+    end
+    return routes
+end
+
 return M

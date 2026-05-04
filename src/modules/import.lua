@@ -187,23 +187,20 @@ function M.map_netlist_devices(netlist, devicemap, verbose)
     return devices
 end
 
-function M.extract_routes(netlist, dontroute)
+function M.extract_routes(devices, dontroute)
     local routes = {}
-    for _, subcircuit in ipairs(netlist) do
-        for _, instance in ipairs(subcircuit) do
-            for k, net in pairs(instance.connections) do
-                if not util.any_of(net, dontroute) then
-                    -- use an array here to keep net order equal during design iteration
-                    local _, route = util.find_predicate(routes, function(r) return r.net == net end)
-                    if not route then
-                        route = { net = net, pins = {} }
-                        table.insert(routes, route)
-                    end
-                    table.insert(route.pins, { instance = instance.identifier, pin = k })
+    for _, device in ipairs(devices) do
+        for k, net in pairs(device.connections) do
+            if not util.any_of(net, dontroute) then
+                -- use an array here to keep net order equal during design iteration
+                local _, route = util.find_predicate(routes, function(r) return r.net == net end)
+                if not route then
+                    route = { net = net, pins = {} }
+                    table.insert(routes, route)
                 end
+                table.insert(route.pins, { instance = device.name, pin = k })
             end
         end
-        print(string.format("end subcircuit: %s", subcircuit.name))
     end
     return routes
 end
@@ -211,7 +208,7 @@ end
 function M.check(devices, placement, options)
     check.set_next_function_name("import.check")
     check.arg(1, "devices", "table", devices)
-    check.arg(2, "place", "table", placement)
+    check.arg(2, "placement", "table", placement)
     check.arg(3, "options", "table", options)
     check.arg_options_table(options, { "devices", "placement" })
     local searchfunc = function(pentry, name)

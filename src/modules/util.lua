@@ -974,3 +974,31 @@ function util.tconcatfmt(t, sep, fmt)
     end
     return table.concat(strt, sep);
 end
+
+-- modified from 'Programming in lua'
+local function _permgen_worker(list, n, result)
+    if n == 0 then
+        local new = {}
+        for i = 1, #list do
+            new[i] = list[i]
+        end
+        table.insert(result, new)
+    else
+        for i = 1, n do
+            -- put i-th element as the last one
+            list[n], list[i] = list[i], list[n]
+            _permgen_worker(list, n - 1, result)
+            -- restore i-th element
+            list[n], list[i] = list[i], list[n]
+        end
+    end
+end
+
+-- FIXME: this will be used now for testing stuff, but I'd prefer an iterative solution
+function util.generate_all_permutations(list)
+    check.set_next_function_name("util.generate_all_permutations")
+    check.arg(1, "list", "table", list)
+    local result = {}
+    _permgen_worker(list, #list, result)
+    return result
+end

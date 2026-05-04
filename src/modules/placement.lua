@@ -100,6 +100,97 @@ function placement.optimize(circuit, floorplan)
     return rows
 end
 
+local function _calculate_total_wire_length(wires, places)
+    local total_wire_length = 0
+    for netname, wire in pairs(wires) do
+        local minx = math.huge
+        local miny = math.huge
+        local maxx = -math.huge
+        local maxy = -math.huge
+        for devicename in pairs(wire) do
+            minx = math.min(minx, places[devicename].x)
+            miny = math.min(miny, places[devicename].y)
+            maxx = math.max(maxx, places[devicename].x)
+            maxy = math.max(maxy, places[devicename].y)
+        end
+        total_wire_length = total_wire_length + maxx - minx + maxy - miny
+    end
+    return total_wire_length
+end
+
+function placement.place_analog(devices, ignored_nets)
+    -- collect nets for calculating wire length
+    local wires = {}
+    for _, device in ipairs(devices) do
+        for pin, net in pairs(device.connections) do
+            if not util.any_of(net, ignored_nets or {}) then
+                if not wires[net] then
+                    wires[net] = {}
+                end
+                wires[net][device.name] = true
+            end
+        end
+    end
+    -- perform placement
+    local numdevices = #devices
+    local places = {}
+    local device_permutations = util.generate_all_permutations(devices)
+    local total_wire_length = math.huge
+    local numx_result
+    local numy_result
+    local perm_index
+    for numx = 1, numdevices do
+        local numy = math.ceil(numdevices / numx)
+        for permnum, permutation in ipairs(device_permutations) do
+            local index = 1
+            local run = true
+            for x = 1, numx do
+                for y = 1, numy do
+                    if run then
+                        local device = permutation[index]
+                        places[device.name] = {
+                            x = x,
+                            y = y
+                        }
+                        index = index + 1
+                    end
+                    if index > #permutation then -- grid has more places than available devices
+                        run = false
+                    end
+                end
+            end
+            -- calculate wire length
+            local new_length = _calculate_total_wire_length(wires, places)
+            if new_length < total_wire_length then
+                total_wire_length = new_length
+                numx_result = numx
+                numy_result = numy
+                perm_index = permnum
+            end
+        end
+    end
+    -- re-generate best placement
+    local permutation = device_permutations[perm_index]
+    local index = 1
+    local run = true
+    for x = 1, numx_result do
+        for y = 1, numy_result do
+            if run then
+                local device = permutation[index]
+                places[device.name] = {
+                    x = x,
+                    y = y
+                }
+                index = index + 1
+            end
+            if index > #permutation then -- grid has more places than available devices
+                run = false
+            end
+        end
+    end
+    return places
+end
+
 function placement.manual(circuit, names)
     local rows = {}
     local processed = {}
