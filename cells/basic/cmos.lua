@@ -1,15 +1,15 @@
 function parameters()
     pcell.add_parameters(
-        { "oxidetype(Oxide Type)",                                                  1 },
-        { "gatemarker(Gate Marker Index)",                                          1 },
-        { "pvthtype(PMOS Threshold Voltage Type) ",                                 1 },
-        { "nvthtype(NMOS Threshold Voltage Type)",                                  1 },
+        { "oxidetype(Oxide Type)",                                                  1, posvals = greaterzero() },
+        { "gatemarker(Gate Marker Index)",                                          1, posvals = greaterzero() },
+        { "pvthtype(PMOS Threshold Voltage Type) ",                                 1, posvals = greaterzero() },
+        { "nvthtype(NMOS Threshold Voltage Type)",                                  1, posvals = greaterzero() },
         { "pmosflippedwell(PMOS Flipped Well) ",                                    false },
         { "nmosflippedwell(NMOS Flipped Well)",                                     false },
-        { "pwidth(PMOS Finger Width)",                                              technology.get_dimension("Minimum Gate Width"), posvals = even() },
-        { "nwidth(NMOS Finger Width)",                                              technology.get_dimension("Minimum Gate Width"), posvals = even() },
-        { "fullnsourcedrainsize",                                                   technology.get_dimension("Minimum Gate Width"), posvals = even(), follow = "pwidth" },
-        { "fullpsourcedrainsize",                                                   technology.get_dimension("Minimum Gate Width"), posvals = even(), follow = "pwidth" },
+        { "pwidth(PMOS Finger Width)",                                              technology.get_dimension("Minimum Gate Width"), posvals = greaterzero_even() },
+        { "nwidth(NMOS Finger Width)",                                              technology.get_dimension("Minimum Gate Width"), posvals = greaterzero_even() },
+        { "fullnsourcedrainsize",                                                   technology.get_dimension("Minimum Gate Width"), posvals = greaterzero_even(), follow = "pwidth" },
+        { "fullpsourcedrainsize",                                                   technology.get_dimension("Minimum Gate Width"), posvals = greaterzero_even(), follow = "pwidth" },
         { "fullnsourcedrainalign",                                                  "center", posvals = set("top", "bottom", "center") },
         { "fullpsourcedrainalign",                                                  "center", posvals = set("top", "bottom", "center") },
         { "separation(Separation Between Active Regions)",                          technology.get_dimension("Minimum Active Space") },
@@ -18,15 +18,15 @@ function parameters()
         { "gatelength(Gate Length)",                                                technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
         { "gatespace(Gate Spacing)",                                                technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
         { "actext(Active Extension)",                                               technology.get_optional_dimension("Minimum Device Minimum Active Extension", 0), info = "left/right active extension. This is added to the calculated width of the active regions, dependent on the number of gates, the finger widths, gate spacing and left/right dummy devices" },
-        { "sdwidth(Source/Drain Contact Width)",                                    technology.get_dimension("Minimum Source/Drain Contact Region Size"), posvals = even() },
+        { "sdwidth(Source/Drain Contact Width)",                                    technology.get_dimension("Minimum Source/Drain Contact Region Size"), posvals = greaterzero_even() },
         { "innergatestraps(Number of Inner Gate Straps)",                           3 },
         { "gatestrapwidth(Gate Strap Metal Width)",                                 technology.get_dimension("Minimum M1 Width") },
         { "gatestrapspace(Gate Strap Metal Space)",                                 technology.get_dimension("Minimum M1 Space") },
         { "gatecontactsplitshift(Gate Contact Split Shift)",                        technology.get_dimension("Minimum M1 Width") + technology.get_dimension("Minimum M1 Space") },
         { "powerwidth(Power Rail Width)",                                           technology.get_dimension("Minimum M1 Width"), posvals = positive() },
-        { "powerspace(Power Rail Space)",                                           technology.get_dimension("Minimum M1 Width"),  },
-        { "npowerspace(NMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), follow = "powerspace" },
-        { "ppowerspace(PMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), follow = "powerspace" },
+        { "powerspace(Power Rail Space)",                                           technology.get_dimension("Minimum M1 Width"), posvals = positive() },
+        { "npowerspace(NMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), posvals = positive(), follow = "powerspace" },
+        { "ppowerspace(PMOS Power Rail Space)",                                     technology.get_dimension("Minimum M1 Space"), posvals = positive(), follow = "powerspace" },
         { "powerrailleftrightextension(Power Rail Left/Right Extension)",           0 },
         { "powerrailleftextension(Power Rail Left Extension)",                      0, follow = "powerrailleftrightextension" },
         { "powerrailrightextension(Power Rail Right Extension)",                    0, follow = "powerrailleftrightextension" },
@@ -1207,9 +1207,9 @@ function layout(cmos, _P)
         ybottom = ybottom - _P.powerwidth / 2 - _P.nmoswelltapspace - _P.nmoswelltapwidth / 2
     end
     cmos:set_alignment_box(
-        leftndrainarea.bl:copy():translate(0, -_P.npowerspace - _P.powerwidth),
-        rightpdrainarea.tr:copy():translate(0, _P.ppowerspace + _P.powerwidth),
-        leftndrainarea.br:copy():translate(0, -_P.npowerspace),
-        rightpdrainarea.tl:copy():translate(0, _P.ppowerspace)
+        leftndrainarea.bl:copy():translate(-_P.powerrailleftextension, -_P.npowerspace - _P.powerwidth),
+        rightpdrainarea.tr:copy():translate(_P.powerrailrightextension, _P.ppowerspace + _P.powerwidth),
+        leftndrainarea.br:copy():translate(-_P.powerrailleftextension, -_P.npowerspace),
+        rightpdrainarea.tl:copy():translate(_P.powerrailrightextension, _P.ppowerspace)
     )
 end
