@@ -398,6 +398,12 @@ function layout(cell, _P)
                     checkshorts = _select_parameter("checkshorts", device, row, _P),
                     instancename = device.instancename or device.name,
                     instancenameincenter = _select_parameter("instancenameincenter", device, row, _P),
+                    instancelabelsizehint = _select_parameter("instancelabelsizehint", device, row),
+                    drawinstancebox = _select_parameter("drawinstancebox", device, row),
+                    instancebox_includeguardring = _select_parameter("instancebox_includeguardring", device, row),
+                    grid = _select_parameter("grid", device, row),
+                    centershapegrid = _select_parameter("centershapegrid", device, row),
+                    shapegrid = _select_parameter("shapegrid", device, row),
                 })
                 if not status then -- call failed, but show detailed error here
                     cellerror(string.format("could not create device %d in row %d (\"%s\"): %s", devnum, rownum, device.name, mosfet))
