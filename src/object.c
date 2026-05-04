@@ -1344,8 +1344,8 @@ int object_center(struct object* cell, const struct point* target)
 {
     struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
     struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
-    coordinate_t sourcex = 0.5 * (point_getx(outertr) - point_getx(outerbl));
-    coordinate_t sourcey = 0.5 * (point_gety(outertr) - point_gety(outerbl));
+    coordinate_t sourcex = 0.5 * (point_getx(outertr) + point_getx(outerbl));
+    coordinate_t sourcey = 0.5 * (point_gety(outertr) + point_gety(outerbl));
     coordinate_t targetcx = 0;
     coordinate_t targetcy = 0;
     if(target)
@@ -1361,7 +1361,7 @@ int object_center_x(struct object* cell, const struct point* target)
 {
     struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
     struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
-    coordinate_t source = 0.5 * (point_getx(outertr) - point_getx(outerbl));
+    coordinate_t source = 0.5 * (point_getx(outertr) + point_getx(outerbl));
     coordinate_t targetc = 0;
     if(target)
     {
@@ -1375,7 +1375,7 @@ int object_center_y(struct object* cell, const struct point* target)
 {
     struct point* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
     struct point* outertr = object_get_alignmentbox_anchor_outertr(cell);
-    coordinate_t source = 0.5 * (point_gety(outertr) - point_gety(outerbl));
+    coordinate_t source = 0.5 * (point_gety(outertr) + point_gety(outerbl));
     coordinate_t targetc = 0;
     if(target)
     {
