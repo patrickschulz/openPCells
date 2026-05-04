@@ -106,4 +106,8 @@ function M.text()
     return "text"
 end
 
+function M.error()
+    return "error"
+end
+
 return M
