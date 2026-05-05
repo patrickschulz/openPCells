@@ -986,18 +986,16 @@ static struct via_definition* _get_rectangular_arrayzation2(
             ++viadef;
             continue;
         }
-        /*
-        if(regionwidth > entry->maxwidth)
+        if(regionwidth1 > entry->maxwidth)
         {
             ++viadef;
             continue;
         }
-        if(regionheight > entry->maxheight)
+        if(regionheight1 > entry->maxheight)
         {
             ++viadef;
             continue;
         }
-        */
         int _xrep1 = 0;
         unsigned int _xspace1 = 0;
         int _yrep1 = 0;
