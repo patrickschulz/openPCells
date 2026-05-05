@@ -906,7 +906,7 @@ function util.select_key(t, key)
     check.arg(2, "key", "string", key)
     local result = {}
     for _, e in ipairs(t) do
-        table.insert(result, t[key])
+        table.insert(result, e[key])
     end
     return result
 end
