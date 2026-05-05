@@ -1,11 +1,13 @@
-procedure(OPCIsOPCGroup(group)
+procedure(OPCIsOPCCellScript(group)
     let(
         ((found nil))
         when(group->objType == "figGroup" ; selected object is a group
-            when(setof(p group->prop p->name == "opcpath") ; group is an opc group (cellscript)
+            when(setof(p group->prop p->name == "opcpath")
+                ; group is an opc group (cellscript, legacy)
                 found = t
             ) ; when has opcpath
-            when(setof(p group->prop p->name == "opccell") ; group is an opc group (cell)
+            when(setof(p group->prop p->name == "opcdir") && setof(p group->prop p->name == "opcname")
+                ; group is an opc group (cellscript, new style)
                 found = t
             ) ; when has opcpath
         ) ; when is group
@@ -13,12 +15,28 @@ procedure(OPCIsOPCGroup(group)
     )
 ) ; OPCIsOPCGroup
 
-procedure(OPCSubCellGet()
-    setof(group geGetSelSet() OPCIsOPCGroup(group))
-) ; OPCSubCellGet
+procedure(OPCIsOPCCell(group)
+    let(
+        ((found nil))
+        when(group->objType == "figGroup" ; selected object is a group
+            when(setof(p group->prop p->name == "opccell")
+                ; group is an opc group (cell)
+                found = t
+            ) ; when has opcpath
+        ) ; when is group
+        found
+    )
+) ; OPCIsOPCCell
+
+procedure(OPCSubCellGetAll()
+    setof(group geGetSelSet() OPCIsOPCCell(group) || OPCIsOPCCellScript(group))
+) ; OPCSubCellGetAll
+
+procedure(OPCSubCellGetCellScripts()
+    setof(group geGetSelSet() OPCIsOPCCellScript(group))
+) ; OPCSubCellGetCellScripts
 
 procedure(OPCSubCellCreateScript()
-    ; (1) open dialog to get group name/layout path (should they be the same?)
     hiCreateAppForm(
         ?name 'OPCSubCellScriptCreationForm
         ?formTitle "Create OPC Sub-Cell"
@@ -112,7 +130,8 @@ procedure(OPCSubCellScriptCreateCallback()
                 group = OPCSubCellCreateBase(cv
                     groupname
                     list(
-                        list(nil 'name "opcpath" 'type "string" 'value filename)
+                        list(nil 'name "opcdir" 'type "string" 'value path)
+                        list(nil 'name "opcname" 'type "string" 'value lsprintf("%s.lua" groupname))
                         list(nil 'name "opcprotect" 'type "boolean" 'value nil)
                     )
                 )
@@ -135,11 +154,6 @@ procedure(OPCSubCellScriptCreateCallback()
                 t
         )
     )
-    ; (2) create group with some dummy shape
-    ; (3) set name of group
-    ; (4) add opcpath property
-    ; (5) call opc and fill group with shapes
-    ; (6) place/move group
 ) ; OPCSubCellScriptCreateCallback
 
 procedure(OPCSubCellCellCreateCallback()
@@ -172,19 +186,25 @@ procedure(OPCSubCellCellCreateCallback()
                 t
         )
     )
-    ; (2) create group with some dummy shape
-    ; (3) set name of group
-    ; (4) add opcpath property
-    ; (5) call opc and fill group with shapes
-    ; (6) place/move group
 ) ; OPCSubCellCellCreateCallback
 
 procedure(OPCSubCellEditScript()
     let(
         (opcgroups)
-        opcgroups = OPCSubCellGet()
+        opcgroups = OPCSubCellGetCellScripts()
         foreach(opcgroup opcgroups
-            OPCOpenEditor(opcgroup->opcpath)
+            if(opcgroup->opcpath
+                then ; legacy
+                    OPCOpenEditor(opcgroup->opcpath)
+                else ; new
+                    if(isFile(opcgroup->opcdir)
+                        then
+                            warn(lsprintf("erroneous opcdir '%s', this is an existing file" opcgroup->opcdir))
+                        else
+                            unless(isDir(opcgroup->opcdir)
+                                createDirHier(opcgroup->opcdir)
+                            )
+                            OPCOpenEditor(lsprintf("%s/%s" opcgroup->opcdir opcgroup->opcname))
         ) ; when opcgroup
     ) ; let
 ) ; OPCSubCellEditScript
@@ -254,22 +274,31 @@ procedure(OPCSubCellUpdateCell(opcgroup)
 procedure(OPCSubCellUpdate()
     let(
         (opcgroups)
-        opcgroups = OPCSubCellGet()
+        opcgroups = OPCSubCellGetAll()
         foreach(opcgroup opcgroups
             when(!opcgroup->opcprotect || opcgroup->opcprotect == "FALSE"
-                if(setof(p opcgroup->prop p->name == "opcpath") ; group is an opc group (cellscript)
+                if(setof(p opcgroup->prop p->name == "opccell") ; group is an opc group (cell)
                     then
-                        OPCUpdateCellscriptCallback(
-                            ?hierarchical nil
-                            ?deleteAll nil
-                            ?xpath opcgroup->opcpath
-                            ?origin opcgroup->origin
-                            ?useOrigin t
-                            ?xgroupname opcgroup->name
-                        )
-                    else
                         OPCSubCellUpdateCell(opcgroup)
-                )
+                    else
+                        let(
+                            (path)
+                            if(opcgroup->opcdir
+                                then
+                                    path = lsprintf("%s/%s" opcgroup->opcdir opcgroup->opcname)
+                                else ; legacy
+                                    path = opcgroup->opcpath
+                            )
+                            OPCUpdateCellscriptCallback(
+                                ?hierarchical nil
+                                ?deleteAll nil
+                                ?xpath path
+                                ?origin opcgroup->origin
+                                ?useOrigin t
+                                ?xgroupname opcgroup->name
+                            )
+                        ) ; let
+                ) ; if group type
             )
         ) ; foreach opcgroup
     ) ; let
