@@ -50,13 +50,23 @@ function check_pre(_P)
         groupnames[group.name] = i
     end
 
+    -- check that every group has a grid placement
+    for i, group in ipairs(_P.devicegroups) do
+        if not group.x then
+            return false, string.format("group #%d does not specify an x-coordinate", i)
+        end
+        if not group.y then
+            return false, string.format("group #%d does not specify a y-coordinate", i)
+        end
+    end
+
     -- check that every group has a welltype
     for i, group in ipairs(_P.devicegroups) do
         if not group.welltype then
             return false, string.format("group #%d does not specify 'welltype'", i)
         end
-        if group.welltype ~= "n" or group.welltype ~= "p" then
-            return false, string.format("group #%d specifies an illegal 'welltype': '%s' (must be 'n' or 'p')", i, group.welltype)
+        if not ((group.welltype == "n") or (group.welltype == "p")) then
+            return false, string.format("group #%d specifies an illegal welltype: '%s' (must be 'n' or 'p')", i, group.welltype)
         end
     end
 
@@ -90,25 +100,8 @@ function check_pre(_P)
     -- check that every device has a placement entry
     for i, device in pairs(_P.devices) do
         if not (device.x and device.y) then
-            return false, string.format("device #%d ('%s') has not in-group placement specification", i, device.name)
+            return false, string.format("device #%d ('%s') has no in-group placement specification (missing 'x' or 'y')", i, device.name)
         end
-    end
-
-    -- check group grid targets (only one group per cell)
-    local gridtargets = {}
-    for i, group in pairs(_P.devicegroups) do
-        local index = util.find_predicate(
-            gridtargets,
-            function(cell, group)
-                return cell.x == group.x and cell.y == group.y
-            end,
-            group
-        )
-        if index then
-            return false, string.format("group #%d ('%s') is placed in an already-occupied grid cell (%d, %d)", i, group.name, group.x, group.y)
-        end
-        -- insert device grid target
-        table.insert(gridtargets, { x = group.x, y = group.y })
     end
 
     -- check that only allowed keys are set (devices)
@@ -539,6 +532,23 @@ function prepare(_P)
 end
 
 function check(_P, state)
+    -- check group grid targets (only one group per cell)
+    local gridtargets = {}
+    for i, group in pairs(state.devicegroups) do
+        local index = util.find_predicate(
+            gridtargets,
+            function(cell, group)
+                return cell.x == group.x and cell.y == group.y
+            end,
+            group
+        )
+        if index then
+            return false, string.format("group #%d ('%s') is placed in an already-occupied grid cell (%d, %d)", i, group.name, group.x, group.y)
+        end
+        -- insert device grid target
+        table.insert(gridtargets, { x = group.x, y = group.y })
+    end
+
     -- check that no group is empty
     for i, group in ipairs(state.devicegroups) do
         local gdevices = state._get_devices(state.groupsearch, group)
@@ -564,6 +574,67 @@ function check(_P, state)
             end
             -- insert device grid target
             table.insert(gridtargets, { x = device.x, y = device.y })
+        end
+    end
+
+    -- check that no group grid has holes
+    for index, group in ipairs(state.devicegroups) do
+        local gdevices = state._get_devices(state.groupsearch, group)
+        local minx = state.groupgridvalues[index].minx
+        local maxx = state.groupgridvalues[index].maxx
+        for x = minx, maxx do
+            local found = false
+            for _, device in ipairs(gdevices) do
+                if x == device.x then
+                    found = true
+                    break
+                end
+            end
+            if not found then
+                return false, string.format("group #%d contains device x-placements with grid holes (minx: %d, maxx: %d)", index, minx, maxx)
+            end
+        end
+        local miny = state.groupgridvalues[index].miny
+        local maxy = state.groupgridvalues[index].maxy
+        for y = miny, maxy do
+            local found = false
+            for _, device in ipairs(gdevices) do
+                if y == device.y then
+                    found = true
+                    break
+                end
+            end
+            if not found then
+                return false, string.format("group #%d contains device y-placements with grid holes (miny: %d, maxy: %d)", index, miny, maxy)
+            end
+        end
+    end
+
+    -- check that the global grid does not contain any holes
+    do
+        for x = state.minx, state.maxx do
+            local found = false
+            for _, group in ipairs(state.devicegroups) do
+                if x == group.x then
+                    found = true
+                    break
+                end
+            end
+            if not found then
+                return false, string.format("the global grid contains group x-placements with grid holes (minx: %d, maxx: %d)", index, state.minx, state.maxx)
+            end
+        end
+        for y = state.miny, state.maxy do
+            local found = false
+            for _, group in ipairs(state.devicegroups) do
+                if y == group.y then
+                    found = true
+                    break
+                end
+            end
+            if not found then
+                return false, string.format("the global grid contains group y-placements with grid holes (miny: %d, maxy: %d)", index, state.miny, state.maxy)
+            end
         end
     end
 
@@ -903,11 +974,11 @@ function layout(circuit, _P, _env, state)
         -- legalize placement (only with positive on-grid movements)
         for deviceindex, device in ipairs(gdevices) do
             local xshift = 0
-            for x = 1, device.x do
+            for x = state.groupgridvalues[index].minx, device.x do
                 xshift = xshift + gridsizes.x[x]
             end
             local yshift = 0
-            for y = 1, device.y do
+            for y = state.groupgridvalues[index].miny, device.y do
                 yshift = yshift + gridsizes.y[y]
             end
             local boundary = device.cell:get_bounding_box()

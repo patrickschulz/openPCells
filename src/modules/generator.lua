@@ -113,7 +113,7 @@ local function _newline(lines)
     table.insert(lines, "")
 end
 
-function M.analog(file, settings, devices, groups, places, routes)
+function M.analog(file, settings, devices, places, routes)
     local lines = {}
     local level = 0
     local function _insert(fmt, ...)
@@ -155,6 +155,7 @@ function M.analog(file, settings, devices, groups, places, routes)
     _decrease()
     _insert("}")
     -- end of device bases
+    _newline(lines)
     -- begin of devices
     _insert("local devices = {")
     _increase()
@@ -165,11 +166,11 @@ function M.analog(file, settings, devices, groups, places, routes)
         _increase()
         -- name
         _insert("name = \"%s\",", device.name)
-        -- name
+        -- base
         _insert("base = \"%sbase\",", device.name)
-        -- grid position
-        _insert("x = %d,", places[device.name].x)
-        _insert("y = %d,", places[device.name].y)
+        -- placement
+        _insert("x = %d,", places.devices[device.name].x)
+        _insert("y = %d,", places.devices[device.name].y)
         -- nets
         _insert("nets = {")
         _increase()
@@ -186,6 +187,35 @@ function M.analog(file, settings, devices, groups, places, routes)
     _decrease()
     _insert("}")
     -- end of devices
+    _newline(lines)
+    -- begin of device groups
+    _insert("local devicegroups = {")
+    _increase()
+    for i, place in ipairs(places.groups) do
+        -- start of group
+        _insert("-- * group %d *", i)
+        _insert("{")
+        _increase()
+        -- name
+        _insert("name = \"group_%d\",", i)
+        -- devices
+        local devicetable = util.select_key(place.object.devices, "name")
+        _insert("devices = { %s },", util.tconcatfmt(devicetable, ", ", "\"%s\""))
+        -- well type (FIXME)
+        _insert("welltype = \"%s\",", "n")
+        -- grid position
+        _insert("x = %d,", place.x)
+        _insert("y = %d,", place.y)
+        -- grid position
+        --_insert("x = %d,", places[device.name].x)
+        --_insert("y = %d,", places[device.name].y)
+        _decrease()
+        _insert("},")
+        -- end of group
+    end
+    _decrease()
+    _insert("}")
+    -- end of device groups
     --[[
     _insert("intergridlines = {")
     _increase()
