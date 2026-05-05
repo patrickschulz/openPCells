@@ -1059,7 +1059,7 @@
         { NULL }
     };
     vector_append(entries, _make_api_entry(
-        "reduce",
+        "select_key",
         MODULE_UTIL,
         "return a table that contains the value of the the given key of every array element in t",
         "Return a table that contains the value of the the given key of every array element in t. "
