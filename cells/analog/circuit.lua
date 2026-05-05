@@ -300,6 +300,7 @@ function prepare(_P)
                 name = device.name,
                 x = device.x,
                 y = device.y,
+                parameters = {},
                 nets = {
                     gate = device.nets.gate,
                     source = device.nets.source,
@@ -317,14 +318,14 @@ function prepare(_P)
             -- copy base parameters
             if device.base then
                 for k, v in pairs(_P.devicebases[device.base]) do
-                    d[k] = v
+                    d.parameters[k] = v
                 end
             end
             -- copy potentially-existing overwriting instance parameters
             -- (order matters, instance parameters take priority over base parameters)
             if device.parameters then
                 for k, v in pairs(device.parameters) do
-                    d[k] = v
+                    d.parameters[k] = v
                 end
             end
             -- add group index to device
@@ -557,6 +558,31 @@ function check(_P, state)
         end
     end
 
+    -- check welltype sanity of every group
+    for i, group in ipairs(state.devicegroups) do
+        local gdevices = state._get_devices(state.groupsearch, group)
+        local num_nwell = 0
+        local num_pwell = 0
+        for _, device in ipairs(gdevices) do
+            if device.parameters.flippedwell then
+                if device.parameters.channeltype == "nmos" then
+                    num_nwell = num_nwell + 1
+                else
+                    num_pwell = num_pwell + 1
+                end
+            else
+                if device.parameters.channeltype == "nmos" then
+                    num_pwell = num_pwell + 1
+                else
+                    num_nwell = num_nwell + 1
+                end
+            end
+        end
+        if (num_nwell > 0) and (num_pwell > 0) then
+            return false, string.format("group #%d ('%s') contains devices with different well types", i, group.name)
+        end
+    end
+
     -- check in-group device grid targets (only one device per cell)
     for index, group in ipairs(state.devicegroups) do
         local gdevices = state._get_devices(state.groupsearch, group)
@@ -647,7 +673,7 @@ function check(_P, state)
     }
     for i, device in ipairs(state.devices) do
         for _, p in ipairs(paramlist) do
-            if not device[p] then
+            if not device.parameters[p] then
                 return false, string.format("device #%d does not specify '%s'", i, p)
             end
         end
@@ -655,7 +681,7 @@ function check(_P, state)
 
     -- check parameter values
     for i, device in ipairs(state.devices) do
-        if device.fingers % 2 ~= 0 then
+        if device.parameters.fingers % 2 ~= 0 then
             return false, string.format("device #%d: 'fingers' is odd (%d), must be even", i, device.fingers)
         end
     end
@@ -892,12 +918,12 @@ function layout(circuit, _P, _env, state)
     for _, device in ipairs(state.devices) do
         -- create layout of the device and store
         device.cell = pcell.create_layout("basic/mosfet", "_mosfet", util.add_options(commonopts, {
-            channeltype = device.channeltype,
-            flippedwell = device.flippedwell,
-            fingers = device.fingers,
-            fingerwidth = device.fingerwidth,
-            gatelength = device.gatelength,
-            gatespace = device.gatespace,
+            channeltype = device.parameters.channeltype,
+            flippedwell = device.parameters.flippedwell,
+            fingers = device.parameters.fingers,
+            fingerwidth = device.parameters.fingerwidth,
+            gatelength = device.parameters.gatelength,
+            gatespace = device.parameters.gatespace,
             instancename = device.name,
             --drawguardring = not device.is_in_group,
             drawguardring = false, -- guard rings are drawn around device groups
