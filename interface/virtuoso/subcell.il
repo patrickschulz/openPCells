@@ -205,6 +205,8 @@ procedure(OPCSubCellEditScript()
                                 createDirHier(opcgroup->opcdir)
                             )
                             OPCOpenEditor(lsprintf("%s/%s" opcgroup->opcdir opcgroup->opcname))
+                    ) ; if isFile
+            ) ; if opcgroup
         ) ; when opcgroup
     ) ; let
 ) ; OPCSubCellEditScript
