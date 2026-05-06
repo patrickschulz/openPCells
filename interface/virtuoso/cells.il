@@ -3,6 +3,7 @@ procedure(OPCCreateGuardring()
         properties = list(
             list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" "auxiliary/guardring"))
             list(nil 'name "opcprotect" 'type "boolean" 'value nil)
+            list(nil 'name "ringwidth" 'type "float" 'value 0.2)
             list(nil 'name "contype" 'type "string" 'value "n")
             list(nil 'name "holewidth" 'type "float" 'value 5.0)
             list(nil 'name "holeheight" 'type "float" 'value 5.0)
