@@ -109,8 +109,9 @@ local function _find_object_place(places, object)
     return nil
 end
 
-local function _calculate_total_wire_length(wires, places)
+local function _calculate_total_wire_length(wires, places, weights)
     local total_wire_length = 0
+    local num_jogs = 0
     for _, wire in ipairs(wires) do
         local minx = math.huge
         local miny = math.huge
@@ -123,9 +124,16 @@ local function _calculate_total_wire_length(wires, places)
             maxx = math.max(maxx, x)
             maxy = math.max(maxy, y)
         end
-        total_wire_length = total_wire_length + maxx - minx + maxy - miny
+        local xlength = maxx - minx
+        local ylength = maxy - miny
+        local jog = ((xlength > 0) and (ylength > 0)) and 1 or 0
+        num_jogs = num_jogs + weights.jog * jog
+        total_wire_length =
+            total_wire_length
+            + weights.x_wirelength * xlength
+            + weights.y_wirelength * ylength
     end
-    return total_wire_length
+    return weights.wirelength * total_wire_length + num_jogs
 end
 
 local function _generate_object_placement(permutation, numx, numy)
@@ -178,7 +186,7 @@ local function _is_local_net(netname, groups)
     return counter == 1 -- net is only present in one group
 end
 
-local function _run_placement(objects, wires)
+local function _run_placement(objects, wires, weights)
     local numobjects = #objects
     local permutations = util.generate_all_permutations(objects)
     local total_wire_length = math.huge
@@ -196,7 +204,7 @@ local function _run_placement(objects, wires)
             -- generate placement
             local places = _generate_object_placement(permutation, numx, numy)
             -- calculate wire length
-            local new_length = _calculate_total_wire_length(wires, places)
+            local new_length = _calculate_total_wire_length(wires, places, weights)
             -- compare to previous results
             if new_length < total_wire_length then
                 total_wire_length = new_length
@@ -242,6 +250,14 @@ function placement.place_analog(devices, groups, constraints, ignored_nets)
     --   There is probably some potential for optimizing group interconnects
     --   by placing them properly ('pins' close to the edges), but this is secondary.
     -- * add simple symmetry constraints
+
+    local penalties = constraints.penalties or {}
+    local weights = {
+        wirelength = penalties.wirelength or 1,
+        x_wirelength = penalties.x_wirelength or 1,
+        y_wirelength = penalties.y_wirelength or 1,
+        jog = penalties.wire_jogs or 0,
+    }
 
     -- put every device in a group.
     -- if it is specified in 'groups' put all devices that belong to it in the same group.
@@ -292,7 +308,7 @@ function placement.place_analog(devices, groups, constraints, ignored_nets)
             end
         end
         -- perform in-group placement
-        local places = _run_placement(group.devices, wires)
+        local places = _run_placement(group.devices, wires, weights)
         for _, place in ipairs(places) do
             device_places[place.object.name] = {
                 x = place.x,
@@ -326,7 +342,7 @@ function placement.place_analog(devices, groups, constraints, ignored_nets)
     end
 
     -- perform global placement
-    local group_places = _run_placement(device_groups, wires)
+    local group_places = _run_placement(device_groups, wires, weights)
 
     return {
         devices = device_places,
