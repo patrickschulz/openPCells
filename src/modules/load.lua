@@ -1,10 +1,16 @@
--- luacheck: ignore _get_reader _generic_load _load_module load
 function _get_reader(filename)
     local file = io.open(filename, "r")
     if not file then
         return nil, string.format("could not open file '%s'", filename)
     end
-    local chunksize = 1000
+    local chunksize = 1024
+    return function()
+        return file:read(chunksize)
+    end
+end
+
+function _get_reader_from_file(file)
+    local chunksize = 1024
     return function()
         return file:read(chunksize)
     end

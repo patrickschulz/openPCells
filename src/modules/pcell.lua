@@ -153,10 +153,11 @@ local function _load_cell(state, cellname, env)
         error("pcell: load_cell expects a cellname")
     end
     local filename = state.internal_state.get_cell_filename(state.internal_state, cellname)
-    local reader = _get_reader(filename)
-    if not reader then
+    local file = io.open(filename, "r")
+    if not file then
         error(string.format("could not open cell file '%s'", filename))
     end
+    local reader = _get_reader_from_file(file)
     local chunkname = string.format("@cell '%s'", cellname)
     if state.verbose then
         print(string.format("pcell: loading cell definition in %s", filename))
@@ -167,6 +168,7 @@ local function _load_cell(state, cellname, env)
         string.format("semantic error in cell '%s'", cellname),
         env
     )
+    file:close()
     -- check if only allowed values are defined
     for funcname in pairs(env) do
         local allowed_functions = {
