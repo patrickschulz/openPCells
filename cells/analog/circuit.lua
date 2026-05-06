@@ -10,6 +10,7 @@ function parameters()
         { "devices",                                {} },
         { "devicegroups",                           {} },
         { "auto_assign_groups",                     true },
+        { "auto_assign_welltypes",                  true },
         { "minimum_device_xspace",                  0 },
         { "minimum_device_yspace",                  0 },
         { "guardringwidth",                         technology.get_dimension("Minimum Active Contact Region Size"), posvals = positive() },
@@ -61,12 +62,14 @@ function check_pre(_P)
     end
 
     -- check that every group has a welltype
-    for i, group in ipairs(_P.devicegroups) do
-        if not group.welltype then
-            return false, string.format("group #%d does not specify 'welltype'", i)
-        end
-        if not ((group.welltype == "n") or (group.welltype == "p")) then
-            return false, string.format("group #%d specifies an illegal welltype: '%s' (must be 'n' or 'p')", i, group.welltype)
+    if not _P.auto_assign_welltypes then
+        for i, group in ipairs(_P.devicegroups) do
+            if not group.welltype then
+                return false, string.format("group #%d does not specify 'welltype'", i)
+            end
+            if not ((group.welltype == "n") or (group.welltype == "p")) then
+                return false, string.format("group #%d specifies an illegal welltype: '%s' (must be 'n' or 'p')", i, group.welltype)
+            end
         end
     end
 
@@ -328,6 +331,21 @@ function prepare(_P)
                     d.parameters[k] = v
                 end
             end
+            -- find well type of device (for group assignment)
+            local welltype
+            if d.parameters.flippedwell then
+                if d.parameters.channeltype == "nmos" then
+                    welltype = "n"
+                else
+                    welltype = "p"
+                end
+            else
+                if d.parameters.channeltype == "nmos" then
+                    welltype = "p"
+                else
+                    welltype = "n"
+                end
+            end
             -- add group index to device
             -- (potentially a new group)
             local groupindex
@@ -338,24 +356,9 @@ function prepare(_P)
                 end
             end
             if not groupindex then -- device not in a group, create a new one
-                local welltype
-                if d.flippedwell then
-                    if d.channeltype == "nmos" then
-                        welltype = "n"
-                    else
-                        welltype = "p"
-                    end
-                else
-                    if d.channeltype == "nmos" then
-                        welltype = "p"
-                    else
-                        welltype = "n"
-                    end
-                end
                 local group = { 
                     name = string.format("%s_group", d.name),
                     devices = { d.name },
-                    welltype = welltype,
                     -- inherit placement from device
                     x = d.x,
                     y = d.y,
@@ -365,6 +368,13 @@ function prepare(_P)
                 -- if this device is in its own group, remove the placement information (set it to 1, 1)
                 d.x = 1
                 d.y = 1
+            end
+            -- assign group well type from device
+            -- for groups with multiple devices this happens more than once
+            -- however, equal well types are enforved for all devices
+            -- within one group via parameter checks
+            if _P.auto_assign_welltypes then
+                state.devicegroups[groupindex].welltype = welltype
             end
             d.group = groupindex
             table.insert(state.devices, d)
