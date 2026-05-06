@@ -201,8 +201,9 @@ function M.analog(file, settings, devices, places, routes)
         -- devices
         local devicetable = util.select_key(place.object.devices, "name")
         _insert("devices = { %s },", util.tconcatfmt(devicetable, ", ", "\"%s\""))
-        -- well type (FIXME)
-        _insert("welltype = \"%s\",", "n")
+        -- well type
+        -- for now: use auto-assignment in analog/circuit
+        --_insert("welltype = \"%s\",", "n")
         -- grid position
         _insert("x = %d,", place.x)
         _insert("y = %d,", place.y)
