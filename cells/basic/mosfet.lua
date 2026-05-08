@@ -245,6 +245,8 @@ function parameters()
         { "bottomactivedummyspace",                                                                     technology.get_optional_dimension("Minimum Active Space", 0), follow = "activedummyspace" },
         { "leftfloatingdummies",                                                                        0 },
         { "rightfloatingdummies",                                                                       0 },
+        { "floatingdummygatelength",                                                                    technology.get_dimension("Minimum Gate Length"), argtype = "integer", follow = "gatelength", info = "drawn floating dummy gate length (channel length)", readonly = true },
+        { "floatingdummygatespace",                                                                     technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), argtype = "integer", follow = "gatespace", info = "floating dummy gate space between the polysilicon lines", readonly = true },
         { "drawactive",                                                                                 true },
         { "lvsmarker",                                                                                  1, info = "special marking layer to mark device features for LVS. Typically used for mosfets with 5 and 6 terminals (including well diodes). Per default this includes the guardring around the device, as this defines the geometry of the diodes. This can be changed with the parameter 'lvsmarkerincludeguardring'. This marker is always drawn, the parameter is a numeric value, starting at 1." },
         { "lvsmarkerincludeguardring",                                                                  true, },
@@ -1048,9 +1050,13 @@ function layout(transistor, _P)
     local hasgatecut = not _P.simulatemissinggatecut and technology.has_feature("has_gatecut")
 
     -- active
-    local activewidth = 
-        (_P.fingers + _P.leftfloatingdummies + _P.rightfloatingdummies) * _P.gatelength +
-        (_P.fingers + _P.leftfloatingdummies + _P.rightfloatingdummies - 1) * _P.gatespace
+    local activewidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace
+    if _P.leftfloatingdummies > 0 then
+        activewidth = activewidth + _P.gatespace + _P.leftfloatingdummies * _P.floatingdummygatelength + (_P.leftfloatingdummies - 1) * _P.floatingdummygatespace
+    end
+    if _P.rightfloatingdummies > 0 then
+        activewidth = activewidth + _P.gatespace + _P.rightfloatingdummies * _P.floatingdummygatelength + (_P.rightfloatingdummies - 1) * _P.floatingdummygatespace
+    end
     local leftactext
     if _P.endleftwithgate then
         leftactext = _P.leftendgatespace + _P.leftendgatelength / 2
@@ -1063,7 +1069,7 @@ function layout(transistor, _P)
     else
         rightactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
     end
-    local activeshift = -_P.leftfloatingdummies * gatepitch
+    local activeshift = -_P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace)
 
     local activebl = point.create(-leftactext + activeshift, 0)
     local activetr = point.create(activewidth + rightactext + activeshift, _P.fingerwidth)
@@ -1196,8 +1202,8 @@ function layout(transistor, _P)
     if _P.endleftwithgate then
         transistor:add_area_anchor_bltr(
             "endleftgate",
-            point.create(gateblx - _P.leftfloatingdummies * gatepitch - _P.leftendgatelength - _P.leftendgatespace, gatebly),
-            point.create(gatetrx - _P.leftfloatingdummies * gatepitch - _P.gatelength - _P.leftendgatespace, gatetry)
+            point.create(gateblx - _P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace) - _P.leftendgatelength - _P.leftendgatespace, gatebly),
+            point.create(gatetrx - _P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace) - _P.gatelength - _P.leftendgatespace, gatetry)
         )
         geometry.rectanglebltr(transistor,
             generics.gate(),
@@ -1231,8 +1237,8 @@ function layout(transistor, _P)
             if _P.mosfetmarkerincludefloatingdummies then
                 geometry.rectanglebltr(transistor,
                     generics.marker("mosfet", _P.mosfetmarker),
-                    point.create(gateblx - _P.leftfloatingdummies * gatepitch, activebl:gety()),
-                    point.create(gateblx + (_P.fingers + _P.rightfloatingdummies) * gatepitch - _P.gatespace, activetr:gety())
+                    point.create(gateblx - _P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace), activebl:gety()),
+                    point.create(gateblx + _P.fingers * gatepitch + _P.rightfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace) - _P.gatespace, activetr:gety())
                 )
             else
                 geometry.rectanglebltr(transistor,
@@ -1402,25 +1408,25 @@ function layout(transistor, _P)
     for i = 1, _P.leftfloatingdummies do
         geometry.rectanglebltr(transistor,
             generics.gate(),
-            point.create(gateblx - i * gatepitch, gatebly),
-            point.create(gatetrx - i * gatepitch, gatetry)
+            point.create(gateblx - i * (_P.floatingdummygatelength + _P.floatingdummygatespace), gatebly),
+            point.create(gatetrx - i * (_P.floatingdummygatelength + _P.floatingdummygatespace), gatetry)
         )
         geometry.rectanglebltr(transistor,
             generics.marker("floatinggate"),
-            point.create(gateblx - i * gatepitch, gatebly),
-            point.create(gatetrx - i * gatepitch, gatetry)
+            point.create(gateblx - i * (_P.floatingdummygatelength + _P.floatingdummygatespace), gatebly),
+            point.create(gatetrx - i * (_P.floatingdummygatelength + _P.floatingdummygatespace), gatetry)
         )
     end
     for i = 1, _P.rightfloatingdummies do
         geometry.rectanglebltr(transistor,
             generics.gate(),
-            point.create(gateblx + (_P.fingers + i - 1) * gatepitch, gatebly),
-            point.create(gatetrx + (_P.fingers + i - 1) * gatepitch, gatetry)
+            point.create(gateblx + (_P.fingers + i - 1) * (_P.floatingdummygatelength + _P.floatingdummygatespace), gatebly),
+            point.create(gatetrx + (_P.fingers + i - 1) * (_P.floatingdummygatelength + _P.floatingdummygatespace), gatetry)
         )
         geometry.rectanglebltr(transistor,
             generics.marker("floatinggate"),
-            point.create(gateblx + (_P.fingers + i - 1) * gatepitch, gatebly),
-            point.create(gatetrx + (_P.fingers + i - 1) * gatepitch, gatetry)
+            point.create(gateblx + (_P.fingers + i - 1) * (_P.floatingdummygatelength + _P.floatingdummygatespace), gatebly),
+            point.create(gatetrx + (_P.fingers + i - 1) * (_P.floatingdummygatelength + _P.floatingdummygatespace), gatetry)
         )
     end
 
