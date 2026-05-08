@@ -916,6 +916,7 @@ function layout(circuit, _P, _env, state)
 
     -- create devices and store
     local commonopts = {
+        drawwell = false,
         drawtopgate = true,
         topgateadjustforsdstraps = true,
         connectsource = true,
