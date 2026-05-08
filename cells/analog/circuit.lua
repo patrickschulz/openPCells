@@ -17,7 +17,7 @@ function parameters()
         { "hlines",                                 {} },
         { "vlines",                                 {} },
         { "auto_assign_xylines",                    true },
-        { "interconnectlinewidth",                  technology.get_dimension_max("Minimum M2 Width", "Minimum M2M3 Viawidth") },
+        { "interconnectlinewidth",                  technology.get_dimension_max("Minimum M2 Width", "Minimum M1M2 Viawidth", "Minimum M2M3 Viawidth") },
         { "interconnectlinespace",                  technology.get_dimension_max("Minimum M2 Space", "Minimum M3 Space") },
         { "allow_failed_grid_connections",          false },
         { "check_grid_connections",                 true },
