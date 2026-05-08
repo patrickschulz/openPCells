@@ -126,6 +126,8 @@ function parameters()
         { "drawactivedummy",                                                        false },
         { "activedummywidth",                                                       technology.get_optional_dimension("Minimum Active Width", 0) },
         { "activedummyspace",                                                       technology.get_optional_dimension("Minimum Active Space", 0) },
+        { "leftfloatingdummies",                                                    0 },
+        { "rightfloatingdummies",                                                   0 },
         { "drawleftstopgate",                                                       false },
         { "drawrightstopgate",                                                      false },
         { "excludestopgatesfromcutregions",                                         true },
@@ -286,6 +288,8 @@ function layout(cmos, _P)
         separation = _P.innergatestraps * _P.gatestrapwidth + (_P.innergatestraps + 1) * _P.gatestrapspace
     end
 
+    local leftnactivearea, rightnactivearea
+    local leftpactivearea, rightpactivearea
     local leftndrainarea, rightndrainarea
     local leftpdrainarea, rightpdrainarea
     local leftnmoswell, rightnmoswell
@@ -458,6 +462,8 @@ function layout(cmos, _P)
                     popt_current.leftendgatelength = _P.leftendgatelength
                     popt_current.leftendgatespace = _P.leftendgatespace
                 end
+                nopt_current.leftfloatingdummies = _P.leftfloatingdummies
+                popt_current.leftfloatingdummies = _P.leftfloatingdummies
             end
             if i == fingers then
                 nopt_current.rightpolylines = _P.rightpolylines
@@ -482,6 +488,8 @@ function layout(cmos, _P)
                     popt_current.rightendgatelength = _P.rightendgatelength
                     popt_current.rightendgatespace = _P.rightendgatespace
                 end
+                nopt_current.rightfloatingdummies = _P.rightfloatingdummies
+                popt_current.rightfloatingdummies = _P.rightfloatingdummies
             end
             -- gate contact positions
             local ngatey = (separation - _P.gatestrapwidth) / 2 + _P.shiftgatecontacts
@@ -836,6 +844,8 @@ function layout(cmos, _P)
             end
             -- save anchors for later use
             if i == 1 then
+                leftnactivearea = nfet:get_area_anchor("active")
+                leftpactivearea = pfet:get_area_anchor("active")
                 leftndrainarea = nfet:get_area_anchor("sourcedrainactiveleft")
                 leftpdrainarea = pfet:get_area_anchor("sourcedrainactiveleft")
                 firstgatearea = nfet:get_area_anchor("gate1")
@@ -847,6 +857,8 @@ function layout(cmos, _P)
                 leftpmosoxide = pfet:get_area_anchor("oxide")
             end
             if i == fingers then
+                rightnactivearea = nfet:get_area_anchor("active")
+                rightpactivearea = pfet:get_area_anchor("active")
                 rightndrainarea = nfet:get_area_anchor("sourcedrainactiveright")
                 rightpdrainarea = pfet:get_area_anchor("sourcedrainactiveright")
                 rightnmoswell = nfet:get_area_anchor("well")
@@ -873,16 +885,8 @@ function layout(cmos, _P)
             leftndrainarea.bl:copy():translate(-_P.powerrailleftextension, -_P.npowerspace - _P.powerwidth),
             rightndrainarea.br:copy():translate(_P.powerrailrightextension, -_P.npowerspace)
         )
-        geometry.rectanglebltr(cmos,
-            generics.metal(1), 
-            cmos:get_area_anchor("PRn").bl,
-            cmos:get_area_anchor("PRn").tr
-        )
-        geometry.rectanglebltr(cmos,
-            generics.metal(1), 
-            cmos:get_area_anchor("PRp").bl,
-            cmos:get_area_anchor("PRp").tr
-        )
+        geometry.rectangleareaanchor(cmos, generics.metal(1), "PRn")
+        geometry.rectangleareaanchor(cmos, generics.metal(1), "PRp")
     end
 
     -- well anchors
@@ -907,12 +911,12 @@ function layout(cmos, _P)
 
     -- active anchors
     cmos:add_area_anchor_bltr("nmos_active",
-        leftndrainarea.bl,
-        rightndrainarea.tr
+        leftnactivearea.bl,
+        rightnactivearea.tr
     )
     cmos:add_area_anchor_bltr("pmos_active",
-        leftpdrainarea.bl,
-        rightpdrainarea.tr
+        leftpactivearea.bl,
+        rightpactivearea.tr
     )
 
     -- well taps (can't use the mosfet pcell well taps, as only single fingers are instantiated)

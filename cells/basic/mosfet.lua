@@ -4,7 +4,7 @@ function info()
         "It is the basic building block of CMOS circuits and used by various other opc cells such as 'basic/cmos' or 'basic/stacked_mosfet_array'.",
         "This cell is also useful on its own and meant to be employed for implementing single transistors.",
         "It tries to mimic typical pcell behaviour often found for elementary MOSFET devices in PDKs, so it can connect source/drain regions, draw multiple fingers, gate straps, guardrings etc.",
-        "This cell features more than 250 parameters, but most of them are only required for special cases.",
+        "This cell features more than 300 parameters, but most of them are only required for special cases.",
         "If the technology files are set up properly, a simple call with parameters like 'fingers = 8' and 'fingerwidth = 500' shoud be sufficient for a DRC-clean transistor."
     }
     local example = [[{
@@ -52,6 +52,7 @@ function parameters()
         { "wellalignbottomwithactive",                                                                  false, follow = "wellalignwithactive", info = "set reference point for well bottom extensions. If this is false, the well bottom extension is autmatically calculated so that the well covers the bottom part of all gates. With this option enabled, the well bottom extension is referenced to the active region. This is useful for having precise control over the well extensions in mosfet arrays with varying gate heights" },
         { "gatemarker(Gate Marking Layer Index)",                                                       1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers only the gate (the intersection of poly and the active region). This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first gate marker should be an empty layer" },
         { "mosfetmarker(MOSFET Marking Layer Index)",                                                   1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers the active region. This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first gate marker should be an empty layer" },
+        { "mosfetmarkerincludefloatingdummies",                                                         true },
         { "mosfetmarkeralignatsourcedrain(Align MOSFET Marker at Source/Drain)",                        false, info = "set reference points for mosfetmarker extensions. If this is false, the mosfetmarker extensions are autmatically calculated so that the mosfetmarker covers all gates. With this option enabled, the mosfetmarker extensions are referenced to the active region. This is useful for having precise control over the mosfetmarker extensions in mosfet arrays with varying gate heights"  },
         { "flippedwell(Flipped Well)",                                                                  false, info = "enable if the device is a flipped-well device. The wells are inferred from the channeltype: non-flipped-well: pmos -> n-well, nmos -> p-well and vice versa" },
         { "fingers(Number of Fingers)",                                                                 2, argtype = "integer", posvals = interval(0, inf), info = "number of gate fingers. The total width of the device is fingerwidth * fingers" },
@@ -945,11 +946,6 @@ end
 
 function layout(transistor, _P)
     local gatepitch = _P.gatelength + _P.gatespace
-    local leftactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
-    local rightactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
-    local leftactauxext = _P.endleftwithgate and (-(_P.gatespace + _P.sdwidth) / 2 + _P.leftendgatespace + _P.leftendgatelength / 2) or 0
-    local rightactauxext = _P.endrightwithgate and (-(_P.gatespace + _P.sdwidth) / 2 + _P.rightendgatespace + _P.rightendgatelength / 2) or 0
-    local activewidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + _P.leftfloatingdummies * gatepitch + _P.rightfloatingdummies * gatepitch
 
     -- calculate gate/gate strap space extensions due to source/drain straps
     local topgatesdstrapspace = 0
@@ -1052,63 +1048,64 @@ function layout(transistor, _P)
     local hasgatecut = not _P.simulatemissinggatecut and technology.has_feature("has_gatecut")
 
     -- active
+    local activewidth = 
+        (_P.fingers + _P.leftfloatingdummies + _P.rightfloatingdummies) * _P.gatelength +
+        (_P.fingers + _P.leftfloatingdummies + _P.rightfloatingdummies - 1) * _P.gatespace
+    local leftactext
+    if _P.endleftwithgate then
+        leftactext = _P.leftendgatespace + _P.leftendgatelength / 2
+    else
+        leftactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
+    end
+    local rightactext
+    if _P.endrightwithgate then
+        rightactext = _P.rightendgatespace + _P.rightendgatelength / 2
+    else
+        rightactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
+    end
+    local activeshift = -_P.leftfloatingdummies * gatepitch
+
+    local activebl = point.create(-leftactext + activeshift, 0)
+    local activetr = point.create(activewidth + rightactext + activeshift, _P.fingerwidth)
     if _P.drawactive then
-        geometry.rectanglebltr(transistor, generics.active(),
-            point.create(-leftactauxext, 0),
-            point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth)
-        )
+        transistor:add_area_anchor_bltr("active", activebl, activetr)
+        geometry.rectangleareaanchor(transistor, generics.active(), "active")
         transistor:add_anchor_line_y("activetop", _P.fingerwidth)
         transistor:add_anchor_line_y("activebottom", 0)
-        transistor:add_area_anchor_bltr("active",
-            point.create(-leftactauxext, 0),
-            point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth)
-        )
         if _P.drawleftactivedummy then
             transistor:add_area_anchor_bltr("leftactivedummy",
-                point.create(-leftactauxext - _P.leftactivedummyspace - _P.leftactivedummywidth, 0),
-                point.create(-leftactauxext - _P.leftactivedummyspace, _P.fingerwidth)
+                point.create(activebl:getx() - _P.leftactivedummyspace - _P.leftactivedummywidth, activebl:gety()),
+                point.create(activebl:getx() - _P.leftactivedummyspace, activetr:gety())
             )
-            geometry.rectanglebltr(transistor, generics.active(),
-                transistor:get_area_anchor("leftactivedummy").bl,
-                transistor:get_area_anchor("leftactivedummy").tr
-            )
+            geometry.rectangleareaanchor(transistor, generics.active(), "leftactivedummy")
         end
         if _P.drawrightactivedummy then
             transistor:add_area_anchor_bltr("rightactivedummy",
-                point.create(activewidth + leftactext + rightactext + rightactauxext + _P.rightactivedummyspace, 0),
-                point.create(activewidth + leftactext + rightactext + rightactauxext + _P.rightactivedummyspace + _P.rightactivedummywidth, _P.fingerwidth)
+                point.create(activetr:getx() + _P.rightactivedummyspace, activebl:gety()),
+                point.create(activetr:getx() + _P.rightactivedummyspace + _P.rightactivedummywidth, activetr:gety())
             )
-            geometry.rectanglebltr(transistor, generics.active(),
-                transistor:get_area_anchor("rightactivedummy").bl,
-                transistor:get_area_anchor("rightactivedummy").tr
-            )
+            geometry.rectangleareaanchor(transistor, generics.active(), "rightactivedummy")
         end
         if _P.drawtopactivedummy then
             transistor:add_area_anchor_bltr("topactivedummy",
-                point.create(-leftactauxext, _P.fingerwidth + _P.topactivedummyspace),
-                point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fingerwidth + _P.topactivedummyspace + _P.topactivedummywidth)
+                point.create(activebl:getx(), activetr:gety() + _P.topactivedummyspace),
+                point.create(activetr:getx(), activetr:gety() + _P.topactivedummyspace + _P.topactivedummywidth)
             )
-            geometry.rectanglebltr(transistor, generics.active(),
-                transistor:get_area_anchor("topactivedummy").bl,
-                transistor:get_area_anchor("topactivedummy").tr
-            )
+            geometry.rectangleareaanchor(transistor, generics.active(), "topactivedummy")
         end
         if _P.drawbottomactivedummy then
             transistor:add_area_anchor_bltr("bottomactivedummy",
-                point.create(-leftactauxext, -_P.bottomactivedummyspace - _P.bottomactivedummywidth),
-                point.create(activewidth + leftactext + rightactext + rightactauxext, -_P.bottomactivedummyspace)
+                point.create(activebl:getx(), activebl:gety() - _P.bottomactivedummyspace - _P.bottomactivedummywidth),
+                point.create(activetr:getx(), activebl:gety() - _P.bottomactivedummyspace)
             )
-            geometry.rectanglebltr(transistor, generics.active(),
-                transistor:get_area_anchor("bottomactivedummy").bl,
-                transistor:get_area_anchor("bottomactivedummy").tr
-            )
+            geometry.rectangleareaanchor(transistor, generics.active(), "bottomactivedummy")
         end
     end
 
     -- gates
     -- base coordinates of a gate
     -- needed throughout the cell by various drawings
-    local gateblx = leftactext + _P.leftfloatingdummies * gatepitch
+    local gateblx = 0
     local gatebly = -gateaddbottom
     local gatetrx = gateblx + _P.gatelength
     local gatetry = _P.fingerwidth + gateaddtop
@@ -1231,11 +1228,19 @@ function layout(transistor, _P)
                 point.create(_P.fingers * gatepitch, _P.fingerwidth)
             )
         else
-            geometry.rectanglebltr(transistor,
-                generics.marker("mosfet", _P.mosfetmarker),
-                point.create(leftactext, 0),
-                point.create(leftactext + _P.fingers * gatepitch - _P.gatespace,  _P.fingerwidth)
-            )
+            if _P.mosfetmarkerincludefloatingdummies then
+                geometry.rectanglebltr(transistor,
+                    generics.marker("mosfet", _P.mosfetmarker),
+                    point.create(gateblx - _P.leftfloatingdummies * gatepitch, activebl:gety()),
+                    point.create(gateblx + (_P.fingers + _P.rightfloatingdummies) * gatepitch - _P.gatespace, activetr:gety())
+                )
+            else
+                geometry.rectanglebltr(transistor,
+                    generics.marker("mosfet", _P.mosfetmarker),
+                    point.create(gateblx, activebl:gety()),
+                    point.create(gateblx + _P.fingers * gatepitch - _P.gatespace, activetr:gety())
+                )
+            end
         end
     end
 
@@ -1424,18 +1429,18 @@ function layout(transistor, _P)
         generics.vthtype(_P.channeltype, _P.vthtype),
         point.create(
             _P.vthtypealignleftwithactive and
-                -leftactauxext - _P.extendvthtypeleft or
-                -leftactauxext - _P.extendvthtypeleft,
+                activebl:getx() - _P.extendvthtypeleft or
+                activebl:getx() - _P.extendvthtypeleft,
             _P.vthtypealignbottomwithactive and
-                -_P.extendvthtypebottom or
+                activebl:gety() - _P.extendvthtypebottom or
                 gatebly - _P.extendvthtypebottom
         ),
         point.create(
             _P.vthtypealignrightwithactive and
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendvthtyperight or
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendvthtyperight,
+                activetr:getx() + _P.extendvthtyperight or
+                activetr:getx() + _P.extendvthtyperight,
             _P.vthtypealigntopwithactive and
-                _P.fingerwidth + _P.extendvthtypetop or
+                activetr:gety() + _P.extendvthtypetop or
                 gatetry + _P.extendvthtypetop
         )
     )
@@ -1443,18 +1448,18 @@ function layout(transistor, _P)
     -- implant
     local implantbl = point.create(
         _P.implantalignleftwithactive and
-            -leftactauxext - _P.extendimplantleft or
-            -leftactauxext - _P.extendimplantleft,
+            activebl:getx() - _P.extendimplantleft or
+            activebl:getx() - _P.extendimplantleft,
         _P.implantalignbottomwithactive and
-            -_P.extendimplantbottom or
+            activebl:gety() - _P.extendimplantbottom or
             gatebly - _P.extendimplantbottom
     )
     local implanttr = point.create(
         _P.implantalignrightwithactive and
-            activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright or
-            activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright,
+            activetr:getx() + _P.extendimplantright or
+            activetr:getx() + _P.extendimplantright,
         _P.implantaligntopwithactive and
-            _P.fingerwidth + _P.extendimplanttop or
+            activetr:gety() + _P.extendimplanttop or
             gatetry + _P.extendimplanttop
     )
     if _P.implantrespectpolylines then
@@ -1477,18 +1482,18 @@ function layout(transistor, _P)
     -- oxide thickness
     local oxidebl = point.create(
         _P.oxidetypealignleftwithactive and
-            -leftactauxext - _P.extendoxidetypeleft or
-            -leftactauxext - _P.extendoxidetypeleft,
+            activebl:getx() - _P.extendoxidetypeleft or
+            activebl:getx() - _P.extendoxidetypeleft,
         _P.oxidetypealignbottomwithactive and
-            -_P.extendoxidetypebottom or
+            activebl:gety() - _P.extendoxidetypebottom or
             gatebly - _P.extendoxidetypebottom
     )
     local oxidetr = point.create(
         _P.oxidetypealignrightwithactive and
-            activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight or
-            activewidth + leftactext + rightactext + rightactauxext + _P.extendoxidetyperight,
+            activetr:getx() + _P.extendoxidetyperight or
+            activetr:getx() + _P.extendoxidetyperight,
         _P.oxidetypealigntopwithactive and
-            _P.fingerwidth + _P.extendoxidetypetop or
+            activetr:gety() + _P.extendoxidetypetop or
             gatetry + _P.extendoxidetypetop
     )
     if _P.drawoxidetype and (not _P.drawguardring or (_P.guardringdrawoxidetype and _P.guardringfilloxidetype)) then -- if a guardring is present, it draws the inner/MOSFET oxidetype
@@ -1500,8 +1505,8 @@ function layout(transistor, _P)
     if _P.drawrotationmarker then
         geometry.rectanglebltr(transistor,
             generics.marker("rotation"),
-            point.create(-leftactauxext - _P.extendrotationmarkerleft, -_P.extendrotationmarkerbottom),
-            point.create(activewidth + leftactext + rightactext + rightactauxext + _P.extendrotationmarkerright, _P.fingerwidth + _P.extendrotationmarkertop)
+            point.create(activebl:getx() - _P.extendrotationmarkerleft, -_P.extendrotationmarkerbottom),
+            point.create(activetr:getx() + _P.extendrotationmarkerright, _P.fingerwidth + _P.extendrotationmarkertop)
         )
     end
 
@@ -1513,24 +1518,24 @@ function layout(transistor, _P)
                 geometry.rectanglebltr(transistor,
                     generics.marker("analog"),
                     point.create(
-                        -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace,
-                        -_P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace
+                        activebl:getx() - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace,
+                        activebl:gety() - _P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace
                     ),
                     point.create(
-                        activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth + _P.rightactivedummywidth + _P.rightactivedummyspace,
-                        _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth + _P.topactivedummywidth + _P.topactivedummyspace
+                        activetr:getx() + _P.guardringrightsep + _P.guardringwidth + _P.rightactivedummywidth + _P.rightactivedummyspace,
+                        activetr:gety() + _P.guardringtopsep + _P.guardringwidth + _P.topactivedummywidth + _P.topactivedummyspace
                     )
                 )
             else
                 geometry.rectanglebltr(transistor,
                     generics.marker("analog"),
                     point.create(
-                        -leftactauxext - _P.guardringleftsep - _P.guardringwidth,
-                        -_P.guardringbottomsep - _P.guardringwidth
+                        activebl:getx() - _P.guardringleftsep - _P.guardringwidth,
+                        activebl:gety() - _P.guardringbottomsep - _P.guardringwidth
                     ),
                     point.create(
-                        activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth,
-                        _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth
+                        activetr:getx() + _P.guardringrightsep + _P.guardringwidth,
+                        activetr:gety() + _P.guardringtopsep + _P.guardringwidth
                     )
                 )
             end
@@ -1538,12 +1543,12 @@ function layout(transistor, _P)
             geometry.rectanglebltr(transistor,
                 generics.marker("analog"),
                 point.create(
-                    -leftactauxext - _P.extendanalogmarkerleft,
-                    -_P.extendanalogmarkerbottom
+                    activebl:getx() - _P.extendanalogmarkerleft,
+                    activebl:gety() - _P.extendanalogmarkerbottom
                 ),
                 point.create(
-                    activewidth + leftactext + rightactext + rightactauxext + _P.extendanalogmarkerright,
-                    _P.fingerwidth + _P.extendanalogmarkertop
+                    activetr:getx() + _P.extendanalogmarkerright,
+                    activetr:gety() + _P.extendanalogmarkertop
                 )
             )
         end
@@ -1556,24 +1561,24 @@ function layout(transistor, _P)
             geometry.rectanglebltr(transistor,
                 generics.marker("lvs", _P.lvsmarker),
                 point.create(
-                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace - _P.extendlvsmarkerleft,
-                    -_P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace - _P.extendlvsmarkerbottom
+                    activebl:getx() - _P.guardringleftsep - _P.guardringwidth - _P.leftactivedummywidth - _P.leftactivedummyspace - _P.extendlvsmarkerleft,
+                    activebl:gety() - _P.guardringbottomsep - _P.guardringwidth - _P.bottomactivedummywidth - _P.bottomactivedummyspace - _P.extendlvsmarkerbottom
                 ),
                 point.create(
-                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth + _P.rightactivedummywidth + _P.rightactivedummyspace + _P.extendlvsmarkerright,
-                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth + _P.topactivedummywidth + _P.topactivedummyspace + _P.extendlvsmarkertop
+                    activetr:getx() + _P.guardringrightsep + _P.guardringwidth + _P.rightactivedummywidth + _P.rightactivedummyspace + _P.extendlvsmarkerright,
+                    activetr:gety() + _P.guardringtopsep + _P.guardringwidth + _P.topactivedummywidth + _P.topactivedummyspace + _P.extendlvsmarkertop
                 )
             )
         else
             geometry.rectanglebltr(transistor,
                 generics.marker("lvs", _P.lvsmarker),
                 point.create(
-                    -leftactauxext - _P.guardringleftsep - _P.guardringwidth - _P.extendlvsmarkerleft,
-                    -_P.guardringbottomsep - _P.guardringwidth - _P.extendlvsmarkerbottom
+                    activebl:getx() - _P.guardringleftsep - _P.guardringwidth - _P.extendlvsmarkerleft,
+                    activebl:gety() - _P.guardringbottomsep - _P.guardringwidth - _P.extendlvsmarkerbottom
                 ),
                 point.create(
-                    activewidth + leftactext + rightactext + rightactauxext + _P.guardringrightsep + _P.guardringwidth + _P.extendlvsmarkerright,
-                    _P.fingerwidth + _P.guardringtopsep + _P.guardringwidth + _P.extendlvsmarkertop
+                    activetr:getx() + _P.guardringrightsep + _P.guardringwidth + _P.extendlvsmarkerright,
+                    activetr:gety() + _P.guardringtopsep + _P.guardringwidth + _P.extendlvsmarkertop
                 )
             )
         end
@@ -1582,23 +1587,23 @@ function layout(transistor, _P)
             geometry.rectanglebltr(transistor,
                 generics.marker("lvs", _P.lvsmarker),
                 point.create(
-                    -leftactauxext - _P.extendlvsmarkerleft,
-                    -_P.extendlvsmarkerbottom
+                    activebl:getx() - _P.extendlvsmarkerleft,
+                    activebl:gety() - _P.extendlvsmarkerbottom
                 ),
                 point.create(
-                    activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
-                    _P.fingerwidth + _P.extendlvsmarkertop
+                    activetr:getx() + _P.extendlvsmarkerright,
+                    activetr:gety() + _P.extendlvsmarkertop
                 )
             )
         else
             geometry.rectanglebltr(transistor,
                 generics.marker("lvs", _P.lvsmarker),
                 point.create(
-                    -leftactauxext - _P.extendlvsmarkerleft,
+                    activebl:getx() - _P.extendlvsmarkerleft,
                     gatebly - _P.extendlvsmarkerbottom
                 ),
                 point.create(
-                    activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
+                    activetr:getx() + _P.extendlvsmarkerright,
                     gatetry + _P.extendlvsmarkertop
                 )
             )
@@ -1608,16 +1613,16 @@ function layout(transistor, _P)
     -- well
     local wellbl = point.create(
         _P.wellalignleftwithactive and
-            -leftactauxext - _P.extendwellleft or
-            -leftactauxext - _P.extendwellleft,
-        (_P.wellalignbottomwithactive and 0 or gatebly)
+            activebl:getx() - _P.extendwellleft or
+            activebl:getx() - _P.extendwellleft,
+        (_P.wellalignbottomwithactive and activebl:gety() or gatebly)
             - math.max(_P.extendwellbottom, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))
     )
     local welltr = point.create(
         _P.wellalignrightwithactive and
-            activewidth + leftactext + rightactext + rightactauxext + _P.extendwellright or
-            activewidth + leftactext + rightactext + rightactauxext + _P.extendwellright,
-        (_P.wellaligntopwithactive and _P.fingerwidth or gatetry)
+            activetr:getx() + _P.extendwellright or
+            activetr:getx() + _P.extendwellright,
+        (_P.wellaligntopwithactive and activetr:gety() or gatetry)
             + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
     )
     if _P.drawwell and not _P.drawguardring then
@@ -1635,7 +1640,7 @@ function layout(transistor, _P)
     if _P.drawtopwelltap then
         transistor:merge_into(pcell.create_layout("auxiliary/welltap", "topwelltap", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
-            width = activewidth + leftactext + leftactauxext + rightactext + rightactauxext + _P.topwelltapextendleft + _P.topwelltapextendright,
+            width = activetr:getx() - activebl:getx() + _P.topwelltapextendleft + _P.topwelltapextendright,
             height = _P.topwelltapwidth,
         }):translate(
             (_P.topwelltapextendright - _P.topwelltapextendleft) / 2,
@@ -1645,7 +1650,7 @@ function layout(transistor, _P)
     if _P.drawbotwelltap then
         transistor:merge_into(pcell.create_layout("auxiliary/welltap", "botwelltap", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
-            width = activewidth + leftactext + leftactauxext + rightactext + rightactauxext + _P.botwelltapextendleft + _P.botwelltapextendright,
+            width = activetr:getx() - activebl:getx() + _P.botwelltapextendleft + _P.botwelltapextendright,
             height = _P.botwelltapwidth,
         }):translate(
             (_P.botwelltapextendright - _P.botwelltapextendleft) / 2,
@@ -1885,8 +1890,8 @@ function layout(transistor, _P)
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "source" then
             for i = 1, _P.fingers + 1, 2 do
                 local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
-                local activebl = point.create(shift - _P.actext, sourceoffset)
-                local activetr = point.create(shift + _P.actext + _P.sdwidth, sourceoffset + _P.sourcesize)
+                local sdactivebl = point.create(shift - _P.actext, sourceoffset)
+                local sdactivetr = point.create(shift + _P.actext + _P.sdwidth, sourceoffset + _P.sourcesize)
                 local metalbl = point.create(shift, sourceoffset)
                 local metaltr = point.create(shift + _P.sdwidth, sourceoffset + _P.sourcesize)
                 local debugstr = string.format(
@@ -1895,9 +1900,9 @@ function layout(transistor, _P)
                 )
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
                     if _P.sourcesize > _P.fingerwidth then
-                        geometry.rectanglebltr(transistor, generics.active(), activebl, activetr)
+                        geometry.rectanglebltr(transistor, generics.active(), sdactivebl, sdactivetr)
                     end
-                    geometry.contactbarebltr2(transistor, contacttype, activebl, activetr, metalbl, metaltr, debugstr)
+                    geometry.contactbarebltr2(transistor, contacttype, sdactivebl, sdactivetr, metalbl, metaltr, debugstr)
                     if _P.drawsourcevia and _P.sourceviametal > 1 and
                         not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         for metal = 1, _P.sourceviametal - 1 do
@@ -2076,8 +2081,8 @@ function layout(transistor, _P)
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "drain" then
             for i = 2, _P.fingers + 1, 2 do
                 local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
-                local activebl = point.create(shift - _P.actext, drainoffset)
-                local activetr = point.create(shift + _P.actext + _P.sdwidth, drainoffset + _P.drainsize)
+                local sdactivebl = point.create(shift - _P.actext, drainoffset)
+                local sdactivetr = point.create(shift + _P.actext + _P.sdwidth, drainoffset + _P.drainsize)
                 local metalbl = point.create(shift, drainoffset)
                 local metaltr = point.create(shift + _P.sdwidth, drainoffset + _P.drainsize)
                 local debugstr = string.format(
@@ -2086,9 +2091,9 @@ function layout(transistor, _P)
                 )
                 if not util.any_of(i, _P.excludesourcedraincontacts) then
                     if _P.drainsize > _P.fingerwidth then
-                        geometry.rectanglebltr(transistor, generics.active(), activebl, activetr)
+                        geometry.rectanglebltr(transistor, generics.active(), sdactivebl, sdactivetr)
                     end
-                    geometry.contactbarebltr2(transistor, contacttype, activebl, activetr, metalbl, metaltr, debugstr)
+                    geometry.contactbarebltr2(transistor, contacttype, sdactivebl, sdactivetr, metalbl, metaltr, debugstr)
                     if _P.drawdrainvia and _P.drainviametal > 1 and
                         not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         for metal = 1, _P.drainviametal - 1 do
@@ -2272,21 +2277,22 @@ function layout(transistor, _P)
             sourceinvert = not sourceinvert
         end
         for i = 1, _P.fingers + 1, 2 do
+            local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
             if sourceinvert then
                 if sourceoffset + _P.sourcesize < _P.fingerwidth + _P.connectsourcespace then -- don't draw connections if they are malformed
                     if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         if _P.restrictsourcemetalstostrap then
-                            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceviametal]
+                            local extrashift = -sourcemetalshifts[_P.sourceviametal]
                             geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
-                                point.create(shift, sourceoffset + _P.sourcesize),
-                                point.create(shift + sourcemetalwidths[_P.sourceviametal], _P.fingerwidth + _P.connectsourcespace)
+                                point.create(shift + extrashift, sourceoffset + _P.sourcesize),
+                                point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], _P.fingerwidth + _P.connectsourcespace)
                             )
                         else
                             for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[sourcemetal]
+                                local extrashift = -sourcemetalshifts[sourcemetal]
                                 geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                                    point.create(shift, sourceoffset + _P.sourcesize),
-                                    point.create(shift + sourcemetalwidths[sourcemetal], _P.fingerwidth + _P.connectsourcespace)
+                                    point.create(shift + extrashift, sourceoffset + _P.sourcesize),
+                                    point.create(shift + extrashift + sourcemetalwidths[sourcemetal], _P.fingerwidth + _P.connectsourcespace)
                                 )
                             end
                         end
@@ -2296,17 +2302,17 @@ function layout(transistor, _P)
                     if -_P.connectsourceotherspace < sourceoffset then -- don't draw connections if they are malformed
                         if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                             if _P.restrictsourcemetalstostrap then
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceviametal]
+                                local extrashift = -sourcemetalshifts[_P.sourceviametal]
                                 geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
-                                    point.create(shift, -_P.connectsourceotherspace),
-                                    point.create(shift + sourcemetalwidths[_P.sourceviametal], sourceoffset)
+                                    point.create(shift + extrashift, -_P.connectsourceotherspace),
+                                    point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], sourceoffset)
                                 )
                             else
                                 for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
-                                    local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[sourcemetal]
+                                    local extrashift = -sourcemetalshifts[sourcemetal]
                                     geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                                        point.create(shift, -_P.connectsourceotherspace),
-                                        point.create(shift + sourcemetalwidths[sourcemetal], sourceoffset)
+                                        point.create(shift + extrashift, -_P.connectsourceotherspace),
+                                        point.create(shift + extrashift + sourcemetalwidths[sourcemetal], sourceoffset)
                                     )
                                 end
                             end
@@ -2317,17 +2323,17 @@ function layout(transistor, _P)
                 if -_P.connectsourcespace < sourceoffset then -- don't draw connections if they are malformed
                     if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         if _P.restrictsourcemetalstostrap then
-                            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceviametal]
+                            local extrashift = -sourcemetalshifts[_P.sourceviametal]
                             geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
-                                point.create(shift, -_P.connectsourcespace),
-                                point.create(shift + sourcemetalwidths[_P.sourceviametal], sourceoffset)
+                                point.create(shift + extrashift, -_P.connectsourcespace),
+                                point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], sourceoffset)
                             )
                         else
                             for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[sourcemetal]
+                                local extrashift = -sourcemetalshifts[sourcemetal]
                                 geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                                    point.create(shift, -_P.connectsourcespace),
-                                    point.create(shift + sourcemetalwidths[sourcemetal], sourceoffset)
+                                    point.create(shift + extrashift, -_P.connectsourcespace),
+                                    point.create(shift + extrashift + sourcemetalwidths[sourcemetal], sourceoffset)
                                 )
                             end
                         end
@@ -2337,17 +2343,17 @@ function layout(transistor, _P)
                     if sourceoffset + _P.sourcesize < _P.fingerwidth + _P.connectsourceotherspace then -- don't draw connections if they are malformed
                         if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                             if _P.restrictsourcemetalstostrap then
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[_P.sourceviametal]
+                                local extrashift = -sourcemetalshifts[_P.sourceviametal]
                                 geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
-                                    point.create(shift, sourceoffset + _P.sourcesize),
-                                    point.create(shift + sourcemetalwidths[_P.sourceviametal], _P.fingerwidth + _P.connectsourceotherspace)
+                                    point.create(shift + extrashift, sourceoffset + _P.sourcesize),
+                                    point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], _P.fingerwidth + _P.connectsourceotherspace)
                                 )
                             else
                                 for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
-                                    local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sourcemetalshifts[sourcemetal]
+                                    local extrashift = -sourcemetalshifts[sourcemetal]
                                     geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                                        point.create(shift, sourceoffset + _P.sourcesize),
-                                        point.create(shift + sourcemetalwidths[sourcemetal], _P.fingerwidth + _P.connectsourceotherspace)
+                                        point.create(shift + extrashift, sourceoffset + _P.sourcesize),
+                                        point.create(shift + extrashift + sourcemetalwidths[sourcemetal], _P.fingerwidth + _P.connectsourceotherspace)
                                     )
                                 end
                             end
@@ -2365,7 +2371,7 @@ function layout(transistor, _P)
         if _P.connectsourceautooddext then
             rightext = rightext + gatepitch
         end
-        local blx = leftactext
+        local blx = gateblx
         local trx = blx + 2 * (_P.fingers // 2) * gatepitch
         if _P.connectsourceinline then
             local bly
@@ -2588,23 +2594,24 @@ function layout(transistor, _P)
             draininvert = not draininvert
         end
         for i = 2, _P.fingers + 1, 2 do
+            local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
             local conndrainoffset = _P.drainstartmetal > 1 and drainviaoffset or drainoffset
             local conndraintop = _P.drainstartmetal > 1 and _P.drainviasize or _P.drainsize
             if draininvert then
                 if -_P.connectdrainspace < conndrainoffset then -- don't draw connections if they are malformed
                     if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         if _P.restrictdrainmetalstostrap then
-                            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainviametal]
+                            local extrashift = -drainmetalshifts[_P.drainviametal]
                             geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
-                                point.create(shift, -_P.connectdrainspace),
-                                point.create(shift + drainmetalwidths[_P.drainviametal], conndrainoffset)
+                                point.create(shift + extrashift, -_P.connectdrainspace),
+                                point.create(shift + extrashift + drainmetalwidths[_P.drainviametal], conndrainoffset)
                             )
                         else
                             for drainmetal = _P.drainstartmetal, _P.drainendmetal do
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[drainmetal]
+                                local extrashift = -drainmetalshifts[drainmetal]
                                 geometry.rectanglebltr(transistor, generics.metal(drainmetal),
-                                    point.create(shift, -_P.connectdrainspace),
-                                    point.create(shift + drainmetalwidths[drainmetal], conndrainoffset)
+                                    point.create(shift + extrashift, -_P.connectdrainspace),
+                                    point.create(shift + extrashift + drainmetalwidths[drainmetal], conndrainoffset)
                                 )
                             end
                         end
@@ -2614,17 +2621,17 @@ function layout(transistor, _P)
                     if conndrainoffset + conndraintop < _P.fingerwidth + _P.connectdrainotherspace then -- don't draw connections if they are malformed
                        if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                             if _P.restrictdrainmetalstostrap then
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainviametal]
+                                local extrashift = -drainmetalshifts[_P.drainviametal]
                                 geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
-                                    point.create(shift, conndrainoffset + conndraintop),
-                                    point.create(shift + drainmetalwidths[_P.drainviametal], _P.fingerwidth + _P.connectdrainotherspace)
+                                    point.create(shift + extrashift, conndrainoffset + conndraintop),
+                                    point.create(shift + extrashift + drainmetalwidths[_P.drainviametal], _P.fingerwidth + _P.connectdrainotherspace)
                                 )
                             else
                                 for drainmetal = _P.drainstartmetal, _P.drainendmetal do
-                                    local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[drainmetal]
+                                    local extrashift = -drainmetalshifts[drainmetal]
                                     geometry.rectanglebltr(transistor, generics.metal(drainmetal),
-                                        point.create(shift, conndrainoffset + conndraintop),
-                                        point.create(shift + drainmetalwidths[drainmetal], _P.fingerwidth + _P.connectdrainotherspace)
+                                        point.create(shift + extrashift, conndrainoffset + conndraintop),
+                                        point.create(shift + extrashift + drainmetalwidths[drainmetal], _P.fingerwidth + _P.connectdrainotherspace)
                                     )
                                 end
                             end
@@ -2635,17 +2642,17 @@ function layout(transistor, _P)
                 if conndrainoffset + conndraintop < _P.fingerwidth + _P.connectdrainspace then -- don't draw connections if they are malformed
                    if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         if _P.restrictdrainmetalstostrap then
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainviametal]
+                                local extrashift = -drainmetalshifts[_P.drainviametal]
                                 geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
-                                    point.create(shift, conndrainoffset + conndraintop),
-                                    point.create(shift + drainmetalwidths[_P.drainviametal], _P.fingerwidth + _P.connectdrainspace)
+                                    point.create(shift + extrashift, conndrainoffset + conndraintop),
+                                    point.create(shift + extrashift + drainmetalwidths[_P.drainviametal], _P.fingerwidth + _P.connectdrainspace)
                                 )
                         else
                             for drainmetal = _P.drainstartmetal, _P.drainendmetal do
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[drainmetal]
+                                local extrashift = -drainmetalshifts[drainmetal]
                                 geometry.rectanglebltr(transistor, generics.metal(drainmetal),
-                                    point.create(shift, conndrainoffset + conndraintop),
-                                    point.create(shift + drainmetalwidths[drainmetal], _P.fingerwidth + _P.connectdrainspace)
+                                    point.create(shift + extrashift, conndrainoffset + conndraintop),
+                                    point.create(shift + extrashift + drainmetalwidths[drainmetal], _P.fingerwidth + _P.connectdrainspace)
                                 )
                             end
                         end
@@ -2655,17 +2662,17 @@ function layout(transistor, _P)
                     if -_P.connectdrainotherspace < conndrainoffset then -- don't draw connections if they are malformed
                         if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                             if _P.restrictdrainmetalstostrap then
-                                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[_P.drainviametal]
+                                local extrashift = -drainmetalshifts[_P.drainviametal]
                                 geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
-                                    point.create(shift, -_P.connectdrainotherspace),
-                                    point.create(shift + drainmetalwidths[_P.drainviametal], conndrainoffset)
+                                    point.create(shift + extrashift, -_P.connectdrainotherspace),
+                                    point.create(shift + extrashift + drainmetalwidths[_P.drainviametal], conndrainoffset)
                                 )
                             else
                                 for drainmetal = _P.drainstartmetal, _P.drainendmetal do
-                                    local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - drainmetalshifts[drainmetal]
+                                    local extrashift = -drainmetalshifts[drainmetal]
                                     geometry.rectanglebltr(transistor, generics.metal(drainmetal),
-                                        point.create(shift, -_P.connectdrainotherspace),
-                                        point.create(shift + drainmetalwidths[drainmetal], conndrainoffset)
+                                        point.create(shift + extrashift, -_P.connectdrainotherspace),
+                                        point.create(shift + extrashift + drainmetalwidths[drainmetal], conndrainoffset)
                                     )
                                 end
                             end
@@ -2683,8 +2690,8 @@ function layout(transistor, _P)
         if _P.connectdrainautooddext then
             leftext = leftext + gatepitch
         end
-        local blx = leftactext + (2 - 1) * gatepitch
-        local trx = leftactext + (2 * ((_P.fingers + 1) // 2) - 1) * gatepitch
+        local blx = gateblx + (2 - 1) * gatepitch
+        local trx = blx + (2 * ((_P.fingers + 1) // 2) - 2) * gatepitch
         if _P.connectdraininline then
             local bly
             if _P.channeltype == "nmos" then
@@ -2900,8 +2907,8 @@ function layout(transistor, _P)
     -- extra source/drain straps (unconnected, useful for arrays)
     local maxmetalextension = math.max(drainmetalwidths[_P.drainendmetal], sourcemetalwidths[_P.sourceendmetal])
     if _P.drawextrabotstrap then
-        local blx = leftactext - (_P.gatespace + maxmetalextension) / 2 - _P.extrabotstrapleftextension + (_P.extrabotstrapleftalign - 1) * gatepitch
-        local trx = leftactext - (_P.gatespace + maxmetalextension) / 2 + _P.extrabotstraprightextension + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + maxmetalextension
+        local blx = gateblx - (_P.gatespace + maxmetalextension) / 2 - _P.extrabotstrapleftextension + (_P.extrabotstrapleftalign - 1) * gatepitch
+        local trx = gateblx - (_P.gatespace + maxmetalextension) / 2 + _P.extrabotstraprightextension + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + maxmetalextension
         geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
             point.create(blx, -_P.extrabotstrapspace - _P.extrabotstrapwidth),
             point.create(trx, -_P.extrabotstrapspace)
@@ -2913,8 +2920,8 @@ function layout(transistor, _P)
         )
     end
     if _P.drawextratopstrap then
-        local blx = leftactext - (_P.gatespace + maxmetalextension) / 2 - _P.extratopstrapleftextension + (_P.extratopstrapleftalign - 1) * gatepitch
-        local trx = leftactext - (_P.gatespace + maxmetalextension) / 2 + _P.extratopstraprightextension + 2 * (_P.fingers // 2) * gatepitch + (_P.extratopstraprightalign - _P.fingers) * gatepitch + maxmetalextension
+        local blx = gateblx - (_P.gatespace + maxmetalextension) / 2 - _P.extratopstrapleftextension + (_P.extratopstrapleftalign - 1) * gatepitch
+        local trx = gateblx - (_P.gatespace + maxmetalextension) / 2 + _P.extratopstraprightextension + 2 * (_P.fingers // 2) * gatepitch + (_P.extratopstraprightalign - _P.fingers) * gatepitch + maxmetalextension
         geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
             point.create(blx, _P.fingerwidth + _P.extratopstrapspace),
             point.create(trx, _P.fingerwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
@@ -3080,8 +3087,8 @@ function layout(transistor, _P)
     local guardring -- variable needs to be visible for alignment box setting
     if _P.drawguardring then
         -- hole sizes are calculated without seperations, these are added in the instatiation
-        local holewidth = activewidth + leftactauxext + leftactext + rightactauxext + rightactext
-        local holeheight = _P.fingerwidth
+        local holewidth = activetr:getx() - activebl:getx()
+        local holeheight = activetr:gety() - activebl:gety()
         local guardringleftext_activedummy = 0
         local guardringrightext_activedummy = 0
         local guardringtopext_activedummy = 0
@@ -3258,7 +3265,7 @@ function layout(transistor, _P)
             addleftnet = _P.guardring_enable_vertical_net_strips,
             addrightnet = _P.guardring_enable_vertical_net_strips,
         })
-        local gtargetx = -leftactauxext - guardringleftext
+        local gtargetx = activebl:getx() - guardringleftext
         local gtargety = -guardringbotext
         guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(gtargetx, gtargety))
         guardring:translate(-_P.guardringleftsep, -_P.guardringbottomsep)
@@ -3332,7 +3339,7 @@ function layout(transistor, _P)
 
     -- anchors for source drain active regions
     for i = 1, _P.fingers + 1 do
-        local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+        local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
         transistor:add_area_anchor_bltr(string.format("sourcedrainactive%d", i),
             point.create(shift, 0),
             point.create(shift + _P.sdwidth, _P.fingerwidth)
@@ -3348,10 +3355,10 @@ function layout(transistor, _P)
         transistor:inherit_alignment_box(guardring)
     else
         transistor:set_alignment_box(
-            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2, 0),
-            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch, _P.fingerwidth),
-            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + _P.sdwidth, 0),
-            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch + _P.sdwidth, _P.fingerwidth)
+            point.create(gateblx - (_P.gatespace + _P.sdwidth) / 2, 0),
+            point.create(gateblx - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch, _P.fingerwidth),
+            point.create(gateblx - (_P.gatespace + _P.sdwidth) / 2 + _P.sdwidth, 0),
+            point.create(gateblx - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch + _P.sdwidth, _P.fingerwidth)
         )
     end
 
@@ -3404,7 +3411,7 @@ function layout(transistor, _P)
                 )
             )
         else
-            pt = point.create(0, 0)
+            pt = transistor:get_area_anchor("active").bl
         end
         transistor:add_label(
             _P.instancename,
