@@ -15,8 +15,9 @@ function paramlib.create_directory()
     return self
 end
 
-function paramlib.check_constraints(parameter, value)
+function paramlib.check_constraints(parameter, value, setbyuser)
     local posvals = parameter.posvals
+    local readonly = parameter.readonly
     local name = parameter.name
     if posvals then
         if posvals.type == "set" then
@@ -75,6 +76,9 @@ function paramlib.check_constraints(parameter, value)
             end
         else
         end
+    end
+    if readonly and setbyuser then
+        moderror(string.format("parameter '%s' is read-only and can't be set", name))
     end
 end
 
@@ -292,12 +296,14 @@ local function _get_parameters(state, cellname, cellargs)
 
     -- (2) process input parameters
     local explicit = {}
+    local setbyuser = {}
     if cellargs then
         for name, value in pairs(cellargs) do
             assert(Pset[name],
                 string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cellname))
             rawset(P, name, value)
             explicit[name] = true
+            setbyuser[name] = true
         end
     end
 
@@ -353,7 +359,7 @@ local function _get_parameters(state, cellname, cellargs)
 
     -- (6) run parameter checks
     for _, entry in ipairs(cellparams) do
-        paramlib.check_constraints(entry, rawget(P, entry.name))
+        paramlib.check_constraints(entry, rawget(P, entry.name), setbyuser[entry.name])
     end
 
     return P
