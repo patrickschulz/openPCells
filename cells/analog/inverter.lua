@@ -4,7 +4,7 @@ function parameters()
         { "pwidth",                                     2 * technology.get_dimension("Minimum Gate Width") },
         { "nwidth",                                     2 * technology.get_dimension("Minimum Gate Width") },
         { "fullnsourcedrainsize",                       2 * technology.get_dimension("Minimum Gate Width"), follow = "pwidth" },
-        { "fullpsourcedrainsize",                       2 * technology.get_dimension("Minimum Gate Width"), follow = "pwidth" },
+        { "fullpsourcedrainsize",                       2 * technology.get_dimension("Minimum Gate Width"), follow = "nwidth" },
         { "oxidetype(Oxide Type)",                      1 },
         { "gatemarker(Gate Marker Index)",              1 },
         { "pvthtype(PMOS Threshold Voltage Type) ",     1 },
@@ -34,6 +34,8 @@ function parameters()
         { "ngateext",                                   technology.get_dimension("Minimum Gate Extension") },
         { "numleftdummies",                             0 },
         { "numrightdummies",                            0 },
+        { "numleftfloatingdummies",                     0 },
+        { "numrightfloatingdummies",                    0 },
         { "alternatedummycontacts",                     false },
         { "drawalternatedummycontactspowerbarvia",      false, follow = "alternatedummycontacts" },
         { "splitdrainvias",                             false },
@@ -153,7 +155,8 @@ function parameters()
         { "vddnet",                                     "" },
         { "vssnet",                                     "" },
         { "nmoswelltapnet",                             "" },
-        { "pmoswelltapnet",                             "" }
+        { "pmoswelltapnet",                             "" },
+        { "guardringnet",                               "" }
     )
 end
 
@@ -214,6 +217,8 @@ function layout(inverter, _P)
         separation = _P.gatestrapwidth + 2 * _P.gatestrapspace,
         dummycontheight = _P.dummycontheight,
         dummycontshift = _P.dummycontshift,
+        leftfloatingdummies = _P.numleftfloatingdummies,
+        rightfloatingdummies = _P.numrightfloatingdummies,
         drawleftstopgate = _P.drawleftstopgate,
         drawrightstopgate = _P.drawrightstopgate,
         excludestopgatesfromcutregions = _P.excludestopgatesfromcutregions,
@@ -600,9 +605,12 @@ function layout(inverter, _P)
             ringwidth = _P.guardringwidth,
             holewidth = guardringwidth + 2 * _P.guardringspace,
             holeheight = guardringheight + 2 * _P.guardringspace,
-            fillwell = false,
+            fillwell = (not not _P.pmosflippedwell) == (not _P.nmosflippedwell),
             drawdeepwell = true,
             deepwelloffset = _P.guardringdeepwelloffset,
+            net = _P.guardringnet,
+            addtopnet = true,
+            addbottomnet = true,
         })
         firstguardring:move_point(
             firstguardring:get_area_anchor("innerboundary").bl,
@@ -613,6 +621,7 @@ function layout(inverter, _P)
         )
         firstguardring:translate(-_P.guardringspace, -_P.guardringspace)
         inverter:merge_into(firstguardring)
+        inverter:inherit_net_shapes(firstguardring)
         geometry.rectanglebltr(inverter, generics.well("n"),
             firstguardring:get_area_anchor("outerwell").bl,
             point.create(
