@@ -926,19 +926,23 @@ function layout(circuit, _P, _env, state)
         drawinstancebox = true,
         shapegrid = 2,
     }
+    local exclude_parameters = { -- parameters from basic/mosfet than can not be used in base/device specifications
+        "instancename", "drawguardring", "shapegrid", "drawinstancebox",
+        "drainmetal", "connectdrain", "sourcemetal", "connectsource",
+        "drawwell", "drawtopgate", "topgateadjustforsdstraps",
+    }
     for _, device in ipairs(state.devices) do
-        -- create layout of the device and store
-        device.cell = pcell.create_layout("basic/mosfet", "_mosfet", util.add_options(commonopts, {
-            channeltype = device.parameters.channeltype,
-            flippedwell = device.parameters.flippedwell,
-            fingers = device.parameters.fingers,
-            fingerwidth = device.parameters.fingerwidth,
-            gatelength = device.parameters.gatelength,
-            gatespace = device.parameters.gatespace,
+        local options = util.add_options(commonopts, {
             instancename = device.name,
-            --drawguardring = not device.is_in_group,
             drawguardring = false, -- guard rings are drawn around device groups
-        }))
+        })
+        for k, v in pairs(device.parameters) do
+            if not util.any_of(k, exclude_parameters) then
+                options[k] = v
+            end
+        end
+        -- create layout of the device and store
+        device.cell = pcell.create_layout("basic/mosfet", "_mosfet", options)
     end
 
     -- place devices within a group
