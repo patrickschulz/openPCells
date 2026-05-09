@@ -251,6 +251,123 @@ return welltap]],
 
 return cc]],
 
+    ["analog/circuit"] =
+[[local devicebases = {
+    ["M0base"] = {
+        channeltype = "nmos",
+        gatelength = 200,
+        gatespace = 200,
+        fingerwidth = 1000,
+    },
+}
+
+local devices = {
+    {
+        name = "M0",
+        base = "M0base",
+        -- in-group position
+        x = 1,
+        y = 1,
+        nets = {
+            drain = "net1",
+            gate = "net2",
+            source = "net3",
+            bulk = "net4",
+        },
+        parameters = {
+            fingers = 4,
+        },
+    },
+    {
+        name = "M1",
+        base = "M0base",
+        -- in-group position
+        x = 1,
+        y = 2,
+        nets = {
+            drain = "net1",
+            gate = "net2",
+            source = "net3",
+            bulk = "net4",
+        },
+        parameters = {
+            fingers = 8,
+        },
+    },
+}
+
+local devicegroups = {
+    {
+        name = "group_1",
+        devices = { "M0", "M1" },
+        x = 1,
+        y = 1,
+    },
+}
+
+local vlines = {
+    {
+        group = "group_1",
+        net = "net1",
+        xgrid = 1,
+        xline = 2,
+        ygridstart = 1,
+        ygridend = 2,
+        ylinestart = 0,
+        ylineend = 0,
+    },
+    {
+        group = "group_1",
+        net = "net1",
+        xgrid = 1,
+        xline = -2,
+        ygridstart = 1,
+        ygridend = 2,
+        ylinestart = 0,
+        ylineend = 0,
+    },
+}
+
+local hlines = {
+    {
+        group = "group_1",
+        net = "net1",
+        ygrid = 1,
+        yline = 2,
+        xgridstart = 1,
+        xgridend = 1,
+        xlinestart = -2,
+        xlineend = 2,
+    },
+    {
+        group = "group_1",
+        net = "net1",
+        ygrid = 2,
+        yline = 0,
+        xgridstart = 1,
+        xgridend = 1,
+        xlinestart = -2,
+        xlineend = 2,
+    },
+}
+
+local interconnectlinewidth = 100
+local interconnectlinespace = 100
+local circuit = pcell.create_layout("analog/circuit", "circuit", {
+    devicebases = devicebases,
+    devices = devices,
+    devicegroups = devicegroups,
+    interconnectlinewidth = interconnectlinewidth,
+    interconnectlinespace = interconnectlinespace,
+    vlines = vlines,
+    hlines = hlines,
+    -- for development/debugging
+    allow_failed_grid_connections = true,
+    check_grid_connections = false,
+})
+
+return circuit]],
+
     ["analog/inverter"] =
 [[local inverter = pcell.create_layout("analog/inverter", "_inverter", {
     fingers = 8,
