@@ -223,14 +223,14 @@ function check_pre(_P)
 
     -- check that lines only reference existing groups (hlines)
     for i, line in ipairs(_P.hlines) do
-        if line.group and not not util.any_of(line.group, groupnames) then
+        if line.group and not util.any_of(line.group, groupnames) then
             return false, string.format("horizontal line #%d (net '%s') references a non-existing group '%s'", i, line.net, line.group)
         end
     end
 
     -- check that lines only reference existing groups (vlines)
     for i, line in ipairs(_P.vlines) do
-        if line.group and not not util.any_of(line.group, groupnames) then
+        if line.group and not util.any_of(line.group, groupnames) then
             return false, string.format("vertical line #%d (net '%s') references a non-existing group '%s'", i, line.net, line.group)
         end
     end
@@ -791,23 +791,23 @@ function check(_P, state)
         end
         if line.group then
             if not gridcoordinates.groups[line.group].x[line.xgrid] then
-                return false, string.format("vertical line #%d (net '%s') references a device on x-grid %d, which does not exist", i, line.net, line.xgrid)
+                return false, string.format("vertical line #%d (net '%s') references a device on x-grid %d, which does not exist ('xgrid')", i, line.net, line.xgrid)
             end
             if not gridcoordinates.groups[line.group].y[line.ygridstart] then
-                return false, string.format("vertical line #%d (net '%s') references a device on y-grid %d, which does not exist", i, line.net, line.ygridstart)
+                return false, string.format("vertical line #%d (net '%s') references a device on y-grid %d, which does not exist ('ygridstart')", i, line.net, line.ygridstart)
             end
             if not gridcoordinates.groups[line.group].y[line.ygridend] then
-                return false, string.format("vertical line #%d (net '%s') references a device on y-grid %d, which does not exist", i, line.net, line.ygridend)
+                return false, string.format("vertical line #%d (net '%s') references a device on y-grid %d, which does not exist ('ygridend')", i, line.net, line.ygridend)
             end
         else
             if not gridcoordinates.global.x[line.xgrid] then
-                return false, string.format("vertical line #%d (net '%s') references a group on x-grid %d, which does not exist", i, line.net, line.xgrid)
+                return false, string.format("vertical line #%d (net '%s') references a group on x-grid %d, which does not exist ('xgrid')", i, line.net, line.xgrid)
             end
             if not gridcoordinates.global.y[line.ygridstart] then
-                return false, string.format("vertical line #%d (net '%s') references a group on y-grid %d, which does not exist", i, line.net, line.ygridstart)
+                return false, string.format("vertical line #%d (net '%s') references a group on y-grid %d, which does not exist ('ygridstart')", i, line.net, line.ygridstart)
             end
             if not gridcoordinates.global.y[line.ygridend] then
-                return false, string.format("vertical line #%d (net '%s') references a group on y-grid %d, which does not exist", i, line.net, line.ygridend)
+                return false, string.format("vertical line #%d (net '%s') references a group on y-grid %d, which does not exist ('ygridend')", i, line.net, line.ygridend)
             end
         end
     end
@@ -834,23 +834,23 @@ function check(_P, state)
         end
         if line.group then
             if not gridcoordinates.groups[line.group].y[line.ygrid] then
-                return false, string.format("vertical line #%d (net '%s') references a device on y-grid %d, which does not exist", i, line.net, line.ygrid)
+                return false, string.format("horizontal line #%d (net '%s') references a device on y-grid %d, which does not exist ('ygrid')", i, line.net, line.ygrid)
             end
             if not gridcoordinates.groups[line.group].x[line.xgridstart] then
-                return false, string.format("vertical line #%d (net '%s') references a device on x-grid %d, which does not exist", i, line.net, line.xgridstart)
+                return false, string.format("horizontal line #%d (net '%s') references a device on x-grid %d, which does not exist ('xgridstart')", i, line.net, line.xgridstart)
             end
             if not gridcoordinates.groups[line.group].x[line.xgridend] then
-                return false, string.format("vertical line #%d (net '%s') references a device on x-grid %d, which does not exist", i, line.net, line.xgridend)
+                return false, string.format("horizontal line #%d (net '%s') references a device on x-grid %d, which does not exist ('xgridend')", i, line.net, line.xgridend)
             end
         else
             if not gridcoordinates.global.y[line.ygrid] then
-                return false, string.format("vertical line #%d (net '%s') references a group on y-grid %d, which does not exist", i, line.net, line.ygrid)
+                return false, string.format("horizontal line #%d (net '%s') references a group on y-grid %d, which does not exist ('ygrid')", i, line.net, line.ygrid)
             end
             if not gridcoordinates.global.x[line.xgridstart] then
-                return false, string.format("vertical line #%d (net '%s') references a group on x-grid %d, which does not exist", i, line.net, line.xgridstart)
+                return false, string.format("horizontal line #%d (net '%s') references a group on x-grid %d, which does not exist ('xgridstart')", i, line.net, line.xgridstart)
             end
             if not gridcoordinates.global.x[line.xgridend] then
-                return false, string.format("vertical line #%d (net '%s') references a group on x-grid %d, which does not exist", i, line.net, line.xgridend)
+                return false, string.format("horizontal line #%d (net '%s') references a group on x-grid %d, which does not exist ('xgridend')", i, line.net, line.xgridend)
             end
         end
     end
