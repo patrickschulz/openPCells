@@ -20,6 +20,7 @@ function parameters()
         { "guardringwidth",                         technology.get_dimension("Minimum Active Contact Region Size"), posvals = positive() },
         { "hlines",                                 {} },
         { "vlines",                                 {} },
+        { "add_pin_lines",                          false },
         { "auto_assign_xylines",                    true },
         { "interconnectlinewidth",                  technology.get_dimension_max("Minimum M2 Width", "Minimum M1M2 Viawidth", "Minimum M2M3 Viawidth") },
         { "interconnectlinespace",                  technology.get_dimension_max("Minimum M2 Space", "Minimum M3 Space") },
@@ -1195,127 +1196,129 @@ function layout(circuit, _P, _env, state)
     end
 
     -- add pin lines
-    for _, device in ipairs(state.devices) do
-        local dgroup = state.devicegroups[device.group]
-        -- add interconnectlines
-        local bb = dgroup.object:get_area_anchor(string.format("%s_boundingbox", device.name))
-        local interconnectlinebot = bb.b
-        local interconnectlinetop = bb.t
-        local lines = {}
-        -- FIXME: derive this from state.device_pin_order
-        --table.insert(lines, {
-        --    net = "bulk",
-        --    --variant = 1,
-        --    width = _P.interconnectlinewidth,
-        --})
-        table.insert(lines, {
-            net = "source",
-            width = _P.interconnectlinewidth,
-        })
-        table.insert(lines, {
-            net = "gate",
-            width = _P.interconnectlinewidth,
-        })
-        table.insert(lines, {
-            net = "drain",
-            width = _P.interconnectlinewidth,
-        })
-        --table.insert(lines, {
-        --    net = "bulk",
-        --    variant = 2,
-        --    width = _P.interconnectlinewidth,
-        --})
-        local numlines = #lines
-        local fullwidth = util.reduce(lines, function(value, line) return value + line.width end, 0)
-        local activeanchor = dgroup.object:get_area_anchor(string.format("%s_active", device.name))
-        local activewidth = point.xdistance_abs(activeanchor.bl, activeanchor.tr)
-        local start = activeanchor.l
-        local shift = (activewidth - (fullwidth + (numlines - 1) * _P.interconnectlinespace)) / 2
-        for lineindex, line in ipairs(lines) do
-            -- draw line
-            local anchorname
-            if line.variant then
-                anchorname = string.format("%s_%s_%d", device.name, line.net, line.variant)
-            else
-                anchorname = string.format("%s_%s", device.name, line.net)
-            end
-            -- add numeric anchor
-            circuit:add_area_anchor_bltr(
-                string.format("%s_line%d", device.name, lineindex),
-                point.create(start + shift, interconnectlinebot),
-                point.create(start + shift + line.width, interconnectlinetop)
-            )
-            -- add net-based anchor
-            circuit:add_area_anchor_bltr(
-                anchorname,
-                point.create(start + shift, interconnectlinebot),
-                point.create(start + shift + line.width, interconnectlinetop)
-            )
-            circuit:add_label(device.nets[line.net], generics.metal(vmetal), circuit:get_area_anchor(anchorname).bl, _P.netlabel_size)
-            circuit:add_label(device.nets[line.net], generics.metal(vmetal), circuit:get_area_anchor(anchorname).tl, _P.netlabel_size)
-            geometry.rectangleareaanchor(circuit, generics.metal(vmetal), anchorname)
-            -- connect to respective region
-            local viaanchors = {}
-            if line.net == "gate" then
-                table.insert(viaanchors, {
-                    b = dgroup.object:get_area_anchor(string.format("%s_topgatestrap", device.name)).b,
-                    t = dgroup.object:get_area_anchor(string.format("%s_topgatestrap", device.name)).t,
-                })
-            elseif line.net == "source" then
-                table.insert(viaanchors, {
-                    b = dgroup.object:get_area_anchor(string.format("%s_sourcestrap", device.name)).b,
-                    t = dgroup.object:get_area_anchor(string.format("%s_sourcestrap", device.name)).t,
-                })
-            elseif line.net == "drain" then
-                table.insert(viaanchors, {
-                    b = dgroup.object:get_area_anchor(string.format("%s_drainstrap", device.name)).b,
-                    t = dgroup.object:get_area_anchor(string.format("%s_drainstrap", device.name)).t,
-                })
-            elseif line.net == "bulk" then
-                table.insert(viaanchors, {
-                    b = dgroup.object:get_area_anchor(string.format("%s_outerguardring", device.name)).b,
-                    t = dgroup.object:get_area_anchor(string.format("%s_innerguardring", device.name)).b,
-                })
-                table.insert(viaanchors, {
-                    b = dgroup.object:get_area_anchor(string.format("%s_innerguardring", device.name)).t,
-                    t = dgroup.object:get_area_anchor(string.format("%s_outerguardring", device.name)).t,
-                })
-            else
-                cellerror(string.format("interconnect line on unknown net '%s'", line.net))
-            end
-            for _, anchor in ipairs(viaanchors) do
-                geometry.viabarebltr(circuit,
-                    1, 2,
-                    point.create(start + shift, anchor.b),
-                    point.create(start + shift + line.width, anchor.t)
-                )
-            end
-            -- connect interconnect lines to gate/source/drain straps
-            local pinstrapmap = {
-                drain = "drainstrap",
-                source = "sourcestrap",
-                gate = "topgatestrap",
-                bulk = nil, -- don't map bulk, guardring will always fit (FIXME: will it?)
-            }
-            local strapname = pinstrapmap[line.net]
-            if strapname then
-                local strap = dgroup.object:get_area_anchor(string.format("%s_%s", device.name, strapname))
-                local line = circuit:get_area_anchor(anchorname)
-                local leftc = strap.l
-                local rightc = strap.r
-                if strap.l > line.l then
-                    leftc = line.l
+    if _P.add_pin_lines then
+        for _, device in ipairs(state.devices) do
+            local dgroup = state.devicegroups[device.group]
+            -- add interconnectlines
+            local bb = dgroup.object:get_area_anchor(string.format("%s_boundingbox", device.name))
+            local interconnectlinebot = bb.b
+            local interconnectlinetop = bb.t
+            local lines = {}
+            -- FIXME: derive this from state.device_pin_order
+            --table.insert(lines, {
+            --    net = "bulk",
+            --    --variant = 1,
+            --    width = _P.interconnectlinewidth,
+            --})
+            table.insert(lines, {
+                net = "source",
+                width = _P.interconnectlinewidth,
+            })
+            table.insert(lines, {
+                net = "gate",
+                width = _P.interconnectlinewidth,
+            })
+            table.insert(lines, {
+                net = "drain",
+                width = _P.interconnectlinewidth,
+            })
+            --table.insert(lines, {
+            --    net = "bulk",
+            --    variant = 2,
+            --    width = _P.interconnectlinewidth,
+            --})
+            local numlines = #lines
+            local fullwidth = util.reduce(lines, function(value, line) return value + line.width end, 0)
+            local activeanchor = dgroup.object:get_area_anchor(string.format("%s_active", device.name))
+            local activewidth = point.xdistance_abs(activeanchor.bl, activeanchor.tr)
+            local start = activeanchor.l
+            local shift = (activewidth - (fullwidth + (numlines - 1) * _P.interconnectlinespace)) / 2
+            for lineindex, line in ipairs(lines) do
+                -- draw line
+                local anchorname
+                if line.variant then
+                    anchorname = string.format("%s_%s_%d", device.name, line.net, line.variant)
+                else
+                    anchorname = string.format("%s_%s", device.name, line.net)
                 end
-                if strap.r < line.r then
-                    rightc = line.r
-                end
-                geometry.rectanglebltr(circuit, generics.metal(1),
-                    point.create(leftc, strap.b),
-                    point.create(rightc, strap.t)
+                -- add numeric anchor
+                circuit:add_area_anchor_bltr(
+                    string.format("%s_line%d", device.name, lineindex),
+                    point.create(start + shift, interconnectlinebot),
+                    point.create(start + shift + line.width, interconnectlinetop)
                 )
+                -- add net-based anchor
+                circuit:add_area_anchor_bltr(
+                    anchorname,
+                    point.create(start + shift, interconnectlinebot),
+                    point.create(start + shift + line.width, interconnectlinetop)
+                )
+                circuit:add_label(device.nets[line.net], generics.metal(vmetal), circuit:get_area_anchor(anchorname).bl, _P.netlabel_size)
+                circuit:add_label(device.nets[line.net], generics.metal(vmetal), circuit:get_area_anchor(anchorname).tl, _P.netlabel_size)
+                geometry.rectangleareaanchor(circuit, generics.metal(vmetal), anchorname)
+                -- connect to respective region
+                local viaanchors = {}
+                if line.net == "gate" then
+                    table.insert(viaanchors, {
+                        b = dgroup.object:get_area_anchor(string.format("%s_topgatestrap", device.name)).b,
+                        t = dgroup.object:get_area_anchor(string.format("%s_topgatestrap", device.name)).t,
+                    })
+                elseif line.net == "source" then
+                    table.insert(viaanchors, {
+                        b = dgroup.object:get_area_anchor(string.format("%s_sourcestrap", device.name)).b,
+                        t = dgroup.object:get_area_anchor(string.format("%s_sourcestrap", device.name)).t,
+                    })
+                elseif line.net == "drain" then
+                    table.insert(viaanchors, {
+                        b = dgroup.object:get_area_anchor(string.format("%s_drainstrap", device.name)).b,
+                        t = dgroup.object:get_area_anchor(string.format("%s_drainstrap", device.name)).t,
+                    })
+                elseif line.net == "bulk" then
+                    table.insert(viaanchors, {
+                        b = dgroup.object:get_area_anchor(string.format("%s_outerguardring", device.name)).b,
+                        t = dgroup.object:get_area_anchor(string.format("%s_innerguardring", device.name)).b,
+                    })
+                    table.insert(viaanchors, {
+                        b = dgroup.object:get_area_anchor(string.format("%s_innerguardring", device.name)).t,
+                        t = dgroup.object:get_area_anchor(string.format("%s_outerguardring", device.name)).t,
+                    })
+                else
+                    cellerror(string.format("interconnect line on unknown net '%s'", line.net))
+                end
+                for _, anchor in ipairs(viaanchors) do
+                    geometry.viabarebltr(circuit,
+                        1, 2,
+                        point.create(start + shift, anchor.b),
+                        point.create(start + shift + line.width, anchor.t)
+                    )
+                end
+                -- connect interconnect lines to gate/source/drain straps
+                local pinstrapmap = {
+                    drain = "drainstrap",
+                    source = "sourcestrap",
+                    gate = "topgatestrap",
+                    bulk = nil, -- don't map bulk, guardring will always fit (FIXME: will it?)
+                }
+                local strapname = pinstrapmap[line.net]
+                if strapname then
+                    local strap = dgroup.object:get_area_anchor(string.format("%s_%s", device.name, strapname))
+                    local line = circuit:get_area_anchor(anchorname)
+                    local leftc = strap.l
+                    local rightc = strap.r
+                    if strap.l > line.l then
+                        leftc = line.l
+                    end
+                    if strap.r < line.r then
+                        rightc = line.r
+                    end
+                    geometry.rectanglebltr(circuit, generics.metal(1),
+                        point.create(leftc, strap.b),
+                        point.create(rightc, strap.t)
+                    )
+                end
+                -- advance line array
+                shift = shift + line.width + _P.interconnectlinespace
             end
-            -- advance line array
-            shift = shift + line.width + _P.interconnectlinespace
         end
     end
 
