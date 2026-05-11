@@ -929,9 +929,11 @@ function layout(circuit, _P, _env, state)
         topgateadjustforsdstraps = true,
         connectsource = true,
         connectsourcewidth = _P.default_source_strap_width,
+        connectsourcefullwidth = true,
         sourcemetal = 1,
         connectdrain = true,
         connectdrainwidth = _P.default_drain_strap_width,
+        connectdrainfullwidth = true,
         drainmetal = 1,
         drawinstancebox = true,
         grid = _P.access_grid,
@@ -1514,4 +1516,27 @@ function layout(circuit, _P, _env, state)
             geometry.rectanglebltr(circuit, generics.special(), boundary.bl, boundary.tr)
         end
     end
+
+    -- fill up empty space with horizontal lines
+    --[[
+    for i = 1, 8 do
+        local x1 = _get_grid_x(nil, 1, 1)
+        local x2 = _get_grid_x(nil, 1, -1)
+        local xstart
+        local xend
+        if x1 > x2 then
+            xstart = x2
+            xend = x1 + _P.interconnectlinewidth
+        else
+            xstart = x1
+            xend = x2 + _P.interconnectlinewidth
+        end
+        local ystart = _get_grid_y(nil, 1, i)
+        local yend = ystart + _P.interconnectlinewidth
+        geometry.rectanglebltr(circuit, generics.metal(hmetal),
+            point.create(xstart, ystart),
+            point.create(xend, yend)
+        )
+    end
+    --]]
 end
