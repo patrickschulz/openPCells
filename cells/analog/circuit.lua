@@ -19,6 +19,7 @@ function parameters()
         { "auto_assign_xylines",                    true },
         { "interconnectlinewidth",                  technology.get_dimension_max("Minimum M2 Width", "Minimum M1M2 Viawidth", "Minimum M2M3 Viawidth") },
         { "interconnectlinespace",                  technology.get_dimension_max("Minimum M2 Space", "Minimum M3 Space") },
+        { "allow_grid_holes",                       false },
         { "allow_failed_grid_connections",          false },
         { "check_grid_connections",                 true },
         { "netlabel_size",                          technology.get_optional_dimension("Default Label Size", 0) },
@@ -614,40 +615,42 @@ function check(_P, state)
     end
 
     -- check that no group grid has holes
-    for index, group in ipairs(state.devicegroups) do
-        local gdevices = state._get_devices(state.groupsearch, group)
-        local minx = state.groupgridvalues[index].minx
-        local maxx = state.groupgridvalues[index].maxx
-        for x = minx, maxx do
-            local found = false
-            for _, device in ipairs(gdevices) do
-                if x == device.x then
-                    found = true
-                    break
+    if not _P.allow_grid_holes then
+        for index, group in ipairs(state.devicegroups) do
+            local gdevices = state._get_devices(state.groupsearch, group)
+            local minx = state.groupgridvalues[index].minx
+            local maxx = state.groupgridvalues[index].maxx
+            for x = minx, maxx do
+                local found = false
+                for _, device in ipairs(gdevices) do
+                    if x == device.x then
+                        found = true
+                        break
+                    end
+                end
+                if not found then
+                    return false, string.format("group #%d contains device x-placements with grid holes (minx: %d, maxx: %d)", index, minx, maxx)
                 end
             end
-            if not found then
-                return false, string.format("group #%d contains device x-placements with grid holes (minx: %d, maxx: %d)", index, minx, maxx)
-            end
-        end
-        local miny = state.groupgridvalues[index].miny
-        local maxy = state.groupgridvalues[index].maxy
-        for y = miny, maxy do
-            local found = false
-            for _, device in ipairs(gdevices) do
-                if y == device.y then
-                    found = true
-                    break
+            local miny = state.groupgridvalues[index].miny
+            local maxy = state.groupgridvalues[index].maxy
+            for y = miny, maxy do
+                local found = false
+                for _, device in ipairs(gdevices) do
+                    if y == device.y then
+                        found = true
+                        break
+                    end
                 end
-            end
-            if not found then
-                return false, string.format("group #%d contains device y-placements with grid holes (miny: %d, maxy: %d)", index, miny, maxy)
+                if not found then
+                    return false, string.format("group #%d contains device y-placements with grid holes (miny: %d, maxy: %d)", index, miny, maxy)
+                end
             end
         end
     end
 
     -- check that the global grid does not contain any holes
-    do
+    if not _P.allow_grid_holes then
         for x = state.minx, state.maxx do
             local found = false
             for _, group in ipairs(state.devicegroups) do
@@ -657,7 +660,7 @@ function check(_P, state)
                 end
             end
             if not found then
-                return false, string.format("the global grid contains group x-placements with grid holes (minx: %d, maxx: %d)", index, state.minx, state.maxx)
+                return false, string.format("the global grid contains group x-placements with grid holes (minx: %d, maxx: %d)", state.minx, state.maxx)
             end
         end
         for y = state.miny, state.maxy do
@@ -669,7 +672,7 @@ function check(_P, state)
                 end
             end
             if not found then
-                return false, string.format("the global grid contains group y-placements with grid holes (miny: %d, maxy: %d)", index, state.miny, state.maxy)
+                return false, string.format("the global grid contains group y-placements with grid holes (miny: %d, maxy: %d)", state.miny, state.maxy)
             end
         end
     end
@@ -985,6 +988,18 @@ function layout(circuit, _P, _env, state)
             gridsizes.x[device.x] = math.max(gridsizes.x[device.x], qwidth)
             gridsizes.y[device.y] = math.max(gridsizes.y[device.y], qheight)
         end
+        if _P.allow_grid_holes then -- fill grid holes with 0
+            for x = state.groupgridvalues[index].minx, state.groupgridvalues[index].maxx do
+                if not gridsizes[x].x then
+                    gridsizes[x].x = 0
+                end
+            end
+            for y = state.groupgridvalues[index].miny, state.groupgridvalues[index].maxy do
+                if not gridsizes[y].y then
+                    gridsizes[y].y = 0
+                end
+            end
+        end
 
         --[[
         -- calculate grid positions for placement
@@ -1100,6 +1115,18 @@ function layout(circuit, _P, _env, state)
         end
         gridsizes.x[group.x] = math.max(gridsizes.x[group.x], qwidth)
         gridsizes.y[group.y] = math.max(gridsizes.y[group.y], qheight)
+    end
+    if _P.allow_grid_holes then
+        for x = state.minx, state.maxx do
+            if not gridsizes[x].x then
+                gridsizes[x].x = 0
+            end
+        end
+        for y = state.miny, state.maxy do
+            if not gridsizes[y].y then
+                gridsizes[y].y = 0
+            end
+        end
     end
 
     --[[
