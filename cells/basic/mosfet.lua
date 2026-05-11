@@ -155,6 +155,7 @@ function parameters()
         { "connectsourceleftext(Source Rails Metal Left Extension)",                                    0 },
         { "connectsourcerightext(Source Rails Metal Right Extension)",                                  0 },
         { "connectsourceautooddext(Source Rails Automatic Odd-Fingered Extension)",                     false },
+        { "connectsourcefullwidth(Source Rails Full Width)",                                            false },
         { "connectsourceotherwidth(Other Source Rails Metal Width)",                                    technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "connectsourcewidth" },
         { "connectsourceotherspace(Other Source Rails Metal Space)",                                    technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "connectsourcespace" },
         { "connectsourceotherleftext(Other Source Rails Metal Left Extension)",                         0, follow = "connectsourceleftext", },
@@ -180,6 +181,7 @@ function parameters()
         { "connectdrainleftext(Drain Rails Metal Left Extension)",                                      0 },
         { "connectdrainrightext(Drain Rails Metal Right Extension)",                                    0 },
         { "connectdrainautooddext(Drain Rails Automatic Odd-Fingered Extension)",                       false },
+        { "connectdrainfullwidth(Drain Rails Full Width)",                                              false },
         { "connectdraininverse(Invert Drain Strap Locations)",                                          false, follow = "flipsourcedrainstraps" },
         { "connectdrainotherwidth(Other Drain Rails Metal Width)",                                      technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "connectdrainwidth" },
         { "connectdrainotherspace(Other Drain Rails Metal Space)",                                      technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "connectdrainspace" },
@@ -2385,8 +2387,15 @@ function layout(transistor, _P)
         if _P.connectsourceautooddext then
             rightext = rightext + gatepitch
         end
-        local blx = gateblx
-        local trx = blx + 2 * (_P.fingers // 2) * gatepitch
+        local blx
+        local trx
+        if _P.connectsourcefullwidth then
+            blx = gateblx
+            trx = blx + _P.fingers * gatepitch
+        else
+            blx = gateblx
+            trx = blx + 2 * (_P.fingers // 2) * gatepitch
+        end
         if _P.connectsourceinline then
             local bly
             if _P.channeltype == "nmos" then
@@ -2704,8 +2713,15 @@ function layout(transistor, _P)
         if _P.connectdrainautooddext then
             leftext = leftext + gatepitch
         end
-        local blx = gateblx + (2 - 1) * gatepitch
-        local trx = blx + (2 * ((_P.fingers + 1) // 2) - 2) * gatepitch
+        local blx
+        local trx
+        if _P.connectdrainfullwidth then
+            blx = gateblx
+            trx = blx + _P.fingers * gatepitch
+        else
+            blx = gateblx + (2 - 1) * gatepitch
+            trx = blx + (2 * ((_P.fingers + 1) // 2) - 2) * gatepitch
+        end
         if _P.connectdraininline then
             local bly
             if _P.channeltype == "nmos" then
