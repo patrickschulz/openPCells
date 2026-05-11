@@ -13,6 +13,10 @@ function parameters()
         { "auto_assign_welltypes",                  true },
         { "minimum_device_xspace",                  0 },
         { "minimum_device_yspace",                  0 },
+        { "default_gate_strap_width",               technology.get_dimension_max("Minimum M1 Width", "Minimum M1M2 Viawidth") },
+        { "default_source_strap_width",             technology.get_dimension_max("Minimum M1 Width", "Minimum M1M2 Viawidth") },
+        { "default_drain_strap_width",              technology.get_dimension_max("Minimum M1 Width", "Minimum M1M2 Viawidth") },
+        { "access_grid",                            1, posvals = greaterzero() },
         { "guardringwidth",                         technology.get_dimension("Minimum Active Contact Region Size"), posvals = positive() },
         { "hlines",                                 {} },
         { "vlines",                                 {} },
@@ -921,12 +925,16 @@ function layout(circuit, _P, _env, state)
     local commonopts = {
         drawwell = false,
         drawtopgate = true,
+        topgatewidth = _P.default_gate_strap_width,
         topgateadjustforsdstraps = true,
         connectsource = true,
+        connectsourcewidth = _P.default_source_strap_width,
         sourcemetal = 1,
         connectdrain = true,
+        connectdrainwidth = _P.default_drain_strap_width,
         drainmetal = 1,
         drawinstancebox = true,
+        grid = _P.access_grid,
         shapegrid = 2,
     }
     local exclude_parameters = { -- parameters from basic/mosfet than can not be used in base/device specifications
