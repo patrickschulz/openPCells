@@ -1320,6 +1320,23 @@ function layout(circuit, _P, _env, state)
                 shift = shift + line.width + _P.interconnectlinespace
             end
         end
+    else
+        for _, device in ipairs(state.devices) do
+            local dgroup = state.devicegroups[device.group]
+            -- add anchors for gate/source/drain straps
+            local pinstrapmap = {
+                drain = "drainstrap",
+                source = "sourcestrap",
+                gate = "topgatestrap",
+            }
+            for pin, target in pairs(pinstrapmap) do
+                local strap = dgroup.object:get_area_anchor_fmt("%s_%s", device.name, target)
+                local anchorname = string.format("%s_%s", device.name, pin)
+                circuit:add_area_anchor_bltr(anchorname, strap.bl, strap.tr)
+                circuit:add_label(device.nets[pin], generics.metal(1), circuit:get_area_anchor(anchorname).bl, _P.netlabel_size)
+                circuit:add_label(device.nets[pin], generics.metal(1), circuit:get_area_anchor(anchorname).br, _P.netlabel_size)
+            end
+        end
     end
 
     -- assemble grid positions for grid lines
@@ -1345,7 +1362,6 @@ function layout(circuit, _P, _env, state)
         globalgrid.x[group.x] = 0.5 * (bb.bl:getx() + bb.tr:getx())
         globalgrid.y[group.y] = 0.5 * (bb.bl:gety() + bb.tr:gety())
     end
-
 
     local function _get_grid_x(groupname, xgrid, xline)
         local grid
@@ -1420,33 +1436,68 @@ function layout(circuit, _P, _env, state)
     end
 
     -- connect grid lines to devices
-    for gridlineindex, gridline in ipairs(state.hlines) do
-        local ydevices = state._get_devices(function(device) return device.y == gridline.ygrid end)
-        for _, device in ipairs(ydevices) do
-            for _, pin in ipairs({ "gate", "source", "drain", "bulk", }) do
-                local net = device.nets[pin]
-                if net == gridline.net then
-                    -- FIXME: 'anchorname' needs better automatic handling of line variants,
-                    -- but this also requires improvements in the adding of the lines
-                    local anchorname = string.format("%s_%s", device.name, pin)
-                    local cancreate = true
-                    if _P.allow_failed_grid_connections then
-                        cancreate = geometry.check_viabltrov(
-                            2, 3,
-                            circuit:get_area_anchor_fmt("hgridline%d", gridlineindex).bl,
-                            circuit:get_area_anchor_fmt("hgridline%d", gridlineindex).tr,
-                            circuit:get_area_anchor(anchorname).bl,
-                            circuit:get_area_anchor(anchorname).tr
-                        )
+    if _P.add_pin_lines then
+        for gridlineindex, gridline in ipairs(state.hlines) do
+            local ydevices = state._get_devices(function(device) return device.y == gridline.ygrid end)
+            for _, device in ipairs(ydevices) do
+                for _, pin in ipairs({ "gate", "source", "drain", "bulk", }) do
+                    local net = device.nets[pin]
+                    if net == gridline.net then
+                        -- FIXME: 'anchorname' needs better automatic handling of line variants,
+                        -- but this also requires improvements in the adding of the lines
+                        local anchorname = string.format("%s_%s", device.name, pin)
+                        local cancreate = true
+                        if _P.allow_failed_grid_connections then
+                            cancreate = geometry.check_viabltrov(
+                                2, 3,
+                                circuit:get_area_anchor_fmt("hgridline%d", gridlineindex).bl,
+                                circuit:get_area_anchor_fmt("hgridline%d", gridlineindex).tr,
+                                circuit:get_area_anchor(anchorname).bl,
+                                circuit:get_area_anchor(anchorname).tr
+                            )
+                        end
+                        if cancreate then
+                            geometry.viabltrov(circuit, 2, 3,
+                                circuit:get_area_anchor_fmt("hgridline%d", gridlineindex).bl,
+                                circuit:get_area_anchor_fmt("hgridline%d", gridlineindex).tr,
+                                circuit:get_area_anchor(anchorname).bl,
+                                circuit:get_area_anchor(anchorname).tr
+                            )
+                            device.connected[pin] = true
+                        end
                     end
-                    if cancreate then
-                        geometry.viabltrov(circuit, 2, 3,
-                            circuit:get_area_anchor_fmt("hgridline%d", gridlineindex).bl,
-                            circuit:get_area_anchor_fmt("hgridline%d", gridlineindex).tr,
-                            circuit:get_area_anchor(anchorname).bl,
-                            circuit:get_area_anchor(anchorname).tr
-                        )
-                        device.connected[pin] = true
+                end
+            end
+        end
+    else
+        for gridlineindex, gridline in ipairs(state.vlines) do
+            local xdevices = state._get_devices(function(device) return device.x == gridline.xgrid end)
+            for _, device in ipairs(xdevices) do
+                for _, pin in ipairs({ "gate", "source", "drain", "bulk", }) do
+                    local net = device.nets[pin]
+                    if net == gridline.net then
+                        -- FIXME: 'anchorname' needs better automatic handling of line variants,
+                        -- but this also requires improvements in the adding of the lines
+                        local anchorname = string.format("%s_%s", device.name, pin)
+                        local cancreate = true
+                        if _P.allow_failed_grid_connections then
+                            cancreate = geometry.check_viabltrov(
+                                2, 3,
+                                circuit:get_area_anchor_fmt("vgridline%d", gridlineindex).bl,
+                                circuit:get_area_anchor_fmt("vgridline%d", gridlineindex).tr,
+                                circuit:get_area_anchor(anchorname).bl,
+                                circuit:get_area_anchor(anchorname).tr
+                            )
+                        end
+                        if cancreate then
+                            geometry.viabltrov(circuit, 2, 3,
+                                circuit:get_area_anchor_fmt("vgridline%d", gridlineindex).bl,
+                                circuit:get_area_anchor_fmt("vgridline%d", gridlineindex).tr,
+                                circuit:get_area_anchor(anchorname).bl,
+                                circuit:get_area_anchor(anchorname).tr
+                            )
+                            device.connected[pin] = true
+                        end
                     end
                 end
             end
