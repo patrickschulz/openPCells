@@ -638,17 +638,80 @@ function process_parameters(_P, explicit)
     -- modify spacings to put access shapes on grid
     if _P.grid > 0 then
         if _P.centershapegrid then
-            if not explicit.connectsourcespace then
-                _P.connectsourcespace = util.fix_to_grid_abs_higher(_P.connectsourcespace + _P.connectsourcewidth / 2, _P.grid) - _P.connectsourcewidth / 2
-            end
-            if not explicit.connectdrainspace then
-                _P.connectdrainspace = util.fix_to_grid_abs_higher(_P.connectdrainspace + _P.connectdrainwidth / 2, _P.grid) - _P.connectdrainwidth / 2
+            if _P.drawsourcestrap and _P.drawdrainstrap then
+                local sourcedraindiff
+                if _P.connectsourceinlineoffset == not _P.connectdraininverse then
+                    sourcedraindiff = 0 -- source and drain on the same side
+                else
+                    sourcedraindiff = _P.fingerwidth -- source and drain on different sides
+                end
+                local centercenterspace =
+                    _P.connectsourcespace + _P.connectsourcewidth / 2 +
+                    _P.connectdrainspace + _P.connectdrainwidth / 2 +
+                    sourcedraindiff
+                local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
+                local s1, s2 = util.ratio_split_multiple_of(additional_space, 1, 1)
+                _P.connectsourcespace = _P.connectsourcespace + s1
+                _P.connectdrainspace = _P.connectdrainspace + s2
+            else
+                -- FIXME: this probably does not make any sense, as the grid-based only works if all access shapes are available
+                --        perhaps this should be enforced through parameter checks
+                if not explicit.connectsourcespace then
+                    _P.connectsourcespace = util.fix_to_grid_abs_higher(_P.connectsourcespace + _P.connectsourcewidth / 2, _P.grid) - _P.connectsourcewidth / 2
+                end
+                if not explicit.connectdrainspace then
+                    _P.connectdrainspace = util.fix_to_grid_abs_higher(_P.connectdrainspace + _P.connectdrainwidth / 2, _P.grid) - _P.connectdrainwidth / 2
+                end
             end
             if not explicit.topgatespace then
-                _P.topgatespace = util.fix_to_grid_abs_higher(_P.topgatespace + _P.topgatewidth / 2, _P.grid) - _P.topgatewidth / 2
+                local strapskip
+                if _P.channeltype == "nmos" then
+                    if _P.connectsourceinverse then
+                        -- gate is on the source side
+                        strapskip = _P.connectsourcewidth / 2
+                    else
+                        -- gate is on the drain side
+                        strapskip = _P.connectdrainwidth / 2
+                    end
+                else
+                    if _P.connectsourceinverse then
+                        -- gate is on the drain side
+                        strapskip = _P.connectdrainwidth / 2
+                    else
+                        -- gate is on the source side
+                        strapskip = _P.connectsourcewidth / 2
+                    end
+                end
+                local centercenterspace =
+                    _P.topgatespace + _P.topgatewidth / 2 +
+                    strapskip
+                local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
+                _P.topgatespace = _P.topgatespace + additional_space
             end
             if not explicit.botgatespace then
-                _P.botgatespace = util.fix_to_grid_abs_higher(_P.botgatespace + _P.botgatewidth / 2, _P.grid) - _P.botgatewidth / 2
+                local strapskip
+                if _P.channeltype == "nmos" then
+                    if _P.connectsourceinverse then
+                        -- gate is on the drain side
+                        strapskip = _P.connectdrainwidth / 2
+                    else
+                        -- gate is on the source side
+                        strapskip = _P.connectsourcewidth / 2
+                    end
+                else
+                    if _P.connectsourceinverse then
+                        -- gate is on the source side
+                        strapskip = _P.connectsourcewidth / 2
+                    else
+                        -- gate is on the drain side
+                        strapskip = _P.connectdrainwidth / 2
+                    end
+                end
+                local centercenterspace =
+                    _P.botgatespace + _P.botgatewidth / 2 +
+                    strapskip
+                local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
+                _P.botgatespace = _P.botgatespace + additional_space
             end
         else
             -- only adjust spacing, edge alignment to grid is enforced via parameter checks
