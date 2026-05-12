@@ -1411,7 +1411,7 @@ function layout(circuit, _P, _env, state)
         circuit:add_net_shape(gridline.net, lineanchor.bl, lineanchor.tr, generics.metal(vmetal))
         local labely = ystart
         while labely <= yend do
-            circuit:add_label(gridline.net, generics.metal(vmetal), point.create(labelx, ystart), _P.netlabel_size)
+            circuit:add_label(gridline.net, generics.metal(vmetal), point.create(labely, ystart), _P.netlabel_size)
             labely = labely + 4 * gridpitch
         end
     end
