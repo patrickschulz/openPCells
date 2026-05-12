@@ -1480,7 +1480,7 @@ function layout(circuit, _P, _env, state)
                 end
             end
         end
-    else
+    else -- not _P.add_pin_lines
         for gridlineindex, gridline in ipairs(state.vlines) do
             local xdevices = state._get_devices(function(device) return device.x == gridline.xgrid end)
             for _, device in ipairs(xdevices) do
@@ -1493,7 +1493,7 @@ function layout(circuit, _P, _env, state)
                         local cancreate = true
                         if _P.allow_failed_grid_connections then
                             cancreate = geometry.check_viabltrov(
-                                2, 3,
+                                1, 2,
                                 circuit:get_area_anchor_fmt("vgridline%d", gridlineindex).bl,
                                 circuit:get_area_anchor_fmt("vgridline%d", gridlineindex).tr,
                                 circuit:get_area_anchor(anchorname).bl,
@@ -1501,7 +1501,7 @@ function layout(circuit, _P, _env, state)
                             )
                         end
                         if cancreate then
-                            geometry.viabltrov(circuit, 2, 3,
+                            geometry.viabltrov(circuit, 1, 2,
                                 circuit:get_area_anchor_fmt("vgridline%d", gridlineindex).bl,
                                 circuit:get_area_anchor_fmt("vgridline%d", gridlineindex).tr,
                                 circuit:get_area_anchor(anchorname).bl,
