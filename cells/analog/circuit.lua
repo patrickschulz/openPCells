@@ -160,6 +160,7 @@ function check_pre(_P)
         "ygridend",
         "ylinestart",
         "ylineend",
+        "dontplace",
     }
     for i, line in ipairs(_P.vlines) do
         for k in pairs(line) do
@@ -185,6 +186,7 @@ function check_pre(_P)
         "xgridend",
         "xlinestart",
         "xlineend",
+        "dontplace",
     }
     for i, line in ipairs(_P.hlines) do
         for k in pairs(line) do
@@ -192,31 +194,6 @@ function check_pre(_P)
                 return false,
                     string.format(
                         "horizontal line #%d (net '%s') sets the non-legal key '%s'. The only legal keys are %s.",
-                        i, line.net,
-                        k,
-                        table.concat(allowed_keys, ", ")
-                    )
-            end
-        end
-    end
-
-    -- check that only allowed keys are set (vlines)
-    local allowed_keys = {
-        "net",
-        "group",
-        "xgrid",
-        "xline",
-        "ygridstart",
-        "ygridend",
-        "ylinestart",
-        "ylineend",
-    }
-    for i, line in ipairs(_P.vlines) do
-        for k in pairs(line) do
-            if not util.any_of(k, allowed_keys) then
-                return false,
-                    string.format(
-                        "vertical line #%d (net '%s') sets the non-legal key '%s'. The only legal keys are %s.",
                         i, line.net,
                         k,
                         table.concat(allowed_keys, ", ")
@@ -404,71 +381,73 @@ function prepare(_P)
     -- auto-assign y lines to grid lines
     state.hlines = {}
     for _, line in ipairs(_P.hlines) do
-        local xlinestart = line.xlinestart
-        local xlineend = line.xlineend
-        -- FIXME: simplify, merge, put in functions, etc.
-        if not xlinestart then
-            local ydevices = state._get_devices(function(device) return device.x == line.xgridstart and device.y == line.ygrid end)
-            local targets = {}
-            for _, device in ipairs(ydevices) do
-                for pin, entry in pairs(state.device_pin_order) do
-                    if line.net == device.nets[pin] then
-                        table.insert(targets, entry.line)
+        if not line.dontplace then
+            local xlinestart = line.xlinestart
+            local xlineend = line.xlineend
+            -- FIXME: simplify, merge, put in functions, etc.
+            if not xlinestart then
+                local ydevices = state._get_devices(function(device) return device.x == line.xgridstart and device.y == line.ygrid end)
+                local targets = {}
+                for _, device in ipairs(ydevices) do
+                    for pin, entry in pairs(state.device_pin_order) do
+                        if line.net == device.nets[pin] then
+                            table.insert(targets, entry.line)
+                        end
+                    end
+                end
+                if #targets > 0 then
+                    if line.xgridstart <= line.xgridend then
+                        xlinestart = util.min(targets)
+                    else
+                        xlinestart = util.max(targets)
                     end
                 end
             end
-            if #targets > 0 then
-                if line.xgridstart <= line.xgridend then
-                    xlinestart = util.min(targets)
-                else
-                    xlinestart = util.max(targets)
+            if not xlineend then
+                local ydevices = state._get_devices(function(device) return device.x == line.xgridend and device.y == line.ygrid end)
+                local targets = {}
+                for _, device in ipairs(ydevices) do
+                    for pin, entry in pairs(state.device_pin_order) do
+                        if line.net == device.nets[pin] then
+                            table.insert(targets, entry.line)
+                        end
+                    end
                 end
-            end
-        end
-        if not xlineend then
-            local ydevices = state._get_devices(function(device) return device.x == line.xgridend and device.y == line.ygrid end)
-            local targets = {}
-            for _, device in ipairs(ydevices) do
-                for pin, entry in pairs(state.device_pin_order) do
-                    if line.net == device.nets[pin] then
-                        table.insert(targets, entry.line)
+                if #targets > 0 then
+                    if line.xgridend >= line.xgridstart then
+                        xlineend = util.max(targets)
+                    else
+                        xlineend = util.min(targets)
                     end
                 end
             end
-            if #targets > 0 then
-                if line.xgridend >= line.xgridstart then
-                    xlineend = util.max(targets)
-                else
-                    xlineend = util.min(targets)
+            local yline = line.yline
+            if not yline and _P.auto_assign_xylines then
+                if not ylines[line.ygrid] then
+                    ylines[line.ygrid] = {}
                 end
+                repeat
+                    if not yline then
+                        yline = 1
+                    elseif yline > 0 then
+                        yline = -yline
+                    else
+                        yline = -yline + 1
+                    end
+                until not util.any_of(yline, ylines[line.ygrid])
+                table.insert(ylines[line.ygrid], yline)
             end
+            table.insert(state.hlines, {
+                group       = line.group,
+                net         = line.net,
+                xgridstart  = line.xgridstart,
+                xgridend    = line.xgridend,
+                xlinestart  = xlinestart,
+                xlineend    = xlineend,
+                ygrid       = line.ygrid,
+                yline       = yline,
+            })
         end
-        local yline = line.yline
-        if not yline and _P.auto_assign_xylines then
-            if not ylines[line.ygrid] then
-                ylines[line.ygrid] = {}
-            end
-            repeat
-                if not yline then
-                    yline = 1
-                elseif yline > 0 then
-                    yline = -yline
-                else
-                    yline = -yline + 1
-                end
-            until not util.any_of(yline, ylines[line.ygrid])
-            table.insert(ylines[line.ygrid], yline)
-        end
-        table.insert(state.hlines, {
-            group       = line.group,
-            net         = line.net,
-            xgridstart  = line.xgridstart,
-            xgridend    = line.xgridend,
-            xlinestart  = xlinestart,
-            xlineend    = xlineend,
-            ygrid       = line.ygrid,
-            yline       = yline,
-        })
     end
 
     -- copy vertical gridlines to state-owned array,
@@ -477,39 +456,41 @@ function prepare(_P)
     -- when both are auto-assigned
     state.vlines = {}
     for _, line in ipairs(_P.vlines) do
-        local ylinestart = line.ylinestart
-        local ylineend = line.ylineend
-        -- if y lines are not specified, search for a matching horizontal grid line
-        if not ylinestart then
-            for _, hline in ipairs(state.hlines) do
-                if (line.ygridstart == hline.ygrid) and (line.net == hline.net) then
-                    ylinestart = hline.yline
-                    break
+        if not line.dontplace then
+            local ylinestart = line.ylinestart
+            local ylineend = line.ylineend
+            -- if y lines are not specified, search for a matching horizontal grid line
+            if not ylinestart then
+                for _, hline in ipairs(state.hlines) do
+                    if (line.ygridstart == hline.ygrid) and (line.net == hline.net) then
+                        ylinestart = hline.yline
+                        break
+                    end
                 end
+                -- if no line was found keep the nil, which will
+                -- raise an error in the parameter checks
             end
-            -- if no line was found keep the nil, which will
-            -- raise an error in the parameter checks
-        end
-        if not ylineend then
-            for _, hline in ipairs(state.hlines) do
-                if (line.ygridend == hline.ygrid) and (line.net == hline.net) then
-                    ylineend = hline.yline
-                    break
+            if not ylineend then
+                for _, hline in ipairs(state.hlines) do
+                    if (line.ygridend == hline.ygrid) and (line.net == hline.net) then
+                        ylineend = hline.yline
+                        break
+                    end
                 end
+                -- if no line was found keep the nil, which will
+                -- raise an error in the parameter checks
             end
-            -- if no line was found keep the nil, which will
-            -- raise an error in the parameter checks
+            table.insert(state.vlines, {
+                group       = line.group,
+                net         = line.net,
+                xgrid       = line.xgrid,
+                xline       = line.xline,
+                ygridstart  = line.ygridstart,
+                ygridend    = line.ygridend,
+                ylinestart  = ylinestart,
+                ylineend    = ylineend,
+            })
         end
-        table.insert(state.vlines, {
-            group       = line.group,
-            net         = line.net,
-            xgrid       = line.xgrid,
-            xline       = line.xline,
-            ygridstart  = line.ygridstart,
-            ygridend    = line.ygridend,
-            ylinestart  = ylinestart,
-            ylineend    = ylineend,
-        })
     end
 
     -- find minimum/maximum grid indices (device groups)
