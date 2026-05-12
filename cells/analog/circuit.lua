@@ -1392,7 +1392,7 @@ function layout(circuit, _P, _env, state)
 
     -- place vertical grid lines
     for gridlineindex, gridline in ipairs(state.vlines) do
-        local lineanchor = string.format("vgridline%d", gridlineindex)
+        local anchorname = string.format("vgridline%d", gridlineindex)
         local xstart = _get_grid_x(gridline.group, gridline.xgrid, gridline.xline)
         local xend = xstart + _P.interconnectlinewidth
         local ystart = _get_grid_y(gridline.group, gridline.ygridstart, gridline.ylinestart)
@@ -1402,21 +1402,23 @@ function layout(circuit, _P, _env, state)
         else
             yend = yend + _P.interconnectlinewidth
         end
-        circuit:add_area_anchor_points(lineanchor,
+        circuit:add_area_anchor_points(anchorname,
             point.create(xstart, ystart),
             point.create(xend, yend)
         )
-        geometry.rectangleareaanchor(circuit, generics.metal(vmetal), lineanchor)
-        local labelx = xstart
-        while labelx <= xend do
+        local lineanchor = circuit:get_area_anchor(anchorname)
+        geometry.rectanglebltr(circuit, generics.metal(vmetal), lineanchor.bl, lineanchor.tr)
+        circuit:add_net_shape(gridline.net, lineanchor.bl, lineanchor.tr, generics.metal(vmetal))
+        local labely = ystart
+        while labely <= yend do
             circuit:add_label(gridline.net, generics.metal(vmetal), point.create(labelx, ystart), _P.netlabel_size)
-            labelx = labelx + gridpitch
+            labely = labely + 4 * gridpitch
         end
     end
 
     -- place horizontal grid lines
     for gridlineindex, gridline in ipairs(state.hlines) do
-        local lineanchor = string.format("hgridline%d", gridlineindex)
+        local anchorname = string.format("hgridline%d", gridlineindex)
         local x1 = _get_grid_x(gridline.group, gridline.xgridstart, gridline.xlinestart)
         local x2 = _get_grid_x(gridline.group, gridline.xgridend, gridline.xlineend)
         local xstart
@@ -1430,15 +1432,17 @@ function layout(circuit, _P, _env, state)
         end
         local ystart = _get_grid_y(gridline.group, gridline.ygrid, gridline.yline)
         local yend = ystart + _P.interconnectlinewidth
-        circuit:add_area_anchor_points(lineanchor,
+        circuit:add_area_anchor_points(anchorname,
             point.create(xstart, ystart),
             point.create(xend, yend)
         )
-        geometry.rectangleareaanchor(circuit, generics.metal(hmetal), lineanchor)
+        local lineanchor = circuit:get_area_anchor(anchorname)
+        geometry.rectanglebltr(circuit, generics.metal(hmetal), lineanchor.bl, lineanchor.tr)
+        circuit:add_net_shape(gridline.net, lineanchor.bl, lineanchor.tr, generics.metal(hmetal))
         local labelx = xstart
         while labelx <= xend do
             circuit:add_label(gridline.net, generics.metal(hmetal), point.create(labelx, ystart), _P.netlabel_size)
-            labelx = labelx + gridpitch
+            labelx = labelx + 4 * gridpitch
         end
     end
 
