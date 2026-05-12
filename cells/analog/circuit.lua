@@ -1541,7 +1541,6 @@ function layout(circuit, _P, _env, state)
         end
     end
 
-    --[[
     -- annotate partially or fully unconnected devices
     if _P.annotate_missing_device_connections then
         for _, device in ipairs(state.devices) do
@@ -1552,7 +1551,8 @@ function layout(circuit, _P, _env, state)
                 end
             end
             if #not_connected > 0 then
-                local boundary = device.cell:get_bounding_box()
+                local dgroup = state.devicegroups[device.group]
+                local boundary = dgroup.object:get_area_anchor_fmt("%s_boundingbox", device.name)
                 geometry.rectanglebltr(circuit, generics.error(), boundary.bl, boundary.tr)
                 for _, pin in ipairs(not_connected) do
                     local anchorname = string.format("%s_%s", device.name, pin)
@@ -1564,7 +1564,6 @@ function layout(circuit, _P, _env, state)
             end
         end
     end
-    --]]
 
     -- annotate bounding boxes
     for i, group in ipairs(state.devicegroups) do
