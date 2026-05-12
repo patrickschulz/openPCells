@@ -18,6 +18,7 @@ function parameters()
         { "default_drain_strap_width",              technology.get_dimension_max("Minimum M1 Width", "Minimum M1M2 Viawidth") },
         { "access_grid",                            1, posvals = greaterzero() },
         { "guardringwidth",                         technology.get_dimension("Minimum Active Contact Region Size"), posvals = positive() },
+        { "guardring_minimum_separation",           technology.get_dimension_max("Minimum M1 Space", "Minimum Active Space"), posvals = positive() },
         { "hlines",                                 {} },
         { "vlines",                                 {} },
         { "add_pin_lines",                          false },
@@ -1094,8 +1095,9 @@ function layout(circuit, _P, _env, state)
         layouthelpers.place_guardring_quantized(group.object,
             point.create(blx, bly),
             point.create(trx, try),
-            500, 500,
-            interconnectlinegrid, interconnectlinegrid,
+            util.fix_to_grid_abs_higher(_P.guardring_minimum_separation, interconnectlinegrid), -- xspace,
+            util.fix_to_grid_abs_higher(_P.guardring_minimum_separation, interconnectlinegrid), -- yspace,
+            interconnectlinegrid, interconnectlinegrid, -- basexsize, baseysize
             string.format("_guardring_group_%d", i),
             {
                 contype = group.welltype,
