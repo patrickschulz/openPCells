@@ -1071,7 +1071,7 @@ function layout(circuit, _P, _env, state)
     -- fill FEOL layers in grid cells to avoid DRC issues
     for _, device in ipairs(state.devices) do
         local dgroup = state.devicegroups[device.group]
-        local boundar = dgroup.object:get_area_anchor_fmt("%s_gridcell", device.name)
+        local boundary = dgroup.object:get_area_anchor_fmt("%s_gridcell", device.name)
         -- oxide type
         geometry.rectanglebltr(dgroup.object, generics.oxide(device.parameters.oxidetype or 1), boundary.bl, boundary.tr)
         -- implant
