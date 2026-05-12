@@ -679,13 +679,6 @@ function check(_P, state)
         end
     end
 
-    -- check parameter values
-    for i, device in ipairs(state.devices) do
-        if device.parameters.fingers % 2 ~= 0 then
-            return false, string.format("device #%d: 'fingers' is odd (%d), must be even", i, device.fingers)
-        end
-    end
-
     -- check device nets presence
     for i, device in ipairs(state.devices) do
         if not device.nets then
