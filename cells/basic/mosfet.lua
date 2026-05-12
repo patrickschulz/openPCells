@@ -154,6 +154,7 @@ function parameters()
         { "connectsourcespace(Source Rails Metal Space)",                                               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "connectsourceleftext(Source Rails Metal Left Extension)",                                    0 },
         { "connectsourcerightext(Source Rails Metal Right Extension)",                                  0 },
+        { "connectsourceminwidth(Source Rails Minimum Width)",                                          0 },
         { "connectsourceautooddext(Source Rails Automatic Odd-Fingered Extension)",                     false },
         { "connectsourcefullwidth(Source Rails Full Width)",                                            false },
         { "connectsourceotherwidth(Other Source Rails Metal Width)",                                    technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "connectsourcewidth" },
@@ -180,6 +181,7 @@ function parameters()
         { "connectdrainspace(Drain Rails Metal Space)",                                                 technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "connectdrainleftext(Drain Rails Metal Left Extension)",                                      0 },
         { "connectdrainrightext(Drain Rails Metal Right Extension)",                                    0 },
+        { "connectdrainminwidth(Drain Rails Minimum Width)",                                            0 },
         { "connectdrainautooddext(Drain Rails Automatic Odd-Fingered Extension)",                       false },
         { "connectdrainfullwidth(Drain Rails Full Width)",                                              false },
         { "connectdraininverse(Invert Drain Strap Locations)",                                          false, follow = "flipsourcedrainstraps" },
@@ -2475,11 +2477,18 @@ function layout(transistor, _P)
                 end
             end
             if _P.drawsourcestrap then
+                -- main strap
                 for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
                     local shift = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
+                    local width = trx + rightext + sourcemetalwidths[sourcemetal] - blx + leftext
+                    local extraleftext = 0
+                    local extrarightext = 0
+                    if width < _P.connectsourceminwidth then
+                        extraleftext, extrarightext = util.ratio_split_multiple_of(_P.connectsourceminwidth - width, 1, 1)
+                    end
                     geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                        point.create(blx - shift - leftext, bly),
-                        point.create(trx - shift + rightext + sourcemetalwidths[sourcemetal], bly + _P.connectsourcewidth)
+                        point.create(blx - shift - leftext - extraleftext, bly),
+                        point.create(trx - shift + rightext + extrarightext + sourcemetalwidths[sourcemetal], bly + _P.connectsourcewidth)
                     )
                 end
                 for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal - 1 do
@@ -2511,9 +2520,15 @@ function layout(transistor, _P)
             end
             -- place anchor on highest-metal strap
             local shift = (_P.gatespace + sourcemetalwidths[_P.sourceendmetal]) / 2
+            local width = trx + rightext + sourcemetalwidths[_P.sourceendmetal] - blx + leftext
+            local extraleftext = 0
+            local extrarightext = 0
+            if width < _P.connectsourceminwidth then
+                extraleftext, extrarightext = util.ratio_split_multiple_of(_P.connectsourceminwidth - width, 1, 1)
+            end
             transistor:add_area_anchor_bltr("sourcestrap",
-                point.create(blx - shift - leftext, bly),
-                point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly + _P.connectsourcewidth)
+                point.create(blx - shift - leftext - extraleftext, bly),
+                point.create(trx - shift + rightext + extrarightext + sourcemetalwidths[_P.sourceendmetal], bly + _P.connectsourcewidth)
             )
             if rawget(_P, "sourcenet") then
                 transistor:mark_area_anchor_as_net("sourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
@@ -2548,9 +2563,15 @@ function layout(transistor, _P)
             if _P.drawsourcestrap then
                 for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
                     local shift = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
+                    local width = trx + rightext + sourcemetalwidths[sourcemetal] - blx + leftext
+                    local extraleftext = 0
+                    local extrarightext = 0
+                    if width < _P.connectsourceminwidth then
+                        extraleftext, extrarightext = util.ratio_split_multiple_of(_P.connectsourceminwidth - width, 1, 1)
+                    end
                     geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                        point.create(blx - shift - leftext, bly1),
-                        point.create(trx - shift + rightext + sourcemetalwidths[sourcemetal], bly1 + _P.connectsourcewidth)
+                        point.create(blx - shift - leftext - extraleftext, bly1),
+                        point.create(trx - shift + rightext + extrarightext + sourcemetalwidths[sourcemetal], bly1 + _P.connectsourcewidth)
                     )
                     for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal - 1 do
                         local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
@@ -2615,9 +2636,15 @@ function layout(transistor, _P)
             end
             -- main anchor
             local shift = (_P.gatespace + sourcemetalwidths[_P.sourceendmetal]) / 2
+            local width = trx + rightext + sourcemetalwidths[_P.sourceendmetal] - blx + leftext
+            local extraleftext = 0
+            local extrarightext = 0
+            if width < _P.connectsourceminwidth then
+                extraleftext, extrarightext = util.ratio_split_multiple_of(_P.connectsourceminwidth - width, 1, 1)
+            end
             transistor:add_area_anchor_bltr("sourcestrap",
-                point.create(blx - shift - leftext, bly1),
-                point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly1 + _P.connectsourcewidth)
+                point.create(blx - shift - leftext - extraleftext, bly1),
+                point.create(trx - shift + rightext + extrarightext + sourcemetalwidths[_P.sourceendmetal], bly1 + _P.connectsourcewidth)
             )
             if rawget(_P, "sourcenet") then
                 transistor:mark_area_anchor_as_net("sourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
@@ -2804,9 +2831,15 @@ function layout(transistor, _P)
                 -- main strap
                 for drainmetal = _P.drainstartmetal, _P.drainendmetal do
                     local shift = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
+                    local width = trx + rightext + drainmetalwidths[drainmetal] - blx + leftext
+                    local extraleftext = 0
+                    local extrarightext = 0
+                    if width < _P.connectdrainminwidth then
+                        extraleftext, extrarightext = util.ratio_split_multiple_of(_P.connectdrainminwidth - width, 1, 1)
+                    end
                     geometry.rectanglebltr(transistor, generics.metal(drainmetal),
-                        point.create(blx - shift - leftext, bly),
-                        point.create(trx - shift + rightext + drainmetalwidths[drainmetal], bly + _P.connectdrainwidth)
+                        point.create(blx - shift - leftext - extraleftext, bly),
+                        point.create(trx - shift + rightext + extrarightext + drainmetalwidths[drainmetal], bly + _P.connectdrainwidth)
                     )
                 end
                 for drainmetal = _P.drainstartmetal, _P.drainendmetal - 1 do
@@ -2838,9 +2871,15 @@ function layout(transistor, _P)
                 end
             end
             local shift = (_P.gatespace + drainmetalwidths[_P.drainendmetal]) / 2
+            local width = trx + rightext + drainmetalwidths[_P.drainendmetal] - blx + leftext
+            local extraleftext = 0
+            local extrarightext = 0
+            if width < _P.connectdrainminwidth then
+                extraleftext, extrarightext = util.ratio_split_multiple_of(_P.connectdrainminwidth - width, 1, 1)
+            end
             transistor:add_area_anchor_bltr("drainstrap",
-                point.create(blx - shift - leftext, bly),
-                point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly + _P.connectdrainwidth)
+                point.create(blx - shift - leftext - extraleftext, bly),
+                point.create(trx - shift + rightext + extrarightext + drainmetalwidths[_P.drainendmetal], bly + _P.connectdrainwidth)
             )
             if rawget(_P, "drainnet") then
                 transistor:mark_area_anchor_as_net("drainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
@@ -2875,9 +2914,15 @@ function layout(transistor, _P)
                 -- main strap
                 for drainmetal = _P.drainstartmetal, _P.drainendmetal do
                     local shift = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
+                    local width = trx + rightext + drainmetalwidths[drainmetal] - blx + leftext
+                    local extraleftext = 0
+                    local extrarightext = 0
+                    if width < _P.connectdrainminwidth then
+                        extraleftext, extrarightext = util.ratio_split_multiple_of(_P.connectdrainminwidth - width, 1, 1)
+                    end
                     geometry.rectanglebltr(transistor, generics.metal(drainmetal),
-                        point.create(blx - shift - leftext, bly1),
-                        point.create(trx - shift + rightext + drainmetalwidths[drainmetal], bly1 + _P.connectdrainwidth)
+                        point.create(blx - shift - leftext - extraleftext, bly1),
+                        point.create(trx - shift + rightext + extrarightext + drainmetalwidths[drainmetal], bly1 + _P.connectdrainwidth)
                     )
                     for drainmetal = _P.drainstartmetal, _P.drainendmetal - 1 do
                         local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
@@ -2944,9 +2989,15 @@ function layout(transistor, _P)
             end
             -- main anchor
             local shift = (_P.gatespace + drainmetalwidths[_P.drainendmetal]) / 2
+            local width = trx + rightext + drainmetalwidths[_P.drainendmetal] - blx + leftext
+            local extraleftext = 0
+            local extrarightext = 0
+            if width < _P.connectdrainminwidth then
+                extraleftext, extrarightext = util.ratio_split_multiple_of(_P.connectdrainminwidth - width, 1, 1)
+            end
             transistor:add_area_anchor_bltr("drainstrap",
-                point.create(blx - shift - leftext, bly1),
-                point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly1 + _P.connectdrainwidth)
+                point.create(blx - shift - leftext - extraleftext, bly1),
+                point.create(trx - shift + rightext + extrarightext + drainmetalwidths[_P.drainendmetal], bly1 + _P.connectdrainwidth)
             )
             if rawget(_P, "drainnet") then
                 transistor:mark_area_anchor_as_net("drainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
