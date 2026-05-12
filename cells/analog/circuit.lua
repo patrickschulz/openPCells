@@ -1058,8 +1058,8 @@ function layout(circuit, _P, _env, state)
             local boundary = dgroup.object:get_area_anchor_fmt("%s_boundingbox", device.name)
             local width = gridsizes.x[device.x]
             local height = gridsizes.y[device.y]
-            local x0 = 0.5 * (boundary.tr:getx() - boundary.bl:getx()
-            local y0 = 0.5 * (boundary.tr:gety() - boundary.bl:gety()
+            local x0 = 0.5 * (boundary.tr:getx() - boundary.bl:getx())
+            local y0 = 0.5 * (boundary.tr:gety() - boundary.bl:gety())
             state.devicegroups[device.group].object:add_area_anchor_bltr(
                 string.format("%s_gridcell", device.name),
                 point.create(x0 - width / 2, y0 - height / 2),
