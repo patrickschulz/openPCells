@@ -849,19 +849,20 @@ function check(_P, state)
             -- these conditions look like they're from hell, this is partly true.
             -- it's more innocuous than it looks, it just checking if the lines touch,
             -- first for the xgrid values, then for the xline values
-            if (line.ygrid == oline.ygrid) and (line.yline == oline.yline) then
-                if (gridend >= oline.gridstart and gridend <= oline.gridend) or
-                   (gridstart <= oline.gridend and gridstart >= oline.gridstart) or
-                   (gridstart <= oline.gridstart and gridend >= oline.gridend) then
-                    if (lineend >= oline.linestart and lineend <= oline.lineend) or
-                       (linestart <= oline.lineend and linestart >= oline.linestart) or
-                       (linestart <= oline.linestart and lineend >= oline.lineend) then
-                       if line.net ~= oline.net then
-                           return false, string.format("y grid line #%d (net '%s') touches y grid line #%d (net '%s')", i, line.net, oline.index, oline.net)
-                       end
-                   end
-               end
-           end
+            if line.group == oline.group then
+                if (line.ygrid == oline.ygrid) and (line.yline == oline.yline) then
+                    if (gridend >= oline.gridstart and gridend <= oline.gridend) or
+                       (gridstart <= oline.gridend and gridstart >= oline.gridstart) or
+                       (gridstart <= oline.gridstart and gridend >= oline.gridend) then
+                        if (lineend >= oline.linestart and lineend <= oline.lineend) or
+                           (linestart <= oline.lineend and linestart >= oline.linestart) or
+                           (linestart <= oline.linestart and lineend >= oline.lineend) then
+                            if line.net ~= oline.net then
+                            end
+                        end
+                    end
+                end
+            end
         end
         table.insert(yoccupations, {
             index = i,
@@ -872,6 +873,7 @@ function check(_P, state)
             ygrid       = line.ygrid,
             yline       = line.yline,
             net         = line.net,
+            group       = line.group,
         })
     end
 
