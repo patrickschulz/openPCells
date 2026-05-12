@@ -1043,10 +1043,10 @@ function layout(circuit, _P, _env, state)
 
         -- merge devices in the groups and store their bounding boxes for later
         for _, device in ipairs(gdevices) do
-            state.devicegroups[device.group].object:merge_into(device.cell)
-            state.devicegroups[device.group].object:inherit_all_anchors_with_prefix(device.cell, string.format("%s_", device.name))
+            group.object:merge_into(device.cell)
+            group.object:inherit_all_anchors_with_prefix(device.cell, string.format("%s_", device.name))
             local bb = device.cell:get_bounding_box()
-            state.devicegroups[device.group].object:add_area_anchor_bltr(
+            group.object:add_area_anchor_bltr(
                 string.format("%s_boundingbox", device.name),
                 bb.bl, bb.tr
             )
@@ -1054,13 +1054,12 @@ function layout(circuit, _P, _env, state)
 
         -- add anchor for grid cell
         for _, device in ipairs(gdevices) do
-            local dgroup = state.devicegroups[device.group]
-            local boundary = dgroup.object:get_area_anchor_fmt("%s_boundingbox", device.name)
+            local boundary = group.object:get_area_anchor_fmt("%s_boundingbox", device.name)
+            local x0 = 0.5 * (boundary.tr:getx() + boundary.bl:getx())
+            local y0 = 0.5 * (boundary.tr:gety() + boundary.bl:gety())
             local width = gridsizes.x[device.x]
             local height = gridsizes.y[device.y]
-            local x0 = 0.5 * (boundary.tr:getx() - boundary.bl:getx())
-            local y0 = 0.5 * (boundary.tr:gety() - boundary.bl:gety())
-            state.devicegroups[device.group].object:add_area_anchor_bltr(
+            group.object:add_area_anchor_bltr(
                 string.format("%s_gridcell", device.name),
                 point.create(x0 - width / 2, y0 - height / 2),
                 point.create(x0 + width / 2, y0 + height / 2)
