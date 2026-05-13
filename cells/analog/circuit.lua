@@ -711,6 +711,11 @@ function check(_P, state)
     end
     -- build grid nets for net checks
     local gridnets = {}
+    for _, line in ipairs(state.vlines) do
+        if not util.any_of(line.net, gridnets) then
+            table.insert(gridnets, line.net)
+        end
+    end
     for _, line in ipairs(state.hlines) do
         if not util.any_of(line.net, gridnets) then
             table.insert(gridnets, line.net)
@@ -723,10 +728,10 @@ function check(_P, state)
                 return false, string.format("device net '%s' is not present in the grid line nets", net)
             end
         end
-    end
-    for _, net in ipairs(gridnets) do
-        if not util.any_of(net, devicenets) then
-            return false, string.format("grid line net '%s' is not present in the device nets", net)
+        for _, net in ipairs(gridnets) do
+            if not util.any_of(net, devicenets) then
+                return false, string.format("grid line net '%s' is not present in the device nets", net)
+            end
         end
     end
 
