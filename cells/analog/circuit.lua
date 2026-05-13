@@ -29,7 +29,9 @@ function parameters()
         { "allow_failed_grid_connections",          false },
         { "check_grid_connections",                 true },
         { "netlabel_size",                          technology.get_optional_dimension("Default Label Size", 0) },
-        { "annotate_missing_device_connections",    true }
+        { "annotate_missing_device_connections",    true },
+        { "annotate_device_bounding_boxes",         false },
+        { "annotate_grid_cells",                    false }
     )
 end
 
@@ -1064,6 +1066,9 @@ function layout(circuit, _P, _env, state)
                 point.create(x0 - width / 2, y0 - height / 2),
                 point.create(x0 + width / 2, y0 + height / 2)
             )
+            if _P.annotate_grid_cells then
+                geometry.rectangleareaanchor(group.object, generics.special(), string.format("%s_gridcell", device.name))
+            end
         end
     end
 
@@ -1565,18 +1570,20 @@ function layout(circuit, _P, _env, state)
     end
 
     -- annotate bounding boxes
-    for i, group in ipairs(state.devicegroups) do
-        local searchfun = function(device)
-            return util.any_of(device.name, group.devices)
-        end
-        local gdevices = state._get_devices(searchfun)
-        local blx
-        local bly
-        local trx
-        local try
-        for _, device in ipairs(gdevices) do
-            local boundary = group.object:get_area_anchor(string.format("%s_boundingbox", device.name))
-            geometry.rectanglebltr(circuit, generics.special(), boundary.bl, boundary.tr)
+    if _P.annotate_device_bounding_boxes then
+        for i, group in ipairs(state.devicegroups) do
+            local searchfun = function(device)
+                return util.any_of(device.name, group.devices)
+            end
+            local gdevices = state._get_devices(searchfun)
+            local blx
+            local bly
+            local trx
+            local try
+            for _, device in ipairs(gdevices) do
+                local boundary = group.object:get_area_anchor(string.format("%s_boundingbox", device.name))
+                geometry.rectanglebltr(circuit, generics.special(), boundary.bl, boundary.tr)
+            end
         end
     end
 
