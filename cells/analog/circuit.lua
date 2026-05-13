@@ -1459,8 +1459,7 @@ function layout(circuit, _P, _env, state)
     -- connect grid lines to devices
     if _P.add_pin_lines then
         for gridlineindex, gridline in ipairs(state.hlines) do
-            local ydevices = state._get_devices(function(device) return device.y == gridline.ygrid end)
-            for _, device in ipairs(ydevices) do
+            for _, device in ipairs(state.devices) do
                 for _, pin in ipairs({ "gate", "source", "drain", "bulk", }) do
                     local net = device.nets[pin]
                     if net == gridline.net then
@@ -1492,8 +1491,7 @@ function layout(circuit, _P, _env, state)
         end
     else -- not _P.add_pin_lines
         for gridlineindex, gridline in ipairs(state.vlines) do
-            local xdevices = state._get_devices(function(device) return device.x == gridline.xgrid end)
-            for _, device in ipairs(xdevices) do
+            for _, device in ipairs(state.devices) do
                 for _, pin in ipairs({ "gate", "source", "drain", "bulk", }) do
                     local net = device.nets[pin]
                     if net == gridline.net then
