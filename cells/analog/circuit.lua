@@ -362,6 +362,7 @@ function prepare(_P)
             if _P.auto_assign_welltypes then
                 state.devicegroups[groupindex].welltype = welltype
             end
+            state.devicegroups[groupindex].net = d.nets.bulk -- FIXME: test
             d.group = groupindex
             table.insert(state.devices, d)
         end -- not device.dontplace
@@ -1101,24 +1102,57 @@ function layout(circuit, _P, _env, state)
         local trx
         local try
         for _, device in ipairs(gdevices) do
-            local boundary = group.object:get_area_anchor(string.format("%s_boundingbox", device.name))
+            local boundary = group.object:get_area_anchor(string.format("%s_gridcell", device.name))
             blx = not blx and boundary.l or math.min(blx, boundary.l)
             bly = not bly and boundary.b or math.min(bly, boundary.b)
             trx = not trx and boundary.r or math.max(trx, boundary.r)
             try = not try and boundary.t or math.max(try, boundary.t)
         end
-        layouthelpers.place_guardring_quantized(group.object,
-            point.create(blx, bly),
-            point.create(trx, try),
-            util.fix_to_grid_abs_higher(_P.guardring_minimum_separation, interconnectlinegrid), -- xspace,
-            util.fix_to_grid_abs_higher(_P.guardring_minimum_separation, interconnectlinegrid), -- yspace,
-            interconnectlinegrid, interconnectlinegrid, -- basexsize, baseysize
-            string.format("_guardring_group_%d", i),
+        -- the guardring width must be chosen so that N grid lines (and N - 1 grid spaces) fit perfectly
+        local isxodd = (state.groupgridvalues[i].maxx - state.groupgridvalues[i].minx + 1) % 2 == 1
+        local isyodd = (state.groupgridvalues[i].maxy - state.groupgridvalues[i].miny + 1) % 2 == 1
+        local gminwidth = trx - blx
+        local gminheight = try - bly
+        local xspace = _P.guardring_minimum_separation
+        local yspace = _P.guardring_minimum_separation
+        local Nx = math.ceil((gminwidth + xspace) / (_P.interconnectlinewidth + _P.interconnectlinespace))
+        local Ny = math.ceil((gminheight + yspace) / (_P.interconnectlinewidth + _P.interconnectlinespace))
+        if Ny % 2 == 0 then
+            Ny = Ny + 1
+        end
+        local holewidth = Nx * (_P.interconnectlinewidth + _P.interconnectlinespace)
+        if not isxodd then
+            holewidth = holewidth + interconnectlinegrid
+        end
+        local holeheight = Ny * (_P.interconnectlinewidth + _P.interconnectlinespace)
+        if not isyodd then
+            holeheight = holeheight + interconnectlinegrid
+        end
+        local guardring = pcell.create_layout(
+            "auxiliary/guardring",
+            "_guardring",
             {
                 contype = group.welltype,
                 ringwidth = group.guardringwidth or _P.guardringwidth,
+                holewidth = holewidth,
+                holeheight = holeheight,
+                net = group.net,
+                addtopnet = true,
+                addbottomnet = true,
             }
         )
+        guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(blx, bly))
+        local xshift = evenodddiv2(holewidth - gminwidth)
+        if not isxodd then
+            xshift = xshift - interconnectlinegrid / 2
+        end
+        local yshift = evenodddiv2(holeheight - gminheight)
+        if not isyodd then
+            yshift = yshift - interconnectlinegrid / 2
+        end
+        guardring:translate(-xshift, -yshift)
+        group.object:merge_into(guardring)
+        group.object:inherit_net_shapes(guardring)
     end
 
     -- * now place the groups, similar to the placement of the devices *
