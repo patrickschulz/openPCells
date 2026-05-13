@@ -912,6 +912,7 @@ function layout(circuit, _P, _env, state)
         drawtopgate = true,
         topgatewidth = _P.default_gate_strap_width,
         topgateadjustforsdstraps = true,
+        topgateminwidth = 3 * _P.interconnectlinewidth + 2 * _P.interconnectlinespace,
         connectsource = true,
         connectsourcewidth = _P.default_source_strap_width,
         connectsourcefullwidth = true,
