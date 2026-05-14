@@ -7,6 +7,7 @@
 #include "bltrshape.h"
 #include "geometry.h"
 #include "helpers.h"
+#include "lcheck.h"
 #include "lgenerics.h"
 #include "lobject.h"
 #include "lplacement.h"
@@ -93,7 +94,8 @@ struct vector* layouthelpers_place_vlines(
     const struct generics* layer,
     coordinate_t width, coordinate_t space, coordinate_t minheight,
     struct vector* netnames,
-    struct polygon_container* excludes
+    struct polygon_container* excludes,
+    coordinate_t offset
 )
 {
     struct vector* netshapes = vector_create(8, bltrshape_destroy);
@@ -102,8 +104,6 @@ struct vector* layouthelpers_place_vlines(
     coordinate_t stop = point_getx(tr);
     coordinate_t ymin = point_gety(bl);
     coordinate_t ymax = point_gety(tr);
-    coordinate_t totalwidth = stop - start;
-    coordinate_t offset = (totalwidth - totalwidth / (width + space) * (width + space) + space) / 2;
     size_t netcounter = 0;
     // find line blockages
     struct vector* blockages = vector_create(128, point_destroy_coordinate_array);
@@ -183,13 +183,12 @@ struct vector* layouthelpers_place_hlines(
     const struct generics* layer,
     coordinate_t height, coordinate_t space, coordinate_t minwidth,
     struct vector* netnames,
-    struct polygon_container* excludes
+    struct polygon_container* excludes,
+    coordinate_t offset
 )
 {
     struct vector* netshapes = vector_create(8, bltrshape_destroy);
     coordinate_t stop = point_gety(tr);
-    coordinate_t totalheight = point_ydistance_abs(tr, bl);
-    coordinate_t offset = (totalheight - totalheight / (height + space) * (height + space) + space) / 2;
     size_t netcounter = 0;
     // find line blockages
     struct vector* blockages = vector_create(128, point_destroy_coordinate_array);
@@ -275,6 +274,7 @@ static void _push_netshapes(lua_State* L, const struct vector* netshapes)
 
 int llayouthelpers_place_hlines(lua_State* L)
 {
+    lcheck_check_numargs_range(L, 7, 10, "layouthelpers.place_hlines");
     // get parameters
     struct lobject* lobject = lobject_check(L, 1);
     struct object* cell = lobject_get_full(L, lobject);
@@ -289,12 +289,18 @@ int llayouthelpers_place_hlines(lua_State* L)
     struct vector* netnames = lutil_get_string_table(L, 8);
     struct polygon_container* excludes;
     lplacement_create_exclude_vectors(L, &excludes, 9);
+    coordinate_t offset = 0;
+    if(lua_gettop(L) == 10)
+    {
+        offset = lpoint_checkcoordinate(L, 10, "offset");
+    }
     struct vector* netshapes = layouthelpers_place_hlines(
         cell,
         bl, tr,
         layer,
         height, space, minwidth,
-        netnames, excludes
+        netnames, excludes,
+        offset
     );
     _push_netshapes(L, netshapes);
     return 1;
@@ -302,6 +308,7 @@ int llayouthelpers_place_hlines(lua_State* L)
 
 int llayouthelpers_place_vlines(lua_State* L)
 {
+    lcheck_check_numargs_range(L, 7, 10, "layouthelpers.place_vlines");
     // get parameters
     struct lobject* lobject = lobject_check(L, 1);
     struct object* cell = lobject_get_full(L, lobject);
@@ -316,12 +323,18 @@ int llayouthelpers_place_vlines(lua_State* L)
     struct vector* netnames = lutil_get_string_table(L, 8);
     struct polygon_container* excludes;
     lplacement_create_exclude_vectors(L, &excludes, 9);
+    coordinate_t offset = 0;
+    if(lua_gettop(L) == 10)
+    {
+        offset = lpoint_checkcoordinate(L, 10, "offset");
+    }
     struct vector* netshapes = layouthelpers_place_vlines(
         cell,
         bl, tr,
         layer,
         width, space, minheight,
-        netnames, excludes
+        netnames, excludes,
+        offset
     );
     _push_netshapes(L, netshapes);
     return 1;

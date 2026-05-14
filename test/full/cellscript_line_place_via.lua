@@ -14,7 +14,9 @@ local vlines = layouthelpers.place_vlines(
     generics.metal(2),
     500, 500,
     0, -- minheight
-    { "VDD" }
+    { "VDD" },
+    nil, -- no excludes
+    250
 )
 
 local netshapes = cell:get_net_shapes("VDD", generics.metal(1))

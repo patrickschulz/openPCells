@@ -52,7 +52,8 @@ local hnets = layouthelpers.place_hlines(
     500, 500,
     400,
     nets,
-    m1excludes
+    m1excludes,
+    250
 )
 
 local vnets = layouthelpers.place_vlines(
@@ -62,7 +63,8 @@ local vnets = layouthelpers.place_vlines(
     500, 500,
     400,
     nets,
-    m3excludes
+    m3excludes,
+    250
 )
 
 layouthelpers.place_vias(

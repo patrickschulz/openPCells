@@ -379,8 +379,9 @@
         { "width",          INTEGER,    NULL, "width of lines" },
         { "space",          INTEGER,    NULL, "space of lines" },
         { "minheight",      INTEGER,    NULL, "minimum height of lines" },
-        { "netnames",       TABLE,      NULL, "table with netnames (one line net)" },
+        { "netnames",       TABLE,      NULL, "table with netnames (one line per net, alternating)" },
         { "excludes",       TABLE,      NULL, "table with polygon excludes" },
+        { "offset",         INTEGER,    NULL, "optional offset" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
@@ -397,6 +398,7 @@
         "However, as most geometries are rectangles, in general this will work quite well. "
         "As excludes can cause short lines to be created, the 'minheight' parameter restricts the creation of too small lines. "
         "This can be 0 (zero), then all possible lines will be created. "
+        "The first line starts at the lowest given x-coordinate, shifted by the offset. "
         "This function returns a table with a net target entry for every line, where one entry looks like this: "
         "{ net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
         "local netshapes = layouthelpers.place_vlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(10000, 4000),\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
@@ -436,8 +438,9 @@
         { "width",          INTEGER,    NULL, "width of lines" },
         { "space",          INTEGER,    NULL, "space of lines" },
         { "minwidth",       INTEGER,    NULL, "minimum width of lines" },
-        { "netnames",       TABLE,      NULL, "table with netnames (one line net)" },
+        { "netnames",       TABLE,      NULL, "table with netnames (one line per net, alternating)" },
         { "excludes",       TABLE,      NULL, "table with polygon excludes" },
+        { "offset",         INTEGER,    NULL, "optional offset" },
         { NULL }
     };
     vector_append(entries, _make_api_entry(
@@ -454,6 +457,7 @@
         "However, as most geometries are rectangles, in general this will work quite well. "
         "As excludes can cause short lines to be created, the 'minwidth' parameter restricts the creation of too small lines. "
         "This can be 0 (zero), then all possible lines will be created. "
+        "The first line starts at the lowest given y-coordinate, shifted by the offset. "
         "This function returns a table with a net target entry for every line, where one entry looks like this: "
         "{ net = <netname>, bl = <bl>, tr = <tr>, layer = <layer> }",
         "local netshapes = layouthelpers.place_hlines(cell,\n    -- target area:\n    point.create(0, 0), point.create(4000, 10000),\n    generics.metal(5), -- layer\n    400, 400, -- width/space\n    { \"VDD\", \"VSS\", \"BIAS\", }, -- net names)",
