@@ -27,6 +27,8 @@ return {
         entries = {
             { width = 100, height = 100, xspace = 200, yspace = 200, xenclosure = 50, yenclosure = 50 },
             { width = 100, height = 100, xspace = 200, yspace = 200, xenclosure = 20, yenclosure = 80 },
+            { width = 100, height = 100, xspace = 200, yspace = 200, xenclosure1 = 20, xenclosure2 = 80, yenclosure1 = 80, yenclosure2 = 20 },
+            { width = 100, height = 100, xspace = 200, yspace = 200, xenclosure1 = 80, xenclosure2 = 20, yenclosure1 = 20, yenclosure2 = 80 },
             { width = 100, height = 100, xspace = 200, yspace = 200, xenclosure = 80, yenclosure = 20 },
         },
         fallback = { width = 50, height = 50 },

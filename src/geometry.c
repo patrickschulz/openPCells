@@ -627,7 +627,8 @@ static void _fit_via_xy(
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     unsigned int cutwidth, unsigned int cutheight,
     unsigned int xspace, unsigned int yspace,
-    int encl1, int encl2,
+    int xencl1, int xencl2,
+    int yencl1, int yencl2,
     int* xrep_result, unsigned int* xspace_result,
     int* yrep_result, unsigned int* yspace_result
 )
@@ -645,14 +646,14 @@ static void _fit_via_xy(
     int extrayext1 = MIN2(try1 - try, bly - bly1);
     int extraxext2 = MIN2(trx2 - trx, blx - blx2);
     int extrayext2 = MIN2(try2 - try, bly - bly2);
-    int xrep1a = ((int)(trx - blx + 2 * extraxext1) + (int)xspace - 2 * encl1) / ((int)cutwidth + (int)xspace);
-    int yrep1a = ((int)(try - bly + 2 * extrayext1) + (int)yspace - 2 * encl2) / ((int)cutheight + (int)yspace);
-    int xrep2a = ((int)(trx - blx + 2 * extraxext2) + (int)xspace - 2 * encl2) / ((int)cutwidth + (int)xspace);
-    int yrep2a = ((int)(try - bly + 2 * extrayext2) + (int)yspace - 2 * encl1) / ((int)cutheight + (int)yspace);
-    int xrep1b = ((int)(trx - blx + 2 * extraxext1) + (int)xspace - 2 * encl2) / ((int)cutwidth + (int)xspace);
-    int yrep1b = ((int)(try - bly + 2 * extrayext1) + (int)yspace - 2 * encl1) / ((int)cutheight + (int)yspace);
-    int xrep2b = ((int)(trx - blx + 2 * extraxext2) + (int)xspace - 2 * encl1) / ((int)cutwidth + (int)xspace);
-    int yrep2b = ((int)(try - bly + 2 * extrayext2) + (int)yspace - 2 * encl2) / ((int)cutheight + (int)yspace);
+    int xrep1a = ((int)(trx - blx + 2 * extraxext1) + (int)xspace - 2 * xencl1) / ((int)cutwidth + (int)xspace);
+    int xrep2a = ((int)(trx - blx + 2 * extraxext2) + (int)xspace - 2 * xencl1) / ((int)cutwidth + (int)xspace);
+    int xrep1b = ((int)(trx - blx + 2 * extraxext1) + (int)xspace - 2 * xencl2) / ((int)cutwidth + (int)xspace);
+    int xrep2b = ((int)(trx - blx + 2 * extraxext2) + (int)xspace - 2 * xencl2) / ((int)cutwidth + (int)xspace);
+    int yrep1a = ((int)(try - bly + 2 * extrayext1) + (int)yspace - 2 * yencl1) / ((int)cutheight + (int)yspace);
+    int yrep2a = ((int)(try - bly + 2 * extrayext2) + (int)yspace - 2 * yencl1) / ((int)cutheight + (int)yspace);
+    int yrep1b = ((int)(try - bly + 2 * extrayext1) + (int)yspace - 2 * yencl2) / ((int)cutheight + (int)yspace);
+    int yrep2b = ((int)(try - bly + 2 * extrayext2) + (int)yspace - 2 * yencl2) / ((int)cutheight + (int)yspace);
     int xreps[4] = {
         // cross 'a-a'
         MIN2(xrep1a, xrep2a),
@@ -903,22 +904,33 @@ static struct via_definition* _get_rectangular_arrayzation_overlap(
     unsigned int yspace = 0;
     struct via_definition* result = NULL;
     struct via_definition** viadef = definitions;
+    coordinate_t regionwidth = trx - blx;
+    coordinate_t regionheight = try - bly;
     while(*viadef)
     {
         struct via_definition* entry = *viadef;
+        if(regionwidth > entry->maxwidth)
+        {
+            ++viadef;
+            continue;
+        }
+        if(regionheight > entry->maxheight)
+        {
+            ++viadef;
+            continue;
+        }
         int _xrep = 0;
         unsigned int _xspace = 0;
         int _yrep = 0;
         unsigned int _yspace = 0;
-        unsigned int _emxenclosure = MAX2(entry->xenclosure1, entry->xenclosure2);
-        unsigned int _emyenclosure = MAX2(entry->yenclosure1, entry->yenclosure2);
         _fit_via_xy(
             blx1, bly1, trx1, try1,
             blx2, bly2, trx2, try2,
             blx, bly, trx, try,
             entry->width, entry->height,
             entry->xspace, entry->yspace,
-            _emxenclosure, _emyenclosure,
+            entry->xenclosure1, entry->xenclosure2,
+            entry->yenclosure1, entry->yenclosure2,
             &_xrep, &_xspace,
             &_yrep, &_yspace
         );
