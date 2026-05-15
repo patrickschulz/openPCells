@@ -2,14 +2,15 @@ function parameters()
     pcell.add_parameters(
         { "oxidetype(Oxide Type)",                                                  1, posvals = greaterzero() },
         { "gatemarker(Gate Marker Index)",                                          1, posvals = greaterzero() },
+        { "mosfetmarker(MOSFET Marking Layer Index)",                               1, posvals = greaterzero() },
         { "pvthtype(PMOS Threshold Voltage Type) ",                                 1, posvals = greaterzero() },
         { "nvthtype(NMOS Threshold Voltage Type)",                                  1, posvals = greaterzero() },
         { "pmosflippedwell(PMOS Flipped Well) ",                                    false },
         { "nmosflippedwell(NMOS Flipped Well)",                                     false },
-        { "pwidth(PMOS Finger Width)",                                              technology.get_dimension("Minimum Gate Width"), posvals = greaterzero_even() },
-        { "nwidth(NMOS Finger Width)",                                              technology.get_dimension("Minimum Gate Width"), posvals = greaterzero_even() },
-        { "fullnsourcedrainsize",                                                   technology.get_dimension("Minimum Gate Width"), posvals = greaterzero_even(), follow = "pwidth" },
-        { "fullpsourcedrainsize",                                                   technology.get_dimension("Minimum Gate Width"), posvals = greaterzero_even(), follow = "pwidth" },
+        { "pwidth(PMOS Finger Width)",                                              technology.get_dimension("Minimum Gate Width"), posvals = greaterzero() },
+        { "nwidth(NMOS Finger Width)",                                              technology.get_dimension("Minimum Gate Width"), posvals = greaterzero() },
+        { "fullnsourcedrainsize",                                                   technology.get_dimension("Minimum Gate Width"), posvals = greaterzero(), follow = "pwidth" },
+        { "fullpsourcedrainsize",                                                   technology.get_dimension("Minimum Gate Width"), posvals = greaterzero(), follow = "pwidth" },
         { "fullnsourcedrainalign",                                                  "center", posvals = set("top", "bottom", "center") },
         { "fullpsourcedrainalign",                                                  "center", posvals = set("top", "bottom", "center") },
         { "separation(Separation Between Active Regions)",                          technology.get_dimension("Minimum Active Space") },
@@ -83,6 +84,7 @@ function parameters()
         { "drawnmosrightwelltap(Draw nMOS Right Well Tap)",                         false },
         { "nmoswelltapspace(nMOS Well Tap Space)",                                  technology.get_dimension("Minimum M1 Space") },
         { "nmoswelltapwidth(nMOS Well Tap Width)",                                  technology.get_dimension("Minimum M1 Width") },
+        { "nmoswelltapnet(nMOS Well Tap Width)",                                    "" },
         { "nmoswelltapextension(nMOS Well Tap Extension)",                          0 },
         { "nmoswelltapimplantleftextension",                                        technology.get_dimension("Minimum Implant Extension") },
         { "nmoswelltapimplantrightextension",                                       technology.get_dimension("Minimum Implant Extension") },
@@ -105,6 +107,7 @@ function parameters()
         { "drawpmosrightwelltap(Draw pMOS Right Well Tap)",                         false },
         { "pmoswelltapspace(pMOS Well Tap Space)",                                  technology.get_dimension("Minimum M1 Space") },
         { "pmoswelltapwidth(pMOS Well Tap Width)",                                  technology.get_dimension("Minimum M1 Width") },
+        { "pmoswelltapnet(pMOS Well Tap Width)",                                    "" },
         { "pmoswelltapextension(pMOS Well Tap Extension)",                          0 },
         { "pmoswelltapimplantleftextension",                                        technology.get_dimension("Minimum Implant Extension") },
         { "pmoswelltapimplantrightextension",                                       technology.get_dimension("Minimum Implant Extension") },
@@ -159,26 +162,27 @@ function parameters()
         { "vthtypealignrightwithactive",                                            false, follow = "vthtypealignwithactive" },
         { "vthtypealigntopwithactive",                                              false, follow = "vthtypealignwithactive" },
         { "vthtypealignbottomwithactive",                                           false, follow = "vthtypealignwithactive" },
-        { "extendalltop",                                                           0 },
-        { "extendallbottom",                                                        0 },
-        { "extendallleft",                                                          0 },
-        { "extendallright",                                                         0 },
-        { "extendoxidetypetop",                                                     0, follow = "extendalltop" },
-        { "extendoxidetypebottom",                                                  0, follow = "extendallbottom" },
-        { "extendoxidetypeleft",                                                    0, follow = "extendallleft" },
-        { "extendoxidetyperight",                                                   0, follow = "extendallright" },
-        { "extendvthtypetop",                                                       0, follow = "extendalltop" },
-        { "extendvthtypebottom",                                                    0, follow = "extendallbottom" },
-        { "extendvthtypeleft",                                                      0, follow = "extendallleft" },
-        { "extendvthtyperight",                                                     0, follow = "extendallright" },
-        { "extendimplanttop",                                                       0, follow = "extendalltop" },
-        { "extendimplantbottom",                                                    0, follow = "extendallbottom" },
-        { "extendimplantleft",                                                      0, follow = "extendallleft" },
-        { "extendimplantright",                                                     0, follow = "extendallright" },
-        { "extendwelltop",                                                          0, follow = "extendalltop" },
-        { "extendwellbottom",                                                       0, follow = "extendallbottom" },
-        { "extendwellleft",                                                         0, follow = "extendallleft" },
-        { "extendwellright",                                                        0, follow = "extendallright" },
+        { "extendall",                                                              0 },
+        { "extendalltop",                                                           0, follow = "extendall" },
+        { "extendallbottom",                                                        0, follow = "extendall" },
+        { "extendallleft",                                                          0, follow = "extendall" },
+        { "extendallright",                                                         0, follow = "extendall" },
+        { "extendoxidetypetop",                                                     technology.get_dimension("Minimum Oxide Extension"), follow = "extendalltop" },
+        { "extendoxidetypebottom",                                                  technology.get_dimension("Minimum Oxide Extension"), follow = "extendallbottom" },
+        { "extendoxidetypeleft",                                                    technology.get_dimension("Minimum Oxide Extension"), follow = "extendallleft" },
+        { "extendoxidetyperight",                                                   technology.get_dimension("Minimum Oxide Extension"), follow = "extendallright" },
+        { "extendvthtypetop",                                                       technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendalltop" },
+        { "extendvthtypebottom",                                                    technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallbottom" },
+        { "extendvthtypeleft",                                                      technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallleft" },
+        { "extendvthtyperight",                                                     technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallright" },
+        { "extendimplanttop",                                                       technology.get_dimension("Minimum Implant Extension"), follow = "extendalltop" },
+        { "extendimplantbottom",                                                    technology.get_dimension("Minimum Implant Extension"), follow = "extendallbottom" },
+        { "extendimplantleft",                                                      technology.get_dimension("Minimum Implant Extension"), follow = "extendallleft" },
+        { "extendimplantright",                                                     technology.get_dimension("Minimum Implant Extension"), follow = "extendallright" },
+        { "extendwelltop",                                                          technology.get_dimension("Minimum Well Extension"), follow = "extendalltop" },
+        { "extendwellbottom",                                                       technology.get_dimension("Minimum Well Extension"), follow = "extendallbottom" },
+        { "extendwellleft",                                                         technology.get_dimension("Minimum Well Extension"), follow = "extendallleft" },
+        { "extendwellright",                                                        technology.get_dimension("Minimum Well Extension"), follow = "extendallright" },
         { "extendlvsmarkertop",                                                     0, follow = "extendalltop" },
         { "extendlvsmarkerbottom",                                                  0, follow = "extendallbottom" },
         { "extendlvsmarkerleft",                                                    0, follow = "extendallleft" },
@@ -309,6 +313,7 @@ function layout(cmos, _P)
             sdwidth = _P.sdwidth,
             oxidetype = _P.oxidetype,
             gatemarker = _P.gatemarker,
+            mosfetmarker = _P.mosfetmarker,
             drawactive = _P.drawactive,
             topgatecutheight = _P.cutheight,
             botgatecutheight = _P.cutheight,
@@ -772,6 +777,17 @@ function layout(cmos, _P)
                 popt_current.splitsourcevias = _P.psplitoutputvias
                 popt_current.connectsourcewidth = _P.outputwidth
             end
+            -- check for output contacts with odd fingers
+            if i == fingers then
+                if util.any_of(i + 1, _P.isoutputcontact) then
+                    nopt_current.drainmetal = _P.outputmetal
+                    nopt_current.splitdrainvias = _P.nsplitoutputvias
+                    nopt_current.connectdrainwidth = _P.outputwidth
+                    popt_current.drainmetal = _P.outputmetal
+                    popt_current.splitdrainvias = _P.psplitoutputvias
+                    popt_current.connectdrainwidth = _P.outputwidth
+                end
+            end
             local shift = (i - 1) * gatepitch
             local nfet = pcell.create_layout("basic/mosfet", "nfet", nopt_current)
             nfet:translate(shift, 0)
@@ -889,36 +905,6 @@ function layout(cmos, _P)
         geometry.rectangleareaanchor(cmos, generics.metal(1), "PRp")
     end
 
-    -- well anchors
-    cmos:add_area_anchor_bltr("nmos_well",
-        leftnmoswell.bl,
-        rightnmoswell.tr
-    )
-    cmos:add_area_anchor_bltr("pmos_well",
-        leftpmoswell.bl,
-        rightpmoswell.tr
-    )
-
-    -- implant anchors
-    cmos:add_area_anchor_bltr("nmos_implant",
-        leftnmosimplant.bl,
-        rightnmosimplant.tr
-    )
-    cmos:add_area_anchor_bltr("pmos_implant",
-        leftpmosimplant.bl,
-        rightpmosimplant.tr
-    )
-
-    -- active anchors
-    cmos:add_area_anchor_bltr("nmos_active",
-        leftnactivearea.bl,
-        rightnactivearea.tr
-    )
-    cmos:add_area_anchor_bltr("pmos_active",
-        leftpactivearea.bl,
-        rightpactivearea.tr
-    )
-
     -- well taps (can't use the mosfet pcell well taps, as only single fingers are instantiated)
     local pmoswelltap_opt = {
         extendimplantleft = _P.pmoswelltapimplantleftextension,
@@ -963,17 +949,19 @@ function layout(cmos, _P)
         ycontinuous = false,
     }
     if _P.drawpmosupperwelltap then
-        local welltapwidth = rightpdrainarea.tr:getx() - leftpdrainarea.tl:getx()
+        local welltapwidth = rightpactivearea.tr:getx() - leftpactivearea.tl:getx()
         local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(pmoswelltap_opt, {
             contype = _P.pmosflippedwell and "p" or "n",
             width = welltapwidth + _P.pmoswelltapextension,
             height = _P.pmoswelltapwidth,
             xcontinuous = _P.welltapcontinuouscontact,
+            net = _P.pmoswelltapnet,
         }))
-        welltap:move_point(welltap:get_area_anchor("boundary").bl, leftpdrainarea.tl)
+        welltap:move_point(welltap:get_area_anchor("boundary").bl, leftpactivearea.tl)
         welltap:translate_x(-_P.pmoswelltapextension / 2)
         welltap:translate_y(_P.ppowerspace + _P.powerwidth + _P.pmoswelltapspace)
         cmos:merge_into(welltap)
+        cmos:inherit_net_shapes(welltap)
         geometry.rectanglebltr(cmos, generics.well(_P.pmosflippedwell and "p" or "n"),
             point.create(
                 math.min(
@@ -1013,16 +1001,18 @@ function layout(cmos, _P)
         cmos:inherit_area_anchor_as(welltap, "soiopen", "pmosupperwelltap_soiopen")
     end
     if _P.drawpmosleftwelltap then
-        local welltapwidth = leftpdrainarea.tl:gety() - leftpdrainarea.bl:gety()
+        local welltapwidth = leftpactivearea.tl:gety() - leftpactivearea.bl:gety()
         local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(pmoswelltap_opt, {
             contype = _P.pmosflippedwell and "p" or "n",
             width = _P.pmoswelltapwidth,
             height = welltapwidth + _P.pmoswelltapextension,
-            xcontinuous = _P.welltapcontinuouscontact
+            xcontinuous = _P.welltapcontinuouscontact,
+            net = _P.pmoswelltapnet,
         }))
-        welltap:move_point(welltap:get_area_anchor("boundary").br, leftpdrainarea.bl)
+        welltap:move_point(welltap:get_area_anchor("boundary").br, leftpactivearea.bl)
         welltap:translate_x(-_P.pmoswelltapspace)
         cmos:merge_into(welltap)
+        cmos:inherit_net_shapes(welltap)
         geometry.rectanglebltr(cmos, generics.well(_P.pmosflippedwell and "p" or "n"),
             point.create(
                 welltap:get_area_anchor("well").l,
@@ -1044,16 +1034,18 @@ function layout(cmos, _P)
         cmos:inherit_area_anchor_as(welltap, "soiopen", "pmosleftwelltap_soiopen")
     end
     if _P.drawpmosrightwelltap then
-        local welltapwidth = rightpdrainarea.tr:gety() - rightpdrainarea.br:gety()
+        local welltapwidth = rightpactivearea.tr:gety() - rightpactivearea.br:gety()
         local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(pmoswelltap_opt, {
             contype = _P.pmosflippedwell and "p" or "n",
             width = _P.pmoswelltapwidth,
             height = welltapwidth + _P.pmoswelltapextension,
-            xcontinuous = _P.welltapcontinuouscontact
+            xcontinuous = _P.welltapcontinuouscontact,
+            net = _P.pmoswelltapnet,
         }))
-        welltap:move_point(welltap:get_area_anchor("boundary").bl, rightpdrainarea.br)
+        welltap:move_point(welltap:get_area_anchor("boundary").bl, rightpactivearea.br)
         welltap:translate_x(_P.pmoswelltapspace)
         cmos:merge_into(welltap)
+        cmos:inherit_net_shapes(welltap)
         geometry.rectanglebltr(cmos, generics.well(_P.pmosflippedwell and "p" or "n"),
             rightpmoswell.br,
             point.create(
@@ -1075,17 +1067,19 @@ function layout(cmos, _P)
         cmos:inherit_area_anchor_as(welltap, "soiopen", "pmosrightwelltap_soiopen")
     end
     if _P.drawnmoslowerwelltap then
-        local welltapwidth = rightndrainarea.br:getx() - leftpdrainarea.bl:getx()
+        local welltapwidth = rightnactivearea.br:getx() - leftpactivearea.bl:getx()
         local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(nmoswelltap_opt, {
             contype = _P.nmosflippedwell and "n" or "p",
             width = welltapwidth + _P.nmoswelltapextension,
             height = _P.nmoswelltapwidth,
-            xcontinuous = _P.welltapcontinuouscontact
+            xcontinuous = _P.welltapcontinuouscontact,
+            net = _P.nmoswelltapnet,
         }))
-        welltap:move_point(welltap:get_area_anchor("boundary").tl, leftndrainarea.bl)
+        welltap:move_point(welltap:get_area_anchor("boundary").tl, leftnactivearea.bl)
         welltap:translate_x(-_P.nmoswelltapextension / 2)
         welltap:translate_y(-_P.npowerspace - _P.powerwidth - _P.nmoswelltapspace)
         cmos:merge_into(welltap)
+        cmos:inherit_net_shapes(welltap)
         geometry.rectanglebltr(cmos, generics.well(_P.nmosflippedwell and "n" or "p"),
             point.create(
                 math.min(
@@ -1094,7 +1088,13 @@ function layout(cmos, _P)
                 ),
                 welltap:get_area_anchor("well").b
             ),
-            rightnmoswell.br
+            point.create(
+                math.max(
+                    rightnmoswell.br:getx(),
+                    welltap:get_area_anchor("well").r
+                ),
+                rightnmoswell.t
+            )
         )
         geometry.rectanglebltr(cmos, generics.oxide(_P.oxidetype),
             point.create(
@@ -1104,7 +1104,13 @@ function layout(cmos, _P)
                 ),
                 welltap:get_area_anchor("oxide").b
             ),
-            rightnmosoxide.br
+            point.create(
+                math.max(
+                    rightnmosoxide.br:getx(),
+                    welltap:get_area_anchor("oxide").r
+                ),
+                rightnmosoxide.t
+            )
         )
         cmos:inherit_area_anchor_as(welltap, "boundary", "nmoslowerwelltap_boundary")
         cmos:inherit_area_anchor_as(welltap, "well", "nmoslowerwelltap_well")
@@ -1113,16 +1119,18 @@ function layout(cmos, _P)
         cmos:inherit_area_anchor_as(welltap, "soiopen", "nmoslowerwelltap_soiopen")
     end
     if _P.drawnmosleftwelltap then
-        local welltapwidth = leftndrainarea.tl:gety() - leftndrainarea.bl:gety()
+        local welltapwidth = leftnactivearea.tl:gety() - leftnactivearea.bl:gety()
         local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(nmoswelltap_opt, {
             contype = _P.nmosflippedwell and "p" or "n",
             width = _P.nmoswelltapwidth,
             height = welltapwidth + _P.nmoswelltapextension,
-            xcontinuous = _P.welltapcontinuouscontact
+            xcontinuous = _P.welltapcontinuouscontact,
+            net = _P.nmoswelltapnet,
         }))
-        welltap:move_point(welltap:get_area_anchor("boundary").tr, leftndrainarea.tl)
+        welltap:move_point(welltap:get_area_anchor("boundary").tr, leftnactivearea.tl)
         welltap:translate_x(-_P.nmoswelltapspace)
         cmos:merge_into(welltap)
+        cmos:inherit_net_shapes(welltap)
         geometry.rectanglebltr(cmos, generics.well(_P.nmosflippedwell and "n" or "p"),
             point.create(
                 welltap:get_area_anchor("well").l,
@@ -1144,16 +1152,18 @@ function layout(cmos, _P)
         cmos:inherit_area_anchor_as(welltap, "soiopen", "nmosleftwelltap_soiopen")
     end
     if _P.drawnmosrightwelltap then
-        local welltapwidth = rightndrainarea.tr:gety() - rightndrainarea.br:gety()
+        local welltapwidth = rightnactivearea.tr:gety() - rightnactivearea.br:gety()
         local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(nmoswelltap_opt, {
             contype = _P.nmosflippedwell and "n" or "p",
             width = _P.nmoswelltapwidth,
             height = welltapwidth + _P.nmoswelltapextension,
-            xcontinuous = _P.welltapcontinuouscontact
+            xcontinuous = _P.welltapcontinuouscontact,
+            net = _P.nmoswelltapnet,
         }))
-        welltap:move_point(welltap:get_area_anchor("boundary").tl, rightndrainarea.tr)
+        welltap:move_point(welltap:get_area_anchor("boundary").tl, rightnactivearea.tr)
         welltap:translate_x(_P.nmoswelltapspace)
         cmos:merge_into(welltap)
+        cmos:inherit_net_shapes(welltap)
         geometry.rectanglebltr(cmos, generics.well(_P.nmosflippedwell and "n" or "p"),
             rightnmoswell.br,
             point.create(
@@ -1174,6 +1184,112 @@ function layout(cmos, _P)
         cmos:inherit_area_anchor_as(welltap, "oxide", "nmosrightwelltap_oxide")
         cmos:inherit_area_anchor_as(welltap, "soiopen", "nmosrightwelltap_soiopen")
     end
+
+    -- well anchors
+    local nmoswellblx = leftnmoswell.bl:getx()
+    local nmoswellbly = leftnmoswell.bl:gety()
+    local nmoswelltrx = rightnmoswell.tr:getx()
+    local nmoswelltry = rightnmoswell.tr:gety()
+    local pmoswellblx = leftpmoswell.bl:getx()
+    local pmoswellbly = leftpmoswell.bl:gety()
+    local pmoswelltrx = rightpmoswell.tr:getx()
+    local pmoswelltry = rightpmoswell.tr:gety()
+    if _P.drawnmoslowerwelltap then
+        nmoswellbly = cmos:get_area_anchor("nmoslowerwelltap_well").b
+    end
+    if _P.drawnmosleftwelltap then
+        nmoswellblx = math.min(
+            cmos:get_area_anchor("nmosleftwelltap_well").l,
+            cmos:get_area_anchor("nmos_well").l
+        )
+    end
+    if _P.drawnmosrightwelltap then
+        nmoswelltrx = math.min(
+            cmos:get_area_anchor("nmosrightwelltap_well").r,
+            cmos:get_area_anchor("nmos_well").r
+        )
+    end
+    if _P.drawpmosupperwelltap then
+        pmoswelltry = cmos:get_area_anchor("pmosupperwelltap_well").t
+    end
+    if _P.drawpmosleftwelltap then
+        pmoswellblx = math.min(
+            cmos:get_area_anchor("pmosleftwelltap_well").l,
+            cmos:get_area_anchor("pmos_well").l
+        )
+    end
+    if _P.drawpmosrightwelltap then
+        pmoswelltrx = math.min(
+            cmos:get_area_anchor("pmosrightwelltap_well").r,
+            cmos:get_area_anchor("pmos_well").r
+        )
+    end
+    cmos:add_area_anchor_bltr("nmos_well",
+        point.create(nmoswellblx, nmoswellbly),
+        point.create(nmoswelltrx, nmoswelltry)
+    )
+    cmos:add_area_anchor_bltr("pmos_well",
+        point.create(pmoswellblx, pmoswellbly),
+        point.create(pmoswelltrx, pmoswelltry)
+    )
+
+    -- implant anchors
+    local nmosimplantblx = leftnmosimplant.bl:getx()
+    local nmosimplantbly = leftnmosimplant.bl:gety()
+    local nmosimplanttrx = rightnmosimplant.tr:getx()
+    local nmosimplanttry = rightnmosimplant.tr:gety()
+    local pmosimplantblx = leftpmosimplant.bl:getx()
+    local pmosimplantbly = leftpmosimplant.bl:gety()
+    local pmosimplanttrx = rightpmosimplant.tr:getx()
+    local pmosimplanttry = rightpmosimplant.tr:gety()
+    if _P.drawnmoslowerwelltap then
+        nmosimplantbly = cmos:get_area_anchor("nmoslowerwelltap_implant").b
+    end
+    if _P.drawnmosleftwelltap then
+        nmosimplantblx = math.min(
+            cmos:get_area_anchor("nmosleftwelltap_implant").l,
+            cmos:get_area_anchor("nmos_implant").l
+        )
+    end
+    if _P.drawnmosrightwelltap then
+        nmosimplanttrx = math.min(
+            cmos:get_area_anchor("nmosrightwelltap_implant").r,
+            cmos:get_area_anchor("nmos_implant").r
+        )
+    end
+    if _P.drawpmosupperwelltap then
+        pmosimplanttry = cmos:get_area_anchor("pmosupperwelltap_implant").t
+    end
+    if _P.drawpmosleftwelltap then
+        pmosimplantblx = math.min(
+            cmos:get_area_anchor("pmosleftwelltap_implant").l,
+            cmos:get_area_anchor("pmos_implant").l
+        )
+    end
+    if _P.drawpmosrightwelltap then
+        pmosimplanttrx = math.min(
+            cmos:get_area_anchor("pmosrightwelltap_implant").r,
+            cmos:get_area_anchor("pmos_implant").r
+        )
+    end
+    cmos:add_area_anchor_bltr("nmos_implant",
+        point.create(nmosimplantblx, nmosimplantbly),
+        point.create(nmosimplanttrx, nmosimplanttry)
+    )
+    cmos:add_area_anchor_bltr("pmos_implant",
+        point.create(pmosimplantblx, pmosimplantbly),
+        point.create(pmosimplanttrx, pmosimplanttry)
+    )
+
+    -- active anchors
+    cmos:add_area_anchor_bltr("nmos_active",
+        leftnactivearea.bl,
+        rightnactivearea.tr
+    )
+    cmos:add_area_anchor_bltr("pmos_active",
+        leftpactivearea.bl,
+        rightpactivearea.tr
+    )
 
     if _P.drawoutergatecut and _P.drawgatecuteverywhere then
         geometry.rectanglebltr(cmos, generics.feol("gatecut"),
