@@ -928,7 +928,7 @@ function layout(circuit, _P, _env, state)
         drainmetal = 1,
         drawinstancebox = true,
         grid = _P.access_grid,
-        shapegrid = 2,
+        --shapegrid = 2, -- FIXME: is this needed, could this help with placement?
     }
     local exclude_parameters = { -- parameters from basic/mosfet than can not be used in base/device specifications
         "instancename", "drawguardring", "shapegrid", "drawinstancebox",
@@ -1023,8 +1023,8 @@ function layout(circuit, _P, _env, state)
         -- later, the placement is legalized with only on-grid movements
         for _, device in ipairs(gdevices) do
             local boundary = device.cell:get_bounding_box()
-            local xcenter = 0.5 * (boundary.bl:getx() + boundary.tr:getx())
-            local ycenter = 0.5 * (boundary.bl:gety() + boundary.tr:gety())
+            local xcenter = evenodddiv2(boundary.bl:getx() + boundary.tr:getx())
+            local ycenter = evenodddiv2(boundary.bl:gety() + boundary.tr:gety())
             device.cell:translate(-xcenter, -ycenter)
         end
 
@@ -1045,8 +1045,8 @@ function layout(circuit, _P, _env, state)
             local btry = boundary.tr:gety()
             local width = btrx - bblx
             local height = btry - bbly
-            local xcentershift = (gridsizes.x[device.x] - width) / 2
-            local ycentershift = (gridsizes.y[device.y] - height) / 2
+            local xcentershift = math.ceil((gridsizes.x[device.x] - width) / 2)
+            local ycentershift = math.ceil((gridsizes.y[device.y] - height) / 2)
             local xmove = xshift + bblx - xcentershift
             local ymove = yshift + bbly - ycentershift
             device.cell:translate(xmove, ymove)
@@ -1066,14 +1066,14 @@ function layout(circuit, _P, _env, state)
         -- add anchor for grid cell
         for _, device in ipairs(gdevices) do
             local boundary = group.object:get_area_anchor_fmt("%s_boundingbox", device.name)
-            local x0 = 0.5 * (boundary.tr:getx() + boundary.bl:getx())
-            local y0 = 0.5 * (boundary.tr:gety() + boundary.bl:gety())
+            local x0 = evenodddiv2(boundary.tr:getx() + boundary.bl:getx())
+            local y0 = evenodddiv2(boundary.tr:gety() + boundary.bl:gety())
             local width = gridsizes.x[device.x]
             local height = gridsizes.y[device.y]
             group.object:add_area_anchor_bltr(
                 string.format("%s_gridcell", device.name),
-                point.create(x0 - width / 2, y0 - height / 2),
-                point.create(x0 + width / 2, y0 + height / 2)
+                point.create(x0 - evenodddiv2(width), y0 - evenodddiv2(height)),
+                point.create(x0 + evenodddiv2(width), y0 + evenodddiv2(height))
             )
             if _P.annotate_grid_cells then
                 geometry.rectangleareaanchor(group.object, generics.special(), string.format("%s_gridcell", device.name))
@@ -1214,8 +1214,8 @@ function layout(circuit, _P, _env, state)
     -- later, the placement is legalized with only on-grid movements
     for _, group in ipairs(state.devicegroups) do
         local boundary = group.object:get_bounding_box()
-        local xcenter = 0.5 * (boundary.bl:getx() + boundary.tr:getx())
-        local ycenter = 0.5 * (boundary.bl:gety() + boundary.tr:gety())
+        local xcenter = evenodddiv2(boundary.bl:getx() + boundary.tr:getx())
+        local ycenter = evenodddiv2(boundary.bl:gety() + boundary.tr:gety())
         group.object:translate(-xcenter, -ycenter)
     end
 
@@ -1236,8 +1236,8 @@ function layout(circuit, _P, _env, state)
         local btry = boundary.tr:gety()
         local width = btrx - bblx
         local height = btry - bbly
-        local xcentershift = (gridsizes.x[group.x] - width) / 2
-        local ycentershift = (gridsizes.y[group.y] - height) / 2
+        local xcentershift = math.ceil((gridsizes.x[group.x] - width) / 2)
+        local ycentershift = math.ceil((gridsizes.y[group.y] - height) / 2)
         local xmove = xshift + bblx - xcentershift
         local ymove = yshift + bbly - ycentershift
         group.object:translate(xmove, ymove)
@@ -1408,13 +1408,13 @@ function layout(circuit, _P, _env, state)
         -- in-group grid
         for _, device in ipairs(gdevices) do
             local bb = group.object:get_area_anchor_fmt("%s_boundingbox", device.name)
-            groupgrids[group.name].x[device.x] = 0.5 * (bb.bl:getx() + bb.tr:getx())
-            groupgrids[group.name].y[device.y] = 0.5 * (bb.bl:gety() + bb.tr:gety())
+            groupgrids[group.name].x[device.x] = evenodddiv2(bb.bl:getx() + bb.tr:getx())
+            groupgrids[group.name].y[device.y] = evenodddiv2(bb.bl:gety() + bb.tr:gety())
         end
         -- global grid
         local bb = group.object:get_bounding_box()
-        globalgrid.x[group.x] = 0.5 * (bb.bl:getx() + bb.tr:getx())
-        globalgrid.y[group.y] = 0.5 * (bb.bl:gety() + bb.tr:gety())
+        globalgrid.x[group.x] = evenodddiv2(bb.bl:getx() + bb.tr:getx())
+        globalgrid.y[group.y] = evenodddiv2(bb.bl:gety() + bb.tr:gety())
     end
 
     local function _get_grid_x(groupname, xgrid, xline)
