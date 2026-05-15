@@ -1244,6 +1244,7 @@ function layout(circuit, _P, _env, state)
     -- merge the layout groups into the main object
     for _, group in ipairs(state.devicegroups) do
         circuit:merge_into(group.object)
+        circuit:inherit_net_shapes(group.object)
     end
 
     -- add pin lines
