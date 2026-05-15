@@ -364,7 +364,7 @@ function prepare(_P)
             if _P.auto_assign_welltypes then
                 state.devicegroups[groupindex].welltype = welltype
             end
-            state.devicegroups[groupindex].net = d.nets.bulk -- FIXME: test
+            state.devicegroups[groupindex].net = d.nets.bulk
             d.group = groupindex
             table.insert(state.devices, d)
         end -- not device.dontplace
