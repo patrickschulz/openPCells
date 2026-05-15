@@ -1138,6 +1138,8 @@ function layout(circuit, _P, _env, state)
                 ringwidth = group.guardringwidth or _P.guardringwidth,
                 holewidth = holewidth,
                 holeheight = holeheight,
+                implantinnerextension = interconnectlinegrid / 2,
+                extendallouter = interconnectlinegrid / 4,
                 net = group.net,
                 addtopnet = true,
                 addbottomnet = true,
@@ -1155,6 +1157,27 @@ function layout(circuit, _P, _env, state)
         guardring:translate(-xshift, -yshift)
         group.object:merge_into(guardring)
         group.object:inherit_net_shapes(guardring)
+        if group.extraguardringnet then
+            layouthelpers.place_guardring_quantized(group.object,
+                guardring:get_area_anchor("outerboundary").bl,
+                guardring:get_area_anchor("outerboundary").tr,
+                _P.guardring_minimum_separation,
+                _P.guardring_minimum_separation,
+                interconnectlinegrid,
+                interconnectlinegrid,
+                nil,
+                {
+                    contype = (group.welltype == "n") and "p" or "n",
+                    ringwidth = group.guardringwidth or _P.guardringwidth,
+                    fillwell = false,
+                    drawdeepwell = true,
+                    extendallinner = interconnectlinegrid / 4,
+                    net = group.extraguardringnet,
+                    addtopnet = true,
+                    addbottomnet = true,
+                }
+            )
+        end
     end
 
     -- * now place the groups, similar to the placement of the devices *
