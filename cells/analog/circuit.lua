@@ -1495,7 +1495,7 @@ function layout(circuit, _P, _env, state)
     if _P.add_pin_lines then
         for gridlineindex, gridline in ipairs(state.hlines) do
             for _, device in ipairs(state.devices) do
-                for _, pin in ipairs({ "gate", "source", "drain", "bulk", }) do
+                for _, pin in ipairs({ "gate", "source", "drain" }) do
                     local net = device.nets[pin]
                     if net == gridline.net then
                         -- FIXME: 'anchorname' needs better automatic handling of line variants,
@@ -1527,7 +1527,7 @@ function layout(circuit, _P, _env, state)
     else -- not _P.add_pin_lines
         for gridlineindex, gridline in ipairs(state.vlines) do
             for _, device in ipairs(state.devices) do
-                for _, pin in ipairs({ "gate", "source", "drain", "bulk", }) do
+                for _, pin in ipairs({ "gate", "source", "drain" }) do
                     local net = device.nets[pin]
                     if net == gridline.net then
                         -- FIXME: 'anchorname' needs better automatic handling of line variants,
