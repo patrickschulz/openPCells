@@ -3,6 +3,8 @@ TODO:
     * [ ] add support for varying grid line widths/spacings
     * [ ] extend gate/source/drain straps to fit the interconnect lines
     * [ ] put drain access line in the middle, as the drain strap is potentially of the smallest width
+    * [ ] check that all devices in one group share the same bulk net
+    * [ ] check group grid positions
 --]]
 function parameters()
     pcell.add_parameters(
