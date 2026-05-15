@@ -27,7 +27,8 @@ function parameters()
         { "extendoxidetypetop",         technology.get_dimension("Minimum Oxide Extension"), follow = "extendalltop" },
         { "extendoxidetypebottom",      technology.get_dimension("Minimum Oxide Extension"), follow = "extendallbottom" },
         { "xcontinuous",                false },
-        { "ycontinuous",                false }
+        { "ycontinuous",                false },
+        { "net",                        "" }
     )
 end
 
@@ -128,4 +129,13 @@ function layout(welltap, _P)
         point.create(0, 0),
         point.create(_P.width, _P.height)
     )
+
+    -- net
+    if _P.net ~= "" then
+        welltap:add_net_shape(_P.net,
+            point.create(0, 0),
+            point.create(_P.width, _P.height),
+            generics.metal(1)
+        )
+    end
 end
