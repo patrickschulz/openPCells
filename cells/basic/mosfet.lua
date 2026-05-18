@@ -1507,13 +1507,28 @@ function layout(transistor, _P)
         )
     end
 
+    -- alignment target for well, implants, threshold voltage modificators etc.
+    local leftgatealign = math.min(
+        gateblx
+            - _P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace)
+            - enable(_P.endleftwithgate, _P.leftendgatelength + _P.leftendgatespace),
+        activebl:getx()
+    )
+    local rightgatealign = math.max(
+        gatetrx
+            + (_P.fingers - 1) * gatepitch
+            + _P.rightfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace)
+            + enable(_P.endrightwithgate, _P.rightendgatelength + _P.rightendgatespace),
+        activetr:getx()
+    )
+
     -- threshold voltage
     geometry.rectanglebltr(transistor,
         generics.vthtype(_P.channeltype, _P.vthtype),
         point.create(
             _P.vthtypealignleftwithactive and
                 activebl:getx() - _P.extendvthtypeleft or
-                activebl:getx() - _P.extendvthtypeleft,
+                leftgatealign - _P.extendvthtypeleft,
             _P.vthtypealignbottomwithactive and
                 activebl:gety() - _P.extendvthtypebottom or
                 gatebly - _P.extendvthtypebottom
@@ -1521,7 +1536,7 @@ function layout(transistor, _P)
         point.create(
             _P.vthtypealignrightwithactive and
                 activetr:getx() + _P.extendvthtyperight or
-                activetr:getx() + _P.extendvthtyperight,
+                rightgatealign + _P.extendvthtyperight,
             _P.vthtypealigntopwithactive and
                 activetr:gety() + _P.extendvthtypetop or
                 gatetry + _P.extendvthtypetop
@@ -1532,7 +1547,7 @@ function layout(transistor, _P)
     local implantbl = point.create(
         _P.implantalignleftwithactive and
             activebl:getx() - _P.extendimplantleft or
-            activebl:getx() - _P.extendimplantleft,
+            leftgatealign - _P.extendimplantleft,
         _P.implantalignbottomwithactive and
             activebl:gety() - _P.extendimplantbottom or
             gatebly - _P.extendimplantbottom
@@ -1540,7 +1555,7 @@ function layout(transistor, _P)
     local implanttr = point.create(
         _P.implantalignrightwithactive and
             activetr:getx() + _P.extendimplantright or
-            activetr:getx() + _P.extendimplantright,
+            rightgatealign + _P.extendimplantright,
         _P.implantaligntopwithactive and
             activetr:gety() + _P.extendimplanttop or
             gatetry + _P.extendimplanttop
@@ -1566,7 +1581,7 @@ function layout(transistor, _P)
     local oxidebl = point.create(
         _P.oxidetypealignleftwithactive and
             activebl:getx() - _P.extendoxidetypeleft or
-            activebl:getx() - _P.extendoxidetypeleft,
+            leftgatealign - _P.extendoxidetypeleft,
         _P.oxidetypealignbottomwithactive and
             activebl:gety() - _P.extendoxidetypebottom or
             gatebly - _P.extendoxidetypebottom
@@ -1574,7 +1589,7 @@ function layout(transistor, _P)
     local oxidetr = point.create(
         _P.oxidetypealignrightwithactive and
             activetr:getx() + _P.extendoxidetyperight or
-            activetr:getx() + _P.extendoxidetyperight,
+            rightgatealign + _P.extendoxidetyperight,
         _P.oxidetypealigntopwithactive and
             activetr:gety() + _P.extendoxidetypetop or
             gatetry + _P.extendoxidetypetop
@@ -1697,14 +1712,14 @@ function layout(transistor, _P)
     local wellbl = point.create(
         _P.wellalignleftwithactive and
             activebl:getx() - _P.extendwellleft or
-            activebl:getx() - _P.extendwellleft,
+            leftgatealign - _P.extendwellleft,
         (_P.wellalignbottomwithactive and activebl:gety() or gatebly)
             - math.max(_P.extendwellbottom, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))
     )
     local welltr = point.create(
         _P.wellalignrightwithactive and
             activetr:getx() + _P.extendwellright or
-            activetr:getx() + _P.extendwellright,
+            rightgatealign + _P.extendwellright,
         (_P.wellaligntopwithactive and activetr:gety() or gatetry)
             + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
     )
