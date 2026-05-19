@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "tagged_value.h"
 #include "util.h"
@@ -128,7 +129,14 @@ static void _ensure_legal_limit(struct export_data* data)
 
 static void _at_begin(struct export_data* data)
 {
-    (void) data;
+    time_t ttime;
+    struct tm* tmtime;
+    time(&ttime);
+    tmtime = localtime(&ttime);
+    export_data_append_string(data, "/* created by openPCells */\n");
+    export_data_append_string(data, "/* ");
+    export_data_append_string(data, asctime(tmtime));
+    export_data_append_string(data, "*/\n");
 }
 
 static void _at_end(struct export_data* data)
