@@ -1066,7 +1066,9 @@ struct simple_polygon* shape_to_polygon(struct shape* shape)
         case PATH:
         {
             // resolved paths can be rectangles or polygons
-            struct shape* new = shape_resolve_path(shape);
+            struct shape* new = shape_copy(shape);
+            shape_resolve_path_extensions_inline(new);
+            shape_resolve_path_inline(new);
             struct simple_polygon* simple_polygon = shape_to_polygon(new);
             shape_destroy(new);
             return simple_polygon;
