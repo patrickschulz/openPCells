@@ -236,6 +236,7 @@ elif [ $1 = "all" ]; then
     do_cell_test moscap_04 analog/moscap gds
 
     # cell test for analog/cross_coupled_pair
+    do_cell_test cross_coupled_pair_00 analog/cross_coupled_pair gds
     do_cell_test cross_coupled_pair_01 analog/cross_coupled_pair gds
 
     # cell test for analog/currentmirror
