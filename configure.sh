@@ -116,6 +116,14 @@ while [[ $# -gt 0 ]]; do
         fi
         ;;
     -h | --help)
+        echo "This is the main configure script for the openPCells project"
+        echo "The only required dependencies for building are a C compiler and 'make'."
+        echo "The code attempts to be highly portable, so this configure script"
+        echo "does not set any switches for compilation, it only sets paths and"
+        echo "creates the main Makefile, hence not many switches are required."
+        echo "For many cases the known './configure.sh && make && make install should work."
+        echo "For more information on the available configuration options, please see below."
+        echo
         echo "supported options:"
         echo "  --prefix                  set common prefix for all paths"
         echo "                            (default: ${PREFIX})"
