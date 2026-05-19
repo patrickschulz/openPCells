@@ -256,7 +256,7 @@ create_HTML_API_doc: create_HTML_API_doc.c main.api_help.c main.api_help/*.c mai
 	$(CC) $(CFLAGS) create_HTML_API_doc.c main.api_help.c print.c string.c terminal.c util.c vector.c -o create_HTML_API_doc
 
 create_cell_documentation: create_cell_documentation.c main.config.c main.lua.c main.cellbase.c cmdoptions.c lua_util.c print.c filesystem.h filesystem.c error.c hashmap.c vector.c util.c string.c strprint.c pcell.info.c pcell.state.c pcell.common.c ldir.c _scriptmanager.c _modulemanager.c liblua_release.a
-	$(CC) $(CFLAGS) create_cell_documentation.c main.config.c main.lua.c main.cellbase.c cmdoptions.c lua_util.c print.c filesystem.c error.c hashmap.c vector.c util.c string.c strprint.c pcell.info.c pcell.state.c pcell.common.c ldir.c _scriptmanager.c _modulemanager.c liblua_release.a -o create_cell_documentation -lm
+	$(CC) $(CFLAGS) create_cell_documentation.c main.config.c main.lua.c main.cellbase.c cmdoptions.c lua_util.c print.c filesystem.c error.c hashmap.c vector.c util.c string.c strprint.c pcell.info.c pcell.state.c pcell.common.c ldir.c _scriptmanager.c _modulemanager.c liblua_release.a -o create_cell_documentation -lm -ldl
 
 include recipes.mk
 include lua.mk
