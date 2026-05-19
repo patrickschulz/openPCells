@@ -133,10 +133,12 @@ static void _at_begin(struct export_data* data)
     struct tm* tmtime;
     time(&ttime);
     tmtime = localtime(&ttime);
-    export_data_append_string(data, "/* created by openPCells */\n");
-    export_data_append_string(data, "/* ");
-    export_data_append_string(data, asctime(tmtime));
-    export_data_append_string(data, "*/\n");
+    export_data_append_string(data, "/*\n");
+    export_data_append_string(data, " created by openPCells\n");
+    const char* stime = asctime(tmtime);
+    export_data_append_string(data, " ");
+    export_data_append_string_len(data, stime, strlen(stime) - 1); // -1: don't print last newline
+    export_data_append_string(data, "\n*/\n");
 }
 
 static void _at_end(struct export_data* data)
