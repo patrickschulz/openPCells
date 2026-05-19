@@ -15,6 +15,8 @@ function parameters()
         { "auto_assign_welltypes",                  true },
         { "minimum_device_xspace",                  0 },
         { "minimum_device_yspace",                  0 },
+        { "minimum_group_xspace",                   0 },
+        { "minimum_group_yspace",                   0 },
         { "default_gate_strap_width",               technology.get_dimension_max("Minimum M1 Width", "Minimum M1M2 Viawidth") },
         { "default_source_strap_width",             technology.get_dimension_max("Minimum M1 Width", "Minimum M1M2 Viawidth") },
         { "default_drain_strap_width",              technology.get_dimension_max("Minimum M1 Width", "Minimum M1M2 Viawidth") },
@@ -1194,10 +1196,10 @@ function layout(circuit, _P, _env, state)
         local height = boundary.tr:gety() - boundary.bl:gety()
         local qwidth = state.calculate_grid(width, interconnectlinegrid)
         local qheight = state.calculate_grid(height, interconnectlinegrid)
-        while qwidth - width < _P.minimum_device_xspace do
+        while qwidth - width < _P.minimum_group_xspace do
             qwidth = qwidth + interconnectlinegrid
         end
-        while qheight - height < _P.minimum_device_yspace do
+        while qheight - height < _P.minimum_group_yspace do
             qheight = qheight + interconnectlinegrid
         end
         gridsizes.x[group.x] = math.max(gridsizes.x[group.x], qwidth)
