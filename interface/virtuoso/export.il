@@ -101,6 +101,54 @@ procedure(OPCExportGetViaTMatrix(via)
     ) ; let
 ) ; OPCExportGetViaTMatrix
 
+procedure(OPCExportGetPathExtension(style width beginext endext)
+    case(style
+        ("truncateExtend"
+            list(0 0)
+        )
+        ("extendExtend"
+            list(width / 2 width / 2)
+        )
+        ("varExtendExtend"
+            list(beginext endext
+        )
+        ("custom"
+            ; not really supported
+            list(0 0)
+        )
+    ) ; case style
+) ; OPCExportGetPathExtension
+
+procedure(OPCExportGetPathSegExtension(style width ext)
+    case(style
+        ("truncate"
+            0
+        )
+        ("extend"
+            width / 2
+        )
+        ("variable"
+            ext
+        )
+        ("custom"
+            ; not really supported
+            0
+        )
+    ) ; case style
+) ; OPCExportGetPathSegExtension
+
+procedure(OPCExportGetPathExtensions(shape)
+    if(shape->objType == "path"
+        ; path
+        OPCExportGetPathExtension(shape->pathStyle shape->width shape->beginExt shape->endExt)
+        ; pathSeg
+        list(
+            OPCExportGetPathSegExtension(shape->beginStyle shape->width shape->beginExt)
+            OPCExportGetPathSegExtension(shape->endStyle shape->width shape->endExt)
+        )
+    ) ; if
+) ; OPCExportGetPathExtensions
+
 procedure(OPCExportGetShapePathSeg(shape)
     ; FIXME: handle path extensions
     ; FIXME: use proper comparison function for numbers
@@ -135,7 +183,7 @@ procedure(OPCExportGetShapePathSeg(shape)
                         )
                 )
         )
-        list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width net netpt1 netpt2)
+        list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width OPCExportGetPathExtensions(shape) net netpt1 netpt2)
     )
 ) ; OPCExportGetShapePathSeg
 
@@ -148,11 +196,11 @@ procedure(OPCExportGetShape(shape)
             list("polygon" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points))
         ) ; polygon
         ("path"
-            list("path" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points) shape->width)
+            list("path" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points) shape->width OPCExportGetPathExtensions(shape))
         ) ; path
         ("pathSeg"
             OPCExportGetShapePathSeg(shape)
-        ) ; path
+        ) ; pathSeg
         (t nil) ; ignore everything else
     ) ; case objType
 ) ; OPCExportGetShape
@@ -166,10 +214,10 @@ procedure(OPCExportGetShapeNoNets(shape)
             list("polygon" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points))
         ) ; polygon
         ("path"
-            list("path" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points) shape->width)
+            list("path" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points) shape->width OPCExportGetPathExtensions(shape))
         ) ; path
         ("pathSeg"
-            list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width)
+            list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width OPCExportGetPathExtensions(shape))
         ) ; path
         (t nil) ; ignore everything else
     ) ; case objType
@@ -301,20 +349,22 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
             ) ; polygon
             ("path"
                 fprintf(file
-                    "geometry.path(%s, %s, { %s }, %d)"
+                    "geometry.path(%s, %s, { %s }, %d, { %d, %d })"
                     cellname
                     OPCExportFormatLayer(cadr(shape))
                     OPCExportFormatPoints(nthelem(3 shape))
                     OPCExportConvertCoordToOPCUnit(nthelem(4 shape))
+                    OPCExportConvertCoordToOPCUnit(car(nthelem(5 shape)))
+                    OPCExportConvertCoordToOPCUnit(cadr(nthelem(5 shape)))
                 )
-                when(nthelem(5 shape) ; has net
+                when(nthelem(6 shape) ; has net
                     newline(file)
                     fprintf(file
                         "%s:add_net_shape(\"%s\", %s, %s, %s)"
                         cellname
-                        nthelem(5 shape)
-                        OPCExportFormatPoint(nthelem(6 shape))
+                        nthelem(6 shape)
                         OPCExportFormatPoint(nthelem(7 shape))
+                        OPCExportFormatPoint(nthelem(8 shape))
                         OPCExportFormatLayer(cadr(shape))
                     )
                 ) ; when net
