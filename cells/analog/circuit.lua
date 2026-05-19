@@ -23,6 +23,14 @@ function parameters()
         { "access_grid",                            1, posvals = greaterzero() },
         { "guardringwidth",                         technology.get_dimension("Minimum Active Contact Region Size"), posvals = positive() },
         { "guardring_minimum_separation",           technology.get_dimension_max("Minimum M1 Space", "Minimum Active Space"), posvals = positive() },
+        { "guardring_wellinnerextension",           technology.get_dimension("Minimum Well Extension") },
+        { "guardring_wellouterextension",           technology.get_dimension("Minimum Well Extension") },
+        { "guardring_soiopeninnerextension",        technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "guardring_soiopenouterextension",        technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "guardring_implantinnerextension",        technology.get_dimension("Minimum Implant Extension") },
+        { "guardring_implantouterextension",        technology.get_dimension("Minimum Implant Extension") },
+        { "guardring_oxidetypeinnerextension",      technology.get_dimension("Minimum Oxide Extension") },
+        { "guardring_oxidetypeouterextension",      technology.get_dimension("Minimum Oxide Extension") },
         { "hlines",                                 {} },
         { "vlines",                                 {} },
         { "add_pin_lines",                          false },
@@ -1132,6 +1140,16 @@ function layout(circuit, _P, _env, state)
         if not isyodd then
             holeheight = holeheight + interconnectlinegrid
         end
+        local wellouterextension = _P.guardring_wellouterextension
+        local implantouterextension = _P.guardring_implantouterextension
+        local soiopenouterextension = _P.guardring_soiopenouterextension
+        local oxidetypeouterextension = _P.guardring_oxidetypeouterextension
+        if group.extraguardringnet then
+            wellouterextension = interconnectlinegrid / 4
+            implantouterextension = interconnectlinegrid / 4
+            soiopenouterextension = interconnectlinegrid / 4
+            oxidetypeouterextension = interconnectlinegrid / 4
+        end
         local guardring = pcell.create_layout(
             "auxiliary/guardring",
             "_guardring",
@@ -1141,7 +1159,14 @@ function layout(circuit, _P, _env, state)
                 holewidth = holewidth,
                 holeheight = holeheight,
                 implantinnerextension = interconnectlinegrid / 2,
-                extendallouter = interconnectlinegrid / 4,
+                wellinnerextension = _P.guardring_wellinnerextension,
+                implantinnerextension = _P.guardring_implantinnerextension,
+                soiopeninnerextension = _P.guardring_soiopeninnerextension,
+                oxidetypeinnerextension = _P.guardring_oxidetypeinnerextension,
+                wellouterextension = wellouterextension,
+                implantouterextension = implantouterextension,
+                soiopenouterextension = soiopenouterextension,
+                oxidetypeouterextension = oxidetypeouterextension,
                 net = group.net,
                 addtopnet = true,
                 addbottomnet = true,
@@ -1174,6 +1199,10 @@ function layout(circuit, _P, _env, state)
                     fillwell = false,
                     drawdeepwell = true,
                     extendallinner = interconnectlinegrid / 4,
+                    wellouterextension = _P.guardring_wellouterextension,
+                    implantouterextension = _P.guardring_implantouterextension,
+                    soiopenouterextension = _P.guardring_soiopenouterextension,
+                    oxidetypeouterextension = _P.guardring_oxidetypeouterextension,
                     net = group.extraguardringnet,
                     addtopnet = true,
                     addbottomnet = true,
