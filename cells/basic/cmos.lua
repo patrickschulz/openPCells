@@ -1121,7 +1121,7 @@ function layout(cmos, _P)
     if _P.drawnmosleftwelltap then
         local welltapwidth = leftnactivearea.tl:gety() - leftnactivearea.bl:gety()
         local welltap = pcell.create_layout("auxiliary/welltap", "welltap", util.add_options(nmoswelltap_opt, {
-            contype = _P.nmosflippedwell and "p" or "n",
+            contype = _P.nmosflippedwell and "n" or "p",
             width = _P.nmoswelltapwidth,
             height = welltapwidth + _P.nmoswelltapextension,
             xcontinuous = _P.welltapcontinuouscontact,
@@ -1200,13 +1200,13 @@ function layout(cmos, _P)
     if _P.drawnmosleftwelltap then
         nmoswellblx = math.min(
             cmos:get_area_anchor("nmosleftwelltap_well").l,
-            cmos:get_area_anchor("nmos_well").l
+            leftnmoswell.bl:getx()
         )
     end
     if _P.drawnmosrightwelltap then
-        nmoswelltrx = math.min(
+        nmoswelltrx = math.max(
             cmos:get_area_anchor("nmosrightwelltap_well").r,
-            cmos:get_area_anchor("nmos_well").r
+            rightnmoswell.tr:getx()
         )
     end
     if _P.drawpmosupperwelltap then
@@ -1215,13 +1215,13 @@ function layout(cmos, _P)
     if _P.drawpmosleftwelltap then
         pmoswellblx = math.min(
             cmos:get_area_anchor("pmosleftwelltap_well").l,
-            cmos:get_area_anchor("pmos_well").l
+            leftpmoswell.bl:getx()
         )
     end
     if _P.drawpmosrightwelltap then
-        pmoswelltrx = math.min(
+        pmoswelltrx = math.max(
             cmos:get_area_anchor("pmosrightwelltap_well").r,
-            cmos:get_area_anchor("pmos_well").r
+            rightpmoswell.tr:getx()
         )
     end
     cmos:add_area_anchor_bltr("nmos_well",
@@ -1250,31 +1250,31 @@ function layout(cmos, _P)
     if _P.drawnmoslowerwelltap then
         nmosimplantbly = cmos:get_area_anchor("nmoslowerwelltap_implant").b
     end
-    if _P.drawnmosleftwelltap then
+    if _P.drawnmosleftwelltap and _P.nmosflippedwell then
         nmosimplantblx = math.min(
             cmos:get_area_anchor("nmosleftwelltap_implant").l,
-            cmos:get_area_anchor("nmos_implant").l
+            leftnmosimplant.bl:getx()
         )
     end
-    if _P.drawnmosrightwelltap then
-        nmosimplanttrx = math.min(
+    if _P.drawnmosrightwelltap and _P.nmosflippedwell then
+        nmosimplanttrx = math.max(
             cmos:get_area_anchor("nmosrightwelltap_implant").r,
-            cmos:get_area_anchor("nmos_implant").r
+            rightnmosimplant.tr:getx()
         )
     end
     if _P.drawpmosupperwelltap then
         pmosimplanttry = cmos:get_area_anchor("pmosupperwelltap_implant").t
     end
-    if _P.drawpmosleftwelltap then
+    if _P.drawpmosleftwelltap and _P.pmosflippedwell then
         pmosimplantblx = math.min(
             cmos:get_area_anchor("pmosleftwelltap_implant").l,
-            cmos:get_area_anchor("pmos_implant").l
+            leftpmosimplant.bl:getx()
         )
     end
-    if _P.drawpmosrightwelltap then
-        pmosimplanttrx = math.min(
+    if _P.drawpmosrightwelltap and _P.pmosflippedwell then
+        pmosimplanttrx = math.max(
             cmos:get_area_anchor("pmosrightwelltap_implant").r,
-            cmos:get_area_anchor("pmos_implant").r
+            rightpmosimplant.tr:getx()
         )
     end
     cmos:add_area_anchor_bltr("nmos_implant",
