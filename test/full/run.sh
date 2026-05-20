@@ -167,6 +167,7 @@ elif [ $1 = "all" ]; then
     # inverter chain
     do_cell_test inverter_chain_00 analog/inverter_chain gds
     do_cell_test inverter_chain_01 analog/inverter_chain gds
+    do_cell_test inverter_chain_02 analog/inverter_chain gds
 
     # common centroid
     do_cell_test common_centroid_00 analog/common_centroid gds
