@@ -1,3 +1,3 @@
 return {
-    fingers = { 2, 4, 8, 32 }
+    numinnerdummies = 2,
 }

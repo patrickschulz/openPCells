@@ -176,7 +176,7 @@ function layout(inverter, _P)
         --table.insert(contactpos, "dummyouterpower")
         table.insert(contactpos, "dummyouter")
     end
-    local hasdummies = (_P.numleftdummies > 0) and (_P.numrightdummies > 0)
+    local hasdummies = (_P.numleftdummies > 0) or (_P.numrightdummies > 0)
 
     local cmos = pcell.create_layout("basic/cmos", "cmos", {
         nvthtype = _P.nvthtype,
@@ -405,6 +405,7 @@ function layout(inverter, _P)
     inverter:inherit_area_anchor(cmos, "pmos_implant")
     inverter:inherit_area_anchor(cmos, "nmos_well")
     inverter:inherit_area_anchor(cmos, "pmos_well")
+    inverter:inherit_area_anchor(cmos, "oxide")
     inverter:inherit_area_anchor(cmos, "nmos_active")
     inverter:inherit_area_anchor(cmos, "pmos_active")
     if _P.drawpmosupperwelltap then

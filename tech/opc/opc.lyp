@@ -9,7 +9,7 @@
   <dither-pattern>I1</dither-pattern>
   <line-style>I2</line-style>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>true</transparent>
   <width>1</width>
   <marked>true</marked>
@@ -279,7 +279,7 @@
   <dither-pattern>I5</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -297,7 +297,7 @@
   <dither-pattern>C7</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -315,7 +315,7 @@
   <dither-pattern>I5</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -333,7 +333,7 @@
   <dither-pattern>C12</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width>1</width>
   <marked>false</marked>
@@ -351,7 +351,7 @@
   <dither-pattern>I5</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -369,7 +369,7 @@
   <dither-pattern>I9</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -387,7 +387,7 @@
   <dither-pattern>I9</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -405,7 +405,7 @@
   <dither-pattern>I5</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -423,7 +423,7 @@
   <dither-pattern>I5</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -441,7 +441,7 @@
   <dither-pattern>I5</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -459,7 +459,7 @@
   <dither-pattern>I9</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width/>
   <marked>false</marked>
@@ -477,7 +477,7 @@
   <dither-pattern>C6</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width>1</width>
   <marked>false</marked>
@@ -495,7 +495,7 @@
   <dither-pattern>I5</dither-pattern>
   <line-style/>
   <valid>true</valid>
-  <visible>false</visible>
+  <visible>true</visible>
   <transparent>false</transparent>
   <width>1</width>
   <marked>false</marked>
@@ -521,6 +521,24 @@
   <animation>0</animation>
   <name>metal10 drawing</name>
   <source>26/0@1</source>
+ </properties>
+ <properties>
+  <expanded>false</expanded>
+  <frame-color>#800000</frame-color>
+  <fill-color>#800000</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>I5</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>true</visible>
+  <transparent>false</transparent>
+  <width>1</width>
+  <marked>false</marked>
+  <xfill>false</xfill>
+  <animation>0</animation>
+  <name>tox drawing</name>
+  <source>32/0@1</source>
  </properties>
  <properties>
   <expanded>false</expanded>

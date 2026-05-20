@@ -1233,6 +1233,11 @@ function layout(cmos, _P)
         point.create(pmoswelltrx, pmoswelltry)
     )
 
+    cmos:add_area_anchor_bltr("oxide",
+        leftnmosoxide.bl,
+        rightpmosoxide.tr
+    )
+
     -- implant anchors
     local nmosimplantblx = leftnmosimplant.bl:getx()
     local nmosimplantbly = leftnmosimplant.bl:gety()

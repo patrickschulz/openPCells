@@ -280,7 +280,9 @@ elif [ $1 = "all" ]; then
     do_cell_test text_02 auxiliary/text gds
 
     # stdcells
-    do_cell_test not_gate_00 stdcells/not_gate gds
+    do_cell_test not_gate_01 stdcells/not_gate gds
+    do_cell_test not_gate_02 stdcells/not_gate gds
+    do_cell_test not_gate_03 stdcells/not_gate gds
     do_cell_test nor_gate_00 stdcells/nor_gate gds
     do_cell_test nand_gate_00 stdcells/nand_gate gds
     do_cell_test or_gate_00 stdcells/or_gate gds

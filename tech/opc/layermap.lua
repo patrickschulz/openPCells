@@ -85,6 +85,16 @@ return {
             json = { layer = "nimplant" },
         }
     },
+    [generics.oxide(2)] = {
+        name = "tox",
+        layer = {
+            gds = { layer = 32, purpose = 0 },
+            SKILL = { layer = "tox", purpose = "drawing" },
+            debug = { layer = "tox" },
+            svg = { color = "333333", ignore = true },
+            json = { layer = "tox" },
+        }
+    },
     [generics.gate()] = {
         name = "poly",
         layer = {
@@ -441,7 +451,6 @@ return {
     },
     -- unused layers
     oxide1 = {},
-    oxide2 = {},
     gatemarker1 = {},
     vthtypen1 = {},
     vthtypen2 = {},
