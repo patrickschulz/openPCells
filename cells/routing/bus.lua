@@ -4,7 +4,7 @@ function parameters()
         { "numregs", 8 },
         { "nummerge", 1 },
         { "usebitorder", false },
-        { "bitorder", false },
+        { "bitorder", {} },
         { "useregorder", false },
         { "regorder", false },
         { "invert", false },
@@ -22,7 +22,7 @@ function parameters()
         { "vext", 0 },
         { "vposition", "top", posvals = set("bottom", "top") },
         { "viamode", "horizontal", posvals = set("horizontal", "vertical") },
-        { "viaext", technology.get_dimension_max("Minimum M1 Width", "Minimum M2 Width") },
+        { "viaext", 0 },
         { "shift_bus_for_vias", true }
     )
 end
@@ -40,11 +40,6 @@ function process_parameters(_P)
         string.format("Minimum M%dM%d Viawidth", maxmetal - 1, maxmetal)
     )
     _P.vspace = technology.get_dimension(string.format("Minimum M%d Space", _P.vmetal))
-    _P.viaext = technology.get_dimension_max(
-        string.format("Minimum M%d Width", _P.hmetal),
-        string.format("Minimum M%d Width", _P.vmetal),
-        string.format("Minimum M%dM%d Viawidth", maxmetal - 1, maxmetal)
-    )
     _P.hext = 2 * _P.viaext
 end
 
