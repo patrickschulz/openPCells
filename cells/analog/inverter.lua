@@ -153,7 +153,8 @@ function parameters()
         { "pmoswelltapwellbottomextension",             technology.get_dimension("Minimum Well Extension") },
         { "drawguardring",                              false },
         { "guardringwidth",                             technology.get_dimension("Minimum Active Contact Region Size") },
-        { "guardringspace",                             technology.get_dimension("Minimum Active Space") },
+        { "guardringxspace",                            technology.get_dimension("Minimum Active Space") },
+        { "guardringyspace",                            technology.get_dimension("Minimum Active Space") },
         { "guardringdeepwelloffset",                    technology.get_optional_dimension("Deep Well Offset", 0) },
         { "vddnet",                                     "" },
         { "vssnet",                                     "" },
@@ -606,8 +607,8 @@ function layout(inverter, _P)
         local firstguardring = pcell.create_layout("auxiliary/guardring", "_firstguardring", {
             contype = "n",
             ringwidth = _P.guardringwidth,
-            holewidth = guardringwidth + 2 * _P.guardringspace,
-            holeheight = guardringheight + 2 * _P.guardringspace,
+            holewidth = guardringwidth + 2 * _P.guardringxspace,
+            holeheight = guardringheight + 2 * _P.guardringyspace,
             fillwell = (not not _P.pmosflippedwell) == (not _P.nmosflippedwell),
             drawdeepwell = true,
             deepwelloffset = _P.guardringdeepwelloffset,
@@ -622,7 +623,7 @@ function layout(inverter, _P)
                 guardringh1
             )
         )
-        firstguardring:translate(-_P.guardringspace, -_P.guardringspace)
+        firstguardring:translate(-_P.guardringxspace, -_P.guardringyspace)
         inverter:merge_into(firstguardring)
         inverter:inherit_net_shapes(firstguardring)
         geometry.rectanglebltr(inverter, generics.well("n"),
