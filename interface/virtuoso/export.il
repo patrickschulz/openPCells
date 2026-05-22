@@ -162,6 +162,7 @@ procedure(OPCExportGetShapePathSeg(shape)
             then ; non-orthogonal
                 net = nil
             else ; orthogonal, also export net shape
+                net = shape->net->name
                 if(x1 == x2
                     then
                         netpt1 = list(
