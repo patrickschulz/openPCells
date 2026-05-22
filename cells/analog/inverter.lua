@@ -154,7 +154,7 @@ function parameters()
         { "drawguardring",                              false },
         { "guardringwidth",                             technology.get_dimension("Minimum Active Contact Region Size") },
         { "guardringspace",                             technology.get_dimension("Minimum Active Space") },
-        { "guardringdeepwelloffset",                    0 },
+        { "guardringdeepwelloffset",                    technology.get_optional_dimension("Deep Well Offset", 0) },
         { "vddnet",                                     "" },
         { "vssnet",                                     "" },
         { "guardringnet",                               "" }
