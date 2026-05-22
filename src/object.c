@@ -2421,6 +2421,39 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
     }
 }
 
+size_t object_get_ports_size(const struct object* cell)
+{
+    if(!cell->content.full.ports)
+    {
+        return 0;
+    }
+    else
+    {
+        return vector_size(cell->content.full.ports);
+    }
+}
+
+struct port* object_get_port(struct object* cell, size_t idx)
+{
+    return vector_get(cell->content.full.ports, idx);
+}
+
+const struct generics* object_get_port_layer(const struct object* cell, size_t idx)
+{
+    struct port* p = vector_get(cell->content.full.ports, idx);
+    return p->layer;
+}
+
+void object_remove_port(struct object* cell, size_t idx)
+{
+    vector_remove(cell->content.full.ports, idx);
+}
+
+const struct vector* object_get_ports(const struct object* cell)
+{
+    return cell->content.full.ports;
+}
+
 static void _add_label(struct object* cell, const char* name, const struct generics* layer, coordinate_t x, coordinate_t y, unsigned int sizehint)
 {
     if(!generics_is_empty(layer))
@@ -2447,9 +2480,32 @@ void object_add_label(struct object* cell, const char* name, const struct generi
     _add_label(cell, name, layer, where->x, where->y, sizehint);
 }
 
-const struct vector* object_get_ports(const struct object* cell)
+size_t object_get_labels_size(struct object* cell)
 {
-    return cell->content.full.ports;
+    if(!cell->content.full.labels)
+    {
+        return 0;
+    }
+    else
+    {
+        return vector_size(cell->content.full.labels);
+    }
+}
+
+struct port* object_get_label(struct object* cell, size_t idx)
+{
+    return vector_get(cell->content.full.labels, idx);
+}
+
+const struct generics* object_get_label_layer(const struct object* cell, size_t idx)
+{
+    struct port* p = vector_get(cell->content.full.labels, idx);
+    return p->layer;
+}
+
+void object_remove_label(struct object* cell, size_t idx)
+{
+    vector_remove(cell->content.full.labels, idx);
 }
 
 const struct vector* object_get_labels(const struct object* cell)

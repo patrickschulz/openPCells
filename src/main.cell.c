@@ -786,6 +786,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
                 retval = 0;
                 goto DESTROY_OBJECT;
             }
+            postprocess_remove_empty_layer_shapes(toplevel);
             int export_result = export_write_toplevel(
                 toplevel,
                 export_state

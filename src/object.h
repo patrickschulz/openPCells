@@ -142,9 +142,17 @@ void object_inherit_layer_boundary(struct object* cell, const struct object* oth
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint);
 void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const struct point* where, int startindex, int endindex, coordinate_t xpitch, coordinate_t ypitch, unsigned int sizehint);
 const struct vector* object_get_ports(const struct object* cell);
+size_t object_get_ports_size(const struct object* cell);
+struct port* object_get_port(struct object* cell, size_t idx);
+const struct generics* object_get_port_layer(const struct object* cell, size_t idx);
+void object_remove_port(struct object* cell, size_t idx);
 
 // labels
 void object_add_label(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint);
+size_t object_get_labels_size(struct object* cell);
+struct port* object_get_label(struct object* cell, size_t idx);
+const struct generics* object_get_label_layer(const struct object* cell, size_t idx);
+void object_remove_label(struct object* cell, size_t idx);
 
 // nets
 void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer);

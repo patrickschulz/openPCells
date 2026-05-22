@@ -2445,6 +2445,11 @@ int generics_is_empty(const struct generics* layer)
     }
 }
 
+int generics_is_first_entry_empty(const struct generics* layer)
+{
+    return vector_get_const(layer->entries, 0) == NULL;
+}
+
 int generics_is_layer_name(const struct generics* layer, const char* layername)
 {
     return strcmp(layer->name, layername) == 0;
