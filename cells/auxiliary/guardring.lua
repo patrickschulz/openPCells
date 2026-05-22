@@ -40,10 +40,12 @@ function parameters()
         { "fit",                                            false },
         { "failifnotfit",                                   false },
         { "net",                                            "" },
-        { "addtopnet",                                      false },
-        { "addbottomnet",                                   false },
-        { "addleftnet",                                     false },
-        { "addrightnet",                                    false }
+        { "addtopbottomnet",                                false },
+        { "addtopnet",                                      false, follow = "addtopbottomnet" },
+        { "addbottomnet",                                   false, follow = "addtopbottomnet" },
+        { "addleftrightnet",                                false },
+        { "addleftnet",                                     false, follow = "addleftrightnet" },
+        { "addrightnet",                                    false, follow = "addleftrightnet" }
     )
 end
 
