@@ -110,7 +110,7 @@ procedure(OPCExportGetPathExtension(style width beginext endext)
             list(width / 2 width / 2)
         )
         ("varExtendExtend"
-            list(beginext endext
+            list(beginext endext)
         )
         ("custom"
             ; not really supported
