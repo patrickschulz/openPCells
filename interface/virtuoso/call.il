@@ -69,6 +69,9 @@ procedure(OPCPrepareArgsForCellCreation(args origin @key (useOrigin t) (groupnam
         else
             OPCArgs = lsprintf("%s -X '--max-let-splits %d'" OPCArgs OPCSettingsForm->OPCSettingsMaxLetSplits->value)
     )
+    ; add lxStickyNet property to shpaes
+    OPCArgs = lsprintf("%s -X '--add-sticky-net'" OPCArgs)
+    ; add custom arguments
     OPCArgs = lsprintf("%s %s" OPCArgs OPCSettingsForm->OPCSettingsCmdAdditionalArgs->value)
     when(OPCSettingsForm->OPCSettingsMerge->value == "true"
         OPCArgs = lsprintf("%s --merge-rectangles" OPCArgs)
