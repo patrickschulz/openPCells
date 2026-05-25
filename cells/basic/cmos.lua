@@ -602,6 +602,7 @@ function layout(cmos, _P)
                 popt_current.drawtopgate = true
                 popt_current.topgatewidth = _P.dummycontheight
                 nopt_current.drawtopgatecut = _P.drawdummygatecut
+                popt_current.drawbotgatecut = _P.drawdummygatecut
                 ngatey = _P.npowerspace
                 pgatey = _P.ppowerspace
                 table.insert(gateanchors, {
@@ -614,6 +615,7 @@ function layout(cmos, _P)
                 nopt_current.drawbotgate = true
                 popt_current.drawtopgate = true
                 nopt_current.drawtopgatecut = true
+                popt_current.drawbotgatecut = true
                 ngatey = _P.outergatestrapspace
                 pgatey = _P.outergatestrapspace
                 table.insert(gateanchors, {

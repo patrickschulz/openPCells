@@ -1269,10 +1269,18 @@ function layout(transistor, _P)
 
     -- left/right gates
     if _P.endleftwithgate then
+        local lgatebly = gatebly
+        local lgatetry = gatetry
+        if _P.drawstopgatetopgatecut then
+            lgatetry = _P.fingerwidth + _P.topgatecutspace
+        end
+        if _P.drawstopgatebotgatecut then
+            lgatebly = -_P.botgatecutspace
+        end
         transistor:add_area_anchor_bltr(
             "endleftgate",
-            point.create(gateblx - _P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace) - _P.leftendgatelength - _P.leftendgatespace, gatebly),
-            point.create(gatetrx - _P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace) - _P.gatelength - _P.leftendgatespace, gatetry)
+            point.create(gateblx - _P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace) - _P.leftendgatelength - _P.leftendgatespace, lgatebly),
+            point.create(gatetrx - _P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace) - _P.gatelength - _P.leftendgatespace, lgatetry)
         )
         geometry.rectanglebltr(transistor,
             generics.gate(),
@@ -1281,10 +1289,18 @@ function layout(transistor, _P)
         )
     end
     if _P.endrightwithgate then
+        local lgatebly = gatebly
+        local lgatetry = gatetry
+        if _P.drawstopgatetopgatecut then
+            lgatetry = _P.fingerwidth + _P.topgatecutspace
+        end
+        if _P.drawstopgatebotgatecut then
+            lgatebly = -_P.botgatecutspace
+        end
         transistor:add_area_anchor_bltr(
             "endrightgate",
-            point.create(gateblx + _P.rightfloatingdummies * gatepitch - _P.gatespace + _P.rightendgatespace + _P.fingers * gatepitch, gatebly),
-            point.create(gatetrx + _P.rightfloatingdummies * gatepitch - _P.gatespace + _P.rightendgatespace - _P.gatelength + _P.rightendgatelength + _P.fingers * gatepitch, gatetry)
+            point.create(gateblx + _P.rightfloatingdummies * gatepitch - _P.gatespace + _P.rightendgatespace + _P.fingers * gatepitch, lgatebly),
+            point.create(gatetrx + _P.rightfloatingdummies * gatepitch - _P.gatespace + _P.rightendgatespace - _P.gatelength + _P.rightendgatelength + _P.fingers * gatepitch, lgatetry)
         )
         geometry.rectanglebltr(transistor,
             generics.gate(),
@@ -1378,7 +1394,7 @@ function layout(transistor, _P)
 
     -- stop gates
     if _P.drawleftstopgate then
-        if _P.drawstopgatetopgatecut then
+        if technology.has_feature("has_gatecut") and _P.drawstopgatetopgatecut then
             geometry.rectanglebltr(transistor,
                 generics.feol("gatecut"),
                 point.create(
@@ -1391,7 +1407,7 @@ function layout(transistor, _P)
                 )
             )
         end
-        if _P.drawstopgatebotgatecut then
+        if technology.has_feature("has_gatecut") and _P.drawstopgatebotgatecut then
             geometry.rectanglebltr(transistor,
                 generics.feol("gatecut"),
                 point.create(
@@ -1426,7 +1442,7 @@ function layout(transistor, _P)
     end
 
     if _P.drawrightstopgate then
-        if _P.drawstopgatetopgatecut then
+        if technology.has_feature("has_gatecut") and _P.drawstopgatetopgatecut then
             geometry.rectanglebltr(transistor,
                 generics.feol("gatecut"),
                 point.create(
@@ -1439,7 +1455,7 @@ function layout(transistor, _P)
                 )
             )
         end
-        if _P.drawstopgatebotgatecut then
+        if technology.has_feature("has_gatecut") and _P.drawstopgatebotgatecut then
             geometry.rectanglebltr(transistor,
                 generics.feol("gatecut"),
                 point.create(

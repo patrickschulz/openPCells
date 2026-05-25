@@ -28,8 +28,26 @@ function layout(gate, _P)
     local routingpitch = _P.routingwidth + _P.routingspace
     local separation = _P.numinnerroutes * _P.routingwidth + (_P.numinnerroutes + 1) * _P.routingspace
     local ppowerspace = _P.pnumtracks * routingpitch + _P.routingwidth / 2 - _P.basepwidth - _P.pwidthoffset - _P.powerwidth / 2
+    if ppowerspace < 0 then
+        ppowerspace = technology.get_dimension("Minimum M1 Space")
+    end
     local npowerspace = _P.nnumtracks * routingpitch + _P.routingwidth / 2 - _P.basenwidth - _P.nwidthoffset - _P.powerwidth / 2
+    if npowerspace < 0 then
+        npowerspace = technology.get_dimension("Minimum M1 Space")
+    end
     local routingshift = (_P.routingwidth + _P.routingspace) * (_P.numinnerroutes % 2 == 0 and 1 or 2)
+    local powerrailextension = 0
+    if _P.xalign_method == "rails" then
+        -- the rail extension should allow for abutting the standard cells while leaving
+        -- enough space for one metal route
+        powerrailextension = _P.routingwidth + _P.routingspace
+    end
+    if _P.xalign_method == "gate" then
+        -- the rail extension should allow for abutting the standard cells,
+        -- so the end gates need to be included
+        -- enough space for one metal route
+        powerrailextension = (_P.gatespace - _P.sdwidth) / 2 + _P.gatelength / 2
+    end
     local cmos = pcell.create_layout("basic/cmos", "cmos", {
         nvthtype = _P.nvthtype,
         pvthtype = _P.pvthtype,
@@ -56,6 +74,7 @@ function layout(gate, _P)
         powerwidth = _P.powerwidth,
         npowerspace = npowerspace,
         ppowerspace = ppowerspace,
+        powerrailleftrightextension = powerrailextension,
         pwidth = _P.basepwidth + _P.pwidthoffset,
         nwidth = _P.basenwidth + _P.nwidthoffset,
         gatestrapwidth = _P.routingwidth,
@@ -67,9 +86,9 @@ function layout(gate, _P)
         --dummycontshift = _P.drawtopbotwelltaps and 0 or (-_P.powerwidth / 2 + _P.powerwidth / 8),
         dummycontheight = (_P.drawtopbotwelltaps or _P.centereddummycontacts) and _P.powerwidth or (_P.powerwidth / 4),
         dummycontshift = (_P.drawtopbotwelltaps or _P.centereddummycontacts) and 0 or (-_P.powerwidth / 2 + _P.powerwidth / 8),
-        drawleftstopgate = _P.drawleftstopgate,
+        drawleftstopgate = _P.xalign_method == "gate",
         leftpolylines = _P.leftpolylines,
-        drawrightstopgate = _P.drawrightstopgate,
+        drawrightstopgate = _P.xalign_method == "gate",
         rightpolylines = _P.rightpolylines,
         --drawgatecut = true,
         drawgatecuteverywhere = true,
