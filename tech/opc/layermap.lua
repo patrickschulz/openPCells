@@ -431,15 +431,6 @@ return {
             svg = { color = "ccffff", order = 1 },
         }
     },
-    gatecut = {
-        name = "gatecut",
-        layer = {
-            gds = { layer = 27, purpose = 0 },
-            SKILL = { layer = "gatecut", purpose = "drawing" },
-            debug = { layer = "gatecut" },
-            svg = { color = "8000ff", order = 1 },
-        }
-    },
     silicideblocker = {
         name = "silicideblocker",
         layer = {
