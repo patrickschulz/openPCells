@@ -554,6 +554,7 @@ function layout(cmos, _P)
                 ngatey = ngatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace) + evenoddgatestrapshift
                 pgatey = pgatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace) + evenoddgatestrapshift
                 nopt_current.drawtopgatecut = true
+                popt_current.drawbotgatecut = true
                 table.insert(gateanchors, {
                     nmos = {
                         source = "topgatestrap",
@@ -572,6 +573,7 @@ function layout(cmos, _P)
                 ngatey = _P.npowerspace
                 pgatey = pgatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace) + evenoddgatestrapshift
                 nopt_current.drawtopgatecut = true
+                popt_current.drawbotgatecut = true
                 --[[
                 table.insert(gateanchors, {
                     pmos = {
@@ -588,6 +590,7 @@ function layout(cmos, _P)
                 ngatey = ngatey - 1 * (_P.gatestrapwidth + _P.gatestrapspace) + evenoddgatestrapshift
                 pgatey = _P.ppowerspace
                 nopt_current.drawtopgatecut = true
+                popt_current.drawbotgatecut = true
                 --[[
                 table.insert(gateanchors, {
                     nmos = {
