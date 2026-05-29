@@ -158,6 +158,8 @@ procedure(OPCExportGetShapePathSeg(shape)
         y1 = yCoord(shape->beginPt)
         x2 = xCoord(shape->endPt)
         y2 = yCoord(shape->endPt)
+        when(x2 < x1 rotatef(x2 x1))
+        when(y2 < y1 rotatef(y2 y1))
         if((x1 != x2) && (y1 != y2)
             then ; non-orthogonal
                 net = nil
@@ -170,7 +172,7 @@ procedure(OPCExportGetShapePathSeg(shape)
                             y1
                         )
                         netpt2 = list(
-                            x1 - shape->width / 2
+                            x1 + shape->width / 2
                             y2
                         )
                     else ; y1 == y2
@@ -180,7 +182,7 @@ procedure(OPCExportGetShapePathSeg(shape)
                         )
                         netpt2 = list(
                             x2
-                            y1 - shape->width / 2
+                            y1 + shape->width / 2
                         )
                 )
         )
