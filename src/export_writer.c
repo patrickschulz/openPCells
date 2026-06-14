@@ -394,7 +394,7 @@ static int _write_child(struct export_writer* writer, const struct object* child
     coordinate_t xpitch = object_get_child_xpitch(child);
     coordinate_t ypitch = object_get_child_ypitch(child);
     // FIXME: error checking
-    if(object_is_child_array(child) && _has_write_cell_array(writer))
+    if(object_is_array(child) && _has_write_cell_array(writer))
     {
         int ret = _write_child_array(writer, refname, instname, origin, trans, array_trans, xrep, yrep, xpitch, ypitch);
         if(!ret)
