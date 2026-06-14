@@ -4,8 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "lua/lauxlib.h"
-
 #include "_config.h"
 #include "export.h"
 #include "filesystem.h"
@@ -13,7 +11,9 @@
 #include "geometry.h"
 #include "hashmap.h"
 #include "info.h"
+#include "main.cellbase.h"
 #include "main.functions.h"
+#include "pcell.state.h"
 #include "pcell.h"
 #include "postprocess.h"
 #include "technology.h"
@@ -53,55 +53,29 @@ static int _parse_point(const char* arg, int* xptr, int* yptr)
     return 1;
 }
 
-static void _prepare_cellpaths(struct pcell_state* pcell_state, struct cmdoptions* cmdoptions, struct hashmap* config)
-{
-    if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
-    {
-        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
-        while(*arg)
-        {
-
-            pcell_append_cellpath(pcell_state, *arg);
-            ++arg;
-        }
-    }
-    struct vector* config_prepend_cellpaths = hashmap_get(config, "prepend_cellpaths");
-    if(config_prepend_cellpaths)
-    {
-        for(unsigned int i = 0; i < vector_size(config_prepend_cellpaths); ++i)
-        {
-            pcell_append_cellpath(pcell_state, vector_get(config_prepend_cellpaths, i));
-        }
-    }
-    if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
-    {
-        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
-        while(*arg)
-        {
-            pcell_append_cellpath(pcell_state, *arg);
-            ++arg;
-        }
-    }
-    struct vector* config_append_cellpaths = hashmap_get(config, "append_cellpaths");
-    if(config_append_cellpaths)
-    {
-        for(unsigned int i = 0; i < vector_size(config_append_cellpaths); ++i)
-        {
-            pcell_append_cellpath(pcell_state, vector_get(config_append_cellpaths, i));
-        }
-    }
-    // add default path
-    pcell_append_cellpath(pcell_state, OPC_CELL_PATH "/cells");
-}
-
-void main_list_cells_cellpaths(struct cmdoptions* cmdoptions, struct hashmap* config)
+void main_show_cell_info(const char* cellname, struct cmdoptions* cmdoptions, struct hashmap* config)
 {
     struct pcell_state* pcell_state = pcell_initialize_state();
-    _prepare_cellpaths(pcell_state, cmdoptions, config);
-    if(cmdoptions_was_provided_long(cmdoptions, "list"))
+    if(!pcell_state)
+    {
+        fputs("could not initialize pcell state\n", stderr);
+    }
+    main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
+
+    pcell_show_cell_info(pcell_state, cellname);
+    pcell_destroy_state(pcell_state);
+}
+
+void main_list_cells_cellpaths(const char** cellnames_ptr, struct cmdoptions* cmdoptions, struct hashmap* config)
+{
+    struct pcell_state* pcell_state = pcell_initialize_state();
+    main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
+    if(cmdoptions_was_provided_long(cmdoptions, "list-cells"))
     {
         const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
-        pcell_list_cells(pcell_state, listformat);
+        struct const_vector* cellnames = const_vector_adapt_from_pointer_array((void**)cellnames_ptr);
+        pcell_list_cells(cellnames, pcell_state, listformat);
+        const_vector_destroy(cellnames);
     }
     if(cmdoptions_was_provided_long(cmdoptions, "list-cellpaths"))
     {
@@ -144,11 +118,12 @@ void main_list_cell_parameters(const char* cellname, const char* parametersforma
         fputs("could not initialize pcell state\n", stderr);
         goto LIST_PARAMETERS_DESTROY_TECHNOLOGY;
     }
-    _prepare_cellpaths(pcell_state, cmdoptions, config);
+    main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
 
     struct const_vector* parameternames = const_vector_adapt_from_pointer_array((void**)parameternames_ptr);
 
     pcell_list_parameters(pcell_state, techstate, cellname, parametersformat, parameternames);
+    const_vector_destroy(parameternames);
     pcell_destroy_state(pcell_state);
 LIST_PARAMETERS_DESTROY_TECHNOLOGY:
     if(techstate)
@@ -166,10 +141,10 @@ void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* confi
         fputs("could not initialize pcell state\n", stderr);
         return;
     }
-    _prepare_cellpaths(pcell_state, cmdoptions, config);
+    main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
 
     // cellname
-    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "anchors");
+    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell-anchors");
 
     // parameter format
     const char* anchorsformat = cmdoptions_get_argument_long(cmdoptions, "anchors-format");
@@ -179,7 +154,52 @@ void main_list_cell_anchors(struct cmdoptions* cmdoptions, struct hashmap* confi
     struct const_vector* parameternames = const_vector_adapt_from_pointer_array((void**)ptr);
 
     pcell_list_anchors(pcell_state, cellname, anchorsformat, parameternames);
+    const_vector_destroy(parameternames);
     pcell_destroy_state(pcell_state);
+}
+
+static int _check_grid_in_cell(const struct object* cell, coordinate_t grid)
+{
+    int ret = 1;
+    struct shape_iterator* it = object_create_shape_iterator(cell);
+    while(shape_iterator_is_valid(it))
+    {
+        const struct shape* shape = shape_iterator_get(it);
+        if(!shape_is_on_grid(shape, grid))
+        {
+            ret = 0;
+            goto CHECK_GRID_IN_CELL_FINISH;
+        }
+        shape_iterator_next(it);
+    }
+CHECK_GRID_IN_CELL_FINISH:
+    shape_iterator_destroy(it);
+    return ret;
+}
+
+static int _check_grid(const struct object* toplevel, coordinate_t grid)
+{
+    if(!_check_grid_in_cell(toplevel, grid))
+    {
+        return 0;
+    }
+    int ret = 1;
+    struct const_vector* references = object_collect_references(toplevel);
+    struct const_vector_iterator* it = const_vector_iterator_create(references);
+    while(const_vector_iterator_is_valid(it))
+    {
+        const struct object* ref = const_vector_iterator_get(it);
+        if(!_check_grid_in_cell(ref, grid))
+        {
+            ret = 0;
+            goto CHECK_GRID_FINISH;
+        }
+        const_vector_iterator_next(it);
+    }
+CHECK_GRID_FINISH:
+    const_vector_iterator_destroy(it);
+    const_vector_destroy(references);
+    return ret;
 }
 
 static void _move_origin(struct object* toplevel, struct cmdoptions* cmdoptions)
@@ -195,6 +215,23 @@ static void _move_origin(struct object* toplevel, struct cmdoptions* cmdoptions)
         else
         {
             object_move_to(toplevel, x, y);
+        }
+    }
+}
+
+static void _move_origin_relative(struct object* toplevel, struct cmdoptions* cmdoptions)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "relative-origin"))
+    {
+        const char* arg = cmdoptions_get_argument_long(cmdoptions, "relative-origin");
+        int x, y;
+        if(!_parse_point(arg, &x, &y))
+        {
+            fprintf(stderr, "could not parse translation '%s'\n", arg);
+        }
+        else
+        {
+            object_move_origin(toplevel, x, y);
         }
     }
 }
@@ -536,7 +573,11 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     {
         pcell_set_verbose(pcell_state);
     }
-    _prepare_cellpaths(pcell_state, cmdoptions, config);
+    if(cmdoptions_was_provided_long(cmdoptions, "disable-parameter-checks"))
+    {
+        pcell_disable_parameter_checks(pcell_state);
+    }
+    main_cellbase_prepare_cellpaths(pcell_state, cmdoptions, config);
     const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
     struct const_vector* cellargs = const_vector_adapt_from_pointer_array((void**)ptr);
     const char* cellname;
@@ -591,8 +632,19 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         }
     }
 
+    // cell environment
     const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
+
+    // cellname
     const char* name = cmdoptions_get_argument_long(cmdoptions, "cellname");
+
+    // generate debugging info
+    int dodebug = cmdoptions_was_provided_long(cmdoptions, "debug-cell");
+#ifdef OPC_DEBUG
+    dodebug = 1;
+#endif
+
+    // create layout
     if(verbose)
     {
         puts("creating layout...");
@@ -600,7 +652,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     struct object* toplevel = NULL;
     if(iscellscript)
     {
-        toplevel = pcell_create_layout_from_script(pcell_state, techstate, cellname, name, cellargs, cellenvfilename);
+        toplevel = pcell_create_layout_from_script(pcell_state, techstate, cellname, name, cellargs, cellenvfilename, dodebug);
     }
     else
     {
@@ -610,7 +662,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         }
         else
         {
-            toplevel = pcell_create_layout_env(pcell_state, techstate, cellname, name, cellenvfilename);
+            toplevel = pcell_create_layout_env(pcell_state, techstate, cellname, name, cellenvfilename, dodebug);
         }
     }
     const_vector_destroy(cellargs);
@@ -621,12 +673,27 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         goto DESTROY_OBJECT;
     }
 
+    // check manufacturing grid
+    coordinate_t grid = technology_get_grid(techstate);
+    int on_grid = _check_grid(toplevel, grid);
+    int on_grid_fatal = 0;
+    if(!on_grid)
+    {
+        fputs("design contains off-grid shapes\n", stderr);
+        if(on_grid_fatal)
+        {
+            retval = 0;
+            goto DESTROY_OBJECT;
+        }
+    }
+
     if(verbose)
     {
         puts("post-processing...");
     }
 
     _move_origin(toplevel, cmdoptions);
+    _move_origin_relative(toplevel, cmdoptions);
     _translate(toplevel, cmdoptions);
     _scale(toplevel, cmdoptions);
 
@@ -667,8 +734,17 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     {
         struct export_state* export_state = export_create_state();
 
-        // add export search paths. FIXME: add --exportpath cmd option
+        // add export search paths
         export_add_searchpath(export_state, OPC_EXPORT_PATH "/export");
+        if(cmdoptions_was_provided_long(cmdoptions, "exportpath"))
+        {
+            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "exportpath");
+            while(*arg)
+            {
+                export_add_searchpath(export_state, *arg);
+                ++arg;
+            }
+        }
 
         // basename
         export_set_basename(export_state, cmdoptions_get_argument_long(cmdoptions, "filename"));
@@ -677,7 +753,8 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         export_set_export_options(export_state, cmdoptions_get_argument_long(cmdoptions, "export-options"));
 
         // expand namecontexts
-        export_set_namecontext_expansion(export_state, !cmdoptions_was_provided_long(cmdoptions, "no-expand-namecontexts"));
+        //export_set_namecontext_expansion(export_state, !cmdoptions_was_provided_long(cmdoptions, "no-expand-namecontexts"));
+        export_set_namecontext_expansion(export_state, 0);
 
         // don't write ports
         if(cmdoptions_was_provided_long(cmdoptions, "disable-ports"))
@@ -714,6 +791,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
                 retval = 0;
                 goto DESTROY_OBJECT;
             }
+            postprocess_remove_empty_layer_shapes(toplevel);
             int export_result = export_write_toplevel(
                 toplevel,
                 export_state

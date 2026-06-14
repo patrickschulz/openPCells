@@ -15,7 +15,7 @@ int main(void)
     puts(".SH NAME");
     puts("opc \\- parametric and technology-independent IC layout generator");
     puts(".SH SYNOPSIS");
-    puts("opc [--cell cellname] [--technology technology] [--export export]");
+    puts("opc [--cell cellname | --cellscript scriptname] [--technology technology] [--export export]");
     puts(".SH DESCRIPTION");
     puts(".B opc ");
     puts("is a technology-independent layout generator for integrated circuits with support for parametric cells.");

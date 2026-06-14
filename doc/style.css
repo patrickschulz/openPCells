@@ -1,0 +1,283 @@
+html {
+    /*background: #aaaaaa;*/
+}
+body {
+    width: 50em;
+    margin: 0 auto;
+    padding: 8pt;
+    font-family: "sans-serif";
+    font-size: 12pt;
+    background: #ffffff;
+    hyphens: auto;
+}
+
+p {
+    margin: 2pt 2pt 8pt 2pt;
+    text-align: justify;
+}
+
+.title {
+    font-weight: bold;
+    font-size: 2em;
+    color: #000000;
+    text-decoration: none;
+}
+
+summary {
+    font-weight: bold;
+    font-size: 1.5em;
+    color: #000000;
+    padding: 4pt 4pt 4pt 4pt;
+    margin-bottom: 10pt;
+    border-bottom: 2px solid #aaaaaa;
+}
+
+h1 {
+    font-weight: bold;
+    font-size: 2em;
+    color: #000000;
+    border-bottom: 2px solid #aaaaaa;
+}
+
+h2 {
+    font-weight: bold;
+    font-size: 1.3em;
+    color: #000000;
+}
+
+li {
+    margin: 0pt 30pt 0pt 10pt;
+    text-align: justify;
+}
+
+.subtitle {
+    font-size: 1.5em;
+}
+
+.topbar {
+    width: 100%;
+    background-color: #f2f2f2;
+    padding: 0pt 0pt 0pt 0pt;
+    margin: 0pt 0pt 10pt 0pt;
+}
+
+.topbar-content {
+    padding: 10pt 5pt 1pt 20pt;
+}
+
+.container {
+    width: 100%;
+    padding: 10pt 0pt 10pt 0pt;
+}
+
+.documentation-section {
+    padding: 12pt;
+    margin: 10pt;
+    border-radius: 12px;
+    background-color: #f6f6f6;
+}
+
+.item {
+    padding: 12pt;
+    margin: 10pt;
+    border-radius: 12px;
+    background-color: #f6f6f6;
+}
+
+.description-list {
+    font-weight: bold;
+}
+
+.description-list p {
+    font-weight: normal;
+}
+
+table.description {
+    border: 2px solid;
+    border-collapse: collapse;
+}
+
+table.description th {
+    border: 1px solid;
+    padding: 5pt;
+    text-align: center;
+    font-weight: bold;
+}
+
+table.description td {
+    border: 1px solid;
+    padding: 5pt;
+    text-align: left;
+}
+
+table.description {
+    width: 100%;
+    border: 2px solid;
+    border-collapse: collapse;
+}
+
+table.parameters th {
+    border: 1px solid;
+    padding: 5pt;
+    text-align: center;
+    font-weight: bold;
+}
+
+table.parameters td {
+    border: 1px solid;
+    padding: 5pt;
+    text-align: left;
+}
+
+col.name {
+    width: 15%;
+}
+
+col.type {
+    width: 15%;
+}
+
+col.info {
+    width: 40%;
+}
+
+col.default {
+    width: 15%;
+}
+
+col.allowed {
+    width: 15%;
+}
+
+pre.shell {
+    background-color: #eeeeee;
+    padding: 5pt;
+    border-radius: 2pt;
+    font-size: 12pt;
+    font: monospace;
+}
+
+code.shellinline {
+    background-color: #eeeeee;
+    padding: 1pt;
+    font: monospace;
+}
+
+code.luainline {
+    background-color: #eaeaff;
+    padding: 1pt;
+    font: monospace;
+}
+
+pre.opc {
+    background-color: #eaeaff;
+    padding: 5pt;
+    border-radius: 2pt;
+    font-size: 12pt;
+    font: monospace;
+}
+
+code.opcinline {
+    background-color: #eaeaff;
+    padding: 1pt;
+    font: monospace;
+}
+
+code.generic {
+    background-color: #eeeeee;
+    padding: 1pt;
+    font: monospace;
+}
+
+.APIref-examples-container {
+    /*
+    color: #ffffff;
+    background-color: #262626;
+    */
+    color: #000000;
+    background-color: #e9e9e9;
+    padding: 5pt;
+    border-radius: 2pt;
+    font-size: 14pt;
+}
+.APIref-examples {
+}
+
+.search-bar {
+    font-size: 120%;
+    padding: 5pt;
+    width: 50%;
+}
+
+.footerbar {
+    width: 100%;
+    background-color: #f2f2f2;
+    padding: 0pt 0pt 0pt 0pt;
+    margin: 20pt 0pt 0pt 0pt;
+}
+
+footer {
+    padding: 5pt 5pt 12pt 5pt;
+    color: #444444;
+    text-align: center;
+}
+
+/* code highlighting (light mode) */
+.opc-module {
+    color: #0087ff;
+}
+
+.opc-function {
+    color: #00bfff;
+    font-weight: bold;
+}
+
+.opc-luaidentifier {
+    color: #00c5cc;
+}
+
+.opc-number {
+    color: #00aa00;
+}
+
+.opc-string {
+    color: #dd2222;
+}
+
+.opc-comment {
+    color: #666666;
+}
+
+svg {
+    margin: 0pt;
+}
+
+.diagram-text {
+    font-size: 100%;
+}
+
+.diagram-box {
+    fill: none;
+    stroke: green;
+    stroke-width: 2px;
+}
+
+/* code highlighting (dark mode) */
+/*
+.opc-module {
+    color: #0087ff;
+}
+
+.opc-function {
+    color: #00bfff;
+    font-weight: bold;
+}
+
+.opc-number {
+    color: #eedd82;
+}
+
+.opc-string {
+    color: #e9967a;
+}
+*/

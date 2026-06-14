@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "arith.h"
 #include "geometry.h"
 #include "graphics.h"
 #include "lcheck.h"
@@ -71,6 +72,15 @@ static int lgeometry_rectangleareaanchor(lua_State* L)
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = generics_check_generics(L, 2);
     const char* anchor = luaL_checkstring(L, 3);
+    if(!object_has_area_anchor(lobject_get_full(L, cell), anchor))
+    {
+        lua_pushfstring(L,
+            "geometry.rectangleareaanchor: tried to access area anchor '%s', but the anchor does not exist in the cell '%s'",
+            anchor,
+            object_get_name(lobject_get_full(L, cell))
+        );
+        lua_error(L);
+    }
     geometry_rectangleareaanchor(lobject_get_full(L, cell), layer, anchor);
     return 0;
 }
@@ -250,10 +260,10 @@ static int lgeometry_path_manhatten(lua_State* L)
     struct vector* points = vector_create(numpoints, point_destroy);
 
     lua_rawgeti(L, 3, 1);
-    struct lpoint* pt = lpoint_checkpoint(L, -1);
-    vector_append(points, point_create(lpoint_get(pt)->x, lpoint_get(pt)->y));
-    //coordinate_t lastx = lpoint_get(pt)->x;
-    coordinate_t lasty = lpoint_get(pt)->y;
+    struct lpoint* startpt = lpoint_checkpoint(L, -1);
+    vector_append(points, point_create(lpoint_get(startpt)->x, lpoint_get(startpt)->y));
+    //coordinate_t lastx = lpoint_get(startpt)->x;
+    coordinate_t lasty = lpoint_get(startpt)->y;
     lua_pop(L, 1);
 
     for(unsigned int i = 2; i <= len; ++i)
@@ -868,7 +878,7 @@ static int lgeometry_path_2y_polygon(lua_State* L)
 
 static int lgeometry_path_3x(lua_State* L)
 {
-    lcheck_check_numargs2(L, 6, 7, "geometry.path_3x");
+    lcheck_check_numargs3(L, 6, 7, 8, "geometry.path_3x");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
@@ -880,8 +890,16 @@ static int lgeometry_path_3x(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 7, &bgnext, &endext, width);
 
-    struct point* pts1 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptstart)->y);
-    struct point* pts2 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptend)->y);
+    coordinate_t grid = luaL_optinteger(L, 8, 1);
+
+    coordinate_t xstart = point_getx(lpoint_get(ptstart));
+    coordinate_t xend = point_getx(lpoint_get(ptend));
+    coordinate_t ystart = point_gety(lpoint_get(ptstart));
+    coordinate_t yend = point_gety(lpoint_get(ptend));
+    coordinate_t xmid = xstart + arith_mul_grid(xend - xstart, posfactor, grid);
+
+    struct point* pts1 = point_create(xmid, ystart);
+    struct point* pts2 = point_create(xmid, yend);
     struct vector* points = vector_create(3, NULL); // non-owning
     vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
@@ -1002,7 +1020,7 @@ static int lgeometry_path_3x_diagonal_polygon(lua_State* L)
 
 static int lgeometry_path_3y(lua_State* L)
 {
-    lcheck_check_numargs2(L, 6, 7, "geometry.path_3y");
+    lcheck_check_numargs3(L, 6, 7, 8, "geometry.path_3y");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = generics_check_generics(L, 2);
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
@@ -1014,8 +1032,16 @@ static int lgeometry_path_3y(lua_State* L)
     int endext = 0;
     _get_path_extension(L, 7, &bgnext, &endext, width);
 
-    struct point* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
-    struct point* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
+    coordinate_t grid = luaL_optinteger(L, 8, 1);
+
+    coordinate_t xstart = point_getx(lpoint_get(ptstart));
+    coordinate_t xend = point_getx(lpoint_get(ptend));
+    coordinate_t ystart = point_gety(lpoint_get(ptstart));
+    coordinate_t yend = point_gety(lpoint_get(ptend));
+    coordinate_t ymid = ystart + arith_mul_grid(yend - ystart, posfactor, grid);
+
+    struct point* pts1 = point_create(xstart, ymid);
+    struct point* pts2 = point_create(xend, ymid);
     struct vector* points = vector_create(3, NULL); // non-owning
     vector_append(points, (struct point*)lpoint_get(ptstart));
     vector_append(points, pts1);
@@ -1352,12 +1378,12 @@ void _get_viacontact_properties(lua_State* L, int idx, int* xcont, int* ycont, c
 
 static int lgeometry_check_viabltr(lua_State* L)
 {
-    lcheck_check_numargs2(L, 4, 5, "geometry.viabltr");
+    lcheck_check_numargs2(L, 4, 5, "geometry.check_viabltr");
     int metal1 = luaL_checkinteger(L, 1);
     int metal2 = luaL_checkinteger(L, 2);
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
-    _check_rectangle_points(L, bl, tr, "geometry.viabltr");
+    _check_rectangle_points(L, bl, tr, "geometry.check_viabltr");
     int xcont = 0;
     int ycont = 0;
     coordinate_t minxspace = 0;
@@ -1369,6 +1395,25 @@ static int lgeometry_check_viabltr(lua_State* L)
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     int res = geometry_check_viabltr(techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch, widthclass);
+    lua_pushboolean(L, res);
+    return 1;
+}
+
+static int lgeometry_check_viabltrov(lua_State* L)
+{
+    lcheck_check_numargs1(L, 6, "geometry.check_viabltrov");
+    int metal1 = luaL_checkinteger(L, 1);
+    int metal2 = luaL_checkinteger(L, 2);
+    struct lpoint* bl1 = lpoint_checkpoint(L, 3);
+    struct lpoint* tr1 = lpoint_checkpoint(L, 4);
+    struct lpoint* bl2 = lpoint_checkpoint(L, 5);
+    struct lpoint* tr2 = lpoint_checkpoint(L, 6);
+    _check_rectangle_points(L, bl1, tr1, "geometry.check_viabltrov");
+    _check_rectangle_points(L, bl2, tr2, "geometry.check_viabltrov");
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_check_viabltrov(techstate, metal1, metal2, lpoint_get(bl1), lpoint_get(tr1), lpoint_get(bl2), lpoint_get(tr2));
     lua_pushboolean(L, res);
     return 1;
 }
@@ -1392,6 +1437,57 @@ static int lgeometry_calculate_viabltr(lua_State* L)
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     struct vector* result = geometry_calculate_viabltr(techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), minxspace, minyspace, xcont, ycont, equal_pitch, widthclass);
+    lua_newtable(L);
+    for(unsigned int i = 0; i < vector_size(result); ++i)
+    {
+        lua_newtable(L);
+        struct viaarray* array = vector_get(result, i);
+        lua_pushinteger(L, array->width);
+        lua_setfield(L, -2, "width");
+        lua_pushinteger(L, array->height);
+        lua_setfield(L, -2, "height");
+        lua_pushinteger(L, array->xrep);
+        lua_setfield(L, -2, "xrep");
+        lua_pushinteger(L, array->yrep);
+        lua_setfield(L, -2, "yrep");
+        lua_pushinteger(L, array->xpitch - array->width);
+        lua_setfield(L, -2, "xspace");
+        lua_pushinteger(L, array->ypitch - array->height);
+        lua_setfield(L, -2, "yspace");
+        lua_pushinteger(L, array->xoffset);
+        lua_setfield(L, -2, "xoffset");
+        lua_pushinteger(L, array->yoffset);
+        lua_setfield(L, -2, "yoffset");
+        lua_pushlightuserdata(L, (void*)array->layer);
+        lua_setfield(L, -2, "layer");
+        lua_rawseti(L, -2, i + 1);
+    }
+    vector_destroy(result);
+    return 1;
+}
+
+static int lgeometry_calculate_viabltr2(lua_State* L)
+{
+    lcheck_check_numargs2(L, 8, 9, "geometry.calculate_viabltr");
+    int metal1 = luaL_checkinteger(L, 1);
+    int metal2 = luaL_checkinteger(L, 2);
+    struct lpoint* bl1 = lpoint_checkpoint(L, 3);
+    struct lpoint* tr1 = lpoint_checkpoint(L, 4);
+    struct lpoint* bl2 = lpoint_checkpoint(L, 5);
+    struct lpoint* tr2 = lpoint_checkpoint(L, 6);
+    _check_rectangle_points(L, bl1, tr1, "geometry.calculate_viabltr2");
+    _check_rectangle_points(L, bl2, tr2, "geometry.calculate_viabltr2");
+    coordinate_t minxspace = luaL_checkinteger(L, 7);
+    coordinate_t minyspace = luaL_checkinteger(L, 8);
+    int xcont = 0;
+    int ycont = 0;
+    int equal_pitch = 0;
+    coordinate_t widthclass = 0;
+    _get_viacontact_properties(L, 9, &xcont, &ycont, NULL, NULL, &equal_pitch, &widthclass);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    struct vector* result = geometry_calculate_viabltr2(techstate, metal1, metal2, lpoint_get(bl1), lpoint_get(tr1), lpoint_get(bl2), lpoint_get(tr2), minxspace, minyspace, widthclass);
     lua_newtable(L);
     for(unsigned int i = 0; i < vector_size(result); ++i)
     {
@@ -1522,6 +1618,67 @@ static int lgeometry_viabltrov(lua_State* L)
     return 0;
 }
 
+static int lgeometry_viabltr2(lua_State* L)
+{
+    lcheck_check_numargs2(L, 7, 8, "geometry.viabltr2");
+    struct lobject* cell = lobject_check(L, 1);
+    int metal1 = luaL_checkinteger(L, 2);
+    int metal2 = luaL_checkinteger(L, 3);
+    struct lpoint* bl1 = lpoint_checkpoint(L, 4);
+    struct lpoint* tr1 = lpoint_checkpoint(L, 5);
+    struct lpoint* bl2 = lpoint_checkpoint(L, 6);
+    struct lpoint* tr2 = lpoint_checkpoint(L, 7);
+    const char* debugstring = lua_tostring(L, 8);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushfstring(L, "geometry.viabltr2 called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_error(L);
+    }
+#endif
+    _check_rectangle_points(L, bl1, tr1, "geometry.viabltr2");
+    _check_rectangle_points(L, bl2, tr2, "geometry.viabltr2");
+    int xcont = 0;
+    int ycont = 0;
+    coordinate_t minxspace = 0;
+    coordinate_t minyspace = 0;
+    int equal_pitch = 0;
+    coordinate_t widthclass = 0;
+    _get_viacontact_properties(L, 9, &xcont, &ycont, &minxspace, &minyspace, &equal_pitch, &widthclass);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_viabltr2(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl1), lpoint_get(tr1), lpoint_get(bl2), lpoint_get(tr2), 0);
+    if(!res)
+    {
+        if(debugstring)
+        {
+            lua_pushfstring(L, "geometry.viabltr2: could not fit via from metal %d to metal %d. Areas: (%d, %d)/(%d, %d) and (%d, %d)/(%d, %d)\ndebug info: %s (object: \"%s\")",
+                metal1, metal2,
+                lpoint_get(bl1)->x, lpoint_get(bl1)->y,
+                lpoint_get(tr1)->x, lpoint_get(tr1)->y,
+                lpoint_get(bl2)->x, lpoint_get(bl2)->y,
+                lpoint_get(tr2)->x, lpoint_get(tr2)->y,
+                debugstring,
+                object_get_name(lobject_get_const(cell))
+            );
+        }
+        else
+        {
+            lua_pushfstring(L, "geometry.viabltr2: could not fit via from metal %d to metal %d. Areas: (%d, %d)/(%d, %d) and (%d, %d)/(%d, %d) (object: \"%s\")",
+                metal1, metal2,
+                lpoint_get(bl1)->x, lpoint_get(bl1)->y,
+                lpoint_get(tr1)->x, lpoint_get(tr1)->y,
+                lpoint_get(bl2)->x, lpoint_get(bl2)->y,
+                lpoint_get(tr2)->x, lpoint_get(tr2)->y,
+                object_get_name(lobject_get_const(cell))
+            );
+        }
+        lua_error(L);
+    }
+    return 0;
+}
+
 static int lgeometry_viabarebltr(lua_State* L)
 {
     lcheck_check_numargs_range(L, 5, 7, "geometry.viabarebltr");
@@ -1534,7 +1691,7 @@ static int lgeometry_viabarebltr(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabarebltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabarebltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1597,7 +1754,7 @@ static int lgeometry_viabarebltrov(lua_State* L)
     {
         if(debugstring)
         {
-            lua_pushfstring(L, "geometry.viabarebltrov: could not fit via from metal %d to metal %d. Areas: (%d, %d)/(%d, %d) and (%d, %d)/(%d, %d)\ndebug info: %s (object: \"%s\")",
+            lua_pushfstring(L, "geometry.viabarebltrov: could not fit via from metal %d to metal %d. areas: (%d, %d)/(%d, %d) and (%d, %d)/(%d, %d)\ndebug info: %s (object: \"%s\")",
                 metal1, metal2,
                 lpoint_get(bl1)->x, lpoint_get(bl1)->y,
                 lpoint_get(tr1)->x, lpoint_get(tr1)->y,
@@ -1609,7 +1766,61 @@ static int lgeometry_viabarebltrov(lua_State* L)
         }
         else
         {
-            lua_pushfstring(L, "geometry.viabarebltrov: could not fit via from metal %d to metal %d. Areas: (%d, %d)/(%d, %d) and (%d, %d)/(%d, %d) (object: \"%s\")",
+            lua_pushfstring(L, "geometry.viabarebltrov: could not fit via from metal %d to metal %d. areas: (%d, %d)/(%d, %d) and (%d, %d)/(%d, %d) (object: \"%s\")",
+                metal1, metal2,
+                lpoint_get(bl1)->x, lpoint_get(bl1)->y,
+                lpoint_get(tr1)->x, lpoint_get(tr1)->y,
+                lpoint_get(bl2)->x, lpoint_get(bl2)->y,
+                lpoint_get(tr2)->x, lpoint_get(tr2)->y,
+                object_get_name(lobject_get_const(cell))
+            );
+        }
+        lua_error(L);
+    }
+    return 0;
+}
+
+static int lgeometry_viabarebltr2(lua_State* L)
+{
+    lcheck_check_numargs2(L, 7, 8, "geometry.viabarebltr2");
+    struct lobject* cell = lobject_check(L, 1);
+    int metal1 = luaL_checkinteger(L, 2);
+    int metal2 = luaL_checkinteger(L, 3);
+    struct lpoint* bl1 = lpoint_checkpoint(L, 4);
+    struct lpoint* tr1 = lpoint_checkpoint(L, 5);
+    struct lpoint* bl2 = lpoint_checkpoint(L, 6);
+    struct lpoint* tr2 = lpoint_checkpoint(L, 7);
+    const char* debugstring = lua_tostring(L, 8);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushfstring(L, "geometry.viabarebltr2 called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_error(L);
+    }
+#endif
+    _check_rectangle_points(L, bl1, tr1, "geometry.viabarebltr2");
+    _check_rectangle_points(L, bl2, tr2, "geometry.viabarebltr2");
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_viabarebltr2(lobject_get_full(L, cell), techstate, metal1, metal2, lpoint_get(bl1), lpoint_get(tr1), lpoint_get(bl2), lpoint_get(tr2), 0);
+    if(!res)
+    {
+        if(debugstring)
+        {
+            lua_pushfstring(L, "geometry.viabarebltr2: could not fit via from metal %d to metal %d. areas: (%d, %d)/(%d, %d) and (%d, %d)/(%d, %d)\ndebug info: %s (object: \"%s\")",
+                metal1, metal2,
+                lpoint_get(bl1)->x, lpoint_get(bl1)->y,
+                lpoint_get(tr1)->x, lpoint_get(tr1)->y,
+                lpoint_get(bl2)->x, lpoint_get(bl2)->y,
+                lpoint_get(tr2)->x, lpoint_get(tr2)->y,
+                debugstring,
+                object_get_name(lobject_get_const(cell))
+            );
+        }
+        else
+        {
+            lua_pushfstring(L, "geometry.viabarebltr2: could not fit via from metal %d to metal %d. areas: (%d, %d)/(%d, %d) and (%d, %d)/(%d, %d) (object: \"%s\")",
                 metal1, metal2,
                 lpoint_get(bl1)->x, lpoint_get(bl1)->y,
                 lpoint_get(tr1)->x, lpoint_get(tr1)->y,
@@ -1635,7 +1846,7 @@ static int lgeometry_viapoints(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viapoints called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viapoints called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1685,7 +1896,7 @@ static int lgeometry_viabltr_xcontinuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabltr_xcontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabltr_xcontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1732,7 +1943,7 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabltr_ycontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabltr_ycontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1779,7 +1990,7 @@ static int lgeometry_viabltr_continuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabltr_continuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabltr_continuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1826,7 +2037,7 @@ static int lgeometry_viabarebltr_xcontinuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabarebltr_xcontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabarebltr_xcontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1872,7 +2083,7 @@ static int lgeometry_viabarebltr_ycontinuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabarebltr_ycontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabarebltr_ycontinuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1918,7 +2129,7 @@ static int lgeometry_viabarebltr_continuous(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.viabarebltr_continuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.viabarebltr_continuous called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -1963,7 +2174,7 @@ static int lgeometry_contactbltr(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.contactbltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.contactbltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -2016,7 +2227,7 @@ static int lgeometry_contactbltrov(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.contactbltrov called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.contactbltrov called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -2064,13 +2275,13 @@ static int lgeometry_contactbltr2(lua_State* L)
     struct lpoint* tr1 = lpoint_checkpoint(L, 4);
     struct lpoint* bl2 = lpoint_checkpoint(L, 5);
     struct lpoint* tr2 = lpoint_checkpoint(L, 6);
-    _check_rectangle_points(L, bl1, tr1, "geometry.contactbltr1");
+    _check_rectangle_points(L, bl1, tr1, "geometry.contactbltr2");
     _check_rectangle_points(L, bl2, tr2, "geometry.contactbltr2");
     const char* debugstring = lua_tostring(L, 7);
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.contactbltr2 called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.contactbltr2 called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -2107,6 +2318,7 @@ static int lgeometry_contactbltr2(lua_State* L)
     }
     return 0;
 }
+
 static int lgeometry_contactbarebltr(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -2118,7 +2330,7 @@ static int lgeometry_contactbarebltr(lua_State* L)
 #ifdef OPC_LINT
     if(!debugstring)
     {
-        lua_pushstring(L, "geometry.contactbarebltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_pushfstring(L, "geometry.contactbarebltr called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
         lua_error(L);
     }
 #endif
@@ -2154,6 +2366,58 @@ static int lgeometry_contactbarebltr(lua_State* L)
         else
         {
             lua_pushfstring(L, "geometry.contactbarebltr: could not fit contact from %s to metal 1. Area: %d x %d (object: \"%s\")", region, trx - blx, try - bly, object_get_name(lobject_get_const(cell)));
+        }
+        lua_error(L);
+    }
+    return 0;
+}
+
+static int lgeometry_contactbarebltr2(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* region = luaL_checkstring(L, 2);
+    struct lpoint* bl1 = lpoint_checkpoint(L, 3);
+    struct lpoint* tr1 = lpoint_checkpoint(L, 4);
+    struct lpoint* bl2 = lpoint_checkpoint(L, 5);
+    struct lpoint* tr2 = lpoint_checkpoint(L, 6);
+    _check_rectangle_points(L, bl1, tr1, "geometry.contactbarebltr2");
+    _check_rectangle_points(L, bl2, tr2, "geometry.contactbarebltr2");
+    const char* debugstring = lua_tostring(L, 7);
+#ifdef OPC_LINT
+    if(!debugstring)
+    {
+        lua_pushfstring(L, "geometry.contactbarebltr2 called without debug string (object: \"%s\")", object_get_name(lobject_get_const(cell)));
+        lua_error(L);
+    }
+#endif
+    coordinate_t minxspace = 0;
+    coordinate_t minyspace = 0;
+    coordinate_t widthclass = 0;
+    _get_viacontact_properties(L, 8, NULL, NULL, &minxspace, &minyspace, NULL, &widthclass);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_contactbarebltr2(
+        lobject_get_full(L, cell),
+        techstate,
+        region,
+        lpoint_get(bl1), lpoint_get(tr1),
+        lpoint_get(bl2), lpoint_get(tr2),
+        widthclass
+    );
+    if(!res)
+    {
+        const struct point* blp1 = lpoint_get(bl1);
+        const struct point* trp1 = lpoint_get(tr1);
+        const struct point* blp2 = lpoint_get(bl2);
+        const struct point* trp2 = lpoint_get(tr2);
+        if(debugstring)
+        {
+            lua_pushfstring(L, "geometry.contactbarebltr2: could not fit contact from %s to metal 1 (width1 = %d, height1 = %d, width2 = %d, height2 = %d)\ndebug info: %s (object: \"%s\")", region, trp1->x - blp1->x, trp1->y - blp1->y, trp2->x - blp2->x, trp2->y - blp2->y, debugstring, object_get_name(lobject_get_const(cell)));
+        }
+        else
+        {
+            lua_pushfstring(L, "geometry.contactbarebltr2: could not fit contact from %s to metal 1 (width1 = %d, height1 = %d, width2 = %d, height2 = %d) (object: \"%s\")", region, trp1->x - blp1->x, trp1->y - blp1->y, trp2->x - blp2->x, trp2->y - blp2->y, object_get_name(lobject_get_const(cell)));
         }
         lua_error(L);
     }
@@ -2351,7 +2615,7 @@ static int lgeometry_get_side_path_points(lua_State* L)
     lcheck_check_numargs1(L, 2, "geometry.get_side_path_points");
     if(!lua_istable(L, 1))
     {
-        lua_pushstring(L, "geometry.get_side_path_points: list of points (first argument) is not a table");
+        lua_pushfstring(L, "geometry.get_side_path_points: list of points (first argument) is not a table");
         lua_error(L);
     }
     lua_len(L, 1);
@@ -2566,11 +2830,15 @@ int open_lgeometry_lib(lua_State* L)
         { "path_points_xy",                             lgeometry_path_points_xy                                        },
         { "path_points_yx",                             lgeometry_path_points_yx                                        },
         { "check_viabltr",                              lgeometry_check_viabltr                                         },
+        { "check_viabltrov",                            lgeometry_check_viabltrov                                       },
         { "calculate_viabltr",                          lgeometry_calculate_viabltr                                     },
+        { "calculate_viabltr2",                         lgeometry_calculate_viabltr2                                    },
         { "viabltr",                                    lgeometry_viabltr                                               },
         { "viabltrov",                                  lgeometry_viabltrov                                             },
+        { "viabltr2",                                   lgeometry_viabltr2                                              },
         { "viabarebltr",                                lgeometry_viabarebltr                                           },
         { "viabarebltrov",                              lgeometry_viabarebltrov                                         },
+        { "viabarebltr2",                               lgeometry_viabarebltr2                                          },
         { "viapoints",                                  lgeometry_viapoints                                             },
         { "viabltr_xcontinuous",                        lgeometry_viabltr_xcontinuous                                   },
         { "viabltr_ycontinuous",                        lgeometry_viabltr_ycontinuous                                   },
@@ -2581,6 +2849,7 @@ int open_lgeometry_lib(lua_State* L)
         { "contactbltr",                                lgeometry_contactbltr                                           },
         { "contactbltrov",                              lgeometry_contactbltrov                                         },
         { "contactbltr2",                               lgeometry_contactbltr2                                          },
+        { "contactbarebltr2",                           lgeometry_contactbarebltr2                                      },
         { "contactbarebltr",                            lgeometry_contactbarebltr                                       },
         { "cross",                                      lgeometry_cross                                                 },
         { "ring",                                       lgeometry_ring                                                  },

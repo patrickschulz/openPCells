@@ -4,10 +4,10 @@
 struct tagged_value;
 
 struct tagged_value* tagged_value_copy(const struct tagged_value* v);
-struct tagged_value* tagged_value_create_integer(int value);
-struct tagged_value* tagged_value_create_number(double value);
-struct tagged_value* tagged_value_create_string(const char* value);
-struct tagged_value* tagged_value_create_boolean(int value);
+struct tagged_value* tagged_value_create_integer(int i);
+struct tagged_value* tagged_value_create_number(double d);
+struct tagged_value* tagged_value_create_string(const char* str);
+struct tagged_value* tagged_value_create_boolean(int b);
 void tagged_value_destroy(void*);
 
 void tagged_value_print(const struct tagged_value* v);

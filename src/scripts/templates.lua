@@ -6,24 +6,19 @@ local template_lookup = {
     flippedwell = false,
     vthtype = 1,
     oxidetype = 1,
-    gatelength = 100,
-    gatespace = 100,
+    gatelength = ...,
+    gatespace = ...,
     fingerwidth = 1000,
     fingers = 8,
-    sdwidth = 60,
     drawtopgate = true,
-    topgatewidth = 50,
-    topgatespace = 50,
-    sourcemetal = 1,
     connectsource = true,
-    connectsourcewidth = 200,
-    connectsourcespace = 100,
-    drainmetal = 3,
+    sourcemetal = 1,
     connectdrain = true,
-    connectdrainwidth = 80,
-    connectdrainspace = 80,
-    extendall = 100,
-})]],
+    drainmetal = 3,
+    drawguardring = true,
+})
+
+return mosfet]],
 
     ["basic/cmos"] =
 [[local cmos = pcell.create_layout("basic/cmos", "_cmos", {
@@ -53,7 +48,9 @@ local template_lookup = {
     extendallbottom = 0,
     extendallleft = 0,
     extendallright = 0,
-})]],
+})
+
+return ]],
 
     ["auxiliary/guardring"] =
 [[local guardring = pcell.create_layout("auxiliary/guardring", "_guardring", {
@@ -79,7 +76,9 @@ local template_lookup = {
     fillinnerimplant = true,
     innerimplantpolarity = "n", -- can be opposite than the main guardring type
     innerimplantspace = 0, -- abutted to the outer implant, but a gap can be introduced
-})]],
+})
+
+return guardring]],
 
     ["basic/stacked_mosfet_array"] =
 [[local row1 = {
@@ -112,7 +111,9 @@ local rows = {
 local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     rows = rows,
     separation = 500,
-})]],
+})
+
+return array]],
 
     ["basic/polyresistor"] =
 [[local resistor = pcell.create_layout("basic/polyresistor", "_resistor", {
@@ -129,7 +130,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     extendlvsmarkerx = 20,
     extendlvsmarkery = 20,
     contactheight = 200,
-})]],
+})
+
+return resistor]],
 
     ["auxiliary/metalgrid"] =
 [[local metalgrid = pcell.create_layout("auxiliary/metalgrid", "_grid", {
@@ -141,10 +144,12 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     mvspace = 500,
     mhlines = 2,
     mvlines = 2,
-})]],
+})
+
+return metalgrid]],
 
     ["passive/capacitor/mom"] =
-[[local metalgrid = pcell.create_layout("passive/capacitor/mom", "_momcap", {
+[[local capacitor = pcell.create_layout("passive/capacitor/mom", "_momcap", {
         fingers = 4,
         fingerwidth = 100,
         fingerspace = 100,
@@ -153,7 +158,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
         railwidth = 100,
         firstmetal = 1,
         lastmetal = 2,
-})]],
+})
+
+return capacitor]],
 
     ["passive/inductor/octagonal"] =
 [[local inductor = pcell.create_layout("passive/inductor/octagonal", "_inductor", {
@@ -168,7 +175,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     viaoverlapextension = 0,
     extsep = 6000,
     allow45 = true,
-})]],
+})
+
+return inductor]],
     ["basic/ldmos"] =
 [[local ldmos = pcell.create_layout("basic/ldmos", "_ldmos", {
     fingers = 4,
@@ -191,7 +200,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     guardringbottomsep = 200,
     guardringleftsep = 200,
     guardringrightsep = 200,
-})]],
+})
+
+return ldmos]],
 
     ["auxiliary/welltap"] =
 [[local welltap = pcell.create_layout("auxiliary/welltap", "_welltap", {
@@ -200,69 +211,162 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     height = 5000,
     extendall = 50, -- more fine-grained variants exist for left/right/top/bottom
                     -- also individual parameters for implant/well/soiopen
-})]],
+})
+
+return welltap]],
 
     ["analog/common_centroid"] =
 [[local cc = pcell.create_layout("analog/common_centroid", "_common_centroid", {
-    pattern = { { 1, 2, 2, 1 }, { 2, 1, 1, 2} },
+    pattern = {
+        { 1, 2, 2, 1 },
+        { 2, 1, 1, 2}
+    },
     channeltype = "pmos",
     vthtype = 1,
     oxidetype = 1,
     flippedwell = false,
     fingerwidth = 2500,
-    gatelength = 500,
-    gatespace = 160,
-    gatemetal = 2,
-    drainmetal = 3,
-    interconnectmetal = 4,
-    outputmetal = 3,
-    sourcemetal = 5,
-    sdwidth = 70,
+    gatelength = ...,
+    gatespace = ...,
+    gatemetal = 1,
+    gatelinemetal = 2,
+    sourcemetal = 1,
+    drainmetal = 1,
+    interconnectmetal = 3,
     fingers = 4,
-    viaoffset = 1000,
-    gatestrapwidth = 70,
-    gatestrapspace = 70,
-    gatestrapleftext = 0,
-    gatestraprightext = 0,
-    gatelinewidth = 100,
-    gatelinespace = 100,
-    gatelineviawidth = 100,
-    gatelineviapitch = 200,
-    gateviawidth = 100,
-    interconnectlinewidth = 100,
-    interconnectlinespace = 100,
-    interconnectviawidth = 100,
-    interconnectviapitch = 200,
-    outputlinewidth = 100,
-    outputlinespace = 100,
-    outputviawidth = 200,
-    outputlinetopextend = 0,
-    outputlinebotextend = 0,
-    outputlinesonlyincenter = false,
-    outputlinesovereverydevice = false,
-    outputlinesonelineperdevice = false,
-    gateconnwidth = 70,
-    sourcedrainstrapwidth = 100,
-    sourcedrainstrapspace = 100,
-    equalgatenets = false,
-    shortgates = false,
-    gatestrapsincenter = false,
-    connectgatesonbothsides = false,
-    innerdummies = 2,
-    outerdummies = 2,
-    outerdummygatelength = 500,
-    connectdummygatestoactive = false,
-    connectdummies = true,
-    connectdummysources = true,
-    connectdummiestointernalnet = false,
-    innerdummiesasdiode = false,
-    outerdummiesasdiode = false,
-    interoutputvias = topdown,
-    extendalltop = 0,
-    extendallbottom = 0,
-    extendallleft = 0,
-    extendallright = 0,
-})]],
+    gatelinewidth = 1000,
+    interconnectlinewidth = 1000,
+    outputlinewidth = 1000,
+    equalsourcenets = true,
+    equalgatenets = true,
+    shortdummies = true,
+    usegloballines = true,
+    globallines = {
+        { pin = \"source\", net = 1 },
+        { pin = \"drain\", net = 1 },
+        { pin = \"drain\", net = 2 },
+        { pin = \"gate\", net = 1 },
+    },
+})
+
+return cc]],
+
+    ["analog/circuit"] =
+[[local devicebases = {
+    ["M0base"] = {
+        channeltype = "nmos",
+        gatelength = 200,
+        gatespace = 200,
+        fingerwidth = 1000,
+    },
+}
+
+local devices = {
+    {
+        name = "M0",
+        base = "M0base",
+        -- in-group position
+        x = 1,
+        y = 1,
+        nets = {
+            drain = "net1",
+            gate = "net2",
+            source = "net3",
+            bulk = "net4",
+        },
+        parameters = {
+            fingers = 4,
+        },
+    },
+    {
+        name = "M1",
+        base = "M0base",
+        -- in-group position
+        x = 1,
+        y = 2,
+        nets = {
+            drain = "net1",
+            gate = "net2",
+            source = "net3",
+            bulk = "net4",
+        },
+        parameters = {
+            fingers = 8,
+        },
+    },
+}
+
+local devicegroups = {
+    {
+        name = "group_1",
+        devices = { "M0", "M1" },
+        x = 1,
+        y = 1,
+    },
+}
+
+local vlines = {
+    {
+        group = "group_1",
+        net = "net1",
+        xgrid = 1,
+        xline = 2,
+        ygridstart = 1,
+        ygridend = 2,
+        ylinestart = 0,
+        ylineend = 0,
+    },
+    {
+        group = "group_1",
+        net = "net1",
+        xgrid = 1,
+        xline = -2,
+        ygridstart = 1,
+        ygridend = 2,
+        ylinestart = 0,
+        ylineend = 0,
+    },
+}
+
+local hlines = {
+    {
+        group = "group_1",
+        net = "net1",
+        ygrid = 1,
+        yline = 2,
+        xgridstart = 1,
+        xgridend = 1,
+        xlinestart = -2,
+        xlineend = 2,
+    },
+    {
+        group = "group_1",
+        net = "net1",
+        ygrid = 2,
+        yline = 0,
+        xgridstart = 1,
+        xgridend = 1,
+        xlinestart = -2,
+        xlineend = 2,
+    },
+}
+
+local interconnectlinewidth = 100
+local interconnectlinespace = 100
+local circuit = pcell.create_layout("analog/circuit", "circuit", {
+    devicebases = devicebases,
+    devices = devices,
+    devicegroups = devicegroups,
+    interconnectlinewidth = interconnectlinewidth,
+    interconnectlinespace = interconnectlinespace,
+    vlines = vlines,
+    hlines = hlines,
+    -- for development/debugging
+    allow_failed_grid_connections = true,
+    check_grid_connections = false,
+})
+
+return circuit]],
 
     ["analog/inverter"] =
 [[local inverter = pcell.create_layout("analog/inverter", "_inverter", {
@@ -297,7 +401,9 @@ local array = pcell.create_layout("basic/stacked_mosfet_array", "_array", {
     nmoswelltapwidth = 200,
     nmoswelltapspace = 800,
     --nmoswelltap{implant|soiopen|well}{left|right|top|bottom}extension = xxx,
-})]],
+})
+
+return inverter]],
 
 }
 

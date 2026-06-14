@@ -1,18 +1,31 @@
+function info()
+    local lines = {
+        "This cell constructs a simple padring (only the top-metal pads, not ESD structures, no supply rings). It is designed mainly for planning purposes.",
+        "The pads are configured by specifying four sides: left, right, top and bottom.",
+        "The pad specification (e.g. 'leftpads') should be a table where every entry identifies one pad type.",
+        "The possible types are 'P' (power pads/general purpose pads), 'G' (ground pads for RF structures such as GSG) and 'S' (signal pads for RF structures such as GSG).",
+        "The sizes of the pads can then be cofigured with the corresponding P/G/S parameters, for instance for 'P' pads there are 'Ppadwidth' and 'Ppadheight'.",
+        "The distance between the pads is defined by their size and the 'padpitch', so this cell assumes equal-pitch placement for all pads.",
+        "The pads can also be named by setting 'usepadnames' to 'true' and supplying the 'leftpadnames', 'rightpadnames', 'toppadnames', and 'bottompadnames'.",
+    }
+    return table.concat(lines, "\n")
+end
+
 function parameters()
     pcell.add_parameters(
         { "padpitch", 100000 },
-        { "leftpads", { "P" }, },
-        { "leftpadnames", { "_" }, },
-        { "rightpads", { "P" }, },
-        { "rightpadnames", { "_" }, },
-        { "toppads", { "P" }, },
-        { "toppadnames", { "_" }, },
-        { "bottompads", { "P" }, },
-        { "bottompadnames", { "_" }, },
-        { "leftoffset", 200000 },
-        { "rightoffset", 200000 },
-        { "topoffset", 200000 },
-        { "bottomoffset", 200000 },
+        { "leftpads", { "P", "P", "P", "P", "P", "P", "P", "P", }, },
+        { "leftpadnames", { "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", }, },
+        { "rightpads", { "P", "P", "P", "P", "P", "P", "P", "P", }, },
+        { "rightpadnames", { "P17", "P18", "P19", "P20", "P21", "P22", "P23", "P24", }, },
+        { "toppads", { "P", "P", "P", "P", "P", "P", "P", "P", }, },
+        { "toppadnames", { "P9", "P10", "P11", "P12", "P13", "P14", "P15", "P16", }, },
+        { "bottompads", { "P", "P", "P", "P", "P", "P", "P", "P", }, },
+        { "bottompadnames", { "P25", "P26", "P27", "P28", "P29", "P30", "P31", "P32", }, },
+        { "leftoffset", 0 },
+        { "rightoffset", 0 },
+        { "topoffset", 0 },
+        { "bottomoffset", 0 },
         { "labelsizehint", 10000 },
         { "Spadwidth", 50000 },
         { "Spadheight", 54000 },
@@ -26,7 +39,7 @@ function parameters()
         { "Ppadheight", 80000 },
         { "Ppadopeningxoffset", 5000 },
         { "Ppadopeningyoffset", 5000 },
-        { "usepadnames", true }
+        { "usepadnames", false }
     )
 end
 
@@ -67,7 +80,8 @@ function layout(padring, _P)
         Ppadopeningxoffset = _P.Ppadopeningxoffset,
         Ppadopeningyoffset = _P.Ppadopeningyoffset,
     })
-    left:translate_x(-_P.leftoffset)
+    local leftoffset = -math.max(#_P.toppads, #_P.bottompads + 1) * _P.padpitch / 2
+    left:translate_x(leftoffset - _P.leftoffset)
     padring:merge_into_with_ports(left)
     if _P.usepadnames then
         for _, padname in ipairs(_P.leftpadnames) do
@@ -101,7 +115,8 @@ function layout(padring, _P)
         Ppadopeningxoffset = _P.Ppadopeningxoffset,
         Ppadopeningyoffset = _P.Ppadopeningyoffset,
     })
-    right:translate_x(_P.rightoffset)
+    local rightoffset = math.max(#_P.toppads, #_P.bottompads + 1) * _P.padpitch / 2
+    right:translate_x(rightoffset + _P.rightoffset)
     padring:merge_into_with_ports(right)
     if _P.usepadnames then
         for _, padname in ipairs(_P.rightpadnames) do
@@ -136,7 +151,8 @@ function layout(padring, _P)
         Ppadopeningxoffset = _P.Ppadopeningxoffset,
         Ppadopeningyoffset = _P.Ppadopeningyoffset,
     })
-    top:translate_y(_P.topoffset)
+    local topoffset = math.max(#_P.leftpads, #_P.rightpads + 1) * _P.padpitch / 2
+    top:translate_y(topoffset + _P.topoffset)
     padring:merge_into_with_ports(top)
     if _P.usepadnames then
         for _, padname in ipairs(_P.toppadnames) do
@@ -170,7 +186,8 @@ function layout(padring, _P)
         Ppadopeningxoffset = _P.Ppadopeningxoffset,
         Ppadopeningyoffset = _P.Ppadopeningyoffset,
     })
-    bottom:translate_y(-_P.bottomoffset)
+    local bottomoffset = -math.max(#_P.leftpads, #_P.rightpads + 1) * _P.padpitch / 2
+    bottom:translate_y(bottomoffset - _P.bottomoffset)
     padring:merge_into_with_ports(bottom)
     if _P.usepadnames then
         for _, padname in ipairs(_P.bottompadnames) do

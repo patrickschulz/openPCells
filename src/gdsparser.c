@@ -8,6 +8,8 @@
 
 #include "lua/lauxlib.h"
 
+#include "_modulemanager.h"
+
 #include "filesystem.h"
 #include "hashmap.h"
 #include "helpers.h"
@@ -17,8 +19,9 @@
 #include "util.h"
 #include "vector.h"
 
-enum datatypes
-{
+#include "timeperf.h"
+
+enum datatypes {
     NONE                = 0x00,
     BIT_ARRAY           = 0x01,
     TWO_BYTE_INTEGER    = 0x02,
@@ -108,6 +111,11 @@ static struct record* _get_next_record(struct stream* stream)
     return stream->records + stream->index - 1;
 }
 
+static void _reset_stream(struct stream* stream)
+{
+    stream->index = 0;
+}
+
 static int _read_raw_stream_noerror(const char* filename, struct stream** stream, long* errorbyte)
 {
     FILE* file = fopen(filename, "r");
@@ -149,6 +157,7 @@ static int _read_raw_stream_noerror(const char* filename, struct stream** stream
 
 static struct stream* _read_raw_stream(const char* filename)
 {
+    TIMEPERF_START();
     struct stream* stream = NULL;
     long errorbyte = 0;
     int status = _read_raw_stream_noerror(filename, &stream, &errorbyte);
@@ -161,6 +170,7 @@ static struct stream* _read_raw_stream(const char* filename)
         }
         return NULL;
     }
+    TIMEPERF_STOP();
     return stream;
 }
 
@@ -311,15 +321,10 @@ void _destroy_hierarchy_cellref(void* v)
     free(cell);
 }
 
-static struct vector* _read_cells(const char* filename)
+static struct vector* _read_cells(struct stream* stream)
 {
+    TIMEPERF_START();
     struct vector* cells = vector_create(1, _destroy_hierarchy_cellref);
-    struct stream* stream = _read_raw_stream(filename);
-    if(!stream)
-    {
-        return cells;
-    }
-
     struct hierarchy_cellref* cell = NULL;
     int isobj = 0;
     char* objname = NULL;
@@ -329,7 +334,6 @@ static struct vector* _read_cells(const char* filename)
         if(!record)
         {
             puts("gdsparser: end of stream before ENDLIB");
-            _destroy_stream(stream);
             return NULL;
         }
         else if(record->recordtype == BGNSTR)
@@ -366,7 +370,7 @@ static struct vector* _read_cells(const char* filename)
             break;
         }
     }
-    _destroy_stream(stream);
+    TIMEPERF_STOP();
     return cells;
 }
 
@@ -420,6 +424,7 @@ static int _is_not_referenced(const char* name, struct const_vector* referenced)
 
 static struct const_vector* _get_toplevel_cells(struct vector* cells)
 {
+    TIMEPERF_START();
     struct vector_iterator* it;
 
     struct const_vector* referenced = const_vector_create(1);
@@ -456,6 +461,7 @@ static struct const_vector* _get_toplevel_cells(struct vector* cells)
 
     const_vector_destroy(referenced);
 
+    TIMEPERF_STOP();
     return toplevelcells;
 }
 
@@ -511,7 +517,8 @@ static struct vector* _resolve_hierarchy(struct vector* cells)
 void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
 {
     // FIXME: error handling
-    struct vector* cells = _read_cells(filename);
+    struct stream* stream = _read_raw_stream(filename);
+    struct vector* cells = _read_cells(stream);
     struct vector* tree = _resolve_hierarchy(cells);
     struct vector_iterator* it = vector_iterator_create(tree);
     while(vector_iterator_is_valid(it))
@@ -527,7 +534,6 @@ void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
                 putchar(' ');
             }
             puts(element->name);
-            putchar('\n');
         }
         vector_iterator_next(it);
     }
@@ -858,14 +864,20 @@ static void _destroy_mapping(void* v)
     free(mapping);
 }
 
-struct vector* gdsparser_create_layermap(const char* filename)
+struct vector* gdsparser_create_layermap(struct technology_state* techstate)
 {
-    if(!filename)
+    if(!techstate)
     {
         return NULL;
     }
-    lua_State* L = util_create_minimal_lua_state();
-    int ret = luaL_dofile(L, filename);
+    lua_State* L = util_create_basic_lua_state();
+    module_load_tools(L);
+    // call tools.reverse_layermap
+    lua_getglobal(L, "tools");
+    lua_getfield(L, -1, "reverse_layermap");
+    technology_push_layermap_table(L, techstate);
+    lua_pushstring(L, "gds"); // target export
+    int ret = lua_pcall(L, 2, 1, 0);
     if(ret != LUA_OK)
     {
         const char* msg = lua_tostring(L, -1);
@@ -922,6 +934,7 @@ struct vector* gdsparser_create_layermap(const char* filename)
 
         vector_append(map, layermapping);
     }
+    lua_pop(L, 1); // pop "tools" module table
     lua_close(L);
     return map;
 }
@@ -1512,17 +1525,20 @@ static int _read_structure(
             char* cellname = _parse_string(record->data, record->length - 4);
             if(!cellname)
             {
+                puts("gdsparser: could not parse/create cell name string");
                 return 0;
             }
             size_t len = strlen(libname) + strlen(importname) + strlen(cellname) + 6; // +2: 2 * '/' + ".lua"
             char* path = malloc(len + 1);
             snprintf(path, len + 1, "%s/%s/%s.lua", libname, importname, cellname);
             cellfile = fopen(path, "w");
-            free(path);
             if(!cellfile)
             {
+                printf("gdsparser: could not open cell file '%s'\n", path);
+                free(path);
                 return 0;
             }
+            free(path);
             if(_is_toplevel(cellname, toplevelcells))
             {
                 fputs("function layout(cell)\n", cellfile);
@@ -1530,8 +1546,8 @@ static int _read_structure(
                 struct const_vector_iterator* it = const_vector_iterator_create(cellnames);
                 while(const_vector_iterator_is_valid(it))
                 {
-                    const char* cellname = const_vector_iterator_get(it);
-                    fprintf(cellfile, "    env.references[\"%s\"] = cell:create_object_handle(pcell.create_layout_env(\"%s/%s\", \"%s\", nil, env))\n", cellname, importname, cellname, cellname); // FIXME: gds has no instance names, is this a problem?
+                    const char* cellrefname = const_vector_iterator_get(it);
+                    fprintf(cellfile, "    env.references[\"%s\"] = cell:create_object_handle(pcell.create_layout_env(\"%s/%s\", \"%s\", nil, env))\n", cellrefname, importname, cellrefname, cellrefname); // FIXME: gds has no instance names, is this a problem?
                     const_vector_iterator_next(it);
                 }
                 const_vector_iterator_destroy(it);
@@ -1566,6 +1582,7 @@ static int _read_structure(
             {
                 free(points);
                 fclose(cellfile);
+                puts("gdsparser: errors while reading BOUNDARY");
                 return 0;
             }
             if(_check_lpp(layer, purpose, ignorelpp))
@@ -1601,6 +1618,7 @@ static int _read_structure(
             if(!_read_PATH(stream, &layer, &purpose, &points, &width, &bgnext, &endext, &type))
             {
                 fclose(cellfile);
+                puts("gdsparser: errors while reading PATH");
                 return 0;
             }
             if(_check_lpp(layer, purpose, ignorelpp))
@@ -1625,6 +1643,7 @@ static int _read_structure(
             if(!success)
             {
                 fclose(cellfile);
+                puts("gdsparser: error while reading TEXT");
                 return 0;
             }
             if(_check_lpp(layer, purpose, ignorelpp))
@@ -1657,6 +1676,7 @@ static int _read_structure(
             else
             {
                 fclose(cellfile);
+                puts("gdsparser: error while reading SREF");
                 return 0;
             }
         }
@@ -1676,6 +1696,7 @@ static int _read_structure(
             else
             {
                 fclose(cellfile);
+                puts("gdsparser: error while reading AREF");
                 return 0;
             }
         }
@@ -1716,12 +1737,13 @@ static void _create_libdir(const char* libname, const char* importname)
     size_t len = strlen(libname) + strlen(importname) + 1; // +1: '/'
     char* path = malloc(len + 1);
     snprintf(path, len + 1, "%s/%s", libname, importname);
-    filesystem_mkdir(path);
+    filesystem_mkdir(path, 0755);
     free(path);
 }
 
 int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
+    TIMEPERF_START();
     // read gds in two passes
     // first: find names of top-level cell and all sub-cells
     // second: parse file and translate all structures
@@ -1730,7 +1752,12 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
 
     // pass 1
     // FIXME: error handling
-    struct vector* cells = _read_cells(filename);
+    struct stream* stream = _read_raw_stream(filename);
+    if(!stream)
+    {
+        return 0;
+    }
+    struct vector* cells = _read_cells(stream);
     struct const_vector* toplevelcells = _get_toplevel_cells(cells);
     /*
     if(const_vector_size(toplevelcells) > 1)
@@ -1755,13 +1782,8 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
     vector_iterator_destroy(it);
 
     // pass 2
-    const char* libname = NULL;
-    struct stream* stream = _read_raw_stream(filename);
-    if(!stream)
-    {
-        return 0;
-    }
-
+    _reset_stream(stream);
+    char* libname = NULL;
     while(1)
     {
         struct record* record = _get_next_record(stream);
@@ -1776,7 +1798,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         }
         if(record->recordtype == LIBNAME)
         {
-            libname = (const char*)record->data;
+            libname = _parse_string(record->data, record->length - 4);
             if(!importname)
             {
                 importname = libname;
@@ -1819,9 +1841,14 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         }
     }
     _destroy_stream(stream);
+    if(libname)
+    {
+        free(libname);
+    }
     vector_destroy(cells);
     const_vector_destroy(cellnames);
     const_vector_destroy(toplevelcells);
+    TIMEPERF_STOP();
     return 1;
 }
 

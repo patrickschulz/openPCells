@@ -7,11 +7,15 @@
  *  in other files (main.XXX.c, e.g. main.cell.c)
  */
 
+#include <errno.h> // open()
 #include <fcntl.h> // open()
-#include <sys/stat.h> // S_IRUSR etc.
+#include <time.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/inotify.h>
+#include <sys/stat.h> // S_IRUSR etc.
 #include <unistd.h>
 
 #include "lua/lua.h"
@@ -26,141 +30,36 @@
 #include "lua_util.h"
 #include "pcell.h"
 #include "tagged_value.h"
+#include "timeperf.h"
 #include "util.h"
 #include "version.h"
 
 #include "main.api_help.h"
 #include "main.assistant.h"
 #include "main.cell.h"
+#include "main.config.h"
 #include "main.functions.h"
 #include "main.gds.h"
 #include "main.import.h"
+#include "main.lua.h"
 #include "main.tutorial.h"
 
 #include "_scriptmanager.h"
 #include "_modulemanager.h"
 
-static int _load_config(struct hashmap* config, struct cmdoptions* cmdoptions, char** msg)
+// global variable for sharing between signal handler and watch function
+int run_watch = 1;
+// signal handler for catching ctrl-c in watch mode
+void handler(int sig)
 {
-    /* prepare config */
-    struct vector* techpaths = vector_create(8, free);
-    hashmap_insert(config, "techpaths", techpaths);
-    struct vector* prepend_cellpaths = vector_create(8, free);
-    hashmap_insert(config, "prepend_cellpaths", prepend_cellpaths);
-    struct vector* append_cellpaths = vector_create(8, free);
-    hashmap_insert(config, "append_cellpaths", append_cellpaths);
-    struct vector* ignoredlayers = vector_create(8, free);
-    hashmap_insert(config, "ignoredlayers", ignoredlayers);
-
-    // set/load technology search paths
-    vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
-    if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
-    {
-        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
-        while(*arg)
-        {
-            vector_append(techpaths, util_strdup(*arg));
-            ++arg;
-        }
-    }
-
-    int no_user_config = cmdoptions_was_provided_long(cmdoptions, "no-user-config");
-    int ret = LUA_OK;
-
-    if(!no_user_config)
-    {
-        const char* home = getenv("HOME");
-        if(!home)
-        {
-            home = ".";
-        }
-        size_t len = strlen(home) + strlen("/.opcconfig.lua");
-        char* filename = malloc(len + 1);
-        snprintf(filename, len + 1, "%s/.opcconfig.lua", home);
-        if(!filesystem_exists(filename))
-        {
-            free(filename);
-            return 1; /* non-existing user config is not an error */
-        }
-        lua_State* L = util_create_basic_lua_state();
-        ret = luaL_dofile(L, filename);
-        free(filename);
-        if(ret == LUA_OK)
-        {
-            /* techpaths */
-            techpaths = hashmap_get(config, "techpaths");
-            lua_getfield(L, -1, "techpaths");
-            if(!lua_isnil(L, -1))
-            {
-                lua_pushnil(L);
-                while(lua_next(L, -2) != 0)
-                {
-                    const char* path = lua_tostring(L, -1);
-                    vector_append(techpaths, util_strdup(path));
-                    lua_pop(L, 1);
-                }
-            }
-            lua_pop(L, 1); // pop techpaths table (or nil)
-            // remove entry
-            lua_pushnil(L);
-            lua_setfield(L, -2, "techpaths");
-
-            // cellpaths
-            prepend_cellpaths = hashmap_get(config, "prepend_cellpaths");
-            lua_getfield(L, -1, "prepend_cellpaths");
-            if(!lua_isnil(L, -1))
-            {
-                lua_pushnil(L);
-                while(lua_next(L, -2) != 0)
-                {
-                    const char* path = lua_tostring(L, -1);
-                    vector_append(prepend_cellpaths, util_strdup(path));
-                    lua_pop(L, 1);
-                }
-            }
-            lua_pop(L, 1); // pop prepend_cellpaths table (or nil)
-            // remove entry
-            lua_pushnil(L);
-            lua_setfield(L, -2, "prepend_cellpaths");
-
-            append_cellpaths = hashmap_get(config, "append_cellpaths");
-            lua_getfield(L, -1, "append_cellpaths");
-            if(!lua_isnil(L, -1))
-            {
-                lua_pushnil(L);
-                while(lua_next(L, -2) != 0)
-                {
-                    const char* path = lua_tostring(L, -1);
-                    vector_append(append_cellpaths, util_strdup(path));
-                    lua_pop(L, 1);
-                }
-            }
-            lua_pop(L, 1); // pop append_cellpaths table (or nil)
-            // remove entry
-            lua_pushnil(L);
-            lua_setfield(L, -2, "append_cellpaths");
-
-            lua_pushnil(L);
-            while(lua_next(L, -2) != 0)
-            {
-                fprintf(stderr, "unknown config entry '%s'\n", lua_tostring(L, -2));
-                lua_pop(L, 1);
-                ret = LUA_ERRRUN;
-            }
-        }
-        else
-        {
-            *msg = util_strdup(lua_tostring(L, -1));
-        }
-        lua_close(L);
-    }
-    return ret == LUA_OK;
+    (void)sig;
+    run_watch = 0;
 }
 
 static void _print_general_info(void)
 {
     fprintf(stdout, "This is the openPCell layout generator (opc), version %u.%u.%u.\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
-    puts("Copyright 2020-2025 Patrick Kurth");
+    puts("Copyright 2020-2026 Patrick Kurth");
     puts("");
     puts("To generate a layout, you need to pass the technology,");
     puts("the export type and a cellname or the name of a cellscript.");
@@ -169,8 +68,18 @@ static void _print_general_info(void)
     puts("         opc --technology opc --export gds --cellscript script.lua");
     puts("");
     puts("You can find out more about the available command line options by running 'opc -h'.");
+    puts("As there are many command-line flags, they are searchable: 'opc -h xxx' searches all command-line options for 'xxx'.");
+    puts("Single characters only search single-character options.");
     puts("");
-    puts("A tutorial showing the usage of opc can be accessed by 'opc --tutorial'.");
+    puts("The documentation can be accessed in several ways, depending on the type of information:");
+    puts("  * Information about pcells can be obtained by:");
+    puts("      '--list-cells': List available cells");
+    puts("      '--cell-info': Show information about a given cell");
+    puts("      '--cell-parameters': List parameters of a given cell (with filter)");
+    puts("      '--cell-anchors': List anchors of a given cell (with filter)");
+    puts("  * Information about API functions can be obtained by '--api-search'/'--api-help'");
+    puts("  * HTML documentation can be opened via '-D/--html-documentation'");
+    puts("  * A tutorial showing the usage of opc can be accessed by '--tutorial'");
 }
 
 int main(int argc, const char* const * argv)
@@ -225,6 +134,11 @@ int main(int argc, const char* const * argv)
     cmdoptions_append_help_message(cmdoptions, "");
     cmdoptions_append_help_message(cmdoptions, "For more information on a specific command-line option you can also pass this to --help, e.g. opc --help --read-gds");
 
+#ifdef OPC_ENABLE_TIMING
+    // initialize variables for timing report
+    int do_timing = 0;
+#endif
+
     if(!cmdoptions_parse(cmdoptions, argc, argv))
     {
         returnvalue = 1;
@@ -270,6 +184,17 @@ int main(int argc, const char* const * argv)
         dup2(stderrp, STDERR_FILENO);
     }
 
+#ifdef OPC_ENABLE_TIMING
+    // report timing
+    if(cmdoptions_was_provided_long(cmdoptions, "time"))
+    {
+        timeperf_initialize();
+        timeperf_enable();
+        TIMEPERF_START();
+        do_timing = 1;
+    }
+#endif
+
     // execute lua script
     if(cmdoptions_was_provided_long(cmdoptions, "execute-lua-script"))
     {
@@ -282,11 +207,12 @@ int main(int argc, const char* const * argv)
 
     // load config
     struct hashmap* config = hashmap_create(NULL);
-    char* configerror = NULL;
-    if(!_load_config(config, cmdoptions, &configerror))
+    int load_user_config = 1;
+    error_t config_status = main_load_config(config, cmdoptions, load_user_config);
+    if(error_is_failure(&config_status))
     {
-        fprintf(stderr, "error while loading user config: %s\n", configerror);
-        free(configerror);
+        error_printf(&config_status, "%s: ", "error while loading user config");
+        error_clean(&config_status);
         returnvalue = 1;
         goto DESTROY_CONFIG;
     }
@@ -418,8 +344,13 @@ int main(int argc, const char* const * argv)
     }
     if(cmdoptions_was_provided_long(cmdoptions, "api-search"))
     {
-        const char* funcname = cmdoptions_get_argument_long(cmdoptions, "api-search");
-        main_API_search(funcname);
+        if(cmdoptions_no_positional_parameters(cmdoptions))
+        {
+            fprintf(stderr, "%s\n", "--api-search requires at least one parameter");
+            goto DESTROY_CONFIG;
+        }
+        const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
+        main_API_search(ptr);
         goto DESTROY_CONFIG;
     }
     if(cmdoptions_was_provided_long(cmdoptions, "api-list"))
@@ -437,6 +368,11 @@ int main(int argc, const char* const * argv)
         main_tutorial();
         goto DESTROY_CONFIG;
     }
+    if(cmdoptions_was_provided_long(cmdoptions, "html-documentation"))
+    {
+        system("xdg-open" " " OPC_DOC_PATH "/doc/index.html");
+        goto DESTROY_CONFIG;
+    }
 
     if(cmdoptions_was_provided_long(cmdoptions, "import"))
     {
@@ -446,14 +382,6 @@ int main(int argc, const char* const * argv)
         int ret = main_import_script(scriptname, args);
         returnvalue = !ret; // programs return 0 on success
         const_vector_destroy(args);
-        goto DESTROY_CONFIG;
-    }
-
-    // FIXME
-    if(cmdoptions_was_provided_long(cmdoptions, "watch"))
-    {
-        puts("sorry, watch mode is currently not implemented");
-        returnvalue = 1;
         goto DESTROY_CONFIG;
     }
 
@@ -497,7 +425,21 @@ int main(int argc, const char* const * argv)
     // read gds
     if(cmdoptions_was_provided_long(cmdoptions, "read-gds"))
     {
-        main_gds_read(cmdoptions);
+        struct technology_state* techstate = NULL;
+        if(cmdoptions_was_provided_long(cmdoptions, "technology"))
+        {
+            const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
+            const struct vector* techpaths = hashmap_get_const(config, "techpaths");
+            techstate = main_create_techstate(techpaths, techname, NULL);
+        }
+        main_gds_read(cmdoptions, techstate);
+        goto DESTROY_CONFIG;
+    }
+
+    // layout viewer
+    if(cmdoptions_was_provided_long(cmdoptions, "viewer"))
+    {
+        system("xdg-open" " " OPC_TOOLS_PATH "/tools/layout_viewer.html");
         goto DESTROY_CONFIG;
     }
 
@@ -526,9 +468,17 @@ int main(int argc, const char* const * argv)
         }
         const char* dimension = cmdoptions_get_argument_long(cmdoptions, "get-dimension");
         struct tagged_value* v = technology_get_dimension(techstate, dimension);
-        tagged_value_print(v);
-        putchar('\n');
-        tagged_value_destroy(v);
+        if(v)
+        {
+            tagged_value_print(v);
+            putchar('\n');
+            tagged_value_destroy(v);
+        }
+        else
+        {
+            printf("could not find technology dimension '%s' in technology '%s'\n", dimension, techname);
+            returnvalue = 1;
+        }
         goto DESTROY_CONFIG;
     }
 
@@ -553,19 +503,28 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CONFIG;
     }
 
+    // cell-info
+    if(cmdoptions_was_provided_long(cmdoptions, "cell-info"))
+    {
+        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell-info");
+        main_show_cell_info(cellname, cmdoptions, config);
+        goto DESTROY_CONFIG;
+    }
+
     // list + listcellpaths
     if(cmdoptions_was_provided_long(cmdoptions, "list-cellpaths") ||
-       cmdoptions_was_provided_long(cmdoptions, "list"))
+       cmdoptions_was_provided_long(cmdoptions, "list-cells"))
     {
-        main_list_cells_cellpaths(cmdoptions, config);
+        const char** cellnames = cmdoptions_get_positional_parameters(cmdoptions);
+        main_list_cells_cellpaths(cellnames, cmdoptions, config);
         goto DESTROY_CONFIG;
     }
 
     // cell parameters (only names)
-    if(cmdoptions_was_provided_long(cmdoptions, "parameters-name"))
+    if(cmdoptions_was_provided_long(cmdoptions, "cell-parameters"))
     {
         // cell name
-        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters-name");
+        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell-parameters");
         // parameter format
         const char* parametersformat = "%n";
         // parameter names
@@ -575,10 +534,10 @@ int main(int argc, const char* const * argv)
     }
 
     // cell parameters
-    if(cmdoptions_was_provided_long(cmdoptions, "parameters"))
+    if(cmdoptions_was_provided_long(cmdoptions, "parameters-list"))
     {
         // cell name
-        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters");
+        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters-list");
         // parameter format
         const char* parametersformat = cmdoptions_get_argument_long(cmdoptions, "parameters-format");
         // parameter names
@@ -588,7 +547,7 @@ int main(int argc, const char* const * argv)
     }
 
     // cell anchors (FIXME: broken)
-    if(cmdoptions_was_provided_long(cmdoptions, "anchors"))
+    if(cmdoptions_was_provided_long(cmdoptions, "cell-anchors"))
     {
         main_list_cell_anchors(cmdoptions, config);
         goto DESTROY_CONFIG;
@@ -609,11 +568,90 @@ int main(int argc, const char* const * argv)
             goto DESTROY_CONFIG;
         }
         int verbose = cmdoptions_was_provided_long(cmdoptions, "verbose");
-        int ret = main_create_and_export_cell(cmdoptions, config, create_cell_script, verbose);
-        if(!ret)
+        int watch = cmdoptions_was_provided_long(cmdoptions, "watch");
+        if(watch)
         {
-            returnvalue = 1;
+            // get paths of relevant files
+            const char* filename = cmdoptions_get_argument_long(cmdoptions, "cellscript");
+            int fdnotify = inotify_init1(IN_NONBLOCK);
+            if(fdnotify < 0)
+            {
+                fprintf(stderr, "inotity_init failed: %s\n", strerror(errno));
+            }
+
+            int wd = inotify_add_watch(fdnotify, filename, IN_MODIFY);
+            if(wd < 0)
+            {
+                fprintf(stderr, "inotify_add_watch failed: %s\n", strerror(errno));
+            }
+
+            signal(SIGINT, handler);
+
+            while(run_watch)
+            {
+                sleep(1);
+                char buffer[4096];
+                struct inotify_event *event = NULL;
+
+                int len = read(fdnotify, buffer, sizeof(buffer));
+
+                if(len > 0)
+                {
+                    event = (struct inotify_event *) buffer;
+                    while(event != NULL)
+                    {
+                        if(event->mask & (IN_MODIFY | IN_IGNORED))
+                        {
+                            int ret = main_create_and_export_cell(cmdoptions, config, create_cell_script, verbose);
+                            if(!ret)
+                            {
+                                returnvalue = 1;
+                                goto DESTROY_CONFIG;
+                            }
+                            if(event->mask & IN_IGNORED) // file was moved, re-add watch
+                            {
+                                wd = inotify_add_watch(fdnotify, filename, IN_MODIFY);
+                                if(wd < 0)
+                                {
+                                    exit(0);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // ignored
+                        }
+                        fflush(stdout);
+                        len -= sizeof(*event) + event->len;
+
+                        if(len > 0)
+                        {
+                            event = event + sizeof(event) + event->len;
+                        }
+                        else
+                        {
+                            event = NULL;
+                        }
+                    }
+                }
+            }
         }
+        else
+        {
+            int ret = main_create_and_export_cell(cmdoptions, config, create_cell_script, verbose);
+            if(!ret)
+            {
+                returnvalue = 1;
+            }
+            goto DESTROY_CONFIG;
+        }
+    }
+
+    // should not trigger
+    if(!cmdoptions_no_positional_parameters(cmdoptions))
+    {
+        fputs("illegal additional positional parameters present\n", stderr);
+        returnvalue = 1;
         goto DESTROY_CONFIG;
     }
 
@@ -623,15 +661,6 @@ int main(int argc, const char* const * argv)
     // should not reach here
     fputs("no cell given\n", stderr);
     returnvalue = 1;
-
-    if(stdoutp)
-    {
-        close(stdoutp);
-    }
-    if(stderrp)
-    {
-        close(stderrp);
-    }
 
     // clean up states
 DESTROY_CONFIG: ;
@@ -646,8 +675,24 @@ DESTROY_CONFIG: ;
         vector_destroy(ignoredlayers);
     }
     hashmap_destroy(config);
+    if(stdoutp)
+    {
+        close(stdoutp);
+    }
+    if(stderrp)
+    {
+        close(stderrp);
+    }
 DESTROY_CMDOPTIONS:
     cmdoptions_destroy(cmdoptions);
+
+#ifdef OPC_ENABLE_TIMING
+    if(do_timing)
+    {
+        TIMEPERF_STOP();
+        timeperf_print_summary();
+    }
+#endif
     return returnvalue;
 }
 

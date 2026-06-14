@@ -1,50 +1,67 @@
 function parameters()
     pcell.add_parameters(
-        { "gatelength", 0 },
-        { "gatespace", 0 },
-        { "gatestrapwidth", 0 },
-        { "gatestrapspace", 0 },
-        { "gateext", 0 },
-        { "sdwidth", 0 },
+        { "gatelength",  technology.get_dimension("Minimum Gate Length") },
+        { "gatespace", technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space") },
+        { "gatestrapwidth", technology.get_dimension("Minimum Gate Contact Region Size") },
+        { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
+        { "gateext", technology.get_dimension("Minimum Gate Extension") },
+        { "sdwidth", technology.get_dimension("Minimum Source/Drain Contact Region Size") },
         { "oxidetype", 1 },
         { "mosfetmarker", 1 },
         { "channeltype", "nmos", posvals = set("nmos", "pmos") },
         { "flippedwell", false },
         { "vthtype", 1 },
-        { "activedummywidth", 0 },
-        { "activedummyspace", 0 },
-        { "powerwidth", 0 },
-        { "powerspace", 0 },
+        { "drawactivedummies", false },
+        { "add_outer_dummies", false },
+        { "add_extra_outer_dummies", false },
+        { "activedummywidth", technology.get_dimension("Minimum Active Width") },
+        { "activedummyspace", technology.get_dimension("Minimum Active Space") },
+        { "drainstrapwidth", technology.get_dimension("Minimum M1 Width") },
+        { "drainstrapspace", technology.get_dimension("Minimum M1 Width") },
+        { "powerwidth", technology.get_dimension("Minimum M1 Width") },
+        { "powerspace", technology.get_dimension("Minimum M1 Space") },
         { "fingersperside", 4 },
-        { "fingerwidth", 0 },
-        { "middledummyfingers", 2 },
-        { "outerdummyfingers", 2 },
-        { "outputoffset", 0 },
-        { "drainstrapspace", 0 },
-        { "crossingoffset", 0 },
-        { "drawpsubguardring", true },
-        { "guardring_width", 0 },
-        { "guardring_xspace", 0 },
-        { "guardring_yspace", 0 },
-        { "guardring_xspacetomosfet", 0 },
-        { "guardring_yspacetomosfet", 0 },
-        { "guardring_soiopenextension", 0 },
-        { "guardring_implantextension", 0 },
-        { "guardring_wellextension", 0 },
+        { "fingerwidth", technology.get_dimension("Minimum Gate Width") },
+        { "middledummyfingersperside", 1 },
+        { "inner_separation", technology.get_dimension("Minimum Active Space") },
+        { "outerdummyfingers", 0 },
+        { "crossingoffset", 0 * technology.get_dimension("Minimum M1 Space") },
         { "inlinedrainstrap", false },
-        { "topviawidth", 0 },
-        { "gatestrappos", "top", posvals = set("top", "bottom") },
-        { "gatemetal", 5 },
-        { "crossingmetal", 5 },
-        { "drainmetal", 7 },
-        { "fetpowermetal", 3 }
+        { "crossingmetal", 2 },
+        { "fetpowermetal", 3 },
+        { "gateinside", false },
+        { "drawleftrightstopgates", false }
     )
+end
+
+local function _get_metal_width(metal)
+    local metalstr = string.format("Minimum M%d Width", metal)
+        local viastr
+    if metal > 1 then
+        viastr = string.format("Minimum M%dM%d Viawidth", metal - 1, metal)
+    end
+    return technology.get_dimension_max(metalstr, viastr)
+end
+
+function process_parameters(_P)
+    _P.gatestrapwidth = _get_metal_width(_P.crossingmetal)
+    if _P.middledummyfingersperside == 0 then
+        _P.inner_separation = (2 * _P.gatestrapspace + _P.gatestrapwidth) / 2 + _P.sdwidth / 2
+    end
+end
+
+function check(_P)
+    --if _P.drainmetal <= _P.crossingmetal then
+    --    return false, string.format("drainmetal must be strictly larger than crossingmetal, got %d and %d", _P.drainmetal, _P.crossingmetal)
+    --end
+    return true
 end
 
 function layout(ccp, _P)
     local leftright = object.create("_leftright")
 
-    local flipcontacts
+    local flipcontacts = false
+    --[[
     if _P.channeltype == "nmos" then
         if _P.gatestrappos == "top" then
             flipcontacts = false
@@ -58,6 +75,25 @@ function layout(ccp, _P)
             flipcontacts = false
         end
     end
+    --]]
+    local gatestrapspace
+    if _P.gateinside then
+        gatestrapspace = _P.gatestrapspace
+    else
+        gatestrapspace = _P.drainstrapspace + _P.drainstrapwidth + _P.gatestrapspace
+    end
+    local drainstrapspace
+    if _P.gateinside then
+        drainstrapspace = _P.gatestrapspace + _P.gatestrapwidth + _P.drainstrapspace
+    else
+        drainstrapspace = _P.drainstrapspace
+    end
+    local topnotbotgate = _P.channeltype == "nmos"
+    -- FIXME: adapt for pmos and 'gatestrappos' == "bottom"
+    local topgatewidth = topnotbotgate and _P.gatestrapwidth or _P.powerwidth
+    local topgatespace = topnotbotgate and gatestrapspace or _P.powerspace
+    local botgatewidth = topnotbotgate and _P.powerwidth or _P.gatestrapwidth
+    local botgatespace = topnotbotgate and _P.powerspace or gatestrapspace
     local baseopt = {
         channeltype = _P.channeltype,
         vthtype = _P.vthtype,
@@ -67,130 +103,158 @@ function layout(ccp, _P)
         fingerwidth = _P.fingerwidth,
         oxidetype = _P.oxidetype,
         mosfetmarker = _P.mosfetmarker,
-        drawtopactivedummy = true,
+        drawtopactivedummy = _P.drawactivedummies,
         topactivedummywidth = _P.activedummywidth,
         topactivedummyspace = _P.activedummyspace,
-        drawbottomactivedummy = true,
+        drawbottomactivedummy = _P.drawactivedummies,
         bottomactivedummywidth = _P.activedummywidth,
         bottomactivedummyspace = _P.activedummyspace,
+        topgateadjustforsdstraps = false,
+        botgateadjustforsdstraps = false,
         sdwidth = _P.sdwidth,
-        topgatewidth = _P.gatestrapwidth,
-        topgatespace = _P.powerspace,
-        botgatewidth = _P.gatestrapwidth,
-        botgatespace = _P.powerspace,
+        topgatewidth = topgatewidth,
+        topgatespace = topgatespace,
+        botgatewidth = botgatewidth,
+        botgatespace = botgatespace,
         connectsource = true,
+        sourcemetal = 1,
         connectsourceinverse = flipcontacts,
         connectsourcewidth = _P.powerwidth,
         connectsourcespace = _P.powerspace,
-        gtopext = _P.gatestrapwidth + _P.powerspace + _P.gateext,
+        gtopext = _P.gatestrapwidth + gatestrapspace + _P.gateext,
         gbotext = _P.gatestrapwidth + _P.powerspace + _P.gateext,
         extendvthtypeleft = (_P.gatelength + _P.gatespace) / 2,
         extendvthtyperight = (_P.gatelength + _P.gatespace) / 2,
         extendimplantleft = (_P.gatelength + _P.gatespace) / 2,
         extendimplantright = (_P.gatelength + _P.gatespace) / 2,
-        extendimplanttop = _P.activedummywidth + _P.activedummyspace + 100 - _P.gatestrapwidth - _P.powerspace - _P.gateext,
-        extendimplantbottom = _P.activedummywidth + _P.activedummyspace + 100 - _P.gatestrapwidth - _P.powerspace - _P.gateext,
+        --extendimplanttop = _P.activedummywidth + _P.activedummyspace + 100 - _P.gatestrapwidth - _P.powerspace - _P.gateext,
+        --extendimplantbottom = _P.activedummywidth + _P.activedummyspace + 100 - _P.gatestrapwidth - _P.powerspace - _P.gateext,
         extendwellleft = (_P.gatelength + _P.gatespace) / 2,
         extendwellright = (_P.gatelength + _P.gatespace) / 2,
         extendoxidetypeleft = (_P.gatelength + _P.gatespace) / 2,
         extendoxidetyperight = (_P.gatelength + _P.gatespace) / 2,
-        lvsmarker = 2,
     }
 
-    local fetmiddledummy = pcell.create_layout("basic/mosfet", "_fetmiddledummy", util.add_options(baseopt, {
-        fingers = _P.middledummyfingers,
-        drawbotgate = _P.gatestrappos == "top",
-        drawtopgate = _P.gatestrappos == "bottom",
-        connectdrain = true,
-        connectdraininverse = not flipcontacts,
-        connectdrainwidth = _P.powerwidth,
-        connectdrainspace = _P.powerspace,
-    }))
-    leftright:merge_into(fetmiddledummy)
-    -- anchor for left/right alignment
-    leftright:add_area_anchor_bltr("middlesourcedrain",
-        fetmiddledummy:get_area_anchor("sourcedrain1").bl,
-        fetmiddledummy:get_area_anchor("sourcedrain1").tr
-    )
+    if _P.middledummyfingersperside > 0 then
+        local fetmiddledummy = pcell.create_layout("basic/mosfet", "_fetmiddledummy", util.add_options(baseopt, {
+            fingers = _P.middledummyfingersperside,
+            drawbotgate = topnotbotgate,
+            drawtopgate = not topnotbotgate,
+            connectsourceautooddext = true,
+            connectdrain = true,
+            connectdraininverse = true,
+            connectdrainwidth = _P.powerwidth,
+            connectdrainspace = _P.powerspace,
+            connectdrainautooddext = true,
+        }))
+        leftright:merge_into(fetmiddledummy)
+        -- anchor for left/right alignment
+        leftright:add_area_anchor_bltr("middlesourcedrainleft",
+            fetmiddledummy:get_area_anchor("sourcedrain1").bl,
+            fetmiddledummy:get_area_anchor("sourcedrain1").tr
+        )
+        leftright:add_area_anchor_bltr("middlesourcedrainright",
+            fetmiddledummy:get_area_anchor("sourcedrain-1").bl,
+            fetmiddledummy:get_area_anchor("sourcedrain-1").tr
+        )
+    else
+        leftright:add_area_anchor_bltr("middlesourcedrainleft",
+            point.create(0, 0),
+            point.create(_P.sdwidth, _P.fingerwidth)
+        )
+        leftright:add_area_anchor_bltr("middlesourcedrainright",
+            point.create(_P.inner_separation, 0),
+            point.create(_P.inner_separation + _P.sdwidth, _P.fingerwidth)
+        )
+    end
 
     local fet = pcell.create_layout("basic/mosfet", "_fet", util.add_options(baseopt, {
         fingers = _P.fingersperside,
-        drawtopgate = _P.gatestrappos == "top",
-        drawtopgatevia = _P.gatestrappos == "top",
-        topgatemetal = _P.crossingmetal,
+        drawtopgate = topnotbotgate,
+        topgatemetal = _P.crossingmetal + 1,
         topgateleftextension = (_P.gatelength + _P.gatespace) / 2,
         topgaterightextension = (_P.gatelength + _P.gatespace) / 2,
-        drawbotgate = _P.gatestrappos == "bottom",
-        drawbotgatevia = _P.gatestrappos == "bottom",
-        botgatemetal = _P.crossingmetal,
+        drawbotgate = not topnotbotgate,
+        --botgatemetal = _P.crossingmetal,
+        botgatemetal = 1,
         botgateleftextension = (_P.gatelength + _P.gatespace) / 2,
         botgaterightextension = (_P.gatelength + _P.gatespace) / 2,
         connectdrain = true,
         connectdraininline = _P.inlinedrainstrap,
-        connectdrainwidth = _P.gatestrapwidth,
-        connectdrainspace = _P.drainstrapspace,
+        connectdrainwidth = _P.drainstrapwidth,
+        connectdrainspace = drainstrapspace,
         connectdraininlineoffset = (_P.fingerwidth - _P.gatestrapwidth) / 2,
         connectdrainleftext = _P.gatelength + _P.gatespace,
         connectdrainrightext = _P.gatelength + _P.gatespace,
-        sourcestartmetal = 1,
-        sourceendmetal = _P.fetpowermetal,
+        sourcemetal = 1,
         drawdrainvia = true,
-        drainmetal = _P.drainmetal,
+        drainstartmetal = _P.crossingmetal,
+        drainendmetal = _P.crossingmetal + 1,
         drainviaalign = "bottom",
-        splitdrainvias = true,
+        splitdrainvias = _P.inlinedrainstrap,
     }))
-    fet:align_area_anchor("sourcedrain1", fetmiddledummy, "sourcedrain-1")
+    fet:align_area_anchor("sourcedrain1", leftright, "middlesourcedrainright")
     leftright:merge_into(fet)
+    -- place via on drain strap to lower crossing metal
+    geometry.viabarebltr(leftright, _P.crossingmetal, _P.crossingmetal + 1,
+        fet:get_area_anchor("drainstrap").bl,
+        fet:get_area_anchor("drainstrap").tr
+    )
 
     -- add left/right dummies
-    local fetleftrightdummy = pcell.create_layout("basic/mosfet", "_fetleftrightdummy", util.add_options(baseopt, {
-        fingers = _P.outerdummyfingers,
-        drawbotgate = _P.gatestrappos == "top",
-        drawtopgate = _P.gatestrappos == "bottom",
-        connectdrain = true,
-        connectdraininverse = not flipcontacts,
-        connectdrainwidth = _P.powerwidth,
-        connectdrainspace = _P.powerspace,
-        drawrightstopgate = true,
-    }))
-    fetleftrightdummy:align_area_anchor("sourcedrain1", fet, "sourcedrain-1")
-    leftright:merge_into(fetleftrightdummy)
+    if _P.add_outer_dummies then
+        local fetleftrightdummy = pcell.create_layout("basic/mosfet", "_fetleftrightdummy", util.add_options(baseopt, {
+            fingers = _P.outerdummyfingers,
+            drawbotgate = topnotbotgate,
+            drawtopgate = not topnotbotgate,
+            connectdrain = true,
+            connectdraininverse = true,
+            connectdrainwidth = _P.powerwidth,
+            connectdrainspace = _P.powerspace,
+            drawrightstopgate = true,
+        }))
+        fetleftrightdummy:align_area_anchor("sourcedrain1", fet, "sourcedrain-1")
+        leftright:merge_into(fetleftrightdummy)
+    end
 
     -- add outer dummies
-    local outerfetdummy = pcell.create_layout("basic/mosfet", "_outerfetdummy", util.add_options(baseopt, {
-        fingers = 0,
-        drawleftstopgate = true,
-        drawrightstopgate = true,
-        drawtopactivedummy = false,
-        drawbottomactivedummy = false,
-        drawsourcedrain = "none",
-        connectsource = false,
-    }))
-    outerfetdummy:align_top(fet)
-    outerfetdummy:abut_right(fetleftrightdummy)
-    outerfetdummy:translate_x(2 * (_P.gatelength + _P.gatespace))
-    leftright:merge_into(outerfetdummy)
+    if _P.add_extra_outer_dummies then
+        local outerfetdummy = pcell.create_layout("basic/mosfet", "_outerfetdummy", util.add_options(baseopt, {
+            fingers = 0,
+            drawleftstopgate = _P.drawleftrightstopgates,
+            drawrightstopgate = _P.drawleftrightstopgates,
+            drawtopactivedummy = false,
+            drawbottomactivedummy = false,
+            drawsourcedrain = "none",
+            connectsource = false,
+        }))
+        outerfetdummy:align_top(fet)
+        outerfetdummy:abut_right(fetleftrightdummy)
+        outerfetdummy:translate_x(2 * (_P.gatelength + _P.gatespace))
+        leftright:merge_into(outerfetdummy)
+        leftright:add_area_anchor_bltr("outerdummyactive",
+            outerfetdummy:get_area_anchor("active").bl,
+            outerfetdummy:get_area_anchor("active").tr
+        )
+    end
 
-    leftright:add_area_anchor_bltr("active",
-        fetmiddledummy:get_area_anchor("active").bl,
-        outerfetdummy:get_area_anchor("active").tr
-    )
-    leftright:add_area_anchor_bltr("topactivedummy",
-        fetmiddledummy:get_area_anchor("topactivedummy").bl,
-        fetleftrightdummy:get_area_anchor("topactivedummy").tr
-    )
-    leftright:add_area_anchor_bltr("bottomactivedummy",
-        fetmiddledummy:get_area_anchor("bottomactivedummy").bl,
-        fetleftrightdummy:get_area_anchor("bottomactivedummy").tr
-    )
-    leftright:add_area_anchor_bltr("outerdummyactive",
-        outerfetdummy:get_area_anchor("active").bl,
-        outerfetdummy:get_area_anchor("active").tr
-    )
+    leftright:inherit_area_anchor(fet, "active")
+    if _P.drawactivedummies then
+        --[[
+        leftright:add_area_anchor_bltr("topactivedummy",
+            fetmiddledummy:get_area_anchor("topactivedummy").bl,
+            fetleftrightdummy:get_area_anchor("topactivedummy").tr
+        )
+        leftright:add_area_anchor_bltr("bottomactivedummy",
+            fetmiddledummy:get_area_anchor("bottomactivedummy").bl,
+            fetleftrightdummy:get_area_anchor("bottomactivedummy").tr
+        )
+        --]]
+    end
 
     leftright:inherit_area_anchor(fet, "drainstrap")
     leftright:inherit_area_anchor_as(fet, "sourcestrap", "common")
-    if _P.gatestrappos == "top" then
+    if topnotbotgate then
         leftright:inherit_area_anchor_as(fet, "topgatestrap", "gate")
     else
         leftright:inherit_area_anchor_as(fet, "botgatestrap", "gate")
@@ -199,7 +263,7 @@ function layout(ccp, _P)
     local right = leftright:copy()
     local left = leftright:copy()
     left:mirror_at_yaxis()
-    left:align_area_anchor("middlesourcedrain", right, "middlesourcedrain")
+    left:align_area_anchor("middlesourcedrainleft", right, "middlesourcedrainleft")
     ccp:merge_into(right)
     ccp:merge_into(left)
 
@@ -208,22 +272,26 @@ function layout(ccp, _P)
         right:get_area_anchor("active").tr
     )
 
-    ccp:add_area_anchor_bltr("topactivedummy",
-        left:get_area_anchor("topactivedummy").bl,
-        right:get_area_anchor("topactivedummy").tr
-    )
-    ccp:add_area_anchor_bltr("bottomactivedummy",
-        left:get_area_anchor("bottomactivedummy").bl,
-        right:get_area_anchor("bottomactivedummy").tr
-    )
-    ccp:add_area_anchor_bltr("leftouterdummyactive",
-        left:get_area_anchor("outerdummyactive").bl,
-        left:get_area_anchor("outerdummyactive").tr
-    )
-    ccp:add_area_anchor_bltr("rightouterdummyactive",
-        right:get_area_anchor("outerdummyactive").bl,
-        right:get_area_anchor("outerdummyactive").tr
-    )
+    if _P.drawactivedummies then
+        ccp:add_area_anchor_bltr("topactivedummy",
+            left:get_area_anchor("topactivedummy").bl,
+            right:get_area_anchor("topactivedummy").tr
+        )
+        ccp:add_area_anchor_bltr("bottomactivedummy",
+            left:get_area_anchor("bottomactivedummy").bl,
+            right:get_area_anchor("bottomactivedummy").tr
+        )
+    end
+    if _P.add_extra_outer_dummies then
+        ccp:add_area_anchor_bltr("leftouterdummyactive",
+            left:get_area_anchor("outerdummyactive").bl,
+            left:get_area_anchor("outerdummyactive").tr
+        )
+        ccp:add_area_anchor_bltr("rightouterdummyactive",
+            right:get_area_anchor("outerdummyactive").bl,
+            right:get_area_anchor("outerdummyactive").tr
+        )
+    end
 
     ccp:inherit_area_anchor_as(left, "drainstrap", "leftdrainstrap")
     ccp:inherit_area_anchor_as(right, "drainstrap", "rightdrainstrap")
@@ -236,53 +304,100 @@ function layout(ccp, _P)
     ccp:inherit_area_anchor_as(right, "gate", "rightgate")
 
     -- crossing:
-    if _P.gatestrappos == "top" then
-        geometry.polygon(ccp, generics.metal(_P.crossingmetal), {
-            ccp:get_area_anchor("leftgate").br,
-            point.create(
-                (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 + _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
-                ccp:get_area_anchor("rightgate").b
-            ),
-            point.create(
-                (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 + _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
-                ccp:get_area_anchor("rightdrainstrap").b
-            ),
-            ccp:get_area_anchor("rightdrainstrap").bl,
-            ccp:get_area_anchor("rightdrainstrap").tl,
-            point.create(
-                (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 - _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
-                ccp:get_area_anchor("rightdrainstrap").t
-            ),
-            point.create(
-                (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 - _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
-                ccp:get_area_anchor("rightgate").t
-            ),
-            ccp:get_area_anchor("leftgate").tr,
-        })
-        geometry.polygon(ccp, generics.metal(_P.crossingmetal - 1), {
-            ccp:get_area_anchor("rightgate").bl,
-            point.create(
-                (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 - _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
-                ccp:get_area_anchor("leftgate").b
-            ),
-            point.create(
-                (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 - _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
-                ccp:get_area_anchor("leftdrainstrap").b
-            ),
-            ccp:get_area_anchor("leftdrainstrap").br,
-            ccp:get_area_anchor("leftdrainstrap").tr,
-            point.create(
-                (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 + _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
-                ccp:get_area_anchor("leftdrainstrap").t
-            ),
-            point.create(
-                (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 + _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
-                ccp:get_area_anchor("leftgate").t
-            ),
-            ccp:get_area_anchor("rightgate").tl,
-        })
+    if topnotbotgate then
+        if _P.gateinside then
+            geometry.polygon(ccp, generics.metal(_P.crossingmetal + 1), {
+                ccp:get_area_anchor("leftgate").br,
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 + _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
+                    ccp:get_area_anchor("rightgate").b
+                ),
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 + _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
+                    ccp:get_area_anchor("rightdrainstrap").b
+                ),
+                ccp:get_area_anchor("rightdrainstrap").bl,
+                ccp:get_area_anchor("rightdrainstrap").tl,
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 - _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
+                    ccp:get_area_anchor("rightdrainstrap").t
+                ),
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 - _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
+                    ccp:get_area_anchor("rightgate").t
+                ),
+                ccp:get_area_anchor("leftgate").tr,
+            })
+            geometry.polygon(ccp, generics.metal(_P.crossingmetal), {
+                ccp:get_area_anchor("rightgate").bl,
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 - _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
+                    ccp:get_area_anchor("leftgate").b
+                ),
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 - _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
+                    ccp:get_area_anchor("leftdrainstrap").b
+                ),
+                ccp:get_area_anchor("leftdrainstrap").br,
+                ccp:get_area_anchor("leftdrainstrap").tr,
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 + _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
+                    ccp:get_area_anchor("leftdrainstrap").t
+                ),
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 + _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
+                    ccp:get_area_anchor("leftgate").t
+                ),
+                ccp:get_area_anchor("rightgate").tl,
+            })
+        else
+            geometry.polygon(ccp, generics.metal(_P.crossingmetal + 1), {
+                ccp:get_area_anchor("leftgate").br,
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 - _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
+                    ccp:get_area_anchor("rightgate").b
+                ),
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 - _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
+                    ccp:get_area_anchor("rightdrainstrap").b
+                ),
+                ccp:get_area_anchor("rightdrainstrap").bl,
+                ccp:get_area_anchor("rightdrainstrap").tl,
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 + _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
+                    ccp:get_area_anchor("rightdrainstrap").t
+                ),
+                point.create(
+                    (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 + _P.gatestrapwidth / 2 - _P.crossingoffset / 2,
+                    ccp:get_area_anchor("rightgate").t
+                ),
+                ccp:get_area_anchor("leftgate").tr,
+            })
+            geometry.polygon(ccp, generics.metal(_P.crossingmetal), {
+                ccp:get_area_anchor("rightgate").bl,
+                point.create(
+                    (ccp:get_area_anchor("leftgate").r + ccp:get_area_anchor("rightgate").l) / 2 + _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
+                    ccp:get_area_anchor("leftgate").b
+                ),
+                point.create(
+                    (ccp:get_area_anchor("leftgate").r + ccp:get_area_anchor("rightgate").l) / 2 + _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
+                    ccp:get_area_anchor("leftdrainstrap").b
+                ),
+                ccp:get_area_anchor("leftdrainstrap").br,
+                ccp:get_area_anchor("leftdrainstrap").tr,
+                point.create(
+                    (ccp:get_area_anchor("leftgate").r + ccp:get_area_anchor("rightgate").l) / 2 - _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
+                    ccp:get_area_anchor("leftdrainstrap").t
+                ),
+                point.create(
+                    (ccp:get_area_anchor("leftgate").r + ccp:get_area_anchor("rightgate").l) / 2 - _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
+                    ccp:get_area_anchor("leftgate").t
+                ),
+                ccp:get_area_anchor("rightgate").tl,
+            })
+        end
     else
-        geometry.polygon(ccp, generics.metal(_P.crossingmetal), {
+        geometry.polygon(ccp, generics.metal(_P.crossingmetal + 1), {
             ccp:get_area_anchor("leftgate").br,
             point.create(
                 (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 - _P.gatestrapwidth / 2 + _P.crossingoffset / 2,
@@ -304,7 +419,7 @@ function layout(ccp, _P)
             ),
             ccp:get_area_anchor("leftgate").tr,
         })
-        geometry.polygon(ccp, generics.metal(_P.crossingmetal - 1), {
+        geometry.polygon(ccp, generics.metal(_P.crossingmetal), {
             ccp:get_area_anchor("rightgate").bl,
             point.create(
                 (ccp:get_area_anchor("leftgate").l + ccp:get_area_anchor("rightgate").r) / 2 + _P.gatestrapwidth / 2 - _P.crossingoffset / 2,

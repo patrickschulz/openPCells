@@ -9,7 +9,7 @@ struct export_state;
 struct export_state* export_create_state(void);
 void export_destroy_state(struct export_state* state);
 void export_add_searchpath(struct export_state* state, const char* path);
-void export_set_basename(struct export_state* state, const char* filename);
+void export_set_basename(struct export_state* state, const char* basename);
 void export_set_export_options(struct export_state* state, const char* const* exportoptions);
 void export_set_namecontext_expansion(struct export_state* state, int expand);
 void export_disable_ports(struct export_state* state);

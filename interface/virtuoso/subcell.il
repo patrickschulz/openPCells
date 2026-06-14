@@ -1,38 +1,42 @@
-procedure(OPCSubCellGet()
+procedure(OPCIsOPCCellScript(group)
     let(
-        (cv selset path (found nil))
-        cv = geGetEditCellView()
-        selset = geGetSelSet()
-        when(length(selset) == 1 ; only one object selected
-            opcgroup = car(selset)
-            when(opcgroup->objType == "figGroup" ; selected object is a group
-                when(setof(p opcgroup->prop p->name == "opcpath") ; group is an opc group (cellscript)
-                    found = t
-                ) ; when has opcpath
-                when(setof(p opcgroup->prop p->name == "opccell") ; group is an opc group (cell)
-                    found = t
-                ) ; when has opcpath
-            ) ; when is group
-        ) ; when only one object in selection set
-        if(found
-            then
-                opcgroup
-            else
-                hiDisplayAppDBox(
-                    ?name        'OPCInfoDialog
-                    ?dboxBanner  "openPCells"
-                    ?dboxText    "Tried to perform an action on an opcgroup, but the selected object is not an opcgroup or more than one object was selected"
-                    ?dialogType   hicWarningDialog
-                    ?dialogStyle 'modeless
-                    ?buttonLayout 'Close
-                )
-                nil
-        )
-    ) ; let
-) ; procedure
+        ((found nil))
+        when(group->objType == "figGroup" ; selected object is a group
+            when(setof(p group->prop p->name == "opcpath")
+                ; group is an opc group (cellscript, legacy)
+                found = t
+            ) ; when has opcpath
+            when(setof(p group->prop p->name == "opcdir") && setof(p group->prop p->name == "opcname")
+                ; group is an opc group (cellscript, new style)
+                found = t
+            ) ; when has opcpath
+        ) ; when is group
+        found
+    )
+) ; OPCIsOPCGroup
+
+procedure(OPCIsOPCCell(group)
+    let(
+        ((found nil))
+        when(group->objType == "figGroup" ; selected object is a group
+            when(setof(p group->prop p->name == "opccell")
+                ; group is an opc group (cell)
+                found = t
+            ) ; when has opcpath
+        ) ; when is group
+        found
+    )
+) ; OPCIsOPCCell
+
+procedure(OPCSubCellGetAll()
+    setof(group geGetSelSet() OPCIsOPCCell(group) || OPCIsOPCCellScript(group))
+) ; OPCSubCellGetAll
+
+procedure(OPCSubCellGetCellScripts()
+    setof(group geGetSelSet() OPCIsOPCCellScript(group))
+) ; OPCSubCellGetCellScripts
 
 procedure(OPCSubCellCreateScript()
-    ; (1) open dialog to get group name/layout path (should they be the same?)
     hiCreateAppForm(
         ?name 'OPCSubCellScriptCreationForm
         ?formTitle "Create OPC Sub-Cell"
@@ -42,7 +46,7 @@ procedure(OPCSubCellCreateScript()
             hiCreateStringField(
                 ?name 'OPCSubCellScriptName
                 ?value ""
-                ?prompt "Name of Sub-Cell"
+                ?prompt "Group Name"
             )
             hiCreateStringField(
                 ?name 'OPCSubCellScriptTemplate
@@ -59,7 +63,7 @@ procedure(OPCSubCellCreateScript()
         ?callback "OPCSubCellScriptCreateCallback()"
     )
     hiDisplayForm(OPCSubCellScriptCreationForm 100:100)
-)
+) ; OPCSubCellCreateScript
 
 procedure(OPCSubCellCreateCell()
     ; (1) open dialog to get cell name
@@ -77,24 +81,27 @@ procedure(OPCSubCellCreateCell()
             hiCreateStringField(
                 ?name 'OPCSubCellCellGroupname
                 ?value ""
-                ?prompt "Group Name for Cell Creation"
+                ?prompt "Group Name"
             )
         )
         ?callback "OPCSubCellCellCreateCallback()"
     )
     hiDisplayForm(OPCSubCellCellCreationForm 100:100)
-)
+) ; OPCSubCellCreateCell
 
 procedure(OPCSubCellCreateBase(cv name properties)
     let((group)
         group = dbCreateFigGroup(cv name nil 0:0 "R0")
         foreach(prop properties
-            ; FIXME: check whether getq is correct
             dbCreateProp(group getq(prop name) getq(prop type) getq(prop value))
         )
         group
     )
-)
+) ; OPCSubCellCreateBase
+
+procedure(OPCGetSubCellScriptDirectory(cv)
+    lsprintf("%s/%s/layout/opcsubgroups" cv->lib->readPath cv->cellName)
+) ; OPCGetSubCellScriptDirectory
 
 procedure(OPCSubCellScriptCreateCallback()
     let(
@@ -114,13 +121,20 @@ procedure(OPCSubCellScriptCreateCallback()
                 )
                 nil
             else
-                path = lsprintf("%s/%s/layout/opcsubgroups" cv->lib->readPath cv->cellName)
+                path = OPCGetSubCellScriptDirectory(cv)
                 unless(isDir(path)
                     createDir(path)
                 )
                 filename = lsprintf("%s/%s.lua" path groupname)
                 OPCOpenEditor(filename)
-                group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opcpath" 'type "string" 'value filename)))
+                group = OPCSubCellCreateBase(cv
+                    groupname
+                    list(
+                        list(nil 'name "opcdir" 'type "string" 'value path)
+                        list(nil 'name "opcname" 'type "string" 'value lsprintf("%s.lua" groupname))
+                        list(nil 'name "opcprotect" 'type "boolean" 'value nil)
+                    )
+                )
                 label = dbCreateLabel(cv OPCGetInfoLayer() 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
                 rect = dbCreateRect(cv OPCGetInfoLayer() list(-0.5:-0.5 0.5:0.5))
@@ -140,12 +154,7 @@ procedure(OPCSubCellScriptCreateCallback()
                 t
         )
     )
-    ; (2) create group with some dummy shape
-    ; (3) set name of group
-    ; (4) add opcpath property
-    ; (5) call opc and fill group with shapes
-    ; (6) place/move group
-) ; procedure
+) ; OPCSubCellScriptCreateCallback
 
 procedure(OPCSubCellCellCreateCallback()
     let(
@@ -165,40 +174,78 @@ procedure(OPCSubCellCellCreateCallback()
                 )
                 nil
             else
-                group = OPCSubCellCreateBase(cv groupname list(list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" cellname))))
+                group = OPCSubCellCreateBase(cv
+                    groupname
+                    list(
+                        list(nil 'name "opccell" 'type "string" 'value lsprintf("%s" cellname))
+                        list(nil 'name "opcprotect" 'type "boolean" 'value nil)
+                    )
+                )
                 label = dbCreateLabel(cv OPCGetInfoLayer() 0:0 groupname "centerCenter" "R0" "fixed" 1)
                 dbAddFigToFigGroup(group label)
                 t
         )
     )
-    ; (2) create group with some dummy shape
-    ; (3) set name of group
-    ; (4) add opcpath property
-    ; (5) call opc and fill group with shapes
-    ; (6) place/move group
-) ; procedure
+) ; OPCSubCellCellCreateCallback
 
 procedure(OPCSubCellEditScript()
     let(
-        (opcgroup)
-        opcgroup = OPCSubCellGet()
-        when(opcgroup
-            OPCOpenEditor(opcgroup->opcpath)
+        (opcgroups)
+        opcgroups = OPCSubCellGetCellScripts()
+        foreach(opcgroup opcgroups
+            if(opcgroup->opcpath
+                then ; legacy
+                    OPCOpenEditor(opcgroup->opcpath)
+                else ; new
+                    if(isFile(opcgroup->opcdir)
+                        then
+                            warn(lsprintf("erroneous opcdir '%s', this is an existing file" opcgroup->opcdir))
+                        else
+                            unless(isDir(opcgroup->opcdir)
+                                createDirHier(opcgroup->opcdir)
+                            )
+                            OPCOpenEditor(lsprintf("%s/%s" opcgroup->opcdir opcgroup->opcname))
+                    ) ; if isFile
+            ) ; if opcgroup
         ) ; when opcgroup
     ) ; let
-) ; procedure
+) ; OPCSubCellEditScript
+
+procedure(OPCSubCellMapILListEntry(entry)
+    case(type(entry)
+        ('fixnum lsprintf("%d" entry))
+        ('flonum lsprintf("%d" 1000 * entry))
+        ('string lsprintf("\"%s\"" entry))
+        ('symbol lsprintf("\"%s\"" symbolToString(entry)))
+        ('list  OPCSubCellFormatILList(entry))
+        (t error(lsprintf(
+                "openPCells virtuoso sub-cell: received an unknown entry type for parameter formatting: %s" 
+                symbolToString(type(entry))
+           ))
+        )
+    ) ; case
+) ; OPCSubCellMapILListEntry
+
+procedure(OPCSubCellFormatILList(l)
+    let(
+        (flist)
+        flist = mapcar('OPCSubCellMapILListEntry l)
+        lsprintf("{ %s }" buildString(flist ", "))
+    ) ; let
+) ; OPCSubCellFormatILList
 
 procedure(OPCGetSubCellCellParameters(opcgroup)
     let((value parameterlist)
         parameterlist = nil
         foreach(p opcgroup->prop
-            unless(p->name == "opccell"
+            unless(p->name == "opccell" || p->name == "opcprotect"
                 value = case(p->valueType
-                    ("int" lsprintf("%d" p->value)) ; integers stay integers (e.g. number of fingers)
-                    ("float" lsprintf("%d" int(p->value * 1000))) ; convert micro-meter to nano-meter
-                    ("boolean" lsprintf("%s" if(p->value == "TRUE" "true" "false")))
-                    ("string" lsprintf("\"%s\"" p->value))
-                    (t nil)
+                    ("int"      lsprintf("%d" p->value)) ; integers stay integers (e.g. number of fingers)
+                    ("float"    lsprintf("%d" int(p->value * 1000))) ; convert micro-meter to nano-meter
+                    ("boolean"  lsprintf("%s" if(p->value == "TRUE" "true" "false")))
+                    ("string"   lsprintf("\"%s\"" p->value))
+                    ("ILList"   OPCSubCellFormatILList(p->value))
+                    (t nil) ; should be unreachable?
                 )
                 parameterlist = cons(list(p->name value) parameterlist)
             )
@@ -209,7 +256,7 @@ procedure(OPCGetSubCellCellParameters(opcgroup)
 
 procedure(OPCSubCellUpdateCellScript()
     t
-)
+) ; OPCSubCellUpdateCellScript
 
 procedure(OPCSubCellUpdateCell(opcgroup)
     let(
@@ -224,29 +271,58 @@ procedure(OPCSubCellUpdateCell(opcgroup)
             ?xgroupname opcgroup->name
         )
     )
-)
+) ; OPCSubCellUpdateCell
 
 procedure(OPCSubCellUpdate()
     let(
-        (opcgroup)
-        opcgroup = OPCSubCellGet()
-        if(opcgroup
-            then
-                if(setof(p opcgroup->prop p->name == "opcpath") ; group is an opc group (cellscript)
+        (opcgroups)
+        opcgroups = OPCSubCellGetAll()
+        foreach(opcgroup opcgroups
+            when(!opcgroup->opcprotect || opcgroup->opcprotect == "FALSE"
+                if(setof(p opcgroup->prop p->name == "opccell") ; group is an opc group (cell)
                     then
-                        OPCUpdateCellscriptCallback(
-                            ?hierarchical nil
-                            ?deleteAll nil
-                            ?xpath opcgroup->opcpath
-                            ?origin opcgroup->origin
-                            ?useOrigin t
-                            ?xgroupname opcgroup->name
-                        )
-                    else
                         OPCSubCellUpdateCell(opcgroup)
-                )
-            else
-                nil
-        ) ; if opcgroup
+                    else
+                        let(
+                            (path)
+                            if(opcgroup->opcdir
+                                then
+                                    path = lsprintf("%s/%s" opcgroup->opcdir opcgroup->opcname)
+                                else ; legacy
+                                    path = opcgroup->opcpath
+                            )
+                            OPCUpdateCellscriptCallback(
+                                ?hierarchical nil
+                                ?deleteAll nil
+                                ?xpath path
+                                ?origin opcgroup->origin
+                                ?useOrigin t
+                                ?xgroupname opcgroup->name
+                            )
+                        ) ; let
+                ) ; if group type
+            )
+        ) ; foreach opcgroup
     ) ; let
-) ; procedure
+) ; OPCSubCellUpdate
+
+procedure(OPCSubCellCleanUp()
+    let(
+        (cv basepath groupnames pattern todelete)
+        cv = geGetEditCellView()
+        ; gather all groups in the current cellview
+        groupnames = mapcar(g cv->figGroups g->name) ; FIXME: check property names
+        ; collect all subcell script files
+        basepath = OPCGetSubCellScriptDirectory(cv)
+        pattern = pcreCompile("*.lua")
+        when(isDir(basepath)
+            let((subscriptfiles)
+                subscriptfiles = setof(file getDirFiles() pcreMatch(file pattern)) ; FIXME: check syntax/names
+                todelete = setof(g groupnames member(g subscriptfiles)) ; FIXME: check syntax
+            )
+        )
+        foreach(d todelete
+            deleteFile(d)
+        )
+    ) ; let
+) ; OPCSubCellCleanUp

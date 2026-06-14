@@ -1,11 +1,11 @@
 /* Main Generation Functions */
 cmdoptions_add_section(cmdoptions, "Main generation functions");
 cmdoptions_add_option(cmdoptions, 'T', "technology", SINGLE_ARG, "specify technology");
-cmdoptions_add_option(cmdoptions, 'C', "cell", SINGLE_ARG, "specify cell");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "cell", SINGLE_ARG, "specify cell");
 cmdoptions_add_option(cmdoptions, 'E', "export", MULTI_ARGS, "specify export type (multiple arguments possible). Some export types re-use layer data defined for other export types (for example, GDSII and OASIS layer/purpose pairs often use the same data). It is possible to specify the used data by prefixing it separated with a colon (':') -> 'gds:oasis' uses the GDSII layers for the oasis export type. While it is possible to use something like 'gds:gds', this is not needed.");
 //cmdoptions_add_option(cmdoptions, NO_SHORT, "export-layers", SINGLE_ARG, "specify which layer data from the technology layer map is given to the export. If this matches the name of the export (e.g. gds and gds) then this option is not needed. It is only useful if an export uses layer definition intended for another export (e.g. magic and SKILL)");
 cmdoptions_add_option(cmdoptions, 'X', "export-options", MULTI_ARGS, "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). An overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h");
-cmdoptions_add_option(cmdoptions, 'c', "cellscript", SINGLE_ARG, "execute cell script. With this option, --cell is not needed to create a layout. The layout described in the cell script is generated, so the called file must return an object.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "cellscript", SINGLE_ARG, "execute cell script. With this option, --cell is not needed to create a layout. The layout described in the cell script is generated, so the called file must return an object.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "cellscript-args", MULTI_ARGS, "pass arguments to cellscripts (use with --cellscript). Can be called multiple times");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "cell-environment", SINGLE_ARG, "read cell environment from the given file");
 
@@ -16,16 +16,18 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "flat", NO_ARG, "flatten hierarchy b
 cmdoptions_add_option(cmdoptions, NO_SHORT, "flatten-ports", NO_ARG, "include ports in hierarchy flattening. Can lead to confusing results, especially in large hierarchies. Mostly useful for layout debugging");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "bus-delimiters", SINGLE_ARG, "delimiters for bus ports. Useful values: '[]' or '<>', but others are possible. This option expects two characters for the left and right delimiters");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "techpath", MULTI_ARGS, "add (append) searchpath for technology files (can be used multiple times: --techpath foo --techpath bar)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "exportpath", MULTI_ARGS, "add (append) searchpath for export definitions (can be used multiple times: --exportpath foo --exportpath bar)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "prepend-parameter-file", MULTI_ARGS, "file to read parameters from (prepended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "append-parameter-file", MULTI_ARGS, "file to read parameters from (appended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files.");
 cmdoptions_add_alias(cmdoptions, "append-parameter-file", 'p', "pfile", "synonym for --append-parameter-file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-pfiles", NO_ARG, "disable reading of any parameter files");
 cmdoptions_add_option_default(cmdoptions, 'f', "filename", SINGLE_ARG, "openPCells", "specify output filename for export. The name should be specified without an extension (such as '.gds'), as the export types add their specific extension to the filename, this is especially useful when using more than one export type");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "origin", SINGLE_ARG, "origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parentheses)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "origin", SINGLE_ARG, "set origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parentheses)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "relative-origin", SINGLE_ARG, "move origin of cell (translate the origin by the shift specified). This option expects a point input, e.g. '(10, 10)' (with parentheses). This switch is often preferable over --origin, which overrides the origin set in the toplevel cell internally.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "translate", SINGLE_ARG, "move cell by (x, y). This option expects a point input, e.g. '(10, 10)' (with parentheses)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "orientation", SINGLE_ARG, "orientation of cell (possible values: 0 (regular), fx (flip x), fy (flip y), fxy (flip x and y))");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "scale", SINGLE_ARG, "scale factor for all shapes");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "no-expand-namecontexts", NO_ARG, "don't expand name contexts while exporting cells. This means that higher-level cell names are not inherited and prepended by lower cells, for example: Without this option, a child of the cell (with name 'toplevel') will be named 'toplevel_CHILDNAME'. With this option it simply becomes 'CHILDNAME'. Use this option cautiously, as currently there are no checks if a child with this name already exists. If this is the case the resulting exported file will be broken.");
+//cmdoptions_add_option(cmdoptions, NO_SHORT, "no-expand-namecontexts", NO_ARG, "don't expand name contexts while exporting cells. This means that higher-level cell names are not inherited and prepended by lower cells, for example: Without this option, a child of the cell (with name 'toplevel') will be named 'toplevel_CHILDNAME'. With this option it simply becomes 'CHILDNAME'. Use this option cautiously, as currently there are no checks if a child with this name already exists. If this is the case the resulting exported file will be broken.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-ports", NO_ARG, "disable export of ports. Useful for graphical export of layouts");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "write-children-ports", NO_ARG, "export ports of sub cells. Depending on what you do with the generated layouts this could possible break a clean LVS (possible szenario: importing a SKILL representation of a layout hierarchy. Since the SKILL export creates a flat layout, sub-level ports now become top-level ports, which is almost certainly wrong.)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "append-cellpath", MULTI_ARGS, "append searchpath for cells (can be used multiple times: --append-cellpath foo --append-cellpath bar)");
@@ -45,7 +47,8 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "resolve-path-extensions", NO_ARG, "
 cmdoptions_add_option(cmdoptions, NO_SHORT, "rasterize-curves", NO_ARG, "rasterize curves");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "triangulate-polygons", NO_ARG, "triangulate all polygons");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "enable-fallback-vias", NO_ARG, "enable the use of fallback vias. These are usually not desirable for layout as they only produce one single cut and might not be DRC clean. But fallback vias can be used to sucessfully generate a layout and finding the cause for the problems with the via generation");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-via-arrayzation", NO_ARG, "don't create via arrays, instead create single large via regions (useful for EM simulations or debugging)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-via-arrayzation", NO_ARG, "don't create via arrays, instead create single large via regions (useful for EM simulations or debugging). Failing overlap vias (e.g. viabltrov) are not created at all, non-failing will be created just like other vias.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-parameter-checks", NO_ARG, "don't run cell parameter check functions. This can help when debugging cells, as parameter checks might prevent layout functions from running because of malformed parameter sets. For normal uses this switch is not recommended, as parameter checks usually ensure cell shapes sanity.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "separator", SINGLE_ARG, "cell parameter separator (default \\n)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "seed", SINGLE_ARG, "set seed for random functions for reproducible layout generation. Random functions are mostly used in digital place & route functions, but also in some cells");
 
@@ -65,7 +68,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "debug-cell", NO_ARG, "show detailed
 /* Miscellaneous Functions */
 cmdoptions_add_section(cmdoptions, "Miscellaneous functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "no-user-config", NO_ARG, "don't load the user config");
-cmdoptions_add_option(cmdoptions, 'w', "watch", NO_ARG, "start 'watch' mode. This continuously monitors the specified cell and regenerates the layout upon changes in the file.");
+cmdoptions_add_option(cmdoptions, 'w', "watch", NO_ARG, "start 'watch' mode. This continuously monitors the specified cell and regenerates the layout upon changes in the file. Note: This implementation of this switch is currently very rudimentary. It is not tested thoroughly and might not work with every editor. Additionally, it currently only supports cellscripts, not cells.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "template", SINGLE_ARG, "print a template for the specified cell. The template shows the main parameters and usage of the cell");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "template-auto", SINGLE_ARG, "print a template for the specified cell. The template shows the main parameters and usage of the cell. This options differs from --template in that it alwasy generates output, even if no template is defined. In this case, it simply generates a 'template' call by placing all available parameters in the call.");
 
@@ -73,7 +76,6 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "template-auto", SINGLE_ARG, "print 
 cmdoptions_add_section(cmdoptions, "Layout import functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "read-gds", SINGLE_ARG, "read a GDS stream file and export all cells as opc-compatible code. This can take some time, depending on the size of the stream file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "read-gds-toplevel-cellname", SINGLE_ARG, "specify the name of the toplevel cell");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "gds-layermap", SINGLE_ARG, "provide a layermap for GDS stream reading to enable different export types for read cells");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "gds-ignore-lpp", MULTI_ARGS, "layer-purpose-pairs to be ignored during gds import. Separate layers and purposes with a colon (:)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "import-prefix", SINGLE_ARG, "specifies a directory in which imported cells will be placed. For example, if --read-gds FOO and --import-prefix BAR is given, the imported cells will reside in BAR/FOO/*.lua");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "import-libname", SINGLE_ARG, "specify the name of the opc library name. If this option is not given, the filename from the import file is taken");
@@ -88,24 +90,26 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "techfile-assistant", NO_ARG, "start
 
 /* Info Functions */
 cmdoptions_add_section(cmdoptions, "Info functions");
-cmdoptions_add_option(cmdoptions, 'N', "parameters-name", SINGLE_ARG, "display available cell parameters for the given cellname and exit. This shows a 'short' list, which is suitable for searching available parameters without too much additional information. It is equivalent to calling 'opc --parameters --parameters-format %n'.");
-cmdoptions_add_option(cmdoptions, 'P', "parameters", SINGLE_ARG, "display available cell parameters for the given cellname and exit. If additional positional parameters are given, these are interpreted as parameter names and only info for these parameters is printed. If the cell uses the technology module to get default values, proper values will be only reported if also a technology is given with --technology. Otherwise, all technology.get_dimenstion functions will return 0");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "parameters-format", SINGLE_ARG, "format for listing parameters. The following formats are recognized: %n: parameter name, %d: parameter display name, %v: parameter value, %a: parameter argument type, %i: info string (possibly emtpy), %r: parameter is read-only (true/false). The default is '%n (%s)\\t\\t%i'");
-cmdoptions_add_option(cmdoptions, 'A', "anchors", SINGLE_ARG, "display available cell anchors for the given cellname and exit. If additional positional parameters are given, these are interpreted as parameter names and only info for these parameters is printed.");
+cmdoptions_add_option(cmdoptions, 'I', "cell-info", SINGLE_ARG, "display available cell info");
+cmdoptions_add_option(cmdoptions, 'P', "cell-parameters", SINGLE_ARG, "display available cell parameters for the given cellname and exit. If additional positional parameters are given, these are interpreted as parameter names and only info for matching parameters is printed. The parameter matching is applied consecutively, starting with the first argument. As an example: The command-line 'opc --parameters basic/mosfet gate width' will filter all parameters first by matching against 'gate', then only the matching parameters are again matched again 'width'. If only one positional parameter is given, all parameters are tried with an exact match first (e.g. 'gatelength' matched 'gatelength' exactly, but not 'leftgatelength'). If the exact match succeeds, only this parameter is displayed. If multiple paramters match (non-exact match), only the names are displayed. If only one parameter is printed, additional parameter information is shown. If the cell uses the technology module to get default values, proper values will be only reported if also a technology is given with --technology. Otherwise, all technology.get_dimenstion functions will return 0");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "parameters-list", SINGLE_ARG, "display all available cell parameters for the given cellname and exit. This option is meant to be used for machine-readable outputs, for instance for displaying parameters in graphical interfaces. Best used with --parameters-format.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "parameters-format", SINGLE_ARG, "format for listing parameters (use with --parameters-list). The following formats are recognized: %n: parameter name, %d: parameter display name, %v: parameter value, %a: parameter argument type, %i: info string (possibly emtpy), %r: parameter is read-only (true/false), %o: possible values. The default is '%n (%s)\\t\\t%i'");
+cmdoptions_add_option(cmdoptions, 'A', "cell-anchors", SINGLE_ARG, "display available cell anchors for the given cellname and exit. If additional positional parameters are given, these are interpreted as parameter names and only info for these parameters is printed.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "anchors-format", SINGLE_ARG, "format for displaying cell anchors (currently not used)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "constraints", NO_ARG, "show required technology parameter (requires --cell and --technology)");
-cmdoptions_add_option(cmdoptions, 'L', "list", NO_ARG, "list available cells");
+cmdoptions_add_option(cmdoptions, 'L', "list-cells", NO_ARG, "list available cells. The list of cells can be filtered by additional positional parameters. The filter list is applied consecutively, in the order of the parameters (e.g. 'foo bar' filters first for foo and then for bar).");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-format", SINGLE_ARG, "format for listing cells. The following format is recognized: prefmt:postfmt:prepathfmt:postpathfmt:prebasefmt:postbasefmt:cellfmt. Format strings can be empty, the delimiting ':' has to be present. A (useless) basic format could be '::::::'. The default is '::%p\\n::  %b\\n::    %c\\n'. A possible format for creating a nested list (e.g. for SKILL) would be 'list(\\n:)\\n:::list(\"%b\" list(:))\\n:\"%c\"'");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-all", NO_ARG, "list all available cells (including hidden cells)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-no-directories", NO_ARG, "don't list parent directories when listing available cells");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-cellpaths", NO_ARG, "list cell search paths");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-techpaths", NO_ARG, "list technology search paths");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "api-help", SINGLE_ARG, "display help about an API function or module. It only displays full matches (with or without the module name), so for instance rectanglebltr will show a result whereas rectangleb will not. Use --api-search if the name is entirely known");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "api-search", SINGLE_ARG, "search for an API function or module. If only one match is found it shows the same output as --api-help");
+cmdoptions_add_option(cmdoptions, 'S', "api-search", NO_ARG, "search for an API function or module. If only one match is found it shows the same output as --api-help. Search names are given as positional parameters. If multiple are given, they are applied consecutively as filter.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "api-list", NO_ARG, "list all available API functions and/or modules");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "get-dimension", SINGLE_ARG, "get a technology-related dimension (like technology.get_dimension in pcells/cellscripts). This option requires a technology");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "generate-tutorial", NO_ARG, "generate a set of script files to demonstrate the usage and features of openPCells");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "tutorial", NO_ARG, "print out an interactive tutorial that shows the basic flow");
+cmdoptions_add_option(cmdoptions, 'D', "html-documentation", NO_ARG, "open a browser to show the documentation");
 
 /* Utility Functions */
 cmdoptions_add_section(cmdoptions, "Utility functions");
@@ -115,14 +119,15 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data-raw", NO_ARG, "also p
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-hierarchy", SINGLE_ARG, "show cell hierarchy in a GDS stream file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-definitions", SINGLE_ARG, "show cell definitions in a GDS stream file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-depth", SINGLE_ARG, "maximum depth for gds traversal (affects --show-gds-hierarchy)");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "execute-lua-script", SINGLE_ARG, "execute a lua script, as if called with regular lua");
+cmdoptions_add_option(cmdoptions, 'e', "execute-lua-script", SINGLE_ARG, "execute a lua script, as if called with regular lua");
+cmdoptions_add_option(cmdoptions, 'V', "viewer", NO_SHORT, "launch the browser-based layout viewer (for JSON-based layout files)");
 
 /* Diagnostic Functions */
 cmdoptions_add_section(cmdoptions, "Diagnostic functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "null", NO_ARG, "do nothing, can be used to check for availability of the opc command without any output");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-cellinfo", NO_ARG, "show some cell information: shape count, used layers, etc.");
-cmdoptions_add_option(cmdoptions, 'V', "verbose", NO_ARG, "enable verbose output");
-cmdoptions_add_option(cmdoptions, 'D', "debug", NO_ARG, "enable debugging output");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "verbose", NO_ARG, "enable verbose output");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "debug", NO_ARG, "enable debugging output");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "check", NO_ARG, "check cell code and parameter variations. Strict checking, e.g. if a cell parameter can not work with odd values, specify the parameter as even()");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "check-technology", SINGLE_ARG, "check technology files if given technology");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "check-technology-ignore-export", NO_ARG, "ignore missing export definitions for --check-technology");
@@ -132,5 +137,11 @@ cmdoptions_add_option(cmdoptions, 'v', "version", NO_ARG, "display version");
 cmdoptions_add_option(cmdoptions, 'h', "help", NO_ARG, "display help");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "stdout-to", SINGLE_ARG, "redirect standard output to the given file (will be overwritten)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "stderr-to", SINGLE_ARG, "redirect standard error to the given file (will be overwritten)");
+
+/* Developer Functions */
+cmdoptions_add_section(cmdoptions, "Developer functions");
+#ifdef OPC_ENABLE_TIMING
+cmdoptions_add_option(cmdoptions, NO_SHORT, "time", NO_ARG, "Report program timing information. This significantly slows down the program run-time. This switch requires the compile-time define 'OPC_ENABLE_TIMING' to be set. This option is intended for the development, not the usage of openPCells.");
+#endif
 
 // vim: nowrap

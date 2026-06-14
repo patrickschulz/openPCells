@@ -1,6 +1,0 @@
-local toplevel = object.create("toplevel")
-local sub = object.create("sub")
-local subsub = object.create("subsub")
-sub:add_child(subsub, "subsub1")
-sub:add_child(subsub, "subsub2")
-toplevel:add_child(sub, "sub")

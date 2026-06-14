@@ -6,6 +6,7 @@
 #include "lua/lua.h"
 
 #include "hashmap.h"
+#include "tagged_value.h"
 #include "vector.h"
 
 // public struct declarations
@@ -64,6 +65,7 @@ void technology_ignore_missing_exports(struct technology_state* techstate);
 
 struct generics* technology_get_layer(struct technology_state* state, const char* layername);
 int technology_resolve_metal(const struct technology_state* state, int metalnum);
+int technology_metal_layer_to_index(const struct technology_state* techstate, const struct generics* metallayer);
 int technology_has_multiple_patterning(const struct technology_state* state, int metalnum);
 int technology_has_feature(const struct technology_state* techstate, const char* feature);
 
@@ -76,6 +78,7 @@ struct via_definition* technology_get_contact_fallback(struct technology_state* 
 int open_ltechnology_lib(lua_State* L);
 
 int generics_is_empty(const struct generics* layer);
+int generics_is_first_entry_empty(const struct generics* layer);
 int generics_is_layer_name(const struct generics* layer, const char* layername);
 const char* generics_get_layer_pretty_name(const struct generics* layer);
 const struct hashmap* generics_get_first_layer_data(const struct generics* layer);
@@ -91,6 +94,7 @@ char* technology_get_viatable_path(const struct vector* techpaths, const char* t
 char* technology_get_constraints_path(const struct vector* techpaths, const char* techname);
 struct tagged_value* technology_get_dimension(const struct technology_state* techstate, const char* dimension);
 unsigned int technology_get_number_of_layers(const struct technology_state* techstate);
+void technology_push_layermap_table(lua_State* L, const struct technology_state* techstate);
 
 // layer creation interface
 struct generics* generics_create_empty_layer(const char* name);
@@ -111,11 +115,13 @@ const struct generics* generics_create_active(struct technology_state* techstate
 const struct generics* generics_create_gate(struct technology_state* techstate);
 const struct generics* generics_create_feol(struct technology_state* techstate, const char* layername);
 const struct generics* generics_create_beol(struct technology_state* techstate, const char* layername);
-const struct generics* generics_create_marker(struct technology_state* techstate, const char* str, int level);
+const struct generics* generics_create_marker(struct technology_state* techstate, const char* what, int level);
 const struct generics* generics_create_devicelabel(struct technology_state* techstate, const char* label);
-const struct generics* generics_create_exclude(struct technology_state* techstate, const char* str);
-const struct generics* generics_create_fill(struct technology_state* techstate, const char* str);
-const struct generics* generics_create_other(struct technology_state* techstate, const char* str);
+const struct generics* generics_create_exclude(struct technology_state* techstate, const char* what);
+const struct generics* generics_create_fill(struct technology_state* techstate, const char* what);
+const struct generics* generics_create_text(struct technology_state* techstate);
+const struct generics* generics_create_error(struct technology_state* techstate);
+const struct generics* generics_create_other(struct technology_state* techstate, const char* layername);
 const struct generics* generics_create_otherport(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_outline(struct technology_state* techstate);
 const struct generics* generics_create_special(struct technology_state* techstate);

@@ -3,12 +3,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "tagged_value.h"
 #include "util.h"
 
-const unsigned int __baseunit = 1000; // virtuoso is micrometer-based. The implementation tried to make future changes possible, but this should be a power-of-ten
-const unsigned int __numdigits = 3; // digits after the decimal point. Must be log10(__baseunit)
+static unsigned int __baseunit = 1000; // virtuoso is micrometer-based. The implementation tried to make future changes possible, but this should be a power-of-ten
 static int __group = 0;
 static char* __groupname = NULL;
 static coordinate_t __labelsize = 100;
@@ -17,6 +17,87 @@ static unsigned int __counter = 0;
 static unsigned int __maxletlimit = 1000;
 static int __istoplevel = 0;
 static char* __cellname = NULL;
+static int __add_sticky_net = 0;
+
+static int _set_options(const struct vector* vopt)
+{
+    size_t i = 0;
+    while(i < vector_size(vopt))
+    {
+        const char* arg = vector_get_const(vopt, i);
+        if((strcmp(arg, "-U") == 0) || (strcmp(arg, "--base-unit") == 0))
+        {
+            if(i < vector_size(vopt) - 1)
+            {
+                __baseunit = strtoul(vector_get_const(vopt, i + 1), NULL, 10);
+            }
+            else
+            {
+                fputs("SKILL export: --base-unit: argument expected\n", stderr);
+                return 0;
+            }
+            ++i;
+        }
+        else if((strcmp(arg, "-L") == 0) || (strcmp(arg, "--label-size") == 0))
+        {
+            if(i < vector_size(vopt) - 1)
+            {
+                __labelsize = atoi(vector_get_const(vopt, i + 1));
+            }
+            else
+            {
+                fputs("SKILL export: --label-size: argument expected\n", stderr);
+                return 0;
+            }
+            ++i;
+        }
+        else if((strcmp(arg, "-g") == 0) || (strcmp(arg, "--group") == 0))
+        {
+            __group = 1;
+        }
+        else if((strcmp(arg, "-n") == 0) || (strcmp(arg, "--group-name") == 0))
+        {
+            if(i < vector_size(vopt) - 1)
+            {
+                __groupname = util_strdup(vector_get_const(vopt, i + 1));
+            }
+            else
+            {
+                fputs("SKILL export: --group-name: argument expected\n", stderr);
+                return 0;
+            }
+            ++i;
+        }
+        else if((strcmp(arg, "--no-let-splits") == 0))
+        {
+            __splitlets = 1;
+        }
+        else if((strcmp(arg, "--max-let-splits") == 0))
+        {
+            if(i < vector_size(vopt) - 1)
+            {
+                __maxletlimit = atoi(vector_get_const(vopt, i + 1));
+            }
+            else
+            {
+                fputs("SKILL export: --max-let-splits: argument expected\n", stderr);
+                return 0;
+            }
+            ++i;
+        }
+        else if((strcmp(arg, "--add-sticky-net") == 0))
+        {
+            __add_sticky_net = 1;
+        }
+        else
+        {
+            fprintf(stderr, "SKILL export: unknown option '%s'\n", arg);
+            return 0;
+        }
+        ++i;
+    }
+    return 1;
+}
 
 static void _prepare_shape_for_group(struct export_data* data)
 {
@@ -129,7 +210,16 @@ static void _ensure_legal_limit(struct export_data* data)
 
 static void _at_begin(struct export_data* data)
 {
-    (void) data;
+    time_t ttime;
+    struct tm* tmtime;
+    time(&ttime);
+    tmtime = localtime(&ttime);
+    export_data_append_string(data, "/*\n");
+    export_data_append_string(data, " created by openPCells\n");
+    const char* stime = asctime(tmtime);
+    export_data_append_string(data, " ");
+    export_data_append_string_len(data, stime, strlen(stime) - 1); // -1: don't print last newline
+    export_data_append_string(data, "\n*/\n");
 }
 
 static void _at_end(struct export_data* data)
@@ -200,12 +290,13 @@ static void _write_ipart(struct export_data* data, coordinate_t num)
 
 static void _write_fpart(struct export_data* data, coordinate_t num)
 {
-    char digit1 = (((char)((num / 100) % 10)) + '0');
-    export_data_append_char(data, digit1);
-    char digit2 = (((char)((num / 10) % 10)) + '0');
-    export_data_append_char(data, digit2);
-    char digit3 = (((char)((num / 1) % 10)) + '0');
-    export_data_append_char(data, digit3);
+    unsigned int divisor = __baseunit / 10;
+    while(divisor > 0)
+    {
+        char digit = (((char)((num / divisor) % 10)) + '0');
+        export_data_append_char(data, digit);
+        divisor = divisor / 10;
+    }
 }
 
 static void _write_coordinate(struct export_data* data, coordinate_t num)
@@ -232,19 +323,49 @@ static void _write_point(struct export_data* data, const struct point* pt)
 static void _write_rectangle(struct export_data* data, const struct hashmap* layer, const struct point* bl, const struct point* tr)
 {
     _prepare_shape_for_group(data);
-    export_data_append_string(data, "dbCreateRect");
-    export_data_append_char(data, '(');
-    export_data_append_string(data, "cv");
-    export_data_append_char(data, ' ');
-    _write_layer(data, layer);
-    export_data_append_char(data, ' ');
-    export_data_append_string(data, "list");
-    export_data_append_char(data, '(');
-    _write_point(data, bl);
-    export_data_append_char(data, ' ');
-    _write_point(data, tr);
-    export_data_append_char(data, ')');
-    export_data_append_char(data, ')');
+    if(__add_sticky_net)
+    {
+        export_data_append_string(data, "let((id)");
+        export_data_append_char(data, '\n');
+        export_data_append_string(data, "        id = dbCreateRect");
+        export_data_append_char(data, '(');
+        export_data_append_string(data, "cv");
+        export_data_append_char(data, ' ');
+        _write_layer(data, layer);
+        export_data_append_char(data, ' ');
+        export_data_append_string(data, "list");
+        export_data_append_char(data, '(');
+        _write_point(data, bl);
+        export_data_append_char(data, ' ');
+        _write_point(data, tr);
+        export_data_append_char(data, ')');
+        export_data_append_char(data, ')');
+        export_data_append_char(data, '\n');
+        export_data_append_string(data, "        id->lxStickyNet = t");
+        // return id from local let
+        /*
+        export_data_append_char(data, '\n');
+        export_data_append_string(data, "        id");
+        */
+        export_data_append_char(data, '\n');
+        export_data_append_string(data, "    )"); // close let
+    }
+    else
+    {
+        export_data_append_string(data, "dbCreateRect");
+        export_data_append_char(data, '(');
+        export_data_append_string(data, "cv");
+        export_data_append_char(data, ' ');
+        _write_layer(data, layer);
+        export_data_append_char(data, ' ');
+        export_data_append_string(data, "list");
+        export_data_append_char(data, '(');
+        _write_point(data, bl);
+        export_data_append_char(data, ' ');
+        _write_point(data, tr);
+        export_data_append_char(data, ')');
+        export_data_append_char(data, ')');
+    }
     _finish_shape_for_group(data);
     export_data_append_char(data, '\n');
     _ensure_legal_limit(data);
@@ -309,69 +430,6 @@ static void _write_path(struct export_data* data, const struct hashmap* layer, c
 static const char* _get_extension(void)
 {
     return "il";
-}
-
-static int _set_options(const struct vector* vopt)
-{
-    size_t i = 0;
-    while(i < vector_size(vopt))
-    {
-        const char* arg = vector_get_const(vopt, i);
-        if((strcmp(arg, "-L") == 0) || (strcmp(arg, "--label-size") == 0))
-        {
-            if(i < vector_size(vopt) - 1)
-            {
-                __labelsize = atoi(vector_get_const(vopt, i + 1));
-            }
-            else
-            {
-                fputs("SKILL export: --label-size: argument expected\n", stderr);
-                return 0;
-            }
-            ++i;
-        }
-        else if((strcmp(arg, "-g") == 0) || (strcmp(arg, "--group") == 0))
-        {
-            __group = 1;
-        }
-        else if((strcmp(arg, "-n") == 0) || (strcmp(arg, "--group-name") == 0))
-        {
-            if(i < vector_size(vopt) - 1)
-            {
-                __groupname = util_strdup(vector_get_const(vopt, i + 1));
-            }
-            else
-            {
-                fputs("SKILL export: --group-name: argument expected\n", stderr);
-                return 0;
-            }
-            ++i;
-        }
-        else if((strcmp(arg, "--no-let-splits") == 0))
-        {
-            __splitlets = 1;
-        }
-        else if((strcmp(arg, "--max-let-splits") == 0))
-        {
-            if(i < vector_size(vopt) - 1)
-            {
-                __maxletlimit = atoi(vector_get_const(vopt, i + 1));
-            }
-            else
-            {
-                fputs("SKILL export: --max-let-splits: argument expected\n", stderr);
-                return 0;
-            }
-            ++i;
-        }
-        else
-        {
-            fprintf(stderr, "SKILL export: unknown option '%s'\n", arg);
-            return 0;
-        }
-        ++i;
-    }
-    return 1;
 }
 
 static void _write_port(struct export_data* data, const char* name, const struct hashmap* layer, const struct point* where, unsigned int sizehint)
@@ -516,6 +574,57 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     _ensure_legal_limit(data);
 }
 
+static void _write_netshape(struct export_data* data, const char* name, const struct hashmap* layer, const struct point* bl, const struct point* tr)
+{
+    // FIXME: add net to shape
+    _prepare_shape_for_group(data);
+    export_data_append_string(data, "let((id)");
+    export_data_append_char(data, '\n');
+    export_data_append_string(data, "        id = dbCreateRect");
+    export_data_append_char(data, '(');
+    export_data_append_string(data, "cv");
+    export_data_append_char(data, ' ');
+    _write_layer(data, layer);
+    export_data_append_char(data, ' ');
+    export_data_append_string(data, "list");
+    export_data_append_char(data, '(');
+    _write_point(data, bl);
+    export_data_append_char(data, ' ');
+    _write_point(data, tr);
+    export_data_append_char(data, ')');
+    export_data_append_char(data, ')');
+    // add net:
+    export_data_append_char(data, '\n');
+    export_data_append_string(data, "        dbAddFigToNet");
+    export_data_append_char(data, '(');
+    export_data_append_string(data, "id");
+    export_data_append_char(data, ' ');
+    export_data_append_string(data, "dbMakeNet");
+    export_data_append_char(data, '(');
+    export_data_append_string(data, "cv");
+    export_data_append_char(data, ' ');
+    export_data_append_char(data, '"');
+    export_data_append_string(data, name);
+    export_data_append_char(data, '"');
+    export_data_append_char(data, ')');
+    export_data_append_char(data, ')');
+    // add lxStickyNet property
+    if(__add_sticky_net)
+    {
+        export_data_append_char(data, '\n');
+        export_data_append_string(data, "        id->lxStickyNet = t");
+    }
+    // return id from local let
+    export_data_append_char(data, '\n');
+    export_data_append_string(data, "        id");
+    // close let
+    export_data_append_char(data, '\n');
+    export_data_append_string(data, "    )");
+    _finish_shape_for_group(data);
+    export_data_append_char(data, '\n');
+    _ensure_legal_limit(data);
+}
+
 static void _finalize(void)
 {
     if(__groupname)
@@ -542,5 +651,6 @@ struct export_functions* skillexport_get_export_functions(void)
     funcs->write_port = _write_port;
     funcs->write_label = _write_port;
     funcs->get_extension = _get_extension;
+    funcs->write_netshape = _write_netshape;
     return funcs;
 }

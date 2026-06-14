@@ -21,11 +21,12 @@ function parameters()
         { "gatestraprightextension",                     0 },
         { "powerwidth(Power Rail Metal Width)",         technology.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",               technology.get_dimension("Minimum M1 Space") },
-        { "pgateext",                                   0 },
-        { "ngateext",                                   0 },
-        { "numleftdummies",                             2 },
-        { "numrightdummies",                            2 },
-        { "numinnerdummies",                            2 },
+        { "pgateext",                                   technology.get_dimension("Minimum Gate Extension") },
+        { "ngateext",                                   technology.get_dimension("Minimum Gate Extension") },
+        { "numleftdummies",                             0 },
+        { "numrightdummies",                            0 },
+        { "numinnerdummies",                            0 },
+        { "inv_xshift",                                 0 },
         { "alternatedummycontacts",                     false },
         { "drawalternatedummycontactspowerbarvia",      false, follow = "alternatedummycontacts" },
         { "outputmetal",                                2, posvals = interval(2, inf) },
@@ -43,26 +44,27 @@ function parameters()
         { "leftpolylines",                              {} },
         { "rightpolylines",                             {} },
         { "drawanalogmarker",                           false },
-        { "extendalltop",                               0 },
-        { "extendallbottom",                            0 },
-        { "extendallleft",                              0 },
-        { "extendallright",                             0 },
-        { "extendoxidetypetop",                         0, follow = "extendalltop" },
-        { "extendoxidetypebottom",                      0, follow = "extendallbottom" },
-        { "extendoxidetypeleft",                        0, follow = "extendallleft" },
-        { "extendoxidetyperight",                       0, follow = "extendallright" },
-        { "extendvthtypetop",                           0, follow = "extendalltop" },
-        { "extendvthtypebottom",                        0, follow = "extendallbottom" },
-        { "extendvthtypeleft",                          0, follow = "extendallleft" },
-        { "extendvthtyperight",                         0, follow = "extendallright" },
-        { "extendimplanttop",                           0, follow = "extendalltop" },
-        { "extendimplantbottom",                        0, follow = "extendallbottom" },
-        { "extendimplantleft",                          0, follow = "extendallleft" },
-        { "extendimplantright",                         0, follow = "extendallright" },
-        { "extendwelltop",                              0, follow = "extendalltop" },
-        { "extendwellbottom",                           0, follow = "extendallbottom" },
-        { "extendwellleft",                             0, follow = "extendallleft" },
-        { "extendwellright",                            0, follow = "extendallright" },
+        { "extendall",                                  0 },
+        { "extendalltop",                               0, follow = "extendall" },
+        { "extendallbottom",                            0, follow = "extendall" },
+        { "extendallleft",                              0, follow = "extendall" },
+        { "extendallright",                             0, follow = "extendall" },
+        { "extendoxidetypetop",                         technology.get_dimension("Minimum Oxide Extension"), follow = "extendalltop" },
+        { "extendoxidetypebottom",                      technology.get_dimension("Minimum Oxide Extension"), follow = "extendallbottom" },
+        { "extendoxidetypeleft",                        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallleft" },
+        { "extendoxidetyperight",                       technology.get_dimension("Minimum Oxide Extension"), follow = "extendallright" },
+        { "extendvthtypetop",                           technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendalltop" },
+        { "extendvthtypebottom",                        technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallbottom" },
+        { "extendvthtypeleft",                          technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallleft" },
+        { "extendvthtyperight",                         technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallright" },
+        { "extendimplanttop",                           technology.get_dimension("Minimum Implant Extension"), follow = "extendalltop" },
+        { "extendimplantbottom",                        technology.get_dimension("Minimum Implant Extension"), follow = "extendallbottom" },
+        { "extendimplantleft",                          technology.get_dimension("Minimum Implant Extension"), follow = "extendallleft" },
+        { "extendimplantright",                         technology.get_dimension("Minimum Implant Extension"), follow = "extendallright" },
+        { "extendwelltop",                              technology.get_dimension("Minimum Well Extension"), follow = "extendalltop" },
+        { "extendwellbottom",                           technology.get_dimension("Minimum Well Extension"), follow = "extendallbottom" },
+        { "extendwellleft",                             technology.get_dimension("Minimum Well Extension"), follow = "extendallleft" },
+        { "extendwellright",                            technology.get_dimension("Minimum Well Extension"), follow = "extendallright" },
         { "extendlvsmarkertop",                         0, follow = "extendalltop" },
         { "extendlvsmarkerbottom",                      0, follow = "extendallbottom" },
         { "extendlvsmarkerleft",                        0, follow = "extendallleft" },
@@ -75,8 +77,68 @@ function parameters()
         { "extendanalogmarkerbottom",                   0, follow = "extendallbottom" },
         { "extendanalogmarkerleft",                     0, follow = "extendallleft" },
         { "extendanalogmarkerright",                    0, follow = "extendallright" },
+        { "drawnmoslowerwelltap",                       false },
+        { "drawnmosleftrightwelltap",                   false },
+        { "drawnmosleftwelltap",                        false, follow = "drawnmosleftrightwelltap" },
+        { "drawnmosrightwelltap",                       false, follow = "drawnmosleftrightwelltap" },
+        { "connectnmoswelltap",                         false },
+        { "nmoswelltapwidth",                           200 },
+        { "nmoswelltapextension",                       0 },
+        { "nmoswelltapspace",                           500 },
+        { "nmoswelltapnet",                             "" },
+        { "nmoswelltapimplantleftextension",            technology.get_dimension("Minimum Implant Extension") },
+        { "nmoswelltapimplantrightextension",           technology.get_dimension("Minimum Implant Extension") },
+        { "nmoswelltapimplanttopextension",             technology.get_dimension("Minimum Implant Extension") },
+        { "nmoswelltapimplantbottomextension",          technology.get_dimension("Minimum Implant Extension") },
+        { "nmoswelltapsoiopenleftextension",            technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "nmoswelltapsoiopenrightextension",           technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "nmoswelltapsoiopentopextension",             technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "nmoswelltapsoiopenbottomextension",          technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "nmoswelltapwellleftextension",               technology.get_dimension("Minimum Well Extension") },
+        { "nmoswelltapwellrightextension",              technology.get_dimension("Minimum Well Extension") },
+        { "nmoswelltapwelltopextension",                technology.get_dimension("Minimum Well Extension") },
+        { "nmoswelltapwellbottomextension",             technology.get_dimension("Minimum Well Extension") },
+        { "drawpmosupperwelltap",                       false },
+        { "drawpmosleftrightwelltap",                   false },
+        { "drawpmosleftwelltap",                        false, follow = "drawpmosleftrightwelltap" },
+        { "drawpmosrightwelltap",                       false, follow = "drawpmosleftrightwelltap" },
+        { "connectpmoswelltap",                         false },
+        { "pmoswelltapwidth",                           200 },
+        { "pmoswelltapextension",                       0 },
+        { "pmoswelltapspace",                           500 },
+        { "pmoswelltapnet",                             "" },
+        { "pmoswelltapimplantleftextension",            technology.get_dimension("Minimum Implant Extension") },
+        { "pmoswelltapimplantrightextension",           technology.get_dimension("Minimum Implant Extension") },
+        { "pmoswelltapimplanttopextension",             technology.get_dimension("Minimum Implant Extension") },
+        { "pmoswelltapimplantbottomextension",          technology.get_dimension("Minimum Implant Extension") },
+        { "pmoswelltapsoiopenleftextension",            technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "pmoswelltapsoiopenrightextension",           technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "pmoswelltapsoiopentopextension",             technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "pmoswelltapsoiopenbottomextension",          technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "pmoswelltapwellleftextension",               technology.get_dimension("Minimum Well Extension") },
+        { "pmoswelltapwellrightextension",              technology.get_dimension("Minimum Well Extension") },
+        { "pmoswelltapwelltopextension",                technology.get_dimension("Minimum Well Extension") },
+        { "pmoswelltapwellbottomextension",             technology.get_dimension("Minimum Well Extension") },
+        { "drawguardring",                              false },
+        { "guardringwidth",                             technology.get_dimension("Minimum Active Contact Region Size") },
+        { "guardringspace",                             technology.get_dimension("Minimum Active Space") },
+        { "guardringdeepwelloffset",                    0 },
+        { "vddnet",                                     "" },
+        { "vssnet",                                     "" },
+        { "guardringnet",                               "" },
         { "flat",                                       true }
     )
+end
+
+function process_parameters(_P)
+    if _P.numinnerdummies == 0 then
+        local metalshift =
+            _P.sdwidth +
+            technology.get_dimension("Minimum M1 Space") +
+            technology.get_dimension("Minimum M1M2 Viawidth")
+        local activeshift = _P.sdwidth + technology.get_dimension("Minimum Active Space")
+        _P.inv_xshift = math.max(metalshift, activeshift)
+    end
 end
 
 function layout(chain, _P)
@@ -141,11 +203,50 @@ function layout(chain, _P)
             extendwellbottom = _P.extendwellbottom,
             extendwellleft = _P.extendwellleft,
             extendwellright = _P.extendwellright,
+            drawnmosleftwelltap = _P.drawnmosleftwelltap and (i == 1),
+            drawnmosrightwelltap = _P.drawnmosrightwelltap and (i == #_P.fingers),
+            connectnmoswelltap = _P.connectnmoswelltap,
+            nmoswelltapwidth = _P.nmoswelltapwidth,
+            nmoswelltapextension = _P.nmoswelltapextension,
+            nmoswelltapspace = _P.nmoswelltapspace,
+            nmoswelltapnet = _P.nmoswelltapnet,
+            nmoswelltapimplantleftextension = _P.nmoswelltapimplantleftextension,
+            nmoswelltapimplantrightextension = _P.nmoswelltapimplantrightextension,
+            nmoswelltapimplanttopextension = _P.nmoswelltapimplanttopextension,
+            nmoswelltapimplantbottomextension = _P.nmoswelltapimplantbottomextension,
+            nmoswelltapsoiopenleftextension = _P.nmoswelltapsoiopenleftextension,
+            nmoswelltapsoiopenrightextension = _P.nmoswelltapsoiopenrightextension,
+            nmoswelltapsoiopentopextension = _P.nmoswelltapsoiopentopextension,
+            nmoswelltapsoiopenbottomextension = _P.nmoswelltapsoiopenbottomextension,
+            nmoswelltapwellleftextension = _P.nmoswelltapwellleftextension,
+            nmoswelltapwellrightextension = _P.nmoswelltapwellrightextension,
+            nmoswelltapwelltopextension = _P.nmoswelltapwelltopextension,
+            nmoswelltapwellbottomextension = _P.nmoswelltapwellbottomextension,
+            drawpmosleftwelltap = _P.drawpmosleftwelltap and (i == 1),
+            drawpmosrightwelltap = _P.drawpmosrightwelltap and (i == #_P.fingers),
+            connectpmoswelltap = _P.connectpmoswelltap,
+            pmoswelltapwidth = _P.pmoswelltapwidth,
+            pmoswelltapextension = _P.pmoswelltapextension,
+            pmoswelltapspace = _P.pmoswelltapspace,
+            pmoswelltapnet = _P.pmoswelltapnet,
+            pmoswelltapimplantleftextension = _P.pmoswelltapimplantleftextension,
+            pmoswelltapimplantrightextension = _P.pmoswelltapimplantrightextension,
+            pmoswelltapimplanttopextension = _P.pmoswelltapimplanttopextension,
+            pmoswelltapimplantbottomextension = _P.pmoswelltapimplantbottomextension,
+            pmoswelltapsoiopenleftextension = _P.pmoswelltapsoiopenleftextension,
+            pmoswelltapsoiopenrightextension = _P.pmoswelltapsoiopenrightextension,
+            pmoswelltapsoiopentopextension = _P.pmoswelltapsoiopentopextension,
+            pmoswelltapsoiopenbottomextension = _P.pmoswelltapsoiopenbottomextension,
+            pmoswelltapwellleftextension = _P.pmoswelltapwellleftextension,
+            pmoswelltapwellrightextension = _P.pmoswelltapwellrightextension,
+            pmoswelltapwelltopextension = _P.pmoswelltapwelltopextension,
+            pmoswelltapwellbottomextension = _P.pmoswelltapwellbottomextension,
         })
         if _P.flat then
             table.insert(inverters, inv)
             if i > 1 then
                 inv:abut_right(inverters[i - 1])
+                inv:translate_x(_P.inv_xshift)
             end
             chain:merge_into(inv)
             chain:inherit_alignment_box(inv)
@@ -154,16 +255,19 @@ function layout(chain, _P)
             table.insert(inverters, invinst)
             if i > 1 then
                 invinst:abut_right(inverters[i - 1])
+                inv:translate_x(_P.inv_xshift)
             end
             chain:inherit_alignment_box(invinst)
         end
     end
 
     for i = 1, #inverters - 1 do
-        if _P.numinnerdummies > 0 then
+        --if _P.numinnerdummies > 0 then
+        if true then
             geometry.viabltr(chain, 1, _P.outputmetal,
                 point.create(
-                    inverters[i + 1]:get_area_anchor("input").l - (_P.numinnerdummies - 0) * (_P.gatelength + _P.gatespace),
+                    --inverters[i + 1]:get_area_anchor("input").l - (_P.numinnerdummies - 0) * (_P.gatelength + _P.gatespace),
+                    inverters[i]:get_area_anchor("output").r,
                     inverters[i + 1]:get_area_anchor("input").b
                 ),
                 point.create(
@@ -182,7 +286,7 @@ function layout(chain, _P)
                 )
             )
         else
-            moderror("inverter_chain: connections between inverters are currently not implemented for numinnerdummies == 0")
+            --moderror("inverter_chain: connections between inverters are currently not implemented for numinnerdummies == 0")
         end
     end
 
@@ -213,6 +317,14 @@ function layout(chain, _P)
         inverters[1]:get_area_anchor("pmos_well").bl,
         inverters[#inverters]:get_area_anchor("pmos_well").tr
     )
+    chain:add_area_anchor_bltr("oxide",
+        inverters[1]:get_area_anchor("oxide").bl,
+        inverters[#inverters]:get_area_anchor("oxide").tr
+    )
+    chain:add_area_anchor_bltr("pmos_well",
+        inverters[1]:get_area_anchor("pmos_well").bl,
+        inverters[#inverters]:get_area_anchor("pmos_well").tr
+    )
     chain:add_area_anchor_bltr("nmos_active",
         inverters[1]:get_area_anchor("nmos_active").bl,
         inverters[#inverters]:get_area_anchor("nmos_active").tr
@@ -233,4 +345,11 @@ function layout(chain, _P)
             chain:get_area_anchor("vssbar").tr
         )
     end
+
+    -- fill up FEOL layers
+    geometry.rectangleareaanchor(chain, generics.implant("p"), "pmos_implant")
+    geometry.rectangleareaanchor(chain, generics.implant("n"), "nmos_implant")
+    geometry.rectangleareaanchor(chain, generics.oxide(_P.oxidetype), "oxide")
+    geometry.rectangleareaanchor(chain, generics.well(_P.pmosflippedwell and "p" or "n"), "pmos_well")
+    geometry.rectangleareaanchor(chain, generics.well(_P.nmosflippedwell and "n" or "p"), "nmos_well")
 end

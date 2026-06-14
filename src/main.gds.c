@@ -36,7 +36,7 @@ void main_gds_show_cell_definitions(struct cmdoptions* cmdoptions)
     gdsparser_show_cell_definitions(filename);
 }
 
-void main_gds_read(struct cmdoptions* cmdoptions)
+void main_gds_read(struct cmdoptions* cmdoptions, struct technology_state* techstate)
 {
     const char* readgds = cmdoptions_get_argument_long(cmdoptions, "read-gds");
     int gdsusestreamlibname = cmdoptions_was_provided_long(cmdoptions, "gds-use-libname");
@@ -62,8 +62,7 @@ void main_gds_read(struct cmdoptions* cmdoptions)
             must_free = 1;
         }
     }
-    const char* gdslayermapfile = cmdoptions_get_argument_long(cmdoptions, "gds-layermap");
-    struct vector* gdslayermap = gdsparser_create_layermap(gdslayermapfile);
+    struct vector* gdslayermap = gdsparser_create_layermap(techstate);
     struct vector* ignorelpp = vector_create(1, free);
     if(cmdoptions_was_provided_long(cmdoptions, "gds-ignore-lpp"))
     {

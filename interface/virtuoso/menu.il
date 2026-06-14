@@ -1,7 +1,28 @@
 procedure(OPCCreateLayoutMenu()
-    let( (menu itemlist about SEP export settings editconfig viewlog designmenu subcellmenu cellmenu)
+    let(
+        (
+            menu
+            itemlist
+            documentation
+            about
+            SEP
+            export
+            settings
+            editconfig
+            viewpfile
+            viewlog
+            viewdprint
+            viewoutput
+            viewexport
+            designmenu
+            subcellmenu
+            cellmenu
+            powergridmenu
+            fillmenu
+        )
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
+        documentation = hiCreateMenuItem(?name 'OPCDocumentation ?itemText "Documentation" ?callback "OPCDocumentationCallback()")
 
         SEP = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
 
@@ -15,10 +36,8 @@ procedure(OPCCreateLayoutMenu()
                 designmenupulldown
             )
             edit = hiCreateMenuItem(?name 'OPCEditCellScript ?itemText "Edit Design" ?callback "OPCEditCallback()")
-            updatehierarchical = hiCreateMenuItem(?name 'OPCCellScriptHierarchical ?itemText "Update Design (Hierarchy)" ?callback "OPCUpdateCellscriptCallback(?hierarchical t)")
+            updatehierarchical = hiCreateMenuItem(?name 'OPCCellScriptHierarchical ?itemText "Update Design (Hierarchical)" ?callback "OPCUpdateCellscriptCallback(?hierarchical t)")
             updateflat = hiCreateMenuItem(?name 'OPCCellScriptFlat ?itemText "Update Design (flat)" ?callback "OPCUpdateCellscriptCallback(?hierarchical nil)")
-            ;updatehierarchicalold = hiCreateMenuItem(?name 'OPCCellScriptHierarchicalOld ?itemText "Update Design (Hierarchy, reuse existing file)" ?callback "OPCUpdateCellscriptCallback(?callopc nil ?hierarchical t)")
-            ;updateflatold = hiCreateMenuItem(?name 'OPCCellScriptFlatOld ?itemText "Update Design (flat, reuse existing file)" ?callback "OPCUpdateCellscriptCallback(?callopc nil ?hierarchical nil)")
             remove = hiCreateMenuItem(?name 'OPCCellScriptRemove ?itemText "Delete Design File" ?callback "OPCDeleteDesignFile()")
             designmenupulldown = hiCreatePulldownMenu('OPCDesignMenuPulldown "" list(edit updatehierarchical updateflat remove))
             designmenu = hiCreateSliderMenuItem(?name 'OPCDesignMenu ?itemText "Design" ?subMenu designmenupulldown)
@@ -31,19 +50,26 @@ procedure(OPCCreateLayoutMenu()
                 createsubcellcell
                 editsubcellscript
                 updatesubcell
+                cleanupsubcell
                 subcellmenupulldown
             )
             createsubcellscript = hiCreateMenuItem(?name 'OPCCreateSubCellScript ?itemText "Create Sub-Cell (Cell Script)" ?callback "OPCSubCellCreateScript()")
             createsubcellcell = hiCreateMenuItem(?name 'OPCCreateSubCellCell ?itemText "Create Sub-Cell (Cell)" ?callback "OPCSubCellCreateCell()")
             editsubcellscript = hiCreateMenuItem(?name 'OPCEditSubCellScript ?itemText "Edit Sub-Cell Script" ?callback "OPCSubCellEditScript()")
-            updatesubcell = hiCreateMenuItem(?name 'OPCSubCellScript ?itemText "Update Sub-Cell" ?callback "OPCSubCellUpdate()")
+            updatesubcell = hiCreateMenuItem(?name 'OPCSubCellScript ?itemText "Update Sub-Cell (Cell and Cell Script)" ?callback "OPCSubCellUpdate()")
+            cleanupsubcell = hiCreateMenuItem(?name 'OPCSubCellCleanUp ?itemText "Delete Unused Sub-Cell Scripts" ?callback "OPCSubCellCleanUp()")
             subcellmenupulldown = hiCreatePulldownMenu('OPCSubCellMenuPulldown "" list(createsubcellscript createsubcellcell editsubcellscript updatesubcell))
             subcellmenu = hiCreateSliderMenuItem(?name 'OPCSubCellMenu ?itemText "Sub-Cells" ?subMenu subcellmenupulldown)
         )
 
         ; specific cells
         let(
-            (mosfet guardring metalgrid)
+            (
+                mosfet
+                guardring
+                metalgrid
+                cellmenupulldown
+            )
             mosfet = hiCreateMenuItem(?name 'OPCCreateMosfet ?itemText "Create MOSFET" ?callback "OPCCreateMosfet()")
             guardring = hiCreateMenuItem(?name 'OPCCreateGuardring ?itemText "Create Guardring" ?callback "OPCCreateGuardring()")
             metalgrid = hiCreateMenuItem(?name 'OPCCreateMetalgrid ?itemText "Create Metal Grid" ?callback "OPCCreateMetalgrid()")
@@ -51,11 +77,42 @@ procedure(OPCCreateLayoutMenu()
             cellmenu = hiCreateSliderMenuItem(?name 'OPCCellMenu ?itemText "Cells" ?subMenu cellmenupulldown)
         )
 
-        ; export gds
-        exportgds = hiCreateMenuItem(?name 'OPCCellScriptGDS ?itemText "Update as GDSII" ?callback "OPCUpdateAsGDS()")
-
         ; export cell
-        export = hiCreateMenuItem(?name 'OPCExport ?itemText "Export Cell" ?callback "OPCExportCell(nil)")
+        export = hiCreateMenuItem(?name 'OPCExport ?itemText "Export Cell" ?callback "OPCHiExportCell(nil)")
+
+        ; power grid
+        let(
+            (
+                editpowergridscript
+                runpowergridscript
+                deletepowergridgroup
+                deletepowergridscript
+                powergridmenupulldown
+            )
+            editpowergridscript = hiCreateMenuItem(?name 'OPCEditPowergridScript ?itemText "Edit Powergrid Script" ?callback "OPCPowergridEditScript()")
+            runpowergridscript = hiCreateMenuItem(?name 'OPCPowergridScriptRun ?itemText "Run Powergrid Script" ?callback "OPCUpdatePowergridCallback()")
+            deletepowergridgroup = hiCreateMenuItem(?name 'OPCPowergridDeleteGroup ?itemText "Delete Powergrid Shapes" ?callback "OPCDeletePowergridGroup()")
+            deletepowergridscript = hiCreateMenuItem(?name 'OPCPowergridScriptDelete ?itemText "Delete Powergrid Script" ?callback "OPCDeletePowergridScript()")
+            powergridmenupulldown = hiCreatePulldownMenu('OPCPowergridMenuPulldown "" list(editpowergridscript runpowergridscript deletepowergridgroup deletepowergridscript))
+            powergridmenu = hiCreateSliderMenuItem(?name 'OPCPowergridMenu ?itemText "Powergrid" ?subMenu powergridmenupulldown)
+        )
+
+        ; fill cell
+        let(
+            (
+                editfillscript
+                runfillscript
+                deletefillgroup
+                deletefillscript
+                fillmenupulldown
+            )
+            editfillscript = hiCreateMenuItem(?name 'OPCEditFillScript ?itemText "Edit Fill Script" ?callback "OPCFillEditScript()")
+            runfillscript = hiCreateMenuItem(?name 'OPCFillScriptRun ?itemText "Run Fill Script" ?callback "OPCUpdateFillCallback()")
+            deletefillgroup = hiCreateMenuItem(?name 'OPCFillDeleteGroup ?itemText "Delete Fill Shapes" ?callback "OPCDeleteFillGroup()")
+            deletefillscript = hiCreateMenuItem(?name 'OPCFillScriptDelete ?itemText "Delete Fill Script" ?callback "OPCDeleteFillScript()")
+            fillmenupulldown = hiCreatePulldownMenu('OPCFillMenuPulldown "" list(editfillscript runfillscript deletefillgroup deletefillscript))
+            fillmenu = hiCreateSliderMenuItem(?name 'OPCFillMenu ?itemText "Fill" ?subMenu fillmenupulldown)
+        )
 
         ; backup
         ;backup = hiCreateMenuItem(?name 'OPCBackup ?itemText "Backup Cell" ?callback "OPCCreateCellBackup()")
@@ -66,15 +123,18 @@ procedure(OPCCreateLayoutMenu()
         ; settings
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
         editconfig = hiCreateMenuItem(?name 'OPCEditConfig ?itemText "Edit Configgile" ?callback "OPCEditConfigFile()")
+        viewpfile = hiCreateMenuItem(?name 'OPCViewParameterFile ?itemText "View Parameter File" ?callback "OPCViewParameterFile()")
         viewlog = hiCreateMenuItem(?name 'OPCViewLogFile ?itemText "View Logfile" ?callback "OPCViewLogFile()")
         viewdprint = hiCreateMenuItem(?name 'OPCViewDPrintFile ?itemText "View Debug Print File" ?callback "OPCViewDPrintFile()")
         viewoutput = hiCreateMenuItem(?name 'OPCViewOutputFile ?itemText "View Output File" ?callback "OPCViewOutputFile()")
+        viewexport = hiCreateMenuItem(?name 'OPCViewExportFile ?itemText "View Export File" ?callback "OPCViewExporttFile()")
 
         ; assemble main menu
         itemlist = list(
             about
+            documentation
             SEP
-            settings editconfig viewlog viewdprint viewoutput
+            settings editconfig viewpfile viewlog viewdprint viewoutput viewexport
             SEP
             designmenu
             SEP
@@ -82,13 +142,15 @@ procedure(OPCCreateLayoutMenu()
             SEP
             cellmenu
             SEP
-            exportgds
+            powergridmenu
+            SEP
+            fillmenu
             SEP
             export
         )
         hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
-)
+) ; OPCCreateLayoutMenu
 
 procedure(OPCMenuTrigger(args)
     let((menu)
@@ -113,7 +175,7 @@ procedure(OPCMenuTrigger(args)
         */
         list(menu)
     )
-)
+) ; OPCMenuTrigger
 
 procedure(OPCModeChangeTrigger(args)
     ; FIXME: needs update after re-structuring menu
@@ -150,7 +212,7 @@ procedure(OPCModeChangeTrigger(args)
     )
     */
     t
-)
+) ; OPCModeChangeTrigger
 
 ; create a user postinstall trigger that automatically adds the menu
 foreach(layoutTier list("layout" "maskLayout" "maskLayoutL" "maskLayoutXL" "maskLayoutEXL" "maskLayoutGXL" "maskLayoutEAD")

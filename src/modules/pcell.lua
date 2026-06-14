@@ -15,8 +15,9 @@ function paramlib.create_directory()
     return self
 end
 
-function paramlib.check_constraints(parameter, value)
+function paramlib.check_constraints(parameter, value, setbyuser)
     local posvals = parameter.posvals
+    local readonly = parameter.readonly
     local name = parameter.name
     if posvals then
         if posvals.type == "set" then
@@ -27,6 +28,35 @@ function paramlib.check_constraints(parameter, value)
         elseif posvals.type == "interval" then
             if value < posvals.values.lower or value > posvals.values.upper then
                 moderror(string.format("parameter '%s' (%s) out of range from %s to %s", name, value, posvals.values.lower, posvals.values.upper))
+            end
+        elseif posvals.type == "greaterzero" then
+            if value < 1 then
+                moderror(string.format("parameter '%s' (%s) must be greater than zero", name, value))
+            end
+        elseif posvals.type == "greaterequalzero" then
+            if value < 0 then
+                moderror(string.format("parameter '%s' (%s) must be greater than/equal to zero", name, value))
+            end
+        elseif posvals.type == "greaterzero_even" then
+            if value < 1 then
+                moderror(string.format("parameter '%s' (%s) must be greater than zero", name, value))
+            end
+            if value % 2 ~= 0 then
+                moderror(string.format("parameter '%s' (%s) must be even", name, value))
+            end
+        elseif posvals.type == "greaterequalzero_even" then
+            if value < 0 then
+                moderror(string.format("parameter '%s' (%s) must be greater than/equal to zero", name, value))
+            end
+            if value % 2 ~= 0 then
+                moderror(string.format("parameter '%s' (%s) must be even", name, value))
+            end
+        elseif posvals.type == "greaterzero_odd" then
+            if value < 1 then
+                moderror(string.format("parameter '%s' (%s) must be greater than zero", name, value))
+            end
+            if value % 2 ~= 1 then
+                moderror(string.format("parameter '%s' (%s) must be odd", name, value))
             end
         elseif posvals.type == "even" then
             if value % 2 ~= 0 then
@@ -47,6 +77,9 @@ function paramlib.check_constraints(parameter, value)
         else
         end
     end
+    if readonly and setbyuser then
+        moderror(string.format("parameter '%s' is read-only and can't be set", name))
+    end
 end
 
 function paramlib.check_readonly(parameter)
@@ -64,7 +97,24 @@ function _has_parameter(self, name)
     return false
 end
 
-function parammeta.add(self, name, value, argtype, posvals, info, follow, readonly)
+local function _check_follower_cycle(followers)
+    for initial in pairs(followers) do
+        local f = initial
+        while true do
+            f = followers[f]
+            if not f then
+                -- no cycle
+                break
+            end
+            if f == initial then
+                return false
+            end
+        end
+    end
+    return true
+end
+
+function parammeta.add(self, name, value, argtype, posvals, info, follow, readonly, explicit)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
     if not pname then pname = name end -- no display name
     if _has_parameter(self, pname) then
@@ -78,11 +128,14 @@ function parammeta.add(self, name, value, argtype, posvals, info, follow, readon
         posvals   = posvals,
         info      = info,
         readonly  = not not readonly,
+        explicit  = not not explicit,
     }
     table.insert(self.values, new)
     if follow then
-        -- FIXME: add cycle check
         self.followers[pname] = follow
+        if not _check_follower_cycle(self.followers) then
+            moderror(string.format("detected follower cycle when inserting parameter '%s' (which follows '%s')", pname, follow))
+        end
     end
 end
 
@@ -104,10 +157,11 @@ local function _load_cell(state, cellname, env)
         error("pcell: load_cell expects a cellname")
     end
     local filename = state.internal_state.get_cell_filename(state.internal_state, cellname)
-    local reader = _get_reader(filename)
-    if not reader then
+    local file = io.open(filename, "r")
+    if not file then
         error(string.format("could not open cell file '%s'", filename))
     end
+    local reader = _get_reader_from_file(file)
     local chunkname = string.format("@cell '%s'", cellname)
     if state.verbose then
         print(string.format("pcell: loading cell definition in %s", filename))
@@ -118,10 +172,24 @@ local function _load_cell(state, cellname, env)
         string.format("semantic error in cell '%s'", cellname),
         env
     )
+    file:close()
     -- check if only allowed values are defined
     for funcname in pairs(env) do
-        if not util.any_of(function(v) return v == funcname end, { "config", "parameters", "layout", "check", "anchors" }) then
-            moderror(string.format("pcell: all defined global values must be one of 'parameters', 'anchors', 'layout', 'check' or 'config'. Illegal name: '%s'", funcname))
+        local allowed_functions = {
+            "info",
+            "requirements",
+            "config",
+            "parameters",
+            "process_parameters",
+            "check_pre",
+            "prepare",
+            "check",
+            "anchors",
+            "layout",
+        }
+        if not util.any_of(function(v) return v == funcname end, allowed_functions) then
+            local str = util.tconcatfmt(allowed_functions, ", ", "'%s'")
+            moderror(string.format("pcell: all defined global values must be one of %s. Illegal name: '%s'", str, funcname))
         end
     end
     return env
@@ -174,12 +242,9 @@ local function _get_cell(state, cellname, nocallparams)
     return rawget(state.loadedcells, cellname)
 end
 
-local function _add_parameter_internal(cell, name, value, argtype, posvals, info, follow, readonly)
-    if value == nil then
-        error(string.format("pcell.add_parameter ('%s'): the value can't be nil", name))
-    end
+local function _add_parameter_internal(cell, name, value, argtype, posvals, info, follow, readonly, explicit)
     argtype = argtype or type(value)
-    cell.parameters:add(name, value, argtype, posvals, info, follow, readonly)
+    cell.parameters:add(name, value, argtype, posvals, info, follow, readonly, explicit)
 end
 
 local function _inherit_parameters(state, cellname, othercellname, excludelist)
@@ -197,32 +262,64 @@ local function _get_parameters(state, cellname, cellargs)
     local cell = _get_cell(state, cellname)
     local cellparams = cell.parameters.values
 
+    -- check for non-string parameters (an error, typically indicating mistakes)
+    if cellarsg then
+        for k in pairs(cellargs) do
+            if type(k) ~= "string" then
+                moderror(string.format("non-string parameter for cell '%s': got parameter with type '%s' ('%s')", cellname, type(k), k))
+            end
+        end
+    end
+
     -- assemble arguments for the cell layout function
     local P = {}
 
+    local meta = {
+        -- install meta method for non-existing parameters as safety check
+        -- this avoids arithmetic-with-nil-errors and raises an error instead
+        __index = function(_, k)
+            error(string.format("trying to access undefined parameter '%s'", k))
+        end,
+        --  install meta method for disabling setting non-existing parameters as safety check
+        __newindex = function(_, k)
+            error(string.format("trying to add a new key '%s' to the parameter table", k))
+        end,
+    }
+    setmetatable(P, meta)
+
     -- (1) fill with default values
+    local Pset = {}
     for _, entry in ipairs(cellparams) do
-        P[entry.name] = entry.value
+        rawset(P, entry.name, entry.value)
+        Pset[entry.name] = true
     end
 
     -- (2) process input parameters
     local explicit = {}
+    local setbyuser = {}
     if cellargs then
         for name, value in pairs(cellargs) do
-            assert(P[name] ~= nil,
+            assert(Pset[name],
                 string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cellname))
-            P[name] = value
+            rawset(P, name, value)
             explicit[name] = true
+            setbyuser[name] = true
         end
     end
 
-    -- (3) handle followers
+    -- (3) check that explicit parameters are given
+    for _, entry in ipairs(cellparams) do
+        if entry.explicit and not explicit[entry.name] then
+            error(string.format("the parameter '%s' of cell '%s' needs to be set explicitly", entry.name, cellname))
+        end
+    end
+
+    -- (4) handle followers
     -- copy table as it is modified
     local followers = aux.clone_shallow(cell.parameters:get_followers())
     local ordered = {}
     -- this loop runs as long as there are unhandled followers
-    -- in case of cycles, this will never stop, hence
-    -- FIXME: check for follower loops
+    -- cycles can not occur, as they are checked for when adding parameters
     repeat
         for name, target in pairs(followers) do
             if not followers[target] then
@@ -236,24 +333,34 @@ local function _get_parameters(state, cellname, cellargs)
             not explicit[entry.name] -- don't overwrite explicitly-given parameters
             and explicit[entry.target] -- only follow explicitly-given parameters
         then
-            P[entry.name] = P[entry.target]
+            rawset(P, entry.name, rawget(P, entry.target))
             -- make followed parameter explicit in case other parameters follow this one
             explicit[entry.name] = true
         end
     end
 
-    -- (4) run parameter checks
-    for _, entry in ipairs(cellparams) do
-        paramlib.check_constraints(entry, P[entry.name])
+    -- (5) run process_parameters() function (if available)
+    if cell.funcs.process_parameters then
+        -- copy parameter table to prevent overwriting of explicitly-defined parameters
+        local t = {}
+        for k, v in pairs(P) do
+            t[k] = v
+        end
+        cell.funcs.process_parameters(t, explicit)
+        for k, v in pairs(t) do
+            if not Pset[k] then
+                error(string.format("'process_parameters' sets the parameter '%s', but this has no matching parameter in cell '%s', maybe it was spelled wrong?", k, cellname))
+            end
+            if not explicit[k] then
+                rawset(P, k, v)
+            end
+        end
     end
 
-    -- install meta method for non-existing parameters as safety check
-    -- this avoids arithmetic-with-nil-errors and raises an error instead
-    setmetatable(P, {
-        __index = function(_, k)
-            error(string.format("trying to access undefined parameter value '%s'", k))
-        end,
-    })
+    -- (6) run parameter checks
+    for _, entry in ipairs(cellparams) do
+        paramlib.check_constraints(entry, rawget(P, entry.name), setbyuser[entry.name])
+    end
 
     return P
 end
@@ -264,9 +371,12 @@ local function _set_property(state, cellname, property, value)
 end
 
 local function _check_parameter(parameter)
+    if #parameter > 2 then
+        error(string.format("parameter check: parameter definition has more than two non-named entries"))
+    end
     for k in pairs(parameter) do
         if not ((k == 1) or (k == 2)) then -- skip name and value
-            if not util.any_of(k, { "argtype", "posvals", "info", "follow", "readonly" }) then
+            if not util.any_of(k, { "argtype", "posvals", "info", "follow", "readonly", "explicit" }) then
                 error(string.format("parameter check: parameter definition has extra unknown key: '%s'", k))
             end
         end
@@ -294,7 +404,8 @@ local function _add_parameters(state, cellname, ...)
         _add_parameter_internal(
             cell,
             name, value,
-            parameter.argtype, parameter.posvals, parameter.info, parameter.follow, parameter.readonly
+            parameter.argtype, parameter.posvals, parameter.info, parameter.follow,
+            parameter.readonly, parameter.explicit
         )
     end
 end
@@ -326,6 +437,36 @@ local function _resolve_cellname(state, cellname)
     return string.format("%s/%s", libpart, cellpart)
 end
 
+--------------------------------------------------------------------------------
+-- inline stack module, needed for pcell state
+local stack = {}
+
+local stackmeta = {}
+stackmeta.__index = stackmeta
+
+function stack.create()
+    local self = {}
+    setmetatable(self, stackmeta)
+    return self
+end
+
+function stackmeta.push(self, value)
+    table.insert(self, value)
+end
+
+function stackmeta.top(self)
+    return self[#self]
+end
+
+function stackmeta.pop(self)
+    table.remove(self)
+end
+
+function stackmeta.peek(self)
+    return #self > 0
+end
+--------------------------------------------------------------------------------
+
 -- main state storing various data
 -- only the public functions use this state as upvalue to conceal it from the user
 -- all local implementing functions get state as first parameter
@@ -335,6 +476,7 @@ local state = {
     cellrefs = {},
     debug = false,
     verbose = false,
+    run_parameter_checks = true,
     internal_state = nil
 }
 
@@ -363,8 +505,14 @@ function state.create_cellenv(state, cellname, ovrenv)
     local env = {}
     local envmeta = {
         -- "global" functions for posvals entries:
+        rawget = rawget,
         set = function(...) return { type = "set", values = { ... } } end,
         interval = function(lower, upper) return { type = "interval", values = { lower = lower, upper = upper }} end,
+        greaterzero = function() return { type = "greaterzero" } end,
+        greaterequalzero = function() return { type = "greaterequalzero" } end,
+        greaterzero_even = function() return { type = "greaterzero_even" } end,
+        greaterequalzero_even = function() return { type = "greaterequalzero_even" } end,
+        greaterzero_odd = function() return { type = "greaterzero_odd" } end,
         even = function() return { type = "even" } end,
         odd = function() return { type = "odd" } end,
         positive = function() return { type = "positive" } end,
@@ -385,6 +533,9 @@ function state.create_cellenv(state, cellname, ovrenv)
             has_parameter                   = pcell.has_parameter,
         },
         technology = {
+            get_grid = technology.get_grid,
+            get_even_grid = technology.get_even_grid,
+            get_number_of_metals = technology.get_number_of_metals,
             get_dimension = technology.get_dimension,
             get_dimension_max = technology.get_dimension_max,
             get_optional_dimension = technology.get_optional_dimension,
@@ -447,6 +598,10 @@ function pcell.set_verbose()
     state.verbose = true
 end
 
+function pcell.disable_parameter_checks()
+    state.run_parameter_checks = false
+end
+
 local function _create_layout_internal(state, obj, cellname, cellargs, env)
     if state.verbose then
         print(string.format("creating layout cell '%s'", cellname))
@@ -467,27 +622,56 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
         error(string.format("cell '%s' has no layout definition", cellname))
     end
 
-    local parameters = _get_parameters(state, cellname, cellargs)
-
-    -- check parameters
-    if cell.funcs.check then
-        local ret, msg = cell.funcs.check(parameters)
+    -- check requirements
+    if cell.funcs.requirements then
+        local ret, msg = cell.funcs.requirements()
         if not ret then
             if not msg then
-                moderror(string.format("parameter check for cell '%s' failed, but no message was returned. If present, the 'check' function has to return true on success", cellname))
+                moderror(string.format("requirements check for cell '%s' (%s) failed, but no message was returned. If present, the 'requirements' function must return true on success", cellname, tostring(obj)))
             else
-                moderror(string.format("parameter check for cell '%s' failed: %s", cellname, msg))
+                moderror(string.format("requirements check for cell '%s' (%s) failed: %s", cellname, tostring(obj), msg))
             end
         end
     end
 
-    cell.funcs.layout(obj, parameters, env)
+    local parameters = _get_parameters(state, cellname, cellargs)
+
+    -- check parameters (pre)
+    if state.run_parameter_checks and cell.funcs.check_pre then
+        local ret, msg = cell.funcs.check_pre(parameters)
+        if not ret then
+            if not msg then
+                moderror(string.format("parameter pre-check for cell '%s' (%s) failed, but no message was returned. If present, the 'check_pre' function must return true on success", cellname, tostring(obj)))
+            else
+                moderror(string.format("parameter pre-check for cell '%s' (%s) failed: %s", cellname, tostring(obj), msg))
+            end
+        end
+    end
+
+    -- run prepare() function (if available) to set cell state
+    local cellstate = nil
+    if cell.funcs.prepare then
+        cellstate = cell.funcs.prepare(parameters)
+    end
+
+    -- check parameters
+    if state.run_parameter_checks and cell.funcs.check then
+        local ret, msg = cell.funcs.check(parameters, cellstate)
+        if not ret then
+            if not msg then
+                moderror(string.format("parameter check for cell '%s' (%s) failed, but no message was returned. If present, the 'check' function must return true on success", cellname, tostring(obj)))
+            else
+                moderror(string.format("parameter check for cell '%s' (%s) failed: %s", cellname, tostring(obj), msg))
+            end
+        end
+    end
+
+    cell.funcs.layout(obj, parameters, env, cellstate)
     if explicitlib then
         state.libnamestacks:pop()
     end
 end
 
-local _globalenv
 function pcell.create_layout(cellname, name, cellargs, ...)
     if not cellname or type(cellname) ~= "string" then
         error("pcell.create_layout: expected cellname (a string) as first argument")
@@ -503,6 +687,7 @@ function pcell.create_layout(cellname, name, cellargs, ...)
     return obj
 end
 
+local _globalenv
 function pcell.create_layout_env(cellname, name, cellargs, env)
     if not cellname or type(cellname) ~= "string" then
         error("pcell.create_layout_env: expected cellname as first argument")
@@ -520,6 +705,28 @@ function pcell.create_layout_env(cellname, name, cellargs, env)
     _create_layout_internal(state, obj, cellname, cellargs, _globalenv)
     _globalenv = oldenv
     return obj
+end
+
+-- message handler which skips traceback for cell-generating functions
+local function cellmsghandler_notraceback(msg)
+    -- no traceback
+    return msg
+end
+
+local function cellmsghandler(msg)
+    return debug.traceback(msg)
+end
+
+-- interface function for calling in pcell.c
+function pcell.create_layout_env_wrapper(cellname, name, cellargs, env, dodebug)
+    local msghandler = dodebug and cellmsghandler or cellmsghandler_notraceback
+    local status, cell = xpcall(pcell.create_layout_env, msghandler, cellname, name, cellargs, env)
+    if not status then
+        -- errors occured, 'cell' is a message
+        return false, cell
+    else
+        return true, cell
+    end
 end
 
 function pcell.create_layout_in_object(obj, cellname, cellargs, ...)
@@ -552,6 +759,18 @@ function pcell.create_layout_env_in_object(obj, cellname, cellargs, env)
     _globalenv = oldenv
 end
 
+-- interface function for calling in pcell.c
+function pcell.create_layout_from_script_wrapper(scriptpath, args, cellenv, dodebug)
+    local msghandler = dodebug and cellmsghandler or cellmsghandler_notraceback
+    local status, cell = xpcall(pcell.create_layout_from_script, msghandler, scriptpath, args, cellenv)
+    if not status then
+        -- errors occured, 'cell' is a message
+        return false, cell
+    else
+        return true, cell
+    end
+end
+
 function pcell.create_layout_from_script(scriptpath, args, cellenv)
     local reader = _get_reader(scriptpath)
     if reader then
@@ -563,15 +782,51 @@ function pcell.create_layout_from_script(scriptpath, args, cellenv)
         local savedargs = env.args
         env.args = args
         env.cellenv = cellenv
+        -- load script
+        local cellfunc, errmsg = load(reader, string.format("@%s", scriptpath), "t", env)
+        if not cellfunc then
+            error(errmsg, 0)
+        end
         -- run script
-        local cell = _dofile(reader, string.format("@%s", scriptpath), nil, env)
+        local cell = cellfunc()
         if not cell then
             error(string.format("cellscript '%s' did not return an object", scriptpath))
         end
+        -- FIXME: should this be higher up?
         env.args = savedargs
         return cell
     else
         error(string.format("cellscript '%s' could not be opened", scriptpath))
+    end
+end
+
+function pcell.info(cellname)
+    local cell = _get_cell(state, cellname)
+    if cell.funcs.info then
+        local t = cell.funcs.info()
+        if type(t) == "string" then
+            print(t)
+        elseif type(t) == "table" then
+            print("Brief:")
+            if t.brief then
+                print(t.brief)
+            end
+            print()
+            print("Detail:")
+            if t.detail then
+                print(table.concat(t.detail, "\n"))
+            end
+            print()
+            print("Example:")
+            if t.example then
+                print(t.example)
+            end
+            print()
+        else
+            error(string.format("info() must return a string or a table, got '%s'", type(t)))
+        end
+    else
+        print(string.format("no info function available for '%s'", cellname))
     end
 end
 

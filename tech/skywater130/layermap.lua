@@ -1,6 +1,7 @@
 return {
     oxide1  = {},
-    vthtype1  = {},
+    vthtypen1 = {},
+    vthtypep1 = {},
     contactsourcedrain = {
         name = "licon1",
         layer = {
@@ -28,7 +29,7 @@ return {
             svg      = { color ="green", fill = true, order = 2 },
         },
     },
-    nimpl = {
+    nimplant = {
         name = "nsdm",
         layer = {
             gds      = { layer = 93,    purpose = 44 },
@@ -37,7 +38,7 @@ return {
             svg      = { color ="black", opacity = 1, fill = false  },
         },
     },
-    pimpl = {
+    pimplant = {
         name = "psdm",
         layer = {
             gds      = { layer = 94,    purpose = 20 },
@@ -179,6 +180,9 @@ return {
     --polyres1  = { layer = { number = 86, name = "rpm"       }, purpose = { number = 20, name = "drawing" } },
     --polyres2  = { layer = { number = 79, name = "urpm"      }, purpose = { number = 20, name = "drawing" } },
     gatecut   = {},
+    gatemarker1 = {},
+    mosfetmarker1 = {},
+    lvsmarker1 = {},
 }
 
 -- processed (some are only present in the viarules file)

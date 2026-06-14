@@ -1,6 +1,8 @@
 #ifndef LROUTER_MOVES_H
 #define LROUTER_MOVES_H
 
+#include "lua/lua.h"
+
 typedef enum { X_DIR, Y_DIR } dir_t;
 
 /*

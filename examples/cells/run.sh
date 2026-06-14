@@ -8,3 +8,4 @@
 #../../opc --technology opc --export gds --cellscript LC_oscillator.lua --filename LC_oscillator --enable-fallback-vias
 ../../opc --technology opc --export gds --cellscript ldmos.lua --filename ldmos
 ../../opc --technology opc --export gds --cellscript RFmosfet.lua --filename RFmosfet
+../../opc --technology opc --export gds --cellscript divider.lua --filename divider --enable-fallback-vias --disable-parameter-checks

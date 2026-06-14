@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "_modulemanager.h"
+
 #include "error.h"
 #include "filesystem.h"
 #include "lua_util.h"
@@ -246,7 +248,8 @@ static int _check_layer_content(lua_State* L, const char* layername)
 
 static int _load_layermap(struct technology_state* techstate, const char* name, const struct const_vector* ignoredlayers)
 {
-    lua_State* L = util_create_minimal_lua_state();
+    lua_State* L = util_create_basic_lua_state();
+    module_load_generics(L);
     int ret = luaL_dofile(L, name);
     if(ret != LUA_OK)
     {
@@ -601,26 +604,41 @@ VIA_EXIT:
     return e;
 }
 
-static int _load_config(struct technology_state* techstate, const char* name, const char** errmsg)
+static error_t _load_config(struct technology_state* techstate, const char* name)
 {
     lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, name);
+    error_t error_status = error_success();
     if(ret != LUA_OK)
     {
-        //const char* msg = lua_tostring(L, -1);
-        //fprintf(stderr, "error while loading config file: %s\n", msg);
-        *errmsg = "error while loading technology configuration file";
+        error_set_failure(&error_status);
+        error_add(&error_status, "error while loading technology configuration file: ");
+        const char* msg = lua_tostring(L, -1);
+        error_add(&error_status, msg);
         lua_close(L);
-        return 0;
+        return error_status;
     }
+
+    // grid
+    lua_getfield(L, -1, "grid");
+    if(lua_isnil(L, -1))
+    {
+        error_set_failure(&error_status);
+        error_add(&error_status, "technology configuration file specify the manufacturing grid");
+        lua_close(L);
+        return error_status;
+    }
+    techstate->config->grid = lua_tointeger(L, -1);
+    lua_pop(L, 1); // pop grid
 
     // number of metals
     lua_getfield(L, -1, "metals");
     if(lua_isnil(L, -1))
     {
-        *errmsg = "technology configuration file does not contain the number of metals ('metals' entry)";
+        error_set_failure(&error_status);
+        error_add(&error_status, "technology configuration file does not contain the number of metals ('metals' entry)");
         lua_close(L);
-        return 0;
+        return error_status;
     }
     techstate->config->metals = lua_tointeger(L, -1);
     lua_pop(L, 1); // pop metals
@@ -638,9 +656,10 @@ static int _load_config(struct technology_state* techstate, const char* name, co
             lua_rawgeti(L, -1, i);
             if(!lua_istable(L, -1))
             {
-                *errmsg = "error while loading technology config: multiple_patterning is not a table";
+                error_set_failure(&error_status);
+                error_add(&error_status, "error while loading technology config: multiple_patterning entry is not a table");
                 lua_close(L);
-                return 0;
+                return error_status;
             }
             struct mpentry* entry = malloc(sizeof(*entry));
             lua_getfield(L, -1, "metal");
@@ -653,15 +672,23 @@ static int _load_config(struct technology_state* techstate, const char* name, co
             vector_append(techstate->config->multiple_patterning_metals, entry);
         }
     }
+    else if(!lua_isnil(L, -1))
+    {
+        error_set_failure(&error_status);
+        error_add(&error_status, "error while loading technology config: 'multiple_patterning' is not a table");
+        lua_close(L);
+        return error_status;
+    }
     lua_pop(L, 1); // pop multiple_patterning
 
     // is soi
     lua_getfield(L, -1, "is_soi");
     if(lua_isnil(L, -1))
     {
-        *errmsg = "technology configuration file does not contain info about the wafer type of this process node('is_soi' entry)";
+        error_set_failure(&error_status);
+        error_add(&error_status, "technology configuration file does not contain info about the wafer type of this process node('is_soi' entry)");
         lua_close(L);
-        return 0;
+        return error_status;
     }
     techstate->config->is_soi = lua_toboolean(L, -1);
     lua_pop(L, 1); // pop is_soi
@@ -670,9 +697,10 @@ static int _load_config(struct technology_state* techstate, const char* name, co
     lua_getfield(L, -1, "allow_poly_routing");
     if(lua_isnil(L, -1))
     {
-        *errmsg = "technology configuration file does not contain info about poly routing ('allow_poly_routing' entry)";
+        error_set_failure(&error_status);
+        error_add(&error_status, "technology configuration file does not contain info about poly routing ('allow_poly_routing' entry)");
         lua_close(L);
-        return 0;
+        return error_status;
     }
     techstate->config->allow_poly_routing = lua_toboolean(L, -1);
     lua_pop(L, 1); // pop allow_poly_routing
@@ -681,15 +709,16 @@ static int _load_config(struct technology_state* techstate, const char* name, co
     lua_getfield(L, -1, "has_gatecut");
     if(lua_isnil(L, -1))
     {
-        *errmsg = "technology configuration file does not contain info about the gate cut layer ('has_gatecut' entry)";
+        error_set_failure(&error_status);
+        error_add(&error_status, "technology configuration file does not contain info about the gate cut layer ('has_gatecut' entry)");
         lua_close(L);
-        return 0;
+        return error_status;
     }
     techstate->config->has_gatecut = lua_toboolean(L, -1);
     lua_pop(L, 1); // pop has_gatecut
 
     lua_close(L);
-    return 1;
+    return error_status;
 }
 
 static int _load_constraints(struct technology_state* techstate, const char* name)
@@ -698,7 +727,8 @@ static int _load_constraints(struct technology_state* techstate, const char* nam
     int ret = luaL_dofile(L, name);
     if(ret != LUA_OK)
     {
-        puts("error while loading constraints");
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "error while loading constraints:\n  %s\n", msg);
         lua_close(L);
         return 0;
     }
@@ -712,13 +742,12 @@ static int _load_constraints(struct technology_state* techstate, const char* nam
     }
     lua_pop(L, 1); // pop constraints table
     lua_close(L);
-    return 0;
+    return 1;
 }
 
 int technology_load(const struct vector* techpaths, struct technology_state* techstate, const struct const_vector* ignoredlayers)
 {
     char* layermapname = _get_tech_filename(techpaths, techstate->name, "layermap");
-    const char* errmsg;
     if(!layermapname)
     {
         fprintf(stderr, "technology: no techfile for technology '%s' found\n", techstate->name);
@@ -744,7 +773,7 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
     e = _load_viadefinitions(techstate, vianame);
     if(!e.status)
     {
-        fprintf(stderr, "technology: errors while loading via definitions: %s\n", e.message);
+        fprintf(stderr, "technology: error while loading via definitions: %s\n", e.message);
         return 0;
     }
     free(vianame);
@@ -756,10 +785,11 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
         free(configname);
         return 0;
     }
-    ret = _load_config(techstate, configname, &errmsg);
-    if(!ret)
+    error_t config_status = _load_config(techstate, configname);
+    if(error_is_failure(&config_status))
     {
-        fprintf(stderr, "technology: errrors while loading technology config file ('%s'):\n%s\n", configname, errmsg);
+        error_printf(&config_status, "technology: errrors while loading technology config file ('%s'): ", configname);
+        error_clean(&config_status);
         free(configname);
         return 0;
     }
@@ -772,7 +802,12 @@ int technology_load(const struct vector* techpaths, struct technology_state* tec
         free(constraintsname);
         return 0;
     }
-    _load_constraints(techstate, constraintsname);
+    ret = _load_constraints(techstate, constraintsname);
+    if(!ret)
+    {
+        free(constraintsname);
+        return 0;
+    }
     free(constraintsname);
 
     return 1;
@@ -875,6 +910,76 @@ static void _write_layermap(const struct technology_state* techstate, const char
     fputs("}\n", file);
     fclose(file);
     free(path);
+}
+
+static void _push_layer_export(lua_State* L, const struct generics_entry* entry)
+{
+    lua_newtable(L);
+    struct hashmap_iterator* it = hashmap_iterator_create(entry->data);
+    while(hashmap_iterator_is_valid(it))
+    {
+        const char* key = hashmap_iterator_key(it);
+        struct tagged_value* value = hashmap_iterator_value(it);
+        if(tagged_value_is_integer(value))
+        {
+            int number = tagged_value_get_integer(value);
+            lua_pushinteger(L, number);
+        }
+        else if(tagged_value_is_number(value))
+        {
+            double number = tagged_value_get_integer(value);
+            lua_pushnumber(L, number);
+        }
+        else if(tagged_value_is_string(value))
+        {
+            const char* str = tagged_value_get_const_string(value);
+            lua_pushstring(L, str);
+        }
+        else // boolean
+        {
+            int b = tagged_value_get_boolean(value);
+            lua_pushboolean(L, b);
+        }
+        lua_setfield(L, -2, key);
+        hashmap_iterator_next(it);
+    }
+    hashmap_iterator_destroy(it);
+    lua_setfield(L, -2, entry->exportname);
+}
+
+static void _push_layer(lua_State* L, const struct generics* layer)
+{
+    if(!layer->prettyname && vector_size(layer->entries) == 0) // empty layer
+    {
+        // do nothing
+    }
+    else
+    {
+        lua_newtable(L);
+        if(layer->prettyname)
+        {
+            lua_pushstring(L, layer->prettyname);
+            lua_setfield(L, -2, "name");
+        }
+        lua_newtable(L);
+        for(size_t i = 0; i < vector_size(layer->entries); ++i)
+        {
+            struct generics_entry* entry = vector_get(layer->entries, i);
+            _push_layer_export(L, entry);
+        }
+        lua_setfield(L, -2, "layer");
+        lua_setfield(L, -2, layer->name);
+    }
+}
+
+void technology_push_layermap_table(lua_State* L, const struct technology_state* techstate)
+{
+    lua_newtable(L);
+    for(size_t i = 0; i < vector_size(techstate->layertable); ++i)
+    {
+        const struct generics* layer = vector_get(techstate->layertable, i);
+        _push_layer(L, layer);
+    }
 }
 
 static void _write_viaentry(FILE* file, const struct viaentry* entry)
@@ -983,7 +1088,7 @@ static void _write_constraints(const struct technology_state* techstate, const c
 void technology_write_definition_files(const struct technology_state* techstate, const char* basepath)
 {
     char* path = _make_path(basepath, techstate->name);
-    filesystem_mkdir(path);
+    filesystem_mkdir(path, 0755);
     _write_config(techstate, path);
     _write_layermap(techstate, path);
     _write_viarules(techstate, path);
@@ -1231,6 +1336,7 @@ struct via_definition** technology_get_via_definitions(struct technology_state* 
     if(!entry)
     {
         fprintf(stderr, "could not find via definitions for via from metal %d to metal %d\n", lowermetal, lowermetal + 1);
+        return NULL;
     }
     return entry->viadefs;
 }
@@ -1350,6 +1456,25 @@ int technology_resolve_metal(const struct technology_state* techstate, int metal
     {
         return metalnum;
     }
+}
+
+int technology_metal_layer_to_index(const struct technology_state* techstate, const struct generics* metallayer)
+{
+    (void)techstate;
+    const char* name = metallayer->name;
+    if(name[0] == 'M')
+    {
+        ++name;
+        int index = 0;
+        while(*name)
+        {
+            index *= 10;
+            index += *name - '0';
+            ++name;
+        }
+        return index;
+    }
+    return 0;
 }
 
 static int _is_mpmetal(const void* value, const void* comp)
@@ -1603,27 +1728,85 @@ unsigned int technology_get_number_of_layers(const struct technology_state* tech
     return vector_size(techstate->layertable);
 }
 
+static int ltechnology_get_grid(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushstring(L, "technology.get_grid(): could not retrieve technology state");
+        lua_error(L);
+    }
+    else
+    {
+        lua_pushinteger(L, technology_get_grid(techstate));
+    }
+    return 1;
+}
+
+static int ltechnology_get_even_grid(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushstring(L, "technology.get_even_grid(): could not retrieve technology state");
+        lua_error(L);
+    }
+    else
+    {
+        unsigned int grid = technology_get_grid(techstate);
+        if(grid % 2 != 0)
+        {
+            grid = grid * 2;
+        }
+        lua_pushinteger(L, grid);
+    }
+    return 1;
+}
+
+static int ltechnology_get_number_of_metals(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushstring(L, "technology.get_number_of_metals(): could not retrieve technology state");
+        lua_error(L);
+    }
+    else
+    {
+        unsigned int nummetals = technology_get_num_metals(techstate);
+        lua_pushinteger(L, nummetals);
+    }
+    return 1;
+}
+
 static int ltechnology_get_dimension(lua_State* L)
 {
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushinteger(L, 0);
+        return 1;
+    }
     int n = lua_gettop(L);
     for(int i = 1; i <= n; ++i)
     {
-        const char* dimension = lua_tostring(L, i);
-        lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-        struct technology_state* techstate = lua_touserdata(L, -1);
-        lua_pop(L, 1); // pop techstate
-        if(!techstate)
+        if(!lua_isnil(L, i)) // if properties are generated in cells, they might be nil
         {
-            lua_pushinteger(L, 0);
-            return 1;
-        }
-        else
-        {
-            if(hashmap_exists(techstate->constraints, dimension))
+            const char* dimension = lua_tostring(L, i);
+            struct tagged_value* v = technology_get_dimension(techstate, dimension);
+            if(v)
             {
-                struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
                 int value = tagged_value_get_integer(v);
                 lua_pushinteger(L, value);
+                tagged_value_destroy(v);
                 return 1;
             }
         }
@@ -1640,26 +1823,27 @@ static int ltechnology_get_dimension(lua_State* L)
 
 static int ltechnology_get_dimension_max(lua_State* L)
 {
-    int n = lua_gettop(L);
     int found = 0;
     int value = INT_MIN;
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushinteger(L, 0);
+        return 1;
+    }
+    int n = lua_gettop(L);
     for(int i = 1; i <= n; ++i)
     {
-        const char* dimension = lua_tostring(L, i);
-        lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-        struct technology_state* techstate = lua_touserdata(L, -1);
-        lua_pop(L, 1); // pop techstate
-        if(!techstate)
+        if(!lua_isnil(L, i)) // if properties are generated in cells, they might be nil
         {
-            lua_pushinteger(L, 0);
-            return 1;
-        }
-        else
-        {
-            if(hashmap_exists(techstate->constraints, dimension))
+            const char* dimension = lua_tostring(L, i);
+            struct tagged_value* v = technology_get_dimension(techstate, dimension);
+            if(v)
             {
-                struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
                 int newval = tagged_value_get_integer(v);
+                tagged_value_destroy(v);
                 if(newval > value)
                 {
                     value = newval;
@@ -1683,8 +1867,59 @@ static int ltechnology_get_dimension_max(lua_State* L)
     return 1;
 }
 
+static int ltechnology_get_dimension_min(lua_State* L)
+{
+    int found = 0;
+    int value = INT_MIN;
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(!techstate)
+    {
+        lua_pushinteger(L, 0);
+        return 1;
+    }
+    int n = lua_gettop(L);
+    for(int i = 1; i <= n; ++i)
+    {
+        if(!lua_isnil(L, i)) // if properties are generated in cells, they might be nil
+        {
+            const char* dimension = lua_tostring(L, i);
+            struct tagged_value* v = technology_get_dimension(techstate, dimension);
+            if(v)
+            {
+                int newval = tagged_value_get_integer(v);
+                tagged_value_destroy(v);
+                if(newval < value)
+                {
+                    value = newval;
+                }
+                found = 1;
+            }
+        }
+    }
+    if(found)
+    {
+        lua_pushinteger(L, value);
+        return 1;
+    }
+    // FIXME: this looks ugly for multiple arguments
+    lua_concat(L, n);
+    lua_pushstring(L, "technology.get_dimension_min: '");
+    lua_rotate(L, -2, 1);
+    lua_pushstring(L, "' not found");
+    lua_concat(L, 3);
+    lua_error(L);
+    return 1;
+}
+
 static int ltechnology_get_optional_dimension(lua_State* L)
 {
+    if(lua_gettop(L) < 2)
+    {
+        lua_pushstring(L, "technology.get_optional_dimension: must receive at least two arguments (the last parameter is the default value)");
+        lua_error(L);
+    }
     const char* dimension = lua_tostring(L, 1);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
@@ -1694,22 +1929,33 @@ static int ltechnology_get_optional_dimension(lua_State* L)
         lua_pushinteger(L, 0);
         return 1;
     }
-    else
+    int n = lua_gettop(L);
+    if(!lua_isinteger(L, -1))
     {
-        if(hashmap_exists(techstate->constraints, dimension))
+        lua_pushfstring(L, "technology.get_optional_dimension: last argument must be a number, got %s", lua_typename(L, lua_type(L, -1)));
+        lua_error(L);
+    }
+    int value = luaL_checkinteger(L, -1); // last value is the default fall-back value
+    for(int i = 1; i <= n; ++i)
+    {
+        if(!lua_isnil(L, i)) // if properties are generated in cells, they might be nil
         {
-            struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
-            int value = tagged_value_get_integer(v);
-            lua_pushinteger(L, value);
-            return 1;
-        }
-        else
-        {
-            lua_pushinteger(L, 0);
+            if(hashmap_exists(techstate->constraints, dimension))
+            {
+                struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
+                value = tagged_value_get_integer(v);
+                break;
+            }
+            struct tagged_value* v = technology_get_dimension(techstate, dimension);
+            if(v)
+            {
+                value = tagged_value_get_integer(v);
+                tagged_value_destroy(v);
+                break;
+            }
         }
     }
-    // return default value if property was not found
-    lua_pushvalue(L, 2);
+    lua_pushinteger(L, value);
     return 1;
 }
 
@@ -1740,8 +1986,17 @@ static int ltechnology_has_feature(lua_State* L)
 
 static int ltechnology_has_layer(lua_State* L)
 {
-    int result = lua_pcall(L, 1, 1, 0);
-    lua_pushboolean(L, result == LUA_OK);
+    if(lua_type(L, 1) == LUA_TFUNCTION)
+    {
+        int len = lua_gettop(L);
+        int result = lua_pcall(L, len - 1, 1, 0);
+        lua_pushboolean(L, result == LUA_OK);
+    }
+    else
+    {
+        lua_pushfstring(L, "technology.has_layer: expected 'generics' function as first argument, got '%s'", lua_typename(L, lua_type(L, 1)));
+        lua_error(L);
+    }
     return 1;
 }
 
@@ -1764,6 +2019,22 @@ static int ltechnology_resolve_metal(lua_State* L)
     int metal = luaL_checkinteger(L, 1);
     int resolved = technology_resolve_metal(techstate, metal);
     lua_pushinteger(L, resolved);
+    return 1;
+}
+
+static int ltechnology_metal_layer_to_index(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    if(lua_type(L, 1) != LUA_TLIGHTUSERDATA)
+    {
+        lua_pushfstring(L, "expected a generic layer at argument #%d, got %s", 1, lua_typename(L, lua_type(L, 1)));
+        lua_error(L);
+    }
+    const struct generics* metallayer = lua_touserdata(L, 1);
+    int metalindex = technology_metal_layer_to_index(techstate, metallayer);
+    lua_pushinteger(L, metalindex);
     return 1;
 }
 
@@ -1794,13 +2065,18 @@ int open_ltechnology_lib(lua_State* L)
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
+        { "get_grid",                       ltechnology_get_grid                    },
+        { "get_even_grid",                  ltechnology_get_even_grid               },
+        { "get_number_of_metals",           ltechnology_get_number_of_metals        },
         { "get_dimension",                  ltechnology_get_dimension               },
         { "get_dimension_max",              ltechnology_get_dimension_max           },
+        { "get_dimension_min",              ltechnology_get_dimension_min           },
         { "get_optional_dimension",         ltechnology_get_optional_dimension      },
         { "has_feature",                    ltechnology_has_feature                 },
         { "has_metal",                      ltechnology_has_metal                   },
         { "has_layer",                      ltechnology_has_layer                   },
         { "resolve_metal",                  ltechnology_resolve_metal               },
+        { "metal_layer_to_index",           ltechnology_metal_layer_to_index        },
         { "has_multiple_patterning",        ltechnology_has_multiple_patterning     },
         { "multiple_patterning_number",     ltechnology_multiple_patterning_number  },
         { NULL,                             NULL                                    }
@@ -2102,6 +2378,18 @@ const struct generics* generics_create_fill(struct technology_state* techstate, 
     return layer;
 }
 
+const struct generics* generics_create_text(struct technology_state* techstate)
+{
+    const struct generics* layer = _get_or_create_layer(techstate, "text");
+    return layer;
+}
+
+const struct generics* generics_create_error(struct technology_state* techstate)
+{
+    const struct generics* layer = _get_or_create_layer(techstate, "error");
+    return layer;
+}
+
 const struct generics* generics_create_other(struct technology_state* techstate, const char* layername)
 {
     const struct generics* layer = _get_or_create_layer(techstate, layername);
@@ -2155,6 +2443,11 @@ int generics_is_empty(const struct generics* layer)
     {
         return 1;
     }
+}
+
+int generics_is_first_entry_empty(const struct generics* layer)
+{
+    return vector_get_const(layer->entries, 0) == NULL;
 }
 
 int generics_is_layer_name(const struct generics* layer, const char* layername)

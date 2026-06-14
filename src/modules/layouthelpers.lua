@@ -1,26 +1,121 @@
-local M = {}
-
-function M.connect_area_anchor(cell, layer, width, anchor1, anchor2)
+function layouthelpers.connect_area_anchor(cell, layer, width, anchor1, anchor2, grid, matchtolerance)
+    check.set_next_function_name("layouthelpers.connect_area_anchor")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg(2, "width", "number", width)
+    check.arg(3, "anchor1", "table", anchor1)
+    check.arg(4, "anchor2", "table", anchor2)
+    check.arg_optional(5, "grid", "number", grid)
+    check.arg_optional(6, "matchtolerance", "number", matchtolerance)
     local x1l, y1b = anchor1.bl:unwrap()
     local x1r, y1t = anchor1.tr:unwrap()
     local x2l, y2b = anchor2.bl:unwrap()
     local x2r, y2t = anchor2.tr:unwrap()
-    if y2b > y1t then
-        geometry.path_3y(cell, layer,
-            point.create(0.5 * (x1l + x1r), y1t),
-            point.create(0.5 * (x2l + x2r), y2b),
-            width, 0.5
-        )
-    elseif y1b > y2t then
-        geometry.path_3y(cell, layer,
-            point.create(0.5 * (x2l + x2r), y2t),
-            point.create(0.5 * (x1l + x1r), y1b),
-            width, 0.5
-        )
+    grid = grid or 1 -- FIXME: use grid
+    -- FIXME: after using grid, update documentation
+    -- anchor 1 is x-bound by anchor 2
+    if x1l >= x2l and x1r <= x2r then
+        if y1b > y2t then
+            geometry.path(cell, layer, {
+                    point.create(0.5 * (x1l + x1r), y1b),
+                    point.create(0.5 * (x1l + x1r), y2t),
+                }, width
+            )
+        else
+            geometry.path(cell, layer, {
+                    point.create(0.5 * (x1l + x1r), y2b),
+                    point.create(0.5 * (x1l + x1r), y1t),
+                }, width
+            )
+        end
+    -- anchor 2 is x-bound by anchor 1
+    elseif x2l >= x1l and x2r <= x1r then
+        if y1b > y2t then
+            geometry.path(cell, layer, {
+                    point.create(0.5 * (x2l + x2r), y1b),
+                    point.create(0.5 * (x2l + x2r), y2t),
+                }, width
+            )
+        else
+            geometry.path(cell, layer, {
+                    point.create(0.5 * (x2l + x2r), y2b),
+                    point.create(0.5 * (x2l + x2r), y1t),
+                }, width
+            )
+        end
+    -- anchor 1 is y-bound by anchor 2
+    elseif y1b >= y2b and y1t <= y2t then
+        if x1l > x2r then
+            geometry.path(cell, layer, {
+                    point.create(x1l, 0.5 * (y1b + y1t)),
+                    point.create(x2r, 0.5 * (y1b + y1t)),
+                }, width
+            )
+        else
+            geometry.path(cell, layer, {
+                    point.create(x2l, 0.5 * (y1b + y1t)),
+                    point.create(x1r, 0.5 * (y1b + y1t)),
+                }, width
+            )
+        end
+    -- anchor 2 is y-bound by anchor 1
+    elseif y2b >= y1b and y2t <= y1t then
+        if x1l > x2r then
+            geometry.path(cell, layer, {
+                    point.create(x1l, 0.5 * (y2b + y2t)),
+                    point.create(x2r, 0.5 * (y2b + y2t)),
+                }, width
+            )
+        else
+            geometry.path(cell, layer, {
+                    point.create(x2l, 0.5 * (y2b + y2t)),
+                    point.create(x1r, 0.5 * (y2b + y2t)),
+                }, width
+            )
+        end
+    else -- FIXME: add more conditions
+        -- find target edges:
+        local width1  = x1r - x1l
+        local height1 = y1t - y1b
+        local width2  = x2r - x2l
+        local height2 = y2t - y2b
+        local matchtolerance = matchtolerance or 1
+        local xmatch1 = math.abs(width1 - width)  <= matchtolerance * width
+        local ymatch1 = math.abs(height1 - width) <= matchtolerance * width
+        local xmatch2 = math.abs(width2 - width)  <= matchtolerance * width
+        local ymatch2 = math.abs(height2 - width) <= matchtolerance * width
+        if xmatch1 and ymatch2 then
+            local x2 = x1l > x2r and x2r or x2l
+            local y1 = y1t < y2b and y1t or y1b
+            geometry.path_2y(cell, layer,
+                point.create(0.5 * (x1l + x1r), y1),
+                point.create(x2, 0.5 * (y2b + y2t)),
+                width
+            )
+        elseif xmatch2 and ymatch1 then
+            local x1 = x2l > x1r and x1r or x1l
+            local y2 = y2t < y1b and y2t or y2b
+            geometry.path_2y(cell, layer,
+                point.create(0.5 * (x2l + x2r), y2),
+                point.create(x1, 0.5 * (y1b + y1t)),
+                width
+            )
+        elseif y2b > y1t then
+            geometry.path_3y(cell, layer,
+                point.create(0.5 * (x1l + x1r), y1t),
+                point.create(0.5 * (x2l + x2r), y2b),
+                width, 0.5
+            )
+        elseif y1b > y2t then
+            geometry.path_3y(cell, layer,
+                point.create(0.5 * (x2l + x2r), y2t),
+                point.create(0.5 * (x1l + x1r), y1b),
+                width, 0.5
+            )
+        end
     end
 end
 
-function M.via_area_anchor_multiple(cell, startmetal, endmetal, fmt, startindex, endindex, increment)
+function layouthelpers.via_area_anchor_multiple(cell, startmetal, endmetal, fmt, startindex, endindex, increment)
     local f = string.gsub(fmt, "%%", "%%d")
     startindex = startindex or 1
     endindex = endindex or 1
@@ -33,7 +128,7 @@ function M.via_area_anchor_multiple(cell, startmetal, endmetal, fmt, startindex,
     end
 end
 
-function M.place_bus(cell, layer, pathpoints, numbits, width, space)
+function layouthelpers.place_bus(cell, layer, pathpoints, numbits, width, space)
     for i = 1, numbits do
         local offset = (i - 1 - (numbits - 1) / 2) * (width + space)
         local pts = geometry.get_side_path_points(pathpoints, offset)
@@ -41,7 +136,7 @@ function M.place_bus(cell, layer, pathpoints, numbits, width, space)
     end
 end
 
-function M.place_powervlines(cell, bl, tr, layer, width, space, powershapes)
+function layouthelpers.place_powervlines(cell, bl, tr, layer, width, space, powershapes)
     local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(
         bl, tr,
         width, space
@@ -68,71 +163,160 @@ function M.place_powervlines(cell, bl, tr, layer, width, space, powershapes)
     end
 end
 
-function M.place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth, hspace, plusshapes, minusshapes)
-    local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(
+function layouthelpers.place_powerhlines(cell, bl, tr, layer, height, space, powershapes)
+    local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(
         bl, tr,
-        vwidth, vspace
+        height, space
     )
-    local pluslines = {}
-    local minuslines = {}
     for i = 1, numlines do
         local plbl = point.create(
-            bl:getx() + offset + (i - 1) * (width + space),
-            bl:gety()
+            bl:getx(),
+            bl:gety() + offset + (i - 1) * (height + space)
         )
         local pltr = point.create(
-            bl:getx() + offset + (i - 1) * (width + space) + width,
-            bl:gety() + height
+            bl:getx() + width,
+            bl:gety() + offset + (i - 1) * (height + space) + height
         )
-        geometry.rectanglebltr(cell, generics.metal(vlayer), plbl, pltr)
-        local powershapes = i % 2 == 1 and plusshapes or minusshapes
-        local inserttarget = i % 2 == 1 and pluslines or minuslines
-        table.insert(inserttarget, { bl = plbl, tr = pltr })
+        geometry.rectanglebltr(cell, generics.metal(layer), plbl, pltr)
         for _, target in ipairs(powershapes) do
             local r = util.rectangle_intersection(plbl, pltr, target.bl, target.tr)
             if r then
-                geometry.viabltr(cell, vlayer - 1, vlayer,
+                geometry.viabltr(cell, layer - 1, layer,
                     point.create(plbl:getx(), target.bl:gety()),
                     point.create(pltr:getx(), target.tr:gety())
                 )
             end
         end
     end
-    local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(
-        bl, tr,
-        hwidth, hspace
-    )
-    for i = 1, numlines do
-        local plbl = point.create(
-            bl:getx(),
-            bl:gety() + offset + (i - 1) * (height + space)
+end
+
+function layouthelpers.place_powergrid(cell, bl, tr, vlayer, hlayer, vwidth, vspace, hwidth, hspace, plusshapes, minusshapes)
+    check.set_next_function_name("layouthelpers.place_powergrid")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg_func(2, "bl", "point", bl, point.is_point)
+    check.arg_func(3, "tr", "point", bl, point.is_point)
+    check.arg_optional(4, "vlayer", "number", vlayer)
+    check.arg_optional(5, "hlayer", "number", hlayer)
+    check.arg(6, "vwidth", "number", vwidth)
+    check.arg(7, "vspace", "number", vspace)
+    check.arg(8, "hwidth", "number", hwidth)
+    check.arg(9, "hspace", "number", hspace)
+    check.arg_optional(10, "plusshapes", "table", plusshapes)
+    check.arg_optional(11, "minusshapes", "table", minusshapes)
+    if not vlayer and not hlayer then
+        error("layouthelpers.place_powergrid: at least one metal layer must not be nil")
+    end
+    local hpluslines = {}
+    local hminuslines = {}
+    local vpluslines = {}
+    local vminuslines = {}
+    if vlayer then
+        local width, height, space, offset, numlines = geometry.rectanglevlines_width_space_settings(
+            bl, tr,
+            vwidth, vspace
         )
-        local pltr = point.create(
-            bl:getx() + width,
-            bl:gety() + offset + (i - 1) * (height + space) + height
+        for i = 1, numlines do
+            local plbl = point.create(
+                bl:getx() + offset + (i - 1) * (width + space),
+                bl:gety()
+            )
+            local pltr = point.create(
+                bl:getx() + offset + (i - 1) * (width + space) + width,
+                bl:gety() + height
+            )
+            geometry.rectanglebltr(cell, generics.metal(vlayer), plbl, pltr)
+            local inserttarget = i % 2 == 1 and vpluslines or vminuslines
+            table.insert(inserttarget, { bl = plbl, tr = pltr })
+        end
+    end
+    if hlayer then
+        local width, height, space, offset, numlines = geometry.rectanglehlines_height_space_settings(
+            bl, tr,
+            hwidth, hspace
         )
-        geometry.rectanglebltr(cell, generics.metal(hlayer), plbl, pltr)
-        local powerlines = i % 2 == 1 and pluslines or minuslines
-        for _, target in ipairs(powerlines) do
-            local r = util.rectangle_intersection(plbl, pltr, target.bl, target.tr)
+        for i = 1, numlines do
+            local plbl = point.create(
+                bl:getx(),
+                bl:gety() + offset + (i - 1) * (height + space)
+            )
+            local pltr = point.create(
+                bl:getx() + width,
+                bl:gety() + offset + (i - 1) * (height + space) + height
+            )
+            geometry.rectanglebltr(cell, generics.metal(hlayer), plbl, pltr)
+            local inserttarget = i % 2 == 1 and hpluslines or hminuslines
+            table.insert(inserttarget, { bl = plbl, tr = pltr })
+        end
+    end
+    -- place vias between powerlines
+    if vlayer and hlayer then
+        for _, hline in ipairs(hpluslines) do
+            for _, vline in ipairs(vpluslines) do
+                local r = util.rectangle_intersection(hline.bl, hline.tr, vline.bl, vline.tr)
+                if r then
+                    geometry.viabltr(cell, vlayer - 1, vlayer,
+                        point.create(vline.bl:getx(), hline.bl:gety()),
+                        point.create(vline.tr:getx(), hline.tr:gety())
+                    )
+                end
+            end
+        end
+        for _, hline in ipairs(hminuslines) do
+            for _, vline in ipairs(vminuslines) do
+            end
+        end
+    end
+    -- place vias to plus/minus shapes
+    local pluslines
+    local minuslines
+    local layer
+    if hlayer and not vlayer then
+        pluslines = hpluslines
+        minuslines = hminuslines
+        layer = hlayer
+    elseif vlayer and not hlayer then
+        pluslines = vpluslines
+        minuslines = vminuslines
+        layer = vlayer
+    elseif hlayer < vlayer then
+        pluslines = hpluslines
+        minuslines = hminuslines
+        layer = hlayer
+    else
+        pluslines = vpluslines
+        minuslines = vminuslines
+        layer = vlayer
+    end
+    for _, line in ipairs(pluslines) do
+        for _, target in ipairs(plusshapes) do
+            local r = util.rectangle_intersection(line.bl, line.tr, target.bl, target.tr)
             if r then
-                geometry.viabltr(cell, hlayer - 1, hlayer,
-                    point.create(target.bl:getx(), plbl:gety()),
-                    point.create(target.tr:getx(), pltr:gety())
-                )
+                if geometry.check_viabltr(layer - 1, layer, r.bl, r.tr) then
+                    geometry.viabltr(cell, layer - 1, layer, r.bl, r.tr)
+                end
+            end
+        end
+    end
+    for _, line in ipairs(minuslines) do
+        for _, target in ipairs(minusshapes) do
+            local r = util.rectangle_intersection(line.bl, line.tr, target.bl, target.tr)
+            if r then
+                if geometry.check_viabltr(layer - 1, layer, r.bl, r.tr) then
+                    geometry.viabltr(cell, layer - 1, layer, r.bl, r.tr)
+                end
             end
         end
     end
 end
 
-function M.place_vlines(cell, bl, tr, layer, width, netnames, numsets)
+function layouthelpers.place_vlines_numsets(cell, bl, tr, layer, width, netnames, numsets)
     local numnets = #netnames
     local width, height, space, offset, numlines = geometry.rectanglevlines_numlines_width_settings(
         bl, tr,
         numnets * numsets, width
     )
     if space < 0 then
-        error("layouthelpers.place_vlines: the given lines constraints yield a negative line spacing. Increase the area size, or decrease the number of lines and/or the line width")
+        error("layouthelpers.place_vlines_numsets: the given lines constraints yield a negative line spacing. Increase the area size, or decrease the number of lines and/or the line width")
     end
     local netshapes = {}
     for i = 1, numlines do
@@ -151,14 +335,14 @@ function M.place_vlines(cell, bl, tr, layer, width, netnames, numsets)
     return netshapes
 end
 
-function M.place_hlines(cell, bl, tr, layer, height, netnames, numsets)
+function layouthelpers.place_hlines_numsets(cell, bl, tr, layer, height, netnames, numsets)
     local numnets = #netnames
     local width, height, space, offset, numlines = geometry.rectanglehlines_numlines_height_settings(
         bl, tr,
         numnets * numsets, height
     )
     if space < 0 then
-        error("layouthelpers.place_hlines: the given lines constraints yield a negative line spacing. Increase the area size, or decrease the number of lines and/or the line height")
+        error("layouthelpers.place_hlines_numsets: the given lines constraints yield a negative line spacing. Increase the area size, or decrease the number of lines and/or the line height")
     end
     local netshapes = {}
     for i = 1, numlines do
@@ -177,7 +361,16 @@ function M.place_hlines(cell, bl, tr, layer, height, netnames, numsets)
     return netshapes
 end
 
-function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, allowfail)
+function layouthelpers.place_vias_no_overlaps(cell, netshapes1, netshapes2, excludes, netfilter, onlyfull, nocheck)
+    check.set_next_function_name("layouthelpers.place_vias_no_overlaps")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg(2, "netshapes1", "table", netshapes1)
+    check.arg(3, "netshapes2", "table", netshapes2)
+    check.arg_optional(4, "excludes", "table", excludes)
+    check.arg_optional(5, "netfilter", "table", netfilter)
+    check.arg_optional(6, "onlyfull", "boolean", onlyfull)
+    check.arg_optional(7, "nocheck", "boolean", nocheck)
+    excludes = excludes or {}
     for i1 = 1, #netshapes1 do
         local connect = true
         if netfilter then
@@ -190,15 +383,24 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, a
                 if netshapes1[i1].net == netshapes2[i2].net then
                     local r = util.rectangle_intersection(
                         netshapes1[i1].bl, netshapes1[i1].tr,
-                        netshapes2[i2].bl, netshapes2[i2].tr
+                        netshapes2[i2].bl, netshapes2[i2].tr,
+                        onlyfull
                     )
                     if r then
-                        if allowfail then
-                            if geometry.check_viabltr(metal1, metal2, r.bl, r.tr) then
-                                geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
+                        local metal1 = technology.metal_layer_to_index(netshapes1[i1].layer)
+                        local metal2 = technology.metal_layer_to_index(netshapes2[i2].layer)
+                        local create = nocheck or geometry.check_viabltr(metal1, metal2, r.bl, r.tr)
+                        for _, exclude in ipairs(excludes) do
+                            if util.rectangle_intersects_polygon(r, exclude) then
+                                create = false
+                                break
                             end
-                        else
+                        end
+                        if create then
                             geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
+                            -- FIXME: don't put every via in the excludes table, this slows down this function
+                            --        calculate a bit more intelligently which excludes are required (look at overlaps).
+                            table.insert(excludes, util.rectangle_to_polygon(r.bl, r.tr))
                         end
                     end
                 end
@@ -207,19 +409,25 @@ function M.place_vias(cell, metal1, metal2, netshapes1, netshapes2, netfilter, a
     end
 end
 
-function M.place_unequal_net_vias(cell, metal1, metal2, netshapes1, netshapes2, allowfail)
+function layouthelpers.place_unequal_net_vias(cell, netshapes1, netshapes2, onlyfull, nocheck)
+    check.set_next_function_name("layouthelpers.place_unequal_vias")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg(2, "netshapes1", "table", netshapes1)
+    check.arg(3, "netshapes2", "table", netshapes2)
+    check.arg_optional(4, "onlyfull", "boolean", onlyfull)
+    check.arg_optional(5, "nocheck", "boolean", nocheck)
     for i1 = 1, #netshapes1 do
         for i2 = 1, #netshapes2 do
             local r = util.rectangle_intersection(
                 netshapes1[i1].bl, netshapes1[i1].tr,
-                netshapes2[i2].bl, netshapes2[i2].tr
+                netshapes2[i2].bl, netshapes2[i2].tr,
+                onlyfull
             )
             if r then
-                if allowfail then
-                    if geometry.check_viabltr(metal1, metal2, r.bl, r.tr) then
-                        geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
-                    end
-                else
+                local metal1 = technology.metal_layer_to_index(netshapes1[i1].layer)
+                local metal2 = technology.metal_layer_to_index(netshapes2[i2].layer)
+                local create = nocheck or geometry.check_viabltr(metal1, metal2, r.bl, r.tr)
+                if create then
                     geometry.viabltr(cell, metal1, metal2, r.bl, r.tr)
                 end
             end
@@ -227,7 +435,7 @@ function M.place_unequal_net_vias(cell, metal1, metal2, netshapes1, netshapes2, 
     end
 end
 
-function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
+function layouthelpers.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -249,19 +457,13 @@ function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprefix, options)
     guardring:translate(-xspace, -yspace)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
+    cell:inherit_net_shapes(guardring)
     if anchorprefix then
-        cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
+        cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
 end
 
-function M.place_guardring_quantized(cell, bl, tr, xspace, yspace, basexsize, baseysize, anchorprefix, options)
+function layouthelpers.place_guardring_quantized(cell, bl, tr, xspace, yspace, basexsize, baseysize, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -286,23 +488,17 @@ function M.place_guardring_quantized(cell, bl, tr, xspace, yspace, basexsize, ba
         })
     )
     guardring:move_point(guardring:get_area_anchor("innerboundary").bl, bl)
-    guardring:translate_x(-(holewidth - targetwidth) / 2)
-    guardring:translate_y(-(holeheight - targetheight) / 2)
+    guardring:translate_x(-evenodddiv2(holewidth - targetwidth))
+    guardring:translate_y(-evenodddiv2(holeheight - targetheight))
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
+    cell:inherit_net_shapes(guardring)
     if anchorprefix then
-        cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
+        cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
 end
 
-function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, wellxoffset, wellyoffset, anchorprefix, options)
+function layouthelpers.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, wellxoffset, wellyoffset, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring_with_hole")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -334,19 +530,13 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
     guardring:translate(-xspace, -yspace)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
+    cell:inherit_net_shapes(guardring)
     if anchorprefix then
-        cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
+        cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
 end
 
-function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xspace, yspace, basexsize, baseysize, wellxoffset, wellyoffset, anchorprefix, options)
+function layouthelpers.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xspace, yspace, basexsize, baseysize, wellxoffset, wellyoffset, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_guardring_with_hole")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -384,19 +574,13 @@ function M.place_guardring_with_hole_quantized(cell, bl, tr, holebl, holetr, xsp
     guardring:translate(-(holewidth - targetwidth) / 2, -(holeheight - targetheight) / 2)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
+    cell:inherit_net_shapes(guardring)
     if anchorprefix then
-        cell:inherit_area_anchor_as(guardring, "outerboundary", string.format("%souterboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerboundary", string.format("%sinnerboundary", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerwell", string.format("%souterwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerwell", string.format("%sinnerwell", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outerimplant", string.format("%souterimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innerimplant", string.format("%sinnerimplant", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "outersoiopen", string.format("%soutersoiopen", anchorprefix))
-        cell:inherit_area_anchor_as(guardring, "innersoiopen", string.format("%sinnersoiopen", anchorprefix))
+        cell:inherit_all_anchors_with_prefix(guardring, anchorprefix)
     end
 end
 
-function M.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, anchorprefix1, anchorprefix2, options)
+function layouthelpers.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, anchorprefix1, anchorprefix2, options)
     check.set_next_function_name("layouthelpers.place_double_guardring")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -428,15 +612,9 @@ function M.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, an
     guardring1:translate(-xspace, -yspace)
     cell:merge_into(guardring1)
     cell:inherit_alignment_box(guardring1)
+    cell:inherit_net_shapes(guardring1)
     if anchorprefix1 then
-        cell:inherit_area_anchor_as(guardring1, "outerboundary", string.format("%souterboundary", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "innerboundary", string.format("%sinnerboundary", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "outerwell", string.format("%souterwell", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "innerwell", string.format("%sinnerwell", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "outerimplant", string.format("%souterimplant", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "innerimplant", string.format("%sinnerimplant", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "outersoiopen", string.format("%soutersoiopen", anchorprefix1))
-        cell:inherit_area_anchor_as(guardring1, "innersoiopen", string.format("%sinnersoiopen", anchorprefix1))
+        cell:inherit_all_anchors_with_prefix(guardring1, anchorprefix1)
     end
     local guardring2 = pcell.create_layout(
         "auxiliary/guardring",
@@ -457,19 +635,13 @@ function M.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, an
     guardring2:translate(-2 * xspace - options.ringwidth, -2 * yspace - options.ringwidth)
     cell:merge_into(guardring2)
     cell:inherit_alignment_box(guardring2)
+    cell:inherit_net_shapes(guardring2)
     if anchorprefix2 then
-        cell:inherit_area_anchor_as(guardring2, "outerboundary", string.format("%souterboundary", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "innerboundary", string.format("%sinnerboundary", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "outerwell", string.format("%souterwell", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "innerwell", string.format("%sinnerwell", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "outerimplant", string.format("%souterimplant", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "innerimplant", string.format("%sinnerimplant", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "outersoiopen", string.format("%soutersoiopen", anchorprefix2))
-        cell:inherit_area_anchor_as(guardring2, "innersoiopen", string.format("%sinnersoiopen", anchorprefix2))
+        cell:inherit_all_anchors_with_prefix(guardring2, anchorprefix2)
     end
 end
 
-function M.place_welltap(cell, bl, tr, anchorprefix, options)
+function layouthelpers.place_welltap(cell, bl, tr, anchorprefix, options)
     check.set_next_function_name("layouthelpers.place_welltap")
     check.arg_func(1, "cell", "object", cell, object.is_object)
     check.arg_func(2, "bl", "point", bl, point.is_point)
@@ -488,16 +660,14 @@ function M.place_welltap(cell, bl, tr, anchorprefix, options)
     welltap:move_point(welltap:get_area_anchor("boundary").bl, bl)
     cell:merge_into(welltap)
     cell:inherit_alignment_box(welltap)
+    cell:inherit_net_shapes(welltap)
     if anchorprefix then
-        cell:inherit_area_anchor_as(welltap, "boundary", string.format("%sboundary", anchorprefix))
-        cell:inherit_area_anchor_as(welltap, "well", string.format("%swell", anchorprefix))
-        cell:inherit_area_anchor_as(welltap, "implant", string.format("%simplant", anchorprefix))
-        cell:inherit_area_anchor_as(welltap, "soiopen", string.format("%ssoiopen", anchorprefix))
+        cell:inherit_all_anchors_with_prefix(welltap, anchorprefix)
     end
 end
 
 --[[
-function M.place_maximum_width_via(cell, startmetal, endmetal, bl, tr)
+function layouthelpers.place_maximum_width_via(cell, startmetal, endmetal, bl, tr)
     local regionwidth = point.xdistance_abs(bl, tr)
     local regionheight = point.ydistance_abs(bl, tr)
     if regionwidth > regionheight then
@@ -538,7 +708,7 @@ function M.place_maximum_width_via(cell, startmetal, endmetal, bl, tr)
 end
 --]]
 
-function M.place_maximum_width_via(cell, firstmetal, lastmetal, pt1, pt2)
+function layouthelpers.place_maximum_width_via(cell, firstmetal, lastmetal, pt1, pt2)
     geometry.rectanglepoints(cell, generics.special(), pt1, pt2)
     local regionwidth = point.xdistance_abs(pt1, pt2)
     local regionheight = point.ydistance_abs(pt1, pt2)
@@ -623,7 +793,7 @@ function M.place_maximum_width_via(cell, firstmetal, lastmetal, pt1, pt2)
     end
 end
 
-function M.place_coplanar_waveguide(cell, layer, pts, swidth, gwidth, sep)
+function layouthelpers.place_coplanar_waveguide(cell, layer, pts, swidth, gwidth, sep)
     local gnd1pts = geometry.get_side_path_points(pts, swidth / 2 + sep + gwidth / 2)
     local gnd2pts = geometry.get_side_path_points(pts, -swidth / 2 - sep - gwidth / 2)
     geometry.path_polygon(cell, layer, pts, swidth)
@@ -631,20 +801,20 @@ function M.place_coplanar_waveguide(cell, layer, pts, swidth, gwidth, sep)
     geometry.path_polygon(cell, layer, gnd2pts, gwidth)
 end
 
-function M.place_stripline(cell, signalmetal, pts, swidth, gwidth)
-    local m = technology.resolve_metal(signalmetal)
-    if m == 1 then
-        error(string.format("layouthelpers.place_stripline: the signal metal index must be higher than 1, got: %d"))
+function layouthelpers.place_stripline(cell, signalmetal, pts, swidth, gwidth)
+    local layouthelpers = technology.resolve_metal(signalmetal)
+    if signalmetal == 1 then
+        error(string.format("layouthelpers.place_stripline: the signal metal index must be higher than 1, got: %d", signalmetal))
     end
-    if m == technology.resolve_metal(-1) then
-        error(string.format("layouthelpers.place_stripline: the signal metal index can't be the highest metal, got: %d"))
+    if signalmetal == technology.resolve_metal(-1) then
+        error(string.format("layouthelpers.place_stripline: the signal metal index can't be the highest metal, got: %d", signalmetal))
     end
     geometry.path_polygon(cell, generics.metal(signalmetal - 1), pts, gwidth)
     geometry.path_polygon(cell, generics.metal(signalmetal), pts, swidth)
     geometry.path_polygon(cell, generics.metal(signalmetal + 1), pts, gwidth)
 end
 
-function M.collect_gridlines(t, cells, anchorname)
+function layouthelpers.collect_gridlines(t, cells, anchorname)
     for _, cell in ipairs(cells) do
         local bl = cell:get_area_anchor(anchorname).bl
         local tr = cell:get_area_anchor(anchorname).tr
@@ -663,4 +833,15 @@ function M.collect_gridlines(t, cells, anchorname)
     end
 end
 
-return M
+function layouthelpers.annotate_netshapes(cell, netshapes, sizehint)
+    for _, netshape in ipairs(netshapes) do
+        local blx = netshape.bl:getx()
+        local bly = netshape.bl:gety()
+        local trx = netshape.tr:getx()
+        local try = netshape.tr:gety()
+        cell:add_label(netshape.net, netshape.layer, point.create(blx, bly), sizehint)
+        cell:add_label(netshape.net, netshape.layer, point.create(blx, try), sizehint)
+        cell:add_label(netshape.net, netshape.layer, point.create(trx, bly), sizehint)
+        cell:add_label(netshape.net, netshape.layer, point.create(trx, try), sizehint)
+    end
+end

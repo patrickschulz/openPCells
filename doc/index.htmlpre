@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+    @make_header OpenPCells Documentation
+    <body>
+        @make_topbar Main Page
+        <p>
+        This is the main page for the documentation of the openPCells (opc) project.
+        The documentation is split into various parts, see below.
+        </p>
+
+        <div class="documentation-section">
+            <p>A collection of introductory and specialized tutorials.</p>
+            <p><a href=tutorials.html>Tutorials</a></p>
+        </div>
+
+        <div class="documentation-section">
+            <p>A collection of guides covering various specific things such as automated fill generation, power grids, or cell preparation.</p>
+            <p><a href=guides.html>Guides</a></p>
+        </div>
+
+        <div class="documentation-section">
+            <p>List of Cells and Detailed Cell Documentation</p>
+            <p><a href=cells.html>Cell Reference</a></p>
+        </div>
+
+        <div class="documentation-section">
+            <p>Searchable documentation of the application programming interface (API) functions.</p>
+            <p><a href=apiref.html>API Function Reference</a></p>
+        </div>
+        @include footer.html
+    </body>
+</html>

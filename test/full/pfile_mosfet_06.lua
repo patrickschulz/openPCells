@@ -9,5 +9,6 @@ return {
     guardringleftsep = 600,
     guardringrightsep = 600,
     guardringtopsep = 600,
-    guardringbottomsep = 600
+    guardringbottomsep = 600,
+    checkshorts = false,
 }

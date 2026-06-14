@@ -5,16 +5,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "terminal.h"
 #include "print.h"
+#include "string.h"
+#include "terminal.h"
 #include "util.h"
 #include "vector.h"
 
 #define API_HELP_TYPE_VARARGS   COLOR_BOLD COLOR_RGB(0, 0, 0)
 #define API_HELP_TYPE_ANY       COLOR_BOLD COLOR_RGB(0, 0, 0)
 #define API_HELP_TYPE_FUNCTION  COLOR_BOLD COLOR_RGB(0, 0, 0)
-#define API_HELP_TYPE_TABLE     COLOR_BOLD COLOR_RGB(0, 0, 0)
-#define API_HELP_TYPE_BOOLEAN   COLOR_BOLD COLOR_RGB(0, 0, 0)
+#define API_HELP_TYPE_TABLE     COLOR_BOLD COLOR_RGB(0, 200, 80)
+#define API_HELP_TYPE_BOOLEAN   COLOR_BOLD COLOR_RGB(200, 0, 200)
 #define API_HELP_TYPE_STRING    COLOR_BOLD COLOR_RGB(100, 205, 0)
 #define API_HELP_TYPE_OBJECT    COLOR_BOLD COLOR_RGB(0, 180, 140)
 #define API_HELP_TYPE_INTEGER   COLOR_BOLD COLOR_RGB(230, 0, 120)
@@ -40,27 +41,61 @@ static int _is_func_exact(const char* tocheck, const char* func, const char* mod
 
 static int _is_func_match(const char* tocheck, const char* func, const char* module)
 {
-    /*
-    if(module)
+    const char* dot = strchr(tocheck, '.');
+    const char* tocheck_module;
+    const char* tocheck_func;
+    char* tocheck_module_buf = NULL;
+    char* tocheck_func_buf = NULL;
+    if(dot) // tocheck has module name
     {
-        char* fullname = malloc(strlen(func) + strlen(module) + 1 + 1); // extra +1: '.'
-        sprintf(fullname, "%s.%s", module, func);
-        int match = (strstr(tocheck, func) != NULL) || (strstr(tocheck, fullname) != NULL);
-        free(fullname);
-        return match;
+        size_t idx = dot - tocheck;
+        tocheck_module_buf = malloc(idx + 1);
+        *tocheck_module_buf = 0; // start with emtpy string
+        strncat(tocheck_module_buf, tocheck, idx);
+        size_t funclen = strlen(tocheck) - idx - 1; // -1: '.'
+        tocheck_func_buf = malloc(funclen + 1);
+        *tocheck_func_buf = 0; // start with emtpy string
+        strncat(tocheck_func_buf, tocheck + idx + 1, funclen);
+        tocheck_module = tocheck_module_buf;
+        tocheck_func = tocheck_func_buf;
     }
     else
     {
-        return (strstr(tocheck, func) != NULL);
+        tocheck_module = tocheck;
+        tocheck_func = tocheck;
     }
-    */
-    const char* ffound = strstr(func, tocheck);
+    const char* ffound;
+    // if the search is <module>.<function>, match the beginning of the function name
+    if(dot)
+    {
+        ffound = strstr(func, tocheck_func);
+        if(ffound != func)
+        {
+            ffound = NULL;
+        }
+    }
+    else
+    {
+        ffound = strstr(func, tocheck_func);
+    }
     const char* mfound = NULL;
     if(module)
     {
-        mfound = strstr(module, tocheck);
+        mfound = strstr(module, tocheck_module);
     }
-    return ffound || mfound;
+    if(dot)
+    {
+        free(tocheck_module_buf);
+        free(tocheck_func_buf);
+    }
+    if(dot)
+    {
+        return ffound && mfound;
+    }
+    else
+    {
+        return ffound || mfound;
+    }
 }
 
 struct parameter {
@@ -105,7 +140,8 @@ enum module {
 struct api_entry {
     char* funcname;
     enum module module;
-    char* info;
+    char* description;
+    char* details;
     char* example;
     struct vector* parameters;
 };
@@ -390,7 +426,8 @@ static void _destroy_parameter(void* v)
 static struct api_entry* _make_api_entry(
     const char* funcname,
     enum module module,
-    const char* info,
+    const char* description,
+    const char* details,
     const char* example,
     struct parameter* parameters
 )
@@ -402,7 +439,8 @@ static struct api_entry* _make_api_entry(
     }
     entry->funcname = util_strdup(funcname);
     entry->module = module;
-    entry->info = util_strdup(info);
+    entry->description = util_strdup(description);
+    entry->details = util_strdup(details);
     entry->example = util_strdup(example);
     entry->parameters = vector_create(1, _destroy_parameter);
     struct parameter* parameter = parameters;
@@ -418,7 +456,8 @@ static void _destroy_api_entry(void* v)
 {
     struct api_entry* entry = v;
     free(entry->funcname);
-    free(entry->info);
+    free(entry->description);
+    free(entry->details);
     free(entry->example);
     vector_destroy(entry->parameters);
     free(entry);
@@ -477,10 +516,17 @@ static void _print_api_entry(const struct api_entry* entry)
     }
 
     _putstr(")");
-    
-    // function info
     putchar('\n');
-    print_wrapped_paragraph(entry->info, 0, 0); // 0, 0: auto-width mode, zero left margin
+
+    // function summary
+    putchar('\n');
+    _putstr("Description: ");
+    print_wrapped_paragraph(entry->description, 0, 0); // 0, 0: auto-width mode, zero left margin
+    
+    // function details
+    putchar('\n');
+    _putstr("Details: ");
+    print_wrapped_paragraph(entry->details, 0, 0); // 0, 0: auto-width mode, zero left margin
     putchar('\n');
 
     // detailed parameter list
@@ -560,21 +606,37 @@ void main_API_help(const char* funcname)
     _destroy_api_entries(entries);
 }
 
-void main_API_search(const char* name)
+void main_API_search(const char** names)
 {
     struct vector* entries = _initialize_api_entries();
     struct vector_const_iterator* it = vector_const_iterator_create(entries);
     struct const_vector* found_entries = const_vector_create(1);
+    // fill results vector with everything, then filter
     while(vector_const_iterator_is_valid(it))
     {
         const struct api_entry* entry = vector_const_iterator_get(it);
-        if(_is_func_match(name, entry->funcname, _stringify_module(entry->module)))
-        {
-            const_vector_append(found_entries, entry);
-        }
+        const_vector_append(found_entries, entry);
         vector_const_iterator_next(it);
     }
     vector_const_iterator_destroy(it);
+    // now filter, apply filter names consecutively
+    if(const_vector_size(found_entries) > 0)
+    {
+        for(int i = const_vector_size(found_entries) - 1; i >= 0; --i)
+        {
+            const struct api_entry* entry = const_vector_get(found_entries, i);
+            const char** ptr = names;
+            while(*ptr)
+            {
+                if(!_is_func_match(*ptr, entry->funcname, _stringify_module(entry->module)))
+                {
+                    const_vector_remove(found_entries, i);
+                    break;
+                }
+                ++ptr;
+            }
+        }
+    }
     if(const_vector_size(found_entries) == 0)
     {
         puts("no entries found");
@@ -594,16 +656,16 @@ void main_API_search(const char* name)
             {
                 _putstr(modulename);
                 putchar('.');
-                _putstr(entry->funcname);
-                putchar('\n');
             }
-            else
-            {
-                _putstr(entry->funcname);
-                putchar('\n');
-            }
+            _putstr(entry->funcname);
+            _putstr(":");
+            putchar('\n');
+            _putstr("    ");
+            _putstr(entry->description);
+            putchar('\n');
         }
     }
+    const_vector_destroy(found_entries);
     _destroy_api_entries(entries);
 }
 
@@ -665,7 +727,7 @@ static void _create_latex_entry(const struct api_entry* entry, const char** last
     fprintf(stdout, "%s\n", ")}");
 
     // function info
-    fprintf(stdout, "    %s\n", entry->info);
+    fprintf(stdout, "    %s\n", entry->details);
 
     // detailed parameter list
     struct vector_const_iterator* it = vector_const_iterator_create(entry->parameters);
@@ -762,6 +824,274 @@ void main_API_create_latex_doc(void)
         _create_latex_entry(entry, &lastmodule);
         vector_const_iterator_next(it);
     }
+    vector_const_iterator_destroy(it);
+    _destroy_api_entries(entries);
+}
+
+static char* _make_safe_string(const char* str)
+{
+    struct string* buffer = string_create();
+    const char* ch = str;
+    while(*ch)
+    {
+        if(*ch == '"')
+        {
+            string_add_character(buffer, '\\');
+        }
+        if((*ch == '\n'))
+        {
+            string_add_character(buffer, ' ');
+        }
+        else
+        {
+            string_add_character(buffer, *ch);
+        }
+        ++ch;
+    }
+    return string_dissolve(buffer);
+}
+
+static int _is_apimodule(const char* str, size_t n)
+{
+    const char* APImodule_lut[] = {
+        "alignmentgroup",
+        "aux",
+        "curve",
+        "generics",
+        "geometry",
+        "graphics",
+        "layouthelpers",
+        "object",
+        "pcell",
+        "placement",
+        "point",
+        "postprocess",
+        "routing",
+        "technology",
+        "util"
+    };
+    const size_t len = sizeof(APImodule_lut) / sizeof(APImodule_lut[0]);
+    for(size_t i = 0; i < len; ++i)
+    {
+        if(strncmp(APImodule_lut[i], str, n) == 0)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int _is_apifun(const char* str, size_t n)
+{
+    const char* APIfun_lut[] = {
+        "create",
+        "metal",
+        "other",
+        "get_anchor",
+        "get_area_anchor",
+        "rectanglebltr",
+    };
+    const size_t len = sizeof(APIfun_lut) / sizeof(APIfun_lut[0]);
+    for(size_t i = 0; i < len; ++i)
+    {
+        if(strncmp(APIfun_lut[i], str, n) == 0)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int _is_luaidentifier(const char* str, size_t n)
+{
+    const char* APIfun_lut[] = {
+        "local",
+        "function",
+        "do",
+        "end",
+        "while",
+        "for",
+        "repeat",
+        "if",
+        "else",
+        "elseif",
+        "true",
+        "false",
+    };
+    const size_t len = sizeof(APIfun_lut) / sizeof(APIfun_lut[0]);
+    for(size_t i = 0; i < len; ++i)
+    {
+        if(strncmp(APIfun_lut[i], str, n) == 0)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static void _emit_word(struct string* buffer, const char* str, size_t n)
+{
+    if(_is_apimodule(str, n))
+    {
+        string_add_string(buffer, "<span class=\\\"opc-module\\\">");
+        string_add_string_n(buffer, str, n);
+        string_add_string(buffer, "</span>");
+    }
+    else if(_is_apifun(str, n))
+    {
+        string_add_string(buffer, "<span class=\\\"opc-function\\\">");
+        string_add_string_n(buffer, str, n);
+        string_add_string(buffer, "</span>");
+    }
+    else if(_is_luaidentifier(str, n))
+    {
+        string_add_string(buffer, "<span class=\\\"opc-luaidentifier\\\">");
+        string_add_string_n(buffer, str, n);
+        string_add_string(buffer, "</span>");
+    }
+    else
+    {
+        string_add_string_n(buffer, str, n);
+    }
+}
+
+static void _emit_num(struct string* buffer, const char* str, size_t n)
+{
+    string_add_string(buffer, "<span class=\\\"opc-number\\\">");
+    string_add_string_n(buffer, str, n);
+    string_add_string(buffer, "</span>");
+}
+
+static char* _format(const char* str)
+{
+    struct string* buffer = string_create();
+    const char* ch = str;
+    int instr = 0;
+    while(*ch)
+    {
+        if(isalpha(*ch) || *ch == '_') // word
+        {
+            const char* wordptr = ch;
+            while(*ch && (isalpha(*ch) || isdigit(*ch) || *ch == '_'))
+            {
+                ++ch;
+            }
+            _emit_word(buffer, wordptr, ch - wordptr);
+            continue;
+        }
+        else if(isdigit(*ch)) // number
+        {
+            const char* numptr = ch;
+            while(*ch && isdigit(*ch))
+            {
+                ++ch;
+            }
+            _emit_num(buffer, numptr, ch - numptr);
+            continue;
+        }
+        else if(*ch == '-' && *(ch + 1) && *(ch + 1) == '-') // lua comment
+        {
+            string_add_string(buffer, "<span class=\\\"opc-comment\\\">");
+            while(*ch && *ch != '\n')
+            {
+                if(*ch == '"')
+                {
+                    string_add_character(buffer, '\\');
+                }
+                string_add_character(buffer, *ch);
+                ++ch;
+            }
+            string_add_string(buffer, "</span>");
+            continue;
+        }
+        else if(*ch == '\n')
+        {
+            string_add_character(buffer, '\\');
+            string_add_character(buffer, 'n');
+        }
+        else if(*ch == '"')
+        {
+            if(!instr)
+            {
+                string_add_string(buffer, "<span class=\\\"opc-string\\\">");
+            }
+            string_add_character(buffer, '\\');
+            string_add_character(buffer, '"');
+            if(instr)
+            {
+                string_add_string(buffer, "</span>");
+            }
+            instr = !instr;
+        }
+        else
+        {
+            string_add_character(buffer, *ch);
+        }
+        ++ch;
+    }
+    return string_dissolve(buffer);
+}
+
+static void _create_HTML_entry(const struct api_entry* entry)
+{
+    // module
+    const char* module = _stringify_module(entry->module);
+    if(module)
+    {
+        fprintf(stdout, "        \"module\": \"%s\",\n", module);
+    }
+    else
+    {
+        fprintf(stdout, "        \"module\": \"%s\",\n", "<none>");
+    }
+
+    // function name
+    fprintf(stdout, "        \"funcname\": \"%s\",\n", entry->funcname);
+    
+    // syntax (parameters)
+    fprintf(stdout, "        \"syntax\": \"%s(", entry->funcname);
+    for(size_t i = 0; i < vector_size(entry->parameters); ++i)
+    {
+        const struct parameter* param = vector_get_const(entry->parameters, i);
+        fprintf(stdout, "%s", param->name);
+        if(i < vector_size(entry->parameters) - 1)
+        {
+            putchar(',');
+            putchar(' ');
+        }
+    }
+    fprintf(stdout, "%s\n", ")\",");
+
+    // description
+    char* description = _make_safe_string(entry->description);
+    fprintf(stdout, "        \"description\": \"%s\",\n", description);
+    free(description);
+
+    // details
+    char* details = _make_safe_string(entry->details);
+    fprintf(stdout, "        \"details\": \"%s\",\n", details);
+    free(details);
+
+    // examples
+    char* example = _format(entry->example);
+    fprintf(stdout, "        \"examples\": \"%s\",\n", example);
+    free(example);
+}
+
+void main_API_create_HTML_doc(void)
+{
+    struct vector* entries = _initialize_api_entries();
+    struct vector_const_iterator* it = vector_const_iterator_create(entries);
+    fprintf(stdout, "const apirefs = %s\n", "[");
+    while(vector_const_iterator_is_valid(it))
+    {
+        fprintf(stdout, "%s\n", "    {");
+        const struct api_entry* entry = vector_const_iterator_get(it);
+        _create_HTML_entry(entry);
+        fprintf(stdout, "%s\n", "    },");
+        vector_const_iterator_next(it);
+    }
+    fprintf(stdout, "%s\n", "];");
     vector_const_iterator_destroy(it);
     _destroy_api_entries(entries);
 }

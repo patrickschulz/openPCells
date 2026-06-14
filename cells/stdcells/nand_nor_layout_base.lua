@@ -125,14 +125,16 @@ function layout(gate, _P)
         _P.sdwidth
     )
 
+    gate:inherit_area_anchor_as(harness, "G3", "O")
+
     gate:add_port_with_anchor("A", generics.metalport(1), harness:get_area_anchor("G1").bl:translate_y(_P.routingwidth / 2))
     gate:add_port_with_anchor("B", generics.metalport(1), harness:get_area_anchor("G2").bl:translate(-xpitch, _P.routingwidth / 2))
-    gate:add_port_with_anchor("O", generics.metalport(1), 
+    gate:add_port("O", generics.metalport(1), 
         point.create(
             harness:get_area_anchor("G3").l,
             harness:get_area_anchor("G3").b
         )
     )
-    gate:add_port("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
-    gate:add_port("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
+    gate:add_port_with_anchor("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
+    gate:add_port_with_anchor("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
 end

@@ -912,7 +912,7 @@ static void _draw_raw_lines(struct state* state, const char* const* lines, int y
         // write visible lines
         unsigned int lineindex = 0;
         unsigned int writeindex = 0;
-        const char* const* ptr = lines;
+        ptr = lines;
         while(*ptr)
         {
             const char* line = *ptr;

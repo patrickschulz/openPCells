@@ -64,3 +64,44 @@ void postprocess_remove_layer_shapes(struct object* object, const struct generic
     }
 }
 
+void postprocess_remove_empty_layer_shapes_flat(struct object* object)
+{
+    for(int i = object_get_shapes_size(object) - 1; i >= 0; --i)
+    {
+        struct shape* S = object_get_shape(object, i);
+        const struct generics* layer = shape_get_layer(S);
+        if(generics_is_first_entry_empty(layer))
+        {
+            object_remove_shape(object, i);
+        }
+    }
+    for(int i = object_get_ports_size(object) - 1; i >= 0; --i)
+    {
+        const struct generics* layer = object_get_port_layer(object, i);
+        if(generics_is_first_entry_empty(layer))
+        {
+            object_remove_port(object, i);
+        }
+    }
+    for(int i = object_get_labels_size(object) - 1; i >= 0; --i)
+    {
+        const struct generics* layer = object_get_label_layer(object, i);
+        if(generics_is_first_entry_empty(layer))
+        {
+            object_remove_label(object, i);
+        }
+    }
+}
+
+void postprocess_remove_empty_layer_shapes(struct object* object)
+{
+    postprocess_remove_empty_layer_shapes_flat(object);
+    struct mutable_reference_iterator* ref_it = object_create_mutable_reference_iterator(object);
+    while(mutable_reference_iterator_is_valid(ref_it))
+    {
+        struct object* reference = mutable_reference_iterator_get(ref_it);
+        postprocess_remove_empty_layer_shapes(reference);
+        mutable_reference_iterator_next(ref_it);
+    }
+}
+

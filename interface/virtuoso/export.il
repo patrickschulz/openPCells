@@ -1,147 +1,426 @@
-procedure(OPCAddPtsOffset(pts x y)
-	mapcar(lambda( (pt) xCoord(pt) + x:yCoord(pt) + y) pts)
-)
+procedure(OPCExportConvertCoordToOPCUnit(c)
+    round(c * 1000)
+) ; OPCExportConvertCoordToOPCUnit
 
-procedure(OPCConvertPtsToNanometer(pts)
-	mapcar(lambda( (pt) fix(xCoord(pt) * 1000):fix(yCoord(pt) * 1000)) pts)
-)
-
-procedure(OPCFormatLayer(layer purpose)
-    lsprintf("generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } })" layer purpose)
-)
-
-procedure(OPCWriteRectangle(file cellname layer purpose bBox)
-	let(
-		(
-		)
-        fprintf(file "geometry.rectanglebltr(%s, %s, point.create(%d, %d), point.create(%d, %d))\n",
-            cellname
-            OPCFormatLayer(layer purpose)
-            xCoord(car(bBox)) yCoord(car(bBox))
-            xCoord(cadr(bBox)) yCoord(cadr(bBox))
-        )
-	)
-)
-
-procedure(OPCWritePolygon(file cellname layer purpose pts)
-	let(
-		(
-		)
-        fprintf(file "geometry.polygon(%s, %s, { %s })\n"
-            cellname
-            OPCFormatLayer(layer purpose)
-            buildString(mapcar(lambda( (pt) lsprintf("point.create(%d, %d)" xCoord(pt) yCoord(pt))) pts) ", ")
-        )
-	)
-)
-
-procedure(OPCWriteLabel(file cellname layer purpose name pt)
-	let(
-		(
-		)
-        fprintf(file "%s:add_port(\"%s\", %s, point.create(%d, %d))\n"
-            cellname
-            name
-            OPCFormatLayer(layer purpose)
-            xCoord(pt) yCoord(pt)
-        )
-	)
-)
-
-procedure(OPCWriteShape(file cellname shape x y)
-    unless(shape->layerName == "instance"
-        case(shape->objType
-            ("rect" OPCWriteRectangle(file cellname shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y))))
-            ("polygon" OPCWritePolygon(file cellname shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y))))
-            ("label" OPCWriteLabel(file cellname shape->layerName shape->purpose shape->theLabel car(OPCConvertPtsToNanometer(OPCAddPtsOffset(list(shape->xy) x y)))))
-        )
+procedure(OPCExportFormatPoint(pt)
+    lsprintf(
+        "point.create(%d, %d)"
+        OPCExportConvertCoordToOPCUnit(xCoord(pt))
+        OPCExportConvertCoordToOPCUnit(yCoord(pt))
     )
-)
+) ; OPCExportFormatPoint
 
-procedure(OPCWriteVia(file cellname via x y)
-    /*
-	let(
-		(ovbl obtr viaProp)
-        viaProp = via->viaHeader->viaDef
-        ; FIXME: calculate overlap
-        ; FIXME: if metals are perfectly overlapping, use only viabltr
-        ovbl = list(0 0)
-        ovtr = list(0 0)
-        ; write metal 1
-        OPCWriteRectangle(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y)))
-        ; write metal 2
-        OPCWriteRectangle(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y)))
-        ; write via cut
-        fprintf(file "geometry.viabarebltr(cell, %d, %d, point.create(%d, %d), point.create(%d, %d))\n",
-            OPCFormatLayer(layer purpose) xCoord(car(bBox)) yCoord(car(bBox)) xCoord(cadr(bBox)) yCoord(cadr(bBox))
-        )
-	)
-    */
-    foreach(shape via->viaHeader->master->shapes
-        OPCWriteShape(file cellname shape x + xCoord(via->origin) y + yCoord(via->origin))
-    )
-)
+procedure(OPCExportFormatPoints(pts)
+    buildString(mapcar('OPCExportFormatPoint pts) ", ")
+) ; OPCExportFormatPoints
 
-procedure(OPCWriteInstance(file parent instname)
+procedure(OPCExportFormatLayer(lpp)
     let(
-        ()
-        fprintf(file "%s:add_child(%s, \"%s\")"
-            parent
-            instname
-            name
-            OPCFormatLayer(layer purpose)
-            xCoord(pt) yCoord(pt)
+        (layer purpose mapping)
+        layer = car(lpp)
+        purpose = cadr(lpp)
+        mapping = if(boundp('OPCLayerMap) && OPCLayerMap
+            then
+                setof(entry OPCLayerMap (entry->layer == layer) && (entry->purpose == purpose))
+            else
+                nil
         )
-    )
-)
-
-; FIXME: untested/unfinished/broken
-procedure(OPCWriteCell(file cell x y)
-    foreach(shape cell->shapes
-        OPCWriteShape(file cell->cellName shape x y)
-    )
-    foreach(via cell->vias
-        OPCWriteVia(file cell->cellName via y y)
-    )
-    foreach(inst cell->instances
-        if(t ; FIXME: check if object was already exported
+        if(mapping
+            then
+                lsprintf("%s" car(mapping)->map)
+            else
+                lsprintf("generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } })" layer purpose)
         )
-        OPCWriteCell(file inst->master inst->master->cellName x + xCoord(inst->xy) y + yCoord(inst->xy))
-        OPCWriteInstance(file cell->cellName inst->master inst->master->cellName x + xCoord(inst->xy) y + yCoord(inst->xy))
-    )
-)
+    ) ; let
+) ; OPCExportFormatLayer
 
-procedure(OPCWriteCellFlat(file cell cellname x y)
-    foreach(shape cell->shapes
-        OPCWriteShape(file cellname shape x y)
+procedure(OPCExportTransform(pt tmatrix)
+    let(
+        (x y)
+        x = nthelem(1 tmatrix) * xCoord(pt) + nthelem(2 tmatrix) * yCoord(pt) + nthelem(3 tmatrix)
+        y = nthelem(4 tmatrix) * xCoord(pt) + nthelem(5 tmatrix) * yCoord(pt) + nthelem(6 tmatrix)
+        setf(xCoord(pt) x)
+        setf(yCoord(pt) y)
+    ) ; let
+) ; OPCExportTransform
+
+procedure(OPCExportTranslate(pt dx dy)
+    let(
+        (x y)
+        x = xCoord(pt) + dx
+        y = yCoord(pt) + dy
+        setf(xCoord(pt) x)
+        setf(yCoord(pt) y)
+    ) ; let
+) ; OPCExportTranslate
+
+procedure(OPCExportGetTMatrix(xpre ypre x y orientation)
+    ; orientation first, including xpre and ypre, than translation by x and y
+    case(orientation
+        ("R0"     list( 1  0  xpre + x  0  1  ypre + y))
+        ("MX"     list( 1  0  xpre + x  0 -1 -ypre + y))
+        ("MY"     list(-1  0 -xpre + x  0  1  ypre + y))
+        ("R90"    list( 0 -1 -ypre + x  1  0  xpre + y))
+        ("R180"   list(-1  0 -xpre + x  0 -1 -ypre + y))
+        ("R270"   list( 0  1  ypre + x -1  0 -xpre + y))
+        ("MXR90"  list( 0  1  ypre + x  1  0  xpre + y))
+        ("MYR90"  list( 0 -1 -ypre + x -1  0 -xpre + y))
+    ) ; case orientation
+) ; OPCExportGetTMatrix
+
+procedure(OPCExportGetInstanceTMatrix(instance)
+    let(
+        (x y orientation)
+        x = xCoord(instance->xy)
+        y = yCoord(instance->xy)
+        orientation = cadr(instance->transform)
+        OPCExportGetTMatrix(0 0 x y orientation)
+    ) ; let
+) ; OPCExportGetInstanceTMatrix
+
+procedure(OPCExportGetArrayInstanceTMatrix(instance xi yi)
+    ; FIXME: the existance of 'tileArray' as a list suggests that non-regular tiling is possible
+    ;        While I have never seen this and I also don't know how this can be achieved in virtuoso
+    ;        (possibly not via gui tools), it would still be nice to support this.
+    let(
+        (x y orientation)
+        x = xCoord(instance->xy)
+        y = yCoord(instance->xy)
+        orientation = car(instance->tileArray)
+        OPCExportGetTMatrix(xi yi x y orientation)
+    ) ; let
+) ; OPCExportGetInstanceTMatrix
+
+procedure(OPCExportGetViaTMatrix(via)
+    let(
+        (x y orientation)
+        x = xCoord(via->origin)
+        y = yCoord(via->origin)
+        orientation = via->orient
+        OPCExportGetTMatrix(0 0 x y orientation)
+    ) ; let
+) ; OPCExportGetViaTMatrix
+
+procedure(OPCExportGetPathExtension(style width beginext endext)
+    case(style
+        ("truncateExtend"
+            list(0 0)
+        )
+        ("extendExtend"
+            list(width / 2 width / 2)
+        )
+        ("varExtendExtend"
+            list(beginext endext)
+        )
+        ("custom"
+            ; not really supported
+            list(0 0)
+        )
+    ) ; case style
+) ; OPCExportGetPathExtension
+
+procedure(OPCExportGetPathSegExtension(style width ext)
+    case(style
+        ("truncate"
+            0
+        )
+        ("extend"
+            width / 2
+        )
+        ("variable"
+            ext
+        )
+        ("custom"
+            ; not really supported
+            0
+        )
+    ) ; case style
+) ; OPCExportGetPathSegExtension
+
+procedure(OPCExportGetPathExtensions(shape)
+    if(shape->objType == "path"
+        ; path
+        OPCExportGetPathExtension(shape->pathStyle shape->width shape->beginExt shape->endExt)
+        ; pathSeg
+        list(
+            OPCExportGetPathSegExtension(shape->beginStyle shape->width shape->beginExt)
+            OPCExportGetPathSegExtension(shape->endStyle shape->width shape->endExt)
+        )
+    ) ; if
+) ; OPCExportGetPathExtensions
+
+procedure(OPCExportGetShapePathSeg(shape)
+    ; FIXME: handle path extensions
+    ; FIXME: use proper comparison function for numbers
+    let(
+        (x1 y1 x2 y2 net netpt1 netpt2)
+        x1 = xCoord(shape->beginPt)
+        y1 = yCoord(shape->beginPt)
+        x2 = xCoord(shape->endPt)
+        y2 = yCoord(shape->endPt)
+        when(x2 < x1 rotatef(x2 x1))
+        when(y2 < y1 rotatef(y2 y1))
+        if((x1 != x2) && (y1 != y2)
+            then ; non-orthogonal
+                net = nil
+            else ; orthogonal, also export net shape
+                net = shape->net->name
+                if(x1 == x2
+                    then
+                        netpt1 = list(
+                            x1 - shape->width / 2
+                            y1
+                        )
+                        netpt2 = list(
+                            x1 + shape->width / 2
+                            y2
+                        )
+                    else ; y1 == y2
+                        netpt1 = list(
+                            x1
+                            y1 - shape->width / 2
+                        )
+                        netpt2 = list(
+                            x2
+                            y1 + shape->width / 2
+                        )
+                )
+        )
+        list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width OPCExportGetPathExtensions(shape) net netpt1 netpt2)
     )
-    foreach(via cell->vias
-        OPCWriteVia(file cellname via y y)
+) ; OPCExportGetShapePathSeg
+
+procedure(OPCExportGetShape(shape)
+    case(shape->objType
+        ("rect"
+            list("rect" shape->lpp car(shape->bBox) cadr(shape->bBox) if(shape->net shape->net->name nil))
+        ) ; rect
+        ("polygon"
+            list("polygon" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points))
+        ) ; polygon
+        ("path"
+            list("path" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points) shape->width OPCExportGetPathExtensions(shape))
+        ) ; path
+        ("pathSeg"
+            OPCExportGetShapePathSeg(shape)
+        ) ; pathSeg
+        (t nil) ; ignore everything else
+    ) ; case objType
+) ; OPCExportGetShape
+
+procedure(OPCExportGetShapeNoNets(shape)
+    case(shape->objType
+        ("rect"
+            list("rect" shape->lpp car(shape->bBox) cadr(shape->bBox))
+        ) ; rect
+        ("polygon"
+            list("polygon" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points))
+        ) ; polygon
+        ("path"
+            list("path" shape->lpp mapcar(lambda( (pt) xCoord(pt):yCoord(pt)) shape->points) shape->width OPCExportGetPathExtensions(shape))
+        ) ; path
+        ("pathSeg"
+            list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width OPCExportGetPathExtensions(shape))
+        ) ; path
+        (t nil) ; ignore everything else
+    ) ; case objType
+) ; OPCExportGetShape
+
+procedure(OPCExportGatherVias(via)
+    mapcar('OPCExportGetShapeNoNets via->viaHeader->master->shapes)
+) ; OPCExportGatherVias
+
+procedure(OPCExportTransformShape(shape tmatrix)
+    case(car(shape)
+        ("rect"
+            OPCExportTransform(nthelem(3 shape) tmatrix)
+            OPCExportTransform(nthelem(4 shape) tmatrix)
+        ) ; rect
+        ("polygon"
+            foreach(pt nthelem(3 shape) OPCExportTransform(pt tmatrix))
+        ) ; polygon
+        ("path"
+            foreach(pt nthelem(3 shape) OPCExportTransform(pt tmatrix))
+        ) ; path
+    ) ; case shape type
+    shape
+) ; OPCExportTransformShape
+
+procedure(OPCExportDisplaceShape(shape dx dy)
+    case(car(shape)
+        ("rect"
+            OPCExportTranslate(nthelem(3 shape) dx dy)
+            OPCExportTranslate(nthelem(4 shape) dx dy)
+        ) ; rect
+        ("polygon"
+            foreach(pt nthelem(3 shape) OPCExportTranslate(pt dx dy))
+        ) ; polygon
+        ("path"
+            foreach(pt nthelem(3 shape) OPCExportTranslate(pt dx dy))
+        ) ; path
+    ) ; case shape type
+    shape
+) ; OPCExportDisplaceShape
+
+procedure(OPCExportGatherCellShapes(cell level gather_only_toplevel_nets)
+    let(
+        (transformfun shapes subshapes vias viatmatrix tmatrix)
+        ; shape transformation function (possibly includes nets)
+        if(gather_only_toplevel_nets && (level > 0)
+            then
+                transformfun = 'OPCExportGetShapeNoNets
+            else
+                transformfun = 'OPCExportGetShape
+        )
+        ; gather shapes of cell
+        shapes = mapcar(transformfun cell->shapes)
+        ; remove nils (ignored shapes)
+        remd(nil shapes)
+        ; gather vias of this cell
+        foreach(via cell->vias
+            vias = OPCExportGatherVias(via)
+            ; via transformation matrix
+            viatmatrix = OPCExportGetViaTMatrix(via)
+            ; apply transformation and add to shapes list
+            foreach(viashape vias
+                OPCExportTransformShape(viashape viatmatrix)
+                shapes = cons(viashape shapes)
+            ) ; foreach viashapes
+        ) ; foreach vias
+        ; gather shapes of instances
+        foreach(instance cell->instances
+            ; gather instance shapes in inner loop, as otherwise the shapes need to be copied for arrays
+            if(instance->columns
+                then ; is array
+                    for(xi 1 instance->columns
+                        for(yi 1 instance->rows
+                            ; instance transformation matrix (takes also care of array displacement)
+                            tmatrix = OPCExportGetArrayInstanceTMatrix(instance (xi - 1) * instance->uX (yi - 1) * instance->uY)
+                            subshapes = OPCExportGatherCellShapes(instance->master level + 1 gather_only_toplevel_nets)
+                            ; apply transformation and add to shapes list
+                            foreach(shape subshapes
+                                OPCExportTransformShape(shape tmatrix)
+                                shapes = cons(shape shapes)
+                            ) ; foreach shapes
+                        )
+                    )
+                else ; single instance
+                    ; instance transformation matrix
+                    tmatrix = OPCExportGetInstanceTMatrix(instance)
+                    subshapes = OPCExportGatherCellShapes(instance->master level + 1 gather_only_toplevel_nets)
+                    ; apply transformation and add to shapes list
+                    foreach(shape subshapes
+                        OPCExportTransformShape(shape tmatrix)
+                        shapes = cons(shape shapes)
+                    ) ; foreach shapes
+            ) ; if is array
+        ) ; foreach instances
+        shapes
+    ) ; let
+) ; OPCExportGatherCellShapes
+
+procedure(OPCExportWriteCellShapes(file cellname shapes)
+    foreach(shape shapes
+        case(car(shape)
+            ("rect"
+                fprintf(file
+                    "geometry.rectanglepoints(%s, %s, %s, %s)"
+                    cellname
+                    OPCExportFormatLayer(cadr(shape))
+                    OPCExportFormatPoint(nthelem(3 shape))
+                    OPCExportFormatPoint(nthelem(4 shape))
+                )
+                when(nthelem(5 shape) ; has net
+                    newline(file)
+                    fprintf(file
+                        "%s:add_net_shape(\"%s\", %s, %s, %s)"
+                        cellname
+                        nthelem(5 shape)
+                        OPCExportFormatPoint(nthelem(3 shape))
+                        OPCExportFormatPoint(nthelem(4 shape))
+                        OPCExportFormatLayer(cadr(shape))
+                    )
+                ) ; when net
+            ) ; rect
+            ("polygon"
+                fprintf(file
+                    "geometry.polygon(%s, %s, { %s })"
+                    cellname
+                    OPCExportFormatLayer(cadr(shape))
+                    OPCExportFormatPoints(nthelem(3 shape))
+                )
+            ) ; polygon
+            ("path"
+                fprintf(file
+                    "geometry.path(%s, %s, { %s }, %d, { %d, %d })"
+                    cellname
+                    OPCExportFormatLayer(cadr(shape))
+                    OPCExportFormatPoints(nthelem(3 shape))
+                    OPCExportConvertCoordToOPCUnit(nthelem(4 shape))
+                    OPCExportConvertCoordToOPCUnit(car(nthelem(5 shape)))
+                    OPCExportConvertCoordToOPCUnit(cadr(nthelem(5 shape)))
+                )
+                when(nthelem(6 shape) ; has net
+                    newline(file)
+                    fprintf(file
+                        "%s:add_net_shape(\"%s\", %s, %s, %s)"
+                        cellname
+                        nthelem(6 shape)
+                        OPCExportFormatPoint(nthelem(7 shape))
+                        OPCExportFormatPoint(nthelem(8 shape))
+                        OPCExportFormatLayer(cadr(shape))
+                    )
+                ) ; when net
+            ) ; path
+        ) ; case shape type
+        newline(file)
+    ) ; foreach shape
+) ; OPCExportWriteCellShapes
+
+procedure(OPCExportWriteCell(path @key (export_only_toplevel_nets t))
+    let(
+        (
+            (cv geGetEditCellView())
+            file
+            shapes
+        )
+        file = outfile(path "w")
+        shapes = OPCExportGatherCellShapes(cv 0 export_only_toplevel_nets)
+        fprintf(file "local %s = object.create(\"%s\")\n" cv->cellName cv->cellName)
+        OPCExportWriteCellShapes(file cv->cellName shapes)
+        fprintf(file "return %s\n" cv->cellName)
+        close(file)
     )
-    foreach(inst cell->instances
-        OPCWriteCellFlat(file inst->master cellname x + xCoord(inst->xy) y + yCoord(inst->xy))
-    )
-)
+) ; OPCExportWriteCell
+
+procedure(OPCExportGetFilename(filename)
+    if(filename filename OPCSettingsForm->OPCExportFilename->value)
+) ; OPCExportGetFilename
 
 procedure(OPCExportCell(filename)
     let(
         (
             (cv geGetEditCellView())
-            (path if(filename filename "openPCells_export.lua"))
-            file
+            (path OPCExportGetFilename(filename))
         )
-        file = outfile(path "w")
-        fprintf(file "local cell = object.create(\"%s\")\n" cv->cellName)
-        OPCWriteCellFlat(file cv cv->cellName 0 0)
-        fprintf(file "return cell\n")
-        close(file)
+        OPCExportWriteCell(path)
+    )
+) ; OPCExportCell
+
+procedure(OPCHiExportCell(filename)
+    let(
+        (
+            (cv geGetEditCellView())
+            (path OPCExportGetFilename(filename))
+        )
+        OPCExportWriteCell(path)
         hiDisplayAppDBox(
             ?name        'OPCInfoDialog
             ?dboxBanner  "openPCells"
             ?dboxText    lsprintf("written opc representation of layout to %s" path)
-            ?dialogType   hicWarningDialog
+            ?dialogType   hicMessageDialog
             ?dialogStyle 'modeless
             ?buttonLayout 'Close
         )
     )
-)
+) ; OPCHiExportCell

@@ -2,8 +2,8 @@ function parameters()
     pcell.add_parameters(
         { "fingers", 1 },
         { "shiftinput", 0 },
-        { "inputpos", "center", { posvals = set("center", "lower", "upper") } },
-        { "shiftoutput", 0 },
+        { "inputpos", "center", posvals = set("center", "lower", "upper") },
+        { "shiftoutput", technology.get_dimension("Minimum M1 Space") },
         { "swapoddcorrectiongate", false },
         { "connectoutput", true }
     )
@@ -13,8 +13,16 @@ end
 function layout(gate, _P)
     local xpitch = _P.gatespace + _P.gatelength
 
+    local inputpos
+    if _P.inputpos == "lower" then
+        inputpos = "lower1"
+    elseif _P.inputpos == "upper" then
+        inputpos = "upper1"
+    else
+        inputpos = "center"
+    end
     local gatecontactpos = {}
-    for i = 1, _P.fingers do gatecontactpos[i] = _P.inputpos end
+    for i = 1, _P.fingers do gatecontactpos[i] = inputpos end
 
     local contactpos = {}
     for i = 1, _P.fingers + 1 do
@@ -25,12 +33,14 @@ function layout(gate, _P)
         end
     end
     if _P.fingers % 2 == 1 then
-        if _P.swapoddcorrectiongate then
-            table.insert(gatecontactpos, 1, "dummy")
-        else
-            table.insert(gatecontactpos, "dummy")
+        if _P.xalign_method == "sourcedrain" then
+            if _P.swapoddcorrectiongate then
+                table.insert(gatecontactpos, 1, "dummy")
+            else
+                table.insert(gatecontactpos, "dummy")
+            end
+            table.insert(contactpos, "power")
         end
-        table.insert(contactpos, "power")
     end
     local baseparameters = {}
     for name, value in pairs(_P) do
@@ -47,20 +57,22 @@ function layout(gate, _P)
     gate:inherit_alignment_box(harness)
 
     -- gate strap
-    if _P.fingers > 1 then
-        geometry.rectanglebltr(
-            gate, generics.metal(1),
-            harness:get_area_anchor("G1").bl,
-            harness:get_area_anchor(string.format("G%d", _P.fingers)).tr
-        )
-    end
+    gate:add_area_anchor_bltr("gatestrap",
+        harness:get_area_anchor("G1").bl,
+        harness:get_area_anchor(string.format("G%d", _P.fingers)).tr
+    )
+    geometry.rectanglebltr(
+        gate, generics.metal(1),
+        gate:get_area_anchor("gatestrap").bl,
+        gate:get_area_anchor("gatestrap").tr
+    )
 
     -- signal transistors drain connections
     if _P.connectoutput then
         geometry.path_cshape(gate, generics.metal(1),
-            harness:get_area_anchor(string.format("pSD%d", 2)).br:translate(0, _P.sdwidth / 2),
-            harness:get_area_anchor(string.format("nSD%d", 2)).tr:translate(0, -_P.sdwidth / 2),
-            harness:get_area_anchor(string.format("G%d", _P.fingers)).bl:translate(xpitch + _P.shiftoutput, 0),
+            harness:get_area_anchor(string.format("pSD%d", 2)).bl:translate(0, _P.sdwidth / 2),
+            harness:get_area_anchor(string.format("nSD%d", 2)).tl:translate(0, -_P.sdwidth / 2),
+            gate:get_area_anchor("gatestrap").tr:translate_x(_P.sdwidth / 2 + _P.shiftoutput),
             _P.sdwidth
         )
     end

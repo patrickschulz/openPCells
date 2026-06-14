@@ -38,7 +38,7 @@ void geometry_rectanglepointsxy(
 void geometry_rectanglepoints(
     struct object* cell,
     const struct generics* layer,
-    const struct point* bl, const struct point* tr
+    const struct point* pt1, const struct point* pt2
 );
 
 void geometry_rectangleareaanchor(
@@ -96,6 +96,13 @@ int geometry_check_viabltr(
     coordinate_t widthclass
 );
 
+int geometry_check_viabltrov(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2
+);
+
 struct viaarray {
     ucoordinate_t width;
     ucoordinate_t height;
@@ -118,6 +125,15 @@ struct vector* geometry_calculate_viabltr(
     coordinate_t widthclass
 );
 
+struct vector* geometry_calculate_viabltr2(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t minxspace, coordinate_t minyspace,
+    coordinate_t widthclass
+);
+
 int geometry_viabltr(
     struct object* cell,
     struct technology_state* techstate,
@@ -137,6 +153,15 @@ int geometry_viabltrov(
     const struct point* bl2, const struct point* tr2
 );
 
+int geometry_viabltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t widthclass
+);
+
 int geometry_viabarebltr(
     struct object* cell,
     struct technology_state* techstate,
@@ -154,6 +179,15 @@ int geometry_viabarebltrov(
     int metal1, int metal2,
     const struct point* bl1, const struct point* tr1,
     const struct point* bl2, const struct point* tr2
+);
+
+int geometry_viabarebltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t widthclass
 );
 
 int geometry_viapoints(
@@ -186,6 +220,15 @@ int geometry_contactbltrov(
 );
 
 int geometry_contactbltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    const char* region,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t widthclass
+);
+
+int geometry_contactbarebltr2(
     struct object* cell,
     struct technology_state* techstate,
     const char* region,
@@ -228,7 +271,7 @@ struct shape* geometry_path_to_polygon(const struct generics* layer, struct vect
 
 struct vector* geometry_path_points_to_polygon(struct vector* points, ucoordinate_t width, int miterjoin);
 struct vector* geometry_offset_polygon_points(struct vector* points, ucoordinate_t offset);
-struct vector* geometry_get_side_path_points(struct vector* points, coordinate_t width);
+struct vector* geometry_get_side_path_points(struct vector* points, coordinate_t offset);
 
 struct vector* geometry_triangulate_polygon(const struct vector* points);
 
