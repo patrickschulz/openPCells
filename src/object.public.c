@@ -10,80 +10,75 @@
 #include <string.h>
 
 #define OPC_OBJECT_IMPLEMENTATION
-#include "object.anchors.h"
 #include "object.base.h"
 #include "object.util.h"
 #undef OPC_OBJECT_IMPLEMENTATION
 
 #include "helpers.h"
 
+struct object* object_create(const char* name)
+{
+    return objectbase_create(name);
+}
+
+struct object* object_create_pseudo(void)
+{
+    return objectbase_create_pseudo();
+}
+
+struct object* object_create_proxy(const char* name, struct object* reference)
+{
+    return objectbase_create_proxy(name, reference);
+}
+
+struct object* object_copy(const struct object* cell)
+{
+    return objectbase_copy(cell);
+}
+
+void object_destroy(void* cell)
+{
+    objectbase_destroy(cell);
+}
+
+void object_set_name(struct object* cell, const char* name)
+{
+    objectbase_set_name(cell, name);
+}
+
 int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y)
 {
-    struct anchor* anchor = objectanchor_create_regular(x, y);
-    int ret = objectbase_add_anchor(cell, name, anchor);
-    if(!ret)
-    {
-        objectanchor_destroy(anchor);
-    }
-    return ret;
+    return objectbase_add_anchor(cell, name, x, y);
 }
 
-int object_add_area_anchor_bltr(struct object* cell, const char* base, const struct point* bl, const struct point* tr)
+int object_add_area_anchor_bltr(struct object* cell, const char* name, const struct point* bl, const struct point* tr)
 {
-    struct anchor* anchor = objectanchor_create_area_bltr(bl->x, bl->y, tr->x, tr->y);
-    int ret = objectbase_add_anchor(cell, base, anchor);
-    if(!ret)
-    {
-        objectanchor_destroy(anchor);
-    }
-    return ret;
+    return objectbase_add_area_anchor_bltr(cell, name, bl->x, bl->y, tr->x, tr->y);
 }
 
-int object_add_area_anchor_points(struct object* cell, const char* base, const struct point* pt1, const struct point* pt2)
+int object_add_area_anchor_points(struct object* cell, const char* name, const struct point* pt1, const struct point* pt2)
 {
-    struct anchor* anchor = objectanchor_create_area_points(pt1->x, pt1->y, pt2->x, pt2->y);
-    int ret = objectbase_add_anchor(cell, base, anchor);
-    if(!ret)
-    {
-        objectanchor_destroy(anchor);
-    }
-    return ret;
+    coordinate_t blx = point_getx(pt1);
+    coordinate_t bly = point_gety(pt1);
+    coordinate_t trx = point_getx(pt2);
+    coordinate_t try = point_gety(pt2);
+    objectutil_fix_rectangle_order_xy(&blx, &bly, &trx, &try);
+    return objectbase_add_area_anchor_bltr(cell, name, blx, bly, trx, try);
 }
 
-int object_add_area_anchor_blwh(struct object* cell, const char* base, const struct point* bl, coordinate_t width, coordinate_t height)
+int object_add_area_anchor_blwh(struct object* cell, const char* name, const struct point* bl, coordinate_t width, coordinate_t height)
 {
-    struct anchor* anchor = objectanchor_create_area_bltr(bl->x, bl->y, bl->x + width, bl->y + height);
-    int ret = objectbase_add_anchor(cell, base, anchor);
-    if(!ret)
-    {
-        objectanchor_destroy(anchor);
-    }
-    return ret;
+    return objectbase_add_area_anchor_bltr(cell, name, bl->x, bl->y, bl->x + width, bl->y + height);
 }
 
-int object_inherit_area_anchor(struct object* cell, const struct object* other, const char* name)
+int object_add_anchor_line_x(struct object* cell, const char* name, coordinate_t c)
 {
-    return object_inherit_area_anchor_as(cell, other, name, name);
+    objectbase_add_anchor_line_x(cell, name, c);
 }
 
-int object_inherit_area_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname)
+int object_add_anchor_line_y(struct object* cell, const char* name, coordinate_t c)
 {
-    if(object_is_proxy(cell))
-    {
-        return 0;
-    }
-    struct point* anchor = object_get_area_anchor(other, name);
-    if(anchor)
-    {
-        object_add_area_anchor_bltr(cell, newname, anchor + 0, anchor + 1);
-        free(anchor);
-    }
-    return 1;
-}
-
-int object_inherit_anchor(struct object* cell, const struct object* other, const char* name)
-{
-    return object_inherit_anchor_as(cell, other, name, name);
+    objectbase_add_anchor_line_y(cell, name, c);
 }
 
 int object_inherit_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname)
@@ -101,9 +96,39 @@ int object_inherit_anchor_as(struct object* cell, const struct object* other, co
     return 1;
 }
 
+int object_inherit_anchor(struct object* cell, const struct object* other, const char* name)
+{
+    return object_inherit_anchor_as(cell, other, name, name);
+}
+
+int object_inherit_area_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname)
+{
+    if(object_is_proxy(cell))
+    {
+        return 0;
+    }
+    struct point* anchor = object_get_area_anchor(other, name);
+    if(anchor)
+    {
+        object_add_area_anchor_bltr(cell, newname, anchor + 0, anchor + 1);
+        free(anchor);
+    }
+    return 1;
+}
+
+int object_inherit_area_anchor(struct object* cell, const struct object* other, const char* name)
+{
+    return object_inherit_area_anchor_as(cell, other, name, name);
+}
+
 void object_inherit_all_anchors(struct object* cell, const struct object* other)
 {
-    object_inherit_all_anchors_with_prefix(cell, other, "");
+    objectbase_inherit_all_anchors_with_prefix(cell, other, "");
+}
+
+void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
+{
+    objectbase_inherit_all_anchors_with_prefix(cell, other, prefix);
 }
 
 // ************************************************************************************************************************ 
@@ -211,37 +236,12 @@ struct point* object_get_alignmentbox_anchor_innertr(const struct object* cell)
 // ************************************************************************************************************************ 
 struct point* object_get_anchor(const struct object* cell, const char* name)
 {
-    struct anchor* anchor = objectbase_get_anchor(cell, name);
-    if(anchor && !objectanchor_is_area(anchor))
-    {
-        struct point* pt = point_create(0, 0);
-        objectanchor_get_point(anchor, pt);
-        objectbase_transform_to_global_coordinates(cell, pt);
-        return pt;
-    }
-    else
-    {
-        return NULL;
-    }
+    return objectbase_get_anchor(cell, name);
 }
 
-struct point* object_get_area_anchor(const struct object* cell, const char* base)
+struct point* object_get_area_anchor(const struct object* cell, const char* name)
 {
-    struct anchor* anchor = objectbase_get_anchor(cell, base);
-    if(!anchor)
-    {
-        return NULL;
-    }
-    if(objectanchor_is_area(anchor))
-    {
-        struct point* pts = malloc(2 * sizeof(*pts));
-        objectanchor_get_area_points(anchor, pts);
-        objectbase_transform_to_global_coordinates(cell, pts + 0);
-        objectbase_transform_to_global_coordinates(cell, pts + 1);
-        objectutil_fix_rectangle_order(pts + 0, pts + 1);
-        return pts;
-    }
-    return NULL;
+    return objectbase_get_area_anchor(cell, name);
 }
 
 struct point* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name)
@@ -249,9 +249,9 @@ struct point* object_get_array_anchor(const struct object* cell, int xindex, int
     return objectbase_get_array_anchor(cell, xindex, yindex, name);
 }
 
-struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base)
+struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* name)
 {
-    return objectbase_get_array_area_anchor(cell, xindex, yindex, base);
+    return objectbase_get_array_area_anchor(cell, xindex, yindex, name);
 }
 
 coordinate_t* object_get_anchor_line_x(const struct object* cell, const char* name)
@@ -882,53 +882,11 @@ int object_align_area_anchor_bottom(struct object* cell, const char* anchorname,
 }
 
 // ************************************************************************************************************************ 
-// Anchor Availability
-// ************************************************************************************************************************ 
-int object_has_anchor(const struct object* cell, const char* anchorname)
-{
-    struct anchor* anchor = objectbase_get_anchor(cell, anchorname);
-    if(anchor)
-    {
-        return !objectanchor_is_area(anchor);
-    }
-    return 0;
-}
-
-int object_has_area_anchor(const struct object* cell, const char* anchorname)
-{
-    struct anchor* anchor = objectbase_get_anchor(cell, anchorname);
-    if(anchor)
-    {
-        return objectanchor_is_area(anchor);
-    }
-    return 0;
-}
-
-// ************************************************************************************************************************ 
-// Area Anchor Width/Height
-// ************************************************************************************************************************ 
-coordinate_t object_get_area_anchor_width(const struct object* cell, const char* anchorname)
-{
-    struct point* anchor = object_get_area_anchor(cell, anchorname);
-    coordinate_t width = anchor[1].x - anchor[0].x;
-    free(anchor);
-    return width;
-}
-
-coordinate_t object_get_area_anchor_height(const struct object* cell, const char* anchorname)
-{
-    struct point* anchor = object_get_area_anchor(cell, anchorname);
-    coordinate_t height = anchor[1].y - anchor[0].y;
-    free(anchor);
-    return height;
-}
-
-// ************************************************************************************************************************ 
 // Reference/Child Adding
 // ************************************************************************************************************************ 
 struct object* object_create_handle(struct object* cell, struct object* reference)
 {
-    if(object_is_pseudo(reference)) // can't add pseudo objects
+    if(objectbase_is_pseudo(reference)) // can't add pseudo objects
     {
         return NULL;
     }
@@ -940,7 +898,7 @@ struct object* object_create_handle(struct object* cell, struct object* referenc
 
 struct object* object_add_child(struct object* cell, struct object* child, const char* name)
 {
-    if(object_is_pseudo(child)) // can't add pseudo objects
+    if(objectbase_is_pseudo(child)) // can't add pseudo objects
     {
         return NULL;
     }
@@ -959,7 +917,7 @@ struct object* object_add_child(struct object* cell, struct object* child, const
 
 struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch)
 {
-    if(object_is_pseudo(child)) // can't add pseudo objects
+    if(objectbase_is_pseudo(child)) // can't add pseudo objects
     {
         return NULL;
     }
@@ -991,8 +949,694 @@ struct shape* object_disown_shape(struct object* cell, size_t idx)
     return objectbase_disown_shape(cell, idx);
 }
 
+struct shape* object_get_shape(struct object* cell, size_t idx)
+{
+    return objectbase_get_shape(cell, idx);
+}
+
+const struct shape* object_get_shape_const(const struct object* cell, size_t idx)
+{
+    return objectbase_get_shape_const(cell, idx);
+}
+
 struct shape* object_get_transformed_shape(const struct object* cell, size_t idx)
 {
     return objectbase_get_transformed_shape(cell, idx);
 }
 
+void object_merge_into(struct object* cell, const struct object* other)
+{
+    objectbase_merge_into(cell, other, 0);
+}
+
+void object_merge_into_with_ports(struct object* cell, const struct object* other)
+{
+    objectbase_merge_into(cell, other, 1);
+}
+
+void object_foreach_shapes(struct object* cell, void (*func)(struct shape*))
+{
+    objectbase_foreach_shapes(cell, func);
+}
+
+size_t object_get_shapes_size(const struct object* cell)
+{
+    return objectbase_get_shapes_size(cell);
+}
+
+void object_rasterize_curves(struct object* cell)
+{
+    objectbase_rasterize_curves(cell);
+}
+
+struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics* layer)
+{
+    return objectbase_get_shape_outlines(cell, layer);
+}
+
+// children
+const struct object* object_get_reference(const struct object* cell)
+{
+    return objectbase_get_reference(cell);
+}
+
+struct object* object_get_reference_mutable(struct object* cell)
+{
+    return objectbase_get_reference_mutable(cell);
+}
+
+// boundary
+int object_has_boundary(const struct object* cell)
+{
+    return objectbase_has_boundary(cell);
+}
+
+void object_set_boundary(struct object* cell, struct vector* boundary)
+{
+    objectbase_set_boundary(cell, boundary);
+}
+
+struct vector* object_get_boundary(const struct object* cell)
+{
+    return objectbase_get_boundary(cell);
+}
+
+void object_set_empty_layer_boundary(struct object* cell, const struct generics* layer)
+{
+    objectbase_set_empty_layer_boundary(cell, layer);
+}
+
+void object_add_layer_boundary(struct object* cell, const struct generics* layer, struct simple_polygon* new)
+{
+    objectbase_add_layer_boundary(cell, layer, new);
+}
+
+void object_inherit_boundary(struct object* cell, const struct object* othercell)
+{
+    objectbase_inherit_boundary(cell, othercell);
+}
+
+int object_has_layer_boundary(const struct object* cell, const struct generics* layer)
+{
+    return objectbase_has_layer_boundary(cell, layer);
+}
+
+struct polygon_container* object_get_layer_boundary(const struct object* cell, const struct generics* layer)
+{
+    return objectbase_get_layer_boundary(cell, layer);
+}
+
+void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer)
+{
+    objectbase_inherit_layer_boundary(cell, othercell, layer);
+}
+
+
+// ports
+void object_add_port(
+    struct object* cell,
+    const char* name,
+    const struct generics* layer,
+    const struct point* where,
+    unsigned int sizehint
+)
+{
+    objectbase_add_port(cell, name, layer, where, sizehint);
+}
+
+void object_add_bus_port(
+    struct object* cell,
+    const char* name,
+    const struct generics* layer,
+    const struct point* where,
+    int startindex, int endindex,
+    coordinate_t xpitch, coordinate_t ypitch,
+    unsigned int sizehint
+)
+{
+    objectbase_add_bus_port(cell, name, layer, where, startindex, endindex, xpitch, ypitch, sizehint);
+}
+
+const struct vector* object_get_ports(const struct object* cell)
+{
+    return objectbase_get_ports(cell);
+}
+
+// labels
+void object_add_label(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
+{
+    objectbase_add_label(cell, name, layer, where, sizehint);
+}
+
+// nets
+void object_add_net_shape(struct object* cell, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer)
+{
+    objectbase_add_net_shape(cell, netname, bl, tr, layer);
+}
+
+struct vector* object_get_net_shapes(const struct object* cell, const char* netname, const struct generics* layer)
+{
+    return object_get_net_shapes(cell, netname, layer);
+}
+
+struct vector* object_get_array_net_shapes(const struct object* cell, int xindex, int yindex, const char* netname, const struct generics* layer)
+{
+    return object_get_array_net_shapes(cell, xindex, yindex, netname, layer);
+}
+
+
+// alignment box and bounding box
+void object_clear_alignment_box(struct object* cell)
+{
+    objectbase_clear_alignment_box(cell);
+}
+
+void object_set_alignment_box(
+    struct object* cell,
+    coordinate_t outerblx, coordinate_t outerbly,
+    coordinate_t outertrx, coordinate_t outertry,
+    coordinate_t innerblx, coordinate_t innerbly,
+    coordinate_t innertrx, coordinate_t innertry
+)
+{
+    objectbase_set_alignment_box(cell,
+        outerblx, outerbly,
+        outertrx, outertry,
+        innerblx, innerbly,
+        innertrx, innertry
+    );
+}
+
+void object_inherit_alignment_box(struct object* cell, const struct object* other)
+{
+    objectbase_inherit_alignment_box(cell, other);
+}
+
+void object_alignment_box_include_point(struct object* cell, const struct point* pt)
+{
+    objectbase_alignment_box_include_point(cell, pt);
+}
+
+void object_alignment_box_include_x(struct object* cell, coordinate_t x)
+{
+    objectbase_alignment_box_include_x(cell, x);
+}
+
+void object_alignment_box_include_y(struct object* cell, coordinate_t y)
+{
+    objectbase_alignment_box_include_y(cell, y);
+}
+
+int object_extend_alignment_box(
+    struct object* cell,
+    coordinate_t extouterblx, coordinate_t extouterbly,
+    coordinate_t extoutertrx, coordinate_t extoutertry,
+    coordinate_t extinnerblx, coordinate_t extinnerbly,
+    coordinate_t extinnertrx, coordinate_t extinnertry
+)
+{
+    return objectbase_extend_alignment_box(
+        cell,
+        extouterblx, extouterbly,
+        extoutertrx, extoutertry,
+        extinnerblx, extinnerbly,
+        extinnertrx, extinnertry
+    );
+}
+
+int object_get_alignment_box_corners(
+    const struct object* cell,
+    coordinate_t* outerblx, coordinate_t* outerbly, coordinate_t* outertrx, coordinate_t* outertry,
+    coordinate_t* innerblx, coordinate_t* innerbly, coordinate_t* innertrx, coordinate_t* innertry
+)
+{
+    return objectbase_get_alignment_box_corners(
+        cell,
+        outerblx, outerbly,
+        outertrx, outertry,
+        innerblx, innerbly,
+        innertrx, innertry
+    );
+}
+
+coordinate_t* object_get_minmax_xy(const struct object* cell)
+{
+    return objectbase_get_minmax_xy(cell);
+}
+
+// transformations
+const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell)
+{
+    return objectbase_get_tmatrix(cell);
+}
+
+const struct transformationmatrix* object_get_array_transformation_matrix(const struct object* cell)
+{
+    return objectbase_get_array_tmatrix(cell);
+}
+
+void object_move_to(struct object* cell, coordinate_t x, coordinate_t y)
+{
+    objectbase_move_to(cell, x, y);
+}
+
+void object_reset_translation(struct object* cell)
+{
+    objectbase_reset_translation(cell);
+}
+
+void object_translate(struct object* cell, coordinate_t x, coordinate_t y)
+{
+    objectbase_translate(cell, x, y);
+}
+
+void object_translate_x(struct object* cell, coordinate_t x)
+{
+    objectbase_translate(cell, x, 0);
+}
+
+void object_translate_y(struct object* cell, coordinate_t y)
+{
+    objectbase_translate(cell, 0, y);
+}
+
+void object_mirror_at_xaxis(struct object* cell)
+{
+    objectbase_mirror_at_xaxis(cell);
+}
+
+void object_mirror_at_yaxis(struct object* cell)
+{
+    objectbase_mirror_at_yaxis(cell);
+}
+
+void object_mirror_at_origin(struct object* cell)
+{
+    objectbase_mirror_at_origin(cell);
+}
+
+void object_rotate_90_left(struct object* cell)
+{
+    objectbase_rotate_90_left(cell);
+}
+
+void object_rotate_90_right(struct object* cell)
+{
+    objectbase_rotate_90_right(cell);
+}
+
+void object_array_rotate_90_left(struct object* cell)
+{
+    objectbase_array_rotate_90_left(cell);
+}
+
+void object_array_rotate_90_right(struct object* cell)
+{
+    objectbase_array_rotate_90_right(cell);
+}
+
+void object_flipx(struct object* cell)
+{
+    objectbase_flipx(cell);
+}
+
+void object_flipy(struct object* cell)
+{
+    objectbase_flipy(cell);
+}
+
+int object_move_x(struct object* cell, coordinate_t source, coordinate_t target)
+{
+    return objectbase_move_x(cell, source, target);
+}
+
+int object_move_y(struct object* cell, coordinate_t source, coordinate_t target)
+{
+    return objectbase_move_y(cell, source, target);
+}
+
+int object_move_point(struct object* cell, const struct point* source, const struct point* target)
+{
+    return objectbase_move_point(cell, source, target);
+}
+
+int object_move_point_to_origin(struct object* cell, const struct point* target)
+{
+    return objectbase_move_point_to_origin(cell, target);
+}
+
+int object_move_point_to_origin_xy(struct object* cell, coordinate_t x, coordinate_t y)
+{
+    return objectbase_move_point_to_origin_xy(cell, x, y);
+}
+
+int object_move_point_x(struct object* cell, const struct point* source, const struct point* target)
+{
+    return objectbase_move_point_x(cell, source, target);
+}
+
+int object_move_point_y(struct object* cell, const struct point* source, const struct point* target)
+{
+    return objectbase_move_point_y(cell, source, target);
+}
+
+int object_center(struct object* cell, const struct point* target)
+{
+    return objectbase_center(cell, target);
+}
+
+int object_center_x(struct object* cell, const struct point* target)
+{
+    return objectbase_center_x(cell, target);
+}
+
+int object_center_y(struct object* cell, const struct point* target)
+{
+    return objectbase_center_y(cell, target);
+}
+
+void object_scale(struct object* cell, double factor)
+{
+    objectbase_scale(cell, factor);
+}
+
+void object_transform_point(const struct object* cell, struct point* pt)
+{
+    objectbase_transform_point(cell, pt);
+}
+
+// object info
+int object_is_proxy(const struct object* cell)
+{
+    return objectbase_is_proxy(cell);
+}
+
+int object_is_pseudo(const struct object* cell)
+{
+    return objectbase_is_pseudo(cell);
+}
+
+int object_has_shapes(const struct object* cell)
+{
+    return objectbase_has_shapes(cell);
+}
+
+int object_has_layer_flat(const struct object* cell, const struct generics* layer)
+{
+    return objectbase_has_layer_flat(cell, layer);
+}
+
+int object_has_layer(const struct object* cell, const struct generics* layer)
+{
+    return objectbase_has_layer(cell, layer);
+}
+
+int object_has_children(const struct object* cell)
+{
+    return objectbase_has_children(cell);
+}
+
+int object_has_ports(const struct object* cell)
+{
+    return objectbase_has_ports(cell);
+}
+
+int object_is_empty(const struct object* cell)
+{
+    return objectbase_is_empty(cell);
+}
+
+int object_is_used(const struct object* cell)
+{
+    return objectbase_is_used(cell);
+}
+
+int object_is_array(const struct object* cell)
+{
+    return objectbase_is_array(cell);
+}
+
+int object_has_anchor(const struct object* cell, const char* anchorname)
+{
+    return objectbase_has_anchor(cell, anchorname);
+}
+
+int object_has_area_anchor(const struct object* cell, const char* anchorname)
+{
+    return objectbase_has_area_anchor(cell, anchorname);
+}
+
+int object_has_alignmentbox(const struct object* cell)
+{
+    return objectbase_has_alignmentbox(cell);
+}
+
+const char* object_get_name(const struct object* cell)
+{
+    return objectbase_get_name(cell);
+}
+
+const char* object_get_child_reference_name(const struct object* child)
+{
+    return objectbase_get_child_reference_name(child);
+}
+
+// ************************************************************************************************************************ 
+// Area Anchor Width/Height
+// ************************************************************************************************************************ 
+coordinate_t object_get_area_anchor_width(const struct object* cell, const char* anchorname)
+{
+    struct point* anchor = object_get_area_anchor(cell, anchorname);
+    coordinate_t width = anchor[1].x - anchor[0].x;
+    free(anchor);
+    return width;
+}
+
+coordinate_t object_get_area_anchor_height(const struct object* cell, const char* anchorname)
+{
+    struct point* anchor = object_get_area_anchor(cell, anchorname);
+    coordinate_t height = anchor[1].y - anchor[0].y;
+    free(anchor);
+    return height;
+}
+
+void object_flatten_inline(struct object* cell, int flattenports)
+{
+    objectbase_flatten_inline(cell, flattenports);
+}
+
+struct object* object_flatten(const struct object* cell, int flattenports)
+{
+    return objectbase_flatten(cell, flattenports);
+}
+
+unsigned int object_get_child_xrep(const struct object* cell)
+{
+    return objectbase_get_child_xrep(cell);
+}
+
+unsigned int object_get_child_yrep(const struct object* cell)
+{
+    return objectbase_get_child_yrep(cell);
+}
+
+coordinate_t object_get_child_xpitch(const struct object* cell)
+{
+    return objectbase_get_child_xpitch(cell);
+}
+
+coordinate_t object_get_child_ypitch(const struct object* cell)
+{
+    return objectbase_get_child_ypitch(cell);
+}
+
+const struct const_vector* object_collect_references(const struct object* cell)
+{
+    return objectbase_collect_references(cell);
+}
+
+struct vector* object_collect_references_mutable(struct object* cell)
+{
+    return objectbase_collect_references_mutable(cell);
+}
+
+struct shape_iterator {
+    const struct vector* shapes;
+    size_t index;
+};
+
+struct shape_iterator* object_create_shape_iterator(const struct object* cell)
+{
+    struct shape_iterator* it = malloc(sizeof(*it));
+    it->shapes = objectbase_get_full_shapes_const(cell);
+    it->index = 0;
+    return it;
+}
+
+int shape_iterator_is_valid(struct shape_iterator* it)
+{
+    if(!it->shapes)
+    {
+        return 0;
+    }
+    else
+    {
+        return it->index < vector_size(it->shapes);
+    }
+}
+
+void shape_iterator_next(struct shape_iterator* it)
+{
+    it->index += 1;
+}
+
+const struct shape* shape_iterator_get(struct shape_iterator* it)
+{
+    return vector_get_const(it->shapes, it->index);
+}
+
+void shape_iterator_destroy(struct shape_iterator* it)
+{
+    free(it);
+}
+
+// child iterator
+struct child_iterator {
+    const struct vector* children;
+    size_t index;
+};
+
+struct child_iterator* object_create_child_iterator(const struct object* cell)
+{
+    struct child_iterator* it = malloc(sizeof(*it));
+    it->children = objectbase_get_full_children_const(cell);
+    it->index = 0;
+    return it;
+}
+
+int child_iterator_is_valid(struct child_iterator* it)
+{
+    if(!it->children)
+    {
+        return 0;
+    }
+    else
+    {
+        return it->index < vector_size(it->children);
+    }
+}
+
+void child_iterator_next(struct child_iterator* it)
+{
+    it->index += 1;
+}
+
+const struct object* child_iterator_get(struct child_iterator* it)
+{
+    return vector_get_const(it->children, it->index);
+}
+
+void child_iterator_destroy(struct child_iterator* it)
+{
+    free(it);
+}
+
+// reference iterator
+struct reference_iterator {
+    const struct vector* references;
+    size_t index;
+};
+
+struct reference_iterator* object_create_reference_iterator(const struct object* cell)
+{
+    struct reference_iterator* it = malloc(sizeof(*it));
+    it->references = objectbase_get_full_references_const(cell);
+    it->index = 0;
+    return it;
+}
+
+int reference_iterator_is_valid(struct reference_iterator* it)
+{
+    if(!it->references)
+    {
+        return 0;
+    }
+    else
+    {
+        return it->index < vector_size(it->references);
+    }
+}
+
+void reference_iterator_next(struct reference_iterator* it)
+{
+    it->index += 1;
+}
+
+const struct object* reference_iterator_get(struct reference_iterator* it)
+{
+    return vector_get_const(it->references, it->index);
+}
+
+void reference_iterator_destroy(struct reference_iterator* it)
+{
+    free(it);
+}
+
+// mutable reference iterator
+struct mutable_reference_iterator {
+    struct vector* references;
+    size_t index;
+};
+
+struct mutable_reference_iterator* object_create_mutable_reference_iterator(struct object* cell)
+{
+    struct mutable_reference_iterator* it = malloc(sizeof(*it));
+    it->references = objectbase_get_full_references(cell);
+    it->index = 0;
+    return it;
+}
+
+int mutable_reference_iterator_is_valid(struct mutable_reference_iterator* it)
+{
+    if(!it->references)
+    {
+        return 0;
+    }
+    else
+    {
+        return it->index < vector_size(it->references);
+    }
+}
+
+void mutable_reference_iterator_next(struct mutable_reference_iterator* it)
+{
+    it->index += 1;
+}
+
+struct object* mutable_reference_iterator_get(struct mutable_reference_iterator* it)
+{
+    return vector_get(it->references, it->index);
+}
+
+void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it)
+{
+    free(it);
+}
+
+// anchor foreach
+int object_foreach_anchor(const struct object* cell, anchor_action action, struct generic_arg* extraargs)
+{
+    objectbase_foreach_anchor(cell, action, extraargs);
+}
+
+// port foreach
+int object_foreach_port(const struct object* cell, port_action action, struct generic_arg* extraargs)
+{
+    objectbase_foreach_port(cell, action, extraargs);
+}
+
+// label foreach
+int object_foreach_label(const struct object* cell, label_action action, struct generic_arg* extraargs)
+{
+    objectbase_foreach_label(cell, action, extraargs);
+}

@@ -2,9 +2,14 @@
 #include "object.anchors.h"
 #include "object.def.h"
 #include "object.full.h"
+#include "object.util.h"
 #undef OPC_OBJECT_IMPLEMENTATION
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "helpers.h"
 
 #define OBJECT_DEFAULT_SHAPES_SIZE 32
 #define OBJECT_DEFAULT_CHILDREN_SIZE 16
@@ -358,7 +363,7 @@ void objectfull_add_proxy(struct object_full* full, struct object* proxy)
     vector_append(full->private.children, proxy);
 }
 
-int objectfull_foreach_children(struct object_full* full, child_action action, struct generic_arg* extraargs)
+int objectfull_foreach_children_const(const struct object_full* full, const_object_action action, struct generic_arg* extraargs)
 {
     if(full->private.children)
     {
@@ -366,6 +371,64 @@ int objectfull_foreach_children(struct object_full* full, child_action action, s
         {
             struct object* child = vector_get(full->private.children, i);
             int ret = action(child, extraargs);
+            if(!ret)
+            {
+                return 0;
+            }
+        }
+    }
+}
+
+int objectfull_foreach_children(struct object_full* full, object_action action, struct generic_arg* extraargs)
+{
+    if(full->private.children)
+    {
+        for(size_t i = 0; i < vector_size(full->private.children); ++i)
+        {
+            struct object* child = vector_get(full->private.children, i);
+            int ret = action(child, extraargs);
+            if(!ret)
+            {
+                return 0;
+            }
+        }
+    }
+}
+
+int objectfull_foreach_references_const(
+    const struct object_full* full,
+    const_object_action action,
+    struct generic_arg* extraargs
+)
+{
+    if(full->private.children)
+    {
+        for(size_t i = 0; i < vector_size(full->private.children); ++i)
+        {
+            struct object* child = vector_get(full->private.children, i);
+            const struct object* reference = object_get_reference(child);
+            int ret = action(reference, extraargs);
+            if(!ret)
+            {
+                return 0;
+            }
+        }
+    }
+}
+
+int objectfull_foreach_references(
+    struct object_full* full,
+    object_action action,
+    struct generic_arg* extraargs
+)
+{
+    if(full->private.children)
+    {
+        for(size_t i = 0; i < vector_size(full->private.children); ++i)
+        {
+            struct object* child = vector_get(full->private.children, i);
+            struct object* reference = object_get_reference_mutable(child);
+            int ret = action(reference, extraargs);
             if(!ret)
             {
                 return 0;
@@ -401,7 +464,12 @@ const struct vector* objectfull_get_references_const(const struct object_full* f
 
 // this function is messed up and does not correspond well to the new partitioned object module structure.
 // It *might* be better to implement this in object.base.c, with proper access functions
-void objectfull_merge_into(struct object_full* fulltarget, const struct object_full* fullsource, const struct transformationmatrix* sourcetrans, int merge_ports)
+void objectfull_merge_into(
+    struct object_full* fulltarget,
+    const struct object_full* fullsource,
+    const struct transformationmatrix* trans,
+    int merge_ports
+)
 {
     if(fullsource->private.shapes)
     {
@@ -409,7 +477,7 @@ void objectfull_merge_into(struct object_full* fulltarget, const struct object_f
         {
             struct shape* shape = shape_copy(vector_get(fullsource->private.shapes, i));
             objectfull_add_shape(fulltarget, shape);
-            shape_apply_transformation(shape, sourcetrans);
+            shape_apply_transformation(shape, trans);
         }
     }
     // FIXME:
@@ -447,9 +515,8 @@ void objectfull_merge_into(struct object_full* fulltarget, const struct object_f
         {
             struct port* label = vector_get(fullsource->private.labels, i);
             struct port* newlabel = objectport_copy(label);
-            objectport_transform_to_global_coordinates(newlabel, sourcetrans);
-            //objectport_transform_to_cell_coordinates(newlabel, fulltarget->trans);
-            _add_label(fulltarget, newlabel);
+            objectport_apply_tmatrix(newlabel, trans);
+            objectfull_add_label(fulltarget, newlabel);
         }
     }
     if(fullsource->private.ports)
@@ -458,14 +525,18 @@ void objectfull_merge_into(struct object_full* fulltarget, const struct object_f
         {
             struct port* port = vector_get(fullsource->private.ports, i);
             struct port* newport = objectport_copy(port);
-            objectport_transform_to_global_coordinates(newport, sourcetrans);
-            //objectport_transform_to_cell_coordinates(newport, fulltarget->trans);
-            _add_port(fulltarget, newport);
+            objectport_apply_tmatrix(newport, trans);
+            objectfull_add_port(fulltarget, newport);
         }
     }
 }
 
-int objectfull_add_anchor(struct object_full* full, const char* name, struct anchor* anchor)
+int objectfull_add_anchor(
+    struct object_full* full,
+    const struct transformationmatrix* trans,
+    const char* name,
+    struct anchor* anchor
+)
 {
     if(!full->private.anchors)
     {
@@ -477,17 +548,89 @@ int objectfull_add_anchor(struct object_full* full, const char* name, struct anc
     }
     else
     {
-        objectanchor_transform_to_cell_coordinates(anchor, full->trans);
+        objectanchor_apply_tmatrix(anchor, trans);
         hashmap_insert(full->private.anchors, name, anchor);
     }
     return 1;
 }
 
-void objectfull_inherit_all_anchors_with_prefix(struct object_full* full, const struct object_full* other, const char* prefix)
+int objectfull_inherit_anchor_as(
+    struct object_full* full,
+    const struct object_full* other,
+    const struct transformationmatrix* targettrans,
+    const struct transformationmatrix* sourcetrans,
+    const char* name,
+    const char* newname
+)
 {
-    if(full->private.anchors)
+    if(!full->private.anchors)
     {
-        struct hashmap_const_iterator* it = hashmap_const_iterator_create(full->private.anchors);
+        full->private.anchors = hashmap_create(objectanchor_destroy);
+    }
+    const struct anchor* anchor = hashmap_get_const(other->private.anchors, name);
+    if(!hashmap_exists(other->private.anchors, name))
+    {
+        return 0;
+    }
+    if(objectanchor_is_area(anchor))
+    {
+        return 0;
+    }
+    struct anchor* newanchor = objectanchor_copy(anchor);
+    objectanchor_apply_tmatrix(newanchor, sourcetrans); // transform to global coordinates
+    int ret = objectfull_add_anchor(full, targettrans, newname, newanchor);
+    if(!ret)
+    {
+        objectanchor_destroy(newanchor);
+        return 0;
+    }
+    return 1;
+}
+
+int objectfull_inherit_area_anchor_as(
+    struct object_full* full,
+    const struct object_full* other,
+    const struct transformationmatrix* targettrans,
+    const struct transformationmatrix* sourcetrans,
+    const char* name,
+    const char* newname
+)
+{
+    if(!full->private.anchors)
+    {
+        full->private.anchors = hashmap_create(objectanchor_destroy);
+    }
+    const struct anchor* anchor = hashmap_get_const(other->private.anchors, name);
+    if(!hashmap_exists(other->private.anchors, name))
+    {
+        return 0;
+    }
+    if(!objectanchor_is_area(anchor))
+    {
+        return 0;
+    }
+    struct anchor* newanchor = objectanchor_copy(anchor);
+    objectanchor_apply_tmatrix(newanchor, sourcetrans); // transform to global coordinates
+    int ret = objectfull_add_anchor(full, targettrans, newname, newanchor);
+    if(!ret)
+    {
+        objectanchor_destroy(newanchor);
+        return 0;
+    }
+    return 1;
+}
+
+void objectfull_inherit_all_anchors_with_prefix(
+    struct object_full* full,
+    const struct object_full* other,
+    const struct transformationmatrix* targettrans,
+    const struct transformationmatrix* sourcetrans,
+    const char* prefix
+)
+{
+    if(other->private.anchors)
+    {
+        struct hashmap_const_iterator* it = hashmap_const_iterator_create(other->private.anchors);
         while(hashmap_const_iterator_is_valid(it))
         {
             const char* key = hashmap_const_iterator_key(it);
@@ -496,11 +639,11 @@ void objectfull_inherit_all_anchors_with_prefix(struct object_full* full, const 
             sprintf(newanchorname, "%s%s", prefix, key);
             if(objectanchor_is_area(anchor))
             {
-                object_inherit_area_anchor_as(full, full, key, newanchorname);
+                objectfull_inherit_area_anchor_as(full, other, targettrans, sourcetrans, key, newanchorname);
             }
             else
             {
-                object_inherit_anchor_as(full, full, key, newanchorname);
+                objectfull_inherit_anchor_as(full, other, targettrans, sourcetrans, key, newanchorname);
             }
             free(newanchorname);
             hashmap_const_iterator_next(it);
@@ -509,7 +652,13 @@ void objectfull_inherit_all_anchors_with_prefix(struct object_full* full, const 
     }
 }
 
-int objectfull_add_anchor_line_xy(struct object_full* full, const char* name, coordinate_t c, int xory)
+int objectfull_add_anchor_line_xy(
+    struct object_full* full,
+    const struct transformationmatrix* trans,
+    const char* name,
+    coordinate_t c,
+    int xory
+)
 {
     if(!full->private.anchorlines)
     {
@@ -524,11 +673,11 @@ int objectfull_add_anchor_line_xy(struct object_full* full, const char* name, co
         coordinate_t dummy = 0;
         if(xory)
         {
-            objectbase_transform_to_local_coordinates_xy(full, &c, &dummy);
+            transformationmatrix_apply_inverse_transformation_xy(trans, &c, &dummy);
         }
         else
         {
-            objectbase_transform_to_local_coordinates_xy(full, &dummy, &c);
+            transformationmatrix_apply_inverse_transformation_xy(trans, &dummy, &c);
         }
         coordinate_t* ptr = malloc(sizeof(*ptr));
         *ptr = c;
@@ -561,7 +710,12 @@ coordinate_t* objectfull_get_anchor_line(const struct object_full* full, const c
     }
 }
 
-int objectfull_foreach_anchor(const struct object_full* cell, const struct transformationmatrix* trans, anchor_action action, struct generic_arg* extraargs)
+int objectfull_foreach_anchor(
+    const struct object_full* full,
+    const struct transformationmatrix* trans,
+    anchor_action action,
+    struct generic_arg* extraargs
+)
 {
     if(full->private.anchors)
     {
@@ -682,7 +836,7 @@ struct vector* objectfull_set_boundary(struct object_full* full, struct vector* 
     {
         const struct point* pt = vector_const_iterator_get(it);
         struct point* newpt = point_copy(pt);
-        vector_append(cullell->private.boundary, newpt);
+        vector_append(full->private.boundary, newpt);
         vector_const_iterator_next(it);
     }
     vector_const_iterator_destroy(it);
@@ -756,7 +910,10 @@ int objectfull_has_layer_boundary(const struct object_full* full, const struct g
     }
 }
 
-struct polygon_container* objectfull_get_layer_boundary(const struct object_full* full, const struct generics* layer)
+struct polygon_container* objectfull_get_layer_boundary(
+    const struct object_full* full,
+    const struct generics* layer
+)
 {
     if(!full->private.layer_boundaries)
     {
@@ -794,12 +951,12 @@ struct polygon_container* objectfull_get_layer_boundary(const struct object_full
     {
         struct polygon_container* boundary = polygon_container_create();
         coordinate_t blx, bly, trx, try;
-        object_get_minmax_xy(full, &blx, &bly, &trx, &try, NULL); // no extra transformation matrix (FIXME: is this correct?)
+        coordinate_t* pts = objectfull_get_minmax_xy(full, NULL);
         struct simple_polygon* single_boundary = simple_polygon_create();
-        simple_polygon_append(single_boundary, point_create(blx, bly));
-        simple_polygon_append(single_boundary, point_create(trx, bly));
-        simple_polygon_append(single_boundary, point_create(trx, try));
-        simple_polygon_append(single_boundary, point_create(blx, try));
+        simple_polygon_append(single_boundary, point_create(pts[0], pts[1]));
+        simple_polygon_append(single_boundary, point_create(pts[2], pts[1]));
+        simple_polygon_append(single_boundary, point_create(pts[2], pts[3]));
+        simple_polygon_append(single_boundary, point_create(pts[0], pts[3]));
         polygon_container_add(boundary, single_boundary);
         return boundary;
     }
@@ -814,13 +971,13 @@ void objectfull_add_port(struct object_full* full, struct port* port)
     vector_append(full->private.ports, port);
 }
 
-void objectfull_add_port(struct object_full* full, struct port* port)
+void objectfull_add_label(struct object_full* full, struct port* label)
 {
     if(!full->private.labels)
     {
         full->private.labels = vector_create(OBJECT_DEFAULT_PORT_SIZE, objectport_destroy);
     }
-    vector_append(full->private.labels, port);
+    vector_append(full->private.labels, label);
 }
 
 int objectfull_has_ports(const struct object_full* full)
@@ -828,13 +985,20 @@ int objectfull_has_ports(const struct object_full* full)
     return full->private.ports ? !vector_empty(full->private.ports) : 0;
 }
 
-int objectfull_foreach_port(const struct object_full* cell, const struct transformationmatrix* trans, port_action action, struct generic_arg* extraargs)
+const struct vector* objectfull_get_ports(
+    const struct object_full* full
+)
 {
-    if(cell->content.full.ports)
+    return full->private.ports;
+}
+
+int objectfull_foreach_port(const struct object_full* full, const struct transformationmatrix* trans, port_action action, struct generic_arg* extraargs)
+{
+    if(full->private.ports)
     {
-        for(size_t i = 0; i < vector_size(cell->content.full.ports); ++i)
+        for(size_t i = 0; i < vector_size(full->private.ports); ++i)
         {
-            const struct port* port = vector_get_const(cell->content.full.ports, i);
+            const struct port* port = vector_get_const(full->private.ports, i);
             if(!objectport_call_port(port, trans, action, extraargs))
             {
                 return 0;
@@ -843,13 +1007,13 @@ int objectfull_foreach_port(const struct object_full* cell, const struct transfo
     }
 }
 
-int objectfull_foreach_label(const struct object_full* cell, const struct transformationmatrix* trans, label_action action, struct generic_arg* extraargs)
+int objectfull_foreach_label(const struct object_full* full, const struct transformationmatrix* trans, label_action action, struct generic_arg* extraargs)
 {
-    if(cell->content.full.labels)
+    if(full->private.labels)
     {
-        for(size_t i = 0; i < vector_size(cell->content.full.labels); ++i)
+        for(size_t i = 0; i < vector_size(full->private.labels); ++i)
         {
-            const struct port* label = vector_get_const(cell->content.full.labels, i);
+            const struct port* label = vector_get_const(full->private.labels, i);
             if(!objectport_call_label(label, trans, action, extraargs))
             {
                 return 0;
@@ -904,7 +1068,10 @@ struct vector* objectfull_get_net_shapes(const struct object_full* full, const c
     return new;
 }
 
-coordinate_t* objectfull_get_minmax_xy(const struct object_full* full)
+coordinate_t* objectfull_get_minmax_xy(
+    const struct object_full* full,
+    const struct transformationmatrix* trans
+)
 {
     coordinate_t* minmax = calloc(4, sizeof(coordinate_t)); // order: minx, miny, maxx, maxy
     // FIXME: arrays?
@@ -933,12 +1100,18 @@ coordinate_t* objectfull_get_minmax_xy(const struct object_full* full)
         for(unsigned int i = 0; i < vector_size(full->private.children); ++i)
         {
             const struct object* child = vector_get(full->private.children, i);
-            const struct object* obj = child->private.reference;
-            coordinate_t minx_, maxx_, miny_, maxy_;
-            objectbase_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_, child->trans);
-            transformationmatrix_apply_transformation_xy(full->trans, &minx_, &miny_);
-            transformationmatrix_apply_transformation_xy(full->trans, &maxx_, &maxy_);
-            _fix_minmax_order(&minx_, &miny_, &maxx_, &maxy_);
+            coordinate_t* pts = object_get_minmax_xy(child);
+            coordinate_t minx_ = pts[0];
+            coordinate_t maxx_ = pts[2];
+            coordinate_t miny_ = pts[1];
+            coordinate_t maxy_ = pts[3];
+            free(pts);
+            if(trans)
+            {
+                transformationmatrix_apply_transformation_xy(trans, &minx_, &miny_);
+                transformationmatrix_apply_transformation_xy(trans, &maxx_, &maxy_);
+            }
+            objectutil_fix_rectangle_order_xy(&minx_, &miny_, &maxx_, &maxy_);
             // FIXME: transformation? -> should be handled by recursive call, but check this! (construct a cell with the right transformations)
             minx = MIN2(minx, minx_);
             maxx = MAX2(maxx, maxx_);
@@ -961,51 +1134,46 @@ void objectfull_flatten_inline(struct object_full* full, int flattenports)
         for(unsigned int i = 0; i < vector_size(full->private.children); ++i)
         {
             struct object* child = vector_get(full->private.children, i);
-            const struct object* reference = child->private.reference;
+            const struct object* reference = object_get_reference(child);
             struct object* flat = object_flatten(reference, flattenports);
-            if(flat->private.shapes)
+            struct object_full* flat_full = FULL(flat);
+            for(unsigned int ix = 1; ix <= object_get_child_xrep(child); ++ix)
             {
-                size_t size = vector_size(flat->private.shapes);
-                while(size > 0)
+                for(unsigned int iy = 1; iy <= object_get_child_yrep(child); ++iy)
                 {
-                    struct shape* S = object_disown_shape(flat, size - 1);
-                    --size;
-                    shape_apply_transformation(S, flat->trans);
-                    shape_apply_transformation(S, child->trans);
-                    for(unsigned int ix = 1; ix <= child->private.xrep; ++ix)
+                    if(flat_full->private.shapes)
                     {
-                        for(unsigned int iy = 1; iy <= child->private.yrep; ++iy)
+                        for(size_t si = 0; si < vector_size(flat_full->private.shapes); ++si)
                         {
+                            const struct shape* S = objectfull_get_shape_const(flat_full, si);
                             struct shape* copy = shape_copy(S);
-                            shape_translate(copy, (ix - 1) * child->private.xpitch, (iy - 1) * child->private.ypitch);
-                            object_add_raw_shape(full, copy);
+                            shape_apply_transformation(copy, object_get_transformation_matrix(flat));
+                            shape_apply_transformation(copy, object_get_transformation_matrix(child));
+                            shape_translate(copy, (ix - 1) * object_get_child_xpitch(child), (iy - 1) * object_get_child_ypitch(child));
+                            objectfull_add_shape(full, copy);
                         }
                     }
-                    shape_destroy(S);
-                }
-            }
-            if(flat->private.labels)
-            {
-                for(unsigned int p = 0; p < vector_size(flat->private.labels); ++p)
-                {
-                    struct port* label = vector_get(flat->private.labels, p);
-                    struct port* newlabel = objectport_copy(label);
-                    objectport_transform_to_global_coordinates(newlabel, flat->trans);
-                    objectport_transform_to_global_coordinates(newlabel, child->trans);
-                    _add_port(full, newlabel);
-                }
-            }
-            if(flattenports)
-            {
-                if(flat->private.ports)
-                {
-                    for(unsigned int p = 0; p < vector_size(flat->private.ports); ++p)
+                    if(flattenports && flat_full->private.ports)
                     {
-                        struct port* port = vector_get(flat->private.ports, p);
-                        struct port* newport = objectport_copy(port);
-                        objectport_transform_to_global_coordinates(newport, flat->trans);
-                        objectport_transform_to_global_coordinates(newport, child->trans);
-                        _add_port(full, newport);
+                        for(unsigned int p = 0; p < vector_size(flat_full->private.ports); ++p)
+                        {
+                            struct port* port = vector_get(flat_full->private.ports, p);
+                            struct port* newport = objectport_copy(port);
+                            //objectport_transform_to_global_coordinates(newport, flat_full->trans);
+                            //objectport_transform_to_global_coordinates(newport, child->trans);
+                            objectfull_add_port(full, newport);
+                        }
+                    }
+                    if(flat_full->private.labels)
+                    {
+                        for(unsigned int p = 0; p < vector_size(flat_full->private.labels); ++p)
+                        {
+                            struct port* label = vector_get(flat_full->private.labels, p);
+                            struct port* newlabel = objectport_copy(label);
+                            //objectport_transform_to_global_coordinates(newlabel, flat_full->trans);
+                            //objectport_transform_to_global_coordinates(newlabel, child->trans);
+                            objectfull_add_port(full, newlabel);
+                        }
                     }
                 }
             }
@@ -1016,59 +1184,5 @@ void objectfull_flatten_inline(struct object_full* full, int flattenports)
         vector_destroy(full->private.references);
         full->private.references = NULL;
     }
-}
-
-static void _collect_references(const struct object* full, struct const_vector* references)
-{
-    if(full->private.references)
-    {
-        struct vector_const_iterator* it = vector_const_iterator_create(full->private.references);
-        while(vector_const_iterator_is_valid(it))
-        {
-            const struct object* ref = vector_const_iterator_get(it);
-            _collect_references(ref, references);
-            const_vector_append(references, ref);
-            vector_const_iterator_next(it);
-        }
-        vector_const_iterator_destroy(it);
-    }
-}
-
-struct const_vector* objectfull_collect_references(const struct object_full* full)
-{
-    struct const_vector* references = const_vector_create(8);
-    _collect_references(full, references);
-    return references;
-}
-
-static void _collect_references_mutable(struct object* full, struct vector* references)
-{
-    if(full->private.references)
-    {
-        struct vector_iterator* it = vector_iterator_create(full->private.references);
-        while(vector_iterator_is_valid(it))
-        {
-            struct object* ref = vector_iterator_get(it);
-            _collect_references_mutable(ref, references);
-            vector_append(references, ref);
-            vector_iterator_next(it);
-        }
-        vector_iterator_destroy(it);
-    }
-}
-
-struct vector* objectfull_collect_references_mutable(const struct object_full* full)
-{
-    struct vector* references = vector_create(8, NULL);
-    _collect_references_mutable(full, references);
-    return references;
-}
-
-struct shape_iterator* objectfull_create_shape_iterator(const struct object_full* full)
-{
-    struct shape_iterator* it = malloc(sizeof(*it));
-    it->shapes = full->private.shapes;
-    it->index = 0;
-    return it;
 }
 

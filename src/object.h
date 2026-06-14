@@ -13,6 +13,7 @@ struct object;
 // object construction/destruction
 struct object* object_create(const char* name);
 struct object* object_create_pseudo(void);
+struct object* object_create_proxy(const char* name, struct object* reference);
 struct object* object_copy(const struct object*);
 void object_destroy(void* cell);
 const char* object_get_name(const struct object* cell);
@@ -21,14 +22,15 @@ void object_set_name(struct object* cell, const char* name);
 // shape handling
 void object_add_raw_shape(struct object* cell, struct shape* S);
 void object_add_shape(struct object* cell, struct shape* S);
-struct shape* object_disown_shape(struct object* cell, size_t i);
 void object_remove_shape(struct object* cell, size_t i);
+struct shape* object_disown_shape(struct object* cell, size_t i);
 void object_merge_into(struct object* cell, const struct object* other);
 void object_merge_into_with_ports(struct object* cell, const struct object* other);
 void object_foreach_shapes(struct object* cell, void (*func)(struct shape*));
 size_t object_get_shapes_size(const struct object* cell);
+struct shape* object_get_shape(struct object* cell, size_t idx);
+const struct shape* object_get_shape_const(const struct object* cell, size_t idx);
 struct shape* object_get_transformed_shape(const struct object* cell, size_t idx);
-const struct shape* object_get_transformed_shape_const(const struct object* cell, size_t idx);
 void object_rasterize_curves(struct object* cell);
 struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics* layer);
 
@@ -36,12 +38,14 @@ struct polygon_container* object_get_shape_outlines(const struct object* cell, c
 struct object* object_create_handle(struct object* cell, struct object* reference);
 struct object* object_add_child(struct object* cell, struct object* child, const char* name);
 struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, coordinate_t xpitch, coordinate_t ypitch);
+const struct object* object_get_reference(const struct object* cell);
+struct object* object_get_reference_mutable(struct object* cell);
 
 // anchors
 int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
-int object_add_area_anchor_bltr(struct object* cell, const char* base, const struct point* bl, const struct point* tr);
-int object_add_area_anchor_points(struct object* cell, const char* base, const struct point* pt1, const struct point* pt2);
-int object_add_area_anchor_blwh(struct object* cell, const char* base, const struct point* bl, coordinate_t width, coordinate_t height);
+int object_add_area_anchor_bltr(struct object* cell, const char* name, const struct point* bl, const struct point* tr);
+int object_add_area_anchor_points(struct object* cell, const char* name, const struct point* pt1, const struct point* pt2);
+int object_add_area_anchor_blwh(struct object* cell, const char* name, const struct point* bl, coordinate_t width, coordinate_t height);
 int object_add_anchor_line_x(struct object* cell, const char* name, coordinate_t c);
 int object_add_anchor_line_y(struct object* cell, const char* name, coordinate_t c);
 int object_inherit_anchor(struct object* cell, const struct object* other, const char* name);
@@ -52,7 +56,7 @@ void object_inherit_all_anchors(struct object* cell, const struct object* other)
 void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix);
 struct point* object_get_anchor(const struct object* cell, const char* name);
 struct point* object_get_alignment_anchor(const struct object* cell, const char* name);
-struct point* object_get_area_anchor(const struct object* cell, const char* base);
+struct point* object_get_area_anchor(const struct object* cell, const char* name);
 struct point* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
 struct point* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* name);
 coordinate_t* object_get_anchor_line_x(const struct object* cell, const char* name);
@@ -63,9 +67,6 @@ struct point* object_get_alignmentbox_anchor_innerbl(const struct object* cell);
 struct point* object_get_alignmentbox_anchor_innertr(const struct object* cell);
 
 // abutment and alignment
-int object_center(struct object* cell, const struct point* target);
-int object_center_x(struct object* cell, const struct point* target);
-int object_center_y(struct object* cell, const struct point* target);
 int object_abut_right(struct object* cell, const struct object* other);
 int object_abut_left(struct object* cell, const struct object* other);
 int object_abut_top(struct object* cell, const struct object* other);
@@ -126,11 +127,10 @@ int object_align_area_anchor_bottom(struct object* cell, const char* anchorname,
 // boundary
 int object_has_boundary(const struct object* cell);
 void object_set_boundary(struct object* cell, struct vector* boundary);
+struct vector* object_get_boundary(const struct object* cell);
 void object_set_empty_layer_boundary(struct object* cell, const struct generics* layer);
 void object_add_layer_boundary(struct object* cell, const struct generics* layer, struct simple_polygon* new);
 void object_inherit_boundary(struct object* cell, const struct object* othercell);
-int object_has_boundary(const struct object* cell);
-struct vector* object_get_boundary(const struct object* cell);
 int object_has_layer_boundary(const struct object* cell, const struct generics* layer);
 struct polygon_container* object_get_layer_boundary(const struct object* cell, const struct generics* layer);
 void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer);
@@ -216,7 +216,7 @@ int object_has_children(const struct object* cell);
 int object_has_ports(const struct object* cell);
 int object_is_empty(const struct object* cell);
 int object_is_used(const struct object* cell);
-int object_is_child_array(const struct object* cell);
+int object_is_array(const struct object* cell);
 int object_has_anchor(const struct object* cell, const char* anchorname);
 int object_has_area_anchor(const struct object* cell, const char* anchorname);
 int object_has_alignmentbox(const struct object* cell);
@@ -234,7 +234,7 @@ unsigned int object_get_child_yrep(const struct object* cell);
 coordinate_t object_get_child_xpitch(const struct object* cell);
 coordinate_t object_get_child_ypitch(const struct object* cell);
 
-struct const_vector* object_collect_references(const struct object* cell);
+const struct const_vector* object_collect_references(const struct object* cell);
 struct vector* object_collect_references_mutable(struct object* cell);
 
 // shape iterator

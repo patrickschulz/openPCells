@@ -81,17 +81,17 @@ int objectanchor_is_area(const struct anchor* anchor)
     return anchor->is_area;
 }
 
-void objectanchor_transform_to_cell_coordinates(struct anchor* anchor, struct transformationmatrix* trans)
+void objectanchor_apply_tmatrix(struct anchor* anchor, const struct transformationmatrix* trans)
 {
     if(objectanchor_is_area(anchor))
     {
-        transformationmatrix_apply_inverse_transformation_xy(trans, &anchor->content.area.bl->x, &anchor->content.area.bl->y);
-        transformationmatrix_apply_inverse_transformation_xy(trans, &anchor->content.area.tr->x, &anchor->content.area.tr->y);
+        transformationmatrix_apply_transformation_xy(trans, &anchor->content.area.bl->x, &anchor->content.area.bl->y);
+        transformationmatrix_apply_transformation_xy(trans, &anchor->content.area.tr->x, &anchor->content.area.tr->y);
         objectutil_fix_rectangle_order(anchor->content.area.bl, anchor->content.area.tr);
     }
     else
     {
-        transformationmatrix_apply_inverse_transformation_xy(trans, &anchor->content.where->x, &anchor->content.where->y);
+        transformationmatrix_apply_transformation_xy(trans, &anchor->content.where->x, &anchor->content.where->y);
     }
 }
 

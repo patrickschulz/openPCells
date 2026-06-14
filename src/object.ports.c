@@ -39,14 +39,9 @@ struct port* objectport_copy(const struct port* port)
     return newport;
 }
 
-void objectport_transform_to_global_coordinates(struct port* port, const struct transformationmatrix* trans)
+void objectport_apply_tmatrix(struct port* port, const struct transformationmatrix* trans)
 {
     transformationmatrix_apply_transformation(trans, port->where);
-}
-
-void objectport_transform_to_cell_coordinates(struct port* port, const struct transformationmatrix* trans)
-{
-    transformationmatrix_apply_inverse_transformation(trans, port->where);
 }
 
 void objectport_destroy(void* p)
@@ -62,7 +57,7 @@ struct point* objectport_get_point(const struct port* port)
     return port->where;
 }
 
-int objectport_call_port(const struct port* port, struct transformationmatrix* matrix, port_action action, struct generic_arg* extraargs)
+int objectport_call_port(const struct port* port, const struct transformationmatrix* matrix, port_action action, struct generic_arg* extraargs)
 {
     struct point* where = point_copy(port->where);
     transformationmatrix_apply_transformation(matrix, where);
@@ -71,7 +66,7 @@ int objectport_call_port(const struct port* port, struct transformationmatrix* m
     return ret;
 }
 
-int objectport_call_label(const struct port* label, struct transformationmatrix* matrix, label_action action, struct generic_arg* extraargs)
+int objectport_call_label(const struct port* label, const struct transformationmatrix* matrix, label_action action, struct generic_arg* extraargs)
 {
     struct point* where = point_copy(label->where);
     transformationmatrix_apply_transformation(matrix, where);

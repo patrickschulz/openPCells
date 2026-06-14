@@ -9,6 +9,8 @@
 #include "object.full.h"
 #include "object.proxy.h"
 
+#include "assert.h"
+
 struct object {
     struct object_common common;
     union {
@@ -21,6 +23,7 @@ struct object {
 #define PROXY(obj) &obj->content.proxy
 #define FULL(obj) &obj->content.full
 #define REFERENCE(obj) objectproxy_get_reference(&obj->content.proxy)
+#define REFERENCE_MUTABLE(obj) objectproxy_get_reference_mutable(&obj->content.proxy)
 #define FULLREFERENCE(obj) FULL(REFERENCE(obj))
 
 #define CHECK_FULL(obj)\

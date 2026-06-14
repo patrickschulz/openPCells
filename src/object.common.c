@@ -1,13 +1,27 @@
+#define OPC_OBJECT_IMPLEMENTATION
+#include "object.common.h"
+#undef OPC_OBJECT_IMPLEMENTATION
+
+#include <stdlib.h>
+
+#include "util.h"
+
 void objectcommon_initialize(struct object_common* obc)
 {
     obc->private.trans = transformationmatrix_create();
 }
 
+void objectcommon_destroy(struct object_common* obc)
+{
+    free(obc->private.name);
+    transformationmatrix_destroy(obc->private.trans);
+}
+
 void objectcommon_set_name(struct object_common* obc, const char* name)
 {
-    if(obj->private.name)
+    if(obc->private.name)
     {
-        free(obj->private.name;
+        free(obc->private.name);
     }
     if(name)
     {
@@ -17,6 +31,11 @@ void objectcommon_set_name(struct object_common* obc, const char* name)
     {
         obc->private.name = NULL;
     }
+}
+
+const char* objectcommon_get_name(const struct object_common* obc)
+{
+    return obc->private.name;
 }
 
 int objectcommon_is_pseudo(const struct object_common* obc)
@@ -55,14 +74,7 @@ void objectcommon_copy_to(const struct object_common* obc, struct object_common*
     new->private.isproxy = obc->private.isproxy;
     new->private.isused = obc->private.isused;
     transformationmatrix_destroy(new->private.trans);
-    new->private.trans = transformationmatrix_copy_to(obc->private.trans);
-}
-
-void objectcommon_destroy(struct object_common* obc)
-{
-    free(obc->private.name);
-    transformationmatrix_destroy(obc->private.trans);
-
+    new->private.trans = transformationmatrix_copy(obc->private.trans);
 }
 
 const struct transformationmatrix* objectcommon_get_tmatrix(const struct object_common* obc)
@@ -70,87 +82,82 @@ const struct transformationmatrix* objectcommon_get_tmatrix(const struct object_
     return obc->private.trans;
 }
 
-void objectcommon_set_tmatrix(const struct object_common* obc, struct transformationmatrix* trans)
+struct transformationmatrix* objectcommon_get_inverse_tmatrix(const struct object_common* obc)
+{
+    return transformationmatrix_invert(obc->private.trans);
+}
+
+void objectcommon_set_tmatrix(struct object_common* obc, struct transformationmatrix* trans)
 {
     obc->private.trans = trans;
 }
 
-void objectcommon_transform_to_local_coordinates_xy(const struct object_common* obc, coordinate_t* x, coordinate_t* y)
+void objectcommon_transform_to_local_coordinates_xy(const struct object_common* cell, coordinate_t* x, coordinate_t* y)
 {
-    transformationmatrix_apply_inverse_transformation_xy(obc->trans, x, y);
+    transformationmatrix_apply_inverse_transformation_xy(cell->private.trans, x, y);
 }
 
-void objectcommon_transform_to_local_coordinates_pt(const struct object_common* obc, struct point* pt)
+void objectcommon_transform_to_local_coordinates_pt(const struct object_common* cell, struct point* pt)
 {
-    transformationmatrix_apply_inverse_transformation(obc->trans, pt);
+    transformationmatrix_apply_inverse_transformation(cell->private.trans, pt);
 }
 
-void objectcommon_transform_to_local_coordinates_shape(const struct object_common* obc, struct shape* pt)
+void objectcommon_transform_to_global_coordinates_xy(const struct object_common* cell, coordinate_t* x, coordinate_t* y)
 {
-    shape_apply_inverse_transformation(shape, obc->trans);
+    transformationmatrix_apply_transformation_xy(cell->private.trans, x, y);
 }
 
-void objectcommon_transform_to_global_coordinates_xy(const struct object_common* obc, coordinate_t* x, coordinate_t* y)
+void objectcommon_transform_to_global_coordinates_pt(const struct object_common* cell, struct point* pt)
 {
-    transformationmatrix_apply_transformation_xy(obc->trans, x, y);
+    transformationmatrix_apply_transformation(cell->private.trans, pt);
 }
 
-void objectcommon_transform_to_global_coordinates_pt(const struct object_common* obc, struct point* pt)
+void objectcommon_transform_to_local_coordinates_shape(const struct object_common* cell, struct shape* shape)
 {
-    transformationmatrix_apply_transformation(obc->trans, pt);
+    shape_apply_inverse_transformation(shape, cell->private.trans);
 }
 
-void objectcommon_transform_to_global_coordinates_shape(const struct object_common* obc, struct shape* pt)
+void objectcommon_transform_to_global_coordinates_shape(const struct object_common* cell, struct shape* shape)
 {
-    shape_apply_transformation(shape, obc->trans);
+    shape_apply_transformation(shape, cell->private.trans);
 }
 
 void objectcommon_move_to(struct object_common* obc, coordinate_t x, coordinate_t y)
 {
-    transformationmatrix_move_to(obc->trans, x, y);
+    transformationmatrix_move_to(obc->private.trans, x, y);
 }
 
 void objectcommon_translate(struct object_common* obc, coordinate_t x, coordinate_t y)
 {
-    transformationmatrix_translate(obc->trans, x, y);
+    transformationmatrix_translate(obc->private.trans, x, y);
 }
 
 void objectcommon_mirror_at_xaxis(struct object_common* obc)
 {
-    transformationmatrix_mirror_x(obc->trans);
+    transformationmatrix_mirror_x(obc->private.trans);
 }
 
 void objectcommon_mirror_at_yaxis(struct object_common* obc)
 {
-    transformationmatrix_mirror_y(obc->trans);
+    transformationmatrix_mirror_y(obc->private.trans);
 }
 
 void objectcommon_mirror_at_origin(struct object_common* obc)
 {
-    transformationmatrix_mirror_origin(obc->trans);
+    transformationmatrix_mirror_origin(obc->private.trans);
 }
 
 void objectcommon_rotate_90_left(struct object_common* obc)
 {
-    transformationmatrix_rotate_90_left(obc->trans);
+    transformationmatrix_rotate_90_left(obc->private.trans);
 }
 
 void objectcommon_rotate_90_right(struct object_common* obc)
 {
-    transformationmatrix_rotate_90_right(obc->trans);
-}
-
-void objectcommon_array_rotate_90_left(struct object_common* obc)
-{
-    transformationmatrix_rotate_90_left(obc->content.proxy.array_trans);
-}
-
-void objectcommon_array_rotate_90_right(struct object_common* obc)
-{
-    transformationmatrix_rotate_90_right(obc->content.proxy.array_trans);
+    transformationmatrix_rotate_90_right(obc->private.trans);
 }
 
 void objectcommon_scale(struct object_common* obc, double factor)
 {
-    transformationmatrix_scale(obc->trans, factor);
+    transformationmatrix_scale(obc->private.trans, factor);
 }
