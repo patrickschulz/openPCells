@@ -28,6 +28,7 @@ void vector_sort(struct vector* vector, int (*cmp_func)(const void*, const void*
 void vector_swap(struct vector* vector, size_t idx1, size_t idx2);
 void vector_reverse(struct vector* vector);
 int vector_find_flat(const struct vector* vector, const void* p);
+int vector_find_comp(const struct vector* vector, int (*comp) (const void* v, const void* extraarg), const void* extraarg);
 typedef int (*vector_action)(
     void* v,
     struct generic_arg* extraargs
