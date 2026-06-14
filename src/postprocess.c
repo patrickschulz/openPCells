@@ -44,7 +44,7 @@ void postprocess_remove_layer_shapes_flat(struct object* object, const struct ge
 {
     for(int i = object_get_shapes_size(object) - 1; i >= 0; --i)
     {
-        struct shape* S = object_get_shape(object, i);
+        const struct shape* S = object_get_shape_const(object, i);
         if(shape_get_layer(S) == layer)
         {
             object_remove_shape(object, i);
