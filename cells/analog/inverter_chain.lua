@@ -5,6 +5,7 @@ function parameters()
         { "nwidth",                                     2 * technology.get_dimension("Minimum Gate Width") },
         { "oxidetype(Oxide Type)",                      1 },
         { "gatemarker(Gate Marker Index)",              1 },
+        { "mosfetmarker(MOSFET Marking Layer Index)",   1 },
         { "pvthtype(PMOS Threshold Voltage Type) ",     1 },
         { "nvthtype(NMOS Threshold Voltage Type)",      1 },
         { "pmosflippedwell(PMOS Flipped Well) ",        false },
@@ -12,7 +13,7 @@ function parameters()
         { "gatelength(Gate Length)",                    technology.get_dimension("Minimum Gate Length") },
         { "gatespace(Gate Spacing)",                    technology.get_dimension("Minimum Gate XSpace") },
         { "drawoutergatecut",                           false },
-        { "gatecutheight",                              0 },
+        { "gatecutheight",                              technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace", "Minimum Gate Space") },
         { "gatemetal",                                  1 },
         { "sdwidth(Source/Drain Metal Width)",          technology.get_dimension("Minimum M1 Width"), posvals = even() },
         { "gatestrapwidth(Gate Metal Width)",           technology.get_dimension("Minimum M1 Width") },
@@ -25,10 +26,13 @@ function parameters()
         { "ngateext",                                   technology.get_dimension("Minimum Gate Extension") },
         { "numleftdummies",                             0 },
         { "numrightdummies",                            0 },
+        { "numleftfloatingdummies",                     0 },
+        { "numrightfloatingdummies",                    0 },
         { "numinnerdummies",                            0 },
         { "inv_xshift",                                 0 },
         { "alternatedummycontacts",                     false },
         { "drawalternatedummycontactspowerbarvia",      false, follow = "alternatedummycontacts" },
+        { "splitdrainvias",                             false },
         { "outputmetal",                                2, posvals = interval(2, inf) },
         { "outputwidth",                                technology.get_dimension("Minimum M1 Width") },
         { "outputxshift",                               0 },
@@ -82,9 +86,9 @@ function parameters()
         { "drawnmosleftwelltap",                        false, follow = "drawnmosleftrightwelltap" },
         { "drawnmosrightwelltap",                       false, follow = "drawnmosleftrightwelltap" },
         { "connectnmoswelltap",                         false },
-        { "nmoswelltapwidth",                           200 },
+        { "nmoswelltapwidth",                           technology.get_dimension_max("Minimum Active Width", "Minimum M1 Width") },
         { "nmoswelltapextension",                       0 },
-        { "nmoswelltapspace",                           500 },
+        { "nmoswelltapspace",                           technology.get_dimension("Minimum M1 Space") },
         { "nmoswelltapnet",                             "" },
         { "nmoswelltapimplantleftextension",            technology.get_dimension("Minimum Implant Extension") },
         { "nmoswelltapimplantrightextension",           technology.get_dimension("Minimum Implant Extension") },
@@ -103,9 +107,9 @@ function parameters()
         { "drawpmosleftwelltap",                        false, follow = "drawpmosleftrightwelltap" },
         { "drawpmosrightwelltap",                       false, follow = "drawpmosleftrightwelltap" },
         { "connectpmoswelltap",                         false },
-        { "pmoswelltapwidth",                           200 },
+        { "pmoswelltapwidth",                           technology.get_dimension_max("Minimum Active Width", "Minimum M1 Width") },
         { "pmoswelltapextension",                       0 },
-        { "pmoswelltapspace",                           500 },
+        { "pmoswelltapspace",                           technology.get_dimension("Minimum M1 Space") },
         { "pmoswelltapnet",                             "" },
         { "pmoswelltapimplantleftextension",            technology.get_dimension("Minimum Implant Extension") },
         { "pmoswelltapimplantrightextension",           technology.get_dimension("Minimum Implant Extension") },
@@ -150,6 +154,7 @@ function layout(chain, _P)
             nwidth = _P.nwidth,
             oxidetype = _P.oxidetype,
             gatemarker = _P.gatemarker,
+            mosfetmarker = _P.mosfetmarker,
             pvthtype = _P.pvthtype,
             nvthtype = _P.nvthtype,
             pmosflippedwell = _P.pmosflippedwell,
@@ -170,8 +175,11 @@ function layout(chain, _P)
             ngateext = _P.ngateext,
             numleftdummies = i == 1 and _P.numleftdummies or _P.numinnerdummies / 2,
             numrightdummies = i == #_P.fingers and _P.numrightdummies or _P.numinnerdummies / 2,
+            numleftfloatingdummies = _P.numleftfloatingdummies, -- FIXME: this needs better treatment
+            numrightfloatingdummies = _P.numrightfloatingdummies, -- FIXME: this needs better treatment
             alternatedummycontacts = _P.alternatedummycontacts,
             drawalternatedummycontactspowerbarvia = false,
+            splitdrainvias = _P.splitdrainvias,
             outputmetal = _P.outputmetal,
             outputwidth = _P.outputwidth,
             outputxshift = _P.outputxshift,
@@ -205,6 +213,7 @@ function layout(chain, _P)
             extendwellright = _P.extendwellright,
             drawnmosleftwelltap = _P.drawnmosleftwelltap and (i == 1),
             drawnmosrightwelltap = _P.drawnmosrightwelltap and (i == #_P.fingers),
+            drawnmoslowerwelltap = _P.drawnmoslowerwelltap,
             connectnmoswelltap = _P.connectnmoswelltap,
             nmoswelltapwidth = _P.nmoswelltapwidth,
             nmoswelltapextension = _P.nmoswelltapextension,
@@ -224,6 +233,7 @@ function layout(chain, _P)
             nmoswelltapwellbottomextension = _P.nmoswelltapwellbottomextension,
             drawpmosleftwelltap = _P.drawpmosleftwelltap and (i == 1),
             drawpmosrightwelltap = _P.drawpmosrightwelltap and (i == #_P.fingers),
+            drawpmosupperwelltap = _P.drawpmosupperwelltap,
             connectpmoswelltap = _P.connectpmoswelltap,
             pmoswelltapwidth = _P.pmoswelltapwidth,
             pmoswelltapextension = _P.pmoswelltapextension,
@@ -263,11 +273,10 @@ function layout(chain, _P)
 
     for i = 1, #inverters - 1 do
         --if _P.numinnerdummies > 0 then
-        if true then
-            geometry.viabltr(chain, 1, _P.outputmetal,
+        if _P.outputisinside then
+            geometry.viabltr(chain, _P.gatemetal, _P.outputmetal,
                 point.create(
-                    --inverters[i + 1]:get_area_anchor("input").l - (_P.numinnerdummies - 0) * (_P.gatelength + _P.gatespace),
-                    inverters[i]:get_area_anchor("output").r,
+                    inverters[i]:get_area_anchor("output").r + _P.outputxshift,
                     inverters[i + 1]:get_area_anchor("input").b
                 ),
                 point.create(
@@ -275,7 +284,17 @@ function layout(chain, _P)
                     inverters[i + 1]:get_area_anchor("input").t
                 )
             )
-            geometry.rectanglebltr(chain, generics.metal(1),
+            geometry.rectanglebltr(chain, generics.metal(_P.outputmetal),
+                point.create(
+                    inverters[i]:get_area_anchor("output").r,
+                    inverters[i + 1]:get_area_anchor("input").b
+                ),
+                point.create(
+                    inverters[i]:get_area_anchor("output").l + _P.outputxshift,
+                    inverters[i + 1]:get_area_anchor("input").t
+                )
+            )
+            geometry.rectanglebltr(chain, generics.metal(_P.gatemetal),
                 point.create(
                     inverters[i + 1]:get_area_anchor("input").l - _P.gatespace,
                     inverters[i + 1]:get_area_anchor("input").b
@@ -286,7 +305,27 @@ function layout(chain, _P)
                 )
             )
         else
-            --moderror("inverter_chain: connections between inverters are currently not implemented for numinnerdummies == 0")
+            geometry.viabltr(chain, _P.gatemetal, _P.outputmetal,
+                point.create(
+                    --inverters[i + 1]:get_area_anchor("input").l - (_P.numinnerdummies - 0) * (_P.gatelength + _P.gatespace),
+                    inverters[i]:get_area_anchor("output").r,
+                    inverters[i + 1]:get_area_anchor("input").b
+                ),
+                point.create(
+                    inverters[i + 1]:get_area_anchor("input").l - _P.gatespace,
+                    inverters[i + 1]:get_area_anchor("input").t
+                )
+            )
+            geometry.rectanglebltr(chain, generics.metal(_P.gatemetal),
+                point.create(
+                    inverters[i + 1]:get_area_anchor("input").l - _P.gatespace,
+                    inverters[i + 1]:get_area_anchor("input").b
+                ),
+                point.create(
+                    inverters[i + 1]:get_area_anchor("input").l,
+                    inverters[i + 1]:get_area_anchor("input").t
+                )
+            )
         end
     end
 
@@ -333,6 +372,10 @@ function layout(chain, _P)
         inverters[1]:get_area_anchor("pmos_active").bl,
         inverters[#inverters]:get_area_anchor("pmos_active").tr
     )
+
+    -- connect power bars
+    geometry.rectangleareaanchor(chain, generics.metal(1), "vddbar")
+    geometry.rectangleareaanchor(chain, generics.metal(1), "vssbar")
 
     -- draw vias on power bars (handling this in the individual cells can lead to DRC errors)
     if _P.alternatedummycontacts and _P.drawalternatedummycontactspowerbarvia then

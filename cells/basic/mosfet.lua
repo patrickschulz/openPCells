@@ -1271,10 +1271,10 @@ function layout(transistor, _P)
     if _P.endleftwithgate then
         local lgatebly = gatebly
         local lgatetry = gatetry
-        if _P.drawstopgatetopgatecut then
+        if _P.drawstopgatetopgatecut and not hasgatecut then
             lgatetry = _P.fingerwidth + _P.topgatecutspace
         end
-        if _P.drawstopgatebotgatecut then
+        if _P.drawstopgatebotgatecut and not hasgatecut then
             lgatebly = -_P.botgatecutspace
         end
         transistor:add_area_anchor_bltr(
@@ -1291,10 +1291,10 @@ function layout(transistor, _P)
     if _P.endrightwithgate then
         local lgatebly = gatebly
         local lgatetry = gatetry
-        if _P.drawstopgatetopgatecut then
+        if _P.drawstopgatetopgatecut and hasgatecut then
             lgatetry = _P.fingerwidth + _P.topgatecutspace
         end
-        if _P.drawstopgatebotgatecut then
+        if _P.drawstopgatebotgatecut and hasgatecut then
             lgatebly = -_P.botgatecutspace
         end
         transistor:add_area_anchor_bltr(

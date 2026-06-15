@@ -1337,9 +1337,21 @@ function layout(cmos, _P)
         ybottom = ybottom - _P.powerwidth / 2 - _P.nmoswelltapspace - _P.nmoswelltapwidth / 2
     end
     cmos:set_alignment_box(
-        leftndrainarea.bl:copy():translate(-_P.powerrailleftextension, -_P.npowerspace - _P.powerwidth),
-        rightpdrainarea.tr:copy():translate(_P.powerrailrightextension, _P.ppowerspace + _P.powerwidth),
-        leftndrainarea.br:copy():translate(-_P.powerrailleftextension, -_P.npowerspace),
-        rightpdrainarea.tl:copy():translate(_P.powerrailrightextension, _P.ppowerspace)
+        leftndrainarea.bl:copy():translate(
+            -_P.powerrailleftextension - _P.leftfloatingdummies * gatepitch,
+            -_P.npowerspace - _P.powerwidth
+        ),
+        rightpdrainarea.tr:copy():translate(
+            _P.powerrailrightextension + _P.rightfloatingdummies * gatepitch,
+            _P.ppowerspace + _P.powerwidth
+        ),
+        leftndrainarea.br:copy():translate(
+            -_P.powerrailleftextension - _P.leftfloatingdummies * gatepitch,
+            -_P.npowerspace
+        ),
+        rightpdrainarea.tl:copy():translate(
+            _P.powerrailrightextension + _P.rightfloatingdummies * gatepitch,
+            _P.ppowerspace
+        )
     )
 end
