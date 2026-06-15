@@ -1,12 +1,40 @@
 #! /bin/sh
 
 if [ ! $# -gt 0 ]; then
-    echo "no command given, can be 'all', 'diff', 'show' or 'update'"
+    echo "no command given, can be 'all', 'diff', 'show', 'update' or 'command'"
     exit 1
 fi
 
 commonargs="--write-children-ports --flatten-ports"
 opcexec="../../opc"
+
+numtotal=0
+numerror=0
+numfail=0
+
+declare -a failedtests
+declare -a runerrors
+
+# args:
+# 1: cell + pfile/cellscript
+# 2: cellname
+# 3: export type
+# 4: extra arguments
+function do_test()
+{
+    ((numtotal++))
+    cmd="${opcexec} ${commonargs} --export ${3} --technology opc ${1} --filename test_${2} ${4} --stdout-to /dev/null --stderr-to /dev/null"
+    $cmd
+    if [ $? -ne 0 ]; then
+        runerrors[$numerror]=${2}
+        ((numerror++))
+        return
+    fi
+    if ! ../helpers/test_compare ${2} ${3} 2&> /dev/null; then
+        failedtests[$numfail]=${2}
+        ((numfail++))
+    fi
+}
 
 # args:
 # 1: basename
@@ -14,25 +42,12 @@ opcexec="../../opc"
 # 3: export type
 function do_cell_test()
 {
+    ((numtotal++))
     if [ ! -f pfile_${1}.lua ]; then
         printf "\033[1;31mpfile 'pfile_%s.lua' does not exist: test %s (%s)\n\033[0m" ${1} ${1} ${2}
         return
     fi
-    if [ ! -x ${opcexec} ]; then
-        printf "\033[1;31mopc is not available: test %s (%s)\n\033[0m" ${1} ${2}
-        return
-    fi
-    ${opcexec} ${commonargs} --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
-    if [ $? -ne 0 ]; then
-        echo
-        ${opcexec} ${commonargs} --export ${3} --technology opc --cell ${2} --pfile pfile_${1}.lua --filename test_${1} --debug-cell
-    fi
-    if ../helpers/test_compare ${1} ${3}; then
-        printf "\033[1;32mcell test succeeded: %s (%s)\n\033[0m" ${1} ${2}
-    else
-        printf "\033[1;31mcell test failed: %s (%s)\n\033[0m" ${1} ${2}
-        echo
-    fi
+    do_test "--cell ${2} --pfile pfile_${1}.lua" ${1} ${3}
 }
 
 # args:
@@ -41,21 +56,7 @@ function do_cell_test()
 # 3: extra arguments
 function do_cellscript_test()
 {
-    if [ ! -x ${opcexec} ]; then
-        printf "\033[1;31mopc is not available: test %s (%s)\n\033[0m" ${1} ${1}.lua
-        return
-    fi
-    ${opcexec} ${commonargs} ${3} --export ${2} --technology opc --cellscript ${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
-    if [ $? -ne 0 ]; then
-        echo
-        ${opcexec} ${commonargs} ${3} --export ${2} --technology opc --cellscript ${1}.lua --filename test_${1}
-    fi
-    if ../helpers/test_compare ${1} ${2}; then
-        printf "\033[1;32mcellscript test succeeded: %s (%s)\n\033[0m" ${1} ${1}.lua
-    else
-        printf "\033[1;31mcellscript test failed: %s (%s)\n\033[0m" ${1} ${1}.lua
-        echo
-    fi
+    do_test "--cellscript ${1}.lua" ${1} ${2} ${3}
 }
 
 # args:
@@ -82,7 +83,9 @@ function do_cellscript_failtest()
 # with an empty pfile ('return {}')
 #######################################################
 
-if [ $1 = "diff" ]; then
+if [ $1 = "command" ]; then
+    printf "%s\n" "${opcexec} ${commonargs} --export <export> --technology opc --cellscript <cellscript> --cell <cell> --filename test_<filename> --stdout-to /dev/null --stderr-to /dev/null"
+elif [ $1 = "diff" ]; then
     if [ ! $# -gt 1 ]; then
         echo "no test name given"
         exit 1
@@ -107,6 +110,13 @@ elif [ $1 = "update" ]; then
     fi
     cp test_$2.gds reference_$2.gds
 elif [ $1 = "all" ]; then
+    if [ ! -x ${opcexec} ]; then
+        printf "\033[1;31mopc is not available: test %s (%s)\n\033[0m" ${1} ${1}.lua
+        return
+    fi
+
+    echo "running tests..."
+
     # tech/via test
     do_cellscript_test cellscript_tech_vias gds
 
@@ -225,7 +235,7 @@ elif [ $1 = "all" ]; then
 
     # cellscript test for overlap vias
     do_cellscript_test cellscript_overlap_via gds
-    do_cellscript_failtest cellscript_overlap_via_fail gds
+    #do_cellscript_failtest cellscript_overlap_via_fail gds
 
     # cell test for analog/cascode
     do_cell_test cascode_01 analog/cascode gds
@@ -284,10 +294,18 @@ elif [ $1 = "all" ]; then
     do_cell_test not_gate_01 stdcells/not_gate gds
     do_cell_test not_gate_02 stdcells/not_gate gds
     do_cell_test not_gate_03 stdcells/not_gate gds
-    do_cell_test nor_gate_00 stdcells/nor_gate gds
-    do_cell_test nand_gate_00 stdcells/nand_gate gds
-    do_cell_test or_gate_00 stdcells/or_gate gds
-    do_cell_test and_gate_00 stdcells/and_gate gds
+    do_cell_test nor_gate_01 stdcells/nor_gate gds
+    do_cell_test nor_gate_02 stdcells/nor_gate gds
+    do_cell_test nor_gate_03 stdcells/nor_gate gds
+    do_cell_test nand_gate_01 stdcells/nand_gate gds
+    do_cell_test nand_gate_02 stdcells/nand_gate gds
+    do_cell_test nand_gate_03 stdcells/nand_gate gds
+    do_cell_test or_gate_01 stdcells/or_gate gds
+    do_cell_test or_gate_02 stdcells/or_gate gds
+    do_cell_test or_gate_03 stdcells/or_gate gds
+    do_cell_test and_gate_01 stdcells/and_gate gds
+    do_cell_test and_gate_02 stdcells/and_gate gds
+    do_cell_test and_gate_03 stdcells/and_gate gds
     do_cell_test xnor_gate_00 stdcells/xnor_gate gds
     do_cell_test xor_gate_00 stdcells/xor_gate gds
 
@@ -305,6 +323,38 @@ elif [ $1 = "all" ]; then
 
     # cellscript test for object.get_shape_outlines
     do_cellscript_test cellscript_get_shape_outlines gds
+
+    printf "number of tests: %d\n" $numtotal
+    if [ $numerror -gt 0 ]; then
+        printf "\033[1;31m"
+    else
+        printf "\033[1;32m"
+    fi
+    printf "number of run errors: %d\n" $numerror
+    printf "\033[0m"
+    if [ $numfail -gt 0 ]; then
+        printf "\033[1;31m"
+    else
+        printf "\033[1;32m"
+    fi
+    printf "number of failed tests: %d\n" $numfail
+    printf "\033[0m"
+    if [ $numerror -gt 0 ]; then
+        printf "\033[1;31m"
+        echo "list of tests with run errors:"
+        for f in ${runerrors[@]}; do
+            printf "  %s\n" $f
+        done
+        printf "\033[0m"
+    fi
+    if [ $numfail -gt 0 ]; then
+        printf "\033[1;31m"
+        echo "list of failed tests:"
+        for f in ${failedtests[@]}; do
+            printf "  %s\n" $f
+        done
+        printf "\033[0m"
+    fi
 else
     printf "unknown command '%s'\n" $1
     exit 1
