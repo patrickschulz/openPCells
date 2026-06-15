@@ -528,6 +528,7 @@ coordinate_t polygon_container_get_maxy(const struct polygon_container* polygon_
 int polygon_container_foreach_points(struct polygon_container* polygon_container, polygon_container_point_action action, struct generic_arg* extraargs)
 {
     struct polygon_container_iterator* pit = polygon_container_iterator_create(polygon_container);
+    int ret = 1;
     while(polygon_container_iterator_is_valid(pit))
     {
         struct simple_polygon* simple_polygon = polygon_container_iterator_get(pit);
@@ -535,13 +536,20 @@ int polygon_container_foreach_points(struct polygon_container* polygon_container
         while(simple_polygon_iterator_is_valid(sit))
         {
             struct point* pt = simple_polygon_iterator_get(sit);
-            action(pt, extraargs);
+            ret = action(pt, extraargs);
+            if(!ret)
+            {
+                simple_polygon_iterator_destroy(sit);
+                goto POLYGON_CONTAINT_FOREACH_POINTS_END;
+            }
             simple_polygon_iterator_next(sit);
         }
         simple_polygon_iterator_destroy(sit);
         polygon_container_iterator_next(pit);
     }
+POLYGON_CONTAINT_FOREACH_POINTS_END:
     polygon_container_iterator_destroy(pit);
+    return ret;
 }
 
 /*
