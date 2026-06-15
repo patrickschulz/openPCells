@@ -73,12 +73,12 @@ int object_add_area_anchor_blwh(struct object* cell, const char* name, const str
 
 int object_add_anchor_line_x(struct object* cell, const char* name, coordinate_t c)
 {
-    objectbase_add_anchor_line_x(cell, name, c);
+    return objectbase_add_anchor_line_x(cell, name, c);
 }
 
 int object_add_anchor_line_y(struct object* cell, const char* name, coordinate_t c)
 {
-    objectbase_add_anchor_line_y(cell, name, c);
+    return objectbase_add_anchor_line_y(cell, name, c);
 }
 
 int object_inherit_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname)
@@ -282,6 +282,11 @@ coordinate_t* object_get_anchor_line_y(const struct object* cell, const char* na
     {
         return NULL;
     }
+}
+
+const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
+{
+    return objectbase_get_all_regular_anchors(cell);
 }
 
 // ************************************************************************************************************************ 
@@ -974,9 +979,9 @@ void object_merge_into_with_ports(struct object* cell, const struct object* othe
     objectbase_merge_into(cell, other, 1);
 }
 
-void object_foreach_shapes(struct object* cell, void (*func)(struct shape*))
+void object_foreach_shapes(struct object* cell, shape_action action, struct generic_arg* extraargs)
 {
-    objectbase_foreach_shapes(cell, func);
+    objectbase_foreach_shapes(cell, action, extraargs);
 }
 
 size_t object_get_shapes_size(const struct object* cell)
@@ -989,9 +994,9 @@ void object_rasterize_curves(struct object* cell)
     objectbase_rasterize_curves(cell);
 }
 
-struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics* layer)
+struct polygon_container* object_get_shape_outlines(const struct object* cell, const struct generics** layers, size_t numlayers)
 {
-    return objectbase_get_shape_outlines(cell, layer);
+    return objectbase_get_shape_outlines(cell, layers, numlayers);
 }
 
 // children
@@ -1006,6 +1011,11 @@ struct object* object_get_reference_mutable(struct object* cell)
 }
 
 // boundary
+struct point** object_get_bounding_box(const struct object* cell)
+{
+    return objectbase_get_bounding_box(cell);
+}
+
 int object_has_boundary(const struct object* cell)
 {
     return objectbase_has_boundary(cell);
@@ -1046,6 +1056,11 @@ struct polygon_container* object_get_layer_boundary(const struct object* cell, c
     return objectbase_get_layer_boundary(cell, layer);
 }
 
+struct bltrshape* object_get_layer_occupation(const struct object* cell, const struct generics** layers, size_t numlayers)
+{
+    return objectbase_get_layer_occupation(cell, layers, numlayers);
+}
+
 void object_inherit_layer_boundary(struct object* cell, const struct object* othercell, const struct generics* layer)
 {
     objectbase_inherit_layer_boundary(cell, othercell, layer);
@@ -1082,10 +1097,55 @@ const struct vector* object_get_ports(const struct object* cell)
     return objectbase_get_ports(cell);
 }
 
+size_t object_get_ports_size(const struct object* cell)
+{
+    return objectbase_get_ports_size(cell);
+}
+
+struct port* object_get_port(struct object* cell, size_t idx)
+{
+    return objectbase_get_port(cell, idx);
+}
+
+const struct generics* object_get_port_layer(const struct object* cell, size_t idx)
+{
+    return objectbase_get_port_layer(cell, idx);
+}
+
+void object_remove_port(struct object* cell, size_t idx)
+{
+    objectbase_remove_port(cell, idx);
+}
+
 // labels
 void object_add_label(struct object* cell, const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint)
 {
     objectbase_add_label(cell, name, layer, where, sizehint);
+}
+
+const struct vector* object_get_labels(const struct object* cell)
+{
+    return objectbase_get_labels(cell);
+}
+
+size_t object_get_labels_size(const struct object* cell)
+{
+    return objectbase_get_labels_size(cell);
+}
+
+struct port* object_get_label(struct object* cell, size_t idx)
+{
+    return objectbase_get_label(cell, idx);
+}
+
+const struct generics* object_get_label_layer(const struct object* cell, size_t idx)
+{
+    return objectbase_get_label_layer(cell, idx);
+}
+
+void object_remove_label(struct object* cell, size_t idx)
+{
+    objectbase_remove_label(cell, idx);
 }
 
 // nets
@@ -1096,14 +1156,23 @@ void object_add_net_shape(struct object* cell, const char* netname, const struct
 
 struct vector* object_get_net_shapes(const struct object* cell, const char* netname, const struct generics* layer)
 {
-    return object_get_net_shapes(cell, netname, layer);
+    return objectbase_get_net_shapes(cell, netname, layer);
 }
 
 struct vector* object_get_array_net_shapes(const struct object* cell, int xindex, int yindex, const char* netname, const struct generics* layer)
 {
-    return object_get_array_net_shapes(cell, xindex, yindex, netname, layer);
+    return objectbase_get_array_net_shapes(cell, xindex, yindex, netname, layer);
 }
 
+void object_inherit_net_shapes(struct object* cell, const struct object* other, const struct generics* layer)
+{
+    objectbase_inherit_net_shapes(cell, other, layer);
+}
+
+int object_has_net(const struct object* cell, const char* netname)
+{
+    return objectbase_has_net(cell, netname);
+}
 
 // alignment box and bounding box
 void object_clear_alignment_box(struct object* cell)
@@ -1198,6 +1267,16 @@ const struct transformationmatrix* object_get_array_transformation_matrix(const 
 void object_move_to(struct object* cell, coordinate_t x, coordinate_t y)
 {
     objectbase_move_to(cell, x, y);
+}
+
+void object_move_origin(struct object* cell, coordinate_t x, coordinate_t y)
+{
+    objectbase_translate(cell, x, y);
+}
+
+void object_set_origin(struct object* cell, coordinate_t x, coordinate_t y)
+{
+    objectbase_move_to(cell, -x, -y);
 }
 
 void object_reset_translation(struct object* cell)
@@ -1450,7 +1529,7 @@ coordinate_t object_get_child_ypitch(const struct object* cell)
     return objectbase_get_child_ypitch(cell);
 }
 
-const struct const_vector* object_collect_references(const struct object* cell)
+struct const_vector* object_collect_references(const struct object* cell)
 {
     return objectbase_collect_references(cell);
 }
@@ -1626,17 +1705,67 @@ void mutable_reference_iterator_destroy(struct mutable_reference_iterator* it)
 // anchor foreach
 int object_foreach_anchor(const struct object* cell, anchor_action action, struct generic_arg* extraargs)
 {
-    objectbase_foreach_anchor(cell, action, extraargs);
+    return objectbase_foreach_anchor(cell, action, extraargs);
 }
 
 // port foreach
 int object_foreach_port(const struct object* cell, port_action action, struct generic_arg* extraargs)
 {
-    objectbase_foreach_port(cell, action, extraargs);
+    return objectbase_foreach_port(cell, action, extraargs);
 }
 
 // label foreach
 int object_foreach_label(const struct object* cell, label_action action, struct generic_arg* extraargs)
 {
-    objectbase_foreach_label(cell, action, extraargs);
+    return objectbase_foreach_label(cell, action, extraargs);
 }
+
+// netshape iterator
+struct netshape_iterator {
+    struct hashmap_const_iterator* iterator;
+    size_t netindex;
+};
+
+struct netshape_iterator* object_create_netshape_iterator(const struct object* cell)
+{
+    struct netshape_iterator* it = malloc(sizeof(*it));
+    const struct hashmap* netshapes = objectbase_get_all_net_shapes(cell);
+    it->iterator = hashmap_const_iterator_create(netshapes);
+    it->netindex = 0;
+    return it;
+}
+
+int netshape_iterator_is_valid(struct netshape_iterator* it)
+{
+    return hashmap_const_iterator_is_valid(it->iterator);
+}
+
+void netshape_iterator_next(struct netshape_iterator* it)
+{
+    const struct vector* nets = hashmap_const_iterator_value(it->iterator);
+    if(it->netindex + 1 == vector_size(nets)) // switch to next net and reset
+    {
+        it->netindex = 0;
+        hashmap_const_iterator_next(it->iterator);
+    }
+    else // go to next shape on this net
+    {
+        it->netindex += 1;
+    }
+}
+
+void netshape_iterator_get(struct netshape_iterator* it, const char** netname_ptr, struct bltrshape** bltrshape_ptr)
+{
+    const char* netname = hashmap_const_iterator_key(it->iterator);
+    const struct vector* nets = hashmap_const_iterator_value(it->iterator);
+    const struct bltrshape* bltrshape = vector_get_const(nets, it->netindex);
+    *netname_ptr = netname;
+    *bltrshape_ptr = bltrshape_copy(bltrshape);
+}
+
+void netshape_iterator_destroy(struct netshape_iterator* it)
+{
+    hashmap_const_iterator_destroy(it->iterator);
+    free(it);
+}
+

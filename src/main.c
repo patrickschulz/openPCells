@@ -184,6 +184,24 @@ int main(int argc, const char* const * argv)
         dup2(stderrp, STDERR_FILENO);
     }
 
+    int verbose = cmdoptions_was_provided_long(cmdoptions, "verbose");
+
+    // show compilation flags
+    if(verbose)
+    {
+        puts("compilation flags:");
+        printf("OPC_CELL_PATH: %s\n", OPC_CELL_PATH);
+        printf("OPC_TECH_PATH: %s\n", OPC_TECH_PATH);
+        printf("OPC_EXPORT_PATH: %s\n", OPC_EXPORT_PATH);
+        printf("OPC_DOC_PATH: %s\n", OPC_DOC_PATH);
+        printf("OPC_TOOLS_PATH: %s\n", OPC_TOOLS_PATH);
+#ifdef NDEBUG
+        printf("%s\n", "NDEBUG defined");
+#else
+        printf("%s\n", "NDEBUG not defined");
+#endif
+    }
+
 #ifdef OPC_ENABLE_TIMING
     // report timing
     if(cmdoptions_was_provided_long(cmdoptions, "time"))
@@ -567,7 +585,6 @@ int main(int argc, const char* const * argv)
             fputs("no export given\n", stderr);
             goto DESTROY_CONFIG;
         }
-        int verbose = cmdoptions_was_provided_long(cmdoptions, "verbose");
         int watch = cmdoptions_was_provided_long(cmdoptions, "watch");
         if(watch)
         {

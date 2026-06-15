@@ -4,6 +4,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "bltrshape.h"
 #include "foreach.h"
 #include "tagged_value.h"
 #include "util.h"
@@ -1269,6 +1270,26 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
     return 1;
 }
 
+// wrapper functions for foreach_shapes
+static int _resolve_path_wrapper(struct shape* shape, struct generic_arg* extraargs)
+{
+    (void)extraargs;
+    shape_resolve_path_inline(shape);
+    return 1;
+}
+static int _resolve_path_extensions_wrapper(struct shape* shape, struct generic_arg* extraargs)
+{
+    (void)extraargs;
+    shape_resolve_path_extensions_inline(shape);
+    return 1;
+}
+static int _triangulate_polygon_wrapper(struct shape* shape, struct generic_arg* extraargs)
+{
+    (void)extraargs;
+    shape_triangulate_polygon_inline(shape);
+    return 1;
+}
+
 int export_writer_write_toplevel(struct export_writer* writer, const struct object* toplevel, int expand_namecontext, int writeports, int writechildrenports, int write_malformed, char leftdelim, char rightdelim)
 {
     int ret = 1;
@@ -1316,15 +1337,15 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         mustdelete = 1;
         if(!has_write_paths)
         {
-            object_foreach_shapes(copy, shape_resolve_path_inline);
+            object_foreach_shapes(copy, _resolve_path_wrapper, NULL);
         }
         if(!has_write_path_extensions)
         {
-            object_foreach_shapes(copy, shape_resolve_path_extensions_inline);
+            object_foreach_shapes(copy, _resolve_path_extensions_wrapper, NULL);
         }
         if(!has_write_polygon)
         {
-            object_foreach_shapes(copy, shape_triangulate_polygon_inline);
+            object_foreach_shapes(copy, _triangulate_polygon_wrapper, NULL);
         }
         if(!has_write_cell_reference)
         {

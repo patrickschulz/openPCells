@@ -6,6 +6,8 @@
 #define OPC_OBJECT_FULL_H
 
 #include "bltrshape.h"
+#include "object.actions.h"
+#include "object.anchors.h"
 #include "object.ports.h"
 
 // the struct is exposed so that composition is possible, but all content is hidden behind 'private'
@@ -20,7 +22,7 @@ struct object_full {
         struct vector* references; // stores struct object*
         coordinate_t* alignmentbox; // NULL or contains eight coordinates: blx, blx, trx, try for both outer (first) and inner (second)
         struct vector* boundary; // a polygon, stores struct point*
-        struct hashmap* layer_boundaries; // contains polygons that store struct point*
+        struct vector* layer_boundaries; // contains polygons that store struct point*, together with generics* in a tuple
         struct hashmap* nets; // stores struct vector*
         int ismanaged; // poor-mans shared pointer, required to avoid double-free when using object handles
     } private;
@@ -48,9 +50,15 @@ struct shape* objectfull_disown_shape(
     struct object_full* full,
     size_t idx
 );
-void objectfull_foreach_shapes(
+int objectfull_foreach_shapes_const(
+    const struct object_full* full,
+    const_shape_action action,
+    struct generic_arg* extraargs
+);
+int objectfull_foreach_shapes(
     struct object_full* full,
-    void (*func)(struct shape*)
+    shape_action action,
+    struct generic_arg* extraargs
 );
 struct shape* objectfull_get_shape(
     struct object_full* full,
@@ -97,8 +105,6 @@ void objectfull_add_proxy(
     struct object_full* full,
     struct object* proxy
 );
-typedef int (*const_object_action)(const struct object* object, struct generic_arg* extraargs);
-typedef int (*object_action)(struct object* object, struct generic_arg* extraargs);
 int objectfull_foreach_children_const(
     const struct object_full* full,
     const_object_action,
@@ -171,6 +177,9 @@ struct anchor* objectfull_get_anchor(
 coordinate_t* objectfull_get_anchor_line(const struct object_full* full,
     const char* name
 );
+const struct hashmap* objectfull_get_anchors(
+    const struct object_full* full
+);
 int objectfull_foreach_anchor(
     const struct object_full* full,
     const struct transformationmatrix* trans,
@@ -241,8 +250,41 @@ void objectfull_add_label(
     struct object_full* full,
     struct port* port
 );
+size_t objectfull_get_labels_size(
+    const struct object_full* full
+);
+struct port* objectfull_get_label(
+    struct object_full* full,
+    size_t idx
+);
+const struct generics* objectfull_get_label_layer(
+    const struct object_full* full,
+    size_t idx
+);
+void objectfull_remove_label(
+    struct object_full* full,
+    size_t idx
+);
+const struct vector* objectfull_get_labels(
+    const struct object_full* full
+);
 int objectfull_has_ports(
     const struct object_full* full
+);
+size_t objectfull_get_ports_size(
+    const struct object_full* full
+);
+struct port* objectfull_get_port(
+    struct object_full* full,
+    size_t idx
+);
+const struct generics* objectfull_get_port_layer(
+    const struct object_full* full,
+    size_t idx
+);
+void objectfull_remove_port(
+    struct object_full* full,
+    size_t idx
 );
 const struct vector* objectfull_get_ports(
     const struct object_full* full
@@ -268,10 +310,24 @@ struct bltrshape* objectfull_add_net_shape(
     const struct point* tr,
     const struct generics* layer
 );
+const struct hashmap* objectfull_get_all_net_shapes(
+    const struct object_full* full
+);
 struct vector* objectfull_get_net_shapes(
     const struct object_full* full,
     const char* netname,
     const struct generics* layer
+);
+void objectfull_inherit_net_shapes(
+    struct object_full* cell,
+    const struct object_full* other,
+    const struct transformationmatrix* targettrans,
+    const struct transformationmatrix* sourcetrans,
+    const struct generics* layer
+);
+int objectfull_has_net(
+    const struct object_full* full,
+    const char* netname
 );
 
 // miscellaneous helper functions

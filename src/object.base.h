@@ -15,6 +15,12 @@
 #ifndef OPC_OBJECT_BASE_H
 #define OPC_OBJECT_BASE_H
 
+#include "object.h"
+#include "object.actions.h"
+#include "object.full.h"
+#include "object.proxy.h"
+#include "foreach.h" // struct generic_arg
+
 // alignmentbox access macros
 #define objectbase_alignmentbox_get_outerblx(b) b[0]
 #define objectbase_alignmentbox_get_outerbly(b) b[1]
@@ -188,6 +194,12 @@ coordinate_t* objectbase_get_untransformed_minmax_xy(
 coordinate_t* objectbase_get_minmax_xy(
     const struct object* cell
 );
+void objectbase_get_minmax_xy_layer(
+    const struct object* cell,
+    coordinate_t* minxp, coordinate_t* minyp,
+    coordinate_t* maxxp, coordinate_t* maxyp,
+    const struct generics* layer
+);
 coordinate_t* objectbase_get_transformed_bounding_box(
     const struct object* cell
 );
@@ -221,6 +233,9 @@ coordinate_t* objectbase_get_anchor_line(
     const struct object* cell,
     const char* name
 );
+const struct hashmap* objectbase_get_all_regular_anchors(
+    const struct object* cell
+);
 void objectbase_set_boundary(
     struct object* cell,
     struct vector* boundary
@@ -231,6 +246,9 @@ struct vector* objectbase_get_boundary(
 void objectbase_inherit_boundary(
     struct object* cell,
     const struct object* othercell
+);
+struct point** objectbase_get_bounding_box(
+    const struct object* cell
 );
 int objectbase_has_boundary(
     const struct object* cell
@@ -257,6 +275,11 @@ struct polygon_container* objectbase_get_layer_boundary(
     const struct object* cell,
     const struct generics* layer
 );
+struct bltrshape* objectbase_get_layer_occupation(
+    const struct object* cell,
+    const struct generics** layers,
+    size_t numlayers
+);
 void objectbase_add_port(
     struct object* cell,
     const char* name,
@@ -282,12 +305,36 @@ void objectbase_add_label(
     const struct point* where,
     unsigned int sizehint
 );
+int objectbase_has_labels(
+    const struct object* cell
+);
+size_t objectbase_get_labels_size(
+    const struct object* cell
+);
+struct port* objectbase_get_label(
+    struct object* cell,
+    size_t idx
+);
+const struct generics* objectbase_get_label_layer(
+    const struct object* cell,
+    size_t idx
+);
+void objectbase_remove_label(
+    struct object* cell,
+    size_t idx
+);
+const struct vector* objectbase_get_labels(
+    const struct object* cell
+);
 void objectbase_add_net_shape(
     struct object* cell,
     const char* netname,
     const struct point* bl,
     const struct point* tr,
     const struct generics* layer
+);
+const struct hashmap* objectbase_get_all_net_shapes(
+    const struct object* cell
 );
 struct vector* objectbase_get_net_shapes(
     const struct object* cell,
@@ -301,6 +348,16 @@ struct vector* objectbase_get_array_net_shapes(
     const char* netname,
     const struct generics* layer
 );
+void objectbase_inherit_net_shapes(
+    struct object* cell,
+    const struct object* other,
+    const struct generics* layer
+);
+int objectbase_has_net(
+    const struct object* cell,
+    const char* netname
+);
+
 void objectbase_clear_alignment_box(
     struct object* cell
 );
@@ -422,7 +479,8 @@ void objectbase_scale(
 );
 void objectbase_foreach_shapes(
     struct object* cell,
-    void (*func)(struct shape*)
+    shape_action action,
+    struct generic_arg* extraargs
 );
 size_t objectbase_get_shapes_size(
     const struct object* cell
@@ -444,7 +502,8 @@ void objectbase_rasterize_curves(
 );
 struct polygon_container* objectbase_get_shape_outlines(
     const struct object* cell,
-    const struct generics* layer
+    const struct generics** layers,
+    size_t numlayers
 );
 const struct transformationmatrix* objectbase_get_transformation_matrix(
     const struct object* cell
@@ -484,6 +543,21 @@ int objectbase_has_children(
 );
 int objectbase_has_ports(
     const struct object* cell
+);
+size_t objectbase_get_ports_size(
+    const struct object* cell
+);
+struct port* objectbase_get_port(
+    struct object* cell,
+    size_t idx
+);
+const struct generics* objectbase_get_port_layer(
+    const struct object* cell,
+    size_t idx
+);
+void objectbase_remove_port(
+    struct object* cell,
+    size_t idx
 );
 const struct vector* objectbase_get_ports(
     const struct object* cell

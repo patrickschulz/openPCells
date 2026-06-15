@@ -57,6 +57,11 @@ struct point* objectport_get_point(const struct port* port)
     return port->where;
 }
 
+const struct generics* objectport_get_layer(const struct port* port)
+{
+    return port->layer;
+}
+
 int objectport_call_port(const struct port* port, const struct transformationmatrix* matrix, port_action action, struct generic_arg* extraargs)
 {
     struct point* where = point_copy(port->where);

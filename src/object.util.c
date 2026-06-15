@@ -33,3 +33,22 @@ void objectutil_fix_rectangle_order_xy(coordinate_t* blx, coordinate_t* bly, coo
     }
 }
 
+void objectutil_transform_to_global_coordinates_xy(const struct transformationmatrix* trans, coordinate_t* x, coordinate_t* y)
+{
+    transformationmatrix_apply_transformation_xy(trans, x, y);
+}
+
+void objectutil_transform_to_global_coordinates_pt(const struct transformationmatrix* trans, struct point* pt)
+{
+    transformationmatrix_apply_transformation(trans, pt);
+}
+
+void objectutil_transform_to_local_coordinates_xy(const struct transformationmatrix* trans, coordinate_t* x, coordinate_t* y)
+{
+    transformationmatrix_apply_inverse_transformation_xy(trans, x, y);
+}
+
+void objectutil_transform_to_local_coordinates_pt(const struct transformationmatrix* trans, struct point* pt)
+{
+    transformationmatrix_apply_inverse_transformation(trans, pt);
+}

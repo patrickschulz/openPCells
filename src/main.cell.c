@@ -418,14 +418,28 @@ static void _merge_rectangles(struct object* toplevel, struct cmdoptions* cmdopt
     }
 }
 
+// wrapper functions for foreach_shapes
+static int _resolve_path_wrapper(struct shape* shape, struct generic_arg* extraargs)
+{
+    (void)extraargs;
+    shape_resolve_path_inline(shape);
+    return 1;
+}
+static int _resolve_path_extensions_wrapper(struct shape* shape, struct generic_arg* extraargs)
+{
+    (void)extraargs;
+    shape_resolve_path_extensions_inline(shape);
+    return 1;
+}
+
 static void _resolve_cell_paths(struct object* cell)
 {
-    object_foreach_shapes(cell, shape_resolve_path_inline);
+    object_foreach_shapes(cell, _resolve_path_wrapper, NULL);
 }
 
 static void _resolve_cell_path_extensions(struct object* cell)
 {
-    object_foreach_shapes(cell, shape_resolve_path_extensions_inline);
+    object_foreach_shapes(cell, _resolve_path_extensions_wrapper, NULL);
 }
 
 static void _resolve_paths(struct object* toplevel, struct cmdoptions* cmdoptions)
@@ -464,9 +478,17 @@ static void _resolve_path_extensions(struct object* toplevel, struct cmdoptions*
     }
 }
 
+// wrapper functions for foreach_shapes
+static int _rasterize_curve_wrapper(struct shape* shape, struct generic_arg* extraargs)
+{
+    (void)extraargs;
+    shape_rasterize_curve_inline(shape);
+    return 1;
+}
+
 static void _raster_cell_curves(struct object* cell)
 {
-    object_foreach_shapes(cell, shape_rasterize_curve_inline);
+    object_foreach_shapes(cell, _rasterize_curve_wrapper, NULL);
 }
 
 static void _raster_curves(struct object* toplevel, struct cmdoptions* cmdoptions)
@@ -487,9 +509,17 @@ static void _raster_curves(struct object* toplevel, struct cmdoptions* cmdoption
     }
 }
 
+// wrapper functions for foreach_shapes
+static int _triangulate_polygon_wrapper(struct shape* shape, struct generic_arg* extraargs)
+{
+    (void)extraargs;
+    shape_triangulate_polygon_inline(shape);
+    return 1;
+}
+
 static void _triangulate_cell_polygons(struct object* cell)
 {
-    object_foreach_shapes(cell, shape_triangulate_polygon_inline);
+    object_foreach_shapes(cell, _triangulate_polygon_wrapper, NULL);
 }
 
 static void _triangulate_polygons(struct object* toplevel, struct cmdoptions* cmdoptions)

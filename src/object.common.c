@@ -1,5 +1,6 @@
 #define OPC_OBJECT_IMPLEMENTATION
 #include "object.common.h"
+#include "object.util.h"
 #undef OPC_OBJECT_IMPLEMENTATION
 
 #include <stdlib.h>
@@ -94,22 +95,22 @@ void objectcommon_set_tmatrix(struct object_common* obc, struct transformationma
 
 void objectcommon_transform_to_local_coordinates_xy(const struct object_common* cell, coordinate_t* x, coordinate_t* y)
 {
-    transformationmatrix_apply_inverse_transformation_xy(cell->private.trans, x, y);
+    objectutil_transform_to_local_coordinates_xy(cell->private.trans, x, y);
 }
 
 void objectcommon_transform_to_local_coordinates_pt(const struct object_common* cell, struct point* pt)
 {
-    transformationmatrix_apply_inverse_transformation(cell->private.trans, pt);
+    objectutil_transform_to_local_coordinates_xy(cell->private.trans, point_getx_ptr(pt), point_gety_ptr(pt));
 }
 
 void objectcommon_transform_to_global_coordinates_xy(const struct object_common* cell, coordinate_t* x, coordinate_t* y)
 {
-    transformationmatrix_apply_transformation_xy(cell->private.trans, x, y);
+    objectutil_transform_to_global_coordinates_xy(cell->private.trans, x, y);
 }
 
 void objectcommon_transform_to_global_coordinates_pt(const struct object_common* cell, struct point* pt)
 {
-    transformationmatrix_apply_transformation(cell->private.trans, pt);
+    objectutil_transform_to_global_coordinates_xy(cell->private.trans, point_getx_ptr(pt), point_gety_ptr(pt));
 }
 
 void objectcommon_transform_to_local_coordinates_shape(const struct object_common* cell, struct shape* shape)

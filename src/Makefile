@@ -42,6 +42,7 @@ OBJS:= \
 	cdl_tokenlist.o \
 	cells.o \
 	cmdoptions.o \
+	foreach.o \
 	error.o \
 	export_common.o \
 	export.o \
@@ -92,7 +93,14 @@ OBJS:= \
 	main.tutorial.o \
 	main.import.o \
 	netlist.o \
-	object.o \
+    object.anchors.o \
+    object.base.o \
+    object.common.o \
+    object.full.o \
+    object.ports.o \
+    object.proxy.o \
+    object.public.o \
+    object.util.o \
 	pcell.o \
 	pcell.common.o \
 	pcell.state.o \

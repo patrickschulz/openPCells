@@ -40,9 +40,9 @@ struct object {
     )
 #define CHECK_FULL_OR_PROXY(obj)\
     OPC_ASSERT_MSG2(\
-        objectcommon_is_full(COMMON(obj)) || objectcommon_is_proxy(COMMON(obj)),\
+        (objectcommon_is_full(COMMON(obj)) || objectcommon_is_proxy(COMMON(obj))),\
         __func__,\
-        ": object given must be a full object"\
+        ": object given must be a full or proxy object"\
     )
 
 #endif /* OPC_OBJECT_DEF_H */

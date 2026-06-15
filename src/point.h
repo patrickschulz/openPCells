@@ -31,6 +31,8 @@ void point_destroy_coordinate_array(void* v);
 
 coordinate_t point_getx(const struct point* pt);
 coordinate_t point_gety(const struct point* pt);
+coordinate_t* point_getx_ptr(struct point* pt);
+coordinate_t* point_gety_ptr(struct point* pt);
 void point_setx(struct point* pt, coordinate_t x);
 void point_sety(struct point* pt, coordinate_t y);
 

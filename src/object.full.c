@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "helpers.h"
+#include "tuple.h"
 
 #define OBJECT_DEFAULT_SHAPES_SIZE 32
 #define OBJECT_DEFAULT_CHILDREN_SIZE 16
@@ -125,16 +126,23 @@ void objectfull_copy_to(const struct object_full* full, struct object_full* new)
     // layer boundaries
     if(full->private.layer_boundaries)
     {
-        new->private.layer_boundaries = hashmap_create(polygon_container_destroy);
-        struct hashmap_iterator* lbit = hashmap_iterator_create(full->private.layer_boundaries);
-        while(hashmap_iterator_is_valid(lbit))
+        new->private.layer_boundaries = vector_create(2, tuple2_destroy);
+        struct vector_iterator* lbit = vector_iterator_create(full->private.layer_boundaries);
+        while(vector_iterator_is_valid(lbit))
         {
-            const char* key = hashmap_iterator_key(lbit);
-            struct polygon_container* polygon_container = hashmap_iterator_value(lbit);
-            hashmap_insert(new->private.layer_boundaries, key, polygon_container_copy(polygon_container));
-            hashmap_iterator_next(lbit);
+            struct tuple2* tuple = vector_iterator_get(lbit);
+            const struct generics* key = tuple->first;
+            struct polygon_container* polygon_container = tuple->second;
+            struct tuple2* tnew = tuple2_create(
+                (void*) key,
+                NULL,
+                polygon_container_copy(polygon_container),
+                polygon_container_destroy
+            );
+            vector_append(new->private.layer_boundaries, tnew);
+            vector_iterator_next(lbit);
         }
-        hashmap_iterator_destroy(lbit);
+        vector_iterator_destroy(lbit);
     }
 
     // nets
@@ -209,7 +217,13 @@ void objectfull_destroy(struct object_full* full)
     // layer boundaries
     if(full->private.layer_boundaries)
     {
-        hashmap_destroy(full->private.layer_boundaries);
+        vector_destroy(full->private.layer_boundaries);
+    }
+
+    // nets
+    if(full->private.nets)
+    {
+        hashmap_destroy(full->private.nets);
     }
 }
 
@@ -233,16 +247,44 @@ struct shape* objectfull_disown_shape(struct object_full* full, size_t idx)
     return shape;
 }
 
-void objectfull_foreach_shapes(struct object_full* full, void (*func)(struct shape*))
+int objectfull_foreach_shapes_const(
+    const struct object_full* full,
+    const_shape_action action,
+    struct generic_arg* extraargs
+)
+{
+    if(full->private.shapes)
+    {
+        for(unsigned int i = 0; i < vector_size(full->private.shapes); ++i)
+        {
+            const struct shape* shape = vector_get(full->private.shapes, i);
+            if(!action(shape, extraargs))
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+int objectfull_foreach_shapes(
+    struct object_full* full,
+    shape_action action,
+    struct generic_arg* extraargs
+)
 {
     if(full->private.shapes)
     {
         for(unsigned int i = 0; i < vector_size(full->private.shapes); ++i)
         {
             struct shape* shape = vector_get(full->private.shapes, i);
-            func(shape);
+            if(!action(shape, extraargs))
+            {
+                return 0;
+            }
         }
     }
+    return 1;
 }
 
 struct shape* objectfull_get_shape(struct object_full* full, size_t idx)
@@ -377,6 +419,7 @@ int objectfull_foreach_children_const(const struct object_full* full, const_obje
             }
         }
     }
+    return 1;
 }
 
 int objectfull_foreach_children(struct object_full* full, object_action action, struct generic_arg* extraargs)
@@ -393,6 +436,7 @@ int objectfull_foreach_children(struct object_full* full, object_action action, 
             }
         }
     }
+    return 1;
 }
 
 int objectfull_foreach_references_const(
@@ -414,6 +458,7 @@ int objectfull_foreach_references_const(
             }
         }
     }
+    return 1;
 }
 
 int objectfull_foreach_references(
@@ -435,6 +480,7 @@ int objectfull_foreach_references(
             }
         }
     }
+    return 1;
 }
 
 int objectfull_has_children(const struct object_full* full)
@@ -710,6 +756,11 @@ coordinate_t* objectfull_get_anchor_line(const struct object_full* full, const c
     }
 }
 
+const struct hashmap* objectfull_get_anchors(const struct object_full* full)
+{
+    return full->private.anchors;
+}
+
 int objectfull_foreach_anchor(
     const struct object_full* full,
     const struct transformationmatrix* trans,
@@ -733,6 +784,7 @@ int objectfull_foreach_anchor(
         }
         hashmap_const_iterator_destroy(it);
     }
+    return 1;
 }
 
 void objectfull_clear_alignment_box(struct object_full* full)
@@ -843,6 +895,17 @@ struct vector* objectfull_set_boundary(struct object_full* full, struct vector* 
     return full->private.boundary;
 }
 
+static struct vector* _get_bounding_box(const struct object_full* full)
+{
+    coordinate_t* pts = objectfull_get_minmax_xy(full, NULL);
+    struct vector* boundary = vector_create(4, point_destroy);
+    vector_append(boundary, point_create(pts[0], pts[1]));
+    vector_append(boundary, point_create(pts[2], pts[1]));
+    vector_append(boundary, point_create(pts[2], pts[3]));
+    vector_append(boundary, point_create(pts[0], pts[3]));
+    return boundary;
+}
+
 struct vector* objectfull_get_boundary(const struct object_full* full)
 {
     if(full->private.boundary)
@@ -851,7 +914,7 @@ struct vector* objectfull_get_boundary(const struct object_full* full)
     }
     else
     {
-        return NULL;
+        return _get_bounding_box(full);
     }
 }
 
@@ -867,33 +930,60 @@ int objectfull_has_boundary(const struct object_full* full)
     }
 }
 
+static int _compare_layer_boundary(const void* v, const void* extraarg)
+{
+    const struct tuple2* tuple = v;
+    const struct generics* layer = extraarg;
+    if(tuple->first == layer)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 void objectfull_set_empty_layer_boundary(struct object_full* full, const struct generics* layer)
 {
     if(!full->private.layer_boundaries)
     {
-        full->private.layer_boundaries = hashmap_create(polygon_container_destroy);
+        full->private.layer_boundaries = vector_create(2, tuple2_destroy);
     }
-    if(hashmap_exists(full->private.layer_boundaries, (const char*)layer))
+    int index = vector_find_comp(full->private.layer_boundaries, _compare_layer_boundary, layer);
+    struct tuple2* tuple;
+    if(index != -1)
     {
-        struct polygon_container* boundary = hashmap_get(full->private.layer_boundaries, (const char*)layer);
-        polygon_container_destroy(boundary);
+        tuple = vector_get(full->private.layer_boundaries, index);
+        polygon_container_destroy(tuple->second);
     }
-    struct polygon_container* boundary = polygon_container_create_empty();
-    hashmap_insert(full->private.layer_boundaries, (const char*)layer, boundary);
+    else
+    {
+        tuple = tuple2_create((void*)layer, NULL, NULL, polygon_container_destroy); // fill second later
+        vector_append(full->private.layer_boundaries, tuple);
+    }
+    // create new polygon container, either the old one was destroyed or there was none
+    tuple->second = polygon_container_create_empty();
 }
 
 void objectfull_add_layer_boundary(struct object_full* full, const struct generics* layer, struct simple_polygon* new)
 {
     if(!full->private.layer_boundaries)
     {
-        full->private.layer_boundaries = hashmap_create(polygon_container_destroy);
+        full->private.layer_boundaries = vector_create(2, tuple2_destroy);
     }
-    if(!hashmap_exists(full->private.layer_boundaries, (const char*)layer))
+    int index = vector_find_comp(full->private.layer_boundaries, _compare_layer_boundary, layer);
+    struct tuple2* tuple;
+    if(index != -1)
     {
-        struct polygon_container* polygon_container = polygon_container_create();
-        hashmap_insert(full->private.layer_boundaries, (const char*)layer, polygon_container);
+        tuple = vector_get(full->private.layer_boundaries, index);
     }
-    struct polygon_container* boundary = hashmap_get(full->private.layer_boundaries, (const char*)layer);
+    else
+    {
+        tuple = tuple2_create((void*)layer, NULL, polygon_container_create(), polygon_container_destroy);
+        vector_append(full->private.layer_boundaries, tuple);
+    }
+    struct polygon_container* boundary = tuple->second;
     // add transformed polygon
     polygon_container_add(boundary, new);
 }
@@ -902,7 +992,8 @@ int objectfull_has_layer_boundary(const struct object_full* full, const struct g
 {
     if(full->private.layer_boundaries)
     {
-        return hashmap_exists(full->private.layer_boundaries, (const char*)layer);
+        int index = vector_find_comp(full->private.layer_boundaries, _compare_layer_boundary, layer);
+        return index != -1;
     }
     else
     {
@@ -919,15 +1010,17 @@ struct polygon_container* objectfull_get_layer_boundary(
     {
         return polygon_container_create_empty();
     }
-    struct polygon_container* cellboundary = hashmap_get(full->private.layer_boundaries, (const char*)layer);
-    if(cellboundary)
+    int index = vector_find_comp(full->private.layer_boundaries, _compare_layer_boundary, layer);
+    if(index != -1)
     {
-        if(polygon_container_is_empty(cellboundary))
+        struct tuple2* tuple = vector_get(full->private.layer_boundaries, index);
+        struct polygon_container* full = tuple->second;
+        if(polygon_container_is_empty(full))
         {
             return polygon_container_create_empty();
         }
         struct polygon_container* boundary = polygon_container_create();
-        struct polygon_container_const_iterator* pit = polygon_container_const_iterator_create(cellboundary);
+        struct polygon_container_const_iterator* pit = polygon_container_const_iterator_create(full);
         while(polygon_container_const_iterator_is_valid(pit))
         {
             const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(pit);
@@ -950,7 +1043,6 @@ struct polygon_container* objectfull_get_layer_boundary(
     else
     {
         struct polygon_container* boundary = polygon_container_create();
-        coordinate_t blx, bly, trx, try;
         coordinate_t* pts = objectfull_get_minmax_xy(full, NULL);
         struct simple_polygon* single_boundary = simple_polygon_create();
         simple_polygon_append(single_boundary, point_create(pts[0], pts[1]));
@@ -980,9 +1072,70 @@ void objectfull_add_label(struct object_full* full, struct port* label)
     vector_append(full->private.labels, label);
 }
 
+size_t objectfull_get_labels_size(const struct object_full* full)
+{
+    if(!full->private.labels)
+    {
+        return 0;
+    }
+    else
+    {
+        return vector_size(full->private.labels);
+    }
+}
+
+struct port* objectfull_get_label(struct object_full* full, size_t idx)
+{
+    return vector_get(full->private.labels, idx);
+}
+
+const struct generics* objectfull_get_label_layer(const struct object_full* full, size_t idx)
+{
+    return objectport_get_layer(vector_get(full->private.labels, idx));
+}
+
+void objectfull_remove_label(struct object_full* full, size_t idx)
+{
+    vector_remove(full->private.labels, idx);
+}
+
+const struct vector* objectfull_get_labels(
+    const struct object_full* full
+)
+{
+    return full->private.labels;
+}
+
 int objectfull_has_ports(const struct object_full* full)
 {
     return full->private.ports ? !vector_empty(full->private.ports) : 0;
+}
+
+size_t objectfull_get_ports_size(const struct object_full* full)
+{
+    if(!full->private.ports)
+    {
+        return 0;
+    }
+    else
+    {
+        return vector_size(full->private.ports);
+    }
+}
+
+struct port* objectfull_get_port(struct object_full* full, size_t idx)
+{
+    return vector_get(full->private.ports, idx);
+}
+
+const struct generics* objectfull_get_port_layer(const struct object_full* full, size_t idx)
+{
+    return objectport_get_layer(vector_get(full->private.ports, idx));
+}
+
+void objectfull_remove_port(struct object_full* full, size_t idx)
+{
+    vector_remove(full->private.ports, idx);
 }
 
 const struct vector* objectfull_get_ports(
@@ -1005,6 +1158,7 @@ int objectfull_foreach_port(const struct object_full* full, const struct transfo
             }
         }
     }
+    return 1;
 }
 
 int objectfull_foreach_label(const struct object_full* full, const struct transformationmatrix* trans, label_action action, struct generic_arg* extraargs)
@@ -1020,6 +1174,7 @@ int objectfull_foreach_label(const struct object_full* full, const struct transf
             }
         }
     }
+    return 1;
 }
 
 struct bltrshape* objectfull_add_net_shape(struct object_full* full, const char* netname, const struct point* bl, const struct point* tr, const struct generics* layer)
@@ -1034,9 +1189,16 @@ struct bltrshape* objectfull_add_net_shape(struct object_full* full, const char*
         hashmap_insert(full->private.nets, netname, v);
     }
     struct vector* nets = hashmap_get(full->private.nets, netname);
-    struct bltrshape* netarea = bltrshape_create(bl, tr, layer);
+    struct bltrshape* netarea = bltrshape_create(bl, tr, layer, netname);
     vector_append(nets, netarea);
     return netarea;
+}
+
+const struct hashmap* objectfull_get_all_net_shapes(
+    const struct object_full* full
+)
+{
+    return full->private.nets;
 }
 
 struct vector* objectfull_get_net_shapes(const struct object_full* full, const char* netname, const struct generics* layer)
@@ -1068,12 +1230,68 @@ struct vector* objectfull_get_net_shapes(const struct object_full* full, const c
     return new;
 }
 
+void objectfull_inherit_net_shapes(
+    struct object_full* cell,
+    const struct object_full* other,
+    const struct transformationmatrix* targettrans,
+    const struct transformationmatrix* sourcetrans,
+    const struct generics* layer
+)
+{
+    if(!other->private.nets)
+    {
+        return;
+    }
+    struct hashmap_const_iterator* it = hashmap_const_iterator_create(other->private.nets);
+    while(hashmap_const_iterator_is_valid(it))
+    {
+        const char* netname = hashmap_const_iterator_key(it);
+        const struct vector* nets = hashmap_const_iterator_value(it);
+        for(unsigned int i = 0; i < vector_size(nets); ++i)
+        {
+            const struct bltrshape* bltrshape = vector_get_const(nets, i);
+            int include = 1;
+            if(layer && !bltrshape_is_layer(bltrshape, layer))
+            {
+                include = 0;
+            }
+            if(include)
+            {
+                struct point* bl = point_copy(bltrshape_get_bl_const(bltrshape));
+                struct point* tr = point_copy(bltrshape_get_tr_const(bltrshape));
+                objectutil_transform_to_global_coordinates_pt(sourcetrans, bl);
+                objectutil_transform_to_global_coordinates_pt(sourcetrans, tr);
+                objectutil_transform_to_local_coordinates_pt(targettrans, bl);
+                objectutil_transform_to_local_coordinates_pt(targettrans, tr);
+                objectutil_fix_rectangle_order(bl, tr);
+                objectfull_add_net_shape(cell, netname, bl, tr, bltrshape_get_layer(bltrshape));
+                point_destroy(bl);
+                point_destroy(tr);
+            }
+        }
+        hashmap_const_iterator_next(it);
+    }
+    hashmap_const_iterator_destroy(it);
+}
+
+int objectfull_has_net(
+    const struct object_full* full,
+    const char* netname
+)
+{
+    if(full->private.nets && hashmap_exists(full->private.nets, netname))
+    {
+        const struct vector* nets = hashmap_get(full->private.nets, netname);
+        return vector_size(nets) > 0;
+    }
+    return 0;
+}
+
 coordinate_t* objectfull_get_minmax_xy(
     const struct object_full* full,
     const struct transformationmatrix* trans
 )
 {
-    coordinate_t* minmax = calloc(4, sizeof(coordinate_t)); // order: minx, miny, maxx, maxy
     // FIXME: arrays?
     coordinate_t minx = COORDINATE_MAX;
     coordinate_t maxx = COORDINATE_MIN;
@@ -1119,12 +1337,14 @@ coordinate_t* objectfull_get_minmax_xy(
             maxy = MAX2(maxy, maxy_);
         }
     }
+    // FIXME: put in helper function
+    coordinate_t* minmax = calloc(4, sizeof(coordinate_t)); // order: minx, miny, maxx, maxy
     *(minmax + 0) = minx;
-    *(minmax + 1) = maxx;
-    *(minmax + 2) = miny;
+    *(minmax + 1) = miny;
+    *(minmax + 2) = maxx;
     *(minmax + 3) = maxy;
+    return minmax;
 }
-
 
 void objectfull_flatten_inline(struct object_full* full, int flattenports)
 {
