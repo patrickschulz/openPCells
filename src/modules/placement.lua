@@ -100,13 +100,34 @@ function placement.optimize(circuit, floorplan)
     return rows
 end
 
-local function _find_object_place(places, object)
+local function _find_object_place(object, places)
     for _, place in ipairs(places) do
         if place.object == object then
             return place.x, place.y
         end
     end
     return nil
+end
+
+local function _calculate_symmetry(objects, places, symmetry_list)
+    local centerpoints = {}
+    local searchfun = function(entry, name)
+        return util.any_of(name, entry)
+    end
+    for i, s in ipairs(symmetry_list) do
+        centerpoints[i] = {
+            x = 0,
+            y = 0,
+        }
+    end
+    for _, object in ipairs(objects) do
+        local index = util.find_predicate(symmetry_list, searchfun, object.name)
+        if index then -- object has symmetry constraints
+            local x, y = _find_object_place(object, places)
+            centerpoints[index].x = centerpoints[index].x + x
+            centerpoints[index].y = centerpoints[index].y + y
+        end
+    end
 end
 
 local function _calculate_total_wire_length(wires, places, weights)
@@ -118,7 +139,7 @@ local function _calculate_total_wire_length(wires, places, weights)
         local maxx = -math.huge
         local maxy = -math.huge
         for _, object in ipairs(wire.targets) do
-            local x, y = _find_object_place(places, object)
+            local x, y = _find_object_place(object, places)
             minx = math.min(minx, x)
             miny = math.min(miny, y)
             maxx = math.max(maxx, x)
@@ -186,7 +207,7 @@ local function _is_local_net(netname, groups)
     return counter == 1 -- net is only present in one group
 end
 
-local function _run_placement(objects, wires, weights)
+local function _run_placement(objects, wires, weights, symmetry_list)
     local numobjects = #objects
     local permutations = util.generate_all_permutations(objects)
     local total_wire_length = math.huge
@@ -203,6 +224,8 @@ local function _run_placement(objects, wires, weights)
         for permnum, permutation in ipairs(permutations) do
             -- generate placement
             local places = _generate_object_placement(permutation, numx, numy)
+            -- calculate symmetry score/boolean (tbd)
+            local symmetry = _calculate_symmetry(objects, places, symmetry_list)
             -- calculate wire length
             local new_length = _calculate_total_wire_length(wires, places, weights)
             -- compare to previous results
@@ -258,6 +281,7 @@ function placement.place_analog(devices, groups, constraints, ignored_nets)
         y_wirelength = penalties.y_wirelength or 1,
         jog = penalties.wire_jogs or 0,
     }
+    local symmetry_list = constraints.symmetry or {}
 
     -- put every device in a group.
     -- if it is specified in 'groups' put all devices that belong to it in the same group.
@@ -308,7 +332,7 @@ function placement.place_analog(devices, groups, constraints, ignored_nets)
             end
         end
         -- perform in-group placement
-        local places = _run_placement(group.devices, wires, weights)
+        local places = _run_placement(group.devices, wires, weights, symmetry_list)
         for _, place in ipairs(places) do
             device_places[place.object.name] = {
                 x = place.x,
@@ -341,8 +365,11 @@ function placement.place_analog(devices, groups, constraints, ignored_nets)
         end
     end
 
+    -- assemble group symmetry constraints
+    local group_symmetry_list = {}
+
     -- perform global placement
-    local group_places = _run_placement(device_groups, wires, weights)
+    local group_places = _run_placement(device_groups, wires, weights, group_symmetry_list)
 
     return {
         devices = device_places,
