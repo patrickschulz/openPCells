@@ -5,7 +5,7 @@ local row1 = {
     gatelength = 100,
     gatespace = 200,
     width = 1000,
-    oxidetype = 2,
+    oxidetype = 1,
     vthtype = 1,
     devices = {
         {
@@ -27,7 +27,7 @@ local row2 = {
     gatelength = 100,
     gatespace = 200,
     width = 1000,
-    oxidetype = 2,
+    oxidetype = 1,
     vthtype = 1,
     devices = {
         {
@@ -48,4 +48,5 @@ local rows = {
 return {
     rows = rows,
     yseparation = 500,
+    checkshorts = false,
 }

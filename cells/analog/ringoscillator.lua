@@ -77,6 +77,7 @@ function layout(oscillator, _P)
         ngateext = _P.ngateext,
         numleftdummies = _P.invdummies,
         numrightdummies = _P.invdummies,
+        numinnerdummies = 2,
     }
 
     local inverter_chain = pcell.create_layout("analog/inverter_chain", "inverter_chain", util.add_options(baseopt, {

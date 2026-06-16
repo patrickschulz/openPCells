@@ -1,6 +1,6 @@
 ---
-#Checks: "-*,bugprone-*,readability-*,-readability-identifier-length,-readability-else-after-return"
-Checks: "-*,readability-inconsistent-declaration-parameter-name"
+Checks: "-*,bugprone-*,readability-*,-readability-identifier-length,-readability-else-after-return,-readability-function-cognitive-complexity"
+#Checks: "-*,readability-inconsistent-declaration-parameter-name"
 WarningsAsErrors: ''
 HeaderFileExtensions:
   - ''

@@ -1,5 +1,5 @@
 return {
-    outline = {
+    [generics.outline()] = {
         name = "_outline",
         layer = {
             gds = { layer = 255, purpose = 255 },
@@ -7,7 +7,7 @@ return {
             debug = { layer = "_outline" },
         }
     },
-    special = {
+    [generics.special()] = {
         name = "_special",
         layer = {
             gds = { layer = 0, purpose = 0 },
@@ -15,113 +15,165 @@ return {
             debug = { layer = "_special" },
         }
     },
-    active = {
+    [generics.text()] = {
+        name = "text",
+        layer = {
+            gds = { layer = 234, purpose = 0 },
+            SKILL = { layer = "text", purpose = "drawing" },
+            debug = { layer = "text" },
+            json = { layer = "text" },
+            svg = { style = "text", order = 1, color = "ffffff" },
+        }
+    },
+    [generics.error()] = {
+        name = "text",
+        layer = {
+            gds = { layer = 235, purpose = 0 },
+            SKILL = { layer = "error", purpose = "drawing" },
+            debug = { layer = "error" },
+            json = { layer = "error" },
+            svg = { style = "error", order = 1, color = "ff0000" },
+        }
+    },
+    [generics.active()] = {
         name = "active",
         layer = {
             gds = { layer = 1, purpose = 0 },
             SKILL = { layer = "active", purpose = "drawing" },
             debug = { layer = "active" },
             svg = { style = "active", order = 2, color = "38c316" },
+            json = { layer = "active" },
         }
     },
-    nwell = {
+    [generics.well("n")] = {
         name = "nwell",
         layer = {
             gds = { layer = 3, purpose = 0 },
             SKILL = { layer = "nwell", purpose = "drawing" },
             debug = { layer = "nwell" },
             svg = { color = "ccffff", order = 1, nooutline = true },
+            json = { layer = "nwell" },
         }
     },
-    deepnwell = {
+    [generics.well("n", "deep")] = {
         name = "deepnwell",
         layer = {
             gds = { layer = 33, purpose = 0 },
             SKILL = { layer = "deepnwell", purpose = "drawing" },
             debug = { layer = "deepnwell" },
             svg = { color = "ccffff", order = 1 },
+            json = { layer = "deepnwell" },
         }
     },
-    pimplant = {
+    [generics.implant("p")] = {
         name = "pimplant",
         layer = {
             gds = { layer = 4, purpose = 0 },
             SKILL = { layer = "pimplant", purpose = "drawing" },
             debug = { layer = "pimplant" },
             svg = { color = "333333", ignore = true },
+            json = { layer = "pimplant" },
         }
     },
-    nimplant = {
+    [generics.implant("n")] = {
         name = "nimplant",
         layer = {
             gds = { layer = 5, purpose = 0 },
             SKILL = { layer = "nimplant", purpose = "drawing" },
             debug = { layer = "nimplant" },
             svg = { color = "333333", ignore = true },
+            json = { layer = "nimplant" },
         }
     },
-    gate = {
+    [generics.oxide(2)] = {
+        name = "tox",
+        layer = {
+            gds = { layer = 32, purpose = 0 },
+            SKILL = { layer = "tox", purpose = "drawing" },
+            debug = { layer = "tox" },
+            svg = { color = "333333", ignore = true },
+            json = { layer = "tox" },
+        }
+    },
+    [generics.gate()] = {
         name = "poly",
         layer = {
             gds = { layer = 6, purpose = 0 },
             SKILL = { layer = "poly", purpose = "drawing" },
             debug = { layer = "poly" },
             svg = { style = "gate", order = 3, color = "ff0000" },
+            json = { layer = "gate" },
         }
     },
-    contactactive = {
+    [generics.contact("active")] = {
         name = "contactactive",
         layer = {
             gds = { layer = 7, purpose = 0 },
             SKILL = { layer = "contactactive", purpose = "drawing" },
             debug = { layer = "contactactive" },
             svg = { style = "contactactive", order = 5, color = "ffff00" },
+            json = { layer = "contactactive" },
         }
     },
-    contactsourcedrain = {
+    [generics.contact("sourcedrain")] = {
         name = "contactsourcedrain",
         layer = {
             gds = { layer = 7, purpose = 0 },
             SKILL = { layer = "contactsourcedrain", purpose = "drawing" },
             debug = { layer = "contactsourcedrain" },
             svg = { style = "contactsourcedrain", order = 5, color = "ffff00" },
+            json = { layer = "contactsourcedrain" },
         }
     },
-    contactgate = {
+    [generics.contact("gate")] = {
         name = "contactgate",
         layer = {
             gds = { layer = 7, purpose = 0 },
             SKILL = { layer = "contactgate", purpose = "drawing" },
             debug = { layer = "contactgate" },
             svg = { style = "contactgate", order = 5, color = "ffffff" },
+            json = { layer = "contactgate" },
         }
     },
-    M1 = {
+    [generics.contact("poly")] = {
+        name = "contactpoly",
+        layer = {
+            gds = { layer = 7, purpose = 0 },
+            SKILL = { layer = "contactpoly", purpose = "drawing" },
+            debug = { layer = "contactpoly" },
+            svg = { style = "contactpoly", order = 5, color = "ffffff" },
+            json = { layer = "contactpoly" },
+        }
+    },
+    [generics.metal(1)] = {
         name = "metal1",
         layer = {
             gds = { layer = 8, purpose = 0 },
             SKILL = { layer = "metal1", purpose = "drawing" },
             debug = { layer = "metal1" },
             svg = { style = "metal1", order = 4, color = "0000ff" },
+            json = { layer = "M1" },
         }
     },
-    M1exclude = {},
-    viacutM1M2 = {
+    [generics.metalexclude(1)] = {},
+    [generics.viacut(1, 2)] = {
         name = "via1",
         layer = {
             gds = { layer = 9, purpose = 0 },
             SKILL = { layer = "via1", purpose = "drawing" },
             debug = { layer = "via1" },
             svg = { style = "via1", order = 7, color = "fff000" },
+            json = { layer = "viacutM1M2" },
         }
     },
-    M2 = {
+    [generics.metal(2)] = {
         name = "metal2",
         layer = {
             gds = { layer = 10, purpose = 0 },
             SKILL = { layer = "metal2", purpose = "drawing" },
             debug = { layer = "metal2" },
             svg = { style = "metal2", order = 6, color = "ff00ff" },
+            json = { layer = "M2" },
         }
     },
     M2exclude = {},
@@ -132,6 +184,7 @@ return {
             SKILL = { layer = "via2", purpose = "drawing" },
             debug = { layer = "via2" },
             svg = { color = "ff1212" },
+            json = { layer = "viacutM2M3" },
         }
     },
     M3 = {
@@ -140,7 +193,8 @@ return {
             gds = { layer = 12, purpose = 0 },
             SKILL = { layer = "metal3", purpose = "drawing" },
             debug = { layer = "metal3" },
-            svg = { color = "ff1212", order = 8 },
+            svg = { color = "ffae00", order = 8 },
+            json = { layer = "M3" },
         }
     },
     M3exclude = {},
@@ -159,7 +213,7 @@ return {
             gds = { layer = 14, purpose = 0 },
             SKILL = { layer = "metal4", purpose = "drawing" },
             debug = { layer = "metal4" },
-            svg = { color = "808080" },
+            svg = { color = "ddff00" },
         }
     },
     M4exclude = {},
@@ -377,15 +431,6 @@ return {
             svg = { color = "ccffff", order = 1 },
         }
     },
-    gatecut = {
-        name = "gatecut",
-        layer = {
-            gds = { layer = 27, purpose = 0 },
-            SKILL = { layer = "gatecut", purpose = "drawing" },
-            debug = { layer = "gatecut" },
-            svg = { color = "8000ff", order = 1 },
-        }
-    },
     silicideblocker = {
         name = "silicideblocker",
         layer = {
@@ -397,7 +442,6 @@ return {
     },
     -- unused layers
     oxide1 = {},
-    oxide2 = {},
     gatemarker1 = {},
     vthtypen1 = {},
     vthtypen2 = {},

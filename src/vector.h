@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "foreach.h"
+
 struct vector;
 struct vector* vector_create(size_t capacity, void (*destructor)(void*));
 void vector_destroy(void* vector);
@@ -19,14 +21,18 @@ void* vector_disown_content(struct vector* vector);
 void* vector_disown_element(struct vector* vector, size_t index);
 void vector_set(struct vector* vector, size_t i, void* element);
 void vector_append(struct vector* vector, void* element);
-void vector_swap(struct vector* vector, size_t i, size_t j);
+void vector_swap(struct vector* vector, size_t idx1, size_t idx2);
 void vector_prepend(struct vector* vector, void* element);
 void vector_remove(struct vector* vector, size_t index);
 void vector_sort(struct vector* vector, int (*cmp_func)(const void*, const void*));
-void vector_swap(struct vector* vector, size_t idx1, size_t idx2);
 void vector_reverse(struct vector* vector);
 int vector_find_flat(const struct vector* vector, const void* p);
 int vector_find_comp(const struct vector* vector, int (*comp) (const void* v, const void* extraarg), const void* extraarg);
+typedef int (*vector_action)(
+    void* v,
+    struct generic_arg* extraargs
+);
+int vector_foreach(struct vector* vector, vector_action action, struct generic_arg* extraargs);
 void vector_foreach0(struct vector* vector, void (*func) (void* v));
 void vector_foreach0_const(const struct vector* vector, void (*func) (const void* v));
 void vector_foreach1(struct vector* vector, void (*func) (void* v, void* extraarg), void* extraarg);

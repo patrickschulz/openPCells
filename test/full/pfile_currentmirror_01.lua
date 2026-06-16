@@ -1,0 +1,3 @@
+return {
+    diodemetal = 2,
+}

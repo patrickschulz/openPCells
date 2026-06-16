@@ -98,10 +98,12 @@ Furthermore, it can also import GDSII-streams and create an opc-own representati
 See `--read-gds` for this.
 All command line options are documented with `--help` and a few basic examples for usage are given at the end.
 Help for API functions is provided by `--api-list` (list all available API functions), `--api-search` (search for matching function names) and `api-help` (display detailed help about a specific function).
+The HTML documentation can be accessed by `opc --html-documentation`.
+It is currently in an early state, the entire documentation is being updated and polished.
 
 # Building and Installation
 Building this project is fairly simple, as the sole dependency is a C compiler.
-It was mainly with various gcc versions (11 - 15, 4.7.x), but also compiles with clang, tcc and kefir.
+It was tested mainly with various gcc versions (11 - 15, 4.7.x), but also compiles with clang, tcc and kefir.
 The build and install process installs all required files in standard paths (/usr/bin, /usr/share), but these paths can be configured.
 It is also possible to install it locally, which does not require any root privileges.
 Short-cut configure options exist to make this process easy.
@@ -128,8 +130,8 @@ Building and installing locally:
 This uses gcc as compiler, if you have any specific needs, the compiler can be adapted in `src/Makefile`.
 
 Please note that if you don't 'install' opc (by copying it into the proper location), you should use `--all-load-paths-local`.
-This configures the load paths so that opc can be called with the absolute path (or an alias). If you don't plan to install opc properly, you should
-use the third shown build method ('Building and installing locally').
+This configures the load paths so that opc can be called with the absolute path (or an alias).
+If you don't plan to install opc properly, you should use the third shown build method ('Building and installing locally').
 
 # Integration in EDA Tools
 OpenPCells can be integrated quite simply in EDA tools that provide an API for adding menus, calling external programs and reading files.

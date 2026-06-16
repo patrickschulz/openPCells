@@ -13,7 +13,7 @@ procedure(OPCCreateCellBackup()
             OPCExportCell(lsprintf("%s/%s_%s.lua" path cv->libName cv->cellName))
         )
     )
-)
+) ; OPCCreateCellBackup
 
 procedure(OPCRestoreCellBackup()
     let(
@@ -45,4 +45,4 @@ procedure(OPCRestoreCellBackup()
             else
         )
     )
-)
+) ; OPCRestoreCellBackup

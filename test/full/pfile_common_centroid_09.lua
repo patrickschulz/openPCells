@@ -1,0 +1,23 @@
+return {
+    pattern = {
+        { 1, 2 },
+        { 2, 1 },
+    },
+    channeltype = "pmos",
+    outerdummies = 2,
+    outerdummyrows = 1,
+    outerdummiesfingerwidth = 5000,
+    shortdummies = true,
+    drawinnerguardrings = true,
+    fingers = 2,
+    fingerwidth = 1000,
+    gatemetal = 2,
+    interconnectmetal = 3,
+    gatelinemetal = 3,
+    sourcemetal = 2,
+    drainmetal = 2,
+    interconnectlinewidth = 400,
+    gatelinewidth = 400,
+    outputlinewidth = 1000,
+    insertglobalguardringlines = true,
+}

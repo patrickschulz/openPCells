@@ -13,6 +13,7 @@
 #include "lrouter.h"
 #include "lua_util.h"
 #include "main.functions.h"
+#include "main.lua.h"
 #include "util_cmodule.h"
 #include "util.h"
 
@@ -25,7 +26,6 @@ int main_import_script(const char* scriptname, const struct const_vector* args)
     module_load_globals(L);
     module_load_check(L);
     module_load_aux(L);
-    module_load_stack(L);
     module_load_util(L);
     module_load_verilog(L);
     module_load_verilogprocessor(L);

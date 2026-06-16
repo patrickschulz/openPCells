@@ -113,125 +113,172 @@ local function _newline(lines)
     table.insert(lines, "")
 end
 
-function M.analog(file, devices, placement, nets)
+function M.analog(file, settings, devices, places, routes)
     local lines = {}
-    -- start cellscript
-    _section(lines, "top-level cell")
-    table.insert(lines, "local cell = object.create(\"cell\")")
-    -- device creation
+    local level = 0
+    local function _insert(fmt, ...)
+        table.insert(lines, string.rep(" ", 4 * level) .. string.format(fmt, ...))
+    end
+    local function _increase()
+        level = level + 1
+    end
+    local function _decrease()
+        level = level - 1
+    end
+    -- top-level cell
+    table.insert(lines, "local toplevel = object.create(\"toplevel\")")
     _newline(lines)
-    _section(lines, "devices")
+    -- important value settings
+    _insert("local interconnectlinewidth = %d", (settings and settings.interconnectlinewidth) or 100)
+    _insert("local interconnectlinespace = %d", (settings and settings.interconnectlinespace) or 100)
+    _newline(lines)
+    -- begin of device bases
+    _insert("local devicebases = {")
+    _increase()
     for _, device in ipairs(devices) do
-        table.insert(lines, "-- nets:")
-        for k, v in pairs(device.connections) do
-            table.insert(lines, string.format("--  %s = %s", k, v))
-        end
-        local paramt = {}
+        -- start of device
+        _insert("-- * %s *", device.name)
+        _insert("[\"%sbase\"] = {", device.name)
+        _increase()
+        -- parameters
         for k, v in pairs(device.parameters) do
             if type(v) == "number" then
-                table.insert(paramt, string.format("%s = %d", k, math.floor(v + 0.5)))
+                _insert("%s = %d,", k, math.floor(v + 0.5))
             else
-                table.insert(paramt, string.format("%s = %q", k, v))
+                _insert("%s = %q,", k, v)
             end
         end
-        local fmt = "local %s = pcell.create_layout(\"basic/mosfet\", \"_%s\", {\n    %s\n})"
-        table.insert(lines, string.format(fmt, device.name, device.name, table.concat(paramt, ",\n    ")))
+        _decrease()
+        _insert("},")
+        -- end of device
     end
-    -- placement
+    _decrease()
+    _insert("}")
+    -- end of device bases
     _newline(lines)
-    _section(lines, "placement")
-    local group = stack.create()
-    local allgroups = 0
-    local groupcontent = stack.create()
-    for _, entry in ipairs(placement) do
-        if entry.what == "initial" then
-            -- do nothing, initial placement can be anywhere
-            -- FIXME: perhaps provide an option to specify placement?
-            if groupcontent:peek() then
-                table.insert(groupcontent:top(), entry.object)
-            end
-        elseif entry.what == "abut" then
-            local x
-            local y
-            if entry.where == "top" then
-                x = "align_center_x"
-                y = "abut_top"
-            elseif entry.where == "bottom" then
-                x = "align_center_x"
-                y = "abut_bottom"
-            elseif entry.where == "left" then
-                x = "abut_left"
-                y = "align_center_y"
-            elseif entry.where == "right" then
-                x = "abut_right"
-                y = "align_center_y"
-            else
-                error(string.format("generator.analog: placement entry has unknown 'where' type: '%s'", entry.where))
-            end
-            table.insert(lines, string.format("%s:%s(%s)", entry.object, x, entry.reference))
-            table.insert(lines, string.format("%s:%s(%s)", entry.object, y, entry.reference))
-            if groupcontent:peek() then
-                table.insert(groupcontent:top(), entry.object)
-            end
-        elseif entry.what == "place" then
-            local x
-            local y
-            if entry.where == "top" then
-                x = "align_center_x"
-                y = "place_top"
-            elseif entry.where == "bottom" then
-                x = "align_center_x"
-                y = "place_bottom"
-            elseif entry.where == "left" then
-                x = "place_left"
-                y = "align_center_y"
-            elseif entry.where == "right" then
-                x = "place_right"
-                y = "align_center_y"
-            else
-                error(string.format("generator.analog: placement entry has unknown 'where' type: '%s'", entry.where))
-            end
-            table.insert(lines, string.format("%s:%s(%s)", entry.object, x, entry.reference))
-            table.insert(lines, string.format("%s:%s(%s)", entry.object, y, entry.reference))
-            if groupcontent:peek() then
-                table.insert(groupcontent:top(), entry.object)
-            end
-        elseif entry.what == "startgroup" then
-            allgroups = allgroups + 1
-            group:push(string.format("ag%d", allgroups))
-            table.insert(lines, string.format("local %s = alignmentgroup.create()", group:top()))
-            groupcontent:push({})
-        elseif entry.what == "endgroup" then
-            local groupname = group:top()
-            for _, member in ipairs(groupcontent:top()) do
-                table.insert(lines, string.format("%s:add(%s)", groupname, member))
-            end
-            group:pop()
-            groupcontent:pop()
-            if groupcontent:peek() then
-                table.insert(groupcontent:top(), groupname)
-            end
-        else
-            error(string.format("generator.analog: placement entry has unknown 'what' type: '%s'", entry.what))
-        end
-    end
-    -- merging
-    _newline(lines)
-    _section(lines, "merging")
+    -- begin of devices
+    _insert("local devices = {")
+    _increase()
     for _, device in ipairs(devices) do
-        table.insert(lines, string.format("cell:merge_into(%s)", device.name))
+        -- start of device
+        _insert("-- * %s *", device.name)
+        _insert("{")
+        _increase()
+        -- name
+        _insert("name = \"%s\",", device.name)
+        -- base
+        _insert("base = \"%sbase\",", device.name)
+        -- placement
+        _insert("x = %d,", places.devices[device.name].x)
+        _insert("y = %d,", places.devices[device.name].y)
+        -- nets
+        _insert("nets = {")
+        _increase()
+        for k, v in pairs(device.connections) do
+            _insert("%s = \"%s\",", k, v)
+        end
+        _decrease()
+        _insert("},")
+        -- end of nets
+        _decrease()
+        _insert("},")
+        -- end of device
     end
+    _decrease()
+    _insert("}")
+    -- end of devices
+    _newline(lines)
+    -- begin of device groups
+    _insert("local devicegroups = {")
+    _increase()
+    for i, place in ipairs(places.groups) do
+        -- start of group
+        _insert("-- * group %d *", i)
+        _insert("{")
+        _increase()
+        -- name
+        _insert("name = \"group_%d\",", i)
+        -- devices
+        local devicetable = util.select_key(place.object.devices, "name")
+        _insert("devices = { %s },", util.tconcatfmt(devicetable, ", ", "\"%s\""))
+        -- well type
+        -- for now: use auto-assignment in analog/circuit
+        --_insert("welltype = \"%s\",", "n")
+        -- grid position
+        _insert("x = %d,", place.x)
+        _insert("y = %d,", place.y)
+        -- grid position
+        --_insert("x = %d,", places[device.name].x)
+        --_insert("y = %d,", places[device.name].y)
+        _decrease()
+        _insert("},")
+        -- end of group
+    end
+    _decrease()
+    _insert("}")
+    -- end of device groups
     --[[
-    for _, device in ipairs(devices) do
-        table.insert(lines, string.format("cell:merge_into(%s)", device.name))
+    _insert("intergridlines = {")
+    _increase()
+    for _, route in ipairs(routes.vertical) do
+        _insert("{")
+        _increase()
+        _insert("net = \"%s\",", route.net)
+        _insert("xgrid = %d,", route.xgrid)
+        _insert("xline = %d,", route.xline)
+        _insert("ygridstart = %d,", route.ygridstart)
+        _insert("ygridend = %d,", route.ygridend)
+        _insert("ylinestart = %d,", route.ylinestart)
+        _insert("ylineend = %d,", route.ylineend)
+        _decrease()
+        _insert("},")
     end
+    _decrease()
+    _insert("},")
+    -- end of intergridlines
+    _insert("gridlines = {")
+    _increase()
+    for _, route in ipairs(routes.horizontal) do
+        _insert("{")
+        _increase()
+        _insert("net = \"%s\",", route.net)
+        _insert("xgridstart = %d,", route.xgridstart)
+        _insert("xgridend = %d,", route.xgridend)
+        _insert("xlinestart = %d,", route.xlinestart)
+        _insert("xlineend = %d,", route.xlineend)
+        _insert("ygrid = %d,", route.ygrid)
+        _insert("yline = %d,", route.yline)
+        _decrease()
+        _insert("},")
+    end
+    _decrease()
+    _insert("},")
+    -- end of gridlines
+    _insert("netlabel_size = 50,")
+    _decrease()
+    _insert("})")
+    -- end of analog/circuit
+    -- merge circuit into toplevel
     --]]
+    -- device creation
     _newline(lines)
-    _section(lines, "routing")
-    -- end cellscript
+    _insert("local circuit = pcell.create_layout(\"analog/circuit\", \"circuit\", {")
+    _increase()
+    _insert("allow_failed_grid_connections = true,")
+    _insert("check_grid_connections = false,")
+    _insert("devicebases = devicebases,")
+    _insert("devices = devices,")
+    _insert("devicegroups = devicegroups,")
+    _insert("interconnectlinewidth = interconnectlinewidth,")
+    _insert("interconnectlinespace = interconnectlinespace,")
+    _insert("vlines = vlines,")
+    _insert("hlines = hlines,")
+    _decrease()
+    _insert("})")
     _newline(lines)
-    _section(lines, "final return")
-    table.insert(lines, "return cell")
+    _insert("toplevel:merge_into(circuit)")
+    _newline(lines)
+    _insert("return toplevel")
     file:write(table.concat(lines, '\n'))
 end
 

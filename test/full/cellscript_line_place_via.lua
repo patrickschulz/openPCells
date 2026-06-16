@@ -1,0 +1,29 @@
+local cell = object.create("cell")
+
+cell:add_area_anchor_bltr("guardring1", point.create(0, 0), point.create(1200, 200))
+cell:add_area_anchor_bltr("guardring2", point.create(1000, 0), point.create(2800, 200))
+cell:add_net_shape("VDD", cell:get_area_anchor("guardring1").bl, cell:get_area_anchor("guardring1").tr, generics.metal(1))
+cell:add_net_shape("VDD", cell:get_area_anchor("guardring2").bl, cell:get_area_anchor("guardring2").tr, generics.metal(1))
+geometry.rectangleareaanchor(cell, generics.metal(1), "guardring1")
+geometry.rectangleareaanchor(cell, generics.metal(1), "guardring2")
+
+local vlines = layouthelpers.place_vlines(
+    cell,
+    point.create(-500, -500),
+    point.create(2500, 1000),
+    generics.metal(2),
+    500, 500,
+    0, -- minheight
+    { "VDD" },
+    nil, -- no excludes
+    250
+)
+
+local netshapes = cell:get_net_shapes("VDD", generics.metal(1))
+
+-- first nil: no excludes
+-- second nil: no net filters
+-- true: only full vias
+layouthelpers.place_vias(cell, netshapes, vlines, nil, nil, true)
+
+return cell

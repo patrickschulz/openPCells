@@ -14,25 +14,46 @@ function parameters()
         { "wellouterextension",                             technology.get_dimension("Minimum Well Extension"), follow = "extendallouter" },
         { "drawsoiopen",                                    true, },
         { "fillsoiopen",                                    false },
-        { "soiopeninnerextension",                          technology.get_optional_dimension("Minimum Soiopen Extension") , follow = "extendallinner" },
-        { "soiopenouterextension",                          technology.get_optional_dimension("Minimum Soiopen Extension") , follow = "extendallouter" },
+        { "soiopeninnerextension",                          technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "extendallinner" },
+        { "soiopenouterextension",                          technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "extendallouter" },
         { "implantinnerextension",                          technology.get_dimension("Minimum Implant Extension"), follow = "extendallinner" },
         { "implantouterextension",                          technology.get_dimension("Minimum Implant Extension"), follow = "extendallouter" },
         { "drawimplant",                                    true },
         { "fillinnerimplant",                               false },
         { "innerimplantpolarity",                           "p" },
         { "innerimplantspace",                              0 },
+        { "drawoxidetype",                                  true },
+        { "oxidetype",                                      1 },
+        { "filloxidetype",                                  true },
+        { "oxidetypeinnerextension",                        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallinner" },
+        { "oxidetypeouterextension",                        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallouter" },
+        { "drawwell",                                       true },
         { "fillwell",                                       true },
         { "fillwelldrawhole",                               false },
-        { "fillwellholeoffsettop",                          0 },
-        { "fillwellholeoffsetbottom",                       0 },
-        { "fillwellholeoffsetleft",                         0 },
-        { "fillwellholeoffsetright",                        0 },
+        { "fillwellholeoffset",                             0 },
+        { "fillwellholeoffsettop",                          0, follow = "fillwellholeoffset" },
+        { "fillwellholeoffsetbottom",                       0, follow = "fillwellholeoffset" },
+        { "fillwellholeoffsetleft",                         0, follow = "fillwellholeoffset" },
+        { "fillwellholeoffsetright",                        0, follow = "fillwellholeoffset" },
         { "drawdeepwell",                                   false },
-        { "deepwelloffset",                                 0 },
+        { "deepwelloffset",                                 technology.get_optional_dimension("Deep Well Offset", 0) },
         { "fit",                                            false },
-        { "failifnotfit",                                   false }
+        { "failifnotfit",                                   false },
+        { "net",                                            "" },
+        { "addtopbottomnet",                                false },
+        { "addtopnet",                                      false, follow = "addtopbottomnet" },
+        { "addbottomnet",                                   false, follow = "addtopbottomnet" },
+        { "addleftrightnet",                                false },
+        { "addleftnet",                                     false, follow = "addleftrightnet" },
+        { "addrightnet",                                    false, follow = "addleftrightnet" }
     )
+end
+
+function check(_P)
+    if _P.net ~= "" and not (_P.addtopnet or _P.addbottomnet or _P.addleftnet or _P.addrightnet) then
+        return false, "if a non-empty net is given, at least one segment must be specified as to be added to the net (e.g. 'addtopnet = true')"
+    end
+    return true
 end
 
 function anchors()
@@ -83,6 +104,14 @@ function anchors()
     pcell.add_area_anchor_documentation(
         "innersoiopen",
         "rectangular area of the inner soiopen boundary. Always present, but only meaningful in an SOI node"
+    )
+    pcell.add_area_anchor_documentation(
+        "outeroxidetype",
+        "rectangular area of the outer oxidetype boundary. Always present, but only meaningful in an SOI node"
+    )
+    pcell.add_area_anchor_documentation(
+        "inneroxidetype",
+        "rectangular area of the inner oxidetype boundary. Always present, but only meaningful in an SOI node"
     )
     pcell.add_area_anchor_documentation(
         "outerboundary",
@@ -166,10 +195,18 @@ function layout(guardring, _P)
                 )
             end
         end
+        -- soiopen
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.feol("soiopen"),
                 point.create(-_P.ringwidth - _P.soiopenouterextension, holeheight - _P.soiopeninnerextension),
                 point.create(holewidth + _P.ringwidth + _P.soiopenouterextension, holeheight + _P.ringwidth + _P.soiopenouterextension)
+            )
+        end
+        -- oxidetype
+        if _P.drawoxidetype and not _P.filloxidetype then
+            geometry.rectanglebltr(guardring, generics.oxide(_P.oxidetype),
+                point.create(-_P.ringwidth - _P.oxidetypeouterextension, holeheight - _P.oxidetypeinnerextension),
+                point.create(holewidth + _P.ringwidth + _P.oxidetypeouterextension, holeheight + _P.ringwidth + _P.oxidetypeouterextension)
             )
         end
         guardring:add_area_anchor_bltr("topsegment",
@@ -215,10 +252,18 @@ function layout(guardring, _P)
                 )
             end
         end
+        -- soiopen
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.feol("soiopen"),
                 point.create(-_P.ringwidth - _P.soiopenouterextension, -_P.ringwidth - _P.soiopenouterextension),
                 point.create(holewidth + _P.ringwidth + _P.soiopenouterextension, _P.soiopeninnerextension)
+            )
+        end
+        -- oxidetype
+        if _P.drawoxidetype and not _P.filloxidetype then
+            geometry.rectanglebltr(guardring, generics.oxide(_P.oxidetype),
+                point.create(-_P.ringwidth - _P.oxidetypeouterextension, -_P.ringwidth - _P.oxidetypeouterextension),
+                point.create(holewidth + _P.ringwidth + _P.oxidetypeouterextension, _P.oxidetypeinnerextension)
             )
         end
         guardring:add_area_anchor_bltr("bottomsegment",
@@ -264,10 +309,18 @@ function layout(guardring, _P)
                 )
             end
         end
+        -- soiopen
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.feol("soiopen"),
                 point.create(-_P.soiopenouterextension- _P.ringwidth, -_P.soiopenouterextension - _P.ringwidth),
                 point.create(_P.soiopeninnerextension, holeheight + _P.soiopenouterextension + _P.ringwidth)
+            )
+        end
+        -- oxidetype
+        if _P.drawoxidetype and not _P.filloxidetype then
+            geometry.rectanglebltr(guardring, generics.oxide(_P.oxidetype),
+                point.create(-_P.oxidetypeouterextension- _P.ringwidth, -_P.oxidetypeouterextension - _P.ringwidth),
+                point.create(_P.oxidetypeinnerextension, holeheight + _P.oxidetypeouterextension + _P.ringwidth)
             )
         end
         guardring:add_area_anchor_bltr("leftsegment",
@@ -313,10 +366,18 @@ function layout(guardring, _P)
                 )
             end
         end
+        -- soiopen
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.feol("soiopen"),
                 point.create(holewidth - _P.soiopeninnerextension, -_P.soiopenouterextension - _P.ringwidth),
                 point.create(holewidth + _P.soiopenouterextension + _P.ringwidth, holeheight + _P.soiopenouterextension + _P.ringwidth)
+            )
+        end
+        -- oxidetype
+        if _P.drawoxidetype and not _P.filloxidetype then
+            geometry.rectanglebltr(guardring, generics.oxide(_P.oxidetype),
+                point.create(holewidth - _P.oxidetypeinnerextension, -_P.oxidetypeouterextension - _P.ringwidth),
+                point.create(holewidth + _P.oxidetypeouterextension + _P.ringwidth, holeheight + _P.oxidetypeouterextension + _P.ringwidth)
             )
         end
         guardring:add_area_anchor_bltr("rightsegment",
@@ -326,7 +387,7 @@ function layout(guardring, _P)
     end
 
     -- well
-    if _P.contype ~= "none" then
+    if _P.drawwell and _P.contype ~= "none" then
         if _P.fillwell then
             if _P.fillwelldrawhole then
                 geometry.unequal_ring_pts(guardring, generics.well(_P.contype),
@@ -379,10 +440,19 @@ function layout(guardring, _P)
         )
     end
 
+    -- soiopen (filled)
     if _P.drawsoiopen and _P.fillsoiopen then
         geometry.rectanglebltr(guardring, generics.feol("soiopen"),
             point.create(-_P.ringwidth - _P.soiopenouterextension, -_P.ringwidth - _P.soiopenouterextension),
             point.create(holewidth + _P.ringwidth + _P.soiopenouterextension, holeheight + _P.ringwidth + _P.soiopenouterextension)
+        )
+    end
+
+    -- oxidetype (filled)
+    if _P.drawoxidetype and _P.filloxidetype then
+        geometry.rectanglebltr(guardring, generics.oxide(_P.oxidetype),
+            point.create(-_P.ringwidth - _P.oxidetypeouterextension, -_P.ringwidth - _P.oxidetypeouterextension),
+            point.create(holewidth + _P.ringwidth + _P.oxidetypeouterextension, holeheight + _P.ringwidth + _P.oxidetypeouterextension)
         )
     end
 
@@ -411,6 +481,14 @@ function layout(guardring, _P)
         point.create(-_P.ringwidth - _P.soiopenouterextension, -_P.ringwidth - _P.soiopenouterextension),
         point.create(holewidth + _P.ringwidth + _P.soiopenouterextension, holeheight + _P.ringwidth + _P.soiopenouterextension)
     )
+    guardring:add_area_anchor_bltr("inneroxide",
+        point.create(_P.oxidetypeinnerextension, _P.oxidetypeinnerextension),
+        point.create(holewidth - _P.oxidetypeinnerextension, holeheight - _P.oxidetypeinnerextension)
+    )
+    guardring:add_area_anchor_bltr("outeroxide",
+        point.create(-_P.ringwidth - _P.oxidetypeouterextension, -_P.ringwidth - _P.oxidetypeouterextension),
+        point.create(holewidth + _P.ringwidth + _P.oxidetypeouterextension, holeheight + _P.ringwidth + _P.oxidetypeouterextension)
+    )
 
     guardring:set_alignment_box(
         point.create(-_P.ringwidth, -_P.ringwidth),
@@ -424,4 +502,40 @@ function layout(guardring, _P)
         point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth),
         point.create(-_P.ringwidth, holeheight + _P.ringwidth),
     })
+
+    -- add net to segments
+    if _P.net ~= "" then
+        if util.any_of("top", _P.drawsegments) and _P.addtopnet then
+            guardring:add_net_shape(
+                _P.net,
+                guardring:get_area_anchor("topsegment").bl,
+                guardring:get_area_anchor("topsegment").tr,
+                generics.metal(_P.topmetal)
+            )
+        end
+        if util.any_of("bottom", _P.drawsegments) and _P.addbottomnet then
+            guardring:add_net_shape(
+                _P.net,
+                guardring:get_area_anchor("bottomsegment").bl,
+                guardring:get_area_anchor("bottomsegment").tr,
+                generics.metal(_P.topmetal)
+            )
+        end
+        if util.any_of("left", _P.drawsegments) and _P.addleftnet then
+            guardring:add_net_shape(
+                _P.net,
+                guardring:get_area_anchor("leftsegment").bl,
+                guardring:get_area_anchor("leftsegment").tr,
+                generics.metal(_P.topmetal)
+            )
+        end
+        if util.any_of("right", _P.drawsegments) and _P.addrightnet then
+            guardring:add_net_shape(
+                _P.net,
+                guardring:get_area_anchor("rightsegment").bl,
+                guardring:get_area_anchor("rightsegment").tr,
+                generics.metal(_P.topmetal)
+            )
+        end
+    end
 end

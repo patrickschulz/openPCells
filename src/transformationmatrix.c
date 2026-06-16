@@ -61,15 +61,50 @@ void transformationmatrix_chain_inline(struct transformationmatrix* lhs, const s
     M(lhs, 5) = c5;
 }
 
-struct transformationmatrix* transformationmatrix_chain(const struct transformationmatrix* lhs, const struct transformationmatrix* rhs)
+void transformationmatrix_chain_in(struct transformationmatrix* matrix, const struct transformationmatrix* lhs, const struct transformationmatrix* rhs)
 {
-    struct transformationmatrix* matrix = transformationmatrix_create();
     M(matrix, 0) = M(lhs, 0) * M(rhs, 0) + M(lhs, 1) * M(rhs, 3);
     M(matrix, 1) = M(lhs, 0) * M(rhs, 1) + M(lhs, 1) * M(rhs, 4);
     M(matrix, 2) = M(lhs, 0) * M(rhs, 2) + M(lhs, 1) * M(rhs, 5) + M(lhs, 2);
     M(matrix, 3) = M(lhs, 3) * M(rhs, 0) + M(lhs, 4) * M(rhs, 3);
     M(matrix, 4) = M(lhs, 3) * M(rhs, 1) + M(lhs, 4) * M(rhs, 4);
     M(matrix, 5) = M(lhs, 3) * M(rhs, 2) + M(lhs, 4) * M(rhs, 5) + M(lhs, 5);
+}
+
+struct transformationmatrix* transformationmatrix_chain(const struct transformationmatrix* lhs, const struct transformationmatrix* rhs)
+{
+    struct transformationmatrix* matrix = transformationmatrix_create();
+    transformationmatrix_chain_in(matrix, lhs, rhs);
+    return matrix;
+}
+
+void transformationmatrix_chain_inv1_in(struct transformationmatrix* matrix, const struct transformationmatrix* m1, const struct transformationmatrix* m2)
+{
+    coordinate_t c0 = M(m1, 0);
+    coordinate_t c1 = M(m1, 1);
+    coordinate_t c2 = M(m1, 2);
+    coordinate_t c3 = M(m1, 3);
+    coordinate_t c4 = M(m1, 4);
+    coordinate_t c5 = M(m1, 5);
+    coordinate_t det = M(m1, 0) * M(m1, 4) - M(m1, 1) * M(m1, 3);
+    coordinate_t cc0 = c4;
+    coordinate_t cc1 = -c1;
+    coordinate_t cc2 = (c1 * c5 - c2 * c4);
+    coordinate_t cc3 = -c3;
+    coordinate_t cc4 = c0;
+    coordinate_t cc5 = (-c0 * c5 - c2 * c3);
+    M(matrix, 0) = (cc0 * M(m2, 0) + cc1 * M(m2, 3)) / det;
+    M(matrix, 1) = (cc0 * M(m2, 1) + cc1 * M(m2, 4)) / det;
+    M(matrix, 2) = (cc0 * M(m2, 2) + cc1 * M(m2, 5) + cc2) / det;
+    M(matrix, 3) = (cc3 * M(m2, 0) + cc4 * M(m2, 3)) / det;
+    M(matrix, 4) = (cc3 * M(m2, 1) + cc4 * M(m2, 4)) / det;
+    M(matrix, 5) = (cc3 * M(m2, 2) + cc4 * M(m2, 5) + cc5) / det;
+}
+
+struct transformationmatrix* transformationmatrix_chain_inv1(const struct transformationmatrix* lhs, const struct transformationmatrix* rhs)
+{
+    struct transformationmatrix* matrix = transformationmatrix_create();
+    transformationmatrix_chain_in(matrix, lhs, rhs);
     return matrix;
 }
 
@@ -85,28 +120,27 @@ struct transformationmatrix* transformationmatrix_copy(const struct transformati
     return matrix;
 }
 
-struct transformationmatrix* transformationmatrix_invert_inline(struct transformationmatrix* matrix, const struct transformationmatrix* old)
+void transformationmatrix_invert_inline(struct transformationmatrix* matrix, const struct transformationmatrix* toinvert)
 {
-    coordinate_t c0 = M(old, 0);
-    coordinate_t c1 = M(old, 1);
-    coordinate_t c2 = M(old, 2);
-    coordinate_t c3 = M(old, 3);
-    coordinate_t c4 = M(old, 4);
-    coordinate_t c5 = M(old, 5);
-    coordinate_t det = M(old, 0) * M(old, 4) - M(old, 1) * M(old, 3);
+    coordinate_t c0 = M(toinvert, 0);
+    coordinate_t c1 = M(toinvert, 1);
+    coordinate_t c2 = M(toinvert, 2);
+    coordinate_t c3 = M(toinvert, 3);
+    coordinate_t c4 = M(toinvert, 4);
+    coordinate_t c5 = M(toinvert, 5);
+    coordinate_t det = M(toinvert, 0) * M(toinvert, 4) - M(toinvert, 1) * M(toinvert, 3);
     M(matrix, 0) = c4 / det;
     M(matrix, 1) = -c1 / det;
     M(matrix, 2) = (c1 * c5 - c2 * c4) / det;
     M(matrix, 3) = -c3 / det;
     M(matrix, 4) = c0 / det;
     M(matrix, 5) = (-c0 * c5 - c2 * c3) / det;
-    return matrix;
 }
 
-struct transformationmatrix* transformationmatrix_invert(const struct transformationmatrix* old)
+struct transformationmatrix* transformationmatrix_invert(const struct transformationmatrix* M)
 {
     struct transformationmatrix* matrix = transformationmatrix_create();
-    transformationmatrix_invert_inline(matrix, old);
+    transformationmatrix_invert_inline(matrix, M);
     return matrix;
 }
 

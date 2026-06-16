@@ -120,6 +120,18 @@ function util.make_rectangle(center, width, height)
     return bl, tr
 end
 
+function util.polygon_rectangular_boundary(polygon)
+    check.set_next_function_name("util.polygon_rectangular_boundary")
+    check.arg(1, "polygon", "table", polygon)
+    local xmin = util.polygon_xmin(polygon)
+    local ymin = util.polygon_ymin(polygon)
+    local xmax = util.polygon_xmax(polygon)
+    local ymax = util.polygon_ymax(polygon)
+    local bl = point.create(xmin, ymin)
+    local tr = point.create(xmax, ymax)
+    return bl, tr
+end
+
 function util.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
     check.set_next_function_name("util.rectangle_to_polygon")
     check.arg_func(1, "bl", "point", bl, point.is_point)
@@ -195,7 +207,7 @@ function util.offset_polygon(polygon, offset)
     return geometry.offset_polygon_points(polygon, offset)
 end
 
-function util.rectangle_intersection(bl1, tr1, bl2, tr2)
+function util.rectangle_intersection(bl1, tr1, bl2, tr2, onlyfull)
     check.set_next_function_name("util.rectangle_intersection")
     check.arg_func(1, "bl1", "point", bl1, point.is_point)
     check.arg_func(2, "tr1", "point", tr1, point.is_point)
@@ -214,12 +226,38 @@ function util.rectangle_intersection(bl1, tr1, bl2, tr2)
     local trx = math.min(tr1x, tr2x)
     local try = math.min(tr1y, tr2y)
     if trx > blx and try > bly then
-        return {
-            bl = point.create(blx, bly),
-            tr = point.create(trx, try),
-        }
+        local success = false
+        if not onlyfull then
+            success = true
+        else -- full intersection
+            if
+                (bl1x <= bl2x and tr1x >= tr2x and bl2y <= bl1y and tr2y >= tr1y) or
+                (bl2x <= bl1x and tr2x >= tr1x and bl1y <= bl2y and tr1y >= tr2y) then
+                success = true
+            end
+        end
+        if success then
+            return {
+                bl = point.create(blx, bly),
+                tr = point.create(trx, try),
+            }
+        end
     end
     return nil
+end
+
+function util.rectangle_intersects_polygon(rect, poly)
+    if util.is_rectilinear_polygon(poly) then
+        local rects = util.split_rectilinear_polygon(poly)
+        for _, r in ipairs(rects) do
+            if util.rectangle_intersection(rect.bl, rect.tr, r.pt1, r.pt2) then
+                return true
+            end
+        end
+    else
+        -- FIXME: the function is broken and does not work for all polygons
+        return polygon.rectangle_intersects_polygon(rect.bl, rect.tr, poly)
+    end
 end
 
 function util.xmirror(pts, xcenter)
@@ -334,6 +372,15 @@ function util.merge_tables(t1, t2)
     return new
 end
 
+function util.insert_table(main, t)
+    check.set_next_function_name("util.insert_table")
+    check.arg(1, "main", "table", main)
+    check.arg(2, "t", "table", t)
+    for i = 1, #t do
+        table.insert(main, t[i])
+    end
+end
+
 function util.reverse(pts)
     check.set_next_function_name("util.reverse")
     check.arg(1, "pts", "table", pts)
@@ -372,6 +419,13 @@ function util.make_insert_pts(pts, idx)
             end
         end
     end
+end
+
+function util.is_on_grid(num, grid)
+    check.set_next_function_name("util.is_on_grid")
+    check.arg(1, "num", "number", num)
+    check.arg(2, "grid", "number", grid)
+    return num % grid == 0
 end
 
 function util.check_grid(grid, ...)
@@ -506,6 +560,17 @@ function util.intersection_ab(P, Q)
 end
 --]]
 
+function util.rep(num, value)
+    check.set_next_function_name("util.rep")
+    check.arg(1, "num", "number", num)
+    local t = {}
+    for i = 1, num do
+        t[i] = value
+    end
+    return t
+end
+
+
 function util.range(lower, upper, incr)
     check.set_next_function_name("util.range")
     check.arg(1, "lower", "number", lower)
@@ -597,6 +662,19 @@ function util.clone_shallow_predicate(t, predicate)
     for k, v in pairs(t) do
         if predicate(k, v) then
             new[k] = v
+        end
+    end
+    return new
+end
+
+function util.clone_array_predicate(t, predicate)
+    check.set_next_function_name("util.clone_array_predicate")
+    check.arg(1, "t", "table", t)
+    check.arg(2, "predicate", "function", predicate)
+    local new = {}
+    for _, e in ipairs(t) do
+        if predicate(e) then
+            table.insert(new, e)
         end
     end
     return new
@@ -803,9 +881,34 @@ function util.foreach(t, f, ...)
     check.arg(2, "f", "function", f)
     local new = {}
     for _, e in ipairs(t) do
-        table.insert(new, f(e, ...))
+        local res = table.pack(f(e, ...))
+        for i = 1, res.n do
+            table.insert(new, res[i])
+        end
     end
     return new
+end
+
+function util.reduce(t, f, initial, ...)
+    check.set_next_function_name("util.reduce")
+    check.arg(1, "t", "table", t)
+    check.arg(2, "f", "function", f)
+    local value = initial
+    for _, e in ipairs(t) do
+        value = f(value, e, ...)
+    end
+    return value
+end
+
+function util.select_key(t, key)
+    check.set_next_function_name("util.select_key")
+    check.arg(1, "t", "table", t)
+    check.arg(2, "key", "string", key)
+    local result = {}
+    for _, e in ipairs(t) do
+        table.insert(result, e[key])
+    end
+    return result
 end
 
 function util.fit_lines_upper(total, size, space)
@@ -824,6 +927,32 @@ function util.fit_lines_lower(total, size, space)
     return math.floor((total + space) / (size + space))
 end
 
+function util.fit_lines_fullwidth_grid(total, fullwidth, numlines, grid)
+    check.set_next_function_name("util.fit_lines_fullwidth_grid")
+    check.arg(1, "total", "number", total)
+    check.arg(2, "fullwidth", "number", fullwidth)
+    check.arg(3, "numlines", "number", numlines)
+    check.arg_optional(4, "grid", "number", grid)
+    if numlines < 2 then
+        return 0
+    end
+    grid = grid or 1
+    local space = math.floor((total - fullwidth) / (numlines - 1))
+    while not util.is_on_grid(space, grid) do
+        space = space - 1
+    end
+    return space
+end
+
+function util.fit_lines_width_grid(total, width, numlines, grid)
+    check.set_next_function_name("util.fit_lines_width_grid")
+    check.arg(1, "total", "number", total)
+    check.arg(2, "width", "number", width)
+    check.arg(3, "numlines", "number", numlines)
+    check.arg_optional(4, "grid", "number", grid)
+    return util.fit_lines_fullwidth_grid(total, numlines * width, numlines, grid)
+end
+
 function util.uniq(t)
     check.set_next_function_name("util.uniq")
     check.arg(1, "t", "table", t)
@@ -836,4 +965,40 @@ function util.uniq(t)
         end
     end
     return results
+end
+
+function util.tconcatfmt(t, sep, fmt)
+    local strt = {}
+    for i = 1, #t do
+        table.insert(strt, string.format(fmt, t[i]))
+    end
+    return table.concat(strt, sep);
+end
+
+-- modified from 'Programming in lua'
+local function _permgen_worker(list, n, result)
+    if n == 0 then
+        local new = {}
+        for i = 1, #list do
+            new[i] = list[i]
+        end
+        table.insert(result, new)
+    else
+        for i = 1, n do
+            -- put i-th element as the last one
+            list[n], list[i] = list[i], list[n]
+            _permgen_worker(list, n - 1, result)
+            -- restore i-th element
+            list[n], list[i] = list[i], list[n]
+        end
+    end
+end
+
+-- FIXME: this will be used now for testing stuff, but I'd prefer an iterative solution
+function util.generate_all_permutations(list)
+    check.set_next_function_name("util.generate_all_permutations")
+    check.arg(1, "list", "table", list)
+    local result = {}
+    _permgen_worker(list, #list, result)
+    return result
 end

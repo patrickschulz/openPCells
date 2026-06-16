@@ -1,0 +1,40 @@
+-- object without alignment box
+local sub1 = object.create("sub1")
+geometry.rectanglebltr(sub1, generics.metal(1), point.create(-50, -100), point.create(50, 0))
+geometry.polygon(sub1, generics.metal(1), { point.create(-50, 0), point.create(50, 0), point.create(0, 100) })
+geometry.rectanglebltr(sub1, generics.outline(), point.create(-50, -100), point.create(50, 100))
+
+local sub2 = object.create("sub2")
+geometry.rectanglebltr(sub2, generics.metal(2), point.create(-50, -100), point.create(50, 0))
+geometry.polygon(sub2, generics.metal(2), { point.create(-50, 0), point.create(50, 0), point.create(0, 100) })
+geometry.rectanglebltr(sub2, generics.outline(), point.create(-50, -100), point.create(50, 100))
+
+local cell = object.create("toplevel")
+
+local sub1_1 = cell:add_child(sub1, "sub1_1")
+sub1_1:translate(100, 200)
+sub1_1:flipx()
+local sub1_2 = cell:add_child(sub1, "sub1_2")
+sub1_2:translate(200, 200)
+sub1_2:flipy()
+local sub1_3 = cell:add_child(sub1, "sub1_3")
+sub1_3:translate(100, 200)
+sub1_3:mirror_at_yaxis()
+local sub1_4 = cell:add_child(sub1, "sub1_4")
+sub1_4:translate(100, 200)
+sub1_4:mirror_at_xaxis()
+
+local sub2_1 = cell:add_child(sub2, "sub2_1")
+sub2_1:translate(-100, -200)
+sub2_1:flipx()
+local sub2_2 = cell:add_child(sub2, "sub2_2")
+sub2_2:translate(-200, -200)
+sub2_2:flipy()
+local sub2_3 = cell:add_child(sub2, "sub2_3")
+sub2_3:translate(-100, -200)
+sub2_3:mirror_at_yaxis()
+local sub2_4 = cell:add_child(sub2, "sub2_4")
+sub2_4:translate(-100, -200)
+sub2_4:mirror_at_xaxis()
+
+return cell

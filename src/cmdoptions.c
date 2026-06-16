@@ -183,11 +183,11 @@ int cmdoptions_assert_all_options_checked(const struct cmdoptions* options)
                 {
                     if(option->long_identifier)
                     {
-                        fprintf(stderr, "option '--%s' was no checked\n", option->long_identifier);
+                        fprintf(stderr, "option '--%s' was not checked\n", option->long_identifier);
                     }
                     else
                     {
-                        fprintf(stderr, "option '-%c' was no checked\n", option->short_identifier);
+                        fprintf(stderr, "option '-%c' was not checked\n", option->short_identifier);
                     }
                     return 0;
                 }
@@ -368,10 +368,10 @@ int cmdoptions_add_alias(struct cmdoptions* options, const char* long_aliased_id
     struct mode* basemode = _get_basemode(options);
     for(i = 0; i < basemode->entries_size; ++i)
     {
-        struct entry* entry = basemode->entries[i];
-        if(entry->what == OPTION)
+        struct entry* e = basemode->entries[i];
+        if(e->what == OPTION)
         {
-            struct option* option = entry->value;
+            struct option* option = e->value;
             if(strcmp(option->long_identifier, long_aliased_identifier) == 0)
             {
                 alias = option;
@@ -636,7 +636,6 @@ size_t _number_of_passed_options(const struct cmdoptions* options)
     return count;
 }
 
-static int _no_positional_parameters(const struct cmdoptions* options);
 int cmdoptions_help(const struct cmdoptions* options)
 {
     /* FIXME: include modes */
@@ -663,7 +662,7 @@ int cmdoptions_help(const struct cmdoptions* options)
     offset = narrow ? 2 * startskip : optwidth + startskip + helpsep;
     textwidth = displaywidth - offset - leftmargin - rightmargin;
 
-    if(!_no_positional_parameters(options)) /* additional options are present, only print those */
+    if(!cmdoptions_no_positional_parameters(options)) /* additional options are present, only print those */
     {
         mode = _get_const_basemode(options);
         pospar = cmdoptions_get_positional_parameters(options);
@@ -912,7 +911,7 @@ const char** cmdoptions_get_positional_parameters(const struct cmdoptions* optio
     return (const char**) options->positional_parameters;
 }
 
-static int _no_positional_parameters(const struct cmdoptions* options)
+int cmdoptions_no_positional_parameters(const struct cmdoptions* options)
 {
     unsigned int count = 0;
     char** p = options->positional_parameters;
@@ -931,7 +930,7 @@ int cmdoptions_help_passed(struct cmdoptions* options)
 
 int cmdoptions_empty(const struct cmdoptions* options)
 {
-    return cmdoptions_no_args_given(options) && _no_positional_parameters(options);
+    return cmdoptions_no_args_given(options) && cmdoptions_no_positional_parameters(options);
 }
 
 static int _no_args_given(const struct mode* mode)

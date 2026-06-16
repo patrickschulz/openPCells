@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+    @make_header OpenPCells Documentation
+    <body>
+        @make_topbar Beginner Tutorial
+        <details open>
+            <summary>Introduction</summary>
+            <p>
+            This page serves as an introduction to openPCells (also called opc) for new users who are unfamiliar with the tool.
+            The tutorial will shortly outline the motivation for the development of opc, and how it can be useful to integrated circuit designers.
+            </p>
+            <p>
+            A warning up-front: OpenPCells is designed to help in the process of creating layouts, but it does not make it easier.
+            It can aid with repetitive tasks and also supports some automation, but it is probably not suitable for beginners who need to understand the layout process itself first.
+            </p>
+        </details>
+        <details>
+            <summary>Background: Motivation for OpenPCells</summary>
+            <p>
+            The creation of analog integrated circuit layouts is tedious, complex and often requires several iterations until it is right.
+            This can slow down the design process of integrated circuits, as the feedback loop from layout back to schematic design is slow.
+            Every change in a layout can take a significant amount of time, which, in the schematic might have only been a small change.
+            The reason for this is that a) there are virtually endless possible ways of creating the layout of a schematic and b) all shapes in a layout are connected by a complex set of DRC rules. If one shape has to move, the chance is high that other shapes also have to move.
+            </p>
+            <p>
+            Layout editors (both commercial and free) have various ways of dealing with these issues, such as support for parametric cells (pcells), connectivity support (showing what should be connected where), automatic folding of devices, automatic arrangement of devices to achieve (e.g.) common-centroid), dummy placement etc.
+            However, even with all these tools the layout process is stil very manual.
+            The layouter needs to manually place device groups at absolute coordinates, not relative to each other, wires don't move with the devices (including automatic re-routing), modifications like changing MOSFET device gate lengths can mean huge changes in the layout.
+            </p>
+            <p>
+            Additionally, while most foundries and process design kits (PDKs) offer a set of more or less sophisticated pcells, these pcells typically are only applicable at the lowest level, the device level.
+            PDKs will offer pcells for MOSFETS, inductors, capacitors, resistors, but not CMOS inverters, operational amplifiers, etc.
+            However, often cells like these will be needed, hence everyone builds the same things over and over again.
+            This is worsened by the fact that most PDKs are not open for everyone to read (closed-source), and layouts and pcells are technology-bound.
+            </p>
+            <p>
+            The openPCells project aims to fix all these things:
+            Its parameterized layout descriptions are independent of a specific process node, which enables re-use NDA-free publication.
+            </p>
+        </details>
+        <details>
+            <summary>Overview</summary>
+            <p>
+            OpenPCells is a layout generator.
+            It has two entry points for the generation: cells or cell scripts.
+            Cells are defined by a set of functions whereas cell scripts correspond more to programs called by interpreters such as python.
+            Cell scripts don't allow parameterization (regarding their interface, inside of the cell script anything is possible), hence cells are better for re-usable cells and cell scripts are often an easier entry point for the generation of layouts.
+            Typically one uses a cell script where various cells are created and instatiated.
+            This tutorial will show the usage of both.
+            For simple examples, cell scripts will be used as they require less boilerplate code and book-keeping.
+            That concludes the introduction, let's start with the tutorial.
+            </p>
+            <!--
+            <svg>
+                <text class="diagram-text" x="0" y="50" id="text1">Export</text>
+                <rect class="diagram-box" width="100" height="100" x="10" y="10" />
+            </svg>
+            -->
+        </details>
+        <details>
+        <summary>First Steps</summary>
+            <p>
+            First we need to make sure opc is working.
+            In a shell (indicated by the percent sign in the following code example) type 'opc':
+            </p>
+            <pre class="shell">% opc
+This is the openPCell layout generator (opc), version 0.30.5.
+Copyright 2020-2026 Patrick Kurth
+(... more lines ...)</pre>
+            <p>
+            If this prints the above message (or similar), you are good to go.
+            Make sure to include the path in your PATH environment variable or call opc via its full path.
+            </p>
+            <p>
+            Opc is controlled by many command-line options, allowing for different actions.
+            For layout generation it requires a layout code file, a technology and an export.
+            The layout code file describes the layout, whose translation/generation is the main function of opc.
+            Think of it as the source code and of opc as the compiler.
+            The compiler reads the source code and emits machine code, a low-level representation.
+            In the case of opc, a layout representation that is usable by other programs is generated.
+            This can by anything, most likely it will be a GDSII file or, for users of virtuoso, SKILL code.
+            This is what the export is for:
+            Internally, a generic format is generated, which needs to be translated to a specific format.
+            In the nomenclature of openPCells, this is called exporting.
+            An export type contains functions that translate specific objects such as rectangles, paths, cell references or others.
+            At the moment we don't need to concern ourselves with this in detail, as the OpenPCells project contains useful export types.
+            Just remember that you need to supply an export type when generating layouts.
+            The technology option plays a similar role as the export:
+            It translates a technology-independent (generic) layout representation to a node-specific one.
+            Here it is not concerned with output formats, but with layer numbers, via sizes and the like.
+            Hence, for a proper layout generation all the generalizations need to become specific.
+            </p>
+            <p>
+            The above paragraph lays out relevant details of the generation process.
+            In practice this means that opc needs to be called like this:
+            </p>
+            <pre class="shell">% opc --technology &lt;technology&gt; --export &lt;export&gt; --cell &lt;cellname&gt; </pre>
+            <p>
+            or
+            </p>
+            <pre class="shell">% opc --technology &lt;technology&gt; --export &lt;export&gt; --cellscript &lt;filename&gt; </pre>
+            <p>
+            As a next step, try to generate a simple layout.
+            Opc supplies a generic technology (<code class="shellinline">opc</code>) that can be used for this.
+            We will use the <code class="shellinline">gds</code> export type.
+            The cell we will look at is a MOSFET:
+            </p>
+            <pre class="shell">% opc --technology opc --export gds --cell basic/mosfet </pre>
+            <p>
+            This will create a GDSII file with a nMOS transistor with two fingers.
+            The GDS-file can be viewed with a GDS viewer (e.g. klayout).
+            Below the MOSFET is shown as an image, by using the SVG export.
+            The full opc call is (the backslashes are line continuations, used here to have shorter lines):
+            </p>
+            </p>
+            <pre class="shell">% opc \
+    --technology opc \
+    --export svg \
+    --cell basic/mosfet \
+    -X '--force-transparency --transparency-factor 0.7'</pre>
+            <p>
+            The -X options can be ignored for now, they pass command-line options to the exports.
+            They are used here to make the SVG export a bit more readable.
+            The call yields the following image:
+            </p>
+            <svg width="100%" viewBox="0 0 740 450">
+                <rect style="fill:#ffffff" x="0" y="0" width="740" height="450"/>
+                <rect style = "fill:#38c316; opacity:0.7; fill-opacity:0.7" x="50" y="100" width="640" height="250" />
+                <rect style = "fill:#ff0000; opacity:0.7; fill-opacity:0.7" x="195" y="50" width="100" height="350" />
+                <rect style = "fill:#ff0000; opacity:0.7; fill-opacity:0.7" x="445" y="50" width="100" height="350" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="50" y="100" width="140" height="250" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="550" y="100" width="140" height="250" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="300" y="100" width="140" height="250" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="95" y="275" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="95" y="125" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="595" y="275" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="595" y="125" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="345" y="275" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="345" y="125" width="50" height="50" />
+            </svg>
+            <p>
+            The MOSFET layout creation apparently already used some meaningful parameter values, such as gate length, gate space etc.
+            Some parameters have just hard-coded default values, some depend on the technology files, some experience post-processing after other parameters are set.
+            The exact details are not relevant right now, important is that we can change these parameters.
+            Let's look at how this can be done.
+            </p>
+            <p>
+            When creating a pcell, the default parameter values can be overwritten.
+            There are different ways to do this depending on the context, in this case we use a so-called parameter file (a <em>pfile</em>).
+            This is a lua file that returns a table which sets key-value pairs.
+            The keys correspond to the parameters of a pcell.
+            </p>
+            <p>
+            In order to use a parameter file, we add it to the opc call:
+            </p>
+            <pre class="shell">% opc --technology opc --export gds --cell basic/mosfet --pfile pfile.lua</pre>
+            <p>
+            For this example, we wish to change the fingerwidth and the number of fingers.
+            Therefore, the content of the parameter file should be as follows:
+            </p>
+            <pre class="opc">return {
+    fingerwidth = 1500,
+    fingers = 8,
+}</pre>
+            <p>
+            Calling opc with this parameter file yields the following layout:
+            </p>
+            <svg width="100%" viewBox="0 0 2240 950">
+                <rect style = "fill:#38c316; opacity:0.7; fill-opacity:0.7" x="50" y="100" width="2140" height="750" />
+                <rect style = "fill:#ff0000; opacity:0.7; fill-opacity:0.7" x="195" y="50" width="100" height="850" />
+                <rect style = "fill:#ff0000; opacity:0.7; fill-opacity:0.7" x="445" y="50" width="100" height="850" />
+                <rect style = "fill:#ff0000; opacity:0.7; fill-opacity:0.7" x="695" y="50" width="100" height="850" />
+                <rect style = "fill:#ff0000; opacity:0.7; fill-opacity:0.7" x="945" y="50" width="100" height="850" />
+                <rect style = "fill:#ff0000; opacity:0.7; fill-opacity:0.7" x="1195" y="50" width="100" height="850" />
+                <rect style = "fill:#ff0000; opacity:0.7; fill-opacity:0.7" x="1445" y="50" width="100" height="850" />
+                <rect style = "fill:#ff0000; opacity:0.7; fill-opacity:0.7" x="1695" y="50" width="100" height="850" />
+                <rect style = "fill:#ff0000; opacity:0.7; fill-opacity:0.7" x="1945" y="50" width="100" height="850" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="50" y="100" width="140" height="750" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="550" y="100" width="140" height="750" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="1050" y="100" width="140" height="750" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="1550" y="100" width="140" height="750" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="2050" y="100" width="140" height="750" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="300" y="100" width="140" height="750" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="800" y="100" width="140" height="750" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="1300" y="100" width="140" height="750" />
+                <rect style = "fill:#0000ff; opacity:0.7; fill-opacity:0.7" x="1800" y="100" width="140" height="750" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="95" y="750" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="95" y="600" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="95" y="450" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="95" y="300" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="95" y="150" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="595" y="750" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="595" y="600" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="595" y="450" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="595" y="300" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="595" y="150" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1095" y="750" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1095" y="600" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1095" y="450" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1095" y="300" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1095" y="150" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1595" y="750" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1595" y="600" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1595" y="450" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1595" y="300" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1595" y="150" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="2095" y="750" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="2095" y="600" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="2095" y="450" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="2095" y="300" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="2095" y="150" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="345" y="750" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="345" y="600" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="345" y="450" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="345" y="300" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="345" y="150" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="845" y="750" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="845" y="600" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="845" y="450" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="845" y="300" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="845" y="150" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1345" y="750" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1345" y="600" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1345" y="450" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1345" y="300" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1345" y="150" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1845" y="750" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1845" y="600" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1845" y="450" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1845" y="300" width="50" height="50" />
+                <rect style = "fill:#ffff00; opacity:0.7; fill-opacity:0.7" x="1845" y="150" width="50" height="50" />
+            </svg>
+            <p>
+            This concludes the first steps.
+            We saw how to call opc to create a simple layout in certain formats and technology nodes, and how to modify the creation with parameter files.
+            In the next section we will dive a bit deeper to see how we can control more complex layout generation with multiple parametric cells.
+            </p>
+        </details>
+        <details>
+            <summary>More Complex Layouts</summary>
+            <p>
+            Now let's start with a simple cell script.
+            We will show the script first and then walk through it.
+            </p>
+            <pre class="opc">local cell = object.create("cell")
+geometry.rectanglebltr(
+    cell,
+    generics.metal(1),
+    point.create(0, 0),
+    point.create(100, 100)
+)
+return cell</pre>
+        </details>
+        <details>
+            <summary>How to get help</summary>
+            OpenPCells includes a lot of documentation within the opc tool itself.
+            For layout creation, the most important things one would look for are a description of every pcell, the parameters a pcell supports, which cell anchors can be used and what API functions are available for performing common tasks.
+            The opc tool can be used to display all these infos:
+            <ul>
+                <li>
+                    <code class="shellinline">opc --cell-info &lt;cellname&gt;</code>
+                    <p>
+                    This shows the cell information of the pcell &lt;cellname&gt;.
+                    The cell information is a short basic description of a parametric cell to show how it is meant to be used.
+                    </p>
+                </li>
+                <li>
+                    <code class="shellinline">opc --parameters &lt;cellname&gt; [optional filters...]</code>
+                    <p>
+                    This shows information about a pcell's parameters.
+                    A name filter can be applied by adding additional positional parameters to the opc call.
+                    This filter is applied consecutively, from left to right.
+                    If only one parameter matches, additional informations such as a longer description, the type and the default value are printed.
+                    </p>
+                </li>
+                <li>
+                    <code class="shellinline">opc --anchors &lt;cellname&gt; [optional anchor names...]</code>
+                    <p>
+                    This shows information about a pcell's anchors.
+                    A name filter can be applied by adding additional positional parameters to the opc call.
+                    For every matching anchors (or all, if no filter is given) a short description of the anchor is given, as well as a condition under which the anchor is available.
+                    </p>
+                </li>
+                <li>
+                    <code class="shellinline">opc --api-search &lt;search keys&gt;</code> and <code class="shellinline">opc --api-help &lt;search key&gt;</code>
+                    <p>
+                    This allows searching the application programming interface (API) of opc.
+                    The search key can be the name of a function or a module or both, separated by a dot (e.g. <code class="shellinline">geometry.rectanglebltr</code>).
+                    The <code class="shellinline">--api-search</code> option searches the list of API functions, potentially printing multiple matches.
+                    The <code class="shellinline">--api-help</code> option expects a perfect name match and will only list that one entry.
+                    For both cases, when only one entry is listed, detailed usage information will be shown such as parameter list with types, function description, return value etc.
+                    </p>
+                </li>
+                <li>
+                    <code class="shellinline">opc --html-documentation</code>
+                    <p>
+                    This launches the HTML-based documentation (that you are reading right now).
+                    It contains tutorials, guides for specific topics, pcell information, API documentation and more.
+                    </p>
+                </li>
+            </ul>
+        </details>
+        @include footer.html
+    </body>
+</html>

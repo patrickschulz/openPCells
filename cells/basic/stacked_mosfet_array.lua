@@ -13,11 +13,41 @@ function parameters()
         { "splitanalogmarker", true, follow = "splitgates" },
         { "xalignmosfetsatactive", false },
         { "yalignmosfetsatactive", false },
+        { "drawimplant", true },
+        { "drawoxidetype", true },
+        { "drawwell", true },
         { "sdwidth", technology.get_dimension("Minimum M1 Width") },
         { "xseparation", 0 },
         { "yseparation", 0 },
         { "autoskip", false },
-        { "unequalgatelengths", false }
+        { "unequalgatelengths", false },
+        { "drawguardring", false },
+        { "guardringwidth", technology.get_dimension("Minimum Active Contact Region Size") },
+        { "guardringsep", technology.get_dimension("Minimum Active Space") },
+        { "guardringleftsep", technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
+        { "guardringrightsep", technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
+        { "guardringtopsep", technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
+        { "guardringbottomsep", technology.get_dimension("Minimum Active Space"), follow = "guardringsep" },
+        { "guardringrespectactivedummies", true },
+        { "guardringrespectgatestraps", true },
+        { "guardringrespectgateextensions", true },
+        { "guardringrespectsourcestraps", true },
+        { "guardringrespectdrainstraps", true },
+        { "guardringfillimplant", false },
+        { "guardringfillwell", false },
+        { "guardringdrawoxidetype", true },
+        { "guardringfilloxidetype", false },
+        { "guardringoxidetype", 1 },
+        { "guardringwellinnerextension", technology.get_dimension("Minimum Well Extension") },
+        { "guardringwellouterextension", technology.get_dimension("Minimum Well Extension") },
+        { "guardringimplantinnerextension", technology.get_dimension("Minimum Implant Extension") },
+        { "guardringimplantouterextension", technology.get_dimension("Minimum Implant Extension") },
+        { "guardringsoiopeninnerextension", technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "guardringsoiopenouterextension", technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "guardringoxidetypeinnerextension", technology.get_dimension("Minimum Oxide Extension") },
+        { "guardringoxidetypeouterextension", technology.get_dimension("Minimum Oxide Extension") },
+        { "checkshorts", true },
+        { "instancenameincenter", false }
     )
 end
 
@@ -45,7 +75,7 @@ function check(_P)
     for rownum, row in ipairs(_P.rows) do
         for devicenum, device in ipairs(row.devices) do
             if not _P.autoskip and (device.fingers <= 0 and not device.skip) then
-                return false, string.format("device %d in row %d (\"%s\") has zero or negative amount of fingers (%d). If this is intensional, set 'autoskip' to true", devicenum, rownum, device.name, device.fingers)
+                return false, string.format("device %d in row %d (\"%s\") has zero or negative amount of fingers (%d). If this is intentional, set 'autoskip' to true", devicenum, rownum, device.name, device.fingers)
             end
         end
     end
@@ -137,14 +167,16 @@ function layout(cell, _P)
                     channeltype = row.channeltype,
                     implantalignwithactive = not _P.splitimplant or row.implantalignwithactive,
                     flippedwell = row.flippedwell,
-                    gatelength = row.gatelength,
+                    gatelength = row.gatelength, -- FIXME: add support for per-device gate lengths
                     gatespace = row.gatespace,
                     fingerwidth = row.width,
                     fingers = device.fingers,
+                    drawoxidetype = _select_parameter("drawoxidetype", device, row, _P),
                     oxidetype = row.oxidetype,
                     oxidetypealignwithactive = not _P.splitoxidetype or row.oxidetypealignwithactive,
                     vthtype = row.vthtype,
                     vthtypealignwithactive = not _P.splitvthtype or row.vthtypealignwithactive,
+                    drawimplant = _select_parameter("drawimplant", device, row, _P),
                     gatemarker = row.gatemarker,
                     mosfetmarker = row.mosfetmarker,
                     mosfetmarkeralignatsourcedrain = row.mosfetmarkeralignatsourcedrain,
@@ -152,6 +184,8 @@ function layout(cell, _P)
                     sdwidth = _select_parameter("sdwidth", device, row, _P),
                     sdviawidth = _select_parameter("sdviawidth", device, row),
                     sdmetalwidth = _select_parameter("sdmetalwidth", device, row),
+                    sdm1botext = _select_parameter("sdm1botext", device, row),
+                    sdm1topext = _select_parameter("sdm1topext", device, row),
                     interweavevias = _select_parameter("interweavevias", device, row),
                     alternateinterweaving = _select_parameter("alternateinterweaving", device, row),
                     minviaxspace = _select_parameter("minviaxspace", device, row),
@@ -174,6 +208,7 @@ function layout(cell, _P)
                     rightendgatespace = _select_parameter("rightendgatespace", device, row),
                     drawtopgate = _select_parameter("drawtopgate", device, row),
                     drawtopgatestrap = _select_parameter("drawtopgatestrap", device, row),
+                    topgateadjustforsdstraps = _select_parameter("topgateadjustforsdstraps", device, row),
                     topgatewidth = _select_parameter("topgatewidth", device, row),
                     topgateleftextension = _select_parameter("topgateleftextension", device, row),
                     topgaterightextension = _select_parameter("topgaterightextension", device, row),
@@ -183,6 +218,7 @@ function layout(cell, _P)
                     topgatecontinuousvia = _select_parameter("topgatecontinuousvia", device, row),
                     drawbotgate = _select_parameter("drawbotgate", device, row),
                     drawbotgatestrap = _select_parameter("drawbotgatestrap", device, row),
+                    botgateadjustforsdstraps = _select_parameter("botgateadjustforsdstraps", device, row),
                     botgatewidth = _select_parameter("botgatewidth", device, row),
                     botgatespace = _select_parameter("botgatespace", device, row),
                     botgateleftextension = _select_parameter("botgateleftextension", device, row),
@@ -320,20 +356,35 @@ function layout(cell, _P)
                     extendanalogmarkerbottom = _select_switch(((rownum == 1) or _P.splitanalogmarker), _select_parameter("extendanalogmarkerbottom", device, row), _P.yseparation / 2),
                     extendanalogmarkerleft = _select_parameter("extendanalogmarkerleft", device, row),
                     extendanalogmarkerright = _select_parameter("extendanalogmarkerright", device, row),
-                    drawwell = _select_parameter("drawwell", device, row),
+                    drawwell = _select_parameter("drawwell", device, row, _P),
                     drawtopwelltap = _select_parameter("drawtopwelltap", device, row),
                     topwelltapwidth = _select_parameter("topwelltapwidth", device, row),
                     topwelltapspace = _select_parameter("topwelltapspace", device, row),
                     topwelltapextendleft = _select_parameter("topwelltapextendleft", device, row),
                     topwelltapextendright = _select_parameter("topwelltapextendright", device, row),
                     drawbotwelltap = _select_parameter("drawbotwelltap", device, row),
-                    drawguardring = _select_parameter("drawguardring", device, row),
-                    guardringwidth = _select_parameter("guardringwidth", device, row),
-                    guardringleftsep = _select_parameter("guardringleftsep", device, row),
-                    guardringrightsep = _select_parameter("guardringrightsep", device, row),
-                    guardringtopsep = _select_parameter("guardringtopsep", device, row),
-                    guardringbottomsep = _select_parameter("guardringbottomsep", device, row),
-                    guardringsegments = _select_parameter("guardringsegments", device, row),
+                    drawguardring = _P.drawguardring,
+                    guardringwidth = _P.guardringwidth,
+                    guardringleftsep = _P.guardringleftsep,
+                    guardringrightsep = _P.guardringrightsep,
+                    guardringtopsep = _P.guardringtopsep,
+                    guardringbottomsep = _P.guardringbottomsep,
+                    guardringrespectactivedummies = _P.guardringrespectactivedummies,
+                    guardringrespectgatestraps = _P.guardringrespectgatestraps,
+                    guardringrespectgateextensions = _P.guardringrespectgateextensions,
+                    guardringrespectsourcestraps = _P.guardringrespectsourcestraps,
+                    guardringrespectdrainstraps = _P.guardringrespectdrainstraps,
+                    guardringfillimplant = _P.guardringfillimplant,
+                    guardringfillwell = _P.guardringfillwell,
+                    guardringdrawoxidetype = _P.guardringdrawoxidetype,
+                    guardringfilloxidetype = _P.guardringfilloxidetype,
+                    guardringoxidetype = _P.guardringoxidetype,
+                    guardringimplantinnerextension = _P.guardringimplantinnerextension,
+                    guardringimplantouterextension = _P.guardringimplantouterextension,
+                    guardringwellinnerextension = _P.guardringwellinnerextension,
+                    guardringwellouterextension = _P.guardringwellouterextension,
+                    guardringsoiopeninnerextension = _P.guardringsoiopeninnerextension,
+                    guardringsoiopenouterextension = _P.guardringsoiopenouterextension,
                     botwelltapwidth = _select_parameter("botwelltapwidth", device, row),
                     botwelltapspace = _select_parameter("botwelltapspace", device, row),
                     botwelltapextendleft = _select_parameter("botwelltapextendleft", device, row),
@@ -344,6 +395,15 @@ function layout(cell, _P)
                     rightpolylines = _select_parameter("rightpolylines", device, row),
                     drawrotationmarker = _select_parameter("drawrotationmarker", device, row),
                     drawanalogmarker = _select_parameter("drawanalogmarker", device, row),
+                    checkshorts = _select_parameter("checkshorts", device, row, _P),
+                    instancename = device.instancename or device.name,
+                    instancenameincenter = _select_parameter("instancenameincenter", device, row, _P),
+                    instancelabelsizehint = _select_parameter("instancelabelsizehint", device, row),
+                    drawinstancebox = _select_parameter("drawinstancebox", device, row),
+                    instancebox_includeguardring = _select_parameter("instancebox_includeguardring", device, row),
+                    grid = _select_parameter("grid", device, row),
+                    centershapegrid = _select_parameter("centershapegrid", device, row),
+                    shapegrid = _select_parameter("shapegrid", device, row),
                 })
                 if not status then -- call failed, but show detailed error here
                     cellerror(string.format("could not create device %d in row %d (\"%s\"): %s", devnum, rownum, device.name, mosfet))
@@ -369,7 +429,6 @@ function layout(cell, _P)
     for rownum = 2, #mosfetrows do
         local lastmosfetrow = mosfetrows[rownum - 1].mosfets
         local mosfetrow = mosfetrows[rownum].mosfets
-        local extrayshift = mosfetrows[rownum].shift or 0
         -- determine x- and y-shift for the entire row
         local xshift = 0
         if _P.centermosfets then
@@ -410,7 +469,9 @@ function layout(cell, _P)
         -- position the entire row
         for fetnum = 1, #mosfetrow do
             local mosfet = mosfetrow[fetnum].mosfet
-            mosfet:translate(xshift, _P.yseparation + yshift + extrayshift)
+            mosfet:translate(xshift, yshift)
+            mosfet:translate_y(mosfetrows[rownum].shift or 0)
+            mosfet:translate_y(_P.yseparation)
         end -- for-loop across row devices
     end -- for-loop across rows
 
@@ -461,5 +522,22 @@ function layout(cell, _P)
         cell:get_area_anchor_fmt("implant_%d", 1).bl,
         cell:get_area_anchor_fmt("implant_%d", #_P.rows).tr
     )
+
+    -- aligned cell pitch anchors (individual alignment boxes of the transistors)
+    for rownum = 1, #mosfetrows do
+        local mosfetrow = mosfetrows[rownum].mosfets
+        for fetnum = 1, #mosfetrow do
+            local mosfet = mosfetrow[fetnum].mosfet
+            local name = mosfetrow[fetnum].name
+            cell:add_area_anchor_bltr(string.format("outeralignmentbox_%d_%d", rownum, fetnum),
+                mosfet:get_alignment_anchor("outerbl"),
+                mosfet:get_alignment_anchor("outertr")
+            )
+            cell:add_area_anchor_bltr(string.format("inneralignmentbox_%d_%d", rownum, fetnum),
+                mosfet:get_alignment_anchor("innerbl"),
+                mosfet:get_alignment_anchor("innertr")
+            )
+        end
+    end
 end
 

@@ -14,23 +14,48 @@ There is of course also the issue list on github, but that's probably out-of-syn
 # Development Overview
 The main entry point (the main function) is in src/main.c.
 
+## Build and Development Process
+The project follows a traditional `./configure.sh; make` approach.
+The configure script does not check any platform dependencies:
+The code tries hard to avoid any issues that arise from platform dependencies.
+I tested this on various linux systems/compilers/compiler versions, but there will definitely be remaining issues.
+For the development this means in general:
+  * target C versions is C99
+  * standard adherence is aimed for, no compiler extensions should be employed
+  * avoid C library functions that need specific feature macros set (e.g. _XOPEN_SOURCE ...).
+    In my experience this complicates compilation with different compiler versions and systems
+
+The main Makefile only hands the build jobs to Makefiles in subdirectories: `src/Makefile` and `doc/Makefile`.
+The main Makefile is generated from `./configure.sh`, the others are hard-coded.
+The actual Makefiles don't try to be clever, dependencies are listed explicitly and periodically updated by calling `gcc -MM -MG (...)`.
+
 ## Dependencies
-Avoid. This project is meant to be installable by users of ancient CAD servers, that might run on a not-supported-anymore version of centOS or something.
+None. This project is meant to be installable by users of ancient CAD servers, that might run on a not-supported-anymore version of centOS or something.
 We can not assume that the user of this software has any install priviliges and there might also be no or not fast support from their IT team.
 Hence everything here is built from scratch.
 Additionally, the reason for the --all-load-paths-local configuration option also comes from the need for simple installation without priviliges.
+
+## Versioning
+The opc version looks like semantic versioning, but it's not really.
+This is partly due to it begin pre-1.0, partly because I feel that semantic versioning can be too extreme.
+At the moment I am constantly breaking things in a non-compatible way, but I don't want to end up with opc-1523.0.0.
+I am not decided yet on this, as the trajectory of this project is still not quite clear.
+For now, the version is based on vibes:
+Does it feel like a significant change?
+Minor version update.
+Is it only a small fix?
+Revision update.
+Just a typo or similar?
+No change.
 
 ## Goals for Version 1.0
 Here is a list of goals that I want to implement before opc moves on to version 1.0.
 All things in this list are not finished and perhaps the best entry points for development support.
 Some of these things are also not particularly hard to do, they just require some work.
-Especially with HTML-based stuff (cell display, searchable documentation) I could use some help, because my knowledge of how to properly do this is limited.
-* browser-based cell display (essentially a gds viewer, although the internal format can be what we want)
 * searchable HTML documentation
 * functioning digital place&route
 * up-to-date documentation
 * hand-holding tutorial with mature examples so that anyone can start to use opc
-* fix cell export in virtuoso
 * GUI (browser-based) configuration tool for cells
 * a collection of robust and mature cells with medium complexity:
     - ring oscillator
@@ -44,6 +69,7 @@ Especially with HTML-based stuff (cell display, searchable documentation) I coul
 * solid tech file assistant
 * technology files for:
     x skywater130
+    x IHP SG13G2
     x freePDK45
     x freePDK15
     x open GF180 or generic 180 nm
@@ -51,7 +77,13 @@ Especially with HTML-based stuff (cell display, searchable documentation) I coul
 * improve handling of error messages deep in a call stack
 * proper and thorough testing
 * pcell module implementation mostly in C, lua only as an interface
-* properly support pcells written in C (required pcell module C implementation)
+* properly support pcells written in C (requires pcell module C implementation)
+* integer-based calculations and proper grid support (functions for 'breaking' grid in a defined way)
+* set up a nice-looking website for the project with
+    - official documentation and guides
+    - mailing list/forum/something else?
+    - download
+    - integrated layout viewer (a simplified version of the current browser-based viewer) with cell list
 
 ## Important Types
 There are a few types that are used throughout the project.
@@ -129,12 +161,22 @@ A few particularities are listed here:
          3
      }; // this example could also be on one line
 
+ * empty lines must be fully empty, they must match this expression: ^$
+   (rationale: I develop with vim and this allows for proper paragraph jumping with '{' and '})
+
+ * similarily, white space at the end of the line is highly frowned upon. It shows up red in git diffs.
+
  * there is no hard limit on the line length, make it reasonable. Do not break at 80, that is too short.
+
  * prepend the namespace of a module:
 
     // in module foo.c
     int foo_create(void);
 
  * static functions don't prepend the module name and start with an underscore
- * Yes, I'm aware that identifiers starting with an underscore are reserved. I will change this in the future.
+
+ * Yes, I'm aware that identifiers starting with an underscore are reserved.
+   I believe it is unlikely that this will be an issue at some point, but I will change this in the future.
+   I'm still in search of a solution that allows easy spotting of private identifiers without clutter.
+
  * In geneneral (a few expections exist) structs and enums are *not* typedef'd. Use the full qualifier.

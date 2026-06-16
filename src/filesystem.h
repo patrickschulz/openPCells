@@ -3,7 +3,9 @@
 
 #include "lua/lua.h"
 
-int filesystem_mkdir(const char* path);
+#include <sys/types.h> // mode_t
+
+int filesystem_mkdir(const char* path, mode_t mode);
 int filesystem_exists(const char* path);
 
 #define LFILESYSTEMMODULE "filesystem"

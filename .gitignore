@@ -6,7 +6,9 @@
 /src/_embed_compiled_lua_file
 /src/_embed_compiled_lua_file_debug
 /src/_embed_compiled_lua_file_release
+/src/create_cell_documentation
 /src/create_latex_API_doc
+/src/create_HTML_API_doc
 /src/_config.h
 /src/_modulemanager.c
 /src/_modulemanager.h
@@ -18,6 +20,14 @@
 /src/lint
 /src/debug
 /opc.1
+
+# generated documentation
+doc/*.html
+doc/includes/footer.html
+doc/guides/*.html
+doc/tutorials/*.html
+doc/cells.htmlpre
+doc/cells
 
 # generated layouts and helpers
 /openPCells.*
@@ -64,6 +74,7 @@ tags
 /devinfo
 /wip
 /version1.0
+todo
 
 # test unversioned files
 /test/helpers/test_compare

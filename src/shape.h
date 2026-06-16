@@ -13,13 +13,13 @@ typedef int (*line_segment_handler)(const struct point*, void*);
 typedef int (*arc_segment_handler)(double, double, coordinate_t, int, void*);
 typedef int (*cubic_bezier_segment_handler)(const struct point*, const struct point*, const struct point*, void*);
 
-struct shape* shape_create_rectangle(const struct generics* layer, coordinate_t bl_x, coordinate_t bl_y, coordinate_t tr_x, coordinate_t tr_y);
+struct shape* shape_create_rectangle(const struct generics* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 struct shape* shape_create_polygon(const struct generics* layer, size_t capacity);
 struct shape* shape_create_path(const struct generics* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend);
 struct shape* shape_create_curve(const struct generics* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45);
 void shape_cleanup(struct shape* shape);
-void* shape_copy(const void* shape);
-void shape_destroy(void* shape);
+void* shape_copy(const void* v);
+void shape_destroy(void* v);
 
 void shape_append(struct shape* shape, coordinate_t x, coordinate_t y);
 
@@ -36,6 +36,7 @@ int shape_is_triangulated_polygon(const struct shape* shape);
 int shape_is_curve(const struct shape* shape);
 
 int shape_is_malformed(const struct shape* shape);
+int shape_is_on_grid(const struct shape* shape, coordinate_t grid);
 
 // rectangle access functions
 int shape_get_rectangle_points(struct shape* shape, const struct point** blp, const struct point** trp);
@@ -73,7 +74,7 @@ void shape_curve_add_arc_segment(struct shape* shape, double startangle, double 
 void shape_curve_add_cubic_bezier_segment(struct shape* shape, const struct point* cpt1, const struct point* cpt2, const struct point* endpt);
 
 // conversion to polygon (e.g. for layer boundaries)
-struct simple_polygon* shape_to_polygon(struct shape* shape);
+struct simple_polygon* shape_to_polygon(const struct shape* shape);
 
 int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y);
 

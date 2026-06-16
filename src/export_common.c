@@ -133,6 +133,51 @@ void export_data_append_string_unchecked(struct export_data* data, const char* s
     data->length += length;
 }
 
+// 'unchecked and manual' functions, don't allocate memory and don't advance length
+void export_data_append_nullbyte_unchecked_manual(struct export_data* data, size_t offset)
+{
+    data->data[data->length + offset] = 0;
+}
+
+void export_data_append_byte_unchecked_manual(struct export_data* data, size_t offset, unsigned char byte)
+{
+    data->data[data->length + offset] = byte;
+}
+
+void export_data_append_two_bytes_unchecked_manual(struct export_data* data, size_t offset, uint16_t datum)
+{
+    uint8_t byte1 = datum >> 8;
+    datum = datum - ((uint16_t)byte1 << 8);
+    uint8_t byte2 = datum;
+    data->data[data->length + offset + 0] = byte1;
+    data->data[data->length + offset + 1] = byte2;
+}
+
+void export_data_append_four_bytes_unchecked_manual(struct export_data* data, size_t offset, uint32_t datum)
+{
+    uint8_t byte1 = datum >> 24;
+    datum = datum - ((uint32_t)byte1 << 24);
+    uint8_t byte2 = datum >> 16;
+    datum = datum - ((uint32_t)byte2 << 16);
+    uint8_t byte3 = datum >> 8;
+    datum = datum - ((uint32_t)byte3 << 8);
+    uint8_t byte4 = datum;
+    data->data[data->length + offset + 0] = byte1;
+    data->data[data->length + offset + 1] = byte2;
+    data->data[data->length + offset + 2] = byte3;
+    data->data[data->length + offset + 3] = byte4;
+}
+
+void export_data_append_string_unchecked_manual(struct export_data* data, size_t offset, const char* str, size_t length)
+{
+    memcpy(data->data + data->length + offset, str, length);
+}
+
+void export_data_advance_length(struct export_data* data, size_t length)
+{
+    data->length += length;
+}
+
 void export_data_write_to_file(struct export_data* data, FILE* file)
 {
     fwrite(data->data, 1, data->length, file);

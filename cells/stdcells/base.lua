@@ -4,6 +4,8 @@ end
 
 function parameters()
     pcell.add_parameters(
+        { "xalign_method",                                              "rails", posvals = set("sourcedrain", "gate", "rails") },
+        { "yalign_method",                                              "skip", posvals = set("skip", "merge", "rails") },
         { "basepwidth(pMOS Finger Width)",                              2 * technology.get_dimension("Minimum Gate Width") },
         { "basenwidth(nMOS Finger Width)",                              2 * technology.get_dimension("Minimum Gate Width") },
         { "oxidetype(Oxide Type)",                                      1 },

@@ -51,9 +51,9 @@ function layout(pads, _P)
     })
 
     local numpads = #_P.padconfig
-    local startindex = _P.padconfigisreversed and numpads or 1
-    local endindex = _P.padconfigisreversed and 1 or numpads
-    local increment = _P.padconfigisreversed and -1 or 1
+    local startindex = _P.padconfigisreversed and 1 or numpads
+    local endindex = _P.padconfigisreversed and numpads or 1
+    local increment = _P.padconfigisreversed and 1 or -1
     local i = 1
     for padindex = startindex, endindex, increment do
         local padtype = _P.padconfig[padindex]

@@ -4,6 +4,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "bltrshape.h"
+#include "foreach.h"
 #include "tagged_value.h"
 #include "util.h"
 
@@ -393,7 +395,7 @@ static int _write_child(struct export_writer* writer, const struct object* child
     coordinate_t xpitch = object_get_child_xpitch(child);
     coordinate_t ypitch = object_get_child_ypitch(child);
     // FIXME: error checking
-    if(object_is_child_array(child) && _has_write_cell_array(writer))
+    if(object_is_array(child) && _has_write_cell_array(writer))
     {
         int ret = _write_child_array(writer, refname, instname, origin, trans, array_trans, xrep, yrep, xpitch, ypitch);
         if(!ret)
@@ -790,6 +792,7 @@ static int _write_shapes_with_malformed(struct export_writer* writer, const stru
 
 static int _write_children(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext)
 {
+    //object_foreach_child(cell
     struct child_iterator* it = object_create_child_iterator(cell);
     while(child_iterator_is_valid(it))
     {
@@ -804,7 +807,7 @@ static int _write_children(struct export_writer* writer, const struct object* ce
     return 1;
 }
 
-static int _write_port(struct export_writer* writer, const char* name, const struct hashmap* layerdata, struct point* where, unsigned int sizehint)
+static int _write_port(struct export_writer* writer, const char* name, const struct hashmap* layerdata, const struct point* where, unsigned int sizehint)
 {
     if(writer->islua)
     {
@@ -834,47 +837,40 @@ static int _write_port(struct export_writer* writer, const char* name, const str
     }
 }
 
-static int _write_ports(struct export_writer* writer, const struct object* cell, char leftdelim, char rightdelim)
+static int _do_port(const char* name, const struct generics* layer, const struct point* where, int isbusport, int busindex, unsigned int sizehint, struct generic_arg* extraargs)
 {
-    struct port_iterator* it = object_create_port_iterator(cell);
-    int ret = 1;
-    while(port_iterator_is_valid(it))
+    struct export_writer* writer = args_get_pointer(extraargs, 1);
+    char leftdelim = args_get_char(extraargs, 2);
+    char rightdelim = args_get_char(extraargs, 3);
+    char* busportname = NULL;
+    if(isbusport)
     {
-        const char* portname;
-        const struct point* portwhere;
-        const struct generics* portlayer;
-        int portisbusport;
-        int portbusindex;
-        unsigned int sizehint;
-        port_iterator_get(it, &portname, &portwhere, &portlayer, &portisbusport, &portbusindex, &sizehint);
-        struct point where = { .x = portwhere->x, .y = portwhere->y };
-        object_transform_point(cell, &where);
-        const struct hashmap* layerdata = generics_get_first_layer_data(portlayer);
-        char* busportname = NULL;
-        const char* name = portname;
-        if(portisbusport)
-        {
-            size_t len = strlen(portname) + 2 + util_num_digits(portbusindex);
-            busportname = malloc(len + 1);
-            snprintf(busportname, len + 1, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
-            name = busportname;
-        }
-        ret = _write_port(writer, name, layerdata, &where, sizehint);
-        if(portisbusport)
-        {
-            free(busportname);
-        }
-        if(!ret)
-        {
-            break;
-        }
-        port_iterator_next(it);
+        size_t len = strlen(name) + 2 + util_num_digits(busindex);
+        busportname = malloc(len + 1);
+        snprintf(busportname, len + 1, "%s%c%d%c", name, leftdelim, busindex, rightdelim);
+        name = busportname;
     }
-    port_iterator_destroy(it);
+    const struct hashmap* layerdata = generics_get_first_layer_data(layer);
+    int ret = _write_port(writer, name, layerdata, where, sizehint);
+    if(isbusport)
+    {
+        free(busportname);
+    }
     return ret;
 }
 
-static int _write_label(struct export_writer* writer, const char* name, const struct hashmap* layerdata, struct point* where, unsigned int sizehint)
+static int _write_ports(struct export_writer* writer, const struct object* cell, char leftdelim, char rightdelim)
+{
+    struct generic_arg args[] = {
+        { .type = ARG_POINTER, .content.ptr = writer },
+        { .type = ARG_CHAR, .content.ch = leftdelim },
+        { .type = ARG_CHAR, .content.ch = rightdelim },
+        { .type = ARG_END }
+    };
+    return object_foreach_port(cell, _do_port, args);
+}
+
+static int _write_label(struct export_writer* writer, const char* name, const struct hashmap* layerdata, const struct point* where, unsigned int sizehint)
 {
     if(writer->islua)
     {
@@ -916,6 +912,24 @@ static int _write_label(struct export_writer* writer, const char* name, const st
     }
 }
 
+static int _do_label(const char* name, const struct generics* layer, const struct point* where, unsigned int sizehint, struct generic_arg* extraargs)
+{
+    struct export_writer* writer = args_get_pointer(extraargs, 1);
+    const struct hashmap* layerdata = generics_get_first_layer_data(layer);
+    int ret = _write_label(writer, name, layerdata, where, sizehint);
+    return ret;
+}
+
+static int _write_labels(struct export_writer* writer, const struct object* cell)
+{
+    struct generic_arg args[] = {
+        { .type = ARG_POINTER, .content.ptr = writer },
+        { .type = ARG_END }
+    };
+    return object_foreach_label(cell, _do_label, args);
+}
+
+/*
 static int _write_labels(struct export_writer* writer, const struct object* cell)
 {
     struct label_iterator* it = object_create_label_iterator(cell);
@@ -938,6 +952,65 @@ static int _write_labels(struct export_writer* writer, const struct object* cell
         label_iterator_next(it);
     }
     label_iterator_destroy(it);
+    return ret;
+}
+*/
+
+static int _write_netshape(struct export_writer* writer, const char* netname, const struct hashmap* layerdata, const struct point* bl, const struct point* tr)
+{
+    if(writer->islua)
+    {
+        lua_getfield(writer->interface.L, -1, "write_netshape");
+        if(lua_isnil(writer->interface.L, -1))
+        {
+            lua_pop(writer->interface.L, 1);
+            return 1; // no export support is not an error
+        }
+        lua_pushstring(writer->interface.L, netname);
+        _push_layer(writer->interface.L, layerdata);
+        _push_point(writer->interface.L, bl);
+        _push_point(writer->interface.L, tr);
+        int ret = _pcall(writer->interface.L, 4, 0, "write_netshape");
+        if(!ret)
+        {
+            return 0;
+        }
+        return 1;
+    }
+    else
+    {
+        if(!writer->interface.funcs->write_netshape)
+        {
+            return 1; // no export support is not an error
+        }
+        writer->interface.funcs->write_netshape(writer->data, netname, layerdata, bl, tr);
+        return 1;
+    }
+}
+
+static int _write_netshapes(struct export_writer* writer, const struct object* cell)
+{
+    struct netshape_iterator* it = object_create_netshape_iterator(cell);
+    int ret = 1;
+    while(netshape_iterator_is_valid(it))
+    {
+        const char* netname;
+        struct bltrshape* bltrshape;
+        netshape_iterator_get(it, &netname, &bltrshape);
+        struct point* bl = bltrshape_get_bl(bltrshape);
+        struct point* tr = bltrshape_get_tr(bltrshape);
+        object_transform_point(cell, bl);
+        object_transform_point(cell, tr);
+        const struct hashmap* layerdata = generics_get_first_layer_data(bltrshape_get_layer(bltrshape));
+        ret = _write_netshape(writer, netname, layerdata, bl, tr);
+        bltrshape_destroy(bltrshape);
+        if(!ret)
+        {
+            break;
+        }
+        netshape_iterator_next(it);
+    }
+    netshape_iterator_destroy(it);
     return ret;
 }
 
@@ -977,7 +1050,7 @@ static int _write_cell_elements(struct export_writer* writer, const struct objec
     /* ports */
     if(write_ports && object_has_ports(cell))
     {
-        int ret = _write_ports(writer, cell, leftdelim, rightdelim);
+        ret = _write_ports(writer, cell, leftdelim, rightdelim);
         if(!ret)
         {
             return 0;
@@ -986,6 +1059,13 @@ static int _write_cell_elements(struct export_writer* writer, const struct objec
 
     /* label */
     ret = _write_labels(writer, cell);
+    if(!ret)
+    {
+        return 0;
+    }
+
+    /* net shapes */
+    ret = _write_netshapes(writer, cell);
     if(!ret)
     {
         return 0;
@@ -1058,12 +1138,16 @@ static int _initialize(struct export_writer* writer, const struct object* object
     if(writer->islua)
     {
         lua_getfield(writer->interface.L, -1, "initialize");
-        coordinate_t minx, maxx, miny, maxy;
-        object_get_minmax_xy(object, &minx, &miny, &maxx, &maxy, NULL); // NULL: no extra transformation matrix
-        lua_pushinteger(writer->interface.L, minx);
-        lua_pushinteger(writer->interface.L, maxx);
-        lua_pushinteger(writer->interface.L, miny);
-        lua_pushinteger(writer->interface.L, maxy);
+        coordinate_t* minmax = object_get_minmax_xy(object);
+        // FIXME: no transformation?
+        // FIXME: the order is skewed, as the order for the function call 'initialize'
+        //        and the return order of object_get_minmax_xy is different
+        //        It would be better to use a common interface for all these things,
+        //        there is already bltrshape, why not use that?
+        lua_pushinteger(writer->interface.L, minmax[0]);
+        lua_pushinteger(writer->interface.L, minmax[2]);
+        lua_pushinteger(writer->interface.L, minmax[1]);
+        lua_pushinteger(writer->interface.L, minmax[3]);
         int ret = _pcall(writer->interface.L, 4, 0, "initialize");
         if(!ret)
         {
@@ -1186,6 +1270,26 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
     return 1;
 }
 
+// wrapper functions for foreach_shapes
+static int _resolve_path_wrapper(struct shape* shape, struct generic_arg* extraargs)
+{
+    (void)extraargs;
+    shape_resolve_path_inline(shape);
+    return 1;
+}
+static int _resolve_path_extensions_wrapper(struct shape* shape, struct generic_arg* extraargs)
+{
+    (void)extraargs;
+    shape_resolve_path_extensions_inline(shape);
+    return 1;
+}
+static int _triangulate_polygon_wrapper(struct shape* shape, struct generic_arg* extraargs)
+{
+    (void)extraargs;
+    shape_triangulate_polygon_inline(shape);
+    return 1;
+}
+
 int export_writer_write_toplevel(struct export_writer* writer, const struct object* toplevel, int expand_namecontext, int writeports, int writechildrenports, int write_malformed, char leftdelim, char rightdelim)
 {
     int ret = 1;
@@ -1233,15 +1337,15 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         mustdelete = 1;
         if(!has_write_paths)
         {
-            object_foreach_shapes(copy, shape_resolve_path_inline);
+            object_foreach_shapes(copy, _resolve_path_wrapper, NULL);
         }
         if(!has_write_path_extensions)
         {
-            object_foreach_shapes(copy, shape_resolve_path_extensions_inline);
+            object_foreach_shapes(copy, _resolve_path_extensions_wrapper, NULL);
         }
         if(!has_write_polygon)
         {
-            object_foreach_shapes(copy, shape_triangulate_polygon_inline);
+            object_foreach_shapes(copy, _triangulate_polygon_wrapper, NULL);
         }
         if(!has_write_cell_reference)
         {

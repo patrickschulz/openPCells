@@ -1,12 +1,81 @@
 local M = {}
 
+local function _print_kv(k, v, indentstr)
+    local vfmt
+    if type(v) == "string" then
+        vfmt = "%s"
+    elseif type(v) == "number" then
+        if math.tointeger(v) then
+            vfmt = "%d"
+        else
+            vfmt = "%g"
+        end
+    else
+        vfmt = "%s"
+    end
+    local fmt = string.format("%%s%%s = %s", vfmt)
+    print(string.format(fmt, indentstr, k, v))
+end
+
+function M.report_netlist(netlist)
+    print("****************************************************************************************************")
+    print("netlist report")
+    print("****************************************************************************************************")
+    local devices = {}
+    for _, subcircuit in ipairs(netlist) do
+        print(string.format("start subcircuit: %s", subcircuit.name))
+        for _, instance in ipairs(subcircuit) do
+            print(string.format("instance (%s): %s %s", instance.identifier, instance.type, instance.model))
+            print("  parameters:")
+            for k, v in pairs(instance.parameters) do
+                _print_kv(k, v, "    ")
+            end
+            print("  connections:")
+            for k, v in pairs(instance.connections) do
+                _print_kv(k, v, "    ")
+            end
+            print("----------------------------------")
+        end
+        print(string.format("end subcircuit: %s", subcircuit.name))
+    end
+    print("****************************************************************************************************")
+end
+
+function M.report_devices(devices)
+    print("****************************************************************************************************")
+    print("devices report")
+    print("****************************************************************************************************")
+    for _, device in ipairs(devices) do
+        print(string.format("device (%s): %s", device.name, device.cell))
+        print("  parameters:")
+        for k, v in pairs(device.parameters) do
+            _print_kv(k, v, "    ")
+        end
+        print("  connections:")
+        for k, v in pairs(device.connections) do
+            _print_kv(k, v, "    ")
+        end
+        print("----------------------------------")
+    end
+    print("****************************************************************************************************")
+end
+
 local function _connections_match(c1, c2, connections)
-    for _, c in ipairs(connections) do
-        if c1[c] ~= c2[c] then
+    for _, term in ipairs(connections) do
+        if c1[term] ~= c2[term] then
             return false
         end
     end
     return true
+end
+
+local function _connections_match_set(c1, c2, connections)
+    for _, term in ipairs(connections) do
+        if c1[term[1]] == c2[term[2]] then
+            return true
+        end
+    end
+    return false
 end
 
 local function _parameters_match(p1, p2, ignore)
@@ -25,7 +94,10 @@ local function _can_merge_mosfet(m1, m2)
     -- all connections have to be the same
     local c1 = m1.connections
     local c2 = m2.connections
-    if not _connections_match(m1.connections, m2.connections, { "gate", "drain", "source", "bulk" }) then
+    if not _connections_match(m1.connections, m2.connections, { "gate", "bulk", }) then
+        return false
+    end
+    if not _connections_match_set(m1.connections, m2.connections, { { "source", "drain" }, { "drain", "source" } }) then
         return false
     end
     if not _parameters_match(m1.parameters, m2.parameters, { "fingers", "fingerwidth" }) then
@@ -87,6 +159,7 @@ function M.map_netlist_devices(netlist, devicemap, verbose)
             })
         end
     end
+    local nummerged = 0
     for idx1 = 1, #devices do
         local idx2 = idx1 + 1
         while true do
@@ -99,6 +172,7 @@ function M.map_netlist_devices(netlist, devicemap, verbose)
                     print(string.format("merge devices %s and %s", devices[idx1].name, devices[idx2].name))
                 end
                 _do_merge(devices[idx1], devices[idx2])
+                nummerged = nummerged + 1
                 table.remove(devices, idx2)
             else
                 -- only increment if device was not merged.
@@ -107,16 +181,59 @@ function M.map_netlist_devices(netlist, devicemap, verbose)
             end
         end
     end
+    if verbose then
+        print(string.format("merged %d devices", nummerged))
+    end
     return devices
 end
 
-function M.check(devices, placement)
+function M.extract_routes(devices, dontroute)
+    local routes = {}
+    for _, device in ipairs(devices) do
+        for k, net in pairs(device.connections) do
+            if not util.any_of(net, dontroute) then
+                -- use an array here to keep net order equal during design iteration
+                local _, route = util.find_predicate(routes, function(r) return r.net == net end)
+                if not route then
+                    route = { net = net, pins = {} }
+                    table.insert(routes, route)
+                end
+                table.insert(route.pins, { instance = device.name, pin = k })
+            end
+        end
+    end
+    return routes
+end
+
+function M.check(devices, placement, options)
+    check.set_next_function_name("import.check")
+    check.arg(1, "devices", "table", devices)
+    check.arg(2, "placement", "table", placement)
+    check.arg(3, "options", "table", options)
+    check.arg_options_table(options, { "devices", "placement" })
     local searchfunc = function(pentry, name)
         return pentry.object == name
     end
     for _, device in ipairs(devices) do
         if not util.find_predicate(placement, searchfunc, device.name) then
-            error(string.format("import.check: placement plan is not complete. No entry for device '%s'.", device.name))
+            local str = string.format("import.check: placement plan is not complete. No entry for device '%s'.", device.name)
+            if options.devices == "warn" then
+                print(str)
+            else -- "error"
+                error(str)
+            end
+        end
+    end
+    for _, entry in ipairs(placement) do
+        if entry.object then
+            if not util.any_of(function(device) return entry.object == device.name end, devices) then
+                local str = string.format("import.check: placement plan contains references to unknown devices. No device named '%s'.", entry.object)
+                if options.placement == "warn" then
+                    print(str)
+                else -- "error"
+                    error(str)
+                end
+            end
         end
     end
 end
@@ -146,6 +263,7 @@ M.maps.mosfet = function(t)
             connectsource = true,
             connectdrain = true,
             drawtopgate = true,
+            drawguardring = true,
         },
         map_netlist_parameters = _map_mosfet_parameters,
     }

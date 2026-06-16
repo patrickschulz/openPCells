@@ -198,6 +198,12 @@ static inline void _write_length_unchecked(struct export_data* data, uint8_t len
     export_data_append_byte_unchecked(data, length);
 }
 
+static inline void _write_length_unchecked_manual(struct export_data* data, size_t offset, uint8_t length)
+{
+    export_data_append_byte_unchecked_manual(data, offset, 0);
+    export_data_append_byte_unchecked_manual(data, offset + 1, length);
+}
+
 static inline void _write_ENDEL(struct export_data* data)
 {
     export_data_append_two_bytes(data, 4);
@@ -205,11 +211,11 @@ static inline void _write_ENDEL(struct export_data* data)
     export_data_append_byte(data, DATATYPE_NONE);
 }
 
-static inline void _write_ENDEL_unchecked(struct export_data* data)
+static inline void _write_ENDEL_unchecked(struct export_data* data, size_t offset)
 {
-    export_data_append_two_bytes_unchecked(data, 4);
-    export_data_append_byte_unchecked(data, RECORDTYPE_ENDEL);
-    export_data_append_byte_unchecked(data, DATATYPE_NONE);
+    export_data_append_two_bytes_unchecked_manual(data, offset, 4);
+    export_data_append_byte_unchecked_manual(data, offset + 2, RECORDTYPE_ENDEL);
+    export_data_append_byte_unchecked_manual(data, offset + 3, DATATYPE_NONE);
 }
 
 static inline void _write_layer(struct export_data* data, uint8_t type, uint8_t datatype, const struct hashmap* layer)
@@ -239,25 +245,25 @@ static inline void _write_layer(struct export_data* data, uint8_t type, uint8_t 
 static inline void _write_layer_unchecked(struct export_data* data, uint8_t type, const struct hashmap* layer)
 {
     // BOUNDARY (4 bytes)
-    _write_length_unchecked(data, 4);
-    export_data_append_byte_unchecked(data, type);
-    export_data_append_byte_unchecked(data, DATATYPE_NONE);
+    _write_length_unchecked_manual(data, 0, 4);
+    export_data_append_byte_unchecked_manual(data, 2, type);
+    export_data_append_byte_unchecked_manual(data, 3, DATATYPE_NONE);
 
     // LAYER (6 bytes)
-    _write_length_unchecked(data, 6);
-    export_data_append_byte_unchecked(data, RECORDTYPE_LAYER);
-    export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
+    _write_length_unchecked_manual(data, 4, 6);
+    export_data_append_byte_unchecked_manual(data, 6, RECORDTYPE_LAYER);
+    export_data_append_byte_unchecked_manual(data, 7, DATATYPE_TWO_BYTE_INTEGER);
     const struct tagged_value* vl = hashmap_get_const(layer, "layer");
     int layernum = tagged_value_get_integer(vl);
-    export_data_append_two_bytes_unchecked(data, (int16_t)layernum);
+    export_data_append_two_bytes_unchecked_manual(data, 8, (int16_t)layernum);
 
     // DATATYPE (6 bytes)
-    _write_length_unchecked(data, 6);
-    export_data_append_byte_unchecked(data, RECORDTYPE_DATATYPE);
-    export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
+    _write_length_unchecked_manual(data, 10, 6);
+    export_data_append_byte_unchecked_manual(data, 12, RECORDTYPE_DATATYPE);
+    export_data_append_byte_unchecked_manual(data, 13, DATATYPE_TWO_BYTE_INTEGER);
     const struct tagged_value* vp = hashmap_get_const(layer, "purpose");
     int layerpurpose = tagged_value_get_integer(vp);
-    export_data_append_two_bytes_unchecked(data, (int16_t)layerpurpose);
+    export_data_append_two_bytes_unchecked_manual(data, 14, (int16_t)layerpurpose);
 }
 
 static inline void _write_string(struct export_data* data, const char* str, uint8_t recordtype)
@@ -397,25 +403,26 @@ static void _at_end_cell(struct export_data* data, int istoplevel)
 static void _write_rectangle(struct export_data* data, const struct hashmap* layer, const struct point* bl, const struct point* tr)
 {
     export_data_ensure_additional_capacity(data, 64); // a rectangle has exactly 64 bytes
-    _write_layer_unchecked(data, RECORDTYPE_BOUNDARY, layer);
+    _write_layer_unchecked(data, RECORDTYPE_BOUNDARY, layer); // 16 bytes
 
     // XY (44 bytes)
-    double multiplier = 1e-9 / __databaseunit;
-    _write_length_unchecked(data, 44);
-    export_data_append_byte_unchecked(data, RECORDTYPE_XY);
-    export_data_append_byte_unchecked(data, DATATYPE_FOUR_BYTE_INTEGER);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->y);
-    export_data_append_four_bytes_unchecked(data, multiplier * tr->x);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->y);
-    export_data_append_four_bytes_unchecked(data, multiplier * tr->x);
-    export_data_append_four_bytes_unchecked(data, multiplier * tr->y);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
-    export_data_append_four_bytes_unchecked(data, multiplier * tr->y);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
-    export_data_append_four_bytes_unchecked(data, multiplier * bl->y);
+    _write_length_unchecked_manual(data, 16, 44);
+    export_data_append_byte_unchecked_manual(data, 18, RECORDTYPE_XY);
+    export_data_append_byte_unchecked_manual(data, 19, DATATYPE_FOUR_BYTE_INTEGER);
+    export_data_append_four_bytes_unchecked_manual(data, 20, bl->x);
+    export_data_append_four_bytes_unchecked_manual(data, 24, bl->y);
+    export_data_append_four_bytes_unchecked_manual(data, 28, tr->x);
+    export_data_append_four_bytes_unchecked_manual(data, 32, bl->y);
+    export_data_append_four_bytes_unchecked_manual(data, 36, tr->x);
+    export_data_append_four_bytes_unchecked_manual(data, 40, tr->y);
+    export_data_append_four_bytes_unchecked_manual(data, 44, bl->x);
+    export_data_append_four_bytes_unchecked_manual(data, 48, tr->y);
+    export_data_append_four_bytes_unchecked_manual(data, 52, bl->x);
+    export_data_append_four_bytes_unchecked_manual(data, 56, bl->y);
 
-    _write_ENDEL_unchecked(data); // 4 bytes
+    _write_ENDEL_unchecked(data, 60); // 4 bytes
+
+    export_data_advance_length(data, 64);
 }
 
 static void _write_polygon(struct export_data* data, const struct hashmap* layer, const struct vector* points)
@@ -423,15 +430,14 @@ static void _write_polygon(struct export_data* data, const struct hashmap* layer
     _write_layer(data, RECORDTYPE_BOUNDARY, RECORDTYPE_DATATYPE, layer);
 
     // XY
-    double multiplier = 1e-9 / __databaseunit;
     export_data_append_two_bytes(data, 4 + 4 * 2 * vector_size(points));
     export_data_append_byte(data, RECORDTYPE_XY);
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < vector_size(points); ++i)
     {
         const struct point* pt = vector_get_const(points, i);
-        export_data_append_four_bytes(data, multiplier * pt->x);
-        export_data_append_four_bytes(data, multiplier * pt->y);
+        export_data_append_four_bytes(data, pt->x);
+        export_data_append_four_bytes(data, pt->y);
     }
 
     _write_ENDEL(data);
@@ -498,15 +504,14 @@ static void _write_path(struct export_data* data, const struct hashmap* layer, c
     export_data_append_four_bytes(data, extension[1]);
 
     // XY
-    double multiplier = 1e-9 / __databaseunit;
     export_data_append_two_bytes(data, 4 + 4 * 2 * vector_size(points));
     export_data_append_byte(data, RECORDTYPE_XY);
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < vector_size(points); ++i)
     {
         const struct point* pt = vector_get_const(points, i);
-        export_data_append_four_bytes(data, multiplier * pt->x);
-        export_data_append_four_bytes(data, multiplier * pt->y);
+        export_data_append_four_bytes(data, pt->x);
+        export_data_append_four_bytes(data, pt->y);
     }
 
     _write_ENDEL(data);
@@ -661,12 +666,11 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     // transformation
     _write_strans_angle(data, trans);
 
-    double multiplier = 1e-9 / __databaseunit;
     _write_length(data, 12);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
-    export_data_append_four_bytes(data, point_getx(where) * multiplier);
-    export_data_append_four_bytes(data, point_gety(where) * multiplier);
+    export_data_append_four_bytes(data, point_getx(where));
+    export_data_append_four_bytes(data, point_gety(where));
 
     _write_ENDEL(data);
 }
@@ -696,24 +700,23 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     export_data_append_two_bytes(data, yrep);
 
     // XY
-    double multiplier = 1e-9 / __databaseunit;
     _write_length(data, 28);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
-    export_data_append_four_bytes(data, point_getx(where) * multiplier);
-    export_data_append_four_bytes(data, point_gety(where) * multiplier);
+    export_data_append_four_bytes(data, point_getx(where));
+    export_data_append_four_bytes(data, point_gety(where));
     // column vector
     coordinate_t xcol = xrep * xpitch;
     coordinate_t ycol = 0;
     _rotate_vector(&xcol, &ycol, array_trans);
-    export_data_append_four_bytes(data, (point_getx(where) + xcol) * multiplier);
-    export_data_append_four_bytes(data, (point_gety(where) + ycol) * multiplier);
+    export_data_append_four_bytes(data, (point_getx(where) + xcol));
+    export_data_append_four_bytes(data, (point_gety(where) + ycol));
     // row vector
     coordinate_t xrow = 0;
     coordinate_t yrow = yrep * ypitch;
     _rotate_vector(&xrow, &yrow, array_trans);
-    export_data_append_four_bytes(data, (point_getx(where) + xrow) * multiplier);
-    export_data_append_four_bytes(data, (point_gety(where) + yrow) * multiplier);
+    export_data_append_four_bytes(data, (point_getx(where) + xrow));
+    export_data_append_four_bytes(data, (point_gety(where) + yrow));
 
     _write_ENDEL(data);
 }
@@ -735,7 +738,7 @@ static void _write_port(struct export_data* data, const char* name, const struct
     char sizedata[8];
     if(sizehint > 0)
     {
-        double value = sizehint / 1000;
+        double value = (double)sizehint / __userunit;
         _number_to_gdsfloat(value, 8, sizedata);
     }
     else
@@ -748,12 +751,11 @@ static void _write_port(struct export_data* data, const char* name, const struct
     }
 
     // XY
-    double multiplier = 1e-9 / __databaseunit;
     _write_length(data, 12);
     export_data_append_byte(data, RECORDTYPE_XY); // XY
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
-    export_data_append_four_bytes(data, point_getx(where) * multiplier);
-    export_data_append_four_bytes(data, point_gety(where) * multiplier);
+    export_data_append_four_bytes(data, point_getx(where));
+    export_data_append_four_bytes(data, point_gety(where));
 
     // NAME
     _write_string(data, name, RECORDTYPE_STRING);
@@ -784,6 +786,7 @@ struct export_functions* gdsexport_get_export_functions(void)
     funcs->write_port = _write_port;
     funcs->write_label = _write_port;
     funcs->get_extension = _get_extension;
+    funcs->write_netshape = NULL;
     return funcs;
 }
 

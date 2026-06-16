@@ -1,13 +1,19 @@
 function parameters()
     pcell.add_parameters(
+        { "channeltype", "nmos" },
+        { "oxidetype", 1 },
+        { "flippedwell", false },
+        { "sourcevthtype", 1 },
         { "sourcefingers", 2, posvals = even() },
         { "sourcewidth", technology.get_dimension("Minimum Active Width", "Minimum Active YWidth") },
         { "sourcelength", technology.get_dimension("Minimum Gate Length") },
         { "sourcegatespace", technology.get_dimension("Minimum Gate Space", "Minimum Gate XSpace") },
+        { "cascodevthtype", 1 },
         { "cascodefingers", 2, posvals = even() },
         { "cascodewidth", technology.get_dimension("Minimum Active Width", "Minimum Active YWidth") },
         { "cascodelength", technology.get_dimension("Minimum Gate Length") },
         { "cascodegatespace", technology.get_dimension("Minimum Gate Space", "Minimum Gate XSpace") },
+        { "interconnectmetal", 2 },
         { "outputmetal", 1 },
         { "outputwidth", technology.get_dimension_max("Minimum M1 Width") },
         { "sdwidth", technology.get_dimension_max("Minimum M1 Width", "Minimum Source/Drain Contact Region Size") },
@@ -17,64 +23,158 @@ function parameters()
         { "gatestrapspace", technology.get_dimension("Minimum M1 Width") },
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Width") },
-        { "oxidetype", 1 },
+        { "extraspace", 0 },
         { "connect_gates", false },
         { "continuous_upper_gate_strap", true },
         { "continuous_lower_gate_strap", true },
         { "diodeconnected", false },
         { "gateext", 0 },
-        { "actext", 0 }
+        { "actext", technology.get_optional_dimension("Minimum Device Minimum Active Extension", 0) },
+        { "continuousimplant", true },
+        { "continuousoxidetype", true },
+        { "continuousvthtype", true },
+        { "continuouswell", true },
+        { "implantalignwithactive", false },
+        { "implantalignleftwithactive", false, follow = "implantalignwithactive" },
+        { "implantalignrightwithactive", false, follow = "implantalignwithactive" },
+        { "implantaligntopwithactive", false, follow = "implantalignwithactive" },
+        { "implantalignbottomwithactive", false, follow = "implantalignwithactive" },
+        { "oxidetypealignwithactive", false, },
+        { "oxidetypealignleftwithactive", false, follow = "oxidetypealignwithactive" },
+        { "oxidetypealignrightwithactive", false, follow = "oxidetypealignwithactive" },
+        { "oxidetypealigntopwithactive", false, follow = "oxidetypealignwithactive" },
+        { "oxidetypealignbottomwithactive", false, follow = "oxidetypealignwithactive" },
+        { "vthtypealignwithactive", false },
+        { "vthtypealignleftwithactive", false, follow = "vthtypealignwithactive" },
+        { "vthtypealignrightwithactive", false, follow = "vthtypealignwithactive" },
+        { "vthtypealigntopwithactive", false, follow = "vthtypealignwithactive" },
+        { "vthtypealignbottomwithactive", false, follow = "vthtypealignwithactive" },
+        { "wellalignwithactive", false },
+        { "wellalignleftwithactive", false, follow = "wellalignwithactive" },
+        { "wellalignrightwithactive", false, follow = "wellalignwithactive" },
+        { "wellaligntopwithactive", false, follow = "wellalignwithactive" },
+        { "wellalignbottomwithactive", false, follow = "wellalignwithactive" },
+        { "equalize_FEOL", true },
+        { "equalize_implant", true, follow = "equalize_FEOL" },
+        { "equalize_well", true, follow = "equalize_FEOL" },
+        { "equalize_oxidetype", true, follow = "equalize_FEOL" },
+        { "extendall", 0 },
+        { "extendalltop", 0, follow = "extendall" },
+        { "extendallbottom", 0, follow = "extendall" },
+        { "extendallleft", 0, follow = "extendall" },
+        { "extendallright", 0, follow = "extendall" },
+        { "extendoxidetypetop", technology.get_dimension("Minimum Oxide Extension"), follow = "extendalltop" },
+        { "extendoxidetypebottom", technology.get_dimension("Minimum Oxide Extension"), follow = "extendallbottom" },
+        { "extendoxidetypeleft", technology.get_dimension("Minimum Oxide Extension"), follow = "extendallleft" },
+        { "extendoxidetyperight", technology.get_dimension("Minimum Oxide Extension"), follow = "extendallright" },
+        { "extendvthtypetop", technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendalltop" },
+        { "extendvthtypebottom", technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallbottom" },
+        { "extendvthtypeleft", technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallleft" },
+        { "extendvthtyperight", technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallright" },
+        { "extendimplanttop", technology.get_dimension("Minimum Implant Extension"), follow = "extendalltop" },
+        { "extendimplantbottom", technology.get_dimension("Minimum Implant Extension"), follow = "extendallbottom" },
+        { "extendimplantleft", technology.get_dimension("Minimum Implant Extension"), follow = "extendallleft" },
+        { "extendimplantright", technology.get_dimension("Minimum Implant Extension"), follow = "extendallright" },
+        { "extendwelltop", technology.get_dimension("Minimum Well Extension"), follow = "extendalltop" },
+        { "extendwellbottom", technology.get_dimension("Minimum Well Extension"), follow = "extendallbottom" },
+        { "extendwellleft", technology.get_dimension("Minimum Well Extension"), follow = "extendallleft" },
+        { "extendwellright", technology.get_dimension("Minimum Well Extension"), follow = "extendallright" },
+        { "sourcenet", "" }
     )
 end
 
 function layout(cell, _P)
-    dprint(_P.sdwidth)
-    dprint(_P.gatestrapwidth)
-    local source = pcell.create_layout("basic/mosfet", "_source", {
+    local baseopt = {
         oxidetype = _P.oxidetype,
+        drawimplant = not _P.equalize_implant,
+        drawoxidetype = not _P.equalize_oxidetype,
+        drawwell = not _P.equalize_well,
+        sdwidth = _P.sdwidth,
+        actext = _P.actext,
+        implantalignleftwithactive = _P.implantalignleftwithactive,
+        implantalignrightwithactive = _P.implantalignrightwithactive,
+        implantaligntopwithactive = _P.implantaligntopwithactive,
+        implantalignbottomwithactive = _P.implantalignbottomwithactive,
+        oxidetypealignleftwithactive = _P.oxidetypealignleftwithactive,
+        oxidetypealignrightwithactive = _P.oxidetypealignrightwithactive,
+        oxidetypealigntopwithactive = _P.oxidetypealigntopwithactive,
+        oxidetypealignbottomwithactive = _P.oxidetypealignbottomwithactive,
+        vthtypealignleftwithactive = _P.vthtypealignleftwithactive,
+        vthtypealignrightwithactive = _P.vthtypealignrightwithactive,
+        vthtypealigntopwithactive = _P.vthtypealigntopwithactive,
+        vthtypealignbottomwithactive = _P.vthtypealignbottomwithactive,
+        wellalignleftwithactive = _P.wellalignleftwithactive,
+        wellalignrightwithactive = _P.wellalignrightwithactive,
+        wellaligntopwithactive = _P.wellaligntopwithactive,
+        wellalignbottomwithactive = _P.wellalignbottomwithactive,
+        extendimplantleft = _P.extendimplantleft,
+        extendimplantright = _P.extendimplantright,
+        extendoxidetypeleft = _P.extendoxidetypeleft,
+        extendoxidetyperight = _P.extendoxidetyperight,
+        extendvthtypeleft = _P.extendvthtypeleft,
+        extendvthtyperight = _P.extendvthtyperight,
+        extendwellleft = _P.extendwellleft,
+        extendwellright = _P.extendwellright,
+    }
+
+    local source = pcell.create_layout("basic/mosfet", "_source", util.add_options(baseopt, {
+        vthtype = _P.sourcevthtype,
         fingers = _P.sourcefingers,
         gatelength = _P.sourcelength,
         gatespace = _P.sourcegatespace,
         fingerwidth = _P.sourcewidth,
-        sdwidth = _P.sdwidth,
         sourcemetal = 1,
         connectsource = true,
         connectsourcewidth = _P.powerwidth,
         connectsourcespace = _P.powerspace,
-        drainmetal = 2,
+        drainmetal = _P.interconnectmetal,
         connectdrain = true,
         connectdrainwidth = _P.sdstrapwidth,
-        connectdrainspace = _P.gatestrapwidth + 2 * _P.gatestrapspace,
+        connectdrainspace = _P.gatestrapwidth + 2 * _P.gatestrapspace + _P.extraspace / 2,
         drawtopgate = true,
+        topgateadjustforsdstraps = false,
         topgatewidth = _P.gatestrapwidth,
         topgatespace = _P.gatestrapspace,
-        extendall = _P.gatestrapwidth + 2 * _P.gatestrapspace,
+        extendimplanttop = _P.continuousimplant and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendimplanttop,
+        extendimplantbottom = _P.extendimplantbottom,
+        extendoxidetypetop = _P.continuousoxidetype and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendoxidetypetop,
+        extendoxidetypebottom = _P.extendoxidetypebottom,
+        extendvthtypetop = _P.continuousvthtype and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendvthtypetop,
+        extendvthtypebottom = _P.extendvthtypebottom,
+        extendwelltop = _P.continuouswell and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendwelltop,
+        extendwellbottom = _P.extendwellbottom,
         topgatepolytopbottomextension = _P.gateext,
-        actext = _P.actext,
-    })
-    local cascode = pcell.create_layout("basic/mosfet", "_cascode", {
-        oxidetype = _P.oxidetype,
+    }))
+
+    local cascode = pcell.create_layout("basic/mosfet", "_cascode", util.add_options(baseopt, {
+        vthtype = _P.cascodevthtype,
         fingers = _P.cascodefingers,
         gatelength = _P.cascodelength,
         gatespace = _P.cascodegatespace,
         fingerwidth = _P.cascodewidth,
-        sdwidth = _P.sdwidth,
-        sourcemetal = 2,
+        sourcemetal = _P.interconnectmetal,
         connectsource = true,
         connectsourcewidth = _P.sdstrapwidth,
-        connectsourcespace = _P.gatestrapwidth + 2 * _P.gatestrapspace,
+        connectsourcespace = _P.gatestrapwidth + 2 * _P.gatestrapspace + _P.extraspace / 2,
         drainmetal = _P.outputmetal,
         connectdrain = true,
         connectdrainwidth = _P.outputwidth,
         connectdrainspace = _P.sdstrapspace,
         drawbotgate = true,
+        botgateadjustforsdstraps = false,
         botgatewidth = _P.gatestrapwidth,
         botgatespace = _P.gatestrapspace,
-        extendall = _P.gatestrapwidth + 2 * _P.gatestrapspace,
+        extendimplanttop = _P.extendimplanttop,
+        extendimplantbottom = _P.continuousimplant and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendimplantbottom,
+        extendoxidetypetop = _P.extendoxidetypetop,
+        extendoxidetypebottom = _P.continuousoxidetype and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendoxidetypebottom,
+        extendvthtypetop = _P.extendvthtypetop,
+        extendvthtypebottom = _P.continuousvthtype and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendvthtypebottom,
+        extendwelltop = _P.extendwelltop,
+        extendwellbottom = _P.continuouswell and _P.gatestrapwidth + 2 * _P.gatestrapspace or _P.extendwellbottom,
         botgatepolytopbottomextension = _P.gateext,
-        actext = _P.actext,
         diodeconnected = _P.diodeconnected,
-    })
+    }))
     cascode:align_center_x(source)
     cascode:align_area_anchor_y("sourcestrap", source, "drainstrap")
     cell:merge_into(source)
@@ -92,12 +192,6 @@ function layout(cell, _P)
             )
         )
     end
-    -- alignment box
-    cell:inherit_alignment_box(source)
-    cell:inherit_alignment_box(cascode)
-    -- anchors
-    cell:inherit_area_anchor_as(source, "sourcestrap", "power")
-    cell:inherit_area_anchor_as(cascode, "drainstrap", "output")
     -- continuous gate strap
     if _P.continuous_upper_gate_strap then
         geometry.rectanglebltr(cell, generics.metal(1),
@@ -122,6 +216,112 @@ function layout(cell, _P)
                 source:get_area_anchor("sourcedrain-1").r,
                 source:get_area_anchor("topgatestrap").t
             )
+        )
+    end
+
+    -- equalize FEOL layers
+    if _P.equalize_implant then
+        geometry.rectanglebltr(cell, generics.implant(_P.channeltype == "nmos" and "n" or "p"),
+            point.create(
+                math.min(
+                    source:get_area_anchor("implant").l,
+                    cascode:get_area_anchor("implant").l
+                ),
+                math.min(
+                    source:get_area_anchor("implant").b,
+                    cascode:get_area_anchor("implant").b
+                )
+            ),
+            point.create(
+                math.max(
+                    source:get_area_anchor("implant").r,
+                    cascode:get_area_anchor("implant").r
+                ),
+                math.max(
+                    source:get_area_anchor("implant").t,
+                    cascode:get_area_anchor("implant").t
+                )
+            )
+        )
+    end
+    if _P.equalize_well then
+        local well
+        if _P.channeltype == "nmos" then
+            if _P.flippedwell then
+                well = "n"
+            else
+                well = "p"
+            end
+        else
+            if _P.flippedwell then
+                well = "p"
+            else
+                well = "n"
+            end
+        end
+        geometry.rectanglebltr(cell, generics.well(well),
+            point.create(
+                math.min(
+                    source:get_area_anchor("well").l,
+                    cascode:get_area_anchor("well").l
+                ),
+                math.min(
+                    source:get_area_anchor("well").b,
+                    cascode:get_area_anchor("well").b
+                )
+            ),
+            point.create(
+                math.max(
+                    source:get_area_anchor("well").r,
+                    cascode:get_area_anchor("well").r
+                ),
+                math.max(
+                    source:get_area_anchor("well").t,
+                    cascode:get_area_anchor("well").t
+                )
+            )
+        )
+    end
+    if _P.equalize_oxidetype then
+        geometry.rectanglebltr(cell, generics.oxide(_P.oxidetype),
+            point.create(
+                math.min(
+                    source:get_area_anchor("oxide").l,
+                    cascode:get_area_anchor("oxide").l
+                ),
+                math.min(
+                    source:get_area_anchor("oxide").b,
+                    cascode:get_area_anchor("oxide").b
+                )
+            ),
+            point.create(
+                math.max(
+                    source:get_area_anchor("oxide").r,
+                    cascode:get_area_anchor("oxide").r
+                ),
+                math.max(
+                    source:get_area_anchor("oxide").t,
+                    cascode:get_area_anchor("oxide").t
+                )
+            )
+        )
+    end
+
+    -- alignment box
+    cell:inherit_alignment_box(source)
+    cell:inherit_alignment_box(cascode)
+
+    -- anchors
+    cell:inherit_all_anchors_with_prefix(source, "source_")
+    cell:inherit_all_anchors_with_prefix(cascode, "cascode_")
+
+    -- nets
+    if _P.sourcenet ~= "" then
+        cell:add_net_shape(
+            _P.sourcenet,
+            source:get_area_anchor("sourcestrap").bl,
+            source:get_area_anchor("sourcestrap").tr,
+            generics.metal(1)
         )
     end
 end

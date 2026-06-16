@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IC Layout Viewer</title>
+    <link rel="stylesheet" href="layout_viewer.css">
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div id="status-bar">
+        <span id="cursor-x" style="display: inline-block; min-width: 80px;">X: 0</span>
+        <span id="cursor-y" style="display: inline-block; min-width: 100px; margin-left: 10px;">Y: 0</span>
+        <span id="zoom-level" style="display: inline-block; min-width: 100px; margin-left: 20px;">Zoom: 100%</span>
+    </div>
+
+    <button id="sidebar-toggle" class="sidebar-toggle-btn">▶</button>
+    <div id="layer-palette">
+        <div class="palette-tabs">
+            <button class="tab-btn active" data-tab="layers">Layout</button>
+            <button class="tab-btn" data-tab="objects">Objects</button>
+            <button class="tab-btn" data-tab="info">Info</button>
+        </div>
+
+        <div id="layers-tab" class="tab-content active">
+            <div class="layer-controls-wrapper">
+                <h4 style="margin-bottom: 6px;">Data File</h4>
+                <input type="file" id="layout-file-input" accept=".json" style="width: 100%; padding: 4px; font-size: 12px; margin-bottom: 5px;">
+                <div style="display: flex; gap: 5px; margin-bottom: 6px;">
+                    <button id="reload-data-btn" class="layer-control-btn">Reload</button>
+                </div>
+            </div>
+            <h4 style="margin: 6px 10px 6px 10px;">Layers</h4>
+            <div class="layer-controls-wrapper">
+                <div class="layer-controls">
+                    <button id="enable-all-btn" class="layer-control-btn">Enable All</button>
+                    <button id="disable-all-btn" class="layer-control-btn">Disable All</button>
+                </div>
+                <div class="layer-controls">
+                    <button id="feol-btn" class="layer-control-btn">FEOL</button>
+                    <button id="beol-btn" class="layer-control-btn">BEOL</button>
+                </div>
+                <div class="layer-controls">
+                    <button id="toggle-patterns-btn" class="layer-control-btn">Patterns: On</button>
+                </div>
+                <div style="margin-bottom: 5px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label id="global-opacity-label" for="global-opacity-slider" style="font-size: 12px; white-space: nowrap;">Opacity:</label>
+                        <input type="range" id="global-opacity-slider" min="0" max="1" step="0.01" value="0.5" style="flex: 1;">
+                    </div>
+                </div>
+            </div>
+            <div id="layer-list"></div>
+        </div>
+
+        <div id="objects-tab" class="tab-content">
+            <div class="object-controls">
+                <h4 style="margin: 10px 0;">Shape Types</h4>
+                <div class="object-list">
+                    <div class="object-item">
+                        <input type="checkbox" id="object-rect" class="object-checkbox" checked>
+                        <label for="object-rect">Rectangles</label>
+                    </div>
+                    <div class="object-item">
+                        <input type="checkbox" id="object-path" class="object-checkbox" checked>
+                        <label for="object-path">Paths</label>
+                    </div>
+                    <div class="object-item">
+                        <input type="checkbox" id="object-polygon" class="object-checkbox" checked>
+                        <label for="object-polygon">Polygons</label>
+                    </div>
+                    <div class="object-item">
+                        <input type="checkbox" id="object-text" class="object-checkbox" checked>
+                        <label for="object-text">Text</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="info-tab" class="tab-content">
+            <div class="info-content">
+                <div class="info-section">
+                    <h4>Navigation</h4>
+                    <div>Pan: Click and drag</div>
+                    <div>Pan H only: Shift + drag</div>
+                    <div>Pan V only: Ctrl + drag</div>
+                    <div>Pan: Arrow keys</div>
+                    <div>Zoom: Mouse wheel</div>
+                    <div>Pan H: Shift + wheel</div>
+                    <div>Pan V: Ctrl + wheel</div>
+                    <div>Fit: Press F</div>
+                    <div>Toggle Sidebar: Press Tab</div>
+                </div>
+                <div class="info-section">
+                    <h4>Settings</h4>
+                    <div style="margin-bottom: 5px;">
+                        <label for="zoom-gain-slider" style="display: block; margin-bottom: 2px;">Zoom Gain:</label>
+                        <input type="range" id="zoom-gain-slider" min="4" max="12" value="8" step="1" style="width: 100%;">
+                        <div id="zoom-gain-value" style="text-align: center; font-size: 12px; color: #666;">1.08x</div>
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <label for="render-passes-slider" style="display: block; margin-bottom: 2px;">Render Passes:</label>
+                        <input type="range" id="render-passes-slider" min="1" max="5" value="1" step="1" style="width: 100%;">
+                        <div id="render-passes-value" style="text-align: center; font-size: 12px; color: #666;">1</div>
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <label for="default-font-size" style="display: block; margin-bottom: 2px;">Default Font Size:</label>
+                        <input type="number" id="default-font-size" min="1" max="10000" value="500" step="1" style="width: 100%; padding: 2px;">
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <label for="text-outline-ratio" style="display: block; margin-bottom: 2px;">Text Outline Ratio:</label>
+                        <input type="number" id="text-outline-ratio" min="0" max="1" value="0.08" step="0.001" style="width: 100%; padding: 2px;">
+                    </div>
+                    <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                        <div style="flex: 1;">
+                            <label class="control-label" style="margin-bottom: 2px;">Background:</label>
+                            <button id="bg-toggle" class="bg-toggle-btn">Black</button>
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="control-label" style="margin-bottom: 2px;">Rulers:</label>
+                            <button id="rulers-toggle" class="rulers-toggle-btn">Visible</button>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <div style="flex: 1;">
+                            <label class="control-label" style="margin-bottom: 2px;">Grid:</label>
+                            <button id="grid-toggle" class="grid-toggle-btn">Visible</button>
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="control-label" style="margin-bottom: 2px;">Axes:</label>
+                            <button id="axes-toggle" class="axes-toggle-btn">Visible</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="layout_viewer.js"></script>
+</body>
+</html>

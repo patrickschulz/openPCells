@@ -783,6 +783,7 @@ function layout(comparator, _P)
         )
     end
 
+    --[[
     -- connect output latch nets (symmetric part)
     if _P.drawoutputlatch then
         geometry.viabltr(halfref, 1, 4,
@@ -790,6 +791,7 @@ function layout(comparator, _P)
             nmosrslatch2:get_area_anchor("topgatestrap").tr
         )
     end
+    --]]
 
     -- connect latch gates (symmetric part)
     geometry.viabltr(halfref, 1, 2,
@@ -836,12 +838,15 @@ function layout(comparator, _P)
     halfref:inherit_alignment_box(pmosinv)
     halfref:inherit_alignment_box(pmosreset1)
     halfref:inherit_alignment_box(pmosreset2)
-    local lefthalf = comparator:add_child(halfref, "lefthalf")
-    local righthalf = comparator:add_child(halfref, "righthalf")
+    local lefthalf = halfref:copy()
+    local righthalf = halfref:copy()
     righthalf:mirror_at_yaxis()
     righthalf:abut_right(lefthalf)
     -- compensate for center dummies
     righthalf:translate(-_P.clockdummyfingers * xpitch, 0)
+
+    comparator:merge_into(lefthalf)
+    comparator:merge_into(righthalf)
 
     -- connect vtail
     geometry.rectanglebltr(comparator, generics.metal(2),
@@ -920,16 +925,17 @@ function layout(comparator, _P)
 
     -- connect output latch nets (asymmetric part)
     if _P.drawoutputlatch then
-        geometry.viabltr(comparator, 1, 4,
+        local metal = 3
+        geometry.viabltr(comparator, 1, metal,
             lefthalf:get_area_anchor("latchpdrain").bl,
             lefthalf:get_area_anchor("latchpdrain").tr
         )
-        geometry.viabltr(comparator, 1, 4,
+        geometry.viabltr(comparator, 1, metal,
             righthalf:get_area_anchor("latchndrain").bl,
             righthalf:get_area_anchor("latchndrain").tr
         )
 
-        geometry.polygon(comparator, generics.metal(4), {
+        geometry.polygon(comparator, generics.metal(metal), {
             lefthalf:get_area_anchor("latchpdrain").br,
             (righthalf:get_area_anchor("latchgate").bl .. lefthalf:get_area_anchor("latchpdrain").br):translate(-_P.sdwidth, 0),
             righthalf:get_area_anchor("latchgate").bl:translate(-_P.sdwidth, 0),
@@ -937,7 +943,7 @@ function layout(comparator, _P)
             righthalf:get_area_anchor("latchgate").tl .. lefthalf:get_area_anchor("latchpdrain").tr,
             lefthalf:get_area_anchor("latchpdrain").tr,
         })
-        geometry.polygon(comparator, generics.metal(4), {
+        geometry.polygon(comparator, generics.metal(metal), {
             righthalf:get_area_anchor("latchndrain").tl,
             (lefthalf:get_area_anchor("latchgate").tr .. righthalf:get_area_anchor("latchndrain").tl):translate(_P.sdwidth, 0),
             lefthalf:get_area_anchor("latchgate").tr:translate(_P.sdwidth, 0),

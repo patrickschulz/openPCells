@@ -1,4 +1,12 @@
 return {
+    ["Minimum Active Contact Region Size"] = 250,
+    ["Minimum Gate Contact Region Size"] = 250,
+    ["Minimum Source/Drain Contact Region Size"] = 250,
+    ["Minimum Implant Extension"] = 200,
+    ["Minimum Well Extension"] = 200,
+    ["Minimum Oxide Extension"] = 200,
+    ["Minimum Active Width"] = 250,
+    ["Minimum Active Space"] = 250,
     ["Minimum Gate Extension"] = 120,
     ["Minimum Gate Length"] = 200,
     ["Minimum Gate Width"]  = 1000,

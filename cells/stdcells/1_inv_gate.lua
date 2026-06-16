@@ -38,8 +38,8 @@ function layout(gate, _P)
 
     -- draw connection
     geometry.rectanglebltr(gate, generics.metal(1),
-        subgateref:get_anchor("O") .. invref:get_anchor("I"):translate(xpitch - _P.sdwidth / 2 - _P.routingspace, 0),
-        invref:get_anchor("I"):translate(xpitch - _P.sdwidth / 2 - _P.routingspace, _P.routingwidth)
+        subgateref:get_area_anchor("O").bl .. invref:get_area_anchor("I").bl:translate(xpitch - _P.sdwidth / 2 - _P.routingspace, 0),
+        invref:get_area_anchor("I").bl:translate(xpitch - _P.sdwidth / 2 - _P.routingspace, _P.routingwidth)
     )
 
     gate:inherit_alignment_box(subgateref)
@@ -48,7 +48,7 @@ function layout(gate, _P)
     -- ports
     gate:add_port_with_anchor("A", generics.metalport(1), subgateref:get_anchor("A"))
     gate:add_port_with_anchor("B", generics.metalport(1), subgateref:get_anchor("B"))
-    gate:add_port_with_anchor("O", generics.metalport(1), invref:get_anchor("O"))
+    gate:add_port_with_anchor("O", generics.metalport(1), invref:get_area_anchor("O").bl)
     gate:add_port("VDD", generics.metalport(1), subgateref:get_anchor("VDD"))
     gate:add_port("VSS", generics.metalport(1), subgateref:get_anchor("VSS"))
 end

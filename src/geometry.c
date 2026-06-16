@@ -99,8 +99,11 @@ void geometry_rectanglepoints(struct object* cell, const struct generics* layer,
 void geometry_rectangleareaanchor(struct object* cell, const struct generics* layer, const char* anchor)
 {
     struct point* pts = object_get_area_anchor(cell, anchor);
-    geometry_rectanglebltr(cell, layer, pts + 0, pts + 1);
-    free(pts);
+    if(pts)
+    {
+        geometry_rectanglebltr(cell, layer, pts + 0, pts + 1);
+        free(pts);
+    }
 }
 
 void geometry_rectanglearray(
@@ -624,28 +627,67 @@ static void _fit_via_xy(
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     unsigned int cutwidth, unsigned int cutheight,
     unsigned int xspace, unsigned int yspace,
-    int encl1, int encl2,
+    int xencl1, int xencl2,
+    int yencl1, int yencl2,
     int* xrep_result, unsigned int* xspace_result,
     int* yrep_result, unsigned int* yspace_result
 )
 {
-    int xfit1a = ((int)(trx1 - blx1) + (int)xspace - 2 * encl1) / ((int)cutwidth + (int)xspace);
-    int yfit1a = ((int)(try1 - bly1) + (int)yspace - 2 * encl2) / ((int)cutheight + (int)yspace);
-    int xfit2a = ((int)(trx2 - blx2) + (int)xspace - 2 * encl2) / ((int)cutwidth + (int)xspace);
-    int yfit2a = ((int)(try2 - bly2) + (int)yspace - 2 * encl1) / ((int)cutheight + (int)yspace);
-    int xfit1b = ((int)(trx1 - blx1) + (int)xspace - 2 * encl2) / ((int)cutwidth + (int)xspace);
-    int yfit1b = ((int)(try1 - bly1) + (int)yspace - 2 * encl1) / ((int)cutheight + (int)yspace);
-    int xfit2b = ((int)(trx2 - blx2) + (int)xspace - 2 * encl1) / ((int)cutwidth + (int)xspace);
-    int yfit2b = ((int)(try2 - bly2) + (int)yspace - 2 * encl2) / ((int)cutheight + (int)yspace);
-    if(
-        (xfit1a > 0 && yfit1a > 0 && xfit2a > 0 && yfit2a > 0) ||
-        (xfit1a > 0 && yfit1a > 0 && xfit2b > 0 && yfit2b > 0) ||
-        (xfit1b > 0 && yfit1b > 0 && xfit2a > 0 && yfit2a > 0) ||
-        (xfit1b > 0 && yfit1b > 0 && xfit2b > 0 && yfit2b > 0)
-    )
+    // this function workings:
+    // * calculate symmetric extra extensions in all directions
+    //   (the MIN2 catches cases where the line is slightly shifted to one side, asymmetrically.)
+    // * calculate x/y cut repetitions for all possible cases
+    //   (one enclosure in x-direction, one in y-direction)
+    // * combine the four cases (1a-2a, 1a-2b etc.) by minimum, which strips off
+    //   excess cuts that are actually outside of the overlap region
+    // * find the pair that gives maximum cuts (minimum resistance)
+    // * if a pair has a product of larger than 0, a via is possible in the overlap
+    int extraxext1 = MIN2(trx1 - trx, blx - blx1);
+    int extrayext1 = MIN2(try1 - try, bly - bly1);
+    int extraxext2 = MIN2(trx2 - trx, blx - blx2);
+    int extrayext2 = MIN2(try2 - try, bly - bly2);
+    int xrep1a = ((int)(trx - blx + 2 * extraxext1) + (int)xspace - 2 * xencl1) / ((int)cutwidth + (int)xspace);
+    int xrep2a = ((int)(trx - blx + 2 * extraxext2) + (int)xspace - 2 * xencl1) / ((int)cutwidth + (int)xspace);
+    int xrep1b = ((int)(trx - blx + 2 * extraxext1) + (int)xspace - 2 * xencl2) / ((int)cutwidth + (int)xspace);
+    int xrep2b = ((int)(trx - blx + 2 * extraxext2) + (int)xspace - 2 * xencl2) / ((int)cutwidth + (int)xspace);
+    int yrep1a = ((int)(try - bly + 2 * extrayext1) + (int)yspace - 2 * yencl1) / ((int)cutheight + (int)yspace);
+    int yrep2a = ((int)(try - bly + 2 * extrayext2) + (int)yspace - 2 * yencl1) / ((int)cutheight + (int)yspace);
+    int yrep1b = ((int)(try - bly + 2 * extrayext1) + (int)yspace - 2 * yencl2) / ((int)cutheight + (int)yspace);
+    int yrep2b = ((int)(try - bly + 2 * extrayext2) + (int)yspace - 2 * yencl2) / ((int)cutheight + (int)yspace);
+    int xreps[4] = {
+        // cross 'a-a'
+        MIN2(xrep1a, xrep2a),
+        // cross 'a-b'
+        MIN2(xrep1a, xrep2b),
+        // cross 'b-a'
+        MIN2(xrep1b, xrep2a),
+        // cross 'b-b'
+        MIN2(xrep1b, xrep2b),
+    };
+    int yreps[4] = {
+        // cross 'a-a'
+        MIN2(yrep1a, yrep2a),
+        // cross 'a-b'
+        MIN2(yrep1a, yrep2b),
+        // cross 'b-a'
+        MIN2(yrep1b, yrep2a),
+        // cross 'b-b'
+        MIN2(yrep1b, yrep2b),
+    };
+    // get maximum for minimum resistance
+    int xrep = xreps[0];
+    int yrep = yreps[0];
+    for(int i = 1; i < 4; ++i)
     {
-        unsigned int xrep = ((trx - blx) + xspace) / (cutwidth + xspace);
-        unsigned int yrep = ((try - bly) + yspace) / (cutheight + yspace);
+        if(xreps[i] * yreps[i] > xrep * yrep)
+        {
+            xrep = xreps[i];
+            yrep = yreps[i];
+        }
+    }
+    // found via, return result
+    if(xrep > 0 && yrep > 0)
+    {
         *xrep_result = xrep;
         *xspace_result = xspace;
         *yrep_result = yrep;
@@ -862,22 +904,33 @@ static struct via_definition* _get_rectangular_arrayzation_overlap(
     unsigned int yspace = 0;
     struct via_definition* result = NULL;
     struct via_definition** viadef = definitions;
+    coordinate_t regionwidth = trx - blx;
+    coordinate_t regionheight = try - bly;
     while(*viadef)
     {
         struct via_definition* entry = *viadef;
+        if(regionwidth > entry->maxwidth)
+        {
+            ++viadef;
+            continue;
+        }
+        if(regionheight > entry->maxheight)
+        {
+            ++viadef;
+            continue;
+        }
         int _xrep = 0;
         unsigned int _xspace = 0;
         int _yrep = 0;
         unsigned int _yspace = 0;
-        unsigned int _emxenclosure = MAX2(entry->xenclosure1, entry->xenclosure2);
-        unsigned int _emyenclosure = MAX2(entry->yenclosure1, entry->yenclosure2);
         _fit_via_xy(
             blx1, bly1, trx1, try1,
             blx2, bly2, trx2, try2,
             blx, bly, trx, try,
             entry->width, entry->height,
             entry->xspace, entry->yspace,
-            _emxenclosure, _emyenclosure,
+            entry->xenclosure1, entry->xenclosure2,
+            entry->yenclosure1, entry->yenclosure2,
             &_xrep, &_xspace,
             &_yrep, &_yspace
         );
@@ -945,18 +998,16 @@ static struct via_definition* _get_rectangular_arrayzation2(
             ++viadef;
             continue;
         }
-        /*
-        if(regionwidth > entry->maxwidth)
+        if(regionwidth1 > entry->maxwidth)
         {
             ++viadef;
             continue;
         }
-        if(regionheight > entry->maxheight)
+        if(regionheight1 > entry->maxheight)
         {
             ++viadef;
             continue;
         }
-        */
         int _xrep1 = 0;
         unsigned int _xspace1 = 0;
         int _yrep1 = 0;
@@ -1140,6 +1191,69 @@ static int _calculate_overlap(
     return 1;
 }
 
+static int _check_via_contact_bltrov(
+    struct via_definition** viadefs, struct via_definition* fallback,
+    coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1,
+    coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2
+)
+{
+    coordinate_t blx;
+    coordinate_t bly;
+    coordinate_t trx;
+    coordinate_t try;
+    int ov = _calculate_overlap(
+        blx1, bly1, trx1, try1,
+        blx2, bly2, trx2, try2,
+        &blx, &bly, &trx, &try
+    );
+    if(!ov)
+    {
+        return 0;
+    }
+    unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
+    struct via_definition* entry = _get_rectangular_arrayzation_overlap(
+        blx1, bly1, trx1, try1,
+        blx2, bly2, trx2, try2,
+        blx, bly, trx, try,
+        viadefs, fallback,
+        &viaxrep, &viayrep, &viaxpitch, &viaypitch
+    );
+    return entry != NULL;
+}
+
+static int _check_viabltrov(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1,
+    coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2
+)
+{
+    metal1 = technology_resolve_metal(techstate, metal1);
+    metal2 = technology_resolve_metal(techstate, metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    int ret = 1;
+    for(int i = metal1; i < metal2; ++i)
+    {
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1);
+        if(!viadefs)
+        {
+            return 0;
+        }
+        ret = ret && _check_via_contact_bltrov(
+            viadefs,
+            NULL, // don't use fallbacks
+            blx1, bly1, trx1, try1,
+            blx2, bly2, trx2, try2
+        );
+    }
+    return ret;
+}
+
 static int _via_contact_bltrov(
     struct object* cell,
     struct via_definition** viadefs, struct via_definition* fallback,
@@ -1160,7 +1274,7 @@ static int _via_contact_bltrov(
     );
     if(!ov)
     {
-        return 0;
+        return !makearray; // no existing overlap is not a failure with disabled via arrayzation
     }
     if(makearray)
     {
@@ -1305,6 +1419,50 @@ static int _calculate_viabltr(
     return 1;
 }
 
+static int _calculate_viabltr2(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1,
+    coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2,
+    coordinate_t minxspace, coordinate_t minyspace,
+    coordinate_t widthclass,
+    struct vector* result
+)
+{
+    metal1 = technology_resolve_metal(techstate, metal1);
+    metal2 = technology_resolve_metal(techstate, metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    if(metal2 - metal1 != 1)
+    {
+        return 0;
+    }
+    struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1);
+    struct via_definition* fallback = technology_get_via_fallback(techstate, metal1);
+    if(!viadefs)
+    {
+        return 0;
+    }
+    ucoordinate_t width1 = trx1 - blx1;
+    ucoordinate_t height1 = try1 - bly1;
+    ucoordinate_t width2 = trx2 - blx2;
+    ucoordinate_t height2 = try2 - bly2;
+    unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
+    struct via_definition* entry = _get_rectangular_arrayzation2(width1, height1, width2, height2, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, minxspace, minyspace, widthclass);
+    if(!entry)
+    {
+        return 0;
+    }
+    const struct generics* cutlayer = generics_create_viacut(techstate, metal1, metal2);
+    struct viaarray* array = _make_via_array(MIN2(width1, width2), MIN2(height1, height2), entry->width, entry->height, viaxrep, viayrep, viaxpitch, viaypitch, cutlayer);
+    vector_append(result, array);
+    return 1;
+}
+
 static int _viabltr(
     struct object* cell,
     struct technology_state* techstate,
@@ -1337,7 +1495,7 @@ static int _viabltr(
         const struct generics* viacutlayer = generics_create_viacut(techstate, i, i + 1);
         if(!viacutlayer)
         {
-            puts("no viacutlayer defined");
+            fprintf(stderr, "no viacutlayer defined from metal %d to metal %d", i, i + 1);
             return 0;
         }
         ret = ret && _via_contact_bltr(cell,
@@ -1361,6 +1519,64 @@ static int _viabltr(
     return ret;
 }
 
+static int _viabltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1,
+    coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2,
+    coordinate_t minxspace, coordinate_t minyspace,
+    int bare,
+    coordinate_t widthclass
+)
+{
+    (void) minxspace;
+    (void) minyspace;
+    metal1 = technology_resolve_metal(techstate, metal1);
+    metal2 = technology_resolve_metal(techstate, metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    if(metal2 - metal1 != 1)
+    {
+        return 0;
+    }
+    int ret = 1;
+    for(int i = metal1; i < metal2; ++i)
+    {
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i);
+        struct via_definition* fallback = technology_get_via_fallback(techstate, i);
+        if(!viadefs)
+        {
+            return 0;
+        }
+        const struct generics* viacutlayer = generics_create_viacut(techstate, i, i + 1);
+        if(!viacutlayer)
+        {
+            fprintf(stderr, "no viacutlayer defined from metal %d to metal %d", i, i + 1);
+            return 0;
+        }
+        ret = ret && _via_contact_bltr2(cell,
+            viadefs, fallback,
+            viacutlayer,
+            blx1, bly1, trx1, try1,
+            blx2, bly2, trx2, try2,
+            0, 0, // TODO: minxspace, minyspace
+            widthclass,
+            technology_is_create_via_arrays(techstate)
+        );
+    }
+    if(!bare)
+    {
+        _rectanglebltr(cell, generics_create_metal(techstate, metal1), blx1, bly1, trx1, try1);
+        _rectanglebltr(cell, generics_create_metal(techstate, metal2), blx2, bly2, trx2, try2);
+    }
+    return ret;
+}
+
 static int _viabltrov(
     struct object* cell,
     struct technology_state* techstate,
@@ -1378,34 +1594,47 @@ static int _viabltrov(
         metal1 = metal2;
         metal2 = tmp;
     }
-    if(metal2 - metal1 != 1)
-    {
-        return 0;
-    }
     int ret = 1;
-    struct via_definition** viadefs = technology_get_via_definitions(techstate, metal1);
-    struct via_definition* fallback = technology_get_via_fallback(techstate, metal1);
-    if(!viadefs)
+    for(int i = metal1; i < metal2; ++i)
     {
-        return 0;
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i);
+        struct via_definition* fallback = technology_get_via_fallback(techstate, i);
+        if(!viadefs)
+        {
+            return 0;
+        }
+        const struct generics* viacutlayer = generics_create_viacut(techstate, i, i + 1);
+        if(!viacutlayer)
+        {
+            fprintf(stderr, "no viacutlayer defined from metal %d to metal %d\n", i, i + 1);
+            return 0;
+        }
+        ret = ret && _via_contact_bltrov(cell,
+            viadefs, fallback,
+            viacutlayer,
+            blx1, bly1, trx1, try1,
+            blx2, bly2, trx2, try2,
+            technology_is_create_via_arrays(techstate)
+        );
     }
-    const struct generics* viacutlayer = generics_create_viacut(techstate, metal1, metal2);
-    if(!viacutlayer)
-    {
-        puts("no viacutlayer defined");
-        return 0;
-    }
-    ret = ret && _via_contact_bltrov(cell,
-        viadefs, fallback,
-        viacutlayer,
-        blx1, bly1, trx1, try1,
-        blx2, bly2, trx2, try2,
-        technology_is_create_via_arrays(techstate)
-    );
     if(!bare)
     {
-        _rectanglebltr(cell, generics_create_metal(techstate, metal1), blx1, bly1, trx1, try1);
-        _rectanglebltr(cell, generics_create_metal(techstate, metal2), blx2, bly2, trx2, try2);
+        coordinate_t blx;
+        coordinate_t bly;
+        coordinate_t trx;
+        coordinate_t try;
+        int ov = _calculate_overlap(
+            blx1, bly1, trx1, try1,
+            blx2, bly2, trx2, try2,
+            &blx, &bly, &trx, &try
+        );
+        if(ov)
+        {
+            for(int i = metal1; i <= metal2; ++i)
+            {
+                _rectanglebltr(cell, generics_create_metal(techstate, i), blx, bly, trx, try);
+            }
+        }
     }
     return ret;
 }
@@ -1430,10 +1659,29 @@ struct vector* geometry_calculate_viabltr(
     return result;
 }
 
+struct vector* geometry_calculate_viabltr2(
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t minxspace, coordinate_t minyspace,
+    coordinate_t widthclass
+)
+{
+    struct vector* result = vector_create(1, free);
+    _calculate_viabltr2(techstate, metal1, metal2, bl1->x, bl1->y, tr1->x, tr1->y, bl2->x, bl2->y, tr2->x, tr2->y, minxspace, minyspace, widthclass, result);
+    return result;
+}
+
 int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     int bare = 0;
     return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, minxspace, minyspace, xcont, ycont, equal_pitch, bare, widthclass);
+}
+
+int geometry_check_viabltrov(struct technology_state* techstate, int metal1, int metal2, const struct point* bl1, const struct point* tr1, const struct point* bl2, const struct point* tr2)
+{
+    return _check_viabltrov(techstate, metal1, metal2, bl1->x, bl1->y, tr1->x, tr1->y, bl2->x, bl2->y, tr2->x, tr2->y);
 }
 
 int geometry_viabltrov(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl1, const struct point* tr1, const struct point* bl2, const struct point* tr2)
@@ -1445,6 +1693,19 @@ int geometry_viabltrov(struct object* cell, struct technology_state* techstate, 
         bl2->x, bl2->y, tr2->x, tr2->y,
         bare
     );
+}
+
+int geometry_viabltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t widthclass
+)
+{
+    int bare = 0;
+    return _viabltr2(cell, techstate, metal1, metal2, bl1->x, bl1->y, tr1->x, tr1->y, bl2->x, bl2->y, tr2->x, tr2->y, 0, 0, bare, widthclass);
 }
 
 int geometry_viabarebltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl, const struct point* tr, coordinate_t minxspace, coordinate_t minyspace, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
@@ -1461,6 +1722,19 @@ int geometry_viabarebltrov(struct object* cell, struct technology_state* techsta
         bl1->x, bl1->y, tr1->x, tr1->y,
         bl2->x, bl2->y, tr2->x, tr2->y,
         bare
+    );
+}
+
+int geometry_viabarebltr2(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const struct point* bl1, const struct point* tr1, const struct point* bl2, const struct point* tr2, coordinate_t widthclass)
+{
+    int bare = 1;
+    return _viabltr2(cell, techstate,
+        metal1, metal2,
+        bl1->x, bl1->y, tr1->x, tr1->y,
+        bl2->x, bl2->y, tr2->x, tr2->y,
+        0, 0,
+        bare,
+        widthclass
     );
 }
 
@@ -1582,7 +1856,8 @@ static int _contactbltr2(
     const char* region,
     coordinate_t blx1, coordinate_t bly1, coordinate_t trx1, coordinate_t try1,
     coordinate_t blx2, coordinate_t bly2, coordinate_t trx2, coordinate_t try2,
-    coordinate_t widthclass
+    coordinate_t widthclass,
+    int bare
 )
 {
     struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
@@ -1607,28 +1882,31 @@ static int _contactbltr2(
         widthclass,
         technology_is_create_via_arrays(techstate)
     );
-    const struct generics* feollayer = NULL;
-    if(strcmp(region, "gate") == 0)
+    if(!bare)
     {
-        feollayer = generics_create_gate(techstate);
+        const struct generics* feollayer = NULL;
+        if(strcmp(region, "gate") == 0)
+        {
+            feollayer = generics_create_gate(techstate);
+        }
+        else if(strcmp(region, "poly") == 0)
+        {
+            feollayer = generics_create_gate(techstate);
+        }
+        else if(strcmp(region, "active") == 0)
+        {
+            feollayer = generics_create_active(techstate);
+        }
+        else if(strcmp(region, "sourcedrain") == 0)
+        {
+            feollayer = generics_create_active(techstate);
+        }
+        if(feollayer)
+        {
+            _rectanglebltr(cell, feollayer, blx1, bly1, trx1, try1);
+        }
+        _rectanglebltr(cell, generics_create_metal(techstate, 1), blx2, bly2, trx2, try2);
     }
-    else if(strcmp(region, "poly") == 0)
-    {
-        feollayer = generics_create_gate(techstate);
-    }
-    else if(strcmp(region, "active") == 0)
-    {
-        feollayer = generics_create_active(techstate);
-    }
-    else if(strcmp(region, "sourcedrain") == 0)
-    {
-        feollayer = generics_create_active(techstate);
-    }
-    if(feollayer)
-    {
-        _rectanglebltr(cell, feollayer, blx1, bly1, trx1, try1);
-    }
-    _rectanglebltr(cell, generics_create_metal(techstate, 1), blx2, bly2, trx2, try2);
     return ret;
 }
 
@@ -1715,13 +1993,36 @@ int geometry_contactbltr2(
     coordinate_t widthclass
 )
 {
+    int bare = 0;
     return _contactbltr2(
         cell,
         techstate,
         region,
         bl1->x, bl1->y, tr1->x, tr1->y,
         bl2->x, bl2->y, tr2->x, tr2->y,
-        widthclass
+        widthclass,
+        bare
+    );
+}
+
+int geometry_contactbarebltr2(
+    struct object* cell,
+    struct technology_state* techstate,
+    const char* region,
+    const struct point* bl1, const struct point* tr1,
+    const struct point* bl2, const struct point* tr2,
+    coordinate_t widthclass
+)
+{
+    int bare = 1;
+    return _contactbltr2(
+        cell,
+        techstate,
+        region,
+        bl1->x, bl1->y, tr1->x, tr1->y,
+        bl2->x, bl2->y, tr2->x, tr2->y,
+        widthclass,
+        bare
     );
 }
 

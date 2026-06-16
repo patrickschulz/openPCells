@@ -5,6 +5,7 @@
 #include "lua/lua.h"
 #include "lua/lauxlib.h"
 
+#include "arith.h"
 #include "math.h"
 #include "point.h"
 
@@ -95,7 +96,7 @@ struct lpoint* lpoint_takeover_point(lua_State* L, struct point* pt)
 
 int lpoint_create(lua_State* L)
 {
-    if(lua_gettop(L) < 2)
+    if(lua_gettop(L) != 2)
     {
         lua_pushfstring(L, "point.create(): expected two arguments (x and y), got %d", lua_gettop(L));
         lua_error(L);
@@ -246,7 +247,8 @@ static int lpoint_xaverage(lua_State* L)
 {
     struct lpoint* lhs = lpoint_checkpoint(L, 1);
     struct lpoint* rhs = lpoint_checkpoint(L, 2);
-    lua_pushinteger(L, (_x(lhs) + _x(rhs)) / 2);
+    coordinate_t grid = luaL_optinteger(L, 3, 1);
+    lua_pushinteger(L, arith_div_grid(_x(lhs) + _x(rhs), 2, grid));
     return 1;
 }
 
@@ -254,7 +256,8 @@ static int lpoint_yaverage(lua_State* L)
 {
     struct lpoint* lhs = lpoint_checkpoint(L, 1);
     struct lpoint* rhs = lpoint_checkpoint(L, 2);
-    lua_pushinteger(L, (_y(lhs) + _y(rhs)) / 2);
+    coordinate_t grid = luaL_optinteger(L, 3, 1);
+    lua_pushinteger(L, arith_div_grid(_y(lhs) + _y(rhs), 2, grid));
     return 1;
 }
 
@@ -303,7 +306,6 @@ static int lpoint_ydistance_abs(lua_State* L)
     }
     return 1;
 }
-
 
 static int lpoint_equal(lua_State* L)
 {

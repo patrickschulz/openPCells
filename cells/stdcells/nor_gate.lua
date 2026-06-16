@@ -1,6 +1,8 @@
 function parameters()
-    pcell.add_parameter("fingers", 1)
-    pcell.add_parameter("shiftoutput", 0)
+    pcell.add_parameters(
+        { "fingers", 1 },
+        { "shiftoutput", technology.get_dimension("Minimum M1 Space") }
+    )
     pcell.inherit_parameters("stdcells/base")
 end
 
