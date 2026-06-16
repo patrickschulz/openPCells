@@ -89,16 +89,16 @@ function layout(gate, _P)
             harness:get_area_anchor("G1").tr
         )
     end
-    gate:add_port("I", generics.metalport(1), gate:get_area_anchor("I").bl)
+    gate:add_label("I", generics.metalport(1), gate:get_area_anchor("I").bl)
     gate:add_area_anchor_bltr("O",
         harness:get_area_anchor(string.format("G%d", _P.fingers)).bl:translate_x(xpitch + _P.shiftoutput),
         harness:get_area_anchor(string.format("G%d", _P.fingers)).tl:translate_x(xpitch + _P.shiftoutput)
     )
     if _P.connectoutput then
-        gate:add_port("O", generics.metalport(1), gate:get_area_anchor("O").bl)
+        gate:add_label("O", generics.metalport(1), gate:get_area_anchor("O").bl)
     end
     gate:inherit_area_anchor_as(harness, "PRp", "VDD")
     gate:inherit_area_anchor_as(harness, "PRn", "VSS")
-    gate:add_port("VDD", generics.metalport(1), gate:get_area_anchor("VDD").bl)
-    gate:add_port("VSS", generics.metalport(1), gate:get_area_anchor("VSS").bl)
+    gate:add_label("VDD", generics.metalport(1), gate:get_area_anchor("VDD").bl)
+    gate:add_label("VSS", generics.metalport(1), gate:get_area_anchor("VSS").bl)
 end

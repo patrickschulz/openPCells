@@ -7,7 +7,7 @@ function parameters()
         { "fingers",       1 },
         { "gatetype", "nand" },
         { "swapinputs", false },
-        { "shiftoutput", 0 }
+        { "shiftoutput", technology.get_dimension("Minimum M1 Space") }
     )
     pcell.inherit_parameters("stdcells/base")
 end
@@ -50,9 +50,11 @@ function layout(gate, _P)
     end
 
     if _P.fingers % 2 == 1 then
-        gatecontactpos[#gatecontactpos + 1] = "dummy"
-        pcontacts[#pcontacts + 1] = "power"
-        ncontacts[#ncontacts + 1] = "power"
+        if _P.xalign_method ~= "rails" then
+            gatecontactpos[#gatecontactpos + 1] = "dummy"
+            pcontacts[#pcontacts + 1] = "power"
+            ncontacts[#ncontacts + 1] = "power"
+        end
     end
 
     local baseparameters = {}
@@ -70,49 +72,34 @@ function layout(gate, _P)
     gate:inherit_alignment_box(harness)
 
     -- gate straps
-    if _P.fingers > 1 then
-        if _P.fingers % 2 == 0 then
-            geometry.path(gate, generics.metal(1), 
-                {
-                    harness:get_anchor("G2cc"):translate(-_P.gatelength / 2, 0),
-                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers - 1)):translate(_P.gatelength / 2, 0)
-                }, _P.routingwidth
-            )
-            geometry.path(gate, generics.metal(1), 
-                {
-                    harness:get_anchor("G1cc"):translate(-_P.gatelength / 2, 0),
-                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers)):translate(_P.gatelength / 2, 0)
-                }, _P.routingwidth
-            )
-        else
-            geometry.path(gate, generics.metal(1), 
-                {
-                    harness:get_anchor("G2cc"):translate(-_P.gatelength / 2, 0),
-                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers)):translate(_P.gatelength / 2, 0)
-                }, _P.routingwidth
-            )
-            geometry.path(gate, generics.metal(1), 
-                {
-                    harness:get_anchor("G1cc"):translate(-_P.gatelength / 2, 0),
-                    harness:get_anchor(string.format("G%dcc", 2 * _P.fingers - 1)):translate(_P.gatelength / 2, 0)
-                }, _P.routingwidth
-            )
-        end
-    else
-        geometry.rectanglebltr(gate, generics.metal(1), 
-            (harness:get_area_anchor("G1").bl .. harness:get_area_anchor("G2").bl),
-            harness:get_area_anchor("G2").tl
+    gate:add_area_anchor_bltr("A_gatestrap",
+        point.create(
+            harness:get_area_anchor("G1").l,
+            harness:get_area_anchor("G1").b
+        ),
+        point.create(
+            harness:get_area_anchor_fmt("G%d", 2 * _P.fingers).r,
+            harness:get_area_anchor("G1").t
         )
-        geometry.rectanglebltr(gate, generics.metal(1), 
-            harness:get_area_anchor("G1").bl,
-            (harness:get_area_anchor("G2").br .. harness:get_area_anchor("G1").tl)
+    )
+    gate:add_area_anchor_bltr("B_gatestrap",
+        point.create(
+            harness:get_area_anchor("G1").l,
+            harness:get_area_anchor("G2").b
+        ),
+        point.create(
+            harness:get_area_anchor_fmt("G%d", 2 * _P.fingers).r,
+            harness:get_area_anchor("G2").t
         )
-    end
+    )
+    geometry.rectangleareaanchor(gate, generics.metal(1), "A_gatestrap")
+    geometry.rectangleareaanchor(gate, generics.metal(1), "B_gatestrap")
 
     -- drain connection
     local yinvert = _P.gatetype == "nand" and 1 or -1
     local startpt, endpt
-    local connpt = harness:get_area_anchor(string.format("G%d", 2 * _P.fingers)).bl:translate(xpitch + _P.gatelength / 2 + _P.shiftoutput, 0)
+    --local connpt = harness:get_area_anchor(string.format("G%d", 2 * _P.fingers)).bl:translate(xpitch + _P.gatelength / 2 + _P.shiftoutput, 0)
+    local connpt = gate:get_area_anchor("A_gatestrap").tr:translate_x(_P.sdwidth / 2 + _P.shiftoutput)
     if _P.gatetype == "nand" then
         startpt = harness:get_area_anchor("nSD3").tr:translate(0, -yinvert * _P.sdwidth / 2)
         endpt = harness:get_area_anchor("pSD2").br:translate(0, yinvert * _P.sdwidth / 2)
@@ -125,14 +112,24 @@ function layout(gate, _P)
         _P.sdwidth
     )
 
-    gate:inherit_area_anchor_as(harness, "G3", "O")
-
+    -- input ports
     gate:add_port_with_anchor("A", generics.metalport(1), harness:get_area_anchor("G1").bl:translate_y(_P.routingwidth / 2))
     gate:add_port_with_anchor("B", generics.metalport(1), harness:get_area_anchor("G2").bl:translate(-xpitch, _P.routingwidth / 2))
+
+    gate:add_area_anchor_bltr("output",
+        point.create(
+            gate:get_area_anchor("A_gatestrap").r + _P.shiftoutput,
+            gate:get_area_anchor("A_gatestrap").b
+        ),
+        point.create(
+            gate:get_area_anchor("A_gatestrap").r + _P.sdwidth + _P.shiftoutput,
+            gate:get_area_anchor("B_gatestrap").t
+        )
+    )
     gate:add_port("O", generics.metalport(1), 
         point.create(
-            harness:get_area_anchor("G3").l,
-            harness:get_area_anchor("G3").b
+            gate:get_area_anchor("output").l,
+            gate:get_area_anchor("output").b
         )
     )
     gate:add_port_with_anchor("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
