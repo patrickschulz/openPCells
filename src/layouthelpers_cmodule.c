@@ -142,6 +142,19 @@ struct vector* layouthelpers_place_vlines(
         }
         polygon_container_iterator_destroy(it);
     }
+    // FIXME: add no-place zones from polygon outline to blockages
+    //        calculate this from the difference of the bounding rectangle and the actual polygon boundary
+    /*
+    {
+        coordinate_t* b = point_create_coordinate_array(4);
+        // order: c1, c2, start, stop
+        b[0] = 0;
+        b[1] = 3000;
+        b[2] = 0;
+        b[3] = 3000;
+        vector_append(blockages, b);
+    }
+    */
     coordinate_t x = start + offset;
     while(x < stop)
     {
