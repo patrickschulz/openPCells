@@ -14,6 +14,7 @@ procedure(OPCCreateLayoutMenu()
             viewdprint
             viewoutput
             viewexport
+            ;importmenu
             designmenu
             subcellmenu
             cellmenu
@@ -25,6 +26,23 @@ procedure(OPCCreateLayoutMenu()
         documentation = hiCreateMenuItem(?name 'OPCDocumentation ?itemText "Documentation" ?callback "OPCDocumentationCallback()")
 
         SEP = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
+
+        /*
+        ; import
+        let(
+            (
+                editimportscript
+                runimportscript
+                viewimportlog
+                importmenupulldown
+            )
+            editimportscript = hiCreateMenuItem(?name 'OPCEditImportScript ?itemText "Edit Import Script" ?callback "OPCImportEditScript()")
+            runimportscript = hiCreateMenuItem(?name 'OPCImportScriptRun ?itemText "Run Import Script" ?callback "OPCImportRun()")
+            viewimportreport = hiCreateMenuItem(?name 'OPCImportViewReport ?itemText "View Import Report" ?callback "OPCImportViewReport()")
+            importmenupulldown = hiCreatePulldownMenu('OPCImportMenuPulldown "" list(editimportscript runimportscript viewimportreport))
+            importmenu = hiCreateSliderMenuItem(?name 'OPCDesignMenu ?itemText "Import" ?subMenu importmenupulldown)
+        )
+        */
 
         ; design
         let(
@@ -136,6 +154,10 @@ procedure(OPCCreateLayoutMenu()
             SEP
             settings editconfig viewpfile viewlog viewdprint viewoutput viewexport
             SEP
+            /*
+            importmenu
+            SEP
+            */
             designmenu
             SEP
             subcellmenu

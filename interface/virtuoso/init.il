@@ -7,6 +7,7 @@ foreach(
         "edit_update"
         "export"
         "fill"
+        ;"import"
         "menu"
         "misc"
         "powergrid"
