@@ -1169,7 +1169,13 @@ void objectbase_inherit_net_shapes(struct object* cell, const struct object* oth
     {
         obj = FULL(other);
     }
-    objectfull_inherit_net_shapes(FULL(cell), obj, NULL, NULL, layer);
+    objectfull_inherit_net_shapes(
+        FULL(cell),
+        obj,
+        objectbase_get_tmatrix(cell),
+        objectbase_get_tmatrix(other),
+        layer
+    );
 }
 
 int objectbase_has_net(
