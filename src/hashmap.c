@@ -134,12 +134,20 @@ int hashmap_exists(const struct hashmap* map, const char* key)
 void* hashmap_get(struct hashmap* map, const char* key)
 {
     struct hashmap_entry* entry = _find(map, key);
+    if(!entry)
+    {
+        return NULL;
+    }
     return entry->value;
 }
 
 const void* hashmap_get_const(const struct hashmap* map, const char* key)
 {
     struct hashmap_entry* entry = _find(map, key);
+    if(!entry)
+    {
+        return NULL;
+    }
     return entry->value;
 }
 
