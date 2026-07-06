@@ -66,6 +66,31 @@
 #include "helpers.h"
 #include "util.h"
 
+// helper functions for chained matrices
+static void _get_trans12(const struct object* cell, const struct transformationmatrix** trans1, const struct transformationmatrix** trans2)
+{
+    *trans1 = objectbase_get_tmatrix(cell);
+    if(objectbase_is_proxy(cell))
+    {
+        *trans2 = objectbase_get_tmatrix(REFERENCE(cell));
+    }
+    else
+    {
+        *trans2 = NULL;
+    }
+}
+
+static struct transformationmatrix* _make_trans12(const struct object* cell)
+{
+    struct transformationmatrix* trans = transformationmatrix_create();
+    transformationmatrix_chain_inline(trans, objectbase_get_tmatrix(cell));
+    if(objectbase_is_proxy(cell))
+    {
+        transformationmatrix_chain_inline(trans, objectbase_get_tmatrix(REFERENCE(cell)));
+    }
+    return trans;
+}
+
 static struct object* _create(const char* name)
 {
     struct object* obj = malloc(sizeof(*obj));
@@ -153,7 +178,7 @@ void objectbase_add_raw_shape(struct object* cell, struct shape* S)
 void objectbase_add_shape(struct object* cell, struct shape* S)
 {
     objectfull_add_shape(FULL(cell), S);
-    shape_apply_inverse_transformation(S, objectcommon_get_tmatrix(COMMON(cell)));
+    shape_apply_inverse_transformation(S, objectbase_get_tmatrix(cell));
 }
 
 void objectbase_remove_shape(struct object* cell, size_t idx)
@@ -221,7 +246,7 @@ struct transformationmatrix* objectbase_get_inverted_tmatrix(
     const struct object* cell
 )
 {
-    return transformationmatrix_invert(objectcommon_get_tmatrix(COMMON(cell)));
+    return transformationmatrix_invert(objectbase_get_tmatrix(cell));
 }
 
 void objectbase_set_tmatrix(struct object* cell, struct transformationmatrix* trans)
@@ -294,14 +319,16 @@ int objectbase_add_area_anchor_bltr(
 
 void objectbase_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
 {
+    CHECK_FULL(cell);
     CHECK_FULL_OR_PROXY(other);
+    struct transformationmatrix* sourcetrans = _make_trans12(other);
     if(objectbase_is_proxy(other))
     {
         objectfull_inherit_all_anchors_with_prefix(
             FULL(cell),
             FULLREFERENCE(other),
             objectcommon_get_inverse_tmatrix(COMMON(cell)),
-            objectcommon_get_tmatrix(COMMON(other)),
+            sourcetrans,
             prefix
         );
     }
@@ -311,10 +338,11 @@ void objectbase_inherit_all_anchors_with_prefix(struct object* cell, const struc
             FULL(cell),
             FULL(other),
             objectcommon_get_inverse_tmatrix(COMMON(cell)),
-            objectcommon_get_tmatrix(COMMON(other)),
+            sourcetrans,
             prefix
         );
     }
+    transformationmatrix_destroy(sourcetrans);
 }
 
 int objectbase_add_anchor_line_x(struct object* cell, const char* name, coordinate_t c)
@@ -459,20 +487,6 @@ static void _fix_alignmentbox_order(coordinate_t* alignmentbox)
     _check_coordinates(alignmentbox, 5, 7);
     _check_coordinates(alignmentbox, 7, 3);
 }
-
-static void _get_trans12(const struct object* cell, const struct transformationmatrix** trans1, const struct transformationmatrix** trans2)
-{
-    *trans1 = objectcommon_get_tmatrix(COMMON(cell));
-    if(objectbase_is_proxy(cell))
-    {
-        *trans2 = objectcommon_get_tmatrix(COMMON(REFERENCE(cell)));
-    }
-    else
-    {
-        *trans2 = NULL;
-    }
-}
-
 coordinate_t* objectbase_get_untransformed_alignment_box(const struct object* cell)
 {
     CHECK_FULL_OR_PROXY(cell);
@@ -1158,7 +1172,7 @@ struct vector* objectbase_get_array_net_shapes(const struct object* cell, int xi
 
 void objectbase_inherit_net_shapes(struct object* cell, const struct object* other, const struct generics* layer)
 {
-    CHECK_FULL(cell);
+    CHECK_FULL(cell); // FIXME: why can't this be a proxy?
     CHECK_FULL_OR_PROXY(other);
     const struct object_full* obj;
     if(objectbase_is_proxy(cell))
@@ -1169,13 +1183,15 @@ void objectbase_inherit_net_shapes(struct object* cell, const struct object* oth
     {
         obj = FULL(other);
     }
+    struct transformationmatrix* sourcetrans = _make_trans12(other);
     objectfull_inherit_net_shapes(
         FULL(cell),
         obj,
         objectbase_get_tmatrix(cell),
-        objectbase_get_tmatrix(other),
+        sourcetrans,
         layer
     );
+    transformationmatrix_destroy(sourcetrans);
 }
 
 int objectbase_has_net(
@@ -1624,7 +1640,7 @@ static void _get_all_shapes_helper(const struct object* cell, const struct gener
         for(int i = vector_size(subshapes) - 1; i >= 0; --i)
         {
             struct shape* shape = vector_disown_element(subshapes, i);
-            shape_apply_transformation(shape, objectcommon_get_tmatrix(COMMON(child)));
+            shape_apply_transformation(shape, objectbase_get_tmatrix(child));
             if(object_is_array(child))
             {
                 coordinate_t xpitch = object_get_child_xpitch(child);
@@ -2016,18 +2032,18 @@ struct vector* objectbase_get_full_references(
 int objectbase_foreach_anchor(const struct object* cell, anchor_action action, struct generic_arg* extraargs)
 {
     CHECK_FULL(cell);
-    objectfull_foreach_anchor(FULL(cell), objectcommon_get_tmatrix(COMMON(cell)), action, extraargs);
+    objectfull_foreach_anchor(FULL(cell), objectbase_get_tmatrix(cell), action, extraargs);
     return 1;
 }
 
 int objectbase_foreach_port(const struct object* cell, port_action action, struct generic_arg* extraargs)
 {
-    objectfull_foreach_port(FULL(cell), objectcommon_get_tmatrix(COMMON(cell)), action, extraargs);
+    objectfull_foreach_port(FULL(cell), objectbase_get_tmatrix(cell), action, extraargs);
     return 1;
 }
 
 int objectbase_foreach_label(const struct object* cell, label_action action, struct generic_arg* extraargs)
 {
-    objectfull_foreach_label(FULL(cell), objectcommon_get_tmatrix(COMMON(cell)), action, extraargs);
+    objectfull_foreach_label(FULL(cell), objectbase_get_tmatrix(cell), action, extraargs);
     return 1;
 }
