@@ -12,6 +12,7 @@ function parameters()
         { "nvthtype(NMOS Threshold Voltage Type)",      1 },
         { "pmosflippedwell(PMOS Flipped Well) ",        false },
         { "nmosflippedwell(NMOS Flipped Well)",         false },
+        { "manual_separation",                          0 },
         { "gatelength(Gate Length)",                    technology.get_dimension("Minimum Gate Length") },
         { "gatespace(Gate Spacing)",                    technology.get_dimension("Minimum Gate XSpace") },
         { "allgatesequalheight",                        true },
@@ -40,7 +41,7 @@ function parameters()
         { "alternatedummycontacts",                     false },
         { "drawalternatedummycontactspowerbarvia",      false, follow = "alternatedummycontacts" },
         { "splitdrainvias",                             false },
-        { "outputmetal",                                2, posvals = interval(2, inf) },
+        { "outputmetal",                                2, posvals = interval(1, inf) },
         { "outputwidth",                                technology.get_dimension("Minimum M1 Width") },
         { "outputxshift",                               0 },
         { "outputyshift",                               0 },
@@ -49,7 +50,7 @@ function parameters()
         { "dummycontshift",                             0 },
         { "psddummyouterheight",                        2 * technology.get_dimension("Minimum Gate Width"), follow = "pwidth" },
         { "nsddummyouterheight",                        2 * technology.get_dimension("Minimum Gate Width"), follow = "nwidth" },
-        { "outputisinside",                             false },
+        { "outputmode",                                 "overlay", posvals = set("overlay", "inside", "around") },
         { "drawleftstopgate",                           false },
         { "drawrightstopgate",                          false },
         { "excludestopgatesfromcutregions",             true },
@@ -152,6 +153,7 @@ function parameters()
         { "pmoswelltapwelltopextension",                technology.get_dimension("Minimum Well Extension") },
         { "pmoswelltapwellbottomextension",             technology.get_dimension("Minimum Well Extension") },
         { "drawguardring",                              false },
+        { "guardringcontype",                           "n" },
         { "guardringwidth",                             technology.get_dimension("Minimum Active Contact Region Size") },
         { "guardringxspace",                            technology.get_dimension("Minimum Active Space") },
         { "guardringyspace",                            technology.get_dimension("Minimum Active Space") },
@@ -186,6 +188,17 @@ function layout(inverter, _P)
         table.insert(contactpos, "dummyouter")
     end
     local hasdummies = (_P.numleftdummies > 0) or (_P.numrightdummies > 0)
+
+    local separation
+    if _P.manual_separation > 0 then
+        separation = _P.manual_separation
+    else
+        if _P.outputmode == "around" then
+            separation = _P.gatestrapwidth + 4 * _P.gatestrapspace + 2 * _P.outputwidth
+        else
+            separation = _P.gatestrapwidth + 2 * _P.gatestrapspace
+        end
+    end
 
     local cmos = pcell.create_layout("basic/cmos", "cmos", {
         nvthtype = _P.nvthtype,
@@ -225,7 +238,8 @@ function layout(inverter, _P)
         gatestrapwidth = _P.gatestrapwidth,
         gatestrapspace = _P.gatestrapspace,
         sdwidth = _P.sdwidth,
-        separation = _P.gatestrapwidth + 2 * _P.gatestrapspace,
+        separation = separation,
+        ignoreseparationchecks = true,
         dummycontheight = _P.dummycontheight,
         dummycontshift = _P.dummycontshift,
         leftfloatingdummies = _P.numleftfloatingdummies,
@@ -347,7 +361,7 @@ function layout(inverter, _P)
     end
 
     -- signal transistors drain connections
-    if _P.outputisinside then
+    if _P.outputmode == "inside" then
         for i = 2, _P.fingers + 1, 2 do
             geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
                 cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).tl,
@@ -368,13 +382,60 @@ function layout(inverter, _P)
             inverter:get_area_anchor("output").bl,
             inverter:get_area_anchor("output").tr
         )
-    else
+    elseif _P.outputmode == "overlay" then
         geometry.path_cshape(inverter, generics.metal(_P.outputmetal),
             cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).br:translate(0,  _P.outputyshift + _P.outputwidth / 2),
             cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).tr:translate(0, -_P.outputyshift - _P.outputwidth / 2),
             cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).bl:translate(xpitch + _P.outputxshift, 0),
             _P.outputwidth
         )
+        inverter:add_area_anchor_bltr("upperoutput",
+            point.create(
+                cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).r,
+                cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).b + _P.outputyshift
+            ),
+            point.create(
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).l + xpitch + _P.outputxshift,
+                cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).b + _P.outputyshift + _P.outputwidth
+            )
+        )
+        inverter:add_area_anchor_bltr("loweroutput",
+            point.create(
+                cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).r,
+                cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).t - _P.outputyshift - _P.outputwidth
+            ),
+            point.create(
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).l + xpitch + _P.outputxshift,
+                cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).t - _P.outputyshift
+            )
+        )
+        inverter:add_area_anchor_bltr("output",
+            point.create(
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).l + xpitch + _P.outputxshift - _P.outputwidth / 2,
+                cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).t - _P.outputwidth / 2
+            ),
+            point.create(
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).l + xpitch + _P.outputxshift + _P.outputwidth / 2,
+                cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).b + _P.outputwidth / 2
+            )
+        )
+    else -- "around"
+        geometry.path_cshape(inverter, generics.metal(_P.outputmetal),
+            cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).br:translate_y(-_P.gatestrapspace + _P.outputyshift - _P.outputwidth / 2),
+            cmos:get_area_anchor(string.format("nSD%d", 2 + _P.numleftdummies)).tr:translate_y( _P.gatestrapspace - _P.outputyshift + _P.outputwidth / 2),
+            cmos:get_area_anchor(string.format("G%d", _P.fingers + _P.numleftdummies)).bl:translate_x(xpitch + _P.outputxshift),
+            _P.outputwidth
+        )
+        for i = 2, _P.fingers, 2 do
+            geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
+                cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).tl,
+                cmos:get_area_anchor(string.format("nSD%d", i + _P.numleftdummies)).tr:translate_y( _P.gatestrapspace - _P.outputyshift + _P.outputwidth)
+            )
+            geometry.rectanglebltr(inverter, generics.metal(_P.outputmetal),
+                cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).bl:translate_y(-_P.gatestrapspace + _P.outputyshift - _P.outputwidth),
+                cmos:get_area_anchor(string.format("pSD%d", i + _P.numleftdummies)).br
+            )
+        end
         inverter:add_area_anchor_bltr("upperoutput",
             point.create(
                 cmos:get_area_anchor(string.format("pSD%d", 2 + _P.numleftdummies)).r,
@@ -613,7 +674,7 @@ function layout(inverter, _P)
         local guardringwidth = guardringw2 - guardringw1
         local guardringheight = guardringh2 - guardringh1
         local firstguardring = pcell.create_layout("auxiliary/guardring", "_firstguardring", {
-            contype = "n",
+            contype = _P.guardringcontype,
             ringwidth = _P.guardringwidth,
             holewidth = guardringwidth + 2 * _P.guardringxspace,
             holeheight = guardringheight + 2 * _P.guardringyspace,

@@ -23,14 +23,14 @@ declare -a runerrors
 function do_test()
 {
     ((numtotal++))
-    cmd="${opcexec} ${commonargs} --export ${3} --technology opc ${1} --filename test_${2} ${4} --stdout-to /dev/null --stderr-to /dev/null"
+    cmd="${opcexec} ${commonargs} --export ${3} --technology opc ${1} --filename test_${2} ${4} --stdout-to ${2}.stdout --stderr-to ${2}.stderr"
     $cmd
     if [ $? -ne 0 ]; then
         runerrors[$numerror]=${2}
         ((numerror++))
         return
     fi
-    if ! ../helpers/test_compare ${2} ${3} 2&> /dev/null; then
+    if ! ../helpers/test_compare ${2} ${3} 2&> ${2}.testlog; then
         failedtests[$numfail]=${2}
         ((numfail++))
     fi

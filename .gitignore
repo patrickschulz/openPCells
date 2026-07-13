@@ -80,6 +80,9 @@ todo
 /test/helpers/test_compare
 /test/full/test_*.gds
 /test/functions/*.test
+/test/functions/*.stdout
+/test/functions/*.stderr
+/test/functions/*.testlog
 
 # test code
 /srctodo

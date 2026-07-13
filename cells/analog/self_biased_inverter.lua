@@ -141,7 +141,7 @@ function layout(sbinv, _P)
         outputxshift = _P.outputxshift,
         outputyshift = _P.outputyshift,
         dummycontshift = _P.dummycontshift,
-        outputisinside = false,
+        outputmode = "overlay",
         extendoutputmetal = _P.extendoutputmetal,
         dummycontheight = _P.dummycontheight,
         dummycontshift = _P.dummycontshift,

@@ -33,7 +33,12 @@ function parameters()
         { "alternatedummycontacts",                     false },
         { "drawalternatedummycontactspowerbarvia",      false, follow = "alternatedummycontacts" },
         { "splitdrainvias",                             false },
-        { "outputmetal",                                2, posvals = interval(2, inf) },
+        { "inneroutputmetal",                           1, posvals = interval(1, inf) },
+        { "inneroutputwidth",                           technology.get_dimension("Minimum M1 Width") },
+        { "inneroutputxshift",                          0 },
+        { "inneroutputyshift",                          0 },
+        { "extendinneroutputmetal",                     0 },
+        { "outputmetal",                                2, posvals = interval(1, inf) },
         { "outputwidth",                                technology.get_dimension("Minimum M1 Width") },
         { "outputxshift",                               0 },
         { "outputyshift",                               0 },
@@ -42,7 +47,8 @@ function parameters()
         { "dummycontshift",                             0 },
         { "psddummyouterheight",                        2 * technology.get_dimension("Minimum Gate Width"), follow = "pwidth" },
         { "nsddummyouterheight",                        2 * technology.get_dimension("Minimum Gate Width"), follow = "nwidth" },
-        { "outputisinside",                             false },
+        { "inneroutputmode",                            "around", posvals = set("overlay", "inside", "around") },
+        { "outputmode",                                 "overlay", posvals = set("overlay", "inside", "around") },
         { "drawleftstopgate",                           false },
         { "drawrightstopgate",                          false },
         { "leftpolylines",                              {} },
@@ -86,7 +92,7 @@ function parameters()
         { "drawnmosleftwelltap",                        false, follow = "drawnmosleftrightwelltap" },
         { "drawnmosrightwelltap",                       false, follow = "drawnmosleftrightwelltap" },
         { "connectnmoswelltap",                         false },
-        { "nmoswelltapwidth",                           technology.get_dimension_max("Minimum Active Width", "Minimum M1 Width") },
+        { "nmoswelltapwidth",                           technology.get_dimension_max("Minimum Active Width", "Minimum Active Contact Region Size", "Minimum M1 Width") },
         { "nmoswelltapextension",                       0 },
         { "nmoswelltapspace",                           technology.get_dimension("Minimum M1 Space") },
         { "nmoswelltapnet",                             "" },
@@ -107,7 +113,7 @@ function parameters()
         { "drawpmosleftwelltap",                        false, follow = "drawpmosleftrightwelltap" },
         { "drawpmosrightwelltap",                       false, follow = "drawpmosleftrightwelltap" },
         { "connectpmoswelltap",                         false },
-        { "pmoswelltapwidth",                           technology.get_dimension_max("Minimum Active Width", "Minimum M1 Width") },
+        { "pmoswelltapwidth",                           technology.get_dimension_max("Minimum Active Width", "Minimum Active Contact Region Size", "Minimum M1 Width") },
         { "pmoswelltapextension",                       0 },
         { "pmoswelltapspace",                           technology.get_dimension("Minimum M1 Space") },
         { "pmoswelltapnet",                             "" },
@@ -124,9 +130,19 @@ function parameters()
         { "pmoswelltapwelltopextension",                technology.get_dimension("Minimum Well Extension") },
         { "pmoswelltapwellbottomextension",             technology.get_dimension("Minimum Well Extension") },
         { "drawguardring",                              false },
+        { "guardringcontype",                           "n" },
         { "guardringwidth",                             technology.get_dimension("Minimum Active Contact Region Size") },
-        { "guardringspace",                             technology.get_dimension("Minimum Active Space") },
-        { "guardringdeepwelloffset",                    0 },
+        { "guardringxspace",                            technology.get_dimension("Minimum Active Space") },
+        { "guardringyspace",                            technology.get_dimension("Minimum Active Space") },
+        { "guardringdeepwelloffset",                    technology.get_optional_dimension("Deep Well Offset", 0) },
+        { "guardringwellinnerextension",                technology.get_dimension("Minimum Well Extension") },
+        { "guardringwellouterextension",                technology.get_dimension("Minimum Well Extension") },
+        { "guardringsoiopeninnerextension",             technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "guardringsoiopenouterextension",             technology.get_optional_dimension("Minimum Soiopen Extension", 0) },
+        { "guardringimplantinnerextension",             technology.get_dimension("Minimum Implant Extension") },
+        { "guardringimplantouterextension",             technology.get_dimension("Minimum Implant Extension") },
+        { "guardringoxidetypeinnerextension",           technology.get_dimension("Minimum Oxide Extension") },
+        { "guardringoxidetypeouterextension",           technology.get_dimension("Minimum Oxide Extension") },
         { "vddnet",                                     "" },
         { "vssnet",                                     "" },
         { "guardringnet",                               "" },
@@ -147,7 +163,24 @@ end
 
 function layout(chain, _P)
     local inverters = {}
+    -- explicitly set the pmos/nmos separation as it can be different due to the output mode
+    local separation
+    if _P.inneroutputmode == "around" or _P.outputmode == "around" then
+        separation = _P.gatestrapwidth + 4 * _P.gatestrapspace + 2 * math.max(_P.inneroutputwidth, _P.outputwidth)
+    else
+        separation = _P.gatestrapwidth + 2 * _P.gatestrapspace
+    end
     for i, fingers in ipairs(_P.fingers) do
+        local leftext = nil
+        local rightext = nil
+        if _P.inv_xshift > 0 then
+            if i < #_P.fingers then
+                rightext = _P.inv_xshift / 2
+            end
+            if i > 1 then
+                leftext = _P.inv_xshift / 2
+            end
+        end
         local inv = pcell.create_layout("analog/inverter", string.format("inv_%d", i), {
             fingers = fingers,
             pwidth = _P.pwidth,
@@ -159,6 +192,7 @@ function layout(chain, _P)
             nvthtype = _P.nvthtype,
             pmosflippedwell = _P.pmosflippedwell,
             nmosflippedwell = _P.nmosflippedwell,
+            manual_separation = separation,
             gatelength = _P.gatelength,
             gatespace = _P.gatespace,
             drawoutergatecut = _P.drawoutergatecut,
@@ -180,37 +214,37 @@ function layout(chain, _P)
             alternatedummycontacts = _P.alternatedummycontacts,
             drawalternatedummycontactspowerbarvia = false,
             splitdrainvias = _P.splitdrainvias,
-            outputmetal = _P.outputmetal,
-            outputwidth = _P.outputwidth,
-            outputxshift = _P.outputxshift,
-            outputyshift = _P.outputyshift,
-            extendoutputmetal = _P.extendoutputmetal,
+            outputmode = ((i == #_P.fingers) and _P.outputmode) or _P.inneroutputmode,
+            outputmetal = ((i == #_P.fingers) and _P.outputmetal) or _P.inneroutputmetal,
+            outputwidth = ((i == #_P.fingers) and _P.outputwidth) or _P.inneroutputwidth,
+            outputxshift = ((i == #_P.fingers) and _P.outputxshift) or _P.inneroutputxshift,
+            outputyshift = ((i == #_P.fingers) and _P.outputyshift) or _P.inneroutputyshift,
+            extendoutputmetal = ((i == #_P.fingers) and _P.extendoutputmetal) or _P.extendinneroutputmetal,
             dummycontheight = _P.dummycontheight,
             dummycontshift = _P.dummycontshift,
             psddummyouterheight = _P.psddummyouterheight,
             nsddummyouterheight = _P.nsddummyouterheight,
-            outputisinside = _P.outputisinside,
-            drawleftstopgate = (i == 1) and _P.drawleftstopgate or false,
-            drawrightstopgate = (i == #_P.fingers) and _P.drawrightstopgate or false,
+            drawleftstopgate = _P.drawleftstopgate and ((_P.inv_xshift ~= 0) or (i == 1)),
+            drawrightstopgate = _P.drawrightstopgate and ((_P.inv_xshift ~= 0) or (i == #_P.fingers)),
             leftpolylines = i == 1 and _P.leftpolylines or nil,
             rightpolylines = i == #_P.fingers and _P.rightpolylines or nil,
             drawanalogmarker = _P.drawanalogmarker,
             extendimplanttop = _P.extendimplanttop,
             extendimplantbottom = _P.extendimplantbottom,
-            extendimplantleft = _P.extendimplantleft,
-            extendimplantright = _P.extendimplantright,
+            extendimplantleft = leftext or _P.extendimplantleft,
+            extendimplantright = rightext or _P.extendimplantright,
             extendoxidetypetop = _P.extendoxidetypetop,
             extendoxidetypebottom = _P.extendoxidetypebottom,
-            extendoxidetypeleft = _P.extendoxidetypeleft,
-            extendoxidetyperight = _P.extendoxidetyperight,
+            extendoxidetypeleft = leftext or _P.extendoxidetypeleft,
+            extendoxidetyperight = rightext or _P.extendoxidetyperight,
             extendvthtypetop = _P.extendvthtypetop,
             extendvthtypebottom = _P.extendvthtypebottom,
-            extendvthtypeleft = _P.extendvthtypeleft,
-            extendvthtyperight = _P.extendvthtyperight,
+            extendvthtypeleft = leftext or _P.extendvthtypeleft,
+            extendvthtyperight = rightext or _P.extendvthtyperight,
             extendwelltop = _P.extendwelltop,
             extendwellbottom = _P.extendwellbottom,
-            extendwellleft = _P.extendwellleft,
-            extendwellright = _P.extendwellright,
+            extendwellleft = leftext or _P.extendwellleft,
+            extendwellright = rightext or _P.extendwellright,
             drawnmosleftwelltap = _P.drawnmosleftwelltap and (i == 1),
             drawnmosrightwelltap = _P.drawnmosrightwelltap and (i == #_P.fingers),
             drawnmoslowerwelltap = _P.drawnmoslowerwelltap,
@@ -251,32 +285,33 @@ function layout(chain, _P)
             pmoswelltapwellrightextension = _P.pmoswelltapwellrightextension,
             pmoswelltapwelltopextension = _P.pmoswelltapwelltopextension,
             pmoswelltapwellbottomextension = _P.pmoswelltapwellbottomextension,
+            vddnet = _P.vddnet,
+            vssnet = _P.vssnet,
         })
+        local invinst
         if _P.flat then
-            table.insert(inverters, inv)
-            if i > 1 then
-                inv:abut_right(inverters[i - 1])
-                inv:translate_x(_P.inv_xshift)
-            end
-            chain:merge_into(inv)
-            chain:inherit_alignment_box(inv)
+            invinst = inv
         else
             local invinst = chain:add_child(inv, string.format("inv_%d", i))
-            table.insert(inverters, invinst)
-            if i > 1 then
-                invinst:abut_right(inverters[i - 1])
-                inv:translate_x(_P.inv_xshift)
-            end
-            chain:inherit_alignment_box(invinst)
         end
+        table.insert(inverters, invinst)
+        if i > 1 then
+            invinst:abut_right(inverters[i - 1])
+            invinst:translate_x(_P.inv_xshift)
+        end
+        if _P.flat then
+            chain:merge_into(invinst)
+        end
+        chain:inherit_alignment_box(invinst)
+        chain:inherit_net_shapes(invinst)
     end
 
     for i = 1, #inverters - 1 do
         --if _P.numinnerdummies > 0 then
-        if _P.outputisinside then
-            geometry.viabltr(chain, _P.gatemetal, _P.outputmetal,
+        if _P.inneroutputmode == "overlay" then
+            geometry.viabltr(chain, _P.gatemetal, _P.inneroutputmetal,
                 point.create(
-                    inverters[i]:get_area_anchor("output").r + _P.outputxshift,
+                    inverters[i]:get_area_anchor("output").r + _P.inneroutputxshift,
                     inverters[i + 1]:get_area_anchor("input").b
                 ),
                 point.create(
@@ -284,13 +319,13 @@ function layout(chain, _P)
                     inverters[i + 1]:get_area_anchor("input").t
                 )
             )
-            geometry.rectanglebltr(chain, generics.metal(_P.outputmetal),
+            geometry.rectanglebltr(chain, generics.metal(_P.inneroutputmetal),
                 point.create(
                     inverters[i]:get_area_anchor("output").r,
                     inverters[i + 1]:get_area_anchor("input").b
                 ),
                 point.create(
-                    inverters[i]:get_area_anchor("output").l + _P.outputxshift,
+                    inverters[i]:get_area_anchor("output").l + _P.inneroutputxshift,
                     inverters[i + 1]:get_area_anchor("input").t
                 )
             )
@@ -304,21 +339,33 @@ function layout(chain, _P)
                     inverters[i + 1]:get_area_anchor("input").t
                 )
             )
-        else
-            geometry.viabltr(chain, _P.gatemetal, _P.outputmetal,
+        elseif _P.inneroutputmode == "overlay" then
+            -- FIXME
+            --geometry.viabltr(chain, _P.gatemetal, _P.outputmetal,
+            --    point.create(
+            --        --inverters[i + 1]:get_area_anchor("input").l - (_P.numinnerdummies - 0) * (_P.gatelength + _P.gatespace),
+            --        inverters[i]:get_area_anchor("output").r,
+            --        inverters[i + 1]:get_area_anchor("input").b
+            --    ),
+            --    point.create(
+            --        inverters[i + 1]:get_area_anchor("input").l - _P.gatespace,
+            --        inverters[i + 1]:get_area_anchor("input").t
+            --    )
+            --)
+            --geometry.rectanglebltr(chain, generics.metal(_P.gatemetal),
+            --    point.create(
+            --        inverters[i + 1]:get_area_anchor("input").l - _P.gatespace,
+            --        inverters[i + 1]:get_area_anchor("input").b
+            --    ),
+            --    point.create(
+            --        inverters[i + 1]:get_area_anchor("input").l,
+            --        inverters[i + 1]:get_area_anchor("input").t
+            --    )
+            --)
+        else -- "around"
+            geometry.viabltr(chain, _P.gatemetal, _P.inneroutputmetal,
                 point.create(
-                    --inverters[i + 1]:get_area_anchor("input").l - (_P.numinnerdummies - 0) * (_P.gatelength + _P.gatespace),
                     inverters[i]:get_area_anchor("output").r,
-                    inverters[i + 1]:get_area_anchor("input").b
-                ),
-                point.create(
-                    inverters[i + 1]:get_area_anchor("input").l - _P.gatespace,
-                    inverters[i + 1]:get_area_anchor("input").t
-                )
-            )
-            geometry.rectanglebltr(chain, generics.metal(_P.gatemetal),
-                point.create(
-                    inverters[i + 1]:get_area_anchor("input").l - _P.gatespace,
                     inverters[i + 1]:get_area_anchor("input").b
                 ),
                 point.create(
@@ -395,4 +442,77 @@ function layout(chain, _P)
     geometry.rectangleareaanchor(chain, generics.oxide(_P.oxidetype), "oxide")
     geometry.rectangleareaanchor(chain, generics.well(_P.pmosflippedwell and "p" or "n"), "pmos_well")
     geometry.rectangleareaanchor(chain, generics.well(_P.nmosflippedwell and "n" or "p"), "nmos_well")
+
+    -- guardring
+    if _P.drawguardring then
+        local guardringw1, guardringw2
+        if _P.drawpmosleftwelltap then
+            guardringw1 = inverters[1]:get_area_anchor("pmosleftwelltap_boundary").l
+        else
+            guardringw1 = inverters[1]:get_area_anchor("pmos_active").l
+        end
+        if _P.drawpmosrightwelltap then
+            guardringw2 = inverters[#inverters]:get_area_anchor("pmosrightwelltap_boundary").r
+        else
+            guardringw2 = inverters[#inverters]:get_area_anchor("pmos_active").r
+        end
+        local guardringh1, guardringh2
+        if _P.drawnmoslowerwelltap then
+            guardringh1 = inverters[1]:get_area_anchor("nmoslowerwelltap_boundary").b
+        else
+            guardringh1 = inverters[1]:get_area_anchor("vssbar").b
+        end
+        if _P.drawpmosupperwelltap then
+            guardringh2 = inverters[#inverters]:get_area_anchor("pmosupperwelltap_boundary").t
+        else
+            guardringh2 = inverters[#inverters]:get_area_anchor("vddbar").t
+        end
+        local guardringwidth = guardringw2 - guardringw1
+        local guardringheight = guardringh2 - guardringh1
+        local firstguardring = pcell.create_layout("auxiliary/guardring", "_firstguardring", {
+            contype = _P.guardringcontype,
+            ringwidth = _P.guardringwidth,
+            holewidth = guardringwidth + 2 * _P.guardringxspace,
+            holeheight = guardringheight + 2 * _P.guardringyspace,
+            fillwell = (not not _P.pmosflippedwell) == (not _P.nmosflippedwell),
+            drawdeepwell = true,
+            deepwelloffset = _P.guardringdeepwelloffset,
+            oxidetype = _P.oxidetype,
+            wellinnerextension = _P.guardringwellinnerextension,
+            wellouterextension = _P.guardringwellouterextension,
+            implantinnerextension = _P.guardringimplantinnerextension,
+            implantouterextension = _P.guardringimplantouterextension,
+            soiopeninnerextension = _P.guardringsoiopeninnerextension,
+            soiopenouterextension = _P.guardringsoiopenouterextension,
+            oxidetypeinnerextension = _P.guardringoxidetypeinnerextension,
+            oxidetypeouterextension = _P.guardringoxidetypeouterextension,
+            net = _P.guardringnet,
+            addtopnet = true,
+            addbottomnet = true,
+        })
+        firstguardring:move_point(
+            firstguardring:get_area_anchor("innerboundary").bl,
+            point.create(
+                guardringw1,
+                guardringh1
+            )
+        )
+        firstguardring:translate(-_P.guardringxspace, -_P.guardringyspace)
+        chain:merge_into(firstguardring)
+        chain:inherit_net_shapes(firstguardring)
+        geometry.rectanglebltr(chain, generics.well("n"),
+            firstguardring:get_area_anchor("outerwell").bl,
+            point.create(
+                firstguardring:get_area_anchor("outerwell").r,
+                chain:get_area_anchor("nmos_well").t
+            )
+        )
+        -- fill implant
+        geometry.unequal_ring_pts(chain, generics.implant(_P.guardringcontype),
+            firstguardring:get_area_anchor("innerimplant").bl,
+            firstguardring:get_area_anchor("innerimplant").tr,
+            chain:get_area_anchor("nmos_implant").bl,
+            chain:get_area_anchor("pmos_implant").tr
+        )
+    end
 end
