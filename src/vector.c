@@ -50,7 +50,7 @@ void vector_destroy(void* v)
     free(vector);
 }
 
-struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*))
+struct vector* vector_copy(const struct vector* vector, void* (*copy)(const void*))
 {
     struct vector* new = vector_create(vector->capacity, vector->destructor);
     if(!new)
