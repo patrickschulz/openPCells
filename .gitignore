@@ -79,6 +79,9 @@ todo
 # test unversioned files
 /test/helpers/test_compare
 /test/full/test_*.gds
+/test/full/*.stdout
+/test/full/*.stderr
+/test/full/*.testlog
 /test/functions/*.test
 /test/functions/*.stdout
 /test/functions/*.stderr
