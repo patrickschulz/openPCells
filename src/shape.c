@@ -451,7 +451,7 @@ int shape_is_on_grid(const struct shape* shape, coordinate_t grid)
             int ret = 1;
             while(vector_const_iterator_is_valid(it))
             {
-                struct point* pt = point_copy(vector_const_iterator_get(it));
+                const struct point* pt = vector_const_iterator_get(it);
                 if(!point_is_on_grid(pt, grid))
                 {
                     ret = 0;
@@ -469,7 +469,7 @@ int shape_is_on_grid(const struct shape* shape, coordinate_t grid)
             int ret = 1;
             while(vector_const_iterator_is_valid(it))
             {
-                struct point* pt = point_copy(vector_const_iterator_get(it));
+                const struct point* pt = vector_const_iterator_get(it);
                 if(!point_is_on_grid(pt, grid))
                 {
                     ret = 0;

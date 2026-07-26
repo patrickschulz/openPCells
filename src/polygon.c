@@ -343,6 +343,8 @@ int simple_polygon_intersects_rectangle(
                 return 1;
             }
         }
+        bltrshape_destroy(rect);
+        vector_destroy(rects);
     }
     else
     {
@@ -653,7 +655,7 @@ static void _srp_F(struct simple_polygon* polygon, struct point* pt)
     }
     else
     {
-        vector_append(polygon->points, pt);
+        vector_append(polygon->points, point_copy(pt));
     }
 }
 
@@ -708,7 +710,7 @@ struct vector* simple_polygon_split_rectilinear_polygon(const struct simple_poly
                     ((point_gety(pt) == point_gety(Pk)) && (point_getx(pt) < point_getx(Pk)))
                 )
                 {
-                    Pk = point_copy(pt);
+                    point_copy_inplace(pt, Pk);
                 }
             }
         }
@@ -730,7 +732,7 @@ struct vector* simple_polygon_split_rectilinear_polygon(const struct simple_poly
                         ((point_gety(pt) == point_gety(Pl)) && (point_getx(pt) < point_getx(Pl)))
                     )
                     {
-                        Pl = point_copy(pt);
+                        point_copy_inplace(pt, Pl);
                     }
                 }
             }
@@ -751,7 +753,7 @@ struct vector* simple_polygon_split_rectilinear_polygon(const struct simple_poly
                 {
                     if(point_gety(pt) < point_gety(Pm))
                     {
-                        Pm = point_copy(pt);
+                        point_copy_inplace(pt, Pm);
                     }
                 }
             }
@@ -764,9 +766,17 @@ struct vector* simple_polygon_split_rectilinear_polygon(const struct simple_poly
         ));
         _srp_F(polygon, Pk);
         _srp_F(polygon, Pl);
-        _srp_F(polygon, point_create(point_getx(Pk), point_gety(Pm)));
-        _srp_F(polygon, point_create(point_getx(Pl), point_gety(Pm)));
+        struct point* pt1 = point_create(point_getx(Pk), point_gety(Pm));
+        _srp_F(polygon, pt1);
+        struct point* pt2 = point_create(point_getx(Pl), point_gety(Pm));
+        _srp_F(polygon, pt2);
+        point_destroy(pt1);
+        point_destroy(pt2);
+        point_destroy(Pk);
+        point_destroy(Pl);
+        point_destroy(Pm);
     }
+    simple_polygon_destroy(polygon);
     return rectangles;
 }
 

@@ -24,6 +24,14 @@ void* point_copy(const void* v)
     return new;
 }
 
+void point_copy_inplace(const void* v1, void* v2)
+{
+    const struct point* pt1 = v1;
+    struct point* pt2 = v2;
+    pt2->x = pt1->x;
+    pt2->y = pt1->y;
+}
+
 // coordinate arrays
 coordinate_t* point_create_coordinate_array(size_t size)
 {
