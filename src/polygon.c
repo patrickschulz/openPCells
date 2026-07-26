@@ -525,6 +525,70 @@ coordinate_t polygon_container_get_maxy(const struct polygon_container* polygon_
     return maxy;
 }
 
+void simple_polygon_get_minmax_xy(const struct simple_polygon* simple_polygon, coordinate_t* minx, coordinate_t* maxx, coordinate_t* miny, coordinate_t* maxy)
+{
+    *minx = COORDINATE_MAX;
+    *maxx = COORDINATE_MIN;
+    *miny = COORDINATE_MAX;
+    *maxy = COORDINATE_MIN;
+    for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
+    {
+        const struct point* pt = vector_get(simple_polygon->points, i);
+        if(point_getx(pt) < *minx)
+        {
+            *minx = point_getx(pt);
+        }
+        if(point_getx(pt) > *maxx)
+        {
+            *maxx = point_getx(pt);
+        }
+        if(point_gety(pt) < *miny)
+        {
+            *miny = point_gety(pt);
+        }
+        if(point_gety(pt) > *maxy)
+        {
+            *maxy = point_gety(pt);
+        }
+    }
+}
+
+void polygon_container_get_minmax_xy(const struct polygon_container* polygon_container, coordinate_t* minx, coordinate_t* maxx, coordinate_t* miny, coordinate_t* maxy)
+{
+    *minx = COORDINATE_MAX;
+    *maxx = COORDINATE_MIN;
+    *miny = COORDINATE_MAX;
+    *maxy = COORDINATE_MIN;
+    struct polygon_container_const_iterator* it = polygon_container_const_iterator_create(polygon_container);
+    while(polygon_container_const_iterator_is_valid(it))
+    {
+        const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(it);
+        coordinate_t _minx;
+        coordinate_t _maxx;
+        coordinate_t _miny;
+        coordinate_t _maxy;
+        simple_polygon_get_minmax_xy(simple_polygon, &_minx, &_maxx, &_miny, &_maxy);
+        if(_minx < *minx)
+        {
+            *minx = _minx;
+        }
+        if(_maxx > *maxx)
+        {
+            *maxx = _maxx;
+        }
+        if(_miny < *miny)
+        {
+            *miny = _miny;
+        }
+        if(_maxy > *maxy)
+        {
+            *maxy = _maxy;
+        }
+        polygon_container_const_iterator_next(it);
+    }
+    polygon_container_const_iterator_destroy(it);
+}
+
 int polygon_container_foreach_points(struct polygon_container* polygon_container, polygon_container_point_action action, struct generic_arg* extraargs)
 {
     struct polygon_container_iterator* pit = polygon_container_iterator_create(polygon_container);

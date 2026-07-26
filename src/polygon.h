@@ -36,6 +36,8 @@ coordinate_t polygon_container_get_minx(const struct polygon_container* polygon_
 coordinate_t polygon_container_get_maxx(const struct polygon_container* polygon_container);
 coordinate_t polygon_container_get_miny(const struct polygon_container* polygon_container);
 coordinate_t polygon_container_get_maxy(const struct polygon_container* polygon_container);
+void simple_polygon_get_minmax_xy(const struct simple_polygon* simple_polygon, coordinate_t* minx, coordinate_t* maxx, coordinate_t* miny, coordinate_t* maxy);
+void polygon_container_get_minmax_xy(const struct polygon_container* polygon_container, coordinate_t* minx, coordinate_t* maxx, coordinate_t* miny, coordinate_t* maxy);
 typedef int (*polygon_container_point_action)(
     void* pt, // void* for compatibility with vector_foreach actions
     struct generic_arg* extraargs
