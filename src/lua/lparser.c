@@ -1128,6 +1128,8 @@ static void funcargs (LexState *ls, expdesc *f, int line) {
           /* Parse parameter name */
           if (ls->t.token != TK_NAME)
             luaX_syntaxerror(ls, "<name> expected after '?'");
+      
+          luaX_next(ls);
 
           /* Expect '=' */
           if (!testnext(ls, '=')) {
