@@ -2352,13 +2352,13 @@ static void partition_areas(
     coordinate_t xmax,
     coordinate_t ymin,
     coordinate_t ymax,
-    const struct vector* rectangles,
+    const struct vector* obstructions,
     struct vector* result_empty,
     struct vector* result_filled
 )
 {
     // handle edge cases
-    if(vector_empty(rectangles))
+    if(vector_empty(obstructions))
     {
         struct bltrshape* shape = bltrshape_create_xy_no_net(
             xmin, ymin,
@@ -2370,7 +2370,7 @@ static void partition_areas(
 
     struct vector* xcoords = vector_create(256, free);
     struct vector* ycoords = vector_create(256, free);
-    collect_coordinates(xmin, xmax, ymin, ymax, rectangles, xcoords, ycoords);
+    collect_coordinates(xmin, xmax, ymin, ymax, obstructions, xcoords, ycoords);
 
     // build grid and mark cells as covered/empty
     struct vector* empty_rects = vector_create(256, bltrshape_destroy);
@@ -2379,14 +2379,13 @@ static void partition_areas(
     {
         struct vector* row_empty = vector_create(64, bltrshape_destroy);
         struct vector* row_filled = vector_create(64, bltrshape_destroy);
-
         for(size_t xi = 0; xi < vector_size(xcoords) - 1; xi++)
         {
             coordinate_t x1 = *(const coordinate_t*)vector_get_const(xcoords, xi);
             coordinate_t x2 = *(const coordinate_t*)vector_get_const(xcoords, xi + 1);
             coordinate_t y1 = *(const coordinate_t*)vector_get_const(ycoords, yi);
             coordinate_t y2 = *(const coordinate_t*)vector_get_const(ycoords, yi + 1);
-            if(is_cell_covered(x1, x2, y1, y2, rectangles))
+            if(is_cell_covered(x1, x2, y1, y2, obstructions))
             {
                 struct bltrshape* shape = bltrshape_create_xy_no_net(x1, y1, x2, y2);
                 vector_append(row_filled, shape);
@@ -2397,7 +2396,6 @@ static void partition_areas(
                 vector_append(row_empty, shape);
             }
         }
-
         for(size_t i = 0; i < vector_size(row_empty); i++)
         {
             const struct bltrshape* shape = (const struct bltrshape*)vector_get_const(row_empty, i);
@@ -2446,8 +2444,8 @@ void geometry_rectangle_fill_in_boundary(
     coordinate_t ymax;
     simple_polygon_get_minmax_xy(targetarea, &xmin, &xmax, &ymin, &ymax);
 
-    // gather region breaks
-    struct vector* breaks = vector_create(256, bltrshape_destroy);
+    // gather region obstructions
+    struct vector* obstructions = vector_create(256, bltrshape_destroy);
     if(excludes)
     {
         struct polygon_container_iterator* pit = polygon_container_iterator_create(excludes);
@@ -2471,7 +2469,7 @@ void geometry_rectangle_fill_in_boundary(
             if(clipped_xmin <= clipped_xmax && clipped_xmax >= clipped_xmin && clipped_ymin <= clipped_ymax && clipped_ymax >= clipped_ymin)
             {
                 struct bltrshape* shape = bltrshape_create_xy_no_net(clipped_xmin, clipped_ymin, clipped_xmax, clipped_ymax);
-                vector_append(breaks, shape);
+                vector_append(obstructions, shape);
             }
             polygon_container_iterator_next(pit);
         }
@@ -2482,8 +2480,8 @@ void geometry_rectangle_fill_in_boundary(
     struct vector* result_empty = vector_create_empty(bltrshape_destroy);
     struct vector* result_filled = vector_create_empty(bltrshape_destroy);
     puts("running partitioning...");
-    partition_areas(xmin, xmax, ymin, ymax, breaks, result_empty, result_filled);
-    vector_destroy(breaks);
+    partition_areas(xmin, xmax, ymin, ymax, obstructions, result_empty, result_filled);
+    vector_destroy(obstructions);
 
     // perform placement in regions and remains
     printf("filling #%ld empty regions...\n", vector_size(result_empty));
