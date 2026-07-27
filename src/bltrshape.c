@@ -93,6 +93,26 @@ void* bltrshape_copy(const void* v)
     return bltrshape_create(bltrshape->bl, bltrshape->tr, bltrshape->layer, bltrshape->net);
 }
 
+coordinate_t bltrshape_get_blx(struct bltrshape* bltrshape)
+{
+    return point_getx(bltrshape->bl);
+}
+
+coordinate_t bltrshape_get_bly(struct bltrshape* bltrshape)
+{
+    return point_gety(bltrshape->bl);
+}
+
+coordinate_t bltrshape_get_trx(struct bltrshape* bltrshape)
+{
+    return point_getx(bltrshape->tr);
+}
+
+coordinate_t bltrshape_get_try(struct bltrshape* bltrshape)
+{
+    return point_gety(bltrshape->tr);
+}
+
 struct point* bltrshape_get_bl(struct bltrshape* bltrshape)
 {
     return bltrshape->bl;

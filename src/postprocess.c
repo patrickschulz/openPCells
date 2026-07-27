@@ -103,5 +103,6 @@ void postprocess_remove_empty_layer_shapes(struct object* object)
         postprocess_remove_empty_layer_shapes(reference);
         mutable_reference_iterator_next(ref_it);
     }
+    mutable_reference_iterator_destroy(ref_it);
 }
 

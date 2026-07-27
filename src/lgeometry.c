@@ -752,35 +752,25 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     coordinate_t ypitch = luaL_checkinteger(L, 6);
     coordinate_t xstartshift = luaL_checkinteger(L, 7);
     coordinate_t ystartshift = luaL_checkinteger(L, 8);
-
     // read target area and excludes
     struct simple_polygon* targetarea = lutil_create_simple_polygon(L, 9);
     struct polygon_container* excludes;
     lplacement_create_exclude_vectors(L, &excludes, 10);
-
-    // calculate origins
-    struct vector* origins = placement_calculate_origins_centered(width, height, xpitch, ypitch, xstartshift, ystartshift, targetarea, excludes);
-
+    // do the placement
+    geometry_rectangle_fill_in_boundary(
+        lobject_get_full(L, cell),
+        layer,
+        width, height,
+        xpitch, ypitch,
+        xstartshift, ystartshift,
+        targetarea,
+        excludes
+    );
     simple_polygon_destroy(targetarea);
     if(excludes)
     {
         polygon_container_destroy(excludes);
     }
-
-    struct vector_const_iterator* origin_it = vector_const_iterator_create(origins);
-    while(vector_const_iterator_is_valid(origin_it))
-    {
-        const struct point* origin = vector_const_iterator_get(origin_it);
-        geometry_rectanglebltrxy(
-            lobject_get_full(L, cell),
-            layer,
-            point_getx(origin) - width / 2, point_gety(origin) - height / 2,
-            point_getx(origin) + width / 2, point_gety(origin) + height / 2
-        );
-        vector_const_iterator_next(origin_it);
-    }
-    vector_const_iterator_destroy(origin_it);
-    vector_destroy(origins);
     return 0;
 }
 

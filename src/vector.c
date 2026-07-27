@@ -35,6 +35,11 @@ struct vector* vector_create(size_t capacity, void (*destructor)(void*))
     return vector;
 }
 
+struct vector* vector_create_empty(void (*destructor)(void*))
+{
+    return vector_create(0, destructor);
+}
+
 void vector_destroy(void* v)
 {
     struct vector* vector = v;
@@ -50,7 +55,7 @@ void vector_destroy(void* v)
     free(vector);
 }
 
-struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*))
+struct vector* vector_copy(const struct vector* vector, void* (*copy)(const void*))
 {
     struct vector* new = vector_create(vector->capacity, vector->destructor);
     if(!new)
@@ -106,6 +111,14 @@ void* vector_get_reference(struct vector* vector, size_t i)
 void* vector_content(struct vector* vector)
 {
     return vector->elements;
+}
+
+void vector_takeover_content(struct vector* from, struct vector* to)
+{
+    to->elements = from->elements;
+    to->capacity = from->capacity;
+    to->size = from->size;
+    free(from);
 }
 
 void* vector_disown_content(struct vector* vector)

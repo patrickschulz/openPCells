@@ -343,10 +343,8 @@ static void _write_rectangle(struct export_data* data, const struct hashmap* lay
         export_data_append_char(data, '\n');
         export_data_append_string(data, "        id->lxStickyNet = t");
         // return id from local let
-        /*
         export_data_append_char(data, '\n');
         export_data_append_string(data, "        id");
-        */
         export_data_append_char(data, '\n');
         export_data_append_string(data, "    )"); // close let
     }

@@ -343,6 +343,8 @@ int simple_polygon_intersects_rectangle(
                 return 1;
             }
         }
+        bltrshape_destroy(rect);
+        vector_destroy(rects);
     }
     else
     {
@@ -525,6 +527,70 @@ coordinate_t polygon_container_get_maxy(const struct polygon_container* polygon_
     return maxy;
 }
 
+void simple_polygon_get_minmax_xy(const struct simple_polygon* simple_polygon, coordinate_t* minx, coordinate_t* maxx, coordinate_t* miny, coordinate_t* maxy)
+{
+    *minx = COORDINATE_MAX;
+    *maxx = COORDINATE_MIN;
+    *miny = COORDINATE_MAX;
+    *maxy = COORDINATE_MIN;
+    for(size_t i = 0; i < vector_size(simple_polygon->points); ++i)
+    {
+        const struct point* pt = vector_get(simple_polygon->points, i);
+        if(point_getx(pt) < *minx)
+        {
+            *minx = point_getx(pt);
+        }
+        if(point_getx(pt) > *maxx)
+        {
+            *maxx = point_getx(pt);
+        }
+        if(point_gety(pt) < *miny)
+        {
+            *miny = point_gety(pt);
+        }
+        if(point_gety(pt) > *maxy)
+        {
+            *maxy = point_gety(pt);
+        }
+    }
+}
+
+void polygon_container_get_minmax_xy(const struct polygon_container* polygon_container, coordinate_t* minx, coordinate_t* maxx, coordinate_t* miny, coordinate_t* maxy)
+{
+    *minx = COORDINATE_MAX;
+    *maxx = COORDINATE_MIN;
+    *miny = COORDINATE_MAX;
+    *maxy = COORDINATE_MIN;
+    struct polygon_container_const_iterator* it = polygon_container_const_iterator_create(polygon_container);
+    while(polygon_container_const_iterator_is_valid(it))
+    {
+        const struct simple_polygon* simple_polygon = polygon_container_const_iterator_get(it);
+        coordinate_t _minx;
+        coordinate_t _maxx;
+        coordinate_t _miny;
+        coordinate_t _maxy;
+        simple_polygon_get_minmax_xy(simple_polygon, &_minx, &_maxx, &_miny, &_maxy);
+        if(_minx < *minx)
+        {
+            *minx = _minx;
+        }
+        if(_maxx > *maxx)
+        {
+            *maxx = _maxx;
+        }
+        if(_miny < *miny)
+        {
+            *miny = _miny;
+        }
+        if(_maxy > *maxy)
+        {
+            *maxy = _maxy;
+        }
+        polygon_container_const_iterator_next(it);
+    }
+    polygon_container_const_iterator_destroy(it);
+}
+
 int polygon_container_foreach_points(struct polygon_container* polygon_container, polygon_container_point_action action, struct generic_arg* extraargs)
 {
     struct polygon_container_iterator* pit = polygon_container_iterator_create(polygon_container);
@@ -589,7 +655,7 @@ static void _srp_F(struct simple_polygon* polygon, struct point* pt)
     }
     else
     {
-        vector_append(polygon->points, pt);
+        vector_append(polygon->points, point_copy(pt));
     }
 }
 
@@ -644,7 +710,7 @@ struct vector* simple_polygon_split_rectilinear_polygon(const struct simple_poly
                     ((point_gety(pt) == point_gety(Pk)) && (point_getx(pt) < point_getx(Pk)))
                 )
                 {
-                    Pk = point_copy(pt);
+                    point_copy_inplace(pt, Pk);
                 }
             }
         }
@@ -666,7 +732,7 @@ struct vector* simple_polygon_split_rectilinear_polygon(const struct simple_poly
                         ((point_gety(pt) == point_gety(Pl)) && (point_getx(pt) < point_getx(Pl)))
                     )
                     {
-                        Pl = point_copy(pt);
+                        point_copy_inplace(pt, Pl);
                     }
                 }
             }
@@ -687,7 +753,7 @@ struct vector* simple_polygon_split_rectilinear_polygon(const struct simple_poly
                 {
                     if(point_gety(pt) < point_gety(Pm))
                     {
-                        Pm = point_copy(pt);
+                        point_copy_inplace(pt, Pm);
                     }
                 }
             }
@@ -700,9 +766,17 @@ struct vector* simple_polygon_split_rectilinear_polygon(const struct simple_poly
         ));
         _srp_F(polygon, Pk);
         _srp_F(polygon, Pl);
-        _srp_F(polygon, point_create(point_getx(Pk), point_gety(Pm)));
-        _srp_F(polygon, point_create(point_getx(Pl), point_gety(Pm)));
+        struct point* pt1 = point_create(point_getx(Pk), point_gety(Pm));
+        _srp_F(polygon, pt1);
+        struct point* pt2 = point_create(point_getx(Pl), point_gety(Pm));
+        _srp_F(polygon, pt2);
+        point_destroy(pt1);
+        point_destroy(pt2);
+        point_destroy(Pk);
+        point_destroy(Pl);
+        point_destroy(Pm);
     }
+    simple_polygon_destroy(polygon);
     return rectangles;
 }
 

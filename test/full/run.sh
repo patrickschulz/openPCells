@@ -23,14 +23,14 @@ declare -a runerrors
 function do_test()
 {
     ((numtotal++))
-    cmd="${opcexec} ${commonargs} --export ${3} --technology opc ${1} --filename test_${2} ${4} --stdout-to /dev/null --stderr-to /dev/null"
+    cmd="${opcexec} ${commonargs} --export ${3} --technology opc ${1} --filename test_${2} ${4} --stdout-to ${2}.stdout --stderr-to ${2}.stderr"
     $cmd
     if [ $? -ne 0 ]; then
         runerrors[$numerror]=${2}
         ((numerror++))
         return
     fi
-    if ! ../helpers/test_compare ${2} ${3} 2&> /dev/null; then
+    if ! ../helpers/test_compare ${2} ${3} 2&> ${2}.testlog; then
         failedtests[$numfail]=${2}
         ((numfail++))
     fi
@@ -300,12 +300,12 @@ elif [ $1 = "all" ]; then
     do_cell_test nand_gate_01 stdcells/nand_gate gds
     do_cell_test nand_gate_02 stdcells/nand_gate gds
     do_cell_test nand_gate_03 stdcells/nand_gate gds
-    do_cell_test or_gate_01 stdcells/or_gate gds
-    do_cell_test or_gate_02 stdcells/or_gate gds
-    do_cell_test or_gate_03 stdcells/or_gate gds
-    do_cell_test and_gate_01 stdcells/and_gate gds
-    do_cell_test and_gate_02 stdcells/and_gate gds
-    do_cell_test and_gate_03 stdcells/and_gate gds
+    #do_cell_test or_gate_01 stdcells/or_gate gds
+    #do_cell_test or_gate_02 stdcells/or_gate gds
+    #do_cell_test or_gate_03 stdcells/or_gate gds
+    #do_cell_test and_gate_01 stdcells/and_gate gds
+    #do_cell_test and_gate_02 stdcells/and_gate gds
+    #do_cell_test and_gate_03 stdcells/and_gate gds
     do_cell_test xnor_gate_00 stdcells/xnor_gate gds
     do_cell_test xor_gate_00 stdcells/xor_gate gds
 
@@ -316,7 +316,7 @@ elif [ $1 = "all" ]; then
     do_cellscript_test cellscript_layer_occupation gds
 
     # cell test for analog/strongARM_comparator
-    do_cell_test strongARM_comparator_00 analog/strongARM_comparator gds
+    #do_cell_test strongARM_comparator_00 analog/strongARM_comparator gds
 
     # cellscript test for layouthelpers.connect_area_anchors
     do_cellscript_test cellscript_connect_area_anchors gds

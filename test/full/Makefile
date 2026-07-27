@@ -7,3 +7,6 @@ all:
 .PHONY: clean
 clean:
 	@rm -f test_*.gds
+	@rm -f *.stdout
+	@rm -f *.stderr
+	@rm -f *.testlog

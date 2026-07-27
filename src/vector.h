@@ -7,8 +7,9 @@
 
 struct vector;
 struct vector* vector_create(size_t capacity, void (*destructor)(void*));
+struct vector* vector_create_empty(void (*destructor)(void*));
 void vector_destroy(void* vector);
-struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*));
+struct vector* vector_copy(const struct vector* vector, void* (*copy)(const void*));
 void vector_reserve(struct vector* vector, size_t capacity);
 size_t vector_size(const struct vector* vector);
 size_t vector_capacity(const struct vector* vector);
@@ -17,6 +18,7 @@ void* vector_get(struct vector* vector, size_t i);
 const void* vector_get_const(const struct vector* vector, size_t i);
 void* vector_get_reference(struct vector* vector, size_t i);
 void* vector_content(struct vector* vector);
+void vector_takeover_content(struct vector* from, struct vector* to);
 void* vector_disown_content(struct vector* vector);
 void* vector_disown_element(struct vector* vector, size_t index);
 void vector_set(struct vector* vector, size_t i, void* element);

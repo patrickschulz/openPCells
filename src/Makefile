@@ -148,7 +148,7 @@ release/$(PROGNAME): release cmdoptions_def.c version.h main.c liblua_release.a 
 	$(CC) $(CFLAGS) $(OPTFLAGS) -DNDEBUG -o release/$(PROGNAME) main.c $(RELEASEOBJS) _modulemanager.c _scriptmanager.c liblua_release.a -lm -ldl
 
 release/%.o: %.c
-	$(CC) -c $(CFLAGS) $(OPTFLAGS) -o $@ $<
+	$(CC) -c $(CFLAGS) $(OPTFLAGS) -DNDEBUG -o $@ $<
 
 lint:
 	mkdir -p lint

@@ -5,8 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "bltrshape.h"
 #include "helpers.h"
 #include "math.h"
+#include "placement.h"
 
 static void _multiple_xy(struct object* cell, struct shape* base, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
@@ -2128,3 +2130,402 @@ void geometry_unequal_ring_pts(
     object_add_shape(cell, S);
 }
 
+void geometry_rectangle_fill_in_boundary_base(
+    struct object* cell,
+    const struct generics* layer,
+    coordinate_t width,
+    coordinate_t height,
+    coordinate_t xpitch,
+    coordinate_t ypitch,
+    coordinate_t xstartshift,
+    coordinate_t ystartshift,
+    struct simple_polygon* targetarea,
+    struct polygon_container* excludes
+)
+{
+    struct vector* origins = placement_calculate_origins_centered(width, height, xpitch, ypitch, xstartshift, ystartshift, targetarea, excludes);
+    struct vector_const_iterator* origin_it = vector_const_iterator_create(origins);
+    while(vector_const_iterator_is_valid(origin_it))
+    {
+        const struct point* origin = vector_const_iterator_get(origin_it);
+        geometry_rectanglebltrxy(
+            cell,
+            layer,
+            point_getx(origin) - width / 2, point_gety(origin) - height / 2,
+            point_getx(origin) + width / 2, point_gety(origin) + height / 2
+        );
+        vector_const_iterator_next(origin_it);
+    }
+    vector_const_iterator_destroy(origin_it);
+    vector_destroy(origins);
+}
+
+static int compare_integers(const void* a, const void* b)
+{
+    return **(const coordinate_t**)a - **(const coordinate_t**)b;
+}
+
+static int compare_rectangles_by_ymin_xmin(const void* a, const void* b)
+{
+    const struct bltrshape* shape_a = *(const struct bltrshape**)a;
+    const struct bltrshape* shape_b = *(const struct bltrshape**)b;
+    const struct point* bl_a = bltrshape_get_bl_const(shape_a);
+    const struct point* bl_b = bltrshape_get_bl_const(shape_b);
+    coordinate_t y_a = point_gety(bl_a);
+    coordinate_t y_b = point_gety(bl_b);
+    if(y_a != y_b)
+    {
+        return y_a - y_b;
+    }
+    return point_getx(bl_a) - point_getx(bl_b);
+}
+
+static void collect_coordinates(
+    coordinate_t xmin,
+    coordinate_t xmax,
+    coordinate_t ymin,
+    coordinate_t ymax,
+    const struct vector* rectangles,
+    struct vector* xcoords,
+    struct vector* ycoords
+)
+{
+    struct vector* xmap = vector_create(256, NULL);
+    struct vector* ymap = vector_create(256, NULL);
+
+    // add boundary coordinates
+    coordinate_t* xmin_val = malloc(sizeof(*xmin_val));
+    *xmin_val = xmin;
+    vector_append(xcoords, xmin_val);
+    vector_append(xmap, xmin_val);
+
+    coordinate_t* xmax_val = malloc(sizeof(xmax_val));
+    *xmax_val = xmax;
+    vector_append(xcoords, xmax_val);
+    vector_append(xmap, xmax_val);
+
+    coordinate_t* ymin_val = malloc(sizeof(ymin_val));
+    *ymin_val = ymin;
+    vector_append(ycoords, ymin_val);
+    vector_append(ymap, ymin_val);
+
+    coordinate_t* ymax_val = malloc(sizeof(ymax_val));
+    *ymax_val = ymax;
+    vector_append(ycoords, ymax_val);
+    vector_append(ymap, ymax_val);
+
+    // add rectangle coordinates (clipped to bounds)
+    for(size_t i = 0; i < vector_size(rectangles); i++)
+    {
+        const struct bltrshape* shape = (const struct bltrshape*)vector_get_const(rectangles, i);
+        const struct point* bl = bltrshape_get_bl_const(shape);
+        const struct point* tr = bltrshape_get_tr_const(shape);
+        coordinate_t rect_xmin = point_getx(bl);
+        coordinate_t rect_xmax = point_getx(tr);
+        coordinate_t rect_ymin = point_gety(bl);
+        coordinate_t rect_ymax = point_gety(tr);
+        coordinate_t x1 = (rect_xmin > xmin) ? rect_xmin : xmin;
+        coordinate_t x2 = (rect_xmax < xmax) ? rect_xmax : xmax;
+        coordinate_t y1 = (rect_ymin > ymin) ? rect_ymin : ymin;
+        coordinate_t y2 = (rect_ymax < ymax) ? rect_ymax : ymax;
+
+        if(x1 < x2 && y1 < y2)
+        {  // only if rectangle overlaps bounds
+            if(vector_find_flat(xmap, &x1) < 0)
+            {
+                coordinate_t* x1_val = malloc(sizeof(*x1_val));
+                *x1_val = x1;
+                vector_append(xcoords, x1_val);
+                vector_append(xmap, x1_val);
+            }
+            if(vector_find_flat(xmap, &x2) < 0)
+            {
+                coordinate_t* x2_val = malloc(sizeof(*x2_val));
+                *x2_val = x2;
+                vector_append(xcoords, x2_val);
+                vector_append(xmap, x2_val);
+            }
+            if(vector_find_flat(ymap, &y1) < 0)
+            {
+                coordinate_t* y1_val = malloc(sizeof(*y1_val));
+                *y1_val = y1;
+                vector_append(ycoords, y1_val);
+                vector_append(ymap, y1_val);
+            }
+            if(vector_find_flat(ymap, &y2) < 0)
+            {
+                coordinate_t* y2_val = malloc(sizeof(*y2_val));
+                *y2_val = y2;
+                vector_append(ycoords, y2_val);
+                vector_append(ymap, y2_val);
+            }
+        }
+    }
+
+    vector_sort(xcoords, compare_integers);
+    vector_sort(ycoords, compare_integers);
+
+    vector_destroy(xmap);
+    vector_destroy(ymap);
+}
+
+static int is_cell_covered(
+    coordinate_t x1, coordinate_t x2,
+    coordinate_t y1, coordinate_t y2,
+    const struct vector* rectangles
+)
+{
+    for(size_t i = 0; i < vector_size(rectangles); i++)
+    {
+        const struct bltrshape* shape = vector_get_const(rectangles, i);
+        const struct point* bl = bltrshape_get_bl_const(shape);
+        const struct point* tr = bltrshape_get_tr_const(shape);
+        coordinate_t xmin = point_getx(bl);
+        coordinate_t xmax = point_getx(tr);
+        coordinate_t ymin = point_gety(bl);
+        coordinate_t ymax = point_gety(tr);
+        if(xmin <= x1 && x2 <= xmax && ymin <= y1 && y2 <= ymax)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static struct vector* merge_rectangles(const struct vector* rectangles)
+{
+    if(vector_empty(rectangles))
+    {
+        return vector_create(64, bltrshape_destroy);
+    }
+
+    struct vector* sorted = vector_copy(rectangles, bltrshape_copy);
+    vector_sort(sorted, compare_rectangles_by_ymin_xmin);
+
+    struct vector* merged = vector_create(64, bltrshape_destroy);
+    size_t i = 0;
+    size_t sorted_size = vector_size(sorted);
+
+    while (i < sorted_size)
+    {
+        const struct bltrshape* current_src = vector_get_const(sorted, i);
+        const struct point* bl_src = bltrshape_get_bl_const(current_src);
+        const struct point* tr_src = bltrshape_get_tr_const(current_src);
+        coordinate_t xmin = point_getx(bl_src);
+        coordinate_t ymin = point_gety(bl_src);
+        coordinate_t xmax = point_getx(tr_src);
+        coordinate_t ymax = point_gety(tr_src);
+
+        size_t j = i + 1;
+        // check if next rectangles can be merged with current (same height, adjacent y, same x bounds)
+        while (j < sorted_size)
+        {
+            const struct bltrshape* next = vector_get_const(sorted, j);
+            const struct point* bl_next = bltrshape_get_bl_const(next);
+            const struct point* tr_next = bltrshape_get_tr_const(next);
+            coordinate_t next_xmin = point_getx(bl_next);
+            coordinate_t next_xmax = point_getx(tr_next);
+            coordinate_t next_ymin = point_gety(bl_next);
+            coordinate_t next_ymax = point_gety(tr_next);
+            if(next_xmin == xmin &&
+                next_xmax == xmax &&
+                next_ymin == ymax)
+            {
+                ymax = next_ymax;
+                j++;
+            } else
+            {
+                break;
+            }
+        }
+        struct bltrshape* shape = bltrshape_create_xy_no_net(xmin, ymin, xmax, ymax);
+        vector_append(merged, shape);
+        i = j;
+    }
+
+    vector_destroy(sorted);
+    return merged;
+}
+
+static void partition_areas(
+    coordinate_t xmin,
+    coordinate_t xmax,
+    coordinate_t ymin,
+    coordinate_t ymax,
+    const struct vector* obstructions,
+    struct vector* result_empty,
+    struct vector* result_filled
+)
+{
+    // handle edge cases
+    if(vector_empty(obstructions))
+    {
+        struct bltrshape* shape = bltrshape_create_xy_no_net(
+            xmin, ymin,
+            xmax, ymax
+        );
+        vector_append(result_empty, shape);
+        return;
+    }
+
+    struct vector* xcoords = vector_create(256, free);
+    struct vector* ycoords = vector_create(256, free);
+    collect_coordinates(xmin, xmax, ymin, ymax, obstructions, xcoords, ycoords);
+
+    // build grid and mark cells as covered/empty
+    struct vector* empty_rects = vector_create(256, bltrshape_destroy);
+    struct vector* filled_rects = vector_create(256, bltrshape_destroy);
+    for(size_t yi = 0; yi < vector_size(ycoords) - 1; yi++)
+    {
+        struct vector* row_empty = vector_create(64, bltrshape_destroy);
+        struct vector* row_filled = vector_create(64, bltrshape_destroy);
+        for(size_t xi = 0; xi < vector_size(xcoords) - 1; xi++)
+        {
+            coordinate_t x1 = *(const coordinate_t*)vector_get_const(xcoords, xi);
+            coordinate_t x2 = *(const coordinate_t*)vector_get_const(xcoords, xi + 1);
+            coordinate_t y1 = *(const coordinate_t*)vector_get_const(ycoords, yi);
+            coordinate_t y2 = *(const coordinate_t*)vector_get_const(ycoords, yi + 1);
+            if(is_cell_covered(x1, x2, y1, y2, obstructions))
+            {
+                struct bltrshape* shape = bltrshape_create_xy_no_net(x1, y1, x2, y2);
+                vector_append(row_filled, shape);
+            }
+            else
+            {
+                struct bltrshape* shape = bltrshape_create_xy_no_net(x1, y1, x2, y2);
+                vector_append(row_empty, shape);
+            }
+        }
+        for(size_t i = 0; i < vector_size(row_empty); i++)
+        {
+            const struct bltrshape* shape = (const struct bltrshape*)vector_get_const(row_empty, i);
+            struct bltrshape* copy = (struct bltrshape*)bltrshape_copy(shape);
+            vector_append(empty_rects, copy);
+        }
+        for(size_t i = 0; i < vector_size(row_filled); i++)
+        {
+            const struct bltrshape* shape = (const struct bltrshape*)vector_get_const(row_filled, i);
+            struct bltrshape* copy = (struct bltrshape*)bltrshape_copy(shape);
+            vector_append(filled_rects, copy);
+        }
+
+        vector_destroy(row_empty);
+        vector_destroy(row_filled);
+    }
+
+    vector_destroy(xcoords);
+    vector_destroy(ycoords);
+
+    // merge adjacent rectangles to reduce count
+    struct vector* merged_empty = merge_rectangles(empty_rects);
+    struct vector* merged_filled = merge_rectangles(filled_rects);
+    vector_takeover_content(merged_empty, result_empty);
+    vector_takeover_content(merged_filled, result_filled);
+    vector_destroy(empty_rects);
+    vector_destroy(filled_rects);
+}
+
+void geometry_rectangle_fill_in_boundary(
+    struct object* cell,
+    const struct generics* layer,
+    coordinate_t width,
+    coordinate_t height,
+    coordinate_t xpitch,
+    coordinate_t ypitch,
+    coordinate_t xstartshift,
+    coordinate_t ystartshift,
+    struct simple_polygon* targetarea,
+    struct polygon_container* excludes
+)
+{
+    coordinate_t xmin;
+    coordinate_t xmax;
+    coordinate_t ymin;
+    coordinate_t ymax;
+    simple_polygon_get_minmax_xy(targetarea, &xmin, &xmax, &ymin, &ymax);
+
+    // gather region obstructions
+    struct vector* obstructions = vector_create(256, bltrshape_destroy);
+    if(excludes)
+    {
+        struct polygon_container_iterator* pit = polygon_container_iterator_create(excludes);
+        while(polygon_container_iterator_is_valid(pit))
+        {
+            struct simple_polygon* exclude = polygon_container_iterator_get(pit);
+            coordinate_t excl_xmin;
+            coordinate_t excl_xmax;
+            coordinate_t excl_ymin;
+            coordinate_t excl_ymax;
+            simple_polygon_get_minmax_xy(exclude, &excl_xmin, &excl_xmax, &excl_ymin, &excl_ymax);
+            // quantize blockages to fill size
+            excl_xmin = xpitch * floor((double)excl_xmin / xpitch);
+            excl_xmax = xpitch * ceil((double)excl_xmax / xpitch);
+            excl_ymin = xpitch * floor((double)excl_ymin / ypitch);
+            excl_ymax = xpitch * ceil((double)excl_ymax / ypitch);
+            coordinate_t clipped_xmin = (excl_xmin > xmin) ? excl_xmin : xmin;
+            coordinate_t clipped_xmax = (excl_xmax < xmax) ? excl_xmax : xmax;
+            coordinate_t clipped_ymin = (excl_ymin > ymin) ? excl_ymin : ymin;
+            coordinate_t clipped_ymax = (excl_ymax < ymax) ? excl_ymax : ymax;
+            if(clipped_xmin <= clipped_xmax && clipped_xmax >= clipped_xmin && clipped_ymin <= clipped_ymax && clipped_ymax >= clipped_ymin)
+            {
+                struct bltrshape* shape = bltrshape_create_xy_no_net(clipped_xmin, clipped_ymin, clipped_xmax, clipped_ymax);
+                vector_append(obstructions, shape);
+            }
+            polygon_container_iterator_next(pit);
+        }
+        polygon_container_iterator_destroy(pit);
+    }
+
+    // run coordinate compression
+    struct vector* result_empty = vector_create_empty(bltrshape_destroy);
+    struct vector* result_filled = vector_create_empty(bltrshape_destroy);
+    puts("running partitioning...");
+    partition_areas(xmin, xmax, ymin, ymax, obstructions, result_empty, result_filled);
+    vector_destroy(obstructions);
+
+    // perform placement in regions and remains
+    printf("filling #%ld empty regions...\n", vector_size(result_empty));
+    for(size_t i = 0; i < vector_size(result_empty); i++)
+    {
+        struct bltrshape* bltrshape = vector_get(result_empty, i);
+        struct simple_polygon* area = simple_polygon_create_from_rectangle(
+            bltrshape_get_blx(bltrshape),
+            bltrshape_get_bly(bltrshape),
+            bltrshape_get_trx(bltrshape),
+            bltrshape_get_try(bltrshape)
+        );
+        geometry_rectangle_fill_in_boundary_base(
+            cell,
+            layer,
+            width, height,
+            xpitch, ypitch,
+            xstartshift, ystartshift,
+            area,
+            NULL // no excludes
+        );
+        simple_polygon_destroy(area);
+    }
+    printf("filling #%ld filled regions...\n", vector_size(result_filled));
+    for(size_t i = 0; i < vector_size(result_filled); i++)
+    {
+        struct bltrshape* bltrshape = vector_get(result_filled, i);
+        struct simple_polygon* area = simple_polygon_create_from_rectangle(
+            bltrshape_get_blx(bltrshape),
+            bltrshape_get_bly(bltrshape),
+            bltrshape_get_trx(bltrshape),
+            bltrshape_get_try(bltrshape)
+        );
+        geometry_rectangle_fill_in_boundary_base(
+            cell,
+            layer,
+            width, height,
+            xpitch, ypitch,
+            xstartshift, ystartshift,
+            area,
+            excludes
+        );
+        simple_polygon_destroy(area);
+    }
+    vector_destroy(result_empty);
+    vector_destroy(result_filled);
+}

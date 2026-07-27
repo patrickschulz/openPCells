@@ -16,6 +16,10 @@ struct bltrshape* bltrshape_create_from_table(lua_State* L, int index);
 void bltrshape_push_table(lua_State* L, const struct bltrshape* bltrshape);
 void bltrshape_destroy(void* v);
 void* bltrshape_copy(const void* v); /* const void* v because it is used as copy constructor */
+coordinate_t bltrshape_get_blx(struct bltrshape* bltrshape);
+coordinate_t bltrshape_get_bly(struct bltrshape* bltrshape);
+coordinate_t bltrshape_get_trx(struct bltrshape* bltrshape);
+coordinate_t bltrshape_get_try(struct bltrshape* bltrshape);
 struct point* bltrshape_get_bl(struct bltrshape* bltrshape);
 struct point* bltrshape_get_tr(struct bltrshape* bltrshape);
 const struct point* bltrshape_get_bl_const(const struct bltrshape* bltrshape);
