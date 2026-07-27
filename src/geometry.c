@@ -2292,50 +2292,6 @@ static int is_cell_covered(
     return 0;
 }
 
-static struct vector* merge_row_cells(
-    const struct vector* xcoords,
-    const struct vector* ycoords,
-    size_t yi,
-    const struct vector* cells
-)
-{
-    struct vector* regions = vector_create(64, bltrshape_destroy);
-    size_t i = 0;
-    size_t cells_size = vector_size(cells);
-
-    while (i < cells_size)
-    {
-        const int* cell_val = (const int*)vector_get_const(cells, i);
-        size_t xi_end = i;
-        if(*cell_val) // if cell is covered
-        {
-            size_t xi_start = i;
-            // find consecutive covered cells
-            while (xi_end + 1 < cells_size)
-            {
-                const int* next_cell = (const int*)vector_get_const(cells, xi_end + 1);
-                if(*next_cell)
-                {
-                    xi_end++;
-                } else
-                {
-                    break;
-                }
-            }
-            struct bltrshape* shape = bltrshape_create_xy_no_net(
-                *(const coordinate_t*)vector_get_const(xcoords, xi_start),
-                *(const coordinate_t*)vector_get_const(ycoords, yi),
-                *(const coordinate_t*)vector_get_const(xcoords, xi_end + 1),
-                *(const coordinate_t*)vector_get_const(ycoords, yi + 1)
-            );
-            vector_append(regions, shape);
-        }
-        i = xi_end + 1;
-    }
-
-    return regions;
-}
-
 static struct vector* merge_rectangles(const struct vector* rectangles)
 {
     if(vector_empty(rectangles))
