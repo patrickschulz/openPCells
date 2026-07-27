@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "array.h"
+#include "helpers.h"
 
 struct timeperf_entry {
     const char* parent;
@@ -96,26 +97,92 @@ static int _cmp_timperf_entry(const void* vlhs, const void* vrhs)
     return lhs->time > rhs->time;
 }
 
+static void _print_character(size_t len, char ch)
+{
+    for(size_t i = 0; i < len; ++i)
+    {
+        putchar(ch);
+    }
+}
+
+static void _print_top_bottom_line(size_t funcname_len, size_t parent_len, size_t numcalls_len, size_t time_len, size_t percentage_len)
+{
+    // +2 for all lengths because of the spacing
+    _print_character(funcname_len + 2, '=');
+    _print_character(parent_len + 2, '=');
+    _print_character(numcalls_len + 2, '=');
+    _print_character(time_len + 2, '=');
+    _print_character(percentage_len + 2, '=');
+    _print_character(6, '='); // 6x '|'
+    putchar('\n');
+}
+
 void timeperf_print_summary(void)
 {
+    // iterate first to get print sizes
+    // default values are minimum values from the header
+    size_t funcname_len = 7; // "Function"
+    size_t parent_len = 6; // "Parent"
+    size_t numcalls_len = 15; // I could determine this dynamically, but I'm currently too lazy and this will last for a long time
+    size_t time_len = 8;
+    size_t percentage_len = 10;
+    for(size_t i = 0; i < array_size(entries); ++i)
+    {
+        struct timeperf_entry* entry = entries + i;
+        funcname_len = MAX2(funcname_len, strlen(entry->funcname));
+        parent_len = MAX2(parent_len, strlen(entry->parent ? entry->parent : "<none>"));
+    }
+
+    // get time
     clock_t c_end = clock();
     double fulltime = (double)(c_end - c_start) / CLOCKS_PER_SEC;
+
+    // sort entries
     qsort(entries, array_size(entries), sizeof(struct timeperf_entry), _cmp_timperf_entry);
+
+    // info
     printf("total CPU time: %.3f\n", fulltime);
-    puts("==================================================================================================================");
-    printf("| %-24s | %-24s | %20s | %20s | %10s |\n", "Function", "Parent", "Number of Calls", "Time", "Percentage");
-    puts("+--------------------------+--------------------------+----------------------+----------------------+-------------");
+
+    // print first table line
+    _print_top_bottom_line(funcname_len, parent_len, numcalls_len, time_len, percentage_len);
+
+    // print header
+    printf("| %-*s | %-*s | %*s | %*s | %*s |\n",
+        (int)funcname_len, "Function",
+        (int)parent_len, "Parent",
+        (int)numcalls_len, "Number of Calls",
+        (int)time_len, "Time (s)",
+        (int)percentage_len, "Percentage"
+    );
+
+    // print separator
+    putchar('+');
+    _print_character(funcname_len + 2, '-');
+    putchar('+');
+    _print_character(parent_len + 2, '-');
+    putchar('+');
+    _print_character(numcalls_len + 2, '-');
+    putchar('+');
+    _print_character(time_len + 2, '-');
+    putchar('+');
+    _print_character(percentage_len + 2, '-');
+    putchar('+');
+    putchar('\n');
+
+    // print entries
     for(size_t i = 0; i < array_size(entries); ++i)
     {
         struct timeperf_entry* entry = entries + i;
         double time = (double)entry->time / CLOCKS_PER_SEC;
-        printf("| %-24s | %-24s | %20ld | %20.3f | %10.2f |\n",
-            entry->funcname,
-            entry->parent ? entry->parent : "<none>",
-            entry->numcalls,
-            time,
-            time / fulltime * 100
+        printf("| %-*s | %-*s | %*ld | %*.3f | %*.2f |\n",
+            (int)funcname_len, entry->funcname,
+            (int)parent_len, entry->parent ? entry->parent : "<none>",
+            (int)numcalls_len, entry->numcalls,
+            (int)time_len, time,
+            (int)percentage_len, time / fulltime * 100
         );
     }
-    puts("==================================================================================================================");
+
+    // print last table line
+    _print_top_bottom_line(funcname_len, parent_len, numcalls_len, time_len, percentage_len);
 }
