@@ -82,6 +82,7 @@ static const char *const opnames[] = {
   "TEST",
   "TESTSET",
   "CALL",
+  "NCALL",
   "TAILCALL",
   "RETURN",
   "RETURN0",

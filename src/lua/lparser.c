@@ -741,7 +741,10 @@ static void open_func (LexState *ls, FuncState *fs, BlockCnt *bl) {
   fs->nups = 0;
   fs->ndebugvars = 0;
   fs->nactvar = 0;
+  fs->nargs = 0;
   fs->needclose = 0;
+  fs->nargnames = NULL;
+  fs->nargdefaults = NULL;
   fs->firstlocal = ls->dyd->actvar.n;
   fs->firstlabel = ls->dyd->label.n;
   fs->bl = NULL;
@@ -768,6 +771,7 @@ static void close_func (LexState *ls) {
   luaM_shrinkvector(L, f->p, f->sizep, fs->np, Proto *);
   luaM_shrinkvector(L, f->locvars, f->sizelocvars, fs->ndebugvars, LocVar);
   luaM_shrinkvector(L, f->upvalues, f->sizeupvalues, fs->nups, Upvaldesc);
+  /* Named argument arrays are already properly sized in parlist() */
   ls->fs = fs->prev;
   luaC_checkGC(L);
 }
@@ -956,33 +960,99 @@ static void setvararg (FuncState *fs, int nparams) {
 
 
 static void parlist (LexState *ls) {
-  /* parlist -> [ {NAME ','} (NAME | '...') ] */
+  /* parlist -> [ {NAME ','} (NAME | '...') ]
+               [ {@key NAME ['=' expr] ','} @key NAME ['=' expr] ] */
   FuncState *fs = ls->fs;
   Proto *f = fs->f;
   int nparams = 0;
   int isvararg = 0;
+  int nnargs = 0;  /* count of named parameters */
+  int has_nargs = 0;  /* whether we've started parsing named params */
+
   if (ls->t.token != ')') {  /* is 'parlist' not empty? */
     do {
       switch (ls->t.token) {
         case TK_NAME: {
+          if (has_nargs)
+            luaX_syntaxerror(ls, "positional parameters must come before named parameters");
           new_localvar(ls, str_checkname(ls));
           nparams++;
           break;
         }
         case TK_DOTS: {
+          if (has_nargs)
+            luaX_syntaxerror(ls, "varargs not allowed with named parameters");
           luaX_next(ls);
           isvararg = 1;
           break;
         }
-        default: luaX_syntaxerror(ls, "<name> or '...' expected");
+        case TK_NARG: {  /* @key parameter */
+          has_nargs = 1;
+          luaX_next(ls);  /* consume @key token */
+          TString *nargname = luaS_new(ls->L, getstr(ls->t.seminfo.ts));
+          luaX_next(ls);  /* consume the name */
+
+          /* Allocate/grow arrays if needed */
+          if (nnargs >= f->sizenargs) {
+            int oldsize = f->sizenargs;
+            int newsize = oldsize > 0 ? oldsize * 2 : 4;
+            fs->nargnames = luaM_reallocvector(ls->L, fs->nargnames, oldsize, newsize, TString *);
+            fs->nargdefaults = luaM_reallocvector(ls->L, fs->nargdefaults, oldsize, newsize, TValue);
+            f->sizenargs = newsize;
+          }
+
+          fs->nargnames[nnargs] = nargname;
+
+          /* Parse optional default value */
+          if (testnext(ls, '=')) {
+            expdesc e;
+            expr(ls, &e);
+            /* Convert expression to constant TValue */
+            if (e.k == VKINT) {
+              setivalue(&fs->nargdefaults[nnargs], e.u.ival);
+            } else if (e.k == VKFLT) {
+              setfltvalue(&fs->nargdefaults[nnargs], e.u.nval);
+            } else if (e.k == VKSTR) {
+              setsvalue2n(ls->L, &fs->nargdefaults[nnargs], e.u.strval);
+            } else if (e.k == VTRUE) {
+              setbtvalue(&fs->nargdefaults[nnargs]);
+            } else if (e.k == VFALSE) {
+              setbfvalue(&fs->nargdefaults[nnargs]);
+            } else if (e.k == VNIL) {
+              setnilvalue(&fs->nargdefaults[nnargs]);
+            } else if (e.k == VK) {
+              /* Value is stored in constants table, copy it */
+              setobj(ls->L, &fs->nargdefaults[nnargs], &fs->f->k[e.u.info]);
+            } else {
+              luaX_syntaxerror(ls, "named parameter default must be a constant");
+            }
+          } else {
+            setnilvalue(&fs->nargdefaults[nnargs]);
+          }
+
+          nnargs++;
+          break;
+        }
+        default: luaX_syntaxerror(ls, "<name>, '...', or '@key' expected");
       }
     } while (!isvararg && testnext(ls, ','));
   }
   adjustlocalvars(ls, nparams);
-  f->numparams = cast_byte(fs->nactvar);
+  /* Also create local variables for named parameters */
+  for (int i = 0; i < nnargs; i++) {
+    new_localvar(ls, fs->nargnames[i]);
+  }
+  adjustlocalvars(ls, nnargs);
+  f->numparams = cast_byte(fs->nactvar);  /* numparams now includes all parameters */
+  fs->nargs = nnargs;
+  /* Transfer named parameter data to Proto */
+  f->nargnames = fs->nargnames;
+  f->nargdefaults = fs->nargdefaults;
+  f->sizenargs = nnargs;  /* set actual size (not capacity) */
   if (isvararg)
-    setvararg(fs, f->numparams);  /* declared vararg */
-  luaK_reserveregs(fs, fs->nactvar);  /* reserve registers for parameters */
+    setvararg(fs, nparams);  /* vararg flag uses positional count only */
+  /* Reserve registers for all parameters (positional + named) */
+  luaK_reserveregs(fs, fs->nactvar);  /* reserve registers for all parameters */
 }
 
 
@@ -1025,15 +1095,50 @@ static void funcargs (LexState *ls, expdesc *f, int line) {
   FuncState *fs = ls->fs;
   expdesc args;
   int base, nparams;
+  int has_named_args = 0;  /* whether call uses named arguments */
+
   switch (ls->t.token) {
-    case '(': {  /* funcargs -> '(' [ explist ] ')' */
+    case '(': {  /* funcargs -> '(' [ explist ] [ '?' NAME expr { ',' '?' NAME expr } ] ')' */
       luaX_next(ls);
       if (ls->t.token == ')')  /* arg list is empty? */
         args.k = VVOID;
       else {
-        explist(ls, &args);
-        if (hasmultret(args.k))
-          luaK_setmultret(fs, &args);
+        /* Parse positional arguments (stop at '?' or ')') */
+        if (ls->t.token != TK_QUESTION) {  /* only parse positional if not immediately '?' */
+          expr(ls, &args);
+          while (testnext(ls, ',') && ls->t.token != TK_QUESTION) {
+            luaK_exp2nextreg(fs, &args);
+            expr(ls, &args);
+          }
+          if (hasmultret(args.k))
+            luaK_setmultret(fs, &args);
+          else if (args.k != VVOID) {
+            /* Place the last positional argument before parsing named arguments */
+            luaK_exp2nextreg(fs, &args);
+            args.k = VVOID;  /* mark as placed */
+          }
+        } else {
+          args.k = VVOID;  /* no positional arguments */
+        }
+
+        /* Parse named arguments */
+        while (testnext(ls, TK_QUESTION)) {
+          has_named_args = 1;
+
+          /* Parse parameter name */
+          if (ls->t.token != TK_NAME)
+            luaX_syntaxerror(ls, "<name> expected after '?'");
+
+          /* Expect '=' */
+          if (!testnext(ls, '=')) {
+            luaX_syntaxerror(ls, "'=' expected after parameter name");
+          }
+
+          /* Parse argument expression */
+          expdesc narg_expr;
+          expr(ls, &narg_expr);
+          luaK_exp2nextreg(fs, &narg_expr);  /* place value in next register */
+        }
       }
       check_match(ls, ')', '(', line);
       break;
@@ -1052,7 +1157,10 @@ static void funcargs (LexState *ls, expdesc *f, int line) {
       luaK_exp2nextreg(fs, &args);  /* close last argument */
     nparams = fs->freereg - (base+1);
   }
-  init_exp(f, VCALL, luaK_codeABC(fs, OP_CALL, base, nparams+1, 2));
+
+  /* Emit OP_NCALL if call has named arguments, otherwise OP_CALL */
+  int opcode = has_named_args ? OP_NCALL : OP_CALL;
+  init_exp(f, VCALL, luaK_codeABC(fs, opcode, base, nparams+1, 2));
   luaK_fixline(fs, line);
   fs->freereg = base+1;  /* call remove function and arguments and leaves
                             (unless changed) one result */

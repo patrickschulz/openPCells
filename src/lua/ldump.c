@@ -176,6 +176,32 @@ static void dumpDebug (DumpState *D, const Proto *f) {
 }
 
 
+static void dumpNargs (DumpState *D, const Proto *f) {
+  int i, n = f->sizenargs;
+  dumpInt(D, n);
+  for (i = 0; i < n; i++) {
+    const TValue *o = &f->nargdefaults[i];
+    int tt = ttypetag(o);
+    dumpString(D, f->nargnames[i]);
+    dumpByte(D, tt);
+    switch (tt) {
+      case LUA_VNUMFLT:
+        dumpNumber(D, fltvalue(o));
+        break;
+      case LUA_VNUMINT:
+        dumpInteger(D, ivalue(o));
+        break;
+      case LUA_VSHRSTR:
+      case LUA_VLNGSTR:
+        dumpString(D, tsvalue(o));
+        break;
+      default:
+        lua_assert(tt == LUA_VNIL || tt == LUA_VFALSE || tt == LUA_VTRUE);
+    }
+  }
+}
+
+
 static void dumpFunction (DumpState *D, const Proto *f, TString *psource) {
   if (D->strip || f->source == psource)
     dumpString(D, NULL);  /* no debug info or same source as its parent */
@@ -191,6 +217,7 @@ static void dumpFunction (DumpState *D, const Proto *f, TString *psource) {
   dumpUpvalues(D, f);
   dumpProtos(D, f);
   dumpDebug(D, f);
+  dumpNargs(D, f);
 }
 
 

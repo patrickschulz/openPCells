@@ -253,6 +253,44 @@ static void loadDebug (LoadState *S, Proto *f) {
 }
 
 
+static void loadNargs (LoadState *S, Proto *f) {
+  int i;
+  int n = loadInt(S);
+  f->nargnames = luaM_newvectorchecked(S->L, n, TString *);
+  f->nargdefaults = luaM_newvectorchecked(S->L, n, TValue);
+  f->sizenargs = n;
+  for (i = 0; i < n; i++)
+    setnilvalue(&f->nargdefaults[i]);
+  for (i = 0; i < n; i++) {
+    f->nargnames[i] = loadStringN(S, f);
+    TValue *o = &f->nargdefaults[i];
+    int t = loadByte(S);
+    switch (t) {
+      case LUA_VNIL:
+        setnilvalue(o);
+        break;
+      case LUA_VFALSE:
+        setbfvalue(o);
+        break;
+      case LUA_VTRUE:
+        setbtvalue(o);
+        break;
+      case LUA_VNUMFLT:
+        setfltvalue(o, loadNumber(S));
+        break;
+      case LUA_VNUMINT:
+        setivalue(o, loadInteger(S));
+        break;
+      case LUA_VSHRSTR:
+      case LUA_VLNGSTR:
+        setsvalue2n(S->L, o, loadString(S, f));
+        break;
+      default: lua_assert(0);
+    }
+  }
+}
+
+
 static void loadFunction (LoadState *S, Proto *f, TString *psource) {
   f->source = loadStringN(S, f);
   if (f->source == NULL)  /* no source in dump? */
@@ -267,6 +305,7 @@ static void loadFunction (LoadState *S, Proto *f, TString *psource) {
   loadUpvalues(S, f);
   loadProtos(S, f);
   loadDebug(S, f);
+  loadNargs(S, f);
 }
 
 

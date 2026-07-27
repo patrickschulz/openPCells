@@ -44,7 +44,7 @@ static const char *const luaX_tokens [] = {
     "return", "then", "true", "until", "while",
     "//", "..", "...", "==", ">=", "<=", "~=",
     "<<", ">>", "::", "<eof>",
-    "<number>", "<integer>", "<name>", "<narg>", "<string>"
+    "<number>", "<integer>", "<name>", "<narg>", "<question>", "<string>"
 };
 
 
@@ -584,6 +584,10 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         }
       }
       /* OPC ADDITION END */
+      case '?': {  /* named parameter in call */
+        next(ls);
+        return TK_QUESTION;
+      }
       case EOZ: {
         return TK_EOS;
       }

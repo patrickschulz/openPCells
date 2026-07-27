@@ -152,6 +152,7 @@ typedef struct FuncState {
   int nk;  /* number of elements in 'k' */
   int np;  /* number of elements in 'p' */
   int nabslineinfo;  /* number of elements in 'abslineinfo' */
+  int nargs;  /* number of named arguments collected */
   int firstlocal;  /* index of first local var (in Dyndata array) */
   int firstlabel;  /* index of first label (in 'dyd->label->arr') */
   short ndebugvars;  /* number of elements in 'f->locvars' */
@@ -160,6 +161,8 @@ typedef struct FuncState {
   lu_byte freereg;  /* first free register */
   lu_byte iwthabs;  /* instructions issued since last absolute line info */
   lu_byte needclose;  /* function needs to close upvalues when returning */
+  TString **nargnames;  /* array of named argument names (temporary) */
+  TValue *nargdefaults;  /* array of default values for named arguments (temporary) */
 } FuncState;
 
 

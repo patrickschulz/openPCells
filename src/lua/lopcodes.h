@@ -284,6 +284,7 @@ OP_TEST,/*	A k	if (not R[A] == k) then pc++			*/
 OP_TESTSET,/*	A B k	if (not R[B] == k) then pc++ else R[A] := R[B] (*) */
 
 OP_CALL,/*	A B C	R[A], ... ,R[A+C-2] := R[A](R[A+1], ... ,R[A+B-1]) */
+OP_NCALL,/*	A B C	R[A], ... ,R[A+C-2] := R[A](R[A+1], ... ,R[A+B-1]) with named args */
 OP_TAILCALL,/*	A B C k	return R[A](R[A+1], ... ,R[A+B-1])		*/
 
 OP_RETURN,/*	A B C k	return R[A], ... ,R[A+B-2]	(see note)	*/

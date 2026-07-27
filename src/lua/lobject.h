@@ -548,6 +548,7 @@ typedef struct Proto {
   int sizep;  /* size of 'p' */
   int sizelocvars;
   int sizeabslineinfo;  /* size of 'abslineinfo' */
+  int sizenargs;  /* size of named arguments ('nargnames' and 'nargdefaults') */
   int linedefined;  /* debug information  */
   int lastlinedefined;  /* debug information  */
   TValue *k;  /* constants used by the function */
@@ -557,6 +558,8 @@ typedef struct Proto {
   ls_byte *lineinfo;  /* information about source lines (debug information) */
   AbsLineInfo *abslineinfo;  /* idem */
   LocVar *locvars;  /* information about local variables (debug information) */
+  TString **nargnames;  /* names of named parameters */
+  TValue *nargdefaults;  /* default values for named parameters */
   TString  *source;  /* used for debug information */
   GCObject *gclist;
 } Proto;

@@ -1629,8 +1629,84 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         CallInfo *newci;
         int b = GETARG_B(i);
         int nresults = GETARG_C(i) - 1;
-        if (b != 0)  /* fixed number of arguments? */
+
+        if (b != 0) {  /* fixed number of arguments? */
           L->top = ra + b;  /* top signals number of arguments */
+
+          /* Check if function has named parameters and fill in missing defaults */
+          StkId func = ra;
+          if (ttisfunction(s2v(func))) {
+            Proto *callee_proto = NULL;
+            if (ttisLclosure(s2v(func)))
+              callee_proto = clLvalue(s2v(func))->p;
+
+            if (callee_proto && callee_proto->sizenargs > 0) {
+              int npos = callee_proto->numparams - callee_proto->sizenargs;
+              int nnamed = callee_proto->sizenargs;
+              int total_args = b - 1;  /* subtract 1 for function itself */
+
+              if (total_args < callee_proto->numparams) {
+                /* Need to fill in missing parameters with defaults */
+                for (int i = total_args; i < callee_proto->numparams; i++) {
+                  int narg_idx = i - npos;
+                  if (narg_idx >= 0 && narg_idx < nnamed) {
+                    StkId dst = ra + 1 + i;
+                    const TValue *src = &callee_proto->nargdefaults[narg_idx];
+                    setobj(L, s2v(dst), src);
+                  }
+                }
+                /* Expand top to include all parameters */
+                L->top = ra + 1 + callee_proto->numparams;
+              }
+            }
+          }
+        }
+        /* else previous instruction set top */
+        savepc(L);  /* in case of errors */
+        if ((newci = luaD_precall(L, ra, nresults)) == NULL)
+          updatetrap(ci);  /* C call; nothing else to be done */
+        else {  /* Lua call: run function in this same C frame */
+          ci = newci;
+          goto startfunc;
+        }
+        vmbreak;
+      }
+      vmcase(OP_NCALL) {
+        /* Named parameter call - rearrange and fill in defaults */
+        CallInfo *newci;
+        int b = GETARG_B(i);  /* number of arguments + 1 */
+        int nresults = GETARG_C(i) - 1;
+
+        if (b != 0) {  /* fixed number of arguments? */
+          L->top = ra + b;  /* top signals number of arguments */
+
+          /* Get the called function */
+          StkId func = ra;
+          if (ttisfunction(s2v(func))) {
+            Proto *callee_proto = NULL;
+            if (ttisLclosure(s2v(func)))
+              callee_proto = clLvalue(s2v(func))->p;
+
+            /* If we have a Lua function with named parameters, fill in missing defaults */
+            if (callee_proto && callee_proto->sizenargs > 0) {
+              int npos = callee_proto->numparams - callee_proto->sizenargs;  /* positional params only */
+              int nnamed = callee_proto->sizenargs;  /* total named params */
+              int total_args = b - 1;  /* subtract 1 for function itself */
+              int passed_named = total_args - npos;  /* how many named args were actually passed */
+
+              if (passed_named >= 0 && passed_named <= nnamed) {
+                /* Fill in defaults for named parameters that weren't provided */
+                for (int i = passed_named; i < nnamed; i++) {
+                  StkId dst = ra + 1 + npos + i;  /* position for this named param */
+                  const TValue *src = &callee_proto->nargdefaults[i];
+                  setobj(L, s2v(dst), src);
+                }
+                /* Always adjust top to include all params when we have named parameters */
+                L->top = ra + 1 + npos + nnamed;
+              }
+            }
+          }
+        }
         /* else previous instruction set top */
         savepc(L);  /* in case of errors */
         if ((newci = luaD_precall(L, ra, nresults)) == NULL)

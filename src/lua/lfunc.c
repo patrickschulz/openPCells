@@ -257,6 +257,9 @@ Proto *luaF_newproto (lua_State *L) {
   f->maxstacksize = 0;
   f->locvars = NULL;
   f->sizelocvars = 0;
+  f->nargnames = NULL;
+  f->nargdefaults = NULL;
+  f->sizenargs = 0;
   f->linedefined = 0;
   f->lastlinedefined = 0;
   f->source = NULL;
@@ -272,6 +275,8 @@ void luaF_freeproto (lua_State *L, Proto *f) {
   luaM_freearray(L, f->abslineinfo, f->sizeabslineinfo);
   luaM_freearray(L, f->locvars, f->sizelocvars);
   luaM_freearray(L, f->upvalues, f->sizeupvalues);
+  luaM_freearray(L, f->nargnames, f->sizenargs);
+  luaM_freearray(L, f->nargdefaults, f->sizenargs);
   luaM_free(L, f);
 }
 
