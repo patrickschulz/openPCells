@@ -9,6 +9,7 @@
 #include "helpers.h"
 #include "math.h"
 #include "placement.h"
+#include "timeperf.h"
 
 static void _multiple_xy(struct object* cell, struct shape* base, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
@@ -2438,6 +2439,7 @@ void geometry_rectangle_fill_in_boundary(
     struct polygon_container* excludes
 )
 {
+    TIMEPERF_START();
     coordinate_t xmin;
     coordinate_t xmax;
     coordinate_t ymin;
@@ -2479,7 +2481,6 @@ void geometry_rectangle_fill_in_boundary(
     // run coordinate compression
     struct vector* result_empty = vector_create_empty(bltrshape_destroy);
     struct vector* result_filled = vector_create_empty(bltrshape_destroy);
-    puts("running partitioning...");
     partition_areas(xmin, xmax, ymin, ymax, obstructions, result_empty, result_filled);
     vector_destroy(obstructions);
 
@@ -2528,4 +2529,5 @@ void geometry_rectangle_fill_in_boundary(
     }
     vector_destroy(result_empty);
     vector_destroy(result_filled);
+    TIMEPERF_STOP();
 }
