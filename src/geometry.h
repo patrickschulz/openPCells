@@ -3,10 +3,11 @@
 
 #include <stddef.h>
 
-#include "technology.h"
 #include "object.h"
-#include "shape.h"
 #include "point.h"
+#include "polygon.h"
+#include "shape.h"
+#include "technology.h"
 
 void geometry_rectanglebltrxy(
     struct object* cell,
@@ -274,5 +275,31 @@ struct vector* geometry_offset_polygon_points(struct vector* points, ucoordinate
 struct vector* geometry_get_side_path_points(struct vector* points, coordinate_t offset);
 
 struct vector* geometry_triangulate_polygon(const struct vector* points);
+
+void geometry_rectangle_fill_in_boundary_base(
+    struct object* cell,
+    const struct generics* layer,
+    coordinate_t width,
+    coordinate_t height,
+    coordinate_t xpitch,
+    coordinate_t ypitch,
+    coordinate_t xstartshift,
+    coordinate_t ystartshift,
+    struct simple_polygon* targetarea,
+    struct polygon_container* excludes
+);
+
+void geometry_rectangle_fill_in_boundary(
+    struct object* cell,
+    const struct generics* layer,
+    coordinate_t width,
+    coordinate_t height,
+    coordinate_t xpitch,
+    coordinate_t ypitch,
+    coordinate_t xstartshift,
+    coordinate_t ystartshift,
+    struct simple_polygon* targetarea,
+    struct polygon_container* excludes
+);
 
 #endif /* OPC_GEOMETRY_H */
