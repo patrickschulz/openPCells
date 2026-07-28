@@ -2161,12 +2161,12 @@ void geometry_rectangle_fill_in_boundary_base(
     vector_destroy(origins);
 }
 
-static int compare_integers(const void* a, const void* b)
+static int _compare_integers(const void* a, const void* b)
 {
     return **(const coordinate_t**)a - **(const coordinate_t**)b;
 }
 
-static int compare_rectangles_by_ymin_xmin(const void* a, const void* b)
+static int _compare_rectangles_by_ymin_xmin(const void* a, const void* b)
 {
     const struct bltrshape* shape_a = *(const struct bltrshape**)a;
     const struct bltrshape* shape_b = *(const struct bltrshape**)b;
@@ -2181,12 +2181,12 @@ static int compare_rectangles_by_ymin_xmin(const void* a, const void* b)
     return point_getx(bl_a) - point_getx(bl_b);
 }
 
-static void collect_coordinates(
+static void _collect_coordinates(
     coordinate_t xmin,
     coordinate_t xmax,
     coordinate_t ymin,
     coordinate_t ymax,
-    const struct vector* rectangles,
+    const struct vector* obstructions,
     struct vector* xcoords,
     struct vector* ycoords
 )
@@ -2216,9 +2216,9 @@ static void collect_coordinates(
     vector_append(ymap, ymax_val);
 
     // add rectangle coordinates (clipped to bounds)
-    for(size_t i = 0; i < vector_size(rectangles); i++)
+    for(size_t i = 0; i < vector_size(obstructions); i++)
     {
-        const struct bltrshape* shape = (const struct bltrshape*)vector_get_const(rectangles, i);
+        const struct bltrshape* shape = (const struct bltrshape*)vector_get_const(obstructions, i);
         const struct point* bl = bltrshape_get_bl_const(shape);
         const struct point* tr = bltrshape_get_tr_const(shape);
         coordinate_t rect_xmin = point_getx(bl);
@@ -2263,22 +2263,22 @@ static void collect_coordinates(
         }
     }
 
-    vector_sort(xcoords, compare_integers);
-    vector_sort(ycoords, compare_integers);
+    vector_sort(xcoords, _compare_integers);
+    vector_sort(ycoords, _compare_integers);
 
     vector_destroy(xmap);
     vector_destroy(ymap);
 }
 
-static int is_cell_covered(
+static int _is_cell_covered(
     coordinate_t x1, coordinate_t x2,
     coordinate_t y1, coordinate_t y2,
-    const struct vector* rectangles
+    const struct vector* obstructions
 )
 {
-    for(size_t i = 0; i < vector_size(rectangles); i++)
+    for(size_t i = 0; i < vector_size(obstructions); i++)
     {
-        const struct bltrshape* shape = vector_get_const(rectangles, i);
+        const struct bltrshape* shape = vector_get_const(obstructions, i);
         const struct point* bl = bltrshape_get_bl_const(shape);
         const struct point* tr = bltrshape_get_tr_const(shape);
         coordinate_t xmin = point_getx(bl);
@@ -2293,15 +2293,15 @@ static int is_cell_covered(
     return 0;
 }
 
-static struct vector* merge_rectangles(const struct vector* rectangles)
+static struct vector* _merge_rectangles(const struct vector* obstructions)
 {
-    if(vector_empty(rectangles))
+    if(vector_empty(obstructions))
     {
         return vector_create(64, bltrshape_destroy);
     }
 
-    struct vector* sorted = vector_copy(rectangles, bltrshape_copy);
-    vector_sort(sorted, compare_rectangles_by_ymin_xmin);
+    struct vector* sorted = vector_copy(obstructions, bltrshape_copy);
+    vector_sort(sorted, _compare_rectangles_by_ymin_xmin);
 
     struct vector* merged = vector_create(64, bltrshape_destroy);
     size_t i = 0;
@@ -2318,7 +2318,7 @@ static struct vector* merge_rectangles(const struct vector* rectangles)
         coordinate_t ymax = point_gety(tr_src);
 
         size_t j = i + 1;
-        // check if next rectangles can be merged with current (same height, adjacent y, same x bounds)
+        // check if next obstructions can be merged with current (same height, adjacent y, same x bounds)
         while (j < sorted_size)
         {
             const struct bltrshape* next = vector_get_const(sorted, j);
@@ -2348,7 +2348,7 @@ static struct vector* merge_rectangles(const struct vector* rectangles)
     return merged;
 }
 
-static void partition_areas(
+static void _partition_areas(
     coordinate_t xmin,
     coordinate_t xmax,
     coordinate_t ymin,
@@ -2371,7 +2371,7 @@ static void partition_areas(
 
     struct vector* xcoords = vector_create(256, free);
     struct vector* ycoords = vector_create(256, free);
-    collect_coordinates(xmin, xmax, ymin, ymax, obstructions, xcoords, ycoords);
+    _collect_coordinates(xmin, xmax, ymin, ymax, obstructions, xcoords, ycoords);
 
     // build grid and mark cells as covered/empty
     struct vector* empty_rects = vector_create(256, bltrshape_destroy);
@@ -2386,7 +2386,7 @@ static void partition_areas(
             coordinate_t x2 = *(const coordinate_t*)vector_get_const(xcoords, xi + 1);
             coordinate_t y1 = *(const coordinate_t*)vector_get_const(ycoords, yi);
             coordinate_t y2 = *(const coordinate_t*)vector_get_const(ycoords, yi + 1);
-            if(is_cell_covered(x1, x2, y1, y2, obstructions))
+            if(_is_cell_covered(x1, x2, y1, y2, obstructions))
             {
                 struct bltrshape* shape = bltrshape_create_xy_no_net(x1, y1, x2, y2);
                 vector_append(row_filled, shape);
@@ -2418,8 +2418,8 @@ static void partition_areas(
     vector_destroy(ycoords);
 
     // merge adjacent rectangles to reduce count
-    struct vector* merged_empty = merge_rectangles(empty_rects);
-    struct vector* merged_filled = merge_rectangles(filled_rects);
+    struct vector* merged_empty = _merge_rectangles(empty_rects);
+    struct vector* merged_filled = _merge_rectangles(filled_rects);
     vector_takeover_content(merged_empty, result_empty);
     vector_takeover_content(merged_filled, result_filled);
     vector_destroy(empty_rects);
@@ -2481,7 +2481,7 @@ void geometry_rectangle_fill_in_boundary(
     // run coordinate compression
     struct vector* result_empty = vector_create_empty(bltrshape_destroy);
     struct vector* result_filled = vector_create_empty(bltrshape_destroy);
-    partition_areas(xmin, xmax, ymin, ymax, obstructions, result_empty, result_filled);
+    _partition_areas(xmin, xmax, ymin, ymax, obstructions, result_empty, result_filled);
     vector_destroy(obstructions);
 
     // perform placement in regions and remains
