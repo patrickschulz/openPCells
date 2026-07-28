@@ -109,7 +109,7 @@ local function _find_object_place(object, places)
     return nil
 end
 
-local function _calculate_symmetry(objects, places, symmetry_list)
+local function _calculate_symmetry(objects, wires, places, symmetry_list)
     local centerpoints = {}
     local searchfun = function(entry, name)
         return util.any_of(name, entry)
@@ -225,7 +225,7 @@ local function _run_placement(objects, wires, weights, symmetry_list)
             -- generate placement
             local places = _generate_object_placement(permutation, numx, numy)
             -- calculate symmetry score/boolean (tbd)
-            local symmetry = _calculate_symmetry(objects, places, symmetry_list)
+            local symmetry = _calculate_symmetry(objects, wires, places, symmetry_list)
             -- calculate wire length
             local new_length = _calculate_total_wire_length(wires, places, weights)
             -- compare to previous results
