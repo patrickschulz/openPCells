@@ -736,6 +736,10 @@ static int lobject_add_child(lua_State* L)
     {
         name = lua_tostring(L, 3);
     }
+    else
+    {
+        name = "_unused_";
+    }
     struct object* proxy = object_add_child(lobject_get(L, cell), lobject_get_unchecked(child), name);
     if(!proxy)
     {
