@@ -1600,6 +1600,11 @@ int technology_resolve_premapped_layers(struct technology_state* techstate, cons
         struct generics* layer = vector_get(techstate->extra_layers, i);
         if(!_resolve_layer(layer, exportname, techstate->ignore_missing_exports))
         {
+            fprintf(
+                stderr,
+                "no layer data for export type '%s' found (layer: %s, number of entries: %zd)\n",
+                exportname, layer->name, vector_size(layer->entries)
+            );
             return 0;
         }
     }
