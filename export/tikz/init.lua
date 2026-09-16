@@ -215,7 +215,7 @@ local function _format_point(pt)
     local sx = _format_number(pt.x + __xshift * __baseunit)
     local sy = _format_number(pt.y + __yshift * __baseunit)
     if __expressionscale then
-        return string.format("{ %s, %s }", sx, sy)
+        return string.format("{%s}, {%s}", sx, sy)
     else
         return string.format("%s, %s", sx, sy)
     end
