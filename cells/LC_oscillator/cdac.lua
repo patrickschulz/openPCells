@@ -1,21 +1,21 @@
 function parameters()
     pcell.add_parameters(
         { "numcells", 16 },
-        { "firstmetal", 1 },
-        { "lastmetal", 1 },
-        { "innerfingers", 1 },
-        { "fingerwidth", 0 },
-        { "fingerspace", 0, posvals = even() },
-        { "fingerlength", 0 },
-        { "railwidth", 0 },
+        { "firstmetal", 2, posvals = interval(2, inf) },
+        { "lastmetal", 2, posvals = interval(2, inf) },
+        { "innerfingers", 2 },
+        { "fingerwidth", technology.get_dimension("Minimum M1 Width") },
+        { "fingerspace", technology.get_dimension("Minimum M1 Space") },
+        { "fingerlength", 500 },
+        { "railwidth", 100 },
         { "capspace", 0 },
-        { "gatelength", 0 },
-        { "gatespace", 0 },
+        { "gatelength", technology.get_dimension("Minimum Gate Length") },
+        { "gatespace", technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space") },
         { "sdviaextension", 0 },
-        { "switchfingerwidth", 0 },
+        { "switchfingerwidth", technology.get_dimension("Minimum Gate Width") },
         { "alternatingpolarity", false },
-        { "vsslinewidth", 0 },
-        { "vsslinespace", 0 }
+        { "vsslinewidth", technology.get_dimension("Minimum M1 Width") },
+        { "vsslinespace", technology.get_dimension("Minimum M1 Space") }
     )
 end
 
@@ -109,21 +109,21 @@ function layout(cdac, _P)
     -- left/right vss lines
     lsbref:add_area_anchor_bltr("leftvssline",
         point.create(
-            switch:get_area_anchor("sourcedrain1").l - _P.vsslinespace,
+            switch:get_area_anchor("sourcedrain1").l - _P.vsslinespace - _P.vsslinewidth,
             leftcap:get_area_anchor("upperrail").b
         ),
         point.create(
-            switch:get_area_anchor("sourcedrain1").l - _P.vsslinespace + _P.vsslinewidth,
+            switch:get_area_anchor("sourcedrain1").l - _P.vsslinespace,
             leftcap:get_area_anchor("upperrail").t
         )
     )
     lsbref:add_area_anchor_bltr("rightvssline",
         point.create(
-            switch:get_area_anchor("sourcedrain-1").l + _P.vsslinespace - _P.vsslinewidth,
+            switch:get_area_anchor("sourcedrain-1").r + _P.vsslinespace,
             rightcap:get_area_anchor("upperrail").b
         ),
         point.create(
-            switch:get_area_anchor("sourcedrain-1").l + _P.vsslinespace,
+            switch:get_area_anchor("sourcedrain-1").r + _P.vsslinespace + _P.vsslinewidth,
             rightcap:get_area_anchor("upperrail").t
         )
     )
