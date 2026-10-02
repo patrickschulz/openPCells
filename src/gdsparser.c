@@ -62,125 +62,101 @@ struct record {
     uint8_t* data;
 };
 
-int _read_record(FILE* file, struct record* record)
-{
-    uint8_t buf[4];
-    size_t read;
-    read = fread(buf, 1, 4, file);
-    if(read != 4)
-    {
-        return 0;
-    }
-    record->length = (buf[0] << 8) + buf[1];
-    record->recordtype = buf[2];
-    record->datatype = buf[3];
-
-    if(record->length >= 4)
-    {
-        size_t numbytes = record->length - 4;
-        uint8_t* data = malloc(numbytes);
-        read = fread(data, 1, numbytes, file);
-        if(read != numbytes)
-        {
-            free(data);
-            return 0;
-        }
-        record->data = data;
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
+// must hold at least one complete record (the maximum record length is 65535 bytes)
+#define STREAM_BUFFER_SIZE (1 << 20)
 
 struct stream {
-    struct record* records;
-    size_t numrecords;
-    size_t index;
+    FILE* file;
+    uint8_t* buffer;
+    size_t pos; // start of the next record in buffer
+    size_t end; // end of valid data in buffer
+    long long bufferoffset; // file offset of buffer[0]
+    struct record current; // data points into buffer, valid until the next _get_next_record call
+    size_t index; // number of records read so far
 };
 
-static void _destroy_stream(struct stream* stream)
-{
-    for(unsigned int i = 0; i < stream->numrecords; ++i)
-    {
-        free(stream->records[i].data);
-    }
-    free(stream->records);
-    free(stream);
-}
-
-static struct record* _get_next_record(struct stream* stream)
-{
-    if(stream->index >= stream->numrecords)
-    {
-        return NULL;
-    }
-    ++stream->index;
-    return stream->records + stream->index - 1;
-}
-
-static void _reset_stream(struct stream* stream)
-{
-    stream->index = 0;
-}
-
-static int _read_raw_stream_noerror(const char* filename, struct stream** stream, long* errorbyte)
+static struct stream* _open_stream(const char* filename)
 {
     FILE* file = fopen(filename, "rb");
     if(!file)
     {
-        return 0;
-    }
-    size_t numrecords = 0;
-    size_t capacity = 10;
-    struct record* records = calloc(capacity, sizeof(*records));
-    int ret = 1;
-    while(1)
-    {
-        if(numrecords + 1 > capacity)
-        {
-            capacity *= 2;
-            struct record* tmp = realloc(records, capacity * sizeof(*tmp));
-            records = tmp;
-        }
-        if(!_read_record(file, &records[numrecords]))
-        {
-            ret = 0;
-            *errorbyte = ftell(file);
-            break;
-        }
-        ++numrecords;
-        if(records[numrecords - 1].recordtype == ENDLIB)
-        {
-            break;
-        }
-    }
-    fclose(file);
-    (*stream) = malloc(sizeof(struct stream));
-    (*stream)->records = records;
-    (*stream)->numrecords = numrecords;
-    (*stream)->index = 0;
-    return ret;
-}
-
-static struct stream* _read_raw_stream(const char* filename)
-{
-    TIMEPERF_START();
-    struct stream* stream = NULL;
-    long errorbyte = 0;
-    int status = _read_raw_stream_noerror(filename, &stream, &errorbyte);
-    if(!status)
-    {
-        fprintf(stderr, "gdsparser: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
-        if(stream)
-        {
-            _destroy_stream(stream);
-        }
+        fprintf(stderr, "gdsparser: could not open file '%s'\n", filename);
         return NULL;
     }
-    TIMEPERF_STOP();
+    struct stream* stream = malloc(sizeof(*stream));
+    stream->file = file;
+    stream->buffer = malloc(STREAM_BUFFER_SIZE);
+    stream->pos = 0;
+    stream->end = 0;
+    stream->bufferoffset = 0;
+    stream->index = 0;
     return stream;
+}
+
+static void _destroy_stream(struct stream* stream)
+{
+    fclose(stream->file);
+    free(stream->buffer);
+    free(stream);
+}
+
+// make sure that at least 'numbytes' unread bytes are available in the buffer, starting at stream->pos
+// a partially read record is moved to the front of the buffer before refilling it
+static int _ensure_available(struct stream* stream, size_t numbytes)
+{
+    if(stream->end - stream->pos >= numbytes)
+    {
+        return 1;
+    }
+    size_t remaining = stream->end - stream->pos;
+    memmove(stream->buffer, stream->buffer + stream->pos, remaining);
+    stream->bufferoffset += stream->pos;
+    stream->pos = 0;
+    stream->end = remaining;
+    while(stream->end < numbytes)
+    {
+        size_t read = fread(stream->buffer + stream->end, 1, STREAM_BUFFER_SIZE - stream->end, stream->file);
+        if(read == 0)
+        {
+            return 0;
+        }
+        stream->end += read;
+    }
+    return 1;
+}
+
+static struct record* _get_next_record(struct stream* stream)
+{
+    if(!_ensure_available(stream, 4))
+    {
+        fprintf(stderr, "gdsparser: stream abort before ENDLIB (at byte %lld)\n", stream->bufferoffset + (long long)stream->end);
+        return NULL;
+    }
+    const uint8_t* header = stream->buffer + stream->pos;
+    uint16_t length = (header[0] << 8) | header[1];
+    if(length < 4 || !_ensure_available(stream, length))
+    {
+        fprintf(stderr, "gdsparser: stream abort before ENDLIB (at byte %lld)\n", stream->bufferoffset + (long long)stream->end);
+        return NULL;
+    }
+    // _ensure_available might have moved the record to the front of the buffer
+    uint8_t* recordstart = stream->buffer + stream->pos;
+    stream->current.length = length;
+    stream->current.recordtype = recordstart[2];
+    stream->current.datatype = recordstart[3];
+    stream->current.data = recordstart + 4;
+    stream->pos += length;
+    ++stream->index;
+    return &stream->current;
+}
+
+static void _reset_stream(struct stream* stream)
+{
+    rewind(stream->file);
+    stream->pos = 0;
+    stream->end = 0;
+    stream->bufferoffset = 0;
+    stream->index = 0;
 }
 
 static int* _parse_bit_array(uint8_t* data)
@@ -571,7 +547,7 @@ static struct vector* _resolve_hierarchy(struct vector* cells)
 
 void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
 {
-    struct stream* stream = _read_raw_stream(filename);
+    struct stream* stream = _open_stream(filename);
     if(!stream)
     {
         return;
@@ -607,16 +583,9 @@ void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
 
 int gdsparser_show_cell_definitions(const char* filename)
 {
-    struct stream* stream = NULL;
-    long errorbyte = 0;
-    int status = _read_raw_stream_noerror(filename, &stream, &errorbyte);
-    if(!status)
+    struct stream* stream = _open_stream(filename);
+    if(!stream)
     {
-        fprintf(stderr, "show GDSII cell definitions: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
-        if(stream)
-        {
-            _destroy_stream(stream);
-        }
         return 0;
     }
 
@@ -717,16 +686,9 @@ static void _print_byte_hex_with_prefix(FILE* file, uint8_t num)
 
 int gdsparser_show_records(const char* filename, int raw)
 {
-    struct stream* stream = NULL;
-    long errorbyte = 0;
-    int status = _read_raw_stream_noerror(filename, &stream, &errorbyte);
-    if(!status)
+    struct stream* stream = _open_stream(filename);
+    if(!stream)
     {
-        fprintf(stderr, "show GDSII records: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
-        if(stream)
-        {
-            _destroy_stream(stream);
-        }
         return 0;
     }
 
@@ -1843,7 +1805,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
 
     // pass 1
     // FIXME: error handling
-    struct stream* stream = _read_raw_stream(filename);
+    struct stream* stream = _open_stream(filename);
     if(!stream)
     {
         return 0;
