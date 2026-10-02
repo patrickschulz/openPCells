@@ -571,9 +571,17 @@ static struct vector* _resolve_hierarchy(struct vector* cells)
 
 void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
 {
-    // FIXME: error handling
     struct stream* stream = _read_raw_stream(filename);
+    if(!stream)
+    {
+        return;
+    }
     struct vector* cells = _read_cells(stream);
+    _destroy_stream(stream);
+    if(!cells)
+    {
+        return;
+    }
     struct vector* tree = _resolve_hierarchy(cells);
     struct vector_iterator* it = vector_iterator_create(tree);
     while(vector_iterator_is_valid(it))
