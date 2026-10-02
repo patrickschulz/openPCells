@@ -212,15 +212,15 @@ static int32_t* _parse_four_byte_integer(uint8_t* data, size_t length)
     int32_t* pdata = calloc(length / 4, sizeof(*pdata));
     for(size_t i = 0; i < length / 4; ++i)
     {
-        pdata[i] = (data[i * 4] << 24) + (data[i * 4 + 1] << 16) + (data[i * 4 + 2] << 8) + data[i * 4 + 3];
+        pdata[i] = (int32_t)(((uint32_t)data[i * 4] << 24) | ((uint32_t)data[i * 4 + 1] << 16) | ((uint32_t)data[i * 4 + 2] << 8) | data[i * 4 + 3]);
     }
     return pdata;
 }
 
 static inline void _parse_single_point_i(uint8_t* data, size_t i, struct point* pt)
 {
-    pt->x = (data[i * 8] << 24) + (data[i * 8 + 1] << 16) + (data[i * 8 + 2] << 8) + data[i * 8 + 3];
-    pt->y = (data[i * 8 + 4] << 24) + (data[i * 8 + 5] << 16) + (data[i * 8 + 6] << 8) + data[i * 8 + 7];
+    pt->x = (int32_t)(((uint32_t)data[i * 8] << 24) | ((uint32_t)data[i * 8 + 1] << 16) | ((uint32_t)data[i * 8 + 2] << 8) | data[i * 8 + 3]);
+    pt->y = (int32_t)(((uint32_t)data[i * 8 + 4] << 24) | ((uint32_t)data[i * 8 + 5] << 16) | ((uint32_t)data[i * 8 + 6] << 8) | data[i * 8 + 7]);
 }
 
 static struct vector* _parse_points(uint8_t* data, size_t length)
@@ -237,7 +237,7 @@ static struct vector* _parse_points(uint8_t* data, size_t length)
 
 static void _parse_xy_i(uint8_t* data, size_t i, coordinate_t* xy)
 {
-    *xy = (data[i * 4] << 24) + (data[i * 4 + 1] << 16) + (data[i * 4 + 2] << 8) + data[i * 4 + 3];
+    *xy = (int32_t)(((uint32_t)data[i * 4] << 24) | ((uint32_t)data[i * 4 + 1] << 16) | ((uint32_t)data[i * 4 + 2] << 8) | data[i * 4 + 3]);
 }
 
 static coordinate_t* _parse_points_xy(uint8_t* data, size_t length)
