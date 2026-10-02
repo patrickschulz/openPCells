@@ -127,7 +127,7 @@ static void _reset_stream(struct stream* stream)
 
 static int _read_raw_stream_noerror(const char* filename, struct stream** stream, long* errorbyte)
 {
-    FILE* file = fopen(filename, "r");
+    FILE* file = fopen(filename, "rb");
     if(!file)
     {
         return 0;
