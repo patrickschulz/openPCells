@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
+#include <pthread.h>
 
 #include "lua/lauxlib.h"
 
@@ -46,9 +47,11 @@ const char* recordnames[] = {
     "STRCLASS", "RESERVED", "FORMAT", "MASK", "ENDMASKS", "LIBDIRSIZE", "SRFNAME", "LIBSECUR",
 };
 
+#define NUM_RECORDNAMES (sizeof(recordnames) / sizeof(recordnames[0]))
+
 static const char* _recordname(enum recordtypes recordtype)
 {
-    if((size_t)recordtype < sizeof(recordnames) / sizeof(recordnames[0]))
+    if((size_t)recordtype < NUM_RECORDNAMES)
     {
         return recordnames[recordtype];
     }
@@ -601,7 +604,9 @@ int gdsparser_show_cell_definitions(const char* filename)
 }
 
 // collects output and writes it in large blocks, avoiding one stdio call per character
-#define OUTBUFFER_SIZE (1 << 16)
+// must hold the data text of one complete integer record, which is reserved at once:
+// the largest is a two-byte integer record with 32765 values of at most 7 characters ("-32768 "), 229355 bytes
+#define OUTBUFFER_SIZE (1 << 18)
 
 struct outbuffer {
     FILE* file;
@@ -654,11 +659,6 @@ static void _out_bytes(struct outbuffer* out, const char* bytes, size_t len)
     out->pos += len;
 }
 
-static void _out_string(struct outbuffer* out, const char* str)
-{
-    _out_bytes(out, str, strlen(str));
-}
-
 static void _out_fill(struct outbuffer* out, char ch, size_t len)
 {
     while(len > 0)
@@ -695,17 +695,21 @@ static inline unsigned int _count_digits(uint32_t num)
     return 10;
 }
 
-static void _out_uint32(struct outbuffer* out, uint32_t num)
+// make sure that at least 'len' bytes can be written to out->data + out->pos without checks
+static inline void _out_reserve(struct outbuffer* out, size_t len)
 {
-    // uint32_t has at most 10 digits
-    if(out->pos + 10 > OUTBUFFER_SIZE)
+    if(out->pos + len > OUTBUFFER_SIZE)
     {
         _flush_outbuffer(out);
     }
-    // digits are written directly into the buffer from the back, two at a time
-    unsigned int numdigits = _count_digits(num);
-    char* ptr = out->data + out->pos + numdigits;
-    out->pos += numdigits;
+}
+
+// writes the digits to ptr without any bounds checks (at most 10 characters), returns the end of the written digits
+static inline char* _write_uint32(char* ptr, uint32_t num)
+{
+    // digits are written from the back, two at a time
+    char* end = ptr + _count_digits(num);
+    ptr = end;
     while(num >= 100)
     {
         uint32_t pair = num % 100;
@@ -724,25 +728,20 @@ static void _out_uint32(struct outbuffer* out, uint32_t num)
     {
         ptr[-1] = '0' + num;
     }
+    return end;
 }
 
-static void _out_int32(struct outbuffer* out, int32_t num)
+// writes the number to ptr without any bounds checks (at most 11 characters), returns the end of the written characters
+static inline char* _write_int32(char* ptr, int32_t num)
 {
     if(num < 0)
     {
-        _out_char(out, '-');
+        *ptr = '-';
+        ++ptr;
         // negate in unsigned arithmetic, -INT32_MIN is not representable as int32_t
-        _out_uint32(out, 0u - (uint32_t)num);
+        return _write_uint32(ptr, 0u - (uint32_t)num);
     }
-    else
-    {
-        _out_uint32(out, num);
-    }
-}
-
-static void _out_int16(struct outbuffer* out, int16_t num)
-{
-    _out_int32(out, num);
+    return _write_uint32(ptr, num);
 }
 
 static void _out_real(struct outbuffer* out, double num)
@@ -808,146 +807,361 @@ static void _print_int32(FILE* file, int32_t num)
     fputc((num % 10) + '0', file);
 }
 
+// the record header ("<indent><name> (<length>)[ -> data: ]") is written with fixed-size copies,
+// which the compiler turns into a few stores instead of library calls;
+// the bytes written beyond the actual text are overwritten afterwards
+struct recordprefix {
+    char text[16]; // "<name> (", the longest one is "PRESENTATION (" with 14 characters
+    size_t len;
+};
+
+static void _show_record(struct outbuffer* out, const struct record* record, unsigned int* indent, const struct recordprefix* prefixes, int raw)
+{
+    static const char spaces[] = "                "; // 16 spaces, indentation is at most 12 for valid streams
+    static const char suffix[] = ") -> data:      "; // padded to 16 characters
+    if(record->recordtype == ENDLIB || record->recordtype == ENDSTR || record->recordtype == ENDEL)
+    {
+        --(*indent);
+    }
+    if(*indent > 3) // only possible for malformed streams
+    {
+        _out_fill(out, ' ', 4 * *indent);
+    }
+    // 12 (indentation) + 16 (prefix copy) + 5 (length) + 16 (suffix copy) = 49
+    _out_reserve(out, 64);
+    char* ptr = out->data + out->pos;
+    if(*indent <= 3)
+    {
+        memcpy(ptr, spaces, 16);
+        ptr += 4 * *indent;
+    }
+    size_t prefixindex = (size_t)record->recordtype < NUM_RECORDNAMES ? (size_t)record->recordtype : NUM_RECORDNAMES;
+    memcpy(ptr, prefixes[prefixindex].text, 16);
+    ptr += prefixes[prefixindex].len;
+    ptr = _write_uint32(ptr, record->length);
+    memcpy(ptr, suffix, 16);
+    ptr += record->length > 4 ? 11 : 1; // ") -> data: " or ")"
+    out->pos = ptr - out->data;
+
+    // print data
+    if(record->length > 4)
+    {
+        // parsed data
+        switch(record->datatype)
+        {
+            case TWO_BYTE_INTEGER:
+            {
+                // reserve space for the whole record at once: at most 7 characters per number ("-32768 ")
+                int numvalues = (record->length - 4) / 2;
+                _out_reserve(out, numvalues * 7);
+                char* ptr = out->data + out->pos;
+                for(int i = 0; i < numvalues; ++i)
+                {
+                    ptr = _write_int32(ptr, _parse_two_byte_integer(record->data + i * 2));
+                    *ptr = ' ';
+                    ++ptr;
+                }
+                out->pos = ptr - out->data;
+                break;
+            }
+            case FOUR_BYTE_INTEGER:
+            {
+                // reserve space for the whole record at once: at most 12 characters per number ("-2147483648 ")
+                int numvalues = (record->length - 4) / 4;
+                _out_reserve(out, numvalues * 12);
+                char* ptr = out->data + out->pos;
+                for(int i = 0; i < numvalues; ++i)
+                {
+                    ptr = _write_int32(ptr, _parse_four_byte_integer(record->data + i * 4));
+                    *ptr = ' ';
+                    ++ptr;
+                }
+                out->pos = ptr - out->data;
+                break;
+            }
+            case FOUR_BYTE_REAL:
+            {
+                for(int i = 0; i < (record->length - 4) / 4; ++i)
+                {
+                    _out_real(out, _parse_four_byte_real(record->data + i * 4));
+                }
+                break;
+            }
+            case EIGHT_BYTE_REAL:
+            {
+                for(int i = 0; i < (record->length - 4) / 8; ++i)
+                {
+                    _out_real(out, _parse_eight_byte_real(record->data + i * 8));
+                }
+                break;
+            }
+            case ASCII_STRING:
+            {
+                // odd-length strings are zero padded, don't print zero characters
+                _out_char(out, '"');
+                const char* str = (const char*)record->data;
+                size_t len = record->length - 4;
+                while(len > 0)
+                {
+                    const char* zero = memchr(str, 0, len);
+                    size_t runlen = zero ? (size_t)(zero - str) : len;
+                    _out_bytes(out, str, runlen);
+                    if(!zero)
+                    {
+                        break;
+                    }
+                    len -= runlen + 1;
+                    str = zero + 1;
+                }
+                _out_char(out, '"');
+                break;
+            }
+            case BIT_ARRAY:
+            {
+                char bits[16];
+                for(int i = 0; i < 16; ++i)
+                {
+                    bits[i] = _parse_bit(record->data, i) ? '1' : '0';
+                }
+                _out_bytes(out, bits, 16);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    if(raw)
+    {
+        _out_bytes(out, " (", 2);
+        for(int i = 0; i < record->length - 4; ++i)
+        {
+            _out_byte_hex_with_prefix(out, record->data[i]);
+            if(i < record->length - 5)
+            {
+                _out_char(out, ' ');
+            }
+        }
+        _out_char(out, ')');
+    }
+    _out_char(out, '\n');
+
+    if(record->recordtype == BGNLIB ||
+       record->recordtype == BGNSTR ||
+       record->recordtype == BOUNDARY ||
+       record->recordtype == PATH ||
+       record->recordtype == SREF ||
+       record->recordtype == AREF ||
+       record->recordtype == TEXT)
+    {
+        ++(*indent);
+    }
+}
+
+// gdsparser_show_records runs as a two-stage pipeline: a reader thread reads the file into blocks
+// that contain only complete records, the calling thread formats them
+#define RECORDBLOCK_SIZE (1 << 20) // must be larger than the maximum record length (65535 bytes)
+#define NUM_RECORDBLOCKS 4
+
+struct recordblock {
+    uint8_t* data;
+    size_t size; // number of bytes of complete records in data
+    int last; // no further blocks follow (ENDLIB, end of file or error)
+    int error; // stream ended before ENDLIB or contained an invalid record
+    long long errorbyte;
+};
+
+struct recordqueue {
+    FILE* file;
+    struct recordblock blocks[NUM_RECORDBLOCKS];
+    size_t head; // next block to be formatted
+    size_t count; // number of blocks that are ready to be formatted
+    pthread_mutex_t mutex;
+    pthread_cond_t filled;
+    pthread_cond_t emptied;
+};
+
+static void* _read_record_blocks(void* arg)
+{
+    struct recordqueue* queue = arg;
+    uint8_t* carry = malloc(65535); // incomplete record at the end of a block, moved to the next block
+    size_t carrylen = 0;
+    long long fileoffset = 0; // file offset of the start of the current block
+    size_t tail = 0;
+    while(1)
+    {
+        pthread_mutex_lock(&queue->mutex);
+        while(queue->count == NUM_RECORDBLOCKS)
+        {
+            pthread_cond_wait(&queue->emptied, &queue->mutex);
+        }
+        pthread_mutex_unlock(&queue->mutex);
+
+        // the block at tail is not used by the formatting thread until it is published below
+        struct recordblock* block = &queue->blocks[tail];
+        memcpy(block->data, carry, carrylen);
+        size_t requested = RECORDBLOCK_SIZE - carrylen;
+        size_t read = fread(block->data + carrylen, 1, requested, queue->file);
+        size_t filled = carrylen + read;
+        block->last = 0;
+        block->error = 0;
+        size_t pos = 0;
+        while(pos + 4 <= filled)
+        {
+            const uint8_t* header = block->data + pos;
+            uint16_t length = (header[0] << 8) | header[1];
+            if(length < 4)
+            {
+                block->last = 1;
+                block->error = 1;
+                block->errorbyte = fileoffset + pos + 4;
+                break;
+            }
+            if(pos + length > filled) // incomplete record
+            {
+                break;
+            }
+            pos += length;
+            if(header[2] == ENDLIB) // don't read beyond ENDLIB, streams are often padded with zeros
+            {
+                block->last = 1;
+                break;
+            }
+        }
+        block->size = pos;
+        if(!block->last && read < requested) // end of file (or read error) before ENDLIB
+        {
+            block->last = 1;
+            block->error = 1;
+            block->errorbyte = fileoffset + filled;
+        }
+        if(!block->last)
+        {
+            carrylen = filled - pos;
+            memcpy(carry, block->data + pos, carrylen);
+            fileoffset += pos;
+        }
+
+        pthread_mutex_lock(&queue->mutex);
+        ++queue->count;
+        pthread_cond_signal(&queue->filled);
+        pthread_mutex_unlock(&queue->mutex);
+
+        if(block->last)
+        {
+            break;
+        }
+        tail = (tail + 1) % NUM_RECORDBLOCKS;
+    }
+    free(carry);
+    return NULL;
+}
+
 int gdsparser_show_records(const char* filename, int raw)
 {
     TIMEPERF_START();
-    struct stream* stream = _open_stream(filename);
-    if(!stream)
+    FILE* file = fopen(filename, "rb");
+    if(!file)
     {
+        fprintf(stderr, "gdsparser: could not open file '%s'\n", filename);
         return 0;
     }
-    struct outbuffer* out = _create_outbuffer(stdout);
 
+    struct recordqueue queue;
+    queue.file = file;
+    for(size_t i = 0; i < NUM_RECORDBLOCKS; ++i)
+    {
+        queue.blocks[i].data = malloc(RECORDBLOCK_SIZE);
+    }
+    queue.head = 0;
+    queue.count = 0;
+    pthread_mutex_init(&queue.mutex, NULL);
+    pthread_cond_init(&queue.filled, NULL);
+    pthread_cond_init(&queue.emptied, NULL);
+    pthread_t reader;
+    if(pthread_create(&reader, NULL, _read_record_blocks, &queue) != 0)
+    {
+        fputs("gdsparser: could not create reader thread\n", stderr);
+        for(size_t i = 0; i < NUM_RECORDBLOCKS; ++i)
+        {
+            free(queue.blocks[i].data);
+        }
+        pthread_mutex_destroy(&queue.mutex);
+        pthread_cond_destroy(&queue.filled);
+        pthread_cond_destroy(&queue.emptied);
+        fclose(file);
+        return 0;
+    }
+
+    struct recordprefix prefixes[NUM_RECORDNAMES + 1]; // the last entry is for unknown record types
+    for(size_t i = 0; i <= NUM_RECORDNAMES; ++i)
+    {
+        const char* name = i < NUM_RECORDNAMES ? recordnames[i] : "UNKNOWN";
+        size_t len = strlen(name);
+        memset(prefixes[i].text, 0, 16);
+        memcpy(prefixes[i].text, name, len);
+        memcpy(prefixes[i].text + len, " (", 2);
+        prefixes[i].len = len + 2;
+    }
+
+    struct outbuffer* out = _create_outbuffer(stdout);
     unsigned int indent = 0;
+    int success = 1;
     while(1)
     {
-        struct record* record = _get_next_record(stream);
-        if(!record)
+        pthread_mutex_lock(&queue.mutex);
+        while(queue.count == 0)
         {
-            _destroy_outbuffer(out);
-            _destroy_stream(stream);
-            return 0;
+            pthread_cond_wait(&queue.filled, &queue.mutex);
         }
-        if(record->recordtype == ENDLIB || record->recordtype == ENDSTR || record->recordtype == ENDEL)
-        {
-            --indent;
-        }
-        _out_fill(out, ' ', 4 * indent);
-        _out_string(out, _recordname(record->recordtype));
-        _out_bytes(out, " (", 2);
-        _out_uint32(out, record->length);
-        _out_char(out, ')');
+        pthread_mutex_unlock(&queue.mutex);
 
-        // print data
-        if(record->length > 4)
+        struct recordblock* block = &queue.blocks[queue.head];
+        size_t pos = 0;
+        while(pos < block->size)
         {
-            _out_bytes(out, " -> data: ", 10);
-            // parsed data
-            switch(record->datatype)
-            {
-                case TWO_BYTE_INTEGER:
-                {
-                    for(int i = 0; i < (record->length - 4) / 2; ++i)
-                    {
-                        _out_int16(out, _parse_two_byte_integer(record->data + i * 2));
-                        _out_char(out, ' ');
-                    }
-                    break;
-                }
-                case FOUR_BYTE_INTEGER:
-                {
-                    for(int i = 0; i < (record->length - 4) / 4; ++i)
-                    {
-                        _out_int32(out, _parse_four_byte_integer(record->data + i * 4));
-                        _out_char(out, ' ');
-                    }
-                    break;
-                }
-                case FOUR_BYTE_REAL:
-                {
-                    for(int i = 0; i < (record->length - 4) / 4; ++i)
-                    {
-                        _out_real(out, _parse_four_byte_real(record->data + i * 4));
-                    }
-                    break;
-                }
-                case EIGHT_BYTE_REAL:
-                {
-                    for(int i = 0; i < (record->length - 4) / 8; ++i)
-                    {
-                        _out_real(out, _parse_eight_byte_real(record->data + i * 8));
-                    }
-                    break;
-                }
-                case ASCII_STRING:
-                {
-                    // odd-length strings are zero padded, don't print zero characters
-                    _out_char(out, '"');
-                    const char* str = (const char*)record->data;
-                    size_t len = record->length - 4;
-                    while(len > 0)
-                    {
-                        const char* zero = memchr(str, 0, len);
-                        size_t runlen = zero ? (size_t)(zero - str) : len;
-                        _out_bytes(out, str, runlen);
-                        if(!zero)
-                        {
-                            break;
-                        }
-                        len -= runlen + 1;
-                        str = zero + 1;
-                    }
-                    _out_char(out, '"');
-                    break;
-                }
-                case BIT_ARRAY:
-                {
-                    char bits[16];
-                    for(int i = 0; i < 16; ++i)
-                    {
-                        bits[i] = _parse_bit(record->data, i) ? '1' : '0';
-                    }
-                    _out_bytes(out, bits, 16);
-                    break;
-                }
-                default:
-                    break;
-            }
+            struct record record;
+            const uint8_t* header = block->data + pos;
+            record.length = (header[0] << 8) | header[1];
+            record.recordtype = header[2];
+            record.datatype = header[3];
+            record.data = block->data + pos + 4;
+            _show_record(out, &record, &indent, prefixes, raw);
+            pos += record.length;
         }
-        if(raw)
+        int last = block->last;
+        if(block->error)
         {
-            _out_bytes(out, " (", 2);
-            for(int i = 0; i < record->length - 4; ++i)
-            {
-                _out_byte_hex_with_prefix(out, record->data[i]);
-                if(i < record->length - 5)
-                {
-                    _out_char(out, ' ');
-                }
-            }
-            _out_char(out, ')');
+            fprintf(stderr, "gdsparser: stream abort before ENDLIB (at byte %lld)\n", block->errorbyte);
+            success = 0;
         }
-        _out_char(out, '\n');
 
-        if(record->recordtype == BGNLIB ||
-           record->recordtype == BGNSTR ||
-           record->recordtype == BOUNDARY ||
-           record->recordtype == PATH ||
-           record->recordtype == SREF ||
-           record->recordtype == AREF ||
-           record->recordtype == TEXT)
-        {
-            ++indent;
-        }
-        if(record->recordtype == ENDLIB)
+        pthread_mutex_lock(&queue.mutex);
+        queue.head = (queue.head + 1) % NUM_RECORDBLOCKS;
+        --queue.count;
+        pthread_cond_signal(&queue.emptied);
+        pthread_mutex_unlock(&queue.mutex);
+
+        if(last)
         {
             break;
         }
     }
+    pthread_join(reader, NULL);
+
     _destroy_outbuffer(out);
-    _destroy_stream(stream);
-    TIMEPERF_STOP();
-    return 1;
+    for(size_t i = 0; i < NUM_RECORDBLOCKS; ++i)
+    {
+        free(queue.blocks[i].data);
+    }
+    pthread_mutex_destroy(&queue.mutex);
+    pthread_cond_destroy(&queue.filled);
+    pthread_cond_destroy(&queue.emptied);
+    fclose(file);
+    if(success)
+    {
+        TIMEPERF_STOP();
+    }
+    return success;
 }
 
 static void _rectangle_coordinates(const coordinate_t* points, coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try)
