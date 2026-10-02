@@ -287,9 +287,23 @@ static char* _parse_string(uint8_t* data, size_t length)
     return string;
 }
 
+// a referenced subcell and how often it is placed (AREFs count all of their instances)
+struct cellreference {
+    char* name;
+    unsigned long long count;
+};
+
+static void _destroy_cellreference(void* v)
+{
+    struct cellreference* reference = v;
+    free(reference->name);
+    free(reference);
+}
+
 struct hierarchy_cellref {
     char* name;
-    struct vector* references;
+    struct vector* references; // struct cellreference, one per distinct subcell, in order of first occurrence
+    struct hashmap* referenceindex; // name -> struct cellreference, only used while reading the cell
     long long offset; // file offset of the first record after BGNSTR
     long long size; // number of bytes from offset up to and including ENDSTR
 };
@@ -298,7 +312,8 @@ struct hierarchy_cellref* _make_hierarchy_cellref(void)
 {
     struct hierarchy_cellref* cell = malloc(sizeof(*cell));
     cell->name = NULL;
-    cell->references = vector_create(1, free);
+    cell->references = vector_create(1, _destroy_cellreference);
+    cell->referenceindex = hashmap_create(NULL);
     return cell;
 }
 
@@ -307,7 +322,30 @@ void _destroy_hierarchy_cellref(void* v)
     struct hierarchy_cellref* cell = v;
     free(cell->name);
     vector_destroy(cell->references);
+    if(cell->referenceindex)
+    {
+        hashmap_destroy(cell->referenceindex);
+    }
     free(cell);
+}
+
+// takes ownership of name
+static void _add_cell_reference(struct hierarchy_cellref* cell, char* name, unsigned long long count)
+{
+    struct cellreference* reference = hashmap_get(cell->referenceindex, name);
+    if(reference)
+    {
+        reference->count += count;
+        free(name);
+    }
+    else
+    {
+        reference = malloc(sizeof(*reference));
+        reference->name = name;
+        reference->count = count;
+        vector_append(cell->references, reference);
+        hashmap_insert(cell->referenceindex, name, reference);
+    }
 }
 
 // if libname is not NULL, the LIBNAME entry is stored there (the caller has to free it)
@@ -318,6 +356,7 @@ static struct vector* _read_cells(struct stream* stream, char** libname)
     struct hierarchy_cellref* cell = NULL;
     int isobj = 0;
     char* objname = NULL;
+    unsigned long long objcount = 1;
     int success = 0;
     while(1)
     {
@@ -362,6 +401,8 @@ static struct vector* _read_cells(struct stream* stream, char** libname)
                 break;
             }
             cell->size = _stream_position(stream) - cell->offset;
+            hashmap_destroy(cell->referenceindex);
+            cell->referenceindex = NULL;
             vector_append(cells, cell);
             cell = NULL;
         }
@@ -378,6 +419,14 @@ static struct vector* _read_cells(struct stream* stream, char** libname)
         else if((record->recordtype == SREF) || (record->recordtype == AREF))
         {
             isobj = 1;
+            objcount = 1;
+        }
+        else if(record->recordtype == COLROW)
+        {
+            // number of instances of an AREF, invalid values (< 1) are counted as 1
+            int16_t columns = _parse_two_byte_integer(record->data);
+            int16_t rows = _parse_two_byte_integer(record->data + 2);
+            objcount = (unsigned long long)(columns > 0 ? columns : 1) * (unsigned long long)(rows > 0 ? rows : 1);
         }
         else if(record->recordtype == ENDEL)
         {
@@ -388,7 +437,7 @@ static struct vector* _read_cells(struct stream* stream, char** libname)
                     puts("gdsparser: malformed SREF/AREF");
                     break;
                 }
-                vector_append(cell->references, objname);
+                _add_cell_reference(cell, objname, objcount);
                 objname = NULL;
                 isobj = 0;
             }
@@ -445,8 +494,8 @@ static struct const_vector* _get_toplevel_cells(struct vector* cells)
         const struct hierarchy_cellref* cell = vector_get_const(cells, i);
         for(size_t j = 0; j < vector_size(cell->references); ++j)
         {
-            const char* refname = vector_get_const(cell->references, j);
-            hashmap_insert(referenced, refname, NULL);
+            const struct cellreference* reference = vector_get_const(cell->references, j);
+            hashmap_insert(referenced, reference->name, NULL);
         }
     }
 
@@ -468,13 +517,15 @@ static struct const_vector* _get_toplevel_cells(struct vector* cells)
 struct tree_element {
     const char* name;
     size_t level;
+    unsigned long long count; // number of instances in the parent cell, 0 for top-level cells
 };
 
-struct tree_element* _make_tree_element(const struct hierarchy_cellref* cell, size_t level)
+struct tree_element* _make_tree_element(const struct hierarchy_cellref* cell, size_t level, unsigned long long count)
 {
     struct tree_element* element = malloc(sizeof(*element));
     element->name = cell->name;
     element->level = level;
+    element->count = count;
     return element;
 }
 
@@ -488,11 +539,11 @@ static void _assemble_tree_element(const struct hashmap* cellmap, struct vector*
     struct vector_iterator* it = vector_iterator_create(cell->references);
     while(vector_iterator_is_valid(it))
     {
-        const char* refname = vector_iterator_get(it);
-        const struct hierarchy_cellref* sub = hashmap_get_const(cellmap, refname);
+        const struct cellreference* reference = vector_iterator_get(it);
+        const struct hierarchy_cellref* sub = hashmap_get_const(cellmap, reference->name);
         if(sub) // references to cells not defined in this library are skipped
         {
-            vector_append(tree, _make_tree_element(sub, level + 1));
+            vector_append(tree, _make_tree_element(sub, level + 1, reference->count));
             _assemble_tree_element(cellmap, tree, sub, level + 1);
         }
         vector_iterator_next(it);
@@ -518,7 +569,7 @@ static struct vector* _resolve_hierarchy(struct vector* cells)
     while(const_vector_iterator_is_valid(it))
     {
         const struct hierarchy_cellref* cell = const_vector_iterator_get(it);
-        vector_append(tree, _make_tree_element(cell, 0));
+        vector_append(tree, _make_tree_element(cell, 0, 0));
         _assemble_tree_element(cellmap, tree, cell, 0);
         const_vector_iterator_next(it);
     }
@@ -555,7 +606,14 @@ void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
                 putchar(' ');
                 putchar(' ');
             }
-            puts(element->name);
+            if(element->count > 0)
+            {
+                printf("%s (%llu)\n", element->name, element->count);
+            }
+            else
+            {
+                puts(element->name);
+            }
         }
         vector_iterator_next(it);
     }
