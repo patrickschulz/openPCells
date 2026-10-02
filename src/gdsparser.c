@@ -318,6 +318,7 @@ struct hierarchy_cellref {
 struct hierarchy_cellref* _make_hierarchy_cellref(void)
 {
     struct hierarchy_cellref* cell = malloc(sizeof(*cell));
+    cell->name = NULL;
     cell->references = vector_create(1, free);
     return cell;
 }
@@ -337,25 +338,42 @@ static struct vector* _read_cells(struct stream* stream)
     struct hierarchy_cellref* cell = NULL;
     int isobj = 0;
     char* objname = NULL;
+    int success = 0;
     while(1)
     {
         struct record* record = _get_next_record(stream);
         if(!record)
         {
             puts("gdsparser: end of stream before ENDLIB");
-            return NULL;
+            break;
         }
         else if(record->recordtype == BGNSTR)
         {
+            if(cell)
+            {
+                puts("gdsparser: BGNSTR inside of structure");
+                break;
+            }
             cell = _make_hierarchy_cellref();
         }
         else if(record->recordtype == ENDSTR)
         {
+            if(!cell || !cell->name)
+            {
+                puts("gdsparser: ENDSTR outside of structure or structure without STRNAME");
+                break;
+            }
             vector_append(cells, cell);
             cell = NULL;
         }
         else if(record->recordtype == STRNAME)
         {
+            if(!cell)
+            {
+                puts("gdsparser: STRNAME outside of structure");
+                break;
+            }
+            free(cell->name);
             cell->name = _parse_string(record->data, record->length - 4);
         }
         else if((record->recordtype == SREF) || (record->recordtype == AREF))
@@ -366,18 +384,43 @@ static struct vector* _read_cells(struct stream* stream)
         {
             if(isobj)
             {
+                if(!cell || !objname)
+                {
+                    puts("gdsparser: malformed SREF/AREF");
+                    break;
+                }
                 vector_append(cell->references, objname);
+                objname = NULL;
                 isobj = 0;
             }
         }
         else if(record->recordtype == SNAME)
         {
+            free(objname);
             objname = _parse_string(record->data, record->length - 4);
         }
-        if(record->recordtype == ENDLIB)
+        else if(record->recordtype == ENDLIB)
         {
+            if(cell)
+            {
+                puts("gdsparser: ENDLIB inside of structure");
+            }
+            else
+            {
+                success = 1;
+            }
             break;
         }
+    }
+    free(objname);
+    if(cell)
+    {
+        _destroy_hierarchy_cellref(cell);
+    }
+    if(!success)
+    {
+        vector_destroy(cells);
+        cells = NULL;
     }
     TIMEPERF_STOP();
     return cells;
