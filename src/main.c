@@ -249,54 +249,62 @@ int main(int argc, const char* const * argv)
         lua_State* L = util_create_basic_lua_state();
         open_lterminal_lib(L);
         // load config file
-        const char* configfile = technology_get_configfile_path(techpaths, techname);
+        char* configfile = technology_get_configfile_path(techpaths, techname);
         lua_pushstring(L, configfile);
         lua_setglobal(L, "config_path");
         int ret = luaL_dofile(L, configfile);
+        free(configfile);
         if(ret != LUA_OK)
         {
             const char* msg = lua_tostring(L, -1);
             fprintf(stderr, "error while loading configfile:\n  %s\n", msg);
             lua_close(L);
+            technology_destroy(techstate);
             return 0;
         }
         lua_setglobal(L, "config");
         // load layer map
-        const char* layermap = technology_get_layermap_path(techpaths, techname);
+        char* layermap = technology_get_layermap_path(techpaths, techname);
         lua_pushstring(L, layermap);
         lua_setglobal(L, "layermap_path");
         ret = luaL_dofile(L, layermap);
+        free(layermap);
         if(ret != LUA_OK)
         {
             const char* msg = lua_tostring(L, -1);
             fprintf(stderr, "error while loading layermap:\n  %s\n", msg);
             lua_close(L);
+            technology_destroy(techstate);
             return 0;
         }
         lua_setglobal(L, "layermap");
         // load via table
-        const char* viatable = technology_get_viatable_path(techpaths, techname);
+        char* viatable = technology_get_viatable_path(techpaths, techname);
         lua_pushstring(L, viatable);
         lua_setglobal(L, "viatable_path");
         ret = luaL_dofile(L, viatable);
+        free(viatable);
         if(ret != LUA_OK)
         {
             const char* msg = lua_tostring(L, -1);
             fprintf(stderr, "error while loading viatable:\n  %s\n", msg);
             lua_close(L);
+            technology_destroy(techstate);
             return 0;
         }
         lua_setglobal(L, "viatable");
         // load constraints
-        const char* constraints = technology_get_constraints_path(techpaths, techname);
+        char* constraints = technology_get_constraints_path(techpaths, techname);
         lua_pushstring(L, constraints);
         lua_setglobal(L, "constraints_path");
         ret = luaL_dofile(L, constraints);
+        free(constraints);
         if(ret != LUA_OK)
         {
             const char* msg = lua_tostring(L, -1);
             fprintf(stderr, "error while loading constraints:\n  %s\n", msg);
             lua_close(L);
+            technology_destroy(techstate);
             return 0;
         }
         lua_setglobal(L, "constraints");
@@ -307,6 +315,7 @@ int main(int argc, const char* const * argv)
         // call check script
         script_call_check_technology(L);
         lua_close(L);
+        technology_destroy(techstate);
         goto DESTROY_CONFIG;
     }
 
@@ -451,6 +460,10 @@ int main(int argc, const char* const * argv)
             techstate = main_create_techstate(techpaths, techname, NULL);
         }
         main_gds_read(cmdoptions, techstate);
+        if(techstate)
+        {
+            technology_destroy(techstate);
+        }
         goto DESTROY_CONFIG;
     }
 
@@ -497,6 +510,7 @@ int main(int argc, const char* const * argv)
             printf("could not find technology dimension '%s' in technology '%s'\n", dimension, techname);
             returnvalue = 1;
         }
+        technology_destroy(techstate);
         goto DESTROY_CONFIG;
     }
 
