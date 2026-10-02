@@ -990,7 +990,7 @@ struct vector* gdsparser_create_layermap(struct technology_state* techstate)
             size_t maplen = lua_tointeger(L, -1);
             lua_pop(L, 1);
             layermapping->num = maplen;
-            layermapping->mappings = malloc(len * sizeof(*layermapping->mappings));
+            layermapping->mappings = malloc(maplen * sizeof(*layermapping->mappings));
             for(size_t j = 1; j <= maplen; ++j)
             {
                 lua_rawgeti(L, -1, j);
