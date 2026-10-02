@@ -120,7 +120,10 @@ void hashmap_insert(struct hashmap* map, const char* key, void* value)
     }
     else // replace old value
     {
-        map->destructor(entry->value);
+        if(map->destructor)
+        {
+            map->destructor(entry->value);
+        }
         entry->value = value;
     }
 }
