@@ -19,6 +19,7 @@
 #include "point.h"
 #include "util.h"
 #include "vector.h"
+#include "cpu.h"
 
 #include "timeperf.h"
 
@@ -128,7 +129,8 @@ static int _ensure_available(struct stream* stream, size_t numbytes)
     return 1;
 }
 
-static struct record* _get_next_record(struct stream* stream)
+// handles refilling the buffer and all errors, see _get_next_record for the common case
+static struct record* _get_next_record_slow(struct stream* stream)
 {
     if(!_ensure_available(stream, 4))
     {
@@ -153,13 +155,47 @@ static struct record* _get_next_record(struct stream* stream)
     return &stream->current;
 }
 
-static void _reset_stream(struct stream* stream)
+static inline struct record* _get_next_record(struct stream* stream)
 {
-    rewind(stream->file);
+    // fast path: the complete record is already in the buffer and valid
+    size_t available = stream->end - stream->pos;
+    if(available >= 4)
+    {
+        uint8_t* recordstart = stream->buffer + stream->pos;
+        uint16_t length = (recordstart[0] << 8) | recordstart[1];
+        if(length >= 4 && length <= available)
+        {
+            stream->current.length = length;
+            stream->current.recordtype = recordstart[2];
+            stream->current.datatype = recordstart[3];
+            stream->current.data = recordstart + 4;
+            stream->pos += length;
+            ++stream->index;
+            return &stream->current;
+        }
+    }
+    return _get_next_record_slow(stream);
+}
+
+// file offset of the next record
+static long long _stream_position(const struct stream* stream)
+{
+    return stream->bufferoffset + (long long)stream->pos;
+}
+
+// continue reading at the given file offset, which must be the start of a record
+static int _seek_stream(struct stream* stream, long long offset)
+{
+    // long is 64 bits on the supported (Linux) platforms
+    if(fseek(stream->file, (long)offset, SEEK_SET) != 0)
+    {
+        return 0;
+    }
     stream->pos = 0;
     stream->end = 0;
-    stream->bufferoffset = 0;
+    stream->bufferoffset = offset;
     stream->index = 0;
+    return 1;
 }
 
 // bit 0 of a bit array is the most significant bit of the first byte
@@ -184,31 +220,21 @@ static inline void _parse_single_point_i(uint8_t* data, size_t i, struct point* 
     pt->y = (int32_t)(((uint32_t)data[i * 8 + 4] << 24) | ((uint32_t)data[i * 8 + 5] << 16) | ((uint32_t)data[i * 8 + 6] << 8) | data[i * 8 + 7]);
 }
 
-static struct vector* _parse_points(uint8_t* data, size_t length)
-{
-    struct vector* points = vector_create(length >> 3, point_destroy);
-    for(size_t i = 0; i < length >> 3; ++i)
-    {
-        struct point* pt = point_create(0, 0);
-        _parse_single_point_i(data, i, pt);
-        vector_append(points, pt);
-    }
-    return points;
-}
-
 static void _parse_xy_i(uint8_t* data, size_t i, coordinate_t* xy)
 {
     *xy = (int32_t)(((uint32_t)data[i * 4] << 24) | ((uint32_t)data[i * 4 + 1] << 16) | ((uint32_t)data[i * 4 + 2] << 8) | data[i * 4 + 3]);
 }
 
-static coordinate_t* _parse_points_xy(uint8_t* data, size_t length)
+// maximum number of coordinates (x and y counted separately) in one XY record: (65535 - 4) / 4
+#define MAX_XY_COORDINATES 16382
+
+// points must hold at least MAX_XY_COORDINATES entries
+static void _parse_points_xy(uint8_t* data, size_t length, coordinate_t* points)
 {
-    coordinate_t* points = malloc(sizeof(*points) * (length >> 2));
     for(size_t i = 0; i < length >> 2; ++i)
     {
         _parse_xy_i(data, i, points + i);
     }
-    return points;
 }
 
 static double _parse_four_byte_real(const uint8_t* data)
@@ -264,6 +290,8 @@ static char* _parse_string(uint8_t* data, size_t length)
 struct hierarchy_cellref {
     char* name;
     struct vector* references;
+    long long offset; // file offset of the first record after BGNSTR
+    long long size; // number of bytes from offset up to and including ENDSTR
 };
 
 struct hierarchy_cellref* _make_hierarchy_cellref(void)
@@ -282,7 +310,8 @@ void _destroy_hierarchy_cellref(void* v)
     free(cell);
 }
 
-static struct vector* _read_cells(struct stream* stream)
+// if libname is not NULL, the LIBNAME entry is stored there (the caller has to free it)
+static struct vector* _read_cells(struct stream* stream, char** libname)
 {
     TIMEPERF_START();
     struct vector* cells = vector_create(1, _destroy_hierarchy_cellref);
@@ -298,6 +327,18 @@ static struct vector* _read_cells(struct stream* stream)
             puts("gdsparser: end of stream before ENDLIB");
             break;
         }
+        else if(record->recordtype == LIBNAME)
+        {
+            if(libname)
+            {
+                if(*libname)
+                {
+                    puts("gdsparser: more than one LIBNAME entry");
+                    break;
+                }
+                *libname = _parse_string(record->data, record->length - 4);
+            }
+        }
         else if(record->recordtype == BGNSTR)
         {
             if(cell)
@@ -305,7 +346,13 @@ static struct vector* _read_cells(struct stream* stream)
                 puts("gdsparser: BGNSTR inside of structure");
                 break;
             }
+            if(libname && !*libname)
+            {
+                puts("gdsparser: GDSII stream does not start with a LIBNAME entry");
+                break;
+            }
             cell = _make_hierarchy_cellref();
+            cell->offset = _stream_position(stream);
         }
         else if(record->recordtype == ENDSTR)
         {
@@ -314,6 +361,7 @@ static struct vector* _read_cells(struct stream* stream)
                 puts("gdsparser: ENDSTR outside of structure or structure without STRNAME");
                 break;
             }
+            cell->size = _stream_position(stream) - cell->offset;
             vector_append(cells, cell);
             cell = NULL;
         }
@@ -356,6 +404,10 @@ static struct vector* _read_cells(struct stream* stream)
             {
                 puts("gdsparser: ENDLIB inside of structure");
             }
+            else if(libname && !*libname)
+            {
+                puts("gdsparser: GDSII stream does not start with a LIBNAME entry");
+            }
             else
             {
                 success = 1;
@@ -372,97 +424,42 @@ static struct vector* _read_cells(struct stream* stream)
     {
         vector_destroy(cells);
         cells = NULL;
+        if(libname)
+        {
+            free(*libname);
+            *libname = NULL;
+        }
     }
     TIMEPERF_STOP();
     return cells;
 }
 
-static struct const_vector* _get_cell_references(struct hierarchy_cellref* cell)
-{
-    struct const_vector* references = const_vector_create(1);
-    struct vector_iterator* it = vector_iterator_create(cell->references);
-    while(vector_iterator_is_valid(it))
-    {
-        const char* refname = vector_iterator_get(it);
-        const_vector_append(references, refname);
-        vector_iterator_next(it);
-    }
-    vector_iterator_destroy(it);
-    return references;
-}
-
-static struct hierarchy_cellref* _find_cell(struct vector* cells, const char* cellname)
-{
-    struct vector_iterator* it = vector_iterator_create(cells);
-    while(vector_iterator_is_valid(it))
-    {
-        struct hierarchy_cellref* cell = vector_iterator_get(it);
-        if(strcmp(cell->name, cellname) == 0)
-        {
-            vector_iterator_destroy(it);
-            return cell;
-        }
-        vector_iterator_next(it);
-    }
-    vector_iterator_destroy(it);
-    return NULL;
-}
-
-static int _is_not_referenced(const char* name, struct const_vector* referenced)
-{
-    struct const_vector_iterator* it = const_vector_iterator_create(referenced);
-    while(const_vector_iterator_is_valid(it))
-    {
-        const char* refname = const_vector_iterator_get(it);
-        if(strcmp(name, refname) == 0)
-        {
-            const_vector_iterator_destroy(it);
-            return 0;
-        }
-        const_vector_iterator_next(it);
-    }
-    const_vector_iterator_destroy(it);
-    return 1;
-}
 
 static struct const_vector* _get_toplevel_cells(struct vector* cells)
 {
     TIMEPERF_START();
-    struct vector_iterator* it;
-
-    struct const_vector* referenced = const_vector_create(1);
-    it = vector_iterator_create(cells);
-    while(vector_iterator_is_valid(it))
+    // set of all referenced cell names (the values are unused)
+    struct hashmap* referenced = hashmap_create(NULL);
+    for(size_t i = 0; i < vector_size(cells); ++i)
     {
-        struct hierarchy_cellref* cell = vector_iterator_get(it);
-        struct const_vector* references = _get_cell_references(cell);
-        struct const_vector_iterator* refit = const_vector_iterator_create(references);
-        while(const_vector_iterator_is_valid(refit))
+        const struct hierarchy_cellref* cell = vector_get_const(cells, i);
+        for(size_t j = 0; j < vector_size(cell->references); ++j)
         {
-            const char* refname = const_vector_iterator_get(refit);
-            const_vector_append(referenced, refname);
-            const_vector_iterator_next(refit);
+            const char* refname = vector_get_const(cell->references, j);
+            hashmap_insert(referenced, refname, NULL);
         }
-        const_vector_iterator_destroy(refit);
-        const_vector_destroy(references);
-        vector_iterator_next(it);
     }
-    vector_iterator_destroy(it);
 
     struct const_vector* toplevelcells = const_vector_create(1);
-    it = vector_iterator_create(cells);
-    while(vector_iterator_is_valid(it))
+    for(size_t i = 0; i < vector_size(cells); ++i)
     {
-        struct hierarchy_cellref* cell = vector_iterator_get(it);
-        if(_is_not_referenced(cell->name, referenced))
+        const struct hierarchy_cellref* cell = vector_get_const(cells, i);
+        if(!hashmap_exists(referenced, cell->name))
         {
             const_vector_append(toplevelcells, cell);
         }
-        vector_iterator_next(it);
     }
-    vector_iterator_destroy(it);
-
-    const_vector_destroy(referenced);
+    hashmap_destroy(referenced);
 
     TIMEPERF_STOP();
     return toplevelcells;
@@ -486,17 +483,17 @@ void _destroy_tree_element(void* v)
     free(v);
 }
 
-static void _assemble_tree_element(struct vector* cells, struct vector* tree, const struct hierarchy_cellref* cell, size_t level)
+static void _assemble_tree_element(const struct hashmap* cellmap, struct vector* tree, const struct hierarchy_cellref* cell, size_t level)
 {
     struct vector_iterator* it = vector_iterator_create(cell->references);
     while(vector_iterator_is_valid(it))
     {
         const char* refname = vector_iterator_get(it);
-        const struct hierarchy_cellref* sub = _find_cell(cells, refname);
+        const struct hierarchy_cellref* sub = hashmap_get_const(cellmap, refname);
         if(sub) // references to cells not defined in this library are skipped
         {
             vector_append(tree, _make_tree_element(sub, level + 1));
-            _assemble_tree_element(cells, tree, sub, level + 1);
+            _assemble_tree_element(cellmap, tree, sub, level + 1);
         }
         vector_iterator_next(it);
     }
@@ -505,6 +502,16 @@ static void _assemble_tree_element(struct vector* cells, struct vector* tree, co
 
 static struct vector* _resolve_hierarchy(struct vector* cells)
 {
+    // cell name -> cell, for duplicate names the first cell is used
+    struct hashmap* cellmap = hashmap_create(NULL);
+    for(size_t i = 0; i < vector_size(cells); ++i)
+    {
+        struct hierarchy_cellref* cell = vector_get(cells, i);
+        if(!hashmap_exists(cellmap, cell->name))
+        {
+            hashmap_insert(cellmap, cell->name, cell);
+        }
+    }
     struct const_vector* toplevelcells = _get_toplevel_cells(cells);
     struct vector* tree = vector_create(1, _destroy_tree_element);
     struct const_vector_iterator* it = const_vector_iterator_create(toplevelcells);
@@ -512,11 +519,12 @@ static struct vector* _resolve_hierarchy(struct vector* cells)
     {
         const struct hierarchy_cellref* cell = const_vector_iterator_get(it);
         vector_append(tree, _make_tree_element(cell, 0));
-        _assemble_tree_element(cells, tree, cell, 0);
+        _assemble_tree_element(cellmap, tree, cell, 0);
         const_vector_iterator_next(it);
     }
     const_vector_iterator_destroy(it);
     const_vector_destroy(toplevelcells);
+    hashmap_destroy(cellmap);
     return tree;
 }
 
@@ -527,7 +535,7 @@ void gdsparser_show_cell_hierarchy(const char* filename, size_t depth)
     {
         return;
     }
-    struct vector* cells = _read_cells(stream);
+    struct vector* cells = _read_cells(stream, NULL);
     _destroy_stream(stream);
     if(!cells)
     {
@@ -761,50 +769,42 @@ static void _out_byte_hex_with_prefix(struct outbuffer* out, uint8_t num)
     _out_bytes(out, str, 4);
 }
 
-static void _print_pos_int16(FILE* file, int16_t num)
+// for string literals, the length is known at compile time
+#define _out_literal(out, str) _out_bytes(out, str, sizeof(str) - 1)
+
+static void _out_string(struct outbuffer* out, const char* str)
 {
-    if(num > 9)
-    {
-        _print_pos_int16(file, num / 10);
-    }
-    fputc((num % 10) + '0', file);
+    _out_bytes(out, str, strlen(str));
 }
 
-static void _print_int16(FILE* file, int16_t num)
+static void _out_int32(struct outbuffer* out, int32_t num)
 {
-    if(num < 0)
-    {
-        fputc('-', file);
-        num *= -1;
-    }
-    if(num > 9)
-    {
-        _print_pos_int16(file, num / 10);
-    }
-    fputc((num % 10) + '0', file);
+    _out_reserve(out, 11);
+    char* end = _write_int32(out->data + out->pos, num);
+    out->pos = end - out->data;
 }
 
-static void _print_pos_int32(FILE* file, int32_t num)
+static void _out_coordinate(struct outbuffer* out, coordinate_t num)
 {
-    if(num > 9)
+    // values read from GDS fit into 32 bits, only derived values (e.g. array pitches) can be larger
+    if(num >= INT32_MIN && num <= INT32_MAX)
     {
-        _print_pos_int32(file, num / 10);
+        _out_int32(out, (int32_t)num);
     }
-    fputc((num % 10) + '0', file);
+    else
+    {
+        // "-9223372036854775808" plus terminating zero
+        _out_reserve(out, 21);
+        out->pos += snprintf(out->data + out->pos, 21, "%lld", num);
+    }
 }
 
-static void _print_int32(FILE* file, int32_t num)
+// the buffer itself is reused for the next cell file
+static void _close_cellfile(struct outbuffer* out)
 {
-    if(num < 0)
-    {
-        fputc('-', file);
-        num *= -1;
-    }
-    if(num > 9)
-    {
-        _print_pos_int32(file, num / 10);
-    }
-    fputc((num % 10) + '0', file);
+    _flush_outbuffer(out);
+    fclose(out->file);
+    out->file = NULL;
 }
 
 // the record header ("<indent><name> (<length>)[ -> data: ]") is written with fixed-size copies,
@@ -1174,7 +1174,7 @@ static void _rectangle_coordinates(const coordinate_t* points, coordinate_t* blx
 
 struct cellref {
     char* name;
-    struct point* origin;
+    struct point origin;
     int16_t xrep;
     int16_t yrep;
     coordinate_t xpitch;
@@ -1316,81 +1316,239 @@ static const char* _has_direct_mapping(int16_t layer, int16_t purpose, const str
     {
         return NULL;
     }
-    struct vector_const_iterator* it = vector_const_iterator_create(layermap);
-    while(vector_const_iterator_is_valid(it))
+    for(size_t i = 0; i < vector_size(layermap); ++i)
     {
-        const struct layermapping* mapping = vector_const_iterator_get(it);
+        const struct layermapping* mapping = vector_get_const(layermap, i);
         if(layer == mapping->layer && purpose == mapping->purpose && mapping->map)
         {
-            vector_const_iterator_destroy(it);
             return mapping->map;
         }
-        vector_const_iterator_next(it);
     }
-    vector_const_iterator_destroy(it);
     return NULL;
-}
-
-static void _write_layers(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* layermap)
-{
-    const char* directmap = _has_direct_mapping(layer, purpose, layermap);
-    if(directmap)
-    {
-        fputs(directmap, cellfile);
-    }
-    else
-    {
-        fputs("generics.premapped(nil, { ", cellfile);
-        fputs("gds = { layer = ", cellfile);
-        _print_int16(cellfile, layer);
-        fputs(", purpose = ", cellfile);
-        _print_int16(cellfile, purpose);
-        fputs(" }", cellfile);
-        if(layermap)
-        {
-            int foundmapping = 0;
-            struct vector_const_iterator* it = vector_const_iterator_create(layermap);
-            while(vector_const_iterator_is_valid(it))
-            {
-                const struct layermapping* mapping = vector_const_iterator_get(it);
-                if(layer == mapping->layer && purpose == mapping->purpose)
-                {
-                    foundmapping = 1;
-                    for(unsigned int i = 0; i < mapping->num; ++i)
-                    {
-                        fprintf(cellfile, ", %s", mapping->mappings[i]);
-                    }
-                }
-                vector_const_iterator_next(it);
-            }
-            vector_const_iterator_destroy(it);
-            if(!foundmapping)
-            {
-                fprintf(stderr, "read GDS: layermap is present, but no mapping was found for layer (%d, %d)\n", layer, purpose);
-            }
-        }
-        fputs(" })", cellfile);
-    }
 }
 
 int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
 {
     if(ignorelpp)
     {
-        struct vector_const_iterator* it = vector_const_iterator_create(ignorelpp);
-        while(vector_const_iterator_is_valid(it))
+        for(size_t i = 0; i < vector_size(ignorelpp); ++i)
         {
-            const int16_t* lpp = vector_const_iterator_get(it);
+            const int16_t* lpp = vector_get_const(ignorelpp, i);
             if(layer == lpp[0] && purpose == lpp[1])
             {
-                vector_const_iterator_destroy(it);
                 return 0;
             }
-            vector_const_iterator_next(it);
         }
-        vector_const_iterator_destroy(it);
     }
     return 1;
+}
+
+// layer/purpose pairs for which a "no mapping" warning was already printed, shared by all threads
+struct warnedpairs {
+    pthread_mutex_t mutex;
+    uint32_t* keys;
+    size_t size;
+    size_t capacity;
+};
+
+static void _init_warnedpairs(struct warnedpairs* warned)
+{
+    pthread_mutex_init(&warned->mutex, NULL);
+    warned->keys = NULL;
+    warned->size = 0;
+    warned->capacity = 0;
+}
+
+static void _destroy_warnedpairs(struct warnedpairs* warned)
+{
+    pthread_mutex_destroy(&warned->mutex);
+    free(warned->keys);
+}
+
+// returns 1 if the pair was not marked before (only called once per pair and thread, so a linear search is fine)
+static int _mark_warned(struct warnedpairs* warned, uint32_t key)
+{
+    pthread_mutex_lock(&warned->mutex);
+    int isnew = 1;
+    for(size_t i = 0; i < warned->size; ++i)
+    {
+        if(warned->keys[i] == key)
+        {
+            isnew = 0;
+            break;
+        }
+    }
+    if(isnew)
+    {
+        if(warned->size == warned->capacity)
+        {
+            warned->capacity = warned->capacity ? 2 * warned->capacity : 16;
+            warned->keys = realloc(warned->keys, warned->capacity * sizeof(*warned->keys));
+        }
+        warned->keys[warned->size] = key;
+        ++warned->size;
+    }
+    pthread_mutex_unlock(&warned->mutex);
+    return isnew;
+}
+
+// The layer expression written for a shape and whether the shape is ignored only depend on its layer/purpose pair.
+// Both are computed once per pair and kept in a small hash table, as files usually have only a few hundred pairs.
+struct layercacheentry {
+    uint32_t key;
+    int used;
+    int ignored;
+    char* text; // layer expression, NULL for ignored pairs
+    size_t len;
+};
+
+struct layercache {
+    struct layercacheentry* entries;
+    size_t capacity; // power of two
+    size_t size;
+    const struct vector* layermap;
+    const struct vector* ignorelpp;
+    struct warnedpairs* warned; // can be NULL, then every missing mapping is reported by this cache
+};
+
+static struct layercache* _create_layercache(const struct vector* layermap, const struct vector* ignorelpp, struct warnedpairs* warned)
+{
+    struct layercache* cache = malloc(sizeof(*cache));
+    cache->capacity = 64;
+    cache->size = 0;
+    cache->entries = calloc(cache->capacity, sizeof(*cache->entries));
+    cache->layermap = layermap;
+    cache->ignorelpp = ignorelpp;
+    cache->warned = warned;
+    return cache;
+}
+
+static void _destroy_layercache(struct layercache* cache)
+{
+    for(size_t i = 0; i < cache->capacity; ++i)
+    {
+        free(cache->entries[i].text);
+    }
+    free(cache->entries);
+    free(cache);
+}
+
+static size_t _layercache_index(uint32_t key, size_t capacity)
+{
+    return (size_t)(((uint64_t)key * 0x9E3779B97F4A7C15ull) >> 32) & (capacity - 1);
+}
+
+static void _append_text(struct layercacheentry* entry, const char* text, size_t len)
+{
+    entry->text = realloc(entry->text, entry->len + len + 1);
+    memcpy(entry->text + entry->len, text, len);
+    entry->len += len;
+    entry->text[entry->len] = 0;
+}
+
+static void _append_number(struct layercacheentry* entry, int32_t num)
+{
+    char str[11];
+    char* end = _write_int32(str, num);
+    _append_text(entry, str, end - str);
+}
+
+#define _append_literal(entry, str) _append_text(entry, str, sizeof(str) - 1)
+
+static void _build_layercache_entry(struct layercacheentry* entry, int16_t layer, int16_t purpose, const struct layercache* cache)
+{
+    entry->ignored = !_check_lpp(layer, purpose, cache->ignorelpp);
+    entry->text = NULL;
+    entry->len = 0;
+    if(entry->ignored)
+    {
+        return;
+    }
+    const char* directmap = _has_direct_mapping(layer, purpose, cache->layermap);
+    if(directmap)
+    {
+        _append_text(entry, directmap, strlen(directmap));
+        return;
+    }
+    _append_literal(entry, "generics.premapped(nil, { gds = { layer = ");
+    _append_number(entry, layer);
+    _append_literal(entry, ", purpose = ");
+    _append_number(entry, purpose);
+    _append_literal(entry, " }");
+    if(cache->layermap)
+    {
+        int foundmapping = 0;
+        for(size_t j = 0; j < vector_size(cache->layermap); ++j)
+        {
+            const struct layermapping* mapping = vector_get_const(cache->layermap, j);
+            if(layer == mapping->layer && purpose == mapping->purpose)
+            {
+                foundmapping = 1;
+                for(unsigned int i = 0; i < mapping->num; ++i)
+                {
+                    _append_literal(entry, ", ");
+                    _append_text(entry, mapping->mappings[i], strlen(mapping->mappings[i]));
+                }
+            }
+        }
+        // reported once per layer/purpose pair
+        if(!foundmapping && (!cache->warned || _mark_warned(cache->warned, entry->key)))
+        {
+            fprintf(stderr, "read GDS: layermap is present, but no mapping was found for layer (%d, %d)\n", layer, purpose);
+        }
+    }
+    _append_literal(entry, " })");
+}
+
+static void _grow_layercache(struct layercache* cache)
+{
+    struct layercacheentry* old = cache->entries;
+    size_t oldcapacity = cache->capacity;
+    cache->capacity *= 2;
+    cache->entries = calloc(cache->capacity, sizeof(*cache->entries));
+    for(size_t i = 0; i < oldcapacity; ++i)
+    {
+        if(old[i].used)
+        {
+            size_t index = _layercache_index(old[i].key, cache->capacity);
+            while(cache->entries[index].used)
+            {
+                index = (index + 1) & (cache->capacity - 1);
+            }
+            cache->entries[index] = old[i];
+        }
+    }
+    free(old);
+}
+
+static const struct layercacheentry* _get_layer(struct layercache* cache, int16_t layer, int16_t purpose)
+{
+    uint32_t key = ((uint32_t)(uint16_t)layer << 16) | (uint16_t)purpose;
+    size_t index = _layercache_index(key, cache->capacity);
+    while(cache->entries[index].used)
+    {
+        if(cache->entries[index].key == key)
+        {
+            return &cache->entries[index];
+        }
+        index = (index + 1) & (cache->capacity - 1);
+    }
+    // new pair, keep the load factor below 1/2
+    if(2 * (cache->size + 1) > cache->capacity)
+    {
+        _grow_layercache(cache);
+        index = _layercache_index(key, cache->capacity);
+        while(cache->entries[index].used)
+        {
+            index = (index + 1) & (cache->capacity - 1);
+        }
+    }
+    struct layercacheentry* entry = &cache->entries[index];
+    entry->used = 1;
+    entry->key = key;
+    _build_layercache_entry(entry, layer, purpose, cache);
+    ++cache->size;
+    return entry;
 }
 
 static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t* purpose, struct point* origin, double* angle, int* reflected)
@@ -1467,18 +1625,12 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
     return readlayer;
 }
 
-static void _destroy_cellref(struct cellref* cellref)
+// fills cellref, on success the caller has to free cellref->name
+static int _read_SREF_AREF(struct stream* stream, int isAREF, struct cellref* cellref)
 {
-    free(cellref->name);
-    point_destroy(cellref->origin);
-    free(cellref);
-}
-
-static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
-{
-    struct cellref* cellref = malloc(sizeof(*cellref));
     cellref->name = NULL;
-    cellref->origin = point_create(0, 0);
+    cellref->origin.x = 0;
+    cellref->origin.y = 0;
     cellref->xrep = 1;
     cellref->yrep = 1;
     cellref->angle = 0.0;
@@ -1488,8 +1640,8 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
         struct record* record = _get_next_record(stream);
         if(!record)
         {
-            _destroy_cellref(cellref);
-            return NULL;
+            free(cellref->name);
+            return 0;
         }
         if(record->recordtype == ELFLAGS)
         {
@@ -1523,7 +1675,7 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
         }
         else if(record->recordtype == XY)
         {
-            _parse_single_point_i(record->data, 0, cellref->origin);
+            _parse_single_point_i(record->data, 0, &cellref->origin);
             if(isAREF)
             {
                 coordinate_t x1, y1;
@@ -1571,61 +1723,75 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
         else // wrong record
         {
             fprintf(stderr, "malformed SREF/AREF, got unexpected record '%s' (#%zd)\n", _recordname(record->recordtype), stream->index);
-            _destroy_cellref(cellref);
-            return NULL;
+            free(cellref->name);
+            return 0;
         }
     }
     if(!cellref->name)
     {
         fputs("malformed SREF/AREF, missing SNAME\n", stderr);
-        _destroy_cellref(cellref);
-        return NULL;
+        return 0;
     }
-    return cellref;
+    return 1;
 }
-#define _read_SREF(stream) _read_SREF_AREF(stream, 0)
-#define _read_AREF(stream) _read_SREF_AREF(stream, 1)
+#define _read_SREF(stream, cellref) _read_SREF_AREF(stream, 0, cellref)
+#define _read_AREF(stream, cellref) _read_SREF_AREF(stream, 1, cellref)
 
-static void _write_cellref(FILE* cellfile, const struct cellref* cellref)
+static void _write_cellref(struct outbuffer* out, const struct cellref* cellref)
 {
-    fprintf(cellfile, "    ref = env.references[\"%s\"]\n", cellref->name);
+    _out_literal(out, "    ref = env.references[\"");
+    _out_string(out, cellref->name);
+    _out_literal(out, "\"]\n");
     if(cellref->xrep > 1 || cellref->yrep > 1)
     {
-        fprintf(cellfile, "    child = cell:add_child_array(ref, \"%s\", %d, %d, %lld, %lld)\n", cellref->name, cellref->xrep, cellref->yrep, cellref->xpitch, cellref->ypitch);
+        _out_literal(out, "    child = cell:add_child_array(ref, \"");
+        _out_string(out, cellref->name);
+        _out_literal(out, "\", ");
+        _out_int32(out, cellref->xrep);
+        _out_literal(out, ", ");
+        _out_int32(out, cellref->yrep);
+        _out_literal(out, ", ");
+        _out_coordinate(out, cellref->xpitch);
+        _out_literal(out, ", ");
+        _out_coordinate(out, cellref->ypitch);
+        _out_literal(out, ")\n");
     }
     else
     {
-        //fprintf(cellfile, "    child = cell:add_child(ref, \"%s\")\n", cellref->name);
-        fputs("    child = cell:add_child(ref)\n", cellfile);
+        _out_literal(out, "    child = cell:add_child(ref)\n");
     }
     if(cellref->angle == 90)
     {
-        fputs("    child:rotate_90_left()\n", cellfile);
+        _out_literal(out, "    child:rotate_90_left()\n");
     }
     else if(cellref->angle == 180)
     {
-        fputs("    child:rotate_90_left()\n", cellfile);
-        fputs("    child:rotate_90_left()\n", cellfile);
+        _out_literal(out, "    child:rotate_90_left()\n");
+        _out_literal(out, "    child:rotate_90_left()\n");
     }
     else if(cellref->angle == 270)
     {
-        fputs("    child:rotate_90_left()\n", cellfile);
-        fputs("    child:rotate_90_left()\n", cellfile);
-        fputs("    child:rotate_90_left()\n", cellfile);
+        _out_literal(out, "    child:rotate_90_left()\n");
+        _out_literal(out, "    child:rotate_90_left()\n");
+        _out_literal(out, "    child:rotate_90_left()\n");
     }
     if(cellref->reflected)
     {
-        fputs("    child:mirror_at_xaxis()\n", cellfile);
+        _out_literal(out, "    child:mirror_at_xaxis()\n");
     }
-    if(!(cellref->origin->x == 0 && cellref->origin->y == 0))
+    if(!(cellref->origin.x == 0 && cellref->origin.y == 0))
     {
-        fprintf(cellfile, "    child:translate(%lld, %lld)\n", cellref->origin->x, cellref->origin->y);
+        _out_literal(out, "    child:translate(");
+        _out_coordinate(out, cellref->origin.x);
+        _out_literal(out, ", ");
+        _out_coordinate(out, cellref->origin.y);
+        _out_literal(out, ")\n");
     }
     free(cellref->name);
-    point_destroy(cellref->origin);
 }
 
-static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpose, coordinate_t** points, size_t* size)
+// points must hold at least MAX_XY_COORDINATES entries
+static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpose, coordinate_t* points, size_t* size)
 {
     int readlayer = 0;
     while(1)
@@ -1655,7 +1821,7 @@ static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpos
         }
         else if(record->recordtype == XY)
         {
-            *points = _parse_points_xy(record->data, record->length - 4);
+            _parse_points_xy(record->data, record->length - 4, points);
             *size = (record->length - 4) / 4;
         }
         else if(record->recordtype == PROPATTR)
@@ -1679,47 +1845,57 @@ static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpos
     return readlayer;
 }
 
-//static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, const struct vector* gdslayermap)
-static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const coordinate_t* points, size_t numxy, const struct vector* gdslayermap)
+// for string literals, writes to ptr without bounds checks and returns the end of the written characters
+#define _write_literal(ptr, str) (memcpy(ptr, str, sizeof(str) - 1), (ptr) + sizeof(str) - 1)
+
+static void _write_BOUNDARY(struct outbuffer* out, const struct layercacheentry* layer, const coordinate_t* points, size_t numxy)
 {
     // check for rectangle
     // BOX is not used for rectangles, at least most tool suppliers seem to do it this way
     // therefor, we check if some "polygons" are actually rectangles and fix the shape types
-    //if(vector_size(points) == 5 && _check_rectangle(points))
     if(numxy == 10 && _check_rectangle(points))
     {
-        fputs("    geometry.rectanglebltr(cell, ", cellfile);
-        _write_layers(cellfile, layer, purpose, gdslayermap);
+        _out_literal(out, "    geometry.rectanglebltr(cell, ");
+        _out_bytes(out, layer->text, layer->len);
         coordinate_t blx, bly, trx, try;
         _rectangle_coordinates(points, &blx, &bly, &trx, &try);
-        fputs(", point.create(", cellfile);
-        _print_int32(cellfile, blx);
-        fputs(", ", cellfile);
-        _print_int32(cellfile, bly);
-        fputs("), point.create(", cellfile);
-        _print_int32(cellfile, trx);
-        fputs(", ", cellfile);
-        _print_int32(cellfile, try);
-        fputs("))\n", cellfile);
+        // ", point.create(" (15) + 4 numbers (4 * 11) + ", " (2) + "), point.create(" (16) + ", " (2) + "))\n" (3) = 82
+        _out_reserve(out, 82);
+        char* ptr = out->data + out->pos;
+        ptr = _write_literal(ptr, ", point.create(");
+        ptr = _write_int32(ptr, blx);
+        ptr = _write_literal(ptr, ", ");
+        ptr = _write_int32(ptr, bly);
+        ptr = _write_literal(ptr, "), point.create(");
+        ptr = _write_int32(ptr, trx);
+        ptr = _write_literal(ptr, ", ");
+        ptr = _write_int32(ptr, try);
+        ptr = _write_literal(ptr, "))\n");
+        out->pos = ptr - out->data;
     }
     else
     {
-        fputs("    geometry.polygon(cell, ", cellfile);
-        _write_layers(cellfile, layer, purpose, gdslayermap);
-        fputs(", { ", cellfile);
-        for(unsigned int i = 0; i < numxy; i += 2)
+        _out_literal(out, "    geometry.polygon(cell, ");
+        _out_bytes(out, layer->text, layer->len);
+        _out_literal(out, ", { ");
+        for(size_t i = 0; i + 1 < numxy; i += 2)
         {
-            fputs("point.create(", cellfile);
-            _print_int32(cellfile, points[i]);
-            fputs(", ", cellfile);
-            _print_int32(cellfile, points[i + 1]);
-            fputs("), ", cellfile);
+            // "point.create(" (13) + 2 numbers (2 * 11) + ", " (2) + "), " (3) = 40
+            _out_reserve(out, 40);
+            char* ptr = out->data + out->pos;
+            ptr = _write_literal(ptr, "point.create(");
+            ptr = _write_int32(ptr, points[i]);
+            ptr = _write_literal(ptr, ", ");
+            ptr = _write_int32(ptr, points[i + 1]);
+            ptr = _write_literal(ptr, "), ");
+            out->pos = ptr - out->data;
         }
-        fputs("})\n", cellfile);
+        _out_literal(out, "})\n");
     }
 }
 
-static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, struct vector** points, coordinate_t* width, coordinate_t* bgnext, coordinate_t* endext, int16_t* type)
+// points must hold at least MAX_XY_COORDINATES entries
+static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, coordinate_t* points, size_t* size, coordinate_t* width, coordinate_t* bgnext, coordinate_t* endext, int16_t* type)
 {
     int readlayer = 0;
     while(1)
@@ -1765,7 +1941,8 @@ static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, s
         }
         else if(record->recordtype == XY)
         {
-            *points = _parse_points(record->data, record->length - 4);
+            _parse_points_xy(record->data, record->length - 4, points);
+            *size = (record->length - 4) / 4;
         }
         else if(record->recordtype == ENDEL)
         {
@@ -1780,28 +1957,37 @@ static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, s
     return readlayer;
 }
 
-static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, coordinate_t width, coordinate_t bgnext, coordinate_t endext, int16_t type, const struct vector* gdslayermap)
+static void _write_PATH(struct outbuffer* out, const struct layercacheentry* layer, const coordinate_t* points, size_t numxy, coordinate_t width, coordinate_t bgnext, coordinate_t endext, int16_t type)
 {
-    fputs("    geometry.path(cell, ", cellfile);
-    _write_layers(cellfile, layer, purpose, gdslayermap);
-    fputs(", { ", cellfile);
-    for(unsigned int i = 0; i < vector_size(points); ++i)
+    _out_literal(out, "    geometry.path(cell, ");
+    _out_bytes(out, layer->text, layer->len);
+    _out_literal(out, ", { ");
+    for(size_t i = 0; i + 1 < numxy; i += 2)
     {
-        const struct point* pt = vector_get_const(points, i);
-        fprintf(cellfile, "point.create(%lld, %lld), ", pt->x, pt->y);
+        _out_literal(out, "point.create(");
+        _out_coordinate(out, points[i]);
+        _out_literal(out, ", ");
+        _out_coordinate(out, points[i + 1]);
+        _out_literal(out, "), ");
     }
     if(type == 0)
     {
-        fprintf(cellfile, "}, %lld)\n", width);
+        _out_literal(out, "}, ");
+        _out_coordinate(out, width);
+        _out_literal(out, ")\n");
     }
     else if(type == 1)
     {
         // no support for round path endings, ignore
-        fprintf(cellfile, "}, %lld)\n", width);
+        _out_literal(out, "}, ");
+        _out_coordinate(out, width);
+        _out_literal(out, ")\n");
     }
     else if(type == 2)
     {
-        fprintf(cellfile, "}, %lld, \"rect\")\n", width);
+        _out_literal(out, "}, ");
+        _out_coordinate(out, width);
+        _out_literal(out, ", \"rect\")\n");
     }
     else if(type == 4)
     {
@@ -1809,16 +1995,28 @@ static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const st
         {
             if(bgnext == endext)
             {
-                fprintf(cellfile, "}, %lld, %lld)\n", width, bgnext);
+                _out_literal(out, "}, ");
+                _out_coordinate(out, width);
+                _out_literal(out, ", ");
+                _out_coordinate(out, bgnext);
+                _out_literal(out, ")\n");
             }
             else
             {
-                fprintf(cellfile, "}, %lld, { %lld, %lld })\n", width, bgnext, endext);
+                _out_literal(out, "}, ");
+                _out_coordinate(out, width);
+                _out_literal(out, ", { ");
+                _out_coordinate(out, bgnext);
+                _out_literal(out, ", ");
+                _out_coordinate(out, endext);
+                _out_literal(out, " })\n");
             }
         }
         else
         {
-            fprintf(cellfile, "}, %lld)\n", width);
+            _out_literal(out, "}, ");
+            _out_coordinate(out, width);
+            _out_literal(out, ")\n");
         }
     }
 }
@@ -1847,31 +2045,31 @@ static int _read_structure(
     struct stream* stream,
     const struct const_vector* toplevelcells,
     const struct const_vector* cellnames,
-    const struct vector* gdslayermap,
-    const struct vector* ignorelpp,
-    int16_t* ablayer, int16_t* abpurpose
+    struct layercache* layercache,
+    int16_t* ablayer, int16_t* abpurpose,
+    coordinate_t* xybuffer, // scratch buffer for XY records, at least MAX_XY_COORDINATES entries
+    struct outbuffer* outbuffer // reused for every cell file
 )
 {
-    TIMEPERF_START();
-    FILE* cellfile = NULL;
+    struct outbuffer* out = NULL;
     while(1)
     {
         struct record* record = _get_next_record(stream);
         if(!record)
         {
             puts("gdsparser: end of stream while reading structure");
-            if(cellfile)
+            if(out)
             {
-                fclose(cellfile);
+                _close_cellfile(out);
             }
             return 0;
         }
         if(record->recordtype == STRNAME)
         {
-            if(cellfile)
+            if(out)
             {
                 puts("spurious STRNAME in structure (already read the structure name)");
-                fclose(cellfile);
+                _close_cellfile(out);
                 return 0;
             }
             char* cellname = _parse_string(record->data, record->length - 4);
@@ -1883,7 +2081,7 @@ static int _read_structure(
             size_t len = strlen(libname) + strlen(importname) + strlen(cellname) + 6; // +2: 2 * '/' + ".lua"
             char* path = malloc(len + 1);
             snprintf(path, len + 1, "%s/%s/%s.lua", libname, importname, cellname);
-            cellfile = fopen(path, "w");
+            FILE* cellfile = fopen(path, "w");
             if(!cellfile)
             {
                 printf("gdsparser: could not open cell file '%s'\n", path);
@@ -1892,25 +2090,37 @@ static int _read_structure(
                 return 0;
             }
             free(path);
+            out = outbuffer;
+            out->file = cellfile;
+            out->pos = 0;
             if(_is_toplevel(cellname, toplevelcells))
             {
-                fputs("function layout(cell)\n", cellfile);
-                fputs("    local env = { references = {} }\n", cellfile);
+                _out_literal(out, "function layout(cell)\n");
+                _out_literal(out, "    local env = { references = {} }\n");
                 struct const_vector_iterator* it = const_vector_iterator_create(cellnames);
                 while(const_vector_iterator_is_valid(it))
                 {
                     const char* cellrefname = const_vector_iterator_get(it);
-                    fprintf(cellfile, "    env.references[\"%s\"] = cell:create_object_handle(pcell.create_layout_env(\"%s/%s\", \"%s\", nil, env))\n", cellrefname, importname, cellrefname, cellrefname); // FIXME: gds has no instance names, is this a problem?
+                    // FIXME: gds has no instance names, is this a problem?
+                    _out_literal(out, "    env.references[\"");
+                    _out_string(out, cellrefname);
+                    _out_literal(out, "\"] = cell:create_object_handle(pcell.create_layout_env(\"");
+                    _out_string(out, importname);
+                    _out_literal(out, "/");
+                    _out_string(out, cellrefname);
+                    _out_literal(out, "\", \"");
+                    _out_string(out, cellrefname);
+                    _out_literal(out, "\", nil, env))\n");
                     const_vector_iterator_next(it);
                 }
                 const_vector_iterator_destroy(it);
             }
             else
             {
-                fputs("function layout(cell, _P, env)\n", cellfile);
+                _out_literal(out, "function layout(cell, _P, env)\n");
             }
             free(cellname);
-            fputs("    local ref, child\n", cellfile);
+            _out_literal(out, "    local ref, child\n");
         }
         else if(record->recordtype == STRCLASS)
         {
@@ -1922,34 +2132,40 @@ static int _read_structure(
         }
         else if(record->recordtype == BOUNDARY)
         {
-            if(!cellfile)
+            if(!out)
             {
                 puts("gdsparser: found BOUNDARY, but outside of structure");
                 return 0;
             }
             int16_t layer, purpose;
-            //struct vector* points = NULL;
-            coordinate_t* points = NULL;
+            coordinate_t* points = xybuffer;
             size_t numpoints = 0;
-            if(!_read_BOUNDARY(stream, &layer, &purpose, &points, &numpoints))
+            if(!_read_BOUNDARY(stream, &layer, &purpose, points, &numpoints))
             {
-                free(points);
-                fclose(cellfile);
+                _close_cellfile(out);
                 puts("gdsparser: errors while reading BOUNDARY");
                 return 0;
             }
-            if(_check_lpp(layer, purpose, ignorelpp))
+            const struct layercacheentry* layerentry = _get_layer(layercache, layer, purpose);
+            if(!layerentry->ignored)
             {
-                _write_BOUNDARY(cellfile, layer, purpose, points, numpoints, gdslayermap);
+                _write_BOUNDARY(out, layerentry, points, numpoints);
             }
             // alignment box
             if(ablayer && abpurpose && layer == *ablayer && purpose == *abpurpose && numpoints >= 8)
             {
                 coordinate_t abblx, abbly, abtrx, abtry;
                 _rectangle_coordinates(points, &abblx, &abbly, &abtrx, &abtry);
-                fprintf(cellfile, "    cell:set_alignment_box(point.create(%lld, %lld), point.create(%lld, %lld))\n", abblx, abbly, abtrx, abtry);
+                _out_literal(out, "    cell:set_alignment_box(point.create(");
+                _out_coordinate(out, abblx);
+                _out_literal(out, ", ");
+                _out_coordinate(out, abbly);
+                _out_literal(out, "), point.create(");
+                _out_coordinate(out, abtrx);
+                _out_literal(out, ", ");
+                _out_coordinate(out, abtry);
+                _out_literal(out, "))\n");
             }
-            free(points);
         }
         else if(record->recordtype == BOX)
         {
@@ -1957,32 +2173,33 @@ static int _read_structure(
         }
         else if(record->recordtype == PATH)
         {
-            if(!cellfile)
+            if(!out)
             {
                 puts("gdsparser: found PATH, but outside of structure");
                 return 0;
             }
             int16_t layer, purpose;
-            struct vector* points = NULL;
+            coordinate_t* points = xybuffer;
+            size_t numpoints = 0;
             coordinate_t width;
             coordinate_t bgnext = 0;
             coordinate_t endext = 0;
             int16_t type = 0;
-            if(!_read_PATH(stream, &layer, &purpose, &points, &width, &bgnext, &endext, &type))
+            if(!_read_PATH(stream, &layer, &purpose, points, &numpoints, &width, &bgnext, &endext, &type))
             {
-                fclose(cellfile);
+                _close_cellfile(out);
                 puts("gdsparser: errors while reading PATH");
                 return 0;
             }
-            if(_check_lpp(layer, purpose, ignorelpp))
+            const struct layercacheentry* layerentry = _get_layer(layercache, layer, purpose);
+            if(!layerentry->ignored)
             {
-                _write_PATH(cellfile, layer, purpose, points, width, bgnext, endext, type, gdslayermap);
+                _write_PATH(out, layerentry, points, numpoints, width, bgnext, endext, type);
             }
-            vector_destroy(points);
         }
         else if(record->recordtype == TEXT)
         {
-            if(!cellfile)
+            if(!out)
             {
                 puts("gdsparser: found TEXT, but outside of structure");
                 return 0;
@@ -1996,15 +2213,22 @@ static int _read_structure(
             if(!success || !str)
             {
                 free(str);
-                fclose(cellfile);
+                _close_cellfile(out);
                 puts("gdsparser: error while reading TEXT");
                 return 0;
             }
-            if(_check_lpp(layer, purpose, ignorelpp))
+            const struct layercacheentry* layerentry = _get_layer(layercache, layer, purpose);
+            if(!layerentry->ignored)
             {
-                fprintf(cellfile, "    cell:add_port_with_anchor(\"%s\", ", str);
-                _write_layers(cellfile, layer, purpose, gdslayermap);
-                fprintf(cellfile, ", point.create(%lld, %lld))\n", origin.x, origin.y);
+                _out_literal(out, "    cell:add_port_with_anchor(\"");
+                _out_string(out, str);
+                _out_literal(out, "\", ");
+                _out_bytes(out, layerentry->text, layerentry->len);
+                _out_literal(out, ", point.create(");
+                _out_coordinate(out, origin.x);
+                _out_literal(out, ", ");
+                _out_coordinate(out, origin.y);
+                _out_literal(out, "))\n");
             }
             free(str);
             (void) angle; // port rotation is currently not supported
@@ -2012,40 +2236,38 @@ static int _read_structure(
         }
         else if(record->recordtype == SREF)
         {
-            if(!cellfile)
+            if(!out)
             {
                 puts("gdsparser: found SREF, but outside of structure");
                 return 0;
             }
-            struct cellref* cellref = _read_SREF(stream);
-            if(cellref)
+            struct cellref cellref;
+            if(_read_SREF(stream, &cellref))
             {
-                _write_cellref(cellfile, cellref);
-                free(cellref);
+                _write_cellref(out, &cellref);
             }
             else
             {
-                fclose(cellfile);
+                _close_cellfile(out);
                 puts("gdsparser: error while reading SREF");
                 return 0;
             }
         }
         else if(record->recordtype == AREF)
         {
-            if(!cellfile)
+            if(!out)
             {
                 puts("gdsparser: found AREF, but outside of structure");
                 return 0;
             }
-            struct cellref* cellref = _read_AREF(stream);
-            if(cellref)
+            struct cellref cellref;
+            if(_read_AREF(stream, &cellref))
             {
-                _write_cellref(cellfile, cellref);
-                free(cellref);
+                _write_cellref(out, &cellref);
             }
             else
             {
-                fclose(cellfile);
+                _close_cellfile(out);
                 puts("gdsparser: error while reading AREF");
                 return 0;
             }
@@ -2065,21 +2287,20 @@ static int _read_structure(
         else // wrong record
         {
             fprintf(stderr, "structure: unexpected record '%s' (#%zd)\n", _recordname(record->recordtype), stream->index - 2);
-            if(cellfile)
+            if(out)
             {
-                fclose(cellfile);
+                _close_cellfile(out);
             }
             return 0;
         }
     }
-    if(!cellfile)
+    if(!out)
     {
         puts("gdsparser: malformed structure");
         return 0;
     }
-    fputs("end", cellfile); // close layout function
-    fclose(cellfile);
-    TIMEPERF_STOP();
+    _out_literal(out, "end"); // close layout function
+    _close_cellfile(out);
     return 1;
 }
 
@@ -2092,131 +2313,203 @@ static void _create_libdir(const char* libname, const char* importname)
     free(path);
 }
 
+// the structures are translated by worker threads, each worker reads its structures with its own stream
+#define THREADS_PER_CPU 1
+
+struct structurejob {
+    long long offset;
+    long long size;
+};
+
+struct readcontext {
+    // read-only for the workers
+    const char* filename;
+    const char* libname;
+    const char* importname;
+    const struct const_vector* toplevelcells;
+    const struct const_vector* cellnames;
+    const struct vector* gdslayermap;
+    const struct vector* ignorelpp;
+    int16_t* ablayer;
+    int16_t* abpurpose;
+    const struct structurejob* jobs;
+    size_t numjobs;
+    // shared, protected by mutex
+    pthread_mutex_t mutex;
+    size_t nextjob;
+    int error;
+    struct warnedpairs warned; // has its own mutex
+};
+
+static void _set_read_error(struct readcontext* context)
+{
+    pthread_mutex_lock(&context->mutex);
+    context->error = 1;
+    pthread_mutex_unlock(&context->mutex);
+}
+
+static void* _read_structures_thread(void* arg)
+{
+    struct readcontext* context = arg;
+    struct stream* stream = _open_stream(context->filename);
+    if(!stream)
+    {
+        _set_read_error(context);
+        return NULL;
+    }
+    coordinate_t* xybuffer = malloc(MAX_XY_COORDINATES * sizeof(*xybuffer));
+    struct outbuffer* outbuffer = _create_outbuffer(NULL);
+    struct layercache* layercache = _create_layercache(context->gdslayermap, context->ignorelpp, &context->warned);
+    while(1)
+    {
+        pthread_mutex_lock(&context->mutex);
+        if(context->error || context->nextjob == context->numjobs)
+        {
+            pthread_mutex_unlock(&context->mutex);
+            break;
+        }
+        const struct structurejob* job = &context->jobs[context->nextjob];
+        ++context->nextjob;
+        pthread_mutex_unlock(&context->mutex);
+
+        if(!_seek_stream(stream, job->offset) ||
+           !_read_structure(context->libname, context->importname, stream, context->toplevelcells, context->cellnames, layercache, context->ablayer, context->abpurpose, xybuffer, outbuffer))
+        {
+            puts("gdsparser: error while reading structure");
+            _set_read_error(context);
+            break;
+        }
+    }
+    free(xybuffer);
+    free(outbuffer); // all cell files are closed (and flushed) at this point
+    _destroy_layercache(layercache);
+    _destroy_stream(stream);
+    return NULL;
+}
+
+static int _compare_jobs_by_size(const void* lhs, const void* rhs)
+{
+    long long l = ((const struct structurejob*)lhs)->size;
+    long long r = ((const struct structurejob*)rhs)->size;
+    // descending
+    return (l < r) - (l > r);
+}
+
 int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
     TIMEPERF_START();
     // read gds in two passes
-    // first: find names of top-level cell and all sub-cells
-    // second: parse file and translate all structures
-    // There is probably a more efficient way to do this,
-    // but currently this process is not too slow, so it's fine for now
+    // first: find names, positions and sizes of all cells
+    // second: translate all structures in parallel
 
     // pass 1
-    // FIXME: error handling
     struct stream* stream = _open_stream(filename);
     if(!stream)
     {
         return 0;
     }
-    struct vector* cells = _read_cells(stream);
+    char* libname = NULL;
+    struct vector* cells = _read_cells(stream, &libname);
+    _destroy_stream(stream);
     if(!cells)
     {
-        _destroy_stream(stream);
         return 0;
     }
     struct const_vector* toplevelcells = _get_toplevel_cells(cells);
-    /*
-    if(const_vector_size(toplevelcells) > 1)
-    {
-        puts("there is more than one toplevel cell. Specify which one should be used with --read-gds-toplevel-cellname");
-        vector_destroy(cells);
-        const_vector_destroy(toplevelcells);
-        return 0;
-    }
-    */
-    struct vector_iterator* it = vector_iterator_create(cells);
     struct const_vector* cellnames = const_vector_create(vector_size(cells));
-    while(vector_iterator_is_valid(it))
+    for(size_t i = 0; i < vector_size(cells); ++i)
     {
-        const struct hierarchy_cellref* cell = vector_iterator_get(it);
+        const struct hierarchy_cellref* cell = vector_get_const(cells, i);
         if(!_is_toplevel(cell->name, toplevelcells))
         {
             const_vector_append(cellnames, cell->name);
         }
-        vector_iterator_next(it);
     }
-    vector_iterator_destroy(it);
+    if(!importname)
+    {
+        importname = libname;
+    }
+    _create_libdir(libname, importname);
+
+    // one job per structure, structures with the same name write the same file,
+    // so only the last one is translated (as it would overwrite the others)
+    struct hashmap* lastcell = hashmap_create(NULL);
+    for(size_t i = 0; i < vector_size(cells); ++i)
+    {
+        struct hierarchy_cellref* cell = vector_get(cells, i);
+        hashmap_insert(lastcell, cell->name, cell);
+    }
+    struct structurejob* jobs = malloc(vector_size(cells) * sizeof(*jobs) + 1);
+    size_t numjobs = 0;
+    for(size_t i = 0; i < vector_size(cells); ++i)
+    {
+        const struct hierarchy_cellref* cell = vector_get_const(cells, i);
+        if(hashmap_get_const(lastcell, cell->name) == cell)
+        {
+            jobs[numjobs].offset = cell->offset;
+            jobs[numjobs].size = cell->size;
+            ++numjobs;
+        }
+    }
+    hashmap_destroy(lastcell);
+    // start with the largest structures, so that a large structure does not end up running alone at the end
+    qsort(jobs, numjobs, sizeof(*jobs), _compare_jobs_by_size);
 
     // pass 2
-    _reset_stream(stream);
-    char* libname = NULL;
-    while(1)
+    struct readcontext context;
+    context.filename = filename;
+    context.libname = libname;
+    context.importname = importname;
+    context.toplevelcells = toplevelcells;
+    context.cellnames = cellnames;
+    context.gdslayermap = gdslayermap;
+    context.ignorelpp = ignorelpp;
+    context.ablayer = ablayer;
+    context.abpurpose = abpurpose;
+    context.jobs = jobs;
+    context.numjobs = numjobs;
+    pthread_mutex_init(&context.mutex, NULL);
+    context.nextjob = 0;
+    context.error = 0;
+    _init_warnedpairs(&context.warned);
+
+    size_t numthreads = THREADS_PER_CPU * cpu_get_num_cpus();
+    if(numthreads > numjobs)
     {
-        struct record* record = _get_next_record(stream);
-        if(!record)
-        {
-            puts("gdsparser: end of stream before ENDLIB");
-            free(libname);
-            _destroy_stream(stream);
-            vector_destroy(cells);
-            const_vector_destroy(cellnames);
-            const_vector_destroy(toplevelcells);
-            return 0;
-        }
-        if(record->recordtype == LIBNAME)
-        {
-            if(libname)
-            {
-                puts("gdsparser: more than one LIBNAME entry");
-                free(libname);
-                _destroy_stream(stream);
-                vector_destroy(cells);
-                const_vector_destroy(cellnames);
-                const_vector_destroy(toplevelcells);
-                return 0;
-            }
-            libname = _parse_string(record->data, record->length - 4);
-            if(!importname)
-            {
-                importname = libname;
-            }
-            _create_libdir(libname, importname);
-        }
-        else if(record->recordtype == BGNSTR)
-        {
-            if(!libname)
-            {
-                puts("gdsparser: GDSII stream does not start with a LIBNAME entry");
-                _destroy_stream(stream);
-                vector_destroy(cells);
-                const_vector_destroy(cellnames);
-                const_vector_destroy(toplevelcells);
-                return 0;
-            }
-            if(!_read_structure(libname, importname, stream, toplevelcells, cellnames, gdslayermap, ignorelpp, ablayer, abpurpose))
-            {
-                puts("gdsparser: error while reading structure");
-                free(libname);
-                _destroy_stream(stream);
-                vector_destroy(cells);
-                const_vector_destroy(cellnames);
-                const_vector_destroy(toplevelcells);
-                return 0;
-            }
-        }
-        else if(record->recordtype == ENDLIB)
-        {
-            if(!libname)
-            {
-                puts("gdsparser: GDSII stream does not start with a LIBNAME entry");
-                _destroy_stream(stream);
-                vector_destroy(cells);
-                const_vector_destroy(cellnames);
-                const_vector_destroy(toplevelcells);
-                return 0;
-            }
-            break;
-        }
+        numthreads = numjobs;
     }
-    _destroy_stream(stream);
-    if(libname)
+    pthread_t* threads = malloc(numthreads * sizeof(*threads) + 1);
+    size_t numstarted = 0;
+    for(size_t i = 0; i < numthreads; ++i)
     {
-        free(libname);
+        if(pthread_create(&threads[numstarted], NULL, _read_structures_thread, &context) != 0)
+        {
+            break; // continue with the threads that could be started
+        }
+        ++numstarted;
     }
+    if(numstarted == 0 && numjobs > 0)
+    {
+        _read_structures_thread(&context);
+    }
+    for(size_t i = 0; i < numstarted; ++i)
+    {
+        pthread_join(threads[i], NULL);
+    }
+    int success = !context.error;
+
+    free(threads);
+    _destroy_warnedpairs(&context.warned);
+    pthread_mutex_destroy(&context.mutex);
+    free(jobs);
+    free(libname);
     vector_destroy(cells);
     const_vector_destroy(cellnames);
     const_vector_destroy(toplevelcells);
-    TIMEPERF_STOP();
-    return 1;
+    if(success)
+    {
+        TIMEPERF_STOP();
+    }
+    return success;
 }
 

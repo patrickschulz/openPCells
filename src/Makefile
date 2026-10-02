@@ -42,6 +42,7 @@ OBJS:= \
 	cdl_tokenlist.o \
 	cells.o \
 	cmdoptions.o \
+	cpu.o \
 	foreach.o \
 	error.o \
 	export_common.o \
