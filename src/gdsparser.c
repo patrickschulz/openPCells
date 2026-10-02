@@ -1683,7 +1683,7 @@ static int _read_structure(
                 _write_BOUNDARY(cellfile, layer, purpose, points, numpoints, gdslayermap);
             }
             // alignment box
-            if(ablayer && abpurpose && layer == *ablayer && purpose == *abpurpose)
+            if(ablayer && abpurpose && layer == *ablayer && purpose == *abpurpose && numpoints >= 8)
             {
                 coordinate_t abblx, abbly, abtrx, abtry;
                 _rectangle_coordinates(points, &abblx, &abbly, &abtrx, &abtry);
