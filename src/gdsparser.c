@@ -159,38 +159,20 @@ static void _reset_stream(struct stream* stream)
     stream->index = 0;
 }
 
-static int* _parse_bit_array(uint8_t* data)
+// bit 0 of a bit array is the most significant bit of the first byte
+static inline int _parse_bit(const uint8_t* data, int bit)
 {
-    int* pdata = calloc(16, sizeof(*pdata));
-    for(int j = 0; j < 8; ++j)
-    {
-        pdata[j] = (data[0] & (1 << (8 - j - 1))) >> (8 - j - 1);
-    }
-    for(int j = 0; j < 8; ++j)
-    {
-        pdata[j + 8] = (data[1] & (1 << (8 - j - 1))) >> (8 - j - 1);
-    }
-    return pdata;
+    return (data[bit / 8] >> (7 - bit % 8)) & 1;
 }
 
-static int16_t* _parse_two_byte_integer(uint8_t* data, size_t length)
+static inline int16_t _parse_two_byte_integer(const uint8_t* data)
 {
-    int16_t* pdata = calloc(length / 2, sizeof(*pdata));
-    for(size_t i = 0; i < length / 2; ++i)
-    {
-        pdata[i] = (data[i * 2] << 8) + data[i * 2 + 1];
-    }
-    return pdata;
+    return (int16_t)((data[0] << 8) | data[1]);
 }
 
-static int32_t* _parse_four_byte_integer(uint8_t* data, size_t length)
+static inline int32_t _parse_four_byte_integer(const uint8_t* data)
 {
-    int32_t* pdata = calloc(length / 4, sizeof(*pdata));
-    for(size_t i = 0; i < length / 4; ++i)
-    {
-        pdata[i] = (int32_t)(((uint32_t)data[i * 4] << 24) | ((uint32_t)data[i * 4 + 1] << 16) | ((uint32_t)data[i * 4 + 2] << 8) | data[i * 4 + 3]);
-    }
-    return pdata;
+    return (int32_t)(((uint32_t)data[0] << 24) | ((uint32_t)data[1] << 16) | ((uint32_t)data[2] << 8) | data[3]);
 }
 
 static inline void _parse_single_point_i(uint8_t* data, size_t i, struct point* pt)
@@ -226,52 +208,42 @@ static coordinate_t* _parse_points_xy(uint8_t* data, size_t length)
     return points;
 }
 
-static double* _parse_four_byte_real(uint8_t* data, size_t length)
+static double _parse_four_byte_real(const uint8_t* data)
 {
-    double* pdata = calloc(length / 4, sizeof(*pdata));
-    for(size_t i = 0; i < length / 4; ++i)
+    int sign = data[0] & 0x80;
+    int8_t exp = data[0] & 0x7f;
+    double mantissa = data[1] / 256.0
+        + data[2] / 256.0 / 256.0
+        + data[3] / 256.0 / 256.0 / 256.0;
+    if(sign)
     {
-        int sign = data[i * 4] & 0x80;
-        int8_t exp = data[i * 4] & 0x7f;
-        double mantissa = data[i * 4 + 1] / 256.0
-            + data[i * 4 + 2] / 256.0 / 256.0
-            + data[i * 4 + 3] / 256.0 / 256.0 / 256.0;
-        if(sign)
-        {
-            pdata[i] = -mantissa * pow(16.0, exp - 64);
-        }
-        else
-        {
-            pdata[i] = mantissa * pow(16.0, exp - 64);
-        }
+        return -mantissa * pow(16.0, exp - 64);
     }
-    return pdata;
+    else
+    {
+        return mantissa * pow(16.0, exp - 64);
+    }
 }
 
-static double* _parse_eight_byte_real(uint8_t* data, size_t length)
+static double _parse_eight_byte_real(const uint8_t* data)
 {
-    double* pdata = calloc(length / 8, sizeof(*pdata));
-    for(size_t i = 0; i < length / 8; ++i)
+    int sign = data[0] & 0x80;
+    int8_t exp = data[0] & 0x7f;
+    double mantissa = data[1] / 256.0
+                    + data[2] / 256.0 / 256.0
+                    + data[3] / 256.0 / 256.0 / 256.0
+                    + data[4] / 256.0 / 256.0 / 256.0 / 256.0
+                    + data[5] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
+                    + data[6] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
+                    + data[7] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
+    if(sign)
     {
-        int sign = data[i * 8] & 0x80;
-        int8_t exp = data[i * 8] & 0x7f;
-        double mantissa = data[i * 8 + 1] / 256.0
-                        + data[i * 8 + 2] / 256.0 / 256.0
-                        + data[i * 8 + 3] / 256.0 / 256.0 / 256.0
-                        + data[i * 8 + 4] / 256.0 / 256.0 / 256.0 / 256.0
-                        + data[i * 8 + 5] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
-                        + data[i * 8 + 6] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
-                        + data[i * 8 + 7] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
-        if(sign)
-        {
-            pdata[i] = -mantissa * pow(16.0, exp - 64);
-        }
-        else
-        {
-            pdata[i] = mantissa * pow(16.0, exp - 64);
-        }
+        return -mantissa * pow(16.0, exp - 64);
     }
-    return pdata;
+    else
+    {
+        return mantissa * pow(16.0, exp - 64);
+    }
 }
 
 static char* _parse_string(uint8_t* data, size_t length)
@@ -724,48 +696,36 @@ int gdsparser_show_records(const char* filename, int raw)
             {
                 case TWO_BYTE_INTEGER:
                 {
-                    int16_t* pdata = _parse_two_byte_integer(record->data, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 2; ++i)
                     {
-                        int16_t num = pdata[i];
-                        _print_int16(stdout, num);
+                        _print_int16(stdout, _parse_two_byte_integer(record->data + i * 2));
                         fputc(' ', stdout);
                     }
-                    free(pdata);
                     break;
                 }
                 case FOUR_BYTE_INTEGER:
                 {
-                    int32_t* pdata = _parse_four_byte_integer(record->data, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
-                        int32_t num = pdata[i];
-                        _print_int32(stdout, num);
+                        _print_int32(stdout, _parse_four_byte_integer(record->data + i * 4));
                         fputc(' ', stdout);
                     }
-                    free(pdata);
                     break;
                 }
                 case FOUR_BYTE_REAL:
                 {
-                    double* pdata = _parse_four_byte_real(record->data, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
-                        double num = pdata[i];
-                        fprintf(stdout, "%g ", num);
+                        fprintf(stdout, "%g ", _parse_four_byte_real(record->data + i * 4));
                     }
-                    free(pdata);
                     break;
                 }
                 case EIGHT_BYTE_REAL:
                 {
-                    double* pdata = _parse_eight_byte_real(record->data, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 8; ++i)
                     {
-                        double num = pdata[i];
-                        fprintf(stdout, "%g ", num);
+                        fprintf(stdout, "%g ", _parse_eight_byte_real(record->data + i * 8));
                     }
-                    free(pdata);
                     break;
                 }
                 case ASCII_STRING:
@@ -782,10 +742,9 @@ int gdsparser_show_records(const char* filename, int raw)
                     break;
                 case BIT_ARRAY:
                 {
-                    int* pdata = _parse_bit_array(record->data);
                     for(int i = 0; i < 16; ++i)
                     {
-                        if(pdata[i])
+                        if(_parse_bit(record->data, i))
                         {
                             putchar('1');
                         }
@@ -794,7 +753,6 @@ int gdsparser_show_records(const char* filename, int raw)
                             putchar('0');
                         }
                     }
-                    free(pdata);
                     break;
                 }
                 default:
@@ -851,7 +809,7 @@ struct cellref {
     int16_t yrep;
     coordinate_t xpitch;
     coordinate_t ypitch;
-    int* transformation;
+    int reflected; // STRANS bit 0: reflection about the x-axis
     double angle;
 };
 
@@ -1063,7 +1021,7 @@ int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
     return 1;
 }
 
-static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t* purpose, struct point* origin, double* angle, int** transformation)
+static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t* purpose, struct point* origin, double* angle, int* reflected)
 {
     int readlayer = 0;
     while(1)
@@ -1084,16 +1042,12 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
         }
         else if(record->recordtype == LAYER)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
-            *layer = *pdata;
-            free(pdata);
+            *layer = _parse_two_byte_integer(record->data);
             readlayer = 1;
         }
         else if(record->recordtype == TEXTTYPE)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
-            *purpose = *pdata;
-            free(pdata);
+            *purpose = _parse_two_byte_integer(record->data);
         }
         else if(record->recordtype == PRESENTATION)
         {
@@ -1101,14 +1055,11 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
         }
         else if(record->recordtype == STRANS)
         {
-            free(*transformation);
-            *transformation = _parse_bit_array(record->data);
+            *reflected = _parse_bit(record->data, 0);
         }
         else if(record->recordtype == ANGLE)
         {
-            double* pdata = _parse_eight_byte_real(record->data, record->length - 4);
-            *angle = *pdata;
-            free(pdata);
+            *angle = _parse_eight_byte_real(record->data);
         }
         else if(record->recordtype == MAG)
         {
@@ -1148,7 +1099,6 @@ static void _destroy_cellref(struct cellref* cellref)
 {
     free(cellref->name);
     point_destroy(cellref->origin);
-    free(cellref->transformation);
     free(cellref);
 }
 
@@ -1160,7 +1110,7 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
     cellref->xrep = 1;
     cellref->yrep = 1;
     cellref->angle = 0.0;
-    cellref->transformation = NULL;
+    cellref->reflected = 0;
     while(1)
     {
         struct record* record = _get_next_record(stream);
@@ -1184,14 +1134,11 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
         }
         else if(record->recordtype == STRANS)
         {
-            free(cellref->transformation);
-            cellref->transformation = _parse_bit_array(record->data);
+            cellref->reflected = _parse_bit(record->data, 0);
         }
         else if(record->recordtype == ANGLE)
         {
-            double* pdata = _parse_eight_byte_real(record->data, record->length - 4);
-            cellref->angle = *pdata;
-            free(pdata);
+            cellref->angle = _parse_eight_byte_real(record->data);
         }
         else if(record->recordtype == MAG)
         {
@@ -1199,10 +1146,8 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
         }
         else if(record->recordtype == COLROW)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 4);
-            cellref->xrep = pdata[0];
-            cellref->yrep = pdata[1];
-            free(pdata);
+            cellref->xrep = _parse_two_byte_integer(record->data);
+            cellref->yrep = _parse_two_byte_integer(record->data + 2);
         }
         else if(record->recordtype == XY)
         {
@@ -1296,7 +1241,7 @@ static void _write_cellref(FILE* cellfile, const struct cellref* cellref)
         fputs("    child:rotate_90_left()\n", cellfile);
         fputs("    child:rotate_90_left()\n", cellfile);
     }
-    if(cellref->transformation && cellref->transformation[0] == 1)
+    if(cellref->reflected)
     {
         fputs("    child:mirror_at_xaxis()\n", cellfile);
     }
@@ -1306,10 +1251,6 @@ static void _write_cellref(FILE* cellfile, const struct cellref* cellref)
     }
     free(cellref->name);
     point_destroy(cellref->origin);
-    if(cellref->transformation)
-    {
-        free(cellref->transformation);
-    }
 }
 
 static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpose, coordinate_t** points, size_t* size)
@@ -1333,16 +1274,12 @@ static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpos
         }
         else if(record->recordtype == LAYER)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
-            *layer = *pdata;
-            free(pdata);
+            *layer = _parse_two_byte_integer(record->data);
             readlayer = 1;
         }
         else if(record->recordtype == DATATYPE)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
-            *purpose = *pdata;
-            free(pdata);
+            *purpose = _parse_two_byte_integer(record->data);
         }
         else if(record->recordtype == XY)
         {
@@ -1431,40 +1368,28 @@ static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, s
         }
         else if(record->recordtype == LAYER)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
-            *layer = *pdata;
-            free(pdata);
+            *layer = _parse_two_byte_integer(record->data);
             readlayer = 1;
         }
         else if(record->recordtype == DATATYPE)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
-            *purpose = *pdata;
-            free(pdata);
+            *purpose = _parse_two_byte_integer(record->data);
         }
         else if(record->recordtype == PATHTYPE)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
-            *type = *pdata;
-            free(pdata);
+            *type = _parse_two_byte_integer(record->data);
         }
         else if(record->recordtype == WIDTH)
         {
-            int32_t* pdata = _parse_four_byte_integer(record->data, 4);
-            *width = *pdata;
-            free(pdata);
+            *width = _parse_four_byte_integer(record->data);
         }
         else if(record->recordtype == BGNEXTN)
         {
-            int32_t* pdata = _parse_four_byte_integer(record->data, 4);
-            *bgnext = *pdata;
-            free(pdata);
+            *bgnext = _parse_four_byte_integer(record->data);
         }
         else if(record->recordtype == ENDEXTN)
         {
-            int32_t* pdata = _parse_four_byte_integer(record->data, 4);
-            *endext = *pdata;
-            free(pdata);
+            *endext = _parse_four_byte_integer(record->data);
         }
         else if(record->recordtype == XY)
         {
@@ -1693,12 +1618,11 @@ static int _read_structure(
             struct point origin;
             char* str = NULL;
             double angle = 0.0;
-            int* transformation = NULL;
-            int success = _read_TEXT(stream, &str, &layer, &purpose, &origin, &angle, &transformation);
+            int reflected = 0;
+            int success = _read_TEXT(stream, &str, &layer, &purpose, &origin, &angle, &reflected);
             if(!success || !str)
             {
                 free(str);
-                free(transformation);
                 fclose(cellfile);
                 puts("gdsparser: error while reading TEXT");
                 return 0;
@@ -1711,7 +1635,7 @@ static int _read_structure(
             }
             free(str);
             (void) angle; // port rotation is currently not supported
-            free(transformation); // port transformation is currently not supported
+            (void) reflected; // port transformation is currently not supported
         }
         else if(record->recordtype == SREF)
         {
