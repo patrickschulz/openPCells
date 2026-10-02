@@ -600,6 +600,168 @@ int gdsparser_show_cell_definitions(const char* filename)
     return 1;
 }
 
+// collects output and writes it in large blocks, avoiding one stdio call per character
+#define OUTBUFFER_SIZE (1 << 16)
+
+struct outbuffer {
+    FILE* file;
+    size_t pos;
+    char data[OUTBUFFER_SIZE];
+};
+
+static struct outbuffer* _create_outbuffer(FILE* file)
+{
+    struct outbuffer* out = malloc(sizeof(*out));
+    out->file = file;
+    out->pos = 0;
+    return out;
+}
+
+static void _flush_outbuffer(struct outbuffer* out)
+{
+    fwrite(out->data, 1, out->pos, out->file);
+    out->pos = 0;
+}
+
+static void _destroy_outbuffer(struct outbuffer* out)
+{
+    _flush_outbuffer(out);
+    free(out);
+}
+
+static inline void _out_char(struct outbuffer* out, char ch)
+{
+    if(out->pos == OUTBUFFER_SIZE)
+    {
+        _flush_outbuffer(out);
+    }
+    out->data[out->pos] = ch;
+    ++out->pos;
+}
+
+static void _out_bytes(struct outbuffer* out, const char* bytes, size_t len)
+{
+    if(out->pos + len > OUTBUFFER_SIZE)
+    {
+        _flush_outbuffer(out);
+        if(len > OUTBUFFER_SIZE)
+        {
+            fwrite(bytes, 1, len, out->file);
+            return;
+        }
+    }
+    memcpy(out->data + out->pos, bytes, len);
+    out->pos += len;
+}
+
+static void _out_string(struct outbuffer* out, const char* str)
+{
+    _out_bytes(out, str, strlen(str));
+}
+
+static void _out_fill(struct outbuffer* out, char ch, size_t len)
+{
+    while(len > 0)
+    {
+        if(out->pos == OUTBUFFER_SIZE)
+        {
+            _flush_outbuffer(out);
+        }
+        size_t num = MIN2(len, OUTBUFFER_SIZE - out->pos);
+        memset(out->data + out->pos, ch, num);
+        out->pos += num;
+        len -= num;
+    }
+}
+
+static const char digitpairs[] =
+    "0001020304050607080910111213141516171819"
+    "2021222324252627282930313233343536373839"
+    "4041424344454647484950515253545556575859"
+    "6061626364656667686970717273747576777879"
+    "8081828384858687888990919293949596979899";
+
+static inline unsigned int _count_digits(uint32_t num)
+{
+    if(num < 10) return 1;
+    if(num < 100) return 2;
+    if(num < 1000) return 3;
+    if(num < 10000) return 4;
+    if(num < 100000) return 5;
+    if(num < 1000000) return 6;
+    if(num < 10000000) return 7;
+    if(num < 100000000) return 8;
+    if(num < 1000000000) return 9;
+    return 10;
+}
+
+static void _out_uint32(struct outbuffer* out, uint32_t num)
+{
+    // uint32_t has at most 10 digits
+    if(out->pos + 10 > OUTBUFFER_SIZE)
+    {
+        _flush_outbuffer(out);
+    }
+    // digits are written directly into the buffer from the back, two at a time
+    unsigned int numdigits = _count_digits(num);
+    char* ptr = out->data + out->pos + numdigits;
+    out->pos += numdigits;
+    while(num >= 100)
+    {
+        uint32_t pair = num % 100;
+        num /= 100;
+        ptr -= 2;
+        ptr[0] = digitpairs[2 * pair];
+        ptr[1] = digitpairs[2 * pair + 1];
+    }
+    if(num >= 10)
+    {
+        ptr -= 2;
+        ptr[0] = digitpairs[2 * num];
+        ptr[1] = digitpairs[2 * num + 1];
+    }
+    else
+    {
+        ptr[-1] = '0' + num;
+    }
+}
+
+static void _out_int32(struct outbuffer* out, int32_t num)
+{
+    if(num < 0)
+    {
+        _out_char(out, '-');
+        // negate in unsigned arithmetic, -INT32_MIN is not representable as int32_t
+        _out_uint32(out, 0u - (uint32_t)num);
+    }
+    else
+    {
+        _out_uint32(out, num);
+    }
+}
+
+static void _out_int16(struct outbuffer* out, int16_t num)
+{
+    _out_int32(out, num);
+}
+
+static void _out_real(struct outbuffer* out, double num)
+{
+    // "%g " needs at most 14 characters ("-1.23457e+308 ")
+    if(out->pos + 32 > OUTBUFFER_SIZE)
+    {
+        _flush_outbuffer(out);
+    }
+    out->pos += snprintf(out->data + out->pos, 32, "%g ", num);
+}
+
+static void _out_byte_hex_with_prefix(struct outbuffer* out, uint8_t num)
+{
+    static const char lut[] = "0123456789abcdef";
+    char str[4] = { '0', 'x', lut[(num & 0xf0) >> 4], lut[num & 0x0f] };
+    _out_bytes(out, str, 4);
+}
+
 static void _print_pos_int16(FILE* file, int16_t num)
 {
     if(num > 9)
@@ -646,23 +808,15 @@ static void _print_int32(FILE* file, int32_t num)
     fputc((num % 10) + '0', file);
 }
 
-static void _print_byte_hex_with_prefix(FILE* file, uint8_t num)
-{
-    static char lut[] = {
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
-    };
-    fputs("0x", file);
-    fputc(lut[(num & 0xf0) >> 4], file);
-    fputc(lut[(num & 0x0f) >> 0], file);
-}
-
 int gdsparser_show_records(const char* filename, int raw)
 {
+    TIMEPERF_START();
     struct stream* stream = _open_stream(filename);
     if(!stream)
     {
         return 0;
     }
+    struct outbuffer* out = _create_outbuffer(stdout);
 
     unsigned int indent = 0;
     while(1)
@@ -670,6 +824,7 @@ int gdsparser_show_records(const char* filename, int raw)
         struct record* record = _get_next_record(stream);
         if(!record)
         {
+            _destroy_outbuffer(out);
             _destroy_stream(stream);
             return 0;
         }
@@ -677,20 +832,16 @@ int gdsparser_show_records(const char* filename, int raw)
         {
             --indent;
         }
-        for(size_t i = 0; i < 4 * indent; ++i)
-        {
-            putchar(' ');
-        }
-        fputs(_recordname(record->recordtype), stdout);
-        putchar(' ');
-        putchar('(');
-        _print_pos_int16(stdout, record->length);
-        putchar(')');
+        _out_fill(out, ' ', 4 * indent);
+        _out_string(out, _recordname(record->recordtype));
+        _out_bytes(out, " (", 2);
+        _out_uint32(out, record->length);
+        _out_char(out, ')');
 
         // print data
         if(record->length > 4)
         {
-            fputs(" -> data: ", stdout);
+            _out_bytes(out, " -> data: ", 10);
             // parsed data
             switch(record->datatype)
             {
@@ -698,8 +849,8 @@ int gdsparser_show_records(const char* filename, int raw)
                 {
                     for(int i = 0; i < (record->length - 4) / 2; ++i)
                     {
-                        _print_int16(stdout, _parse_two_byte_integer(record->data + i * 2));
-                        fputc(' ', stdout);
+                        _out_int16(out, _parse_two_byte_integer(record->data + i * 2));
+                        _out_char(out, ' ');
                     }
                     break;
                 }
@@ -707,8 +858,8 @@ int gdsparser_show_records(const char* filename, int raw)
                 {
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
-                        _print_int32(stdout, _parse_four_byte_integer(record->data + i * 4));
-                        fputc(' ', stdout);
+                        _out_int32(out, _parse_four_byte_integer(record->data + i * 4));
+                        _out_char(out, ' ');
                     }
                     break;
                 }
@@ -716,7 +867,7 @@ int gdsparser_show_records(const char* filename, int raw)
                 {
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
-                        fprintf(stdout, "%g ", _parse_four_byte_real(record->data + i * 4));
+                        _out_real(out, _parse_four_byte_real(record->data + i * 4));
                     }
                     break;
                 }
@@ -724,35 +875,39 @@ int gdsparser_show_records(const char* filename, int raw)
                 {
                     for(int i = 0; i < (record->length - 4) / 8; ++i)
                     {
-                        fprintf(stdout, "%g ", _parse_eight_byte_real(record->data + i * 8));
+                        _out_real(out, _parse_eight_byte_real(record->data + i * 8));
                     }
                     break;
                 }
                 case ASCII_STRING:
-                    putchar('"');
-                    for(int i = 0; i < record->length - 4; ++i)
+                {
+                    // odd-length strings are zero padded, don't print zero characters
+                    _out_char(out, '"');
+                    const char* str = (const char*)record->data;
+                    size_t len = record->length - 4;
+                    while(len > 0)
                     {
-                        char ch = ((char*)record->data)[i];
-                        if(ch) // odd-length strings are zero padded, don't print that character
+                        const char* zero = memchr(str, 0, len);
+                        size_t runlen = zero ? (size_t)(zero - str) : len;
+                        _out_bytes(out, str, runlen);
+                        if(!zero)
                         {
-                            putchar(ch);
+                            break;
                         }
+                        len -= runlen + 1;
+                        str = zero + 1;
                     }
-                    putchar('"');
+                    _out_char(out, '"');
                     break;
+                }
                 case BIT_ARRAY:
                 {
+                    char bits[16];
                     for(int i = 0; i < 16; ++i)
                     {
-                        if(_parse_bit(record->data, i))
-                        {
-                            putchar('1');
-                        }
-                        else
-                        {
-                            putchar('0');
-                        }
+                        bits[i] = _parse_bit(record->data, i) ? '1' : '0';
                     }
+                    _out_bytes(out, bits, 16);
                     break;
                 }
                 default:
@@ -761,19 +916,18 @@ int gdsparser_show_records(const char* filename, int raw)
         }
         if(raw)
         {
-            putchar(' ');
-            putchar('(');
+            _out_bytes(out, " (", 2);
             for(int i = 0; i < record->length - 4; ++i)
             {
-                _print_byte_hex_with_prefix(stdout, record->data[i]);
+                _out_byte_hex_with_prefix(out, record->data[i]);
                 if(i < record->length - 5)
                 {
-                    putchar(' ');
+                    _out_char(out, ' ');
                 }
             }
-            putchar(')');
+            _out_char(out, ')');
         }
-        putchar('\n');
+        _out_char(out, '\n');
 
         if(record->recordtype == BGNLIB ||
            record->recordtype == BGNSTR ||
@@ -790,7 +944,9 @@ int gdsparser_show_records(const char* filename, int raw)
             break;
         }
     }
+    _destroy_outbuffer(out);
     _destroy_stream(stream);
+    TIMEPERF_STOP();
     return 1;
 }
 
@@ -861,6 +1017,7 @@ struct vector* gdsparser_create_layermap(struct technology_state* techstate)
     {
         return NULL;
     }
+    TIMEPERF_START();
     lua_State* L = util_create_basic_lua_state();
     module_load_tools(L);
     // call tools.reverse_layermap
@@ -927,6 +1084,7 @@ struct vector* gdsparser_create_layermap(struct technology_state* techstate)
     }
     lua_pop(L, 1); // pop "tools" module table
     lua_close(L);
+    TIMEPERF_STOP();
     return map;
 }
 
@@ -1480,6 +1638,7 @@ static int _read_structure(
     int16_t* ablayer, int16_t* abpurpose
 )
 {
+    TIMEPERF_START();
     FILE* cellfile = NULL;
     while(1)
     {
@@ -1706,6 +1865,7 @@ static int _read_structure(
     }
     fputs("end", cellfile); // close layout function
     fclose(cellfile);
+    TIMEPERF_STOP();
     return 1;
 }
 
