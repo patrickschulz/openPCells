@@ -542,8 +542,11 @@ static void _assemble_tree_element(struct vector* cells, struct vector* tree, co
     {
         const char* refname = vector_iterator_get(it);
         const struct hierarchy_cellref* sub = _find_cell(cells, refname);
-        vector_append(tree, _make_tree_element(sub, level + 1));
-        _assemble_tree_element(cells, tree, sub, level + 1);
+        if(sub) // references to cells not defined in this library are skipped
+        {
+            vector_append(tree, _make_tree_element(sub, level + 1));
+            _assemble_tree_element(cells, tree, sub, level + 1);
+        }
         vector_iterator_next(it);
     }
     vector_iterator_destroy(it);
