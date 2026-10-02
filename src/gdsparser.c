@@ -46,6 +46,15 @@ const char* recordnames[] = {
     "STRCLASS", "RESERVED", "FORMAT", "MASK", "ENDMASKS", "LIBDIRSIZE", "SRFNAME", "LIBSECUR",
 };
 
+static const char* _recordname(enum recordtypes recordtype)
+{
+    if((size_t)recordtype < sizeof(recordnames) / sizeof(recordnames[0]))
+    {
+        return recordnames[recordtype];
+    }
+    return "UNKNOWN";
+}
+
 struct record {
     uint16_t length;
     enum recordtypes recordtype;
@@ -676,7 +685,7 @@ int gdsparser_show_records(const char* filename, int raw)
         {
             putchar(' ');
         }
-        fputs(recordnames[record->recordtype], stdout);
+        fputs(_recordname(record->recordtype), stdout);
         putchar(' ');
         putchar('(');
         _print_pos_int16(stdout, record->length);
@@ -1101,7 +1110,7 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
         }
         else // wrong record
         {
-            fprintf(stderr, "malformed TEXT, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index);
+            fprintf(stderr, "malformed TEXT, got unexpected record '%s' (#%zd)\n", _recordname(record->recordtype), stream->index);
             return 0;
         }
     }
@@ -1206,7 +1215,7 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
         }
         else // wrong record
         {
-            fprintf(stderr, "malformed SREF/AREF, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index);
+            fprintf(stderr, "malformed SREF/AREF, got unexpected record '%s' (#%zd)\n", _recordname(record->recordtype), stream->index);
             return NULL;
         }
     }
@@ -1309,7 +1318,7 @@ static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpos
         }
         else // wrong record
         {
-            fprintf(stderr, "malformed BOUNDARY, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index);
+            fprintf(stderr, "malformed BOUNDARY, got unexpected record '%s' (#%zd)\n", _recordname(record->recordtype), stream->index);
             return 0;
         }
     }
@@ -1422,7 +1431,7 @@ static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, s
         }
         else // wrong record
         {
-            fprintf(stderr, "malformed PATH, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index);
+            fprintf(stderr, "malformed PATH, got unexpected record '%s' (#%zd)\n", _recordname(record->recordtype), stream->index);
             return 0;
         }
     }
@@ -1714,7 +1723,7 @@ static int _read_structure(
         }
         else // wrong record
         {
-            fprintf(stderr, "structure: unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index - 2);
+            fprintf(stderr, "structure: unexpected record '%s' (#%zd)\n", _recordname(record->recordtype), stream->index - 2);
             if(cellfile)
             {
                 fclose(cellfile);
