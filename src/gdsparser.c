@@ -613,6 +613,10 @@ int gdsparser_show_cell_definitions(const char* filename)
     if(!status)
     {
         fprintf(stderr, "show GDSII cell definitions: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
+        if(stream)
+        {
+            _destroy_stream(stream);
+        }
         return 0;
     }
 
@@ -719,6 +723,10 @@ int gdsparser_show_records(const char* filename, int raw)
     if(!status)
     {
         fprintf(stderr, "show GDSII records: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
+        if(stream)
+        {
+            _destroy_stream(stream);
+        }
         return 0;
     }
 
@@ -1083,6 +1091,7 @@ int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
             const int16_t* lpp = vector_const_iterator_get(it);
             if(layer == lpp[0] && purpose == lpp[1])
             {
+                vector_const_iterator_destroy(it);
                 return 0;
             }
             vector_const_iterator_next(it);
@@ -1130,6 +1139,7 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
         }
         else if(record->recordtype == STRANS)
         {
+            free(*transformation);
             *transformation = _parse_bit_array(record->data);
         }
         else if(record->recordtype == ANGLE)
@@ -1148,6 +1158,7 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
         }
         else if(record->recordtype == STRING)
         {
+            free(*str);
             *str = _parse_string(record->data, record->length - 4);
         }
         else if(record->recordtype == PROPATTR)
@@ -1171,6 +1182,14 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
     return readlayer;
 }
 
+static void _destroy_cellref(struct cellref* cellref)
+{
+    free(cellref->name);
+    point_destroy(cellref->origin);
+    free(cellref->transformation);
+    free(cellref);
+}
+
 static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
 {
     struct cellref* cellref = malloc(sizeof(*cellref));
@@ -1185,7 +1204,8 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
         struct record* record = _get_next_record(stream);
         if(!record)
         {
-            return 0;
+            _destroy_cellref(cellref);
+            return NULL;
         }
         if(record->recordtype == ELFLAGS)
         {
@@ -1197,10 +1217,12 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
         }
         else if(record->recordtype == SNAME)
         {
+            free(cellref->name);
             cellref->name = _parse_string(record->data, record->length - 4);
         }
         else if(record->recordtype == STRANS)
         {
+            free(cellref->transformation);
             cellref->transformation = _parse_bit_array(record->data);
         }
         else if(record->recordtype == ANGLE)
@@ -1270,8 +1292,15 @@ static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
         else // wrong record
         {
             fprintf(stderr, "malformed SREF/AREF, got unexpected record '%s' (#%zd)\n", _recordname(record->recordtype), stream->index);
+            _destroy_cellref(cellref);
             return NULL;
         }
+    }
+    if(!cellref->name)
+    {
+        fputs("malformed SREF/AREF, missing SNAME\n", stderr);
+        _destroy_cellref(cellref);
+        return NULL;
     }
     return cellref;
 }
@@ -1599,6 +1628,7 @@ static int _read_structure(
             {
                 printf("gdsparser: could not open cell file '%s'\n", path);
                 free(path);
+                free(cellname);
                 return 0;
             }
             free(path);
@@ -1699,12 +1729,14 @@ static int _read_structure(
             }
             int16_t layer, purpose;
             struct point origin;
-            char* str;
+            char* str = NULL;
             double angle = 0.0;
             int* transformation = NULL;
             int success = _read_TEXT(stream, &str, &layer, &purpose, &origin, &angle, &transformation);
-            if(!success)
+            if(!success || !str)
             {
+                free(str);
+                free(transformation);
                 fclose(cellfile);
                 puts("gdsparser: error while reading TEXT");
                 return 0;
@@ -1714,14 +1746,10 @@ static int _read_structure(
                 fprintf(cellfile, "    cell:add_port_with_anchor(\"%s\", ", str);
                 _write_layers(cellfile, layer, purpose, gdslayermap);
                 fprintf(cellfile, ", point.create(%lld, %lld))\n", origin.x, origin.y);
-                free(str);
             }
-            (void) transformation; // port transformation is currently not supported
+            free(str);
             (void) angle; // port rotation is currently not supported
-            if(transformation)
-            {
-                free(transformation);
-            }
+            free(transformation); // port transformation is currently not supported
         }
         else if(record->recordtype == SREF)
         {
@@ -1821,6 +1849,11 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         return 0;
     }
     struct vector* cells = _read_cells(stream);
+    if(!cells)
+    {
+        _destroy_stream(stream);
+        return 0;
+    }
     struct const_vector* toplevelcells = _get_toplevel_cells(cells);
     /*
     if(const_vector_size(toplevelcells) > 1)
@@ -1853,6 +1886,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         if(!record)
         {
             puts("gdsparser: end of stream before ENDLIB");
+            free(libname);
             _destroy_stream(stream);
             vector_destroy(cells);
             const_vector_destroy(cellnames);
@@ -1861,6 +1895,16 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         }
         if(record->recordtype == LIBNAME)
         {
+            if(libname)
+            {
+                puts("gdsparser: more than one LIBNAME entry");
+                free(libname);
+                _destroy_stream(stream);
+                vector_destroy(cells);
+                const_vector_destroy(cellnames);
+                const_vector_destroy(toplevelcells);
+                return 0;
+            }
             libname = _parse_string(record->data, record->length - 4);
             if(!importname)
             {
@@ -1882,6 +1926,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
             if(!_read_structure(libname, importname, stream, toplevelcells, cellnames, gdslayermap, ignorelpp, ablayer, abpurpose))
             {
                 puts("gdsparser: error while reading structure");
+                free(libname);
                 _destroy_stream(stream);
                 vector_destroy(cells);
                 const_vector_destroy(cellnames);
