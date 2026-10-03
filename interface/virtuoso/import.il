@@ -15,14 +15,14 @@ procedure(OPCImportWriteInitial(file)
             "           vthtype = 1,"
             "           oxidetype = 1,"
             "           flippedwell = true,"
-            "       "}),"
+            "       }),"
             "       pmos = import.maps.mosfet({"
             "           channeltype = \"pmos\","
             "           vthtype = 1,"
             "           oxidetype = 1,"
             "           flippedwell = true,"
-            "       "}),"
-            "   "},"
+            "       }),"
+            "   },"
             "}"
             ""
             "-- placement"
@@ -74,99 +74,3 @@ procedure(OPCImportEditScript()
     )
 ) ; OPCImportEditScript
 
-procedure(OPCUpdatePowergridCallback(@key (deleteAll t) (callopc t) (hierarchical nil) (origin list(0 0)) (useOrigin nil))
-    letseq(
-        (
-            (cv geGetEditCellView())
-            (libPath cv->lib->readPath)
-            (libname cv->libName) ; read by generated .il script, don't remove
-            (cellName cv->cellName)
-            path groupname OPCArgs OPCCmd success
-        )
-        groupname = "opcpowergrid"
-        let(((group dbGetFigGroupByName(cv groupname)))
-            when(group
-                foreach(obj group->figs dbDeleteObject(obj))
-                dbDeleteObject(group)
-            )
-        )
-        ; write out current cell (for exclude shapes)
-        OPCExportCell("openPCells_cellshapes.lua")
-        ; call powergrid script
-        path = lsprintf("%s/%s/layout/opcpowergrid.lua" libPath cellName)
-        OPCArgs = OPCPrepareArgsForCellCreation(
-            lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value)
-            origin
-            ?groupname groupname
-        )
-        ; FIXME: should powergrid always be flat? Currently it is, as the callback is called without parameters and hierarchical is nil
-        unless(hierarchical
-            OPCArgs = lsprintf("%s --flat" OPCArgs)
-        )
-        OPCCmd = OPCBuildCallCommand(OPCArgs)
-        success = if(callopc
-            then
-                OPCCall(OPCCmd ?redirect OPCSettingsForm->OPCStdoutFileName->value)
-            else
-                t
-        )
-        when(success
-            let(((group dbGetFigGroupByName(cv groupname)))
-                foreach(obj group->figs dbDeleteObject(obj))
-            )
-            load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
-            OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
-        )
-    )
-) ; OPCUpdateCellscriptCallback
-
-procedure(OPCDeletePowergridGroup()
-    let(
-        (cv groupname)
-        cv = geGetEditCellView()
-        groupname = "opcpowergrid"
-        let(((group dbGetFigGroupByName(cv groupname)))
-            when(group
-                foreach(obj group->figs dbDeleteObject(obj))
-                dbDeleteObject(group)
-            )
-        )
-    )
-) ; OPCDeletePowergridGroup
-
-procedure(OPCDeletePowergridScript()
-    letseq(
-        (
-            (cv geGetEditCellView())
-            (libPath cv->lib->readPath)
-            (cellName cv->cellName)
-            (path lsprintf("%s/%s/layout/opcpowergrid.lua" libPath cellName))
-        )
-        when(isFile(path)
-            deleteFile(path)
-        )
-    )
-) ; OPCDeletePowergridScript
-
-/*
-procedure(OPCCollectNetShapes()
-    let(
-        (cv group)
-        cv = geGetEditCellView()
-        group = dbCreateFigGroup(cv "opcnetshapes")
-        foreach(instance cv->instances
-            foreach(shape instance->master->shapes
-                dbCopyFig(cv shape)
-                dbAddFig
-            ) ; foreach shapes
-        ) ; foreach instances
-    ) ; let
-) ;
-
-mapcar(lambda( (instTerm)
-    list(nil 
-        'name instTerm->name 
-        'shapes setof(shape master->shapes shape->net->name == instTerm->term->net->name)
-    )
-))
-*/
