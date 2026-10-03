@@ -75,6 +75,11 @@ struct subcircuit* netlist_make_subcircuit(void)
     return subcircuit;
 }
 
+void netlist_destroy_subcircuit(struct subcircuit* subcircuit)
+{
+    _destroy_subcircuit(subcircuit);
+}
+
 void netlist_add_subcircuit(struct netlist* netlist, struct subcircuit* subcircuit)
 {
     vector_append(netlist->subcircuits, subcircuit);
@@ -87,6 +92,16 @@ void netlist_subcircuit_set_name(struct subcircuit* subcircuit, const char* name
         free(subcircuit->name);
     }
     subcircuit->name = util_strdup(name);
+}
+
+const char* netlist_subcircuit_get_name(const struct subcircuit* subcircuit)
+{
+    return subcircuit->name;
+}
+
+void netlist_subcircuit_add_port(struct subcircuit* subcircuit, const char* port)
+{
+    vector_append(subcircuit->ports, util_strdup(port));
 }
 
 void netlist_subcircuit_add_instance(struct subcircuit* subcircuit, struct instance* instance)
@@ -179,6 +194,14 @@ void netlist_create_lua_representation(struct netlist* netlist, lua_State* L)
         // subcircuit name
         lua_pushstring(L, subcircuit->name);
         lua_setfield(L, -2, "name");
+        // ports
+        lua_newtable(L);
+        for(size_t portidx = 0; portidx < vector_size(subcircuit->ports); ++portidx)
+        {
+            lua_pushstring(L, vector_get(subcircuit->ports, portidx));
+            lua_rawseti(L, -2, portidx + 1);
+        }
+        lua_setfield(L, -2, "ports");
         // instances
         for(size_t instidx = 0; instidx < vector_size(subcircuit->instances); ++instidx)
         {
