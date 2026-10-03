@@ -69,15 +69,6 @@ local function _connections_match(c1, c2, connections)
     return true
 end
 
-local function _connections_match_set(c1, c2, connections)
-    for _, term in ipairs(connections) do
-        if c1[term[1]] == c2[term[2]] then
-            return true
-        end
-    end
-    return false
-end
-
 local function _parameters_match(p1, p2, ignore)
     for k, v in pairs(p1) do
         if v ~= p2[k] and not util.any_of(k, ignore) then
@@ -89,27 +80,31 @@ end
 
 local function _can_merge_mosfet(m1, m2)
     -- device model has to be equal
-    if not m1.model == m2.model then
+    if m1.model ~= m2.model then
+        return false
     end
-    -- all connections have to be the same
+    -- gate and bulk have to be the same
     local c1 = m1.connections
     local c2 = m2.connections
-    if not _connections_match(m1.connections, m2.connections, { "gate", "bulk", }) then
+    if not _connections_match(c1, c2, { "gate", "bulk", }) then
         return false
     end
-    if not _connections_match_set(m1.connections, m2.connections, { { "source", "drain" }, { "drain", "source" } }) then
+    -- devices have to be in parallel (source and drain can be swapped)
+    local same = c1.source == c2.source and c1.drain == c2.drain
+    local swapped = c1.source == c2.drain and c1.drain == c2.source
+    if not (same or swapped) then
         return false
     end
-    if not _parameters_match(m1.parameters, m2.parameters, { "fingers", "fingerwidth" }) then
+    -- all parameters except the number of fingers have to be equal (fingers are added)
+    if not _parameters_match(m1.parameters, m2.parameters, { "fingers" }) then
         return false
     end
-    -- FIXME: check parameters
     return true
 end
 
 local function _can_merge(device1, device2)
     -- device type has to be equal
-    if not device1.type == device2.type then
+    if device1.type ~= device2.type then
         return false
     end
     -- currently only mosfets can be merged
@@ -246,8 +241,9 @@ local _map_mosfet_parameters = function(parameters)
     local l = import.parse_string_float(parameters.l)
     local w = import.parse_string_float(parameters.w)
     local nf = import.parse_string_integer(parameters.nf)
-    result.gatelength = l / 1e-9
-    result.fingerwidth = w / nf / 1e-9
+    -- sizes in nm, rounded to integers (basic/mosfet expects integers, the division is not exact in floating point)
+    result.gatelength = math.floor(l / 1e-9 + 0.5)
+    result.fingerwidth = math.floor(w / nf / 1e-9 + 0.5)
     result.fingers = nf
     return result
 end
