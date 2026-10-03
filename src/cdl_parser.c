@@ -13,32 +13,18 @@
 #include "util.h"
 #include "vector.h"
 
-static char siprefixes[] = {
-    'P',
-    'T',
-    'M',
-    'K', // should be lowercase k, but spectre si weird
-    'm',
-    'u',
-    'n',
-    'p',
-    'f',
-    'a',
-    0 /* sentinel */
-};
-
-static int _is_si_prefix(char ch)
+static int _equal_nocase(const char* str1, const char* str2)
 {
-    const char* ptr = siprefixes;
-    while(*ptr)
+    while(*str1 && *str2)
     {
-        if(ch == *ptr)
+        if(tolower(*str1) != tolower(*str2))
         {
-            return 1;
+            return 0;
         }
-        ++ptr;
+        ++str1;
+        ++str2;
     }
-    return 0;
+    return *str1 == *str2;
 }
 
 static char* _make_context(const char* filename, size_t startindex, size_t endindex)
@@ -119,6 +105,48 @@ static int _is_identifier_character(char c, int first)
     else
     {
         return isalnum(c) || c == '_' || c == '~' || c == '!';
+    }
+}
+
+static void _read_digits(struct buffer* buffer, struct string* str)
+{
+    char ch;
+    while(buffer_get(buffer, &ch) && isdigit(ch))
+    {
+        string_add_character(str, ch);
+        buffer_advance(buffer);
+    }
+}
+
+// reads the remaining characters of a number, the first character (digit or '-') is already in str
+// format: digits ['.' digits] [('e' | 'E') ['+' | '-'] digits] [letters]
+// trailing letters (scale factor and unit, e.g. '4um', '1meg') are kept as part of the number,
+// their meaning is resolved later (when converting values)
+static void _read_number(struct buffer* buffer, struct string* str)
+{
+    char ch;
+    _read_digits(buffer, str);
+    if(buffer_get(buffer, &ch) && ch == '.') // fractional part
+    {
+        string_add_character(str, ch);
+        buffer_advance(buffer);
+        _read_digits(buffer, str);
+    }
+    if(buffer_get(buffer, &ch) && (ch == 'e' || ch == 'E')) // scientific notation (or the start of a unit)
+    {
+        string_add_character(str, ch);
+        buffer_advance(buffer);
+        if(buffer_get(buffer, &ch) && (ch == '+' || ch == '-'))
+        {
+            string_add_character(str, ch);
+            buffer_advance(buffer);
+        }
+        _read_digits(buffer, str);
+    }
+    while(buffer_get(buffer, &ch) && isalpha(ch)) // scale factor and unit
+    {
+        string_add_character(str, ch);
+        buffer_advance(buffer);
     }
 }
 
@@ -242,90 +270,10 @@ struct CDL_tokenlist* _tokenize(const char* filename, const char** message)
         }
         if(isdigit(ch) || ch == '-') // number
         {
-            size_t endindex = startindex + 1;
             struct string* str = string_create();
             string_add_character(str, ch);
-            while(1)
-            {
-                char d;
-                if(!buffer_get(buffer, &d))
-                {
-                    break;
-                }
-                if(!isdigit(d))
-                {
-                    break;
-                }
-                string_add_character(str, (char)d);
-                buffer_advance(buffer);
-            }
-            char nch;
-            buffer_get(buffer, &nch); // no return value check is required, there must be a character
-                                      // this check was performed in the above while(1) loop
-            if(nch == '.') // fractional number
-            {
-                string_add_character(str, '.');
-                buffer_advance(buffer);
-                buffer_get(buffer, &nch); // no return value check is required, because if the get fails
-                                          // the nch character is not updated, hence it will still contain '.'
-                                          // in this case, the following isdigit/si_prefix/scientific_number
-                                          // checks will also fail
-            }
-            if(isdigit(nch))
-            {
-                string_add_character(str, nch);
-                buffer_advance(buffer);
-                while(1)
-                {
-                    if(!buffer_get(buffer, &nch))
-                    {
-                        break;
-                    }
-                    endindex = buffer_get_index(buffer);
-                    if(!isdigit(nch))
-                    {
-                        break;
-                    }
-                    buffer_advance(buffer);
-                    string_add_character(str, nch);
-                }
-            }
-            if(_is_si_prefix(nch)) // (SI prefix)
-            {
-                buffer_advance(buffer);
-                buffer_advance(buffer); // last character is part of the number
-                string_add_character(str, nch);
-            }
-            if(nch == 'e') // scientific notation
-            {
-                string_add_character(str, 'e');
-                buffer_advance(buffer);
-                // first character after 'e' can be a '-'
-                if(!buffer_get(buffer, &nch))
-                {
-                    *message = "expected more number characters after 'e'";
-                    return NULL;
-                }
-                if(!(isdigit(nch) || nch == '-'))
-                {
-                    break;
-                }
-                buffer_advance(buffer);
-                string_add_character(str, nch);
-                while(1)
-                {
-                    if(!buffer_get(buffer, &nch))
-                    {
-                        break;
-                    }
-                    if(!isdigit(nch))
-                    {
-                        break;
-                    }
-                    buffer_advance(buffer);
-                    string_add_character(str, nch);
-                }
-            }
+            _read_number(buffer, str);
+            size_t endindex = buffer_get_index(buffer);
             char* context = _make_context(filename, startindex, endindex);
             CDL_token_add(CDL_tokenlist, NUMBER, str, context);
             goto restart;
@@ -603,7 +551,43 @@ static int _is_directive(struct CDL_tokenlist* CDL_tokenlist, const char* key)
         return 0;
     }
     const char* keyword = CDL_token_get_value(CDL_tokenlist);
-    return strcmp(keyword, key) == 0;
+    return _equal_nocase(keyword, key);
+}
+
+static char* _read_net(struct CDL_tokenlist* CDL_tokenlist, const char** message)
+{
+    // net names can be identifiers or numbers (as '0' is a valid net)
+    if(!(CDL_token_expect(CDL_tokenlist, IDENTIFIER) || CDL_token_expect(CDL_tokenlist, NUMBER)))
+    {
+        *message = "expected a net name (an IDENTIFIER or a NUMBER)";
+        return NULL;
+    }
+    struct string* netname = string_create();
+    string_add_string(netname, CDL_token_get_value(CDL_tokenlist));
+    CDL_token_advance(CDL_tokenlist);
+    if(CDL_token_expect(CDL_tokenlist, OPENANGLEBRACE)) // bus net
+    {
+        CDL_token_advance(CDL_tokenlist);
+        if(!CDL_token_expect(CDL_tokenlist, NUMBER))
+        {
+            *message = "expected a number after '<' for a bus net name";
+            string_destroy(netname);
+            return NULL;
+        }
+        const char* busindex = CDL_token_get_value(CDL_tokenlist);
+        string_add_character(netname, '<');
+        string_add_string(netname, busindex);
+        string_add_character(netname, '>');
+        CDL_token_advance(CDL_tokenlist);
+        if(!CDL_token_expect(CDL_tokenlist, CLOSEANGLEBRACE))
+        {
+            *message = "expected a closing '>' for a bus net name";
+            string_destroy(netname);
+            return NULL;
+        }
+        CDL_token_advance(CDL_tokenlist);
+    }
+    return string_dissolve(netname);
 }
 
 static int _start_subcircuit(struct CDL_tokenlist* CDL_tokenlist, struct subcircuit* subcircuit)
@@ -624,20 +608,18 @@ static int _start_subcircuit(struct CDL_tokenlist* CDL_tokenlist, struct subcirc
     }
     // eat name
     CDL_token_advance(CDL_tokenlist);
-    // nets are all identifier after the name until a real newline (expect parameters)
-    while(CDL_token_expect(CDL_tokenlist, IDENTIFIER) && !CDL_token_expect_n(CDL_tokenlist, 1, EQUALSIGN))
+    // ports are all nets after the name until a real newline (except parameters)
+    while((CDL_token_expect(CDL_tokenlist, IDENTIFIER) || CDL_token_expect(CDL_tokenlist, NUMBER)) && !CDL_token_expect_n(CDL_tokenlist, 1, EQUALSIGN))
     {
-        const char* port = CDL_token_get_value(CDL_tokenlist);
-        // FIXME: do something with the port
-        CDL_token_advance(CDL_tokenlist);
-        if(CDL_token_expect(CDL_tokenlist, OPENANGLEBRACE)) // bus net
+        const char* message;
+        char* port = _read_net(CDL_tokenlist, &message);
+        if(!port)
         {
-            CDL_token_advance(CDL_tokenlist);
-            CDL_token_expect(CDL_tokenlist, NUMBER);
-            CDL_token_advance(CDL_tokenlist);
-            CDL_token_expect(CDL_tokenlist, CLOSEANGLEBRACE);
-            CDL_token_advance(CDL_tokenlist);
+            fprintf(stderr, "subcircuit definition: %s\n", message);
+            return 0;
         }
+        netlist_subcircuit_add_port(subcircuit, port);
+        free(port);
     }
     // read parameters
     while(CDL_token_expect(CDL_tokenlist, IDENTIFIER) && CDL_token_expect_n(CDL_tokenlist, 1, EQUALSIGN))
@@ -658,39 +640,6 @@ static int _start_subcircuit(struct CDL_tokenlist* CDL_tokenlist, struct subcirc
     // eat end-of-line
     CDL_token_advance(CDL_tokenlist);
     return 1;
-}
-
-static char* _read_net(struct CDL_tokenlist* CDL_tokenlist, const char** message)
-{
-    if(!CDL_token_expect(CDL_tokenlist, IDENTIFIER)) // net name
-    {
-        *message = "expected a net name (an IDENTIFIER)";
-        return NULL;
-    }
-    struct string* netname = string_create();
-    string_add_string(netname, CDL_token_get_value(CDL_tokenlist));
-    CDL_token_advance(CDL_tokenlist);
-    if(CDL_token_expect(CDL_tokenlist, OPENANGLEBRACE)) // bus net
-    {
-        CDL_token_advance(CDL_tokenlist);
-        if(!CDL_token_expect(CDL_tokenlist, NUMBER))
-        {
-            *message = "expected a number after '<' for a bus net name";
-            return NULL;
-        }
-        const char* busindex = CDL_token_get_value(CDL_tokenlist);
-        string_add_character(netname, '<');
-        string_add_string(netname, busindex);
-        string_add_character(netname, '>');
-        CDL_token_advance(CDL_tokenlist);
-        if(!CDL_token_expect(CDL_tokenlist, CLOSEANGLEBRACE))
-        {
-            *message = "expected a closing '>' for a bus net name";
-            return NULL;
-        }
-        CDL_token_advance(CDL_tokenlist);
-    }
-    return string_dissolve(netname);
 }
 
 static int _test_parameter(struct CDL_tokenlist* CDL_tokenlist)
@@ -732,7 +681,7 @@ static struct instance* _read_instantiation(struct CDL_tokenlist* CDL_tokenlist)
         CDL_token_advance(CDL_tokenlist);
     }
     struct instance* instance = netlist_make_instance(string_get(identifier));
-    switch(string_get_character(identifier, 0))
+    switch(toupper(string_get_character(identifier, 0))) // uppercase to match the case labels
     {
         case 'R':
             CDL_token_advance_until(CDL_tokenlist, ENDOFLINE);
@@ -803,19 +752,46 @@ static struct instance* _read_instantiation(struct CDL_tokenlist* CDL_tokenlist)
     return instance;
 }
 
-static void _end_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
+static int _end_subcircuit(struct CDL_tokenlist* CDL_tokenlist, const struct subcircuit* subcircuit)
 {
     CDL_token_advance(CDL_tokenlist); // eat 'ENDS'
+    if(CDL_token_expect(CDL_tokenlist, IDENTIFIER)) // optional subcircuit name
+    {
+        const char* name = CDL_token_get_value(CDL_tokenlist);
+        const char* subcircuitname = netlist_subcircuit_get_name(subcircuit);
+        if(!subcircuitname || !_equal_nocase(name, subcircuitname))
+        {
+            fprintf(stderr, "subcircuit definition: name after .ENDS ('%s') does not match subcircuit name ('%s')\n", name, subcircuitname ? subcircuitname : "");
+            return 0;
+        }
+        CDL_token_advance(CDL_tokenlist); // eat name
+    }
+    if(!CDL_token_expect(CDL_tokenlist, ENDOFLINE))
+    {
+        fprintf(stderr, "subcircuit definition: expected new line after .ENDS, got %s\n", CDL_token_stringify(CDL_tokenlist));
+        return 0;
+    }
+    return 1;
 }
 
 static struct subcircuit* _read_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
 {
     struct subcircuit* subcircuit = netlist_make_subcircuit();
     // read start
-    _start_subcircuit(CDL_tokenlist, subcircuit);
+    if(!_start_subcircuit(CDL_tokenlist, subcircuit))
+    {
+        netlist_destroy_subcircuit(subcircuit);
+        return NULL;
+    }
     // read content
     while(!_is_directive(CDL_tokenlist, "ENDS"))
     {
+        if(CDL_token_empty(CDL_tokenlist))
+        {
+            fprintf(stderr, "%s\n", "subcircuit definition: reached end of netlist without .ENDS");
+            netlist_destroy_subcircuit(subcircuit);
+            return NULL;
+        }
         if(CDL_token_expect(CDL_tokenlist, IDENTIFIER)) // instantiation
         {
             struct instance* instance = _read_instantiation(CDL_tokenlist);
@@ -834,7 +810,11 @@ static struct subcircuit* _read_subcircuit(struct CDL_tokenlist* CDL_tokenlist)
         }
     }
     // read end
-    _end_subcircuit(CDL_tokenlist);
+    if(!_end_subcircuit(CDL_tokenlist, subcircuit))
+    {
+        netlist_destroy_subcircuit(subcircuit);
+        return NULL;
+    }
     return subcircuit;
 }
 
@@ -888,11 +868,17 @@ struct netlist* cdlparser_parse(const char* filename)
             if(_is_directive(CDL_tokenlist, "SUBCKT")) // subcircuit definition
             {
                 struct subcircuit* subcircuit = _read_subcircuit(CDL_tokenlist);
+                if(!subcircuit)
+                {
+                    CDL_tokenlist_destroy(CDL_tokenlist);
+                    netlist_destroy(netlist);
+                    return NULL;
+                }
                 netlist_add_subcircuit(netlist, subcircuit);
             }
-            else // ignore other directives
+            else // ignore other directives (including their arguments)
             {
-                CDL_token_advance(CDL_tokenlist);
+                CDL_token_advance_until(CDL_tokenlist, ENDOFLINE);
             }
         }
         else if(CDL_token_expect(CDL_tokenlist, COMMENT))
