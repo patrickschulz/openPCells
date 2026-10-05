@@ -121,7 +121,14 @@ local function _do_merge(device1, device2)
     end
 end
 
-function M.map_netlist_devices(netlist, devicemap, verbose)
+function M.map_netlist_devices(netlist, devicemap, options)
+    -- options: { verbose = false, merge = true } ('merge = false' keeps parallel devices separate, e.g. hand-split devices)
+    -- a boolean is accepted as 'verbose' (old signature)
+    if type(options) ~= "table" then
+        options = { verbose = options }
+    end
+    local verbose = options.verbose
+    local domerge = options.merge ~= false
     local devices = {}
     -- map devices to opc cells, parse parameters
     for _, subcircuit in ipairs(netlist) do
@@ -153,6 +160,9 @@ function M.map_netlist_devices(netlist, devicemap, verbose)
                 connections = instance.connections,
             })
         end
+    end
+    if not domerge then
+        return devices
     end
     local nummerged = 0
     for idx1 = 1, #devices do
