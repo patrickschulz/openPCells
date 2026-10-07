@@ -161,6 +161,7 @@ while [[ $# -gt 0 ]]; do
         echo "of a 'local' installation in some folder in the home directory"
         echo "of a user without install privileges):"
         echo "% ./configure.sh \\"
+        echo "    --prefix \"\" \\"
         echo "    --bin-path /home/<user>/opc/bin \\"
         echo "    --all-load-paths /home/<user>/opcshare \\"
         echo "    --man-path /home/<user>/opc/man"
@@ -174,10 +175,6 @@ while [[ $# -gt 0 ]]; do
         echo "This allows for installations via:"
         echo "% make"
         echo "% make DESTDIR=/some/directory/ install"
-        echo ""
-        echo "NOTE:"
-        echo "parallel make (make -j) can cause problems,"
-        echo "try running without -j if you experience issues."
         exit
         ;;
     *)
@@ -186,38 +183,61 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# installing is not possible if a load path is the source directory itself
+# (install would copy the directories onto themselves, uninstall would delete them)
+LOCAL_SETUP=no
+for path in "${PREFIX}${CELL_PATH}" "${PREFIX}${TECH_PATH}" "${PREFIX}${EXPORT_PATH}" "${PREFIX}${DOC_PATH}" "${PREFIX}${TOOLS_PATH}"; do
+    if [ "${path}" = "$(pwd)" ]; then
+        LOCAL_SETUP=yes
+    fi
+done
+
 # create Makefile
 echo "writing Makefile"
 cat > Makefile << EOF
-DEPENDENCIES := src/_config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h src/main.api_help/*.c
+LOCAL_SETUP := ${LOCAL_SETUP}
 
 .PHONY: default
 default: opc
 
-opc: \$(DEPENDENCIES)
+# the build targets are always delegated to src/Makefile, which decides what needs to be rebuilt
+# sub-makes run one after another (they share generated files), but each one still builds in parallel with -j
+.NOTPARALLEL:
+
+opc: FORCE
 	@\$(MAKE) -C src opc
 	@mv src/opc .
 
-opc-lint: \$(DEPENDENCIES)
+opc-lint: FORCE
 	@\$(MAKE) -C src opc-lint
 	@mv src/opc-lint .
 
-opc-debug: \$(DEPENDENCIES)
+opc-debug: FORCE
 	@\$(MAKE) -C src opc-debug
 	@mv src/opc-debug .
 
-opc.1: src/cmdoptions_def.c src/generate_manpage.c
+opc.1: FORCE
 	@\$(MAKE) -C src opc.1
 	mv src/opc.1 .
+
+.PHONY: FORCE
+FORCE:
 
 .PHONY: check
 check:
 	@\$(MAKE) -C src check
 
+.PHONY: check-install
+check-install:
+	@if [ "\$(LOCAL_SETUP)" = yes ]; then \\
+		echo "install/uninstall is not possible, a load path is the source directory (configured with --all-load-paths-local?)" 1>&2; \\
+		exit 1; \\
+	fi
+
 .PHONY: install
-install: opc opc.1
-	install -m 755 -D opc \${DESTDIR}${BIN_PATH}/${EXE_NAME}
-	install -m 644 -D opc.1 \${DESTDIR}${MAN_PATH}/${EXE_NAME}.1
+install: check-install opc opc.1
+	install -m 755 -D opc \${DESTDIR}${PREFIX}${BIN_PATH}/${EXE_NAME}
+	install -m 644 -D opc.1 \${DESTDIR}${PREFIX}${MAN_PATH}/${EXE_NAME}.1
 	mkdir -p \${DESTDIR}${PREFIX}${CELL_PATH}
 	cp -R cells \${DESTDIR}${PREFIX}${CELL_PATH}
 	mkdir -p \${DESTDIR}${PREFIX}${TECH_PATH}
@@ -229,15 +249,19 @@ install: opc opc.1
 	mkdir -p \${DESTDIR}${PREFIX}${TOOLS_PATH}
 	cp -R tools \${DESTDIR}${PREFIX}${TOOLS_PATH}
 
+# removes exactly what install created, the load path directories are only removed if they are empty
 .PHONY: uninstall
-uninstall:
-	rm -m 755 -D opc \${DESTDIR}${PREFIX}${BIN_PATH}/${EXE_NAME}
-	irm -m 644 -D opc.1 \${DESTDIR}${PREFIX}${MAN_PATH}/${EXE_NAME}.1
-	rm -rf \${DESTDIR}${PREFIX}${CELL_PATH}
-	rm -p \${DESTDIR}${PREFIX}${TECH_PATH}
-	rm -p \${DESTDIR}${PREFIX}${EXPORT_PATH}
-	rm -p \${DESTDIR}${PREFIX}${DOC_PATH}
-	rm -p \${DESTDIR}${PREFIX}${TOOLS_PATH}
+uninstall: check-install
+	rm -f \${DESTDIR}${PREFIX}${BIN_PATH}/${EXE_NAME}
+	rm -f \${DESTDIR}${PREFIX}${MAN_PATH}/${EXE_NAME}.1
+	rm -rf \${DESTDIR}${PREFIX}${CELL_PATH}/cells
+	rm -rf \${DESTDIR}${PREFIX}${TECH_PATH}/tech
+	rm -rf \${DESTDIR}${PREFIX}${EXPORT_PATH}/export
+	rm -rf \${DESTDIR}${PREFIX}${DOC_PATH}/doc
+	rm -rf \${DESTDIR}${PREFIX}${TOOLS_PATH}/tools
+	@for dir in \${DESTDIR}${PREFIX}${CELL_PATH} \${DESTDIR}${PREFIX}${TECH_PATH} \${DESTDIR}${PREFIX}${EXPORT_PATH} \${DESTDIR}${PREFIX}${DOC_PATH} \${DESTDIR}${PREFIX}${TOOLS_PATH}; do \\
+		rmdir "\$\$dir" 2>/dev/null || true; \\
+	done
 
 .PHONY: doc
 doc:

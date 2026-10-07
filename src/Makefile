@@ -129,6 +129,13 @@ RELEASEOBJS = $(addprefix release/, $(OBJS))
 LINTOBJS = $(addprefix lint/, $(OBJS))
 DEBUGOBJS = $(addprefix debug/, $(OBJS))
 
+# header dependencies are written by the compiler (-MMD -MP) as .d files next to the object files
+DEPFLAGS=-MMD -MP
+
+# generated files that are included by some sources
+# (order-only, the real dependencies are tracked by the .d files once they exist)
+GENERATED_HEADERS=_modulemanager.h _scriptmanager.h
+
 .PHONY: default
 default: $(PROGNAME) $(PROGNAME)-debug
 
@@ -141,35 +148,28 @@ $(PROGNAME)-lint: lint/$(PROGNAME)
 $(PROGNAME)-debug: debug/$(PROGNAME)
 	cp debug/$(PROGNAME) $(PROGNAME)-debug
 
-release:
-	mkdir -p release
-	mkdir -p release/lua
+release/lua lint/lua debug/lua:
+	mkdir -p $@
 
-release/$(PROGNAME): release cmdoptions_def.c version.h main.c liblua_release.a _modulemanager.h _modulemanager.c _scriptmanager.h _scriptmanager.c $(RELEASEOBJS)
-	$(CC) $(CFLAGS) $(OPTFLAGS) -DNDEBUG -o release/$(PROGNAME) main.c $(RELEASEOBJS) _modulemanager.c _scriptmanager.c liblua_release.a -lm -ldl
+release/$(PROGNAME): release/main.o liblua_release.a _modulemanager.c _scriptmanager.c $(RELEASEOBJS)
+	$(CC) $(CFLAGS) $(OPTFLAGS) -DNDEBUG -o release/$(PROGNAME) release/main.o $(RELEASEOBJS) _modulemanager.c _scriptmanager.c liblua_release.a -lm -ldl
 
-release/%.o: %.c
-	$(CC) -c $(CFLAGS) $(OPTFLAGS) -DNDEBUG -o $@ $<
+release/%.o: %.c | release/lua $(GENERATED_HEADERS)
+	$(CC) -c $(CFLAGS) $(OPTFLAGS) -DNDEBUG $(DEPFLAGS) -o $@ $<
 
-lint:
-	mkdir -p lint
-	mkdir -p lint/lua
+lint/$(PROGNAME): lint/main.o liblua_lint.a _modulemanager.c _scriptmanager.c $(LINTOBJS)
+	$(CC) $(CFLAGS) $(OPTFLAGS) -DOPC_LINT -o lint/$(PROGNAME) lint/main.o $(LINTOBJS) _modulemanager.c _scriptmanager.c liblua_lint.a -lm -ldl
 
-lint/$(PROGNAME): lint cmdoptions_def.c version.h main.c liblua_lint.a _modulemanager.h _modulemanager.c _scriptmanager.h _scriptmanager.c $(LINTOBJS)
-	$(CC) $(CFLAGS) $(OPTFLAGS) -DOPC_LINT -o lint/$(PROGNAME) main.c $(LINTOBJS) _modulemanager.c _scriptmanager.c liblua_lint.a -lm -ldl
+lint/%.o: %.c | lint/lua $(GENERATED_HEADERS)
+	$(CC) -c $(CFLAGS) $(OPTFLAGS) -DOPC_LINT $(DEPFLAGS) -o $@ $<
 
-lint/%.o: %.c
-	$(CC) -c $(CFLAGS) $(OPTFLAGS) -DOPC_LINT -o $@ $<
+debug/$(PROGNAME): debug/main.o liblua_debug.a _modulemanager.c _scriptmanager.c $(DEBUGOBJS)
+	$(CC) $(CFLAGS) -O0 -g -o debug/$(PROGNAME) debug/main.o $(DEBUGOBJS) _modulemanager.c _scriptmanager.c liblua_debug.a -lm -ldl
 
-debug:
-	mkdir -p debug
-	mkdir -p debug/lua
+debug/%.o: %.c | debug/lua $(GENERATED_HEADERS)
+	$(CC) -c $(CFLAGS) -DOPC_DEBUG -O0 -g $(DEPFLAGS) -o $@ $<
 
-debug/$(PROGNAME): debug cmdoptions_def.c version.h main.c liblua_debug.a _modulemanager.h _modulemanager.c _scriptmanager.h _scriptmanager.c $(DEBUGOBJS)
-	$(CC) $(CFLAGS) -O0 -g -o debug/$(PROGNAME) main.c $(DEBUGOBJS) _modulemanager.c _scriptmanager.c liblua_debug.a -lm -ldl
-
-debug/%.o: %.c
-	$(CC) -c $(CFLAGS) -DOPC_DEBUG -O0 -g -o $@ $<
+-include $(wildcard release/*.d release/lua/*.d lint/*.d lint/lua/*.d debug/*.d debug/lua/*.d)
 
 .PHONY: check
 check:
@@ -181,79 +181,78 @@ opc.1: cmdoptions_def.c generate_manpage
 generate_manpage: cmdoptions.h cmdoptions.c print.c generate_manpage.c
 	$(CC) $(CFLAGS) generate_manpage.c cmdoptions.c print.c vector.c util.c -o generate_manpage
 
-_scriptmanager.c: _embed_compiled_lua_file scripts/*.lua
-	@echo '#include "_scriptmanager.h"' > __scriptmanager.c
-	@echo '#include <stddef.h>' >> __scriptmanager.c
-	@echo '#include "main.lua.h"' >> __scriptmanager.c
-	./_embed_compiled_lua_file --script scripts/show_cell_info.lua script_call show_cell_info __scriptmanager.c
-	./_embed_compiled_lua_file --script scripts/create_cell_documentation.lua script_call create_cell_documentation __scriptmanager.c
-	./_embed_compiled_lua_file --script scripts/list_cells.lua script_call list_cells __scriptmanager.c
-	./_embed_compiled_lua_file --script scripts/list_parameters.lua script_call list_parameters __scriptmanager.c
-	./_embed_compiled_lua_file --script scripts/list_anchors.lua script_call list_anchors __scriptmanager.c
-	./_embed_compiled_lua_file --script scripts/templates.lua script_call templates __scriptmanager.c
-	./_embed_compiled_lua_file --script scripts/check_technology.lua script_call check_technology __scriptmanager.c
-	@mv __scriptmanager.c _scriptmanager.c
+# embedded lua files
+# scripts/<name>.lua is available as script_call_<name>, modules/<name>.lua as module_load_<name>
+EMBEDDED_SCRIPTS:= \
+	show_cell_info \
+	create_cell_documentation \
+	list_cells \
+	list_parameters \
+	list_anchors \
+	templates \
+	check_technology
 
-_scriptmanager.h:
-	@echo '#ifndef OPC_SCRIPTMANAGER_H' > __scriptmanager.h
-	@echo '#define OPC_SCRIPTMANAGER_H' >> __scriptmanager.h
-	@echo '#include "lua/lua.h"' >> __scriptmanager.h
-	@echo 'int script_call_show_cell_info(lua_State* L);' >> __scriptmanager.h
-	@echo 'int script_call_create_cell_documentation(lua_State* L);' >> __scriptmanager.h
-	@echo 'int script_call_list_cells(lua_State* L);' >> __scriptmanager.h
-	@echo 'int script_call_list_parameters(lua_State* L);' >> __scriptmanager.h
-	@echo 'int script_call_list_anchors(lua_State* L);' >> __scriptmanager.h
-	@echo 'int script_call_templates(lua_State* L);' >> __scriptmanager.h
-	@echo 'int script_call_check_technology(lua_State* L);' >> __scriptmanager.h
-	@echo '#endif // OPC_SCRIPTMANAGER_H' >> __scriptmanager.h
-	@mv __scriptmanager.h _scriptmanager.h
+EMBEDDED_MODULES:= \
+	alignmentgroup \
+	aux \
+	check \
+	generator \
+	globals \
+	graphics \
+	import \
+	generics \
+	layouthelpers \
+	load \
+	pcell \
+	placement \
+	profiler \
+	routing \
+	tools \
+	util \
+	verilog \
+	verilogprocessor
 
-_modulemanager.c: _embed_compiled_lua_file modules/*.lua
-	@echo '#include "_modulemanager.h"' > _modulemanager.c
-	@echo '#include <stddef.h>' >> _modulemanager.c
-	@echo '#include "main.lua.h"' >> _modulemanager.c
-	./_embed_compiled_lua_file --module modules/alignmentgroup.lua module_load alignmentgroup _modulemanager.c
-	./_embed_compiled_lua_file --module modules/aux.lua module_load aux _modulemanager.c
-	./_embed_compiled_lua_file --module modules/check.lua module_load check _modulemanager.c
-	./_embed_compiled_lua_file --module modules/generator.lua module_load generator _modulemanager.c
-	./_embed_compiled_lua_file --module modules/globals.lua module_load globals _modulemanager.c
-	./_embed_compiled_lua_file --module modules/graphics.lua module_load graphics _modulemanager.c
-	./_embed_compiled_lua_file --module modules/import.lua module_load import _modulemanager.c
-	./_embed_compiled_lua_file --module modules/generics.lua module_load generics _modulemanager.c
-	./_embed_compiled_lua_file --module modules/layouthelpers.lua module_load layouthelpers _modulemanager.c
-	./_embed_compiled_lua_file --module modules/load.lua module_load load _modulemanager.c
-	./_embed_compiled_lua_file --module modules/pcell.lua module_load pcell _modulemanager.c
-	./_embed_compiled_lua_file --module modules/placement.lua module_load placement _modulemanager.c
-	./_embed_compiled_lua_file --module modules/profiler.lua module_load profiler _modulemanager.c
-	./_embed_compiled_lua_file --module modules/routing.lua module_load routing _modulemanager.c
-	./_embed_compiled_lua_file --module modules/tools.lua module_load tools _modulemanager.c
-	./_embed_compiled_lua_file --module modules/util.lua module_load util _modulemanager.c
-	./_embed_compiled_lua_file --module modules/verilog.lua module_load verilog _modulemanager.c
-	./_embed_compiled_lua_file --module modules/verilogprocessor.lua module_load verilogprocessor _modulemanager.c
+# the headers only depend on the lists above, they are regenerated on every run,
+# but only replaced if their content changed (so that dependent objects are not rebuilt unnecessarily)
+.PHONY: FORCE
+FORCE:
 
-_modulemanager.h: modules/*.lua
-	@echo '#ifndef OPC_MODULEMANAGER_H' > _modulemanager.h
-	@echo '#define OPC_MODULEMANAGER_H' >> _modulemanager.h
-	@echo '#include "lua/lua.h"' >> _modulemanager.h
-	@echo 'int module_load_alignmentgroup(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_aux(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_check(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_generator(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_globals(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_graphics(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_import(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_generics(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_layouthelpers(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_load(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_pcell(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_placement(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_profiler(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_routing(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_tools(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_util(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_verilog(lua_State* L);' >> _modulemanager.h
-	@echo 'int module_load_verilogprocessor(lua_State* L);' >> _modulemanager.h
-	@echo '#endif // OPC_MODULEMANAGER_H' >> _modulemanager.h
+_scriptmanager.h: FORCE
+	@echo '#ifndef OPC_SCRIPTMANAGER_H' > $@.tmp
+	@echo '#define OPC_SCRIPTMANAGER_H' >> $@.tmp
+	@echo '#include "lua/lua.h"' >> $@.tmp
+	@for name in $(EMBEDDED_SCRIPTS); do echo "int script_call_$$name(lua_State* L);" >> $@.tmp; done
+	@echo '#endif // OPC_SCRIPTMANAGER_H' >> $@.tmp
+	@cmp -s $@.tmp $@ && rm $@.tmp || mv $@.tmp $@
+
+_modulemanager.h: FORCE
+	@echo '#ifndef OPC_MODULEMANAGER_H' > $@.tmp
+	@echo '#define OPC_MODULEMANAGER_H' >> $@.tmp
+	@echo '#include "lua/lua.h"' >> $@.tmp
+	@for name in $(EMBEDDED_MODULES); do echo "int module_load_$$name(lua_State* L);" >> $@.tmp; done
+	@echo '#endif // OPC_MODULEMANAGER_H' >> $@.tmp
+	@cmp -s $@.tmp $@ && rm $@.tmp || mv $@.tmp $@
+
+# the header is a prerequisite, as it changes when the list of embedded files changes
+_scriptmanager.c: _embed_compiled_lua_file _scriptmanager.h $(addprefix scripts/, $(addsuffix .lua, $(EMBEDDED_SCRIPTS)))
+	@echo '#include "_scriptmanager.h"' > $@.tmp
+	@echo '#include <stddef.h>' >> $@.tmp
+	@echo '#include "main.lua.h"' >> $@.tmp
+	@for name in $(EMBEDDED_SCRIPTS); do \
+		echo "./_embed_compiled_lua_file --script scripts/$$name.lua script_call $$name $@"; \
+		./_embed_compiled_lua_file --script scripts/$$name.lua script_call $$name $@.tmp || exit 1; \
+	done
+	@mv $@.tmp $@
+
+_modulemanager.c: _embed_compiled_lua_file _modulemanager.h $(addprefix modules/, $(addsuffix .lua, $(EMBEDDED_MODULES)))
+	@echo '#include "_modulemanager.h"' > $@.tmp
+	@echo '#include <stddef.h>' >> $@.tmp
+	@echo '#include "main.lua.h"' >> $@.tmp
+	@for name in $(EMBEDDED_MODULES); do \
+		echo "./_embed_compiled_lua_file --module modules/$$name.lua module_load $$name $@"; \
+		./_embed_compiled_lua_file --module modules/$$name.lua module_load $$name $@.tmp || exit 1; \
+	done
+	@mv $@.tmp $@
 
 _embed_compiled_lua_file: embed_compiled_lua_file.c
 	$(CC) $(CFLAGS) $(PPFLAGS) embed_compiled_lua_file.c lua/lapi.c lua/lauxlib.c lua/lbaselib.c lua/lcode.c lua/lcorolib.c lua/lctype.c lua/ldblib.c lua/ldebug.c lua/ldo.c lua/ldump.c lua/lfunc.c lua/lgc.c lua/linit.c lua/liolib.c lua/llex.c lua/lmathlib.c lua/lmem.c lua/loadlib.c lua/lobject.c lua/lopcodes.c lua/loslib.c lua/lparser.c lua/lstate.c lua/lstring.c lua/lstrlib.c lua/ltable.c lua/ltablib.c lua/ltm.c lua/lundump.c lua/lvm.c lua/lzio.c -o _embed_compiled_lua_file -lm -ldl
@@ -267,7 +266,6 @@ create_HTML_API_doc: create_HTML_API_doc.c main.api_help.c main.api_help/*.c mai
 create_cell_documentation: create_cell_documentation.c main.config.c main.lua.c main.cellbase.c cmdoptions.c lua_util.c print.c filesystem.h filesystem.c error.c hashmap.c vector.c util.c string.c strprint.c pcell.info.c pcell.state.c pcell.common.c ldir.c _scriptmanager.c _modulemanager.c liblua_release.a
 	$(CC) $(CFLAGS) create_cell_documentation.c main.config.c main.lua.c main.cellbase.c cmdoptions.c lua_util.c print.c filesystem.c error.c hashmap.c vector.c util.c string.c strprint.c pcell.info.c pcell.state.c pcell.common.c ldir.c _scriptmanager.c _modulemanager.c liblua_release.a -o create_cell_documentation -lm -ldl
 
-include recipes.mk
 include lua.mk
 
 .PHONY: clean
@@ -285,5 +283,4 @@ clean:
 	@rm -f create_HTML_API_doc
 	@rm -f create_cell_documentation
 	@rm -f _modulemanager.h _modulemanager.c
-	@rm -f _scriptmanager.h _scriptmanager.c
 	@rm -f _scriptmanager.h _scriptmanager.c

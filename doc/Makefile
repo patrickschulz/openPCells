@@ -27,8 +27,12 @@ celldoc: ../src/create_cell_documentation
 
 apirefs.js:
 
-../src/create_cell_documentation:
+# always delegate to src/Makefile, which decides what needs to be rebuilt
+../src/create_cell_documentation: FORCE
 	@$(MAKE) -C ../src create_cell_documentation
+
+.PHONY: FORCE
+FORCE:
 
 %.html: %.htmlpre includes/footer.html
 	@lua process_html.lua $*
