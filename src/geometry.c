@@ -2470,6 +2470,12 @@ struct fill_span {
  * every row of the compressed grid is split into maximal horizontal spans of equal state (covered/empty),
  * spans with identical x range and state in consecutive rows are merged vertically.
  * Finished regions are filled directly.
+ *
+ * Scaling: with N obstructions the compressed grid has up to (2N + 1) x (2N + 1) cells and every row is scanned
+ * completely (coverage updates and span building), so the sweep is O(N^2) in time (memory is only O(N)).
+ * This is negligible for hundreds of excludes, but for tens of thousands it starts to dominate.
+ * Possible improvement: keep the row state in an interval structure (e.g. a segment tree over the compressed
+ * x coordinates) and only rebuild the spans in the x range touched by the events of the current row.
  */
 static void _partition_and_fill(struct fill_state* state, struct fill_obstruction* obstructions, size_t numobstructions)
 {
