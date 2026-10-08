@@ -50,6 +50,18 @@ struct vector* placement_calculate_origins(
     const struct polygon_container* excludes
 );
 
+int placement_is_in_targetarea(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct simple_polygon* targetarea);
+
+// lowest possible fill origin (center) of placement_calculate_origins_centered (all following origins are on a xpitch/ypitch grid)
+void placement_calculate_origins_centered_start(
+    ucoordinate_t width, ucoordinate_t height,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    coordinate_t xstartshift, coordinate_t ystartshift,
+    coordinate_t minx, coordinate_t maxx,
+    coordinate_t miny, coordinate_t maxy,
+    coordinate_t* xstart, coordinate_t* ystart
+);
+
 struct vector* placement_calculate_origins_centered(
     ucoordinate_t width, ucoordinate_t height,
     ucoordinate_t xpitch, ucoordinate_t ypitch,

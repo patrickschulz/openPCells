@@ -15,7 +15,7 @@ void destroy_placement_layerexclude(void* v)
     free(layerexclude);
 }
 
-static int _is_in_targetarea(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct simple_polygon* targetarea)
+int placement_is_in_targetarea(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct simple_polygon* targetarea)
 {
     // FIXME: this needs a proper polygon intersection test
     return (polygon_is_point_in_simple_polygon(targetarea, x - width / 2, y - height / 2) >= 0) &&
@@ -300,7 +300,7 @@ struct vector* placement_calculate_origins(
         coordinate_t y = miny + ((ystartshift + yshift) % ypitch);
         while(y <= maxy)
         {
-            int insert = _is_in_targetarea(x, y, width, height, targetarea);
+            int insert = placement_is_in_targetarea(x, y, width, height, targetarea);
             if(excludes && _is_in_excludes(x, y, width, height, excludes))
             {
                 insert = 0;
@@ -316,6 +316,24 @@ struct vector* placement_calculate_origins(
     return origins;
 }
 
+void placement_calculate_origins_centered_start(
+    ucoordinate_t width, ucoordinate_t height,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    coordinate_t xstartshift, coordinate_t ystartshift,
+    coordinate_t minx, coordinate_t maxx,
+    coordinate_t miny, coordinate_t maxy,
+    coordinate_t* xstart, coordinate_t* ystart
+)
+{
+    // calculate x and y shifts (relies on integer mathematics)
+    // basically, this calculates the maximum number of placed rectangles
+    // and the corresponding required shift to center this amount
+    int xshift = ((maxx - minx + xpitch - width) - ((maxx - minx + xpitch - width) / (xpitch)) * xpitch) / 2;
+    int yshift = ((maxy - miny + ypitch - height) - ((maxy - miny + ypitch - height) / (ypitch)) * ypitch) / 2;
+    *xstart = minx + ((xstartshift + xshift) % xpitch) + width / 2;
+    *ystart = miny + ((ystartshift + yshift) % ypitch) + height / 2;
+}
+
 struct vector* placement_calculate_origins_centered(
     ucoordinate_t width, ucoordinate_t height,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
@@ -327,11 +345,14 @@ struct vector* placement_calculate_origins_centered(
     coordinate_t minx, maxx, miny, maxy;
     _get_minmax(targetarea, &minx, &miny, &maxx, &maxy);
 
-    // calculate x and y shifts (relies on integer mathematics)
-    // basically, this calculates the maximum number of placed rectangles
-    // and the corresponding required shift to center this amount
-    int xshift = ((maxx - minx + xpitch - width) - ((maxx - minx + xpitch - width) / (xpitch)) * xpitch) / 2;
-    int yshift = ((maxy - miny + ypitch - height) - ((maxy - miny + ypitch - height) / (ypitch)) * ypitch) / 2;
+    coordinate_t xstart, ystart;
+    placement_calculate_origins_centered_start(
+        width, height,
+        xpitch, ypitch,
+        xstartshift, ystartshift,
+        minx, maxx, miny, maxy,
+        &xstart, &ystart
+    );
 
     // filter out polygons whose boundaries lie outside of the fill area
     struct polygon_container* filtered_excludes = NULL;
@@ -362,13 +383,13 @@ struct vector* placement_calculate_origins_centered(
     }
 
     struct vector* origins = vector_create(32, point_destroy);
-    coordinate_t x = minx + ((xstartshift + xshift) % xpitch) + width / 2;
+    coordinate_t x = xstart;
     while(x <= maxx)
     {
-        coordinate_t y = miny + ((ystartshift + yshift) % ypitch) + height / 2;
+        coordinate_t y = ystart;
         while(y <= maxy)
         {
-            int insert = _is_in_targetarea(x, y, width, height, targetarea);
+            int insert = placement_is_in_targetarea(x, y, width, height, targetarea);
             if(filtered_excludes && _is_in_excludes(x, y, width, height, filtered_excludes))
             {
                 insert = 0;
@@ -623,7 +644,7 @@ static void _place_within_layer_boundaries(
                 struct const_vector* celllayers = lookup->layers;
 
                 int insert =
-                    _is_in_targetarea(x, y, xpitch, ypitch, targetarea) &&
+                    placement_is_in_targetarea(x, y, xpitch, ypitch, targetarea) &&
                     !_is_in_layerexcludes(x, y, xpitch, ypitch, celllayers, layerexcludes) &&
                     !_is_any_of_layers(celllayers, blocked_layers)
                 ;
