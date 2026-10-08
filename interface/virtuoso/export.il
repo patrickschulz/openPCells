@@ -356,6 +356,14 @@ procedure(OPCExportGetPathRects(pts width extensions)
     ) ; let
 ) ; OPCExportGetPathRects
 
+procedure(OPCExportSortRectPoints(pt1 pt2)
+    ; corner points (bl tr) of the rectangle spanned by two arbitrary corner points
+    list(
+        list(min(xCoord(pt1) xCoord(pt2)) min(yCoord(pt1) yCoord(pt2)))
+        list(max(xCoord(pt1) xCoord(pt2)) max(yCoord(pt1) yCoord(pt2)))
+    )
+) ; OPCExportSortRectPoints
+
 procedure(OPCExportWriteCellShapes(file cellname shapes)
     let(
         (width rects netrect)
@@ -370,13 +378,15 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
                         OPCExportFormatPoint(nthelem(4 shape))
                     )
                     when(nthelem(5 shape) ; has net
+                        ; add_net_shape requires bl/tr order, which is lost when the rect was rotated/mirrored
+                        netrect = OPCExportSortRectPoints(nthelem(3 shape) nthelem(4 shape))
                         newline(file)
                         fprintf(file
                             "%s:add_net_shape(\"%s\", %s, %s, %s)"
                             cellname
                             nthelem(5 shape)
-                            OPCExportFormatPoint(nthelem(3 shape))
-                            OPCExportFormatPoint(nthelem(4 shape))
+                            OPCExportFormatPoint(car(netrect))
+                            OPCExportFormatPoint(cadr(netrect))
                             OPCExportFormatLayer(cadr(shape))
                         )
                     ) ; when net
