@@ -2,6 +2,17 @@ procedure(OPCExportConvertCoordToOPCUnit(c)
     round(c * 1000)
 ) ; OPCExportConvertCoordToOPCUnit
 
+procedure(OPCExportLuaString(str)
+    ; escape a string for use inside a double-quoted lua string
+    buildString(
+        mapcar(
+            lambda((c) if(c == "\\" || c == "\"" then strcat("\\" c) else c))
+            parseString(str "")
+        )
+        ""
+    )
+) ; OPCExportLuaString
+
 procedure(OPCExportFormatPoint(pt)
     lsprintf(
         "point.create(%d, %d)"
@@ -29,7 +40,7 @@ procedure(OPCExportFormatLayer(lpp)
             then
                 lsprintf("%s" car(mapping)->map)
             else
-                lsprintf("generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } })" layer purpose)
+                lsprintf("generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } })" OPCExportLuaString(layer) OPCExportLuaString(purpose))
         )
     ) ; let
 ) ; OPCExportFormatLayer
@@ -364,7 +375,7 @@ procedure(OPCExportSortRectPoints(pt1 pt2)
     )
 ) ; OPCExportSortRectPoints
 
-procedure(OPCExportWriteCellShapes(file cellname shapes)
+procedure(OPCExportWriteCellShapes(file varname shapes)
     let(
         (width rects netrect)
         foreach(shape shapes
@@ -372,7 +383,7 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
                 ("rect"
                     fprintf(file
                         "geometry.rectanglepoints(%s, %s, %s, %s)"
-                        cellname
+                        varname
                         OPCExportFormatLayer(cadr(shape))
                         OPCExportFormatPoint(nthelem(3 shape))
                         OPCExportFormatPoint(nthelem(4 shape))
@@ -383,8 +394,8 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
                         newline(file)
                         fprintf(file
                             "%s:add_net_shape(\"%s\", %s, %s, %s)"
-                            cellname
-                            nthelem(5 shape)
+                            varname
+                            OPCExportLuaString(nthelem(5 shape))
                             OPCExportFormatPoint(car(netrect))
                             OPCExportFormatPoint(cadr(netrect))
                             OPCExportFormatLayer(cadr(shape))
@@ -394,7 +405,7 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
                 ("polygon"
                     fprintf(file
                         "geometry.polygon(%s, %s, { %s })"
-                        cellname
+                        varname
                         OPCExportFormatLayer(cadr(shape))
                         OPCExportFormatPoints(nthelem(3 shape))
                     )
@@ -408,7 +419,7 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
                                 unless(eq(rect car(rects)) newline(file))
                                 fprintf(file
                                     "geometry.rectanglepoints(%s, %s, %s, %s)"
-                                    cellname
+                                    varname
                                     OPCExportFormatLayer(cadr(shape))
                                     OPCExportFormatPoint(car(rect))
                                     OPCExportFormatPoint(cadr(rect))
@@ -421,7 +432,7 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
                             )
                             fprintf(file
                                 "geometry.path(%s, %s, { %s }, %d, { %d, %d })"
-                                cellname
+                                varname
                                 OPCExportFormatLayer(cadr(shape))
                                 OPCExportFormatPoints(nthelem(3 shape))
                                 width
@@ -441,8 +452,8 @@ procedure(OPCExportWriteCellShapes(file cellname shapes)
                             newline(file)
                             fprintf(file
                                 "%s:add_net_shape(\"%s\", %s, %s, %s)"
-                                cellname
-                                nthelem(6 shape)
+                                varname
+                                OPCExportLuaString(nthelem(6 shape))
                                 OPCExportFormatPoint(car(netrect))
                                 OPCExportFormatPoint(cadr(netrect))
                                 OPCExportFormatLayer(cadr(shape))
@@ -474,9 +485,10 @@ procedure(OPCExportWriteCell(path @key (export_only_toplevel_nets t))
         )
         file = outfile(path "w")
         shapes = OPCExportGatherCellShapes(cv 0 export_only_toplevel_nets)
-        fprintf(file "local %s = object.create(\"%s\")\n" cv->cellName cv->cellName)
-        OPCExportWriteCellShapes(file cv->cellName shapes)
-        fprintf(file "return %s\n" cv->cellName)
+        ; the lua variable has a fixed name, as cell names are not necessarily valid lua identifiers
+        fprintf(file "local cell = object.create(\"%s\")\n" OPCExportLuaString(cv->cellName))
+        OPCExportWriteCellShapes(file "cell" shapes)
+        fprintf(file "return cell\n")
         close(file)
     )
 ) ; OPCExportWriteCell
