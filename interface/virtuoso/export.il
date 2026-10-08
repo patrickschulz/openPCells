@@ -463,6 +463,15 @@ procedure(OPCExportWriteCell(path @key (export_only_toplevel_nets t))
             file
             shapes
         )
+        ; coordinates are converted from micrometers to nanometers (the unit of opc), check that this is exact
+        if(cv->userUnits != "micron"
+            then
+                warn("openPCells export: user units of the cellview are '%s', but micrometers are assumed. The exported coordinates are scaled wrongly\n" cv->userUnits)
+            else
+                when(cv->DBUPerUU > 1000
+                    warn("openPCells export: the database grid (%L per micrometer) is finer than 1 nm, coordinates are rounded to nanometers\n" cv->DBUPerUU)
+                )
+        )
         file = outfile(path "w")
         shapes = OPCExportGatherCellShapes(cv 0 export_only_toplevel_nets)
         fprintf(file "local %s = object.create(\"%s\")\n" cv->cellName cv->cellName)
