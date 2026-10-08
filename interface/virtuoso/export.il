@@ -112,8 +112,17 @@ procedure(OPCExportGetPathExtension(style width beginext endext)
         ("varExtendExtend"
             list(beginext endext)
         )
+        ("roundRound"
+            ; round ends are not supported, approximate by rectangular extension
+            warn("openPCells export: path style 'roundRound' is not supported, approximated by 'extendExtend'\n")
+            list(width / 2 width / 2)
+        )
         ("custom"
             ; not really supported
+            list(0 0)
+        )
+        (t
+            warn("openPCells export: unknown path style '%L', using no extension\n" style)
             list(0 0)
         )
     ) ; case style
@@ -130,8 +139,17 @@ procedure(OPCExportGetPathSegExtension(style width ext)
         ("variable"
             ext
         )
+        ("round"
+            ; round ends are not supported, approximate by rectangular extension
+            warn("openPCells export: path segment style 'round' is not supported, approximated by 'extend'\n")
+            width / 2
+        )
         ("custom"
             ; not really supported
+            0
+        )
+        (t
+            warn("openPCells export: unknown path segment style '%L', using no extension\n" style)
             0
         )
     ) ; case style
