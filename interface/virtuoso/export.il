@@ -467,13 +467,9 @@ procedure(OPCExportWriteCellShapes(file varname shapes)
     ) ; let
 ) ; OPCExportWriteCellShapes
 
-procedure(OPCExportWriteCell(path @key (export_only_toplevel_nets t))
+procedure(OPCExportWriteCellToFile(cv file export_only_toplevel_nets)
     let(
-        (
-            (cv geGetEditCellView())
-            file
-            shapes
-        )
+        (shapes)
         ; coordinates are converted from micrometers to nanometers (the unit of opc), check that this is exact
         if(cv->userUnits != "micron"
             then
@@ -483,14 +479,41 @@ procedure(OPCExportWriteCell(path @key (export_only_toplevel_nets t))
                     warn("openPCells export: the database grid (%L per micrometer) is finer than 1 nm, coordinates are rounded to nanometers\n" cv->DBUPerUU)
                 )
         )
-        file = outfile(path "w")
         shapes = OPCExportGatherCellShapes(cv 0 export_only_toplevel_nets)
         ; the lua variable has a fixed name, as cell names are not necessarily valid lua identifiers
         fprintf(file "local cell = object.create(\"%s\")\n" OPCExportLuaString(cv->cellName))
         OPCExportWriteCellShapes(file "cell" shapes)
         fprintf(file "return cell\n")
-        close(file)
-    )
+    ) ; let
+) ; OPCExportWriteCellToFile
+
+procedure(OPCExportWriteCell(path @key (export_only_toplevel_nets t))
+    ; returns t on success, nil otherwise
+    let(
+        (
+            (cv geGetEditCellView())
+            file
+        )
+        file = cv && outfile(path "w")
+        cond(
+            (!cv
+                warn("openPCells export: no cellview is being edited, nothing is exported\n")
+                nil
+            )
+            (!file
+                warn("openPCells export: could not open '%s' for writing\n" path)
+                nil
+            )
+            (t
+                ; close the file also if an error occurs while exporting
+                unwindProtect(
+                    OPCExportWriteCellToFile(cv file export_only_toplevel_nets)
+                    close(file)
+                )
+                t
+            )
+        ) ; cond
+    ) ; let
 ) ; OPCExportWriteCell
 
 procedure(OPCExportGetFilename(filename)
@@ -498,29 +521,23 @@ procedure(OPCExportGetFilename(filename)
 ) ; OPCExportGetFilename
 
 procedure(OPCExportCell(filename)
-    let(
-        (
-            (cv geGetEditCellView())
-            (path OPCExportGetFilename(filename))
-        )
-        OPCExportWriteCell(path)
-    )
+    OPCExportWriteCell(OPCExportGetFilename(filename))
 ) ; OPCExportCell
 
 procedure(OPCHiExportCell(filename)
     let(
         (
-            (cv geGetEditCellView())
             (path OPCExportGetFilename(filename))
         )
-        OPCExportWriteCell(path)
-        hiDisplayAppDBox(
-            ?name        'OPCInfoDialog
-            ?dboxBanner  "openPCells"
-            ?dboxText    lsprintf("written opc representation of layout to %s" path)
-            ?dialogType   hicMessageDialog
-            ?dialogStyle 'modeless
-            ?buttonLayout 'Close
+        when(OPCExportWriteCell(path)
+            hiDisplayAppDBox(
+                ?name        'OPCInfoDialog
+                ?dboxBanner  "openPCells"
+                ?dboxText    lsprintf("written opc representation of layout to %s" path)
+                ?dialogType   hicMessageDialog
+                ?dialogStyle 'modeless
+                ?buttonLayout 'Close
+            )
         )
     )
 ) ; OPCHiExportCell

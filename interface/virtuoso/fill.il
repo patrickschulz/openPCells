@@ -137,7 +137,8 @@ procedure(OPCUpdateFillCallback(@key (deleteAll t) (callopc t) (hierarchical nil
             )
         )
         ; write out current cell (for exclude shapes)
-        OPCExportCell("openPCells_cellshapes.lua")
+        ; opc is only called if this succeeded, otherwise a stale or partial file would be used
+        success = OPCExportCell("openPCells_cellshapes.lua")
         ; call fill script
         path = lsprintf("%s/%s/layout/opcfill.lua" libPath cellName)
         OPCArgs = OPCPrepareArgsForCellCreation(
@@ -152,7 +153,7 @@ procedure(OPCUpdateFillCallback(@key (deleteAll t) (callopc t) (hierarchical nil
         OPCCmd = OPCBuildCallCommand(OPCArgs)
         success = if(callopc
             then
-                OPCCall(OPCCmd ?redirect OPCSettingsForm->OPCStdoutFileName->value)
+                success && OPCCall(OPCCmd ?redirect OPCSettingsForm->OPCStdoutFileName->value)
             else
                 t
         )
