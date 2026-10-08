@@ -168,44 +168,8 @@ procedure(OPCExportGetPathExtensions(shape)
 ) ; OPCExportGetPathExtensions
 
 procedure(OPCExportGetShapePathSeg(shape)
-    ; FIXME: handle path extensions
-    ; FIXME: use proper comparison function for numbers
-    let(
-        (x1 y1 x2 y2 net netpt1 netpt2)
-        x1 = xCoord(shape->beginPt)
-        y1 = yCoord(shape->beginPt)
-        x2 = xCoord(shape->endPt)
-        y2 = yCoord(shape->endPt)
-        when(x2 < x1 rotatef(x2 x1))
-        when(y2 < y1 rotatef(y2 y1))
-        if((x1 != x2) && (y1 != y2)
-            then ; non-orthogonal
-                net = nil
-            else ; orthogonal, also export net shape
-                net = shape->net->name
-                if(x1 == x2
-                    then
-                        netpt1 = list(
-                            x1 - shape->width / 2
-                            y1
-                        )
-                        netpt2 = list(
-                            x1 + shape->width / 2
-                            y2
-                        )
-                    else ; y1 == y2
-                        netpt1 = list(
-                            x1
-                            y1 - shape->width / 2
-                        )
-                        netpt2 = list(
-                            x2
-                            y1 + shape->width / 2
-                        )
-                )
-        )
-        list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width OPCExportGetPathExtensions(shape) net netpt1 netpt2)
-    )
+    ; the net shape is calculated when writing (after transformation), non-orthogonal segments get no net shape
+    list("path" shape->lpp list(shape->beginPt shape->endPt) shape->width OPCExportGetPathExtensions(shape) if(shape->net shape->net->name nil))
 ) ; OPCExportGetShapePathSeg
 
 procedure(OPCExportGetShape(shape)
@@ -337,62 +301,149 @@ procedure(OPCExportGatherCellShapes(cell level gather_only_toplevel_nets)
     ) ; let
 ) ; OPCExportGatherCellShapes
 
+procedure(OPCExportGetSegmentRect(pt1 pt2 width beginext endext)
+    ; corner points (bl tr) of the rectangle covered by an orthogonal path segment, including extensions
+    ; coordinates are not rounded here, so that rounding happens on the edges and not on the center line
+    ; (for odd widths, the center line is off-grid, but the edges are not)
+    ; returns nil for non-orthogonal segments
+    ; FIXME: use proper comparison function for numbers
+    let(
+        (x1 y1 x2 y2 dir)
+        x1 = xCoord(pt1)
+        y1 = yCoord(pt1)
+        x2 = xCoord(pt2)
+        y2 = yCoord(pt2)
+        cond(
+            ((x1 == x2) ; vertical (or zero-length)
+                dir = if(y2 < y1 then -1 else 1)
+                y1 = y1 - dir * beginext
+                y2 = y2 + dir * endext
+                when(y2 < y1 rotatef(y1 y2))
+                list(list(x1 - width / 2 y1) list(x1 + width / 2 y2))
+            )
+            ((y1 == y2) ; horizontal
+                dir = if(x2 < x1 then -1 else 1)
+                x1 = x1 - dir * beginext
+                x2 = x2 + dir * endext
+                when(x2 < x1 rotatef(x1 x2))
+                list(list(x1 y1 - width / 2) list(x2 y1 + width / 2))
+            )
+            (t nil) ; non-orthogonal
+        ) ; cond
+    ) ; let
+) ; OPCExportGetSegmentRect
+
+procedure(OPCExportGetPathRects(pts width extensions)
+    ; split an orthogonal path into rectangles, one per segment
+    ; interior corners are extended by width / 2, which reproduces the square corner fill of paths
+    ; returns nil if any segment is non-orthogonal
+    let(
+        (rects rect beginext endext (orthogonal t))
+        beginext = car(extensions)
+        while(orthogonal && cdr(pts)
+            endext = if(cddr(pts) width / 2 cadr(extensions))
+            rect = OPCExportGetSegmentRect(car(pts) cadr(pts) width beginext endext)
+            if(rect
+                then
+                    rects = cons(rect rects)
+                else
+                    orthogonal = nil
+            )
+            beginext = width / 2
+            pts = cdr(pts)
+        ) ; while
+        when(orthogonal reverse(rects))
+    ) ; let
+) ; OPCExportGetPathRects
+
 procedure(OPCExportWriteCellShapes(file cellname shapes)
-    foreach(shape shapes
-        case(car(shape)
-            ("rect"
-                fprintf(file
-                    "geometry.rectanglepoints(%s, %s, %s, %s)"
-                    cellname
-                    OPCExportFormatLayer(cadr(shape))
-                    OPCExportFormatPoint(nthelem(3 shape))
-                    OPCExportFormatPoint(nthelem(4 shape))
-                )
-                when(nthelem(5 shape) ; has net
-                    newline(file)
+    let(
+        (width rects netrect)
+        foreach(shape shapes
+            case(car(shape)
+                ("rect"
                     fprintf(file
-                        "%s:add_net_shape(\"%s\", %s, %s, %s)"
+                        "geometry.rectanglepoints(%s, %s, %s, %s)"
                         cellname
-                        nthelem(5 shape)
+                        OPCExportFormatLayer(cadr(shape))
                         OPCExportFormatPoint(nthelem(3 shape))
                         OPCExportFormatPoint(nthelem(4 shape))
-                        OPCExportFormatLayer(cadr(shape))
                     )
-                ) ; when net
-            ) ; rect
-            ("polygon"
-                fprintf(file
-                    "geometry.polygon(%s, %s, { %s })"
-                    cellname
-                    OPCExportFormatLayer(cadr(shape))
-                    OPCExportFormatPoints(nthelem(3 shape))
-                )
-            ) ; polygon
-            ("path"
-                fprintf(file
-                    "geometry.path(%s, %s, { %s }, %d, { %d, %d })"
-                    cellname
-                    OPCExportFormatLayer(cadr(shape))
-                    OPCExportFormatPoints(nthelem(3 shape))
-                    OPCExportConvertCoordToOPCUnit(nthelem(4 shape))
-                    OPCExportConvertCoordToOPCUnit(car(nthelem(5 shape)))
-                    OPCExportConvertCoordToOPCUnit(cadr(nthelem(5 shape)))
-                )
-                when(nthelem(6 shape) ; has net
-                    newline(file)
+                    when(nthelem(5 shape) ; has net
+                        newline(file)
+                        fprintf(file
+                            "%s:add_net_shape(\"%s\", %s, %s, %s)"
+                            cellname
+                            nthelem(5 shape)
+                            OPCExportFormatPoint(nthelem(3 shape))
+                            OPCExportFormatPoint(nthelem(4 shape))
+                            OPCExportFormatLayer(cadr(shape))
+                        )
+                    ) ; when net
+                ) ; rect
+                ("polygon"
                     fprintf(file
-                        "%s:add_net_shape(\"%s\", %s, %s, %s)"
+                        "geometry.polygon(%s, %s, { %s })"
                         cellname
-                        nthelem(6 shape)
-                        OPCExportFormatPoint(nthelem(7 shape))
-                        OPCExportFormatPoint(nthelem(8 shape))
                         OPCExportFormatLayer(cadr(shape))
+                        OPCExportFormatPoints(nthelem(3 shape))
                     )
-                ) ; when net
-            ) ; path
-        ) ; case shape type
-        newline(file)
-    ) ; foreach shape
+                ) ; polygon
+                ("path"
+                    width = OPCExportConvertCoordToOPCUnit(nthelem(4 shape))
+                    rects = when(oddp(width) OPCExportGetPathRects(nthelem(3 shape) nthelem(4 shape) nthelem(5 shape)))
+                    if(rects
+                        then ; odd width (not supported by geometry.path), export as rectangles
+                            foreach(rect rects
+                                unless(eq(rect car(rects)) newline(file))
+                                fprintf(file
+                                    "geometry.rectanglepoints(%s, %s, %s, %s)"
+                                    cellname
+                                    OPCExportFormatLayer(cadr(shape))
+                                    OPCExportFormatPoint(car(rect))
+                                    OPCExportFormatPoint(cadr(rect))
+                                )
+                            ) ; foreach rects
+                        else
+                            when(oddp(width)
+                                warn("openPCells export: non-orthogonal path with odd width (%d), width is increased by one\n" width)
+                                width = width + 1
+                            )
+                            fprintf(file
+                                "geometry.path(%s, %s, { %s }, %d, { %d, %d })"
+                                cellname
+                                OPCExportFormatLayer(cadr(shape))
+                                OPCExportFormatPoints(nthelem(3 shape))
+                                width
+                                OPCExportConvertCoordToOPCUnit(car(nthelem(5 shape)))
+                                OPCExportConvertCoordToOPCUnit(cadr(nthelem(5 shape)))
+                            )
+                    ) ; if rects
+                    when(nthelem(6 shape) ; has net (only pathSegs)
+                        netrect = OPCExportGetSegmentRect(
+                            car(nthelem(3 shape))
+                            cadr(nthelem(3 shape))
+                            nthelem(4 shape)
+                            car(nthelem(5 shape))
+                            cadr(nthelem(5 shape))
+                        )
+                        when(netrect ; no net shape for non-orthogonal segments
+                            newline(file)
+                            fprintf(file
+                                "%s:add_net_shape(\"%s\", %s, %s, %s)"
+                                cellname
+                                nthelem(6 shape)
+                                OPCExportFormatPoint(car(netrect))
+                                OPCExportFormatPoint(cadr(netrect))
+                                OPCExportFormatLayer(cadr(shape))
+                            )
+                        ) ; when netrect
+                    ) ; when net
+                ) ; path
+            ) ; case shape type
+            newline(file)
+        ) ; foreach shape
+    ) ; let
 ) ; OPCExportWriteCellShapes
 
 procedure(OPCExportWriteCell(path @key (export_only_toplevel_nets t))
