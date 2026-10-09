@@ -16,7 +16,7 @@ function parameters()
         { "add_extra_outer_dummies", false },
         { "activedummywidth", technology.get_dimension("Minimum Active Width") },
         { "activedummyspace", technology.get_dimension("Minimum Active Space") },
-        { "drainstrapwidth", technology.get_dimension("Minimum M1 Width") },
+        { "drainstrapwidth", technology.get_dimension("Minimum M3 Width") },
         { "drainstrapspace", technology.get_dimension("Minimum M1 Width") },
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Space") },
@@ -28,7 +28,6 @@ function parameters()
         { "crossingoffset", 0 * technology.get_dimension("Minimum M1 Space") },
         { "inlinedrainstrap", false },
         { "crossingmetal", 2 },
-        { "fetpowermetal", 3 },
         { "gateinside", false },
         { "drawleftrightstopgates", false }
     )
@@ -36,7 +35,7 @@ end
 
 local function _get_metal_width(metal)
     local metalstr = string.format("Minimum M%d Width", metal)
-        local viastr
+    local viastr
     if metal > 1 then
         viastr = string.format("Minimum M%dM%d Viawidth", metal - 1, metal)
     end
@@ -44,16 +43,14 @@ local function _get_metal_width(metal)
 end
 
 function process_parameters(_P)
-    _P.gatestrapwidth = _get_metal_width(_P.crossingmetal)
+    _P.gatestrapwidth = _get_metal_width(_P.crossingmetal + 1)
     if _P.middledummyfingersperside == 0 then
         _P.inner_separation = (2 * _P.gatestrapspace + _P.gatestrapwidth) / 2 + _P.sdwidth / 2
     end
+    _P.drainstrapwidth = _get_metal_width(_P.crossingmetal + 1)
 end
 
 function check(_P)
-    --if _P.drainmetal <= _P.crossingmetal then
-    --    return false, string.format("drainmetal must be strictly larger than crossingmetal, got %d and %d", _P.drainmetal, _P.crossingmetal)
-    --end
     return true
 end
 
@@ -195,11 +192,6 @@ function layout(ccp, _P)
     }))
     fet:align_area_anchor("sourcedrain1", leftright, "middlesourcedrainright")
     leftright:merge_into(fet)
-    -- place via on drain strap to lower crossing metal
-    geometry.viabarebltr(leftright, _P.crossingmetal, _P.crossingmetal + 1,
-        fet:get_area_anchor("drainstrap").bl,
-        fet:get_area_anchor("drainstrap").tr
-    )
 
     -- add left/right dummies
     if _P.add_outer_dummies then
