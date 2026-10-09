@@ -108,6 +108,17 @@ int lpoint_create(lua_State* L)
     return 1;
 }
 
+int lpoint_origin(lua_State* L)
+{
+    if(lua_gettop(L) != 0)
+    {
+        lua_pushfstring(L, "point.origin(): expected no arguments, got %d", lua_gettop(L));
+        lua_error(L);
+    }
+    lpoint_create_internal_xy(L, 0, 0);
+    return 1;
+}
+
 static int lpoint_destroy(lua_State* L)
 {
     struct lpoint* p = lpoint_checkpoint(L, -1);
@@ -452,6 +463,7 @@ int open_lpoint_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "create",         lpoint_create           },
+        { "origin",         lpoint_origin           },
         { "is_point",       lpoint_is_point_lua     },
         { "combine_12",     lpoint_combine_12       },
         { "combine_21",     lpoint_combine_21       },
