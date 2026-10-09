@@ -666,6 +666,14 @@ local function _create_layout_internal(state, obj, cellname, cellargs, env)
         end
     end
 
+    if state.verbose then
+        print("cell parameters: {")
+        for k, v in pairs(parameters) do
+            print(" ", k, v)
+        end
+        print("}")
+    end
+
     cell.funcs.layout(obj, parameters, env, cellstate)
     if explicitlib then
         state.libnamestacks:pop()
