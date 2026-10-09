@@ -607,16 +607,16 @@ end
 
 function process_parameters(_P, explicit)
     if not explicit.connectsourcewidth then
-        _P.connectsourcewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.sourcemetal))
+        _P.connectsourcewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.sourceendmetal))
     end
     if not explicit.connectsourcespace then
-        _P.connectsourcespace = technology.get_dimension(string.format("Minimum M%d Space", _P.sourcemetal))
+        _P.connectsourcespace = technology.get_dimension(string.format("Minimum M%d Space", _P.sourceendmetal))
     end
     if not explicit.connectdrainwidth then
-        _P.connectdrainwidth = technology.get_dimension(string.format("Minimum M%d Width", _P.drainmetal))
+        _P.connectdrainwidth = technology.get_dimension(string.format("Minimum M%d Width", _P.drainendmetal))
     end
     if not explicit.connectdrainspace then
-        _P.connectdrainspace = technology.get_dimension(string.format("Minimum M%d Space", _P.drainmetal))
+        _P.connectdrainspace = technology.get_dimension(string.format("Minimum M%d Space", _P.drainendmetal))
     end
     if _P.usesdmetalwidthtable then
         if not explicit.connectsourcewidth then
