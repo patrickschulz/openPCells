@@ -1833,11 +1833,11 @@ function layout(transistor, _P)
             )
         end
         if _P.allow_poly_connections then
-            local contactleftpolytext = math.max(_P.topgatepolyleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
+            local contactleftpolyext = math.max(_P.topgatepolyleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
             local contactrightpolyext = math.max(_P.topgatepolyrightextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
             geometry.rectanglebltr(transistor, generics.gate(),
-                point.create(bl:getx() + contactleftpolyext, bl:gety() - _P.topgatepolybottomextension),
-                point.create(tr:getx() - contactrightpolyext, gatetry + _P.topgatepolytopextension)
+                point.create(bl:getx() + contactleftext - contactleftpolyext, bl:gety() - _P.topgatepolybottomextension),
+                point.create(tr:getx() - contactrightext + contactrightpolyext, gatetry + _P.topgatepolytopextension)
             )
         end
         if _P.drawtopgatevia and _P.topgatemetal > 1 then
@@ -1904,10 +1904,10 @@ function layout(transistor, _P)
             )
         end
         if _P.allow_poly_connections then
-            local contactleftpolytext = math.max(_P.topgatepolyleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
-            local contactrightpolyext = math.max(_P.topgatepolyrightextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
+            local contactleftpolyext = math.max(_P.botgatepolyleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
+            local contactrightpolyext = math.max(_P.botgatepolyrightextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
             geometry.rectanglebltr(transistor, generics.gate(),
-                point.create(bl:getx() + contactleftext - contactleftpolytext, gatebly - _P.botgatepolybottomextension),
+                point.create(bl:getx() + contactleftext - contactleftpolyext, gatebly - _P.botgatepolybottomextension),
                 point.create(tr:getx() - contactrightext + contactrightpolyext, tr:gety() + _P.botgatepolytopextension)
             )
         end
