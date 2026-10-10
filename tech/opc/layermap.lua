@@ -469,5 +469,6 @@ return {
     inductorlvsmarker = {},
     subblock = {},
     rotationmarker = {},
+    floatinggatemarker = {},
     polyresistorlvsmarker1 = {},
 }
