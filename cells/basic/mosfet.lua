@@ -1757,7 +1757,7 @@ function layout(transistor, _P)
             width = activetr:getx() - activebl:getx() + _P.topwelltapextendleft + _P.topwelltapextendright,
             height = _P.topwelltapwidth,
         }):translate(
-            (_P.topwelltapextendright - _P.topwelltapextendleft) / 2,
+            activebl:getx() - _P.topwelltapextendleft,
             _P.fingerwidth + _P.topwelltapspace
         ))
     end
@@ -1767,7 +1767,7 @@ function layout(transistor, _P)
             width = activetr:getx() - activebl:getx() + _P.botwelltapextendleft + _P.botwelltapextendright,
             height = _P.botwelltapwidth,
         }):translate(
-            (_P.botwelltapextendright - _P.botwelltapextendleft) / 2,
+            activebl:getx() - _P.botwelltapextendleft,
             -_P.botwelltapwidth - _P.botwelltapspace
         ))
     end
