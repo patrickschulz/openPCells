@@ -1954,7 +1954,7 @@ function layout(transistor, _P)
     elseif _P.sourcealign == "bottom" then
         sourceoffset = 0
     else -- center
-        sourceoffset = (_P.fingerwidth - _P.sourceviasize) / 2
+        sourceoffset = (_P.fingerwidth - _P.sourcesize) / 2
     end
     if _P.sourceviaalign == "top" then
         sourceviaoffset = _P.fingerwidth - _P.sourceviasize
@@ -1970,7 +1970,7 @@ function layout(transistor, _P)
     elseif _P.drainalign == "bottom" then
         drainoffset = 0
     else -- center
-        drainoffset = (_P.fingerwidth - _P.drainviasize) / 2
+        drainoffset = (_P.fingerwidth - _P.drainsize) / 2
     end
     if _P.drainviaalign == "top" then
         drainviaoffset = _P.fingerwidth - _P.drainviasize
