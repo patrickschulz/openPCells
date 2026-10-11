@@ -2237,17 +2237,20 @@ function layout(transistor, _P)
                                         numcuts = numcuts - 1
                                         cutyoffset = cutyoffset + math.floor((viaentry.yspace + viaentry.height) / 2)
                                     end
-                                    for i = 1, numcuts do
-                                        geometry.rectanglebltr(transistor, cutlayer,
-                                            point.create(
-                                                shift - math.min(sourcemetalshifts[metal], sourcemetalshifts[metal + 1]) + cutxoffset,
-                                                sourceviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight)
-                                            ),
-                                            point.create(
-                                                shift - math.min(sourcemetalshifts[metal], sourcemetalshifts[metal + 1]) + cutxoffset + cutwidth,
-                                                sourceviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight) + cutheight
+                                    for xi = 1, viaentry.xrep do
+                                        local cutx = shift - math.min(sourcemetalshifts[metal], sourcemetalshifts[metal + 1]) + cutxoffset + (xi - 1) * (viaentry.xspace + cutwidth)
+                                        for yi = 1, numcuts do
+                                            geometry.rectanglebltr(transistor, cutlayer,
+                                                point.create(
+                                                    cutx,
+                                                    sourceviaoffset + cutyoffset + (yi - 1) * (cutspace + cutheight)
+                                                ),
+                                                point.create(
+                                                    cutx + cutwidth,
+                                                    sourceviaoffset + cutyoffset + (yi - 1) * (cutspace + cutheight) + cutheight
+                                                )
                                             )
-                                        )
+                                        end
                                     end
                                 end
                             else
@@ -2412,11 +2415,14 @@ function layout(transistor, _P)
                                         numcuts = numcuts - 1
                                         cutyoffset = cutyoffset + math.floor((viaentry.yspace + viaentry.height) / 2)
                                     end
-                                    for i = 1, numcuts do
-                                        geometry.rectanglebltr(transistor, cutlayer,
-                                            point.create(shift - math.min(drainmetalshifts[metal], drainmetalshifts[metal + 1]) + cutxoffset, drainviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight)),
-                                            point.create(shift - math.min(drainmetalshifts[metal], drainmetalshifts[metal + 1]) + cutxoffset + cutwidth, drainviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight) + cutheight)
-                                        )
+                                    for xi = 1, viaentry.xrep do
+                                        local cutx = shift - math.min(drainmetalshifts[metal], drainmetalshifts[metal + 1]) + cutxoffset + (xi - 1) * (viaentry.xspace + cutwidth)
+                                        for yi = 1, numcuts do
+                                            geometry.rectanglebltr(transistor, cutlayer,
+                                                point.create(cutx, drainviaoffset + cutyoffset + (yi - 1) * (cutspace + cutheight)),
+                                                point.create(cutx + cutwidth, drainviaoffset + cutyoffset + (yi - 1) * (cutspace + cutheight) + cutheight)
+                                            )
+                                        end
                                     end
                                 end
                             else -- not _P.interweavevias
