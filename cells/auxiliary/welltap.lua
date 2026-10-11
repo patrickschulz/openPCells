@@ -5,6 +5,7 @@ function parameters()
         { "width",                      5000, posvals = positive() },
         { "height",                     5000, posvals = positive() },
         { "drawoxidetype",              true },
+        { "drawwell",                   true, info = "draw the well. The 'well' anchor is always present, so a parent cell can draw a combined well" },
         { "extendall",                  0 },
         { "extendalltop",               0, follow = "extendall" },
         { "extendallbottom",            0, follow = "extendall" },
@@ -90,10 +91,12 @@ function layout(welltap, _P)
     )
 
     -- well
-    geometry.rectanglebltr(welltap, generics.well(_P.contype),
-        point.create(-_P.extendwellleft, -_P.extendwellbottom),
-        point.create(_P.width + _P.extendwellright, _P.height + _P.extendwelltop)
-    )
+    if _P.drawwell then
+        geometry.rectanglebltr(welltap, generics.well(_P.contype),
+            point.create(-_P.extendwellleft, -_P.extendwellbottom),
+            point.create(_P.width + _P.extendwellright, _P.height + _P.extendwelltop)
+        )
+    end
 
     -- anchors
     welltap:add_area_anchor_bltr(
