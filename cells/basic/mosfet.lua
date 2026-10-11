@@ -1833,6 +1833,36 @@ function layout(transistor, _P)
         end
     end
 
+    -- well taps
+    -- the well taps don't draw their own wells, their well regions are covered by the main well (see below)
+    local welltaps = {}
+    if _P.drawtopwelltap then
+        local welltap = pcell.create_layout("auxiliary/welltap", "topwelltap", {
+            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+            width = activetr:getx() - activebl:getx() + _P.topwelltapextendleft + _P.topwelltapextendright,
+            height = _P.topwelltapwidth,
+            drawwell = false,
+        })
+        welltap:translate(
+            activebl:getx() - _P.topwelltapextendleft,
+            _P.fingerwidth + _P.topwelltapspace
+        )
+        welltaps[#welltaps + 1] = welltap
+    end
+    if _P.drawbotwelltap then
+        local welltap = pcell.create_layout("auxiliary/welltap", "botwelltap", {
+            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+            width = activetr:getx() - activebl:getx() + _P.botwelltapextendleft + _P.botwelltapextendright,
+            height = _P.botwelltapwidth,
+            drawwell = false,
+        })
+        welltap:translate(
+            activebl:getx() - _P.botwelltapextendleft,
+            -_P.botwelltapwidth - _P.botwelltapspace
+        )
+        welltaps[#welltaps + 1] = welltap
+    end
+
     -- well
     local wellbl = point.create(
         _P.wellalignleftwithactive and
@@ -1848,6 +1878,12 @@ function layout(transistor, _P)
         (_P.wellaligntopwithactive and activetr:gety() or gatetry)
             + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
     )
+    -- the well is one rectangle that also covers the well regions of the well taps
+    for _, welltap in ipairs(welltaps) do
+        local wellanchor = welltap:get_area_anchor("well")
+        wellbl = point.create(math.min(wellbl:getx(), wellanchor.l), math.min(wellbl:gety(), wellanchor.b))
+        welltr = point.create(math.max(welltr:getx(), wellanchor.r), math.max(welltr:gety(), wellanchor.t))
+    end
     if _P.drawwell and not _P.drawguardring then
         geometry.rectanglebltr(transistor,
             generics.well(_P.flippedwell and
@@ -1858,27 +1894,8 @@ function layout(transistor, _P)
         )
     end
     transistor:add_area_anchor_bltr("well", wellbl, welltr)
-
-    -- well taps
-    if _P.drawtopwelltap then
-        transistor:merge_into(pcell.create_layout("auxiliary/welltap", "topwelltap", {
-            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
-            width = activetr:getx() - activebl:getx() + _P.topwelltapextendleft + _P.topwelltapextendright,
-            height = _P.topwelltapwidth,
-        }):translate(
-            activebl:getx() - _P.topwelltapextendleft,
-            _P.fingerwidth + _P.topwelltapspace
-        ))
-    end
-    if _P.drawbotwelltap then
-        transistor:merge_into(pcell.create_layout("auxiliary/welltap", "botwelltap", {
-            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
-            width = activetr:getx() - activebl:getx() + _P.botwelltapextendleft + _P.botwelltapextendright,
-            height = _P.botwelltapwidth,
-        }):translate(
-            activebl:getx() - _P.botwelltapextendleft,
-            -_P.botwelltapwidth - _P.botwelltapspace
-        ))
+    for _, welltap in ipairs(welltaps) do
+        transistor:merge_into(welltap)
     end
 
     -- gate contacts
