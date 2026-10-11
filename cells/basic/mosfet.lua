@@ -1153,6 +1153,10 @@ function process_parameters_override(_P, explicit)
 end
 
 function check(_P)
+    -- a guardring that fills its oxidetype replaces the device oxidetype, so it has to be the same
+    if _P.drawguardring and _P.guardringdrawoxidetype and _P.guardringfilloxidetype and _P.guardringoxidetype ~= _P.oxidetype then
+        return false, string.format("if the guardring fills its oxidetype ('guardringfilloxidetype'), 'guardringoxidetype' (%d) must be equal to 'oxidetype' (%d)", _P.guardringoxidetype, _P.oxidetype)
+    end
     -- other straps only exist for outer straps
     if _P.connectsourceboth and _P.connectsourceinline then
         return false, "'connectsourceboth' can not be used together with 'connectsourceinline' (the other source strap is only drawn for outer source straps)"
@@ -1883,7 +1887,8 @@ function layout(transistor, _P)
             activetr:gety() + _P.extendoxidetypetop or
             gatetry + _P.extendoxidetypetop
     )
-    if _P.drawoxidetype and (not _P.drawguardring or (_P.guardringdrawoxidetype and _P.guardringfilloxidetype)) then -- if a guardring is present, it draws the inner/MOSFET oxidetype
+    -- if a guardring fills its oxidetype (always the same as the device oxidetype, see check()), it draws the inner/MOSFET oxidetype
+    if _P.drawoxidetype and not (_P.drawguardring and _P.guardringdrawoxidetype and _P.guardringfilloxidetype) then
         geometry.rectanglebltr(transistor, generics.oxide(_P.oxidetype), oxidebl, oxidetr)
     end
     transistor:add_area_anchor_bltr("oxide", oxidebl, oxidetr)
