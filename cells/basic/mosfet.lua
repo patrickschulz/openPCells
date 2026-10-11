@@ -3012,10 +3012,6 @@ function layout(transistor, _P)
     end
 
     -- drain connections
-    local draininvert = (channeltype == "pmos")
-    if _P.connectdraininverse then
-        draininvert = not draininvert
-    end
     if _P.drawdrainconnections and not _P.connectdraininline then
         -- connections to strap
         local draininvert = (_P.channeltype == "pmos")
