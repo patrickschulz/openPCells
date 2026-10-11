@@ -2088,7 +2088,6 @@ function layout(transistor, _P)
     else -- center
         drainviaoffset = (_P.fingerwidth - _P.drainviasize) / 2
     end
-    local splitsourceviasize = (_P.sourceviasize - _P.connectsourcewidth) / 2
     local splitsourceviaoffset
     if _P.channeltype == "nmos" then
         if _P.connectsourceinverse then
@@ -2103,7 +2102,6 @@ function layout(transistor, _P)
             splitsourceviaoffset = _P.fingerwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
         end
     end
-    local splitdrainviasize = (_P.drainviasize - _P.connectdrainwidth) / 2
     local splitdrainviaoffset
     if _P.channeltype == "nmos" then
         if _P.connectdraininverse then
@@ -2227,42 +2225,37 @@ function layout(transistor, _P)
                                     )
                                 else
                                     if _P.splitsourcevias then
-                                        geometry.viabarebltr2(transistor, _P.sourceviametal - 1, _P.sourceviametal,
-                                            point.create(
-                                                shift - sourcemetalshifts[_P.sourceviametal - 1],
-                                                sourceviaoffset
-                                            ),
-                                            point.create(
-                                                shift + sourcemetalwidths[_P.sourceviametal - 1] - sourcemetalshifts[_P.sourceviametal - 1],
-                                                splitsourceviaoffset
-                                            ),
-                                            point.create(
-                                                shift - sourcemetalshifts[_P.sourceviametal],
-                                                sourceviaoffset
-                                            ),
-                                            point.create(
-                                                shift + sourcemetalwidths[_P.sourceviametal] - sourcemetalshifts[_P.sourceviametal],
-                                                splitsourceviaoffset
-                                            )
-                                        )
-                                        geometry.viabarebltr2(transistor, _P.sourceviametal - 1, _P.sourceviametal,
-                                            point.create(
-                                                shift - sourcemetalshifts[_P.sourceviametal - 1],
-                                                splitsourceviaoffset + _P.connectsourcewidth
-                                            ),
-                                            point.create(
-                                                shift + sourcemetalwidths[_P.sourceviametal] - sourcemetalshifts[_P.sourceviametal - 1],
-                                                sourceviaoffset + _P.sourceviasize
-                                            ),
-                                            point.create(
-                                                shift - sourcemetalshifts[_P.sourceviametal],
-                                                splitsourceviaoffset + _P.connectsourcewidth
-                                            ),
-                                            point.create(
-                                                shift + sourcemetalwidths[_P.sourceviametal] - sourcemetalshifts[_P.sourceviametal],
-                                                sourceviaoffset + _P.sourceviasize
-                                            )
-                                        )
+                                        -- split vias: only the parts of the via region below and above the inline strap
+                                        local splitparts = {
+                                            { sourceviaoffset, splitsourceviaoffset },
+                                            { splitsourceviaoffset + _P.connectsourcewidth, sourceviaoffset + _P.sourceviasize },
+                                        }
+                                        for _, part in ipairs(splitparts) do
+                                            if part[2] > part[1] then
+                                                geometry.viabarebltr2(transistor, _P.sourceviametal - 1, _P.sourceviametal,
+                                                    point.create(
+                                                        shift - sourcemetalshifts[_P.sourceviametal - 1],
+                                                        part[1]
+                                                    ),
+                                                    point.create(
+                                                        shift + sourcemetalwidths[_P.sourceviametal - 1] - sourcemetalshifts[_P.sourceviametal - 1],
+                                                        part[2]
+                                                    ),
+                                                    point.create(
+                                                        shift - sourcemetalshifts[_P.sourceviametal],
+                                                        part[1]
+                                                    ),
+                                                    point.create(
+                                                        shift + sourcemetalwidths[_P.sourceviametal] - sourcemetalshifts[_P.sourceviametal],
+                                                        part[2]
+                                                    ),
+                                                    string.format(
+                                                        "source split via:\n    x parameters: sourcemetalwidth 1 (%d) / sourcemetalwidth 2 (%d)\n    y parameters: part of sourceviasize (%d) not covered by the inline strap (%d)",
+                                                        sourcemetalwidths[_P.sourceviametal - 1], sourcemetalwidths[_P.sourceviametal], part[2] - part[1], _P.connectsourcewidth
+                                                    )
+                                                )
+                                            end
+                                        end
                                     else
                                         geometry.viabarebltr2(transistor, _P.sourceviametal - 1, _P.sourceviametal,
                                             point.create(
@@ -2389,50 +2382,37 @@ function layout(transistor, _P)
                                     )
                                 else
                                     if _P.splitdrainvias then
-                                        geometry.viabarebltr2(transistor, _P.drainviametal - 1, _P.drainviametal,
-                                            point.create(
-                                                shift - drainmetalshifts[_P.drainviametal - 1],
-                                                splitdrainviaoffset - splitdrainviasize
-                                            ),
-                                            point.create(
-                                                shift + drainmetalwidths[_P.drainviametal - 1] - drainmetalshifts[_P.drainviametal - 1],
-                                                splitdrainviaoffset
-                                            ),
-                                            point.create(
-                                                shift - drainmetalshifts[_P.drainviametal],
-                                                splitdrainviaoffset - splitdrainviasize
-                                            ),
-                                            point.create(
-                                                shift + drainmetalwidths[_P.drainviametal] - drainmetalshifts[_P.drainviametal],
-                                                splitdrainviaoffset
-                                            ),
-                                            string.format(
-                                                "drain split via:\n    x parameters: drainmetalwidth 1 (%d) / drainmetalwidth 2 (%d)\n    y parameters: splitdrainviasize (%d)",
-                                                drainmetalwidths[_P.drainviametal - 1], drainmetalwidths[_P.drainviametal], splitdrainviasize
-                                            )
-                                        )
-                                        geometry.viabarebltr2(transistor, _P.drainviametal - 1, _P.drainviametal,
-                                            point.create(
-                                                shift - drainmetalshifts[_P.drainviametal - 1],
-                                                splitdrainviaoffset + _P.connectdrainwidth
-                                            ),
-                                            point.create(
-                                                shift + drainmetalwidths[_P.drainviametal - 1] - drainmetalshifts[_P.drainviametal - 1],
-                                                splitdrainviaoffset + _P.connectdrainwidth + splitdrainviasize
-                                            ),
-                                            point.create(
-                                                shift - drainmetalshifts[_P.drainviametal],
-                                                splitdrainviaoffset + _P.connectdrainwidth
-                                            ),
-                                            point.create(
-                                                shift + drainmetalwidths[_P.drainviametal] - drainmetalshifts[_P.drainviametal],
-                                                splitdrainviaoffset + _P.connectdrainwidth + splitdrainviasize
-                                            ),
-                                            string.format(
-                                                "drain split via:\n    x parameters: drainmetalwidth 1 (%d) / drainmetalwidth 2\n    y parameters: splitdrainviasize (%d)",
-                                                drainmetalwidths[_P.drainviametal - 1], drainmetalwidths[_P.drainviametal], splitdrainviasize
-                                            )
-                                        )
+                                        -- split vias: only the parts of the via region below and above the inline strap
+                                        local splitparts = {
+                                            { drainviaoffset, splitdrainviaoffset },
+                                            { splitdrainviaoffset + _P.connectdrainwidth, drainviaoffset + _P.drainviasize },
+                                        }
+                                        for _, part in ipairs(splitparts) do
+                                            if part[2] > part[1] then
+                                                geometry.viabarebltr2(transistor, _P.drainviametal - 1, _P.drainviametal,
+                                                    point.create(
+                                                        shift - drainmetalshifts[_P.drainviametal - 1],
+                                                        part[1]
+                                                    ),
+                                                    point.create(
+                                                        shift + drainmetalwidths[_P.drainviametal - 1] - drainmetalshifts[_P.drainviametal - 1],
+                                                        part[2]
+                                                    ),
+                                                    point.create(
+                                                        shift - drainmetalshifts[_P.drainviametal],
+                                                        part[1]
+                                                    ),
+                                                    point.create(
+                                                        shift + drainmetalwidths[_P.drainviametal] - drainmetalshifts[_P.drainviametal],
+                                                        part[2]
+                                                    ),
+                                                    string.format(
+                                                        "drain split via:\n    x parameters: drainmetalwidth 1 (%d) / drainmetalwidth 2 (%d)\n    y parameters: part of drainviasize (%d) not covered by the inline strap (%d)",
+                                                        drainmetalwidths[_P.drainviametal - 1], drainmetalwidths[_P.drainviametal], part[2] - part[1], _P.connectdrainwidth
+                                                    )
+                                                )
+                                            end
+                                        end
                                     else
                                         geometry.viabarebltr2(transistor, _P.drainviametal - 1, _P.drainviametal,
                                             point.create(
