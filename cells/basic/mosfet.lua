@@ -3775,22 +3775,16 @@ function layout(transistor, _P)
         end
     end
 
-    -- instance name
+    -- instance name (uses the active region coordinates, the 'active' anchor only exists with 'drawactive')
     if rawget(_P, "instancename") then
         local pt
         if _P.instancenameincenter then
             pt = point.create(
-                0.5 * (
-                    transistor:get_area_anchor("active").l +
-                    transistor:get_area_anchor("active").r
-                ),
-                0.5 * (
-                    transistor:get_area_anchor("active").b +
-                    transistor:get_area_anchor("active").t
-                )
+                0.5 * (activebl:getx() + activetr:getx()),
+                0.5 * (activebl:gety() + activetr:gety())
             )
         else
-            pt = transistor:get_area_anchor("active").bl
+            pt = activebl:copy()
         end
         transistor:add_label(
             _P.instancename,
@@ -3809,8 +3803,8 @@ function layout(transistor, _P)
             )
         else
             geometry.rectanglebltr(transistor, generics.other("text"),
-                transistor:get_area_anchor("active").bl,
-                transistor:get_area_anchor("active").tr
+                activebl,
+                activetr
             )
         end
     end
