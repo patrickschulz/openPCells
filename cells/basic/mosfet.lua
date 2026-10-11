@@ -163,6 +163,7 @@ function parameters()
         { "connectsourceotherspace(Other Source Rails Metal Space)",                                    technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "connectsourcespace" },
         { "connectsourceotherleftext(Other Source Rails Metal Left Extension)",                         0, follow = "connectsourceleftext", },
         { "connectsourceotherrightext(Other Source Rails Metal Right Extension)",                       0, follow = "connectsourcerightext", },
+        { "connectsourceotherminwidth(Other Source Rails Minimum Width)",                               0, follow = "connectsourceminwidth" },
         { "connectsourceotherautooddext(Other Source Rails Automatic Odd-Fingered Extension)",          false },
         { "sourcemetal(Source Connection Metal)",                                                       1, info = "Highest metal of all source connections. In the default settings, vias are placed on the active source regions of the transistor, up to 'sourcemetal'. Additionally (if present), the source connection strap is drawn in this metal. This is a wrapper parameter, finer control can be achieved with 'sourcestartmetal' and 'sourceendmetal' (for the start/end of the via stack on the source strap), and 'sourceviametal' (which controls the highest metal on the active source regions." },
         { "sourcestartmetal(Source Connection First Metal)",                                            1, follow = "sourcemetal", info = "Lowest metal of the source strap placed beside (above/below) the transistor. A stack of vias is placed on the source strap (which starts on 'sourcestartmetal') and goes up to 'sourceendmetal'. The source strap metals are controlled with 'sourcestartmetal' and 'sourceendmetal'. All source metals can be easily controlled by 'sourcemetal'." },
@@ -191,6 +192,7 @@ function parameters()
         { "connectdrainotherspace(Other Drain Rails Metal Space)",                                      technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "connectdrainspace" },
         { "connectdrainotherleftext(Other Drain Rails Metal Left Extension)",                           0, follow = "connectdrainleftext" },
         { "connectdrainotherrightext(Other Drain Rails Metal Right Extension)",                         0, follow = "connectdrainrightext" },
+        { "connectdrainotherminwidth(Other Drain Rails Minimum Width)",                                 0, follow = "connectdrainminwidth" },
         { "connectdrainotherautooddext(Other Drain Rails Automatic Odd-Fingered Extension)",            false },
         { "drawdrainvia(Draw Drain Via)",                                                               true },
         { "drawfirstdrainvia(Draw First Drain Via)",                                                    true },
@@ -2539,7 +2541,7 @@ function layout(transistor, _P)
                 for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal - 1 do
                     local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
                     local shift2 = (_P.gatespace + sourcemetalwidths[sourcemetal + 1]) / 2
-                    geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
+                    geometry.viabarebltr2(transistor, sourcemetal, sourcemetal + 1,
                         point.create(blx - shift1 - leftext, bly),
                         point.create(trx - shift1 + rightext + sourcemetalwidths[sourcemetal], bly + _P.connectsourcewidth),
                         point.create(blx - shift2 - leftext, bly),
@@ -2618,32 +2620,42 @@ function layout(transistor, _P)
                         point.create(blx - shift - leftext - extraleftext, bly1),
                         point.create(trx - shift + rightext + extrarightext + sourcemetalwidths[sourcemetal], bly1 + _P.connectsourcewidth)
                     )
+                    if _P.connectsourceboth then
+                        -- other strap
+                        local otherwidth = trx + _P.connectsourceotherrightext + sourcemetalwidths[sourcemetal] - blx + _P.connectsourceotherleftext
+                        local otherextraleftext = 0
+                        local otherextrarightext = 0
+                        if otherwidth < _P.connectsourceotherminwidth then
+                            otherextraleftext, otherextrarightext = util.ratio_split_multiple_of(_P.connectsourceotherminwidth - otherwidth, 1, 1)
+                        end
+                        geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
+                            point.create(blx - shift - _P.connectsourceotherleftext - otherextraleftext, bly2),
+                            point.create(trx - shift + _P.connectsourceotherrightext + otherextrarightext + sourcemetalwidths[sourcemetal], bly2 + _P.connectsourceotherwidth)
+                        )
+                    end
+                end
+                -- vias between start and end metal on source strap
+                for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal - 1 do
+                    local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
+                    local shift2 = (_P.gatespace + sourcemetalwidths[sourcemetal + 1]) / 2
+                    geometry.viabarebltr2(transistor, sourcemetal, sourcemetal + 1,
+                        point.create(blx - shift1 - leftext, bly1),
+                        point.create(trx - shift1 + rightext + sourcemetalwidths[sourcemetal], bly1 + _P.connectsourcewidth),
+                        point.create(blx - shift2 - leftext, bly1),
+                        point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly1 + _P.connectsourcewidth)
+                    )
+                end
+                if _P.connectsourceboth then
+                    -- vias between start and end metal on other source strap
                     for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal - 1 do
                         local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
                         local shift2 = (_P.gatespace + sourcemetalwidths[sourcemetal + 1]) / 2
                         geometry.viabarebltr2(transistor, sourcemetal, sourcemetal + 1,
-                            point.create(blx - shift1 - leftext, bly1),
-                            point.create(trx - shift1 + rightext + sourcemetalwidths[sourcemetal], bly1 + _P.connectsourcewidth),
-                            point.create(blx - shift2 - leftext, bly1),
-                            point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly1 + _P.connectsourcewidth)
+                            point.create(blx - shift1 - _P.connectsourceotherleftext, bly2),
+                            point.create(trx - shift1 + _P.connectsourceotherrightext + sourcemetalwidths[sourcemetal], bly2 + _P.connectsourceotherwidth),
+                            point.create(blx - shift2 - _P.connectsourceotherleftext, bly2),
+                            point.create(trx - shift2 + _P.connectsourceotherrightext + sourcemetalwidths[sourcemetal + 1], bly2 + _P.connectsourceotherwidth)
                         )
-                    end
-                    if _P.connectsourceboth then
-                        -- other strap
-                        geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                            point.create(blx - shift - _P.connectsourceotherleftext, bly2),
-                            point.create(trx - shift + _P.connectsourceotherrightext + sourcemetalwidths[sourcemetal], bly2 + _P.connectsourceotherwidth)
-                        )
-                        for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal - 1 do
-                            local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
-                            local shift2 = (_P.gatespace + sourcemetalwidths[sourcemetal + 1]) / 2
-                            geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                                point.create(blx - shift1 - leftext, bly2),
-                                point.create(trx - shift1 + rightext + sourcemetalwidths[sourcemetal], bly2 + _P.connectsourcewidth),
-                                point.create(blx - shift2 - leftext, bly2),
-                                point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly2 + _P.connectsourcewidth)
-                            )
-                        end
                     end
                 end
                 -- additional vias to higher metal on source strap
@@ -2667,14 +2679,14 @@ function layout(transistor, _P)
                         local shift1 = (_P.gatespace + sourcemetalwidths[sourcemetal]) / 2
                         local shift2 = (_P.gatespace + sourcemetalwidths[sourcemetal + 1]) / 2
                         geometry.rectanglebltr(transistor, generics.metal(sourcemetal + 1),
-                            point.create(blx - shift2 - leftext, bly2),
-                            point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly2 + sourcemetalwidths[sourcemetal + 1])
+                            point.create(blx - shift2 - _P.connectsourceotherleftext, bly2),
+                            point.create(trx - shift2 + _P.connectsourceotherrightext + sourcemetalwidths[sourcemetal + 1], bly2 + sourcemetalwidths[sourcemetal + 1])
                         )
                         geometry.viabarebltr2(transistor, sourcemetal, sourcemetal + 1,
-                            point.create(blx - shift1 - leftext, bly2),
-                            point.create(trx - shift1 + rightext + sourcemetalwidths[sourcemetal], bly2 + _P.connectsourcewidth),
-                            point.create(blx - shift2 - leftext, bly2),
-                            point.create(trx - shift2 + rightext + sourcemetalwidths[sourcemetal + 1], bly2 + _P.connectsourcewidth)
+                            point.create(blx - shift1 - _P.connectsourceotherleftext, bly2),
+                            point.create(trx - shift1 + _P.connectsourceotherrightext + sourcemetalwidths[sourcemetal], bly2 + _P.connectsourceotherwidth),
+                            point.create(blx - shift2 - _P.connectsourceotherleftext, bly2),
+                            point.create(trx - shift2 + _P.connectsourceotherrightext + sourcemetalwidths[sourcemetal + 1], bly2 + _P.connectsourceotherwidth)
                         )
                     end
                 end
@@ -2703,9 +2715,15 @@ function layout(transistor, _P)
             end
             if _P.connectsourceboth then
                 -- other anchor
+                local otherwidth = trx + _P.connectsourceotherrightext + sourcemetalwidths[_P.sourceendmetal] - blx + _P.connectsourceotherleftext
+                local otherextraleftext = 0
+                local otherextrarightext = 0
+                if otherwidth < _P.connectsourceotherminwidth then
+                    otherextraleftext, otherextrarightext = util.ratio_split_multiple_of(_P.connectsourceotherminwidth - otherwidth, 1, 1)
+                end
                 transistor:add_area_anchor_bltr("othersourcestrap",
-                    point.create(blx - shift - _P.connectsourceotherleftext, bly2),
-                    point.create(trx - shift + _P.connectsourceotherrightext + sourcemetalwidths[_P.sourceendmetal], bly2 + _P.connectsourceotherwidth)
+                    point.create(blx - shift - _P.connectsourceotherleftext - otherextraleftext, bly2),
+                    point.create(trx - shift + _P.connectsourceotherrightext + otherextrarightext + sourcemetalwidths[_P.sourceendmetal], bly2 + _P.connectsourceotherwidth)
                 )
                 if rawget(_P, "sourcenet") then
                     transistor:mark_area_anchor_as_net("othersourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
@@ -2969,9 +2987,53 @@ function layout(transistor, _P)
                         point.create(blx - shift - leftext - extraleftext, bly1),
                         point.create(trx - shift + rightext + extrarightext + drainmetalwidths[drainmetal], bly1 + _P.connectdrainwidth)
                     )
+                    if _P.connectdrainboth then
+                        -- other strap
+                        local otherwidth = trx + _P.connectdrainotherrightext + drainmetalwidths[drainmetal] - blx + _P.connectdrainotherleftext
+                        local otherextraleftext = 0
+                        local otherextrarightext = 0
+                        if otherwidth < _P.connectdrainotherminwidth then
+                            otherextraleftext, otherextrarightext = util.ratio_split_multiple_of(_P.connectdrainotherminwidth - otherwidth, 1, 1)
+                        end
+                        geometry.rectanglebltr(transistor, generics.metal(drainmetal),
+                            point.create(blx - shift - _P.connectdrainotherleftext - otherextraleftext, bly2),
+                            point.create(trx - shift + _P.connectdrainotherrightext + otherextrarightext + drainmetalwidths[drainmetal], bly2 + _P.connectdrainotherwidth)
+                        )
+                    end
+                end
+                -- vias between start and end metal on drain strap
+                for drainmetal = _P.drainstartmetal, _P.drainendmetal - 1 do
+                    local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
+                    local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
+                    geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
+                        point.create(blx - shift1 - leftext, bly1),
+                        point.create(trx - shift1 + rightext + drainmetalwidths[drainmetal], bly1 + _P.connectdrainwidth),
+                        point.create(blx - shift2 - leftext, bly1),
+                        point.create(trx - shift2 + rightext + drainmetalwidths[drainmetal + 1], bly1 + _P.connectdrainwidth)
+                    )
+                end
+                if _P.connectdrainboth then
+                    -- vias between start and end metal on other drain strap
                     for drainmetal = _P.drainstartmetal, _P.drainendmetal - 1 do
                         local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
                         local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
+                        geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
+                            point.create(blx - shift1 - _P.connectdrainotherleftext, bly2),
+                            point.create(trx - shift1 + _P.connectdrainotherrightext + drainmetalwidths[drainmetal], bly2 + _P.connectdrainotherwidth),
+                            point.create(blx - shift2 - _P.connectdrainotherleftext, bly2),
+                            point.create(trx - shift2 + _P.connectdrainotherrightext + drainmetalwidths[drainmetal + 1], bly2 + _P.connectdrainotherwidth)
+                        )
+                    end
+                end
+                -- additional vias to higher metal on drain strap
+                if _P.drainendmetal < _P.drainstraptopmetal then
+                    for drainmetal = _P.drainendmetal, _P.drainstraptopmetal - 1 do
+                        local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
+                        local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
+                        geometry.rectanglebltr(transistor, generics.metal(drainmetal + 1),
+                            point.create(blx - shift2 - leftext, bly1),
+                            point.create(trx - shift2 + rightext + sourcemetalwidths[drainmetal + 1], bly1 + sourcemetalwidths[drainmetal + 1])
+                        )
                         geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
                             point.create(blx - shift1 - leftext, bly1),
                             point.create(trx - shift1 + rightext + drainmetalwidths[drainmetal], bly1 + _P.connectdrainwidth),
@@ -2979,55 +3041,23 @@ function layout(transistor, _P)
                             point.create(trx - shift2 + rightext + drainmetalwidths[drainmetal + 1], bly1 + _P.connectdrainwidth)
                         )
                     end
-                    -- additional vias to higher metal on drain strap
+                end
+                if _P.connectdrainboth then
+                    -- additional vias to higher metal on other drain strap
                     if _P.drainendmetal < _P.drainstraptopmetal then
                         for drainmetal = _P.drainendmetal, _P.drainstraptopmetal - 1 do
                             local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
                             local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
                             geometry.rectanglebltr(transistor, generics.metal(drainmetal + 1),
-                                point.create(blx - shift2 - leftext, bly1),
-                                point.create(trx - shift2 + rightext + sourcemetalwidths[drainmetal + 1], bly1 + sourcemetalwidths[drainmetal + 1])
+                                point.create(blx - shift2 - _P.connectdrainotherleftext, bly2),
+                                point.create(trx - shift2 + _P.connectdrainotherrightext + sourcemetalwidths[drainmetal + 1], bly2 + sourcemetalwidths[drainmetal + 1])
                             )
                             geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
-                                point.create(blx - shift1 - leftext, bly1),
-                                point.create(trx - shift1 + rightext + drainmetalwidths[drainmetal], bly1 + _P.connectdrainwidth),
-                                point.create(blx - shift2 - leftext, bly1),
-                                point.create(trx - shift2 + rightext + drainmetalwidths[drainmetal + 1], bly1 + _P.connectdrainwidth)
+                                point.create(blx - shift1 - _P.connectdrainotherleftext, bly2),
+                                point.create(trx - shift1 + _P.connectdrainotherrightext + drainmetalwidths[drainmetal], bly2 + _P.connectdrainotherwidth),
+                                point.create(blx - shift2 - _P.connectdrainotherleftext, bly2),
+                                point.create(trx - shift2 + _P.connectdrainotherrightext + drainmetalwidths[drainmetal + 1], bly2 + _P.connectdrainotherwidth)
                             )
-                        end
-                    end
-                    if _P.connectdrainboth then
-                        -- other strap
-                        geometry.rectanglebltr(transistor, generics.metal(drainmetal),
-                            point.create(blx - shift - _P.connectdrainotherleftext, bly2),
-                            point.create(trx - shift + _P.connectdrainotherrightext + drainmetalwidths[drainmetal], bly2 + _P.connectdrainotherwidth)
-                        )
-                        for drainmetal = _P.drainstartmetal, _P.drainendmetal - 1 do
-                            local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
-                            local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
-                            geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
-                                point.create(blx - shift1 - leftext, bly2),
-                                point.create(trx - shift1 + rightext + drainmetalwidths[drainmetal], bly2 + _P.connectdrainwidth),
-                                point.create(blx - shift2 - leftext, bly2),
-                                point.create(trx - shift2 + rightext + drainmetalwidths[drainmetal + 1], bly2 + _P.connectdrainwidth)
-                            )
-                        end
-                        -- additional vias to higher metal on drain strap
-                        if _P.drainendmetal < _P.drainstraptopmetal then
-                            for drainmetal = _P.drainendmetal, _P.drainstraptopmetal - 1 do
-                                local shift1 = (_P.gatespace + drainmetalwidths[drainmetal]) / 2
-                                local shift2 = (_P.gatespace + drainmetalwidths[drainmetal + 1]) / 2
-                                geometry.rectanglebltr(transistor, generics.metal(drainmetal + 1),
-                                    point.create(blx - shift2 - leftext, bly2),
-                                    point.create(trx - shift2 + rightext + sourcemetalwidths[drainmetal + 1], bly2 + sourcemetalwidths[drainmetal + 1])
-                                )
-                                geometry.viabarebltr2(transistor, drainmetal, drainmetal + 1,
-                                    point.create(blx - shift1 - leftext, bly2),
-                                    point.create(trx - shift1 + rightext + drainmetalwidths[drainmetal], bly2 + _P.connectdrainwidth),
-                                    point.create(blx - shift2 - leftext, bly2),
-                                    point.create(trx - shift2 + rightext + drainmetalwidths[drainmetal + 1], bly2 + _P.connectdrainwidth)
-                                )
-                            end
                         end
                     end
                 end
@@ -3056,9 +3086,15 @@ function layout(transistor, _P)
             end
             -- other anchor
             if _P.connectdrainboth then
+                local otherwidth = trx + _P.connectdrainotherrightext + drainmetalwidths[_P.drainendmetal] - blx + _P.connectdrainotherleftext
+                local otherextraleftext = 0
+                local otherextrarightext = 0
+                if otherwidth < _P.connectdrainotherminwidth then
+                    otherextraleftext, otherextrarightext = util.ratio_split_multiple_of(_P.connectdrainotherminwidth - otherwidth, 1, 1)
+                end
                 transistor:add_area_anchor_bltr("otherdrainstrap",
-                    point.create(blx - shift - _P.connectdrainotherleftext, bly2),
-                    point.create(trx - shift + _P.connectdrainotherrightext + drainmetalwidths[_P.drainendmetal], bly2 + _P.connectdrainotherwidth)
+                    point.create(blx - shift - _P.connectdrainotherleftext - otherextraleftext, bly2),
+                    point.create(trx - shift + _P.connectdrainotherrightext + otherextrarightext + drainmetalwidths[_P.drainendmetal], bly2 + _P.connectdrainotherwidth)
                 )
                 if rawget(_P, "drainnet") then
                     transistor:mark_area_anchor_as_net("otherdrainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
