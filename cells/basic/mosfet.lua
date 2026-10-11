@@ -1307,11 +1307,12 @@ function layout(transistor, _P)
             )
         end
     else -- not hasgatecut
+        -- (simulated) missing gate cuts: the gates end at the cuts (but are never extended)
         if _P.drawtopgatecut then
-            gatetry = _P.fingerwidth + _P.topgatecutspace
+            gatetry = math.min(gatetry, _P.fingerwidth + _P.topgatecutspace)
         end
         if _P.drawbotgatecut then
-            gatebly = -_P.botgatecutspace
+            gatebly = math.max(gatebly, -_P.botgatecutspace)
         end
     end
 
@@ -1365,10 +1366,10 @@ function layout(transistor, _P)
         local lgatebly = gatebly
         local lgatetry = gatetry
         if _P.drawstopgatetopgatecut and not hasgatecut then
-            lgatetry = _P.fingerwidth + _P.topgatecutspace
+            lgatetry = math.min(lgatetry, _P.fingerwidth + _P.topgatecutspace)
         end
         if _P.drawstopgatebotgatecut and not hasgatecut then
-            lgatebly = -_P.botgatecutspace
+            lgatebly = math.max(lgatebly, -_P.botgatecutspace)
         end
         transistor:add_area_anchor_bltr(
             "endleftgate",
@@ -1385,10 +1386,10 @@ function layout(transistor, _P)
         local lgatebly = gatebly
         local lgatetry = gatetry
         if _P.drawstopgatetopgatecut and not hasgatecut then
-            lgatetry = _P.fingerwidth + _P.topgatecutspace
+            lgatetry = math.min(lgatetry, _P.fingerwidth + _P.topgatecutspace)
         end
         if _P.drawstopgatebotgatecut and not hasgatecut then
-            lgatebly = -_P.botgatecutspace
+            lgatebly = math.max(lgatebly, -_P.botgatecutspace)
         end
         transistor:add_area_anchor_bltr(
             "endrightgate",
@@ -1513,20 +1514,21 @@ function layout(transistor, _P)
                 )
             )
         end
-        local byoffset = 0
-        local tyoffset = 0
+        local diffusionbreakbly = transistor:get_area_anchor("endleftgate").b
+        local diffusionbreaktry = transistor:get_area_anchor("endleftgate").t
         if _P.excludestopgatesfromcutregions then
+            -- the diffusion break ends at the gate cuts (real or simulated)
             if _P.drawstopgatetopgatecut then
-                tyoffset = -gateaddtop + _P.topgatecutspace
+                diffusionbreaktry = math.min(diffusionbreaktry, _P.fingerwidth + _P.topgatecutspace)
             end
             if _P.drawstopgatebotgatecut then
-                byoffset = gateaddbottom - _P.botgatecutspace
+                diffusionbreakbly = math.max(diffusionbreakbly, -_P.botgatecutspace)
             end
         end
         geometry.rectanglebltr(transistor,
             generics.feol("diffusionbreakgate"),
-            transistor:get_area_anchor("endleftgate").bl:translate_y(byoffset),
-            transistor:get_area_anchor("endleftgate").tr:translate_y(tyoffset)
+            point.create(transistor:get_area_anchor("endleftgate").l, diffusionbreakbly),
+            point.create(transistor:get_area_anchor("endleftgate").r, diffusionbreaktry)
         )
         transistor:add_area_anchor_bltr("leftstopgate",
             transistor:get_area_anchor("endleftgate").bl,
@@ -1561,20 +1563,21 @@ function layout(transistor, _P)
                 )
             )
         end
-        local byoffset = 0
-        local tyoffset = 0
+        local diffusionbreakbly = transistor:get_area_anchor("endrightgate").b
+        local diffusionbreaktry = transistor:get_area_anchor("endrightgate").t
         if _P.excludestopgatesfromcutregions then
+            -- the diffusion break ends at the gate cuts (real or simulated)
             if _P.drawstopgatetopgatecut then
-                tyoffset = -gateaddtop + _P.topgatecutspace
+                diffusionbreaktry = math.min(diffusionbreaktry, _P.fingerwidth + _P.topgatecutspace)
             end
             if _P.drawstopgatebotgatecut then
-                byoffset = gateaddbottom - _P.botgatecutspace
+                diffusionbreakbly = math.max(diffusionbreakbly, -_P.botgatecutspace)
             end
         end
         geometry.rectanglebltr(transistor,
             generics.feol("diffusionbreakgate"),
-            transistor:get_area_anchor("endrightgate").bl:translate_y(byoffset),
-            transistor:get_area_anchor("endrightgate").tr:translate_y(tyoffset)
+            point.create(transistor:get_area_anchor("endrightgate").l, diffusionbreakbly),
+            point.create(transistor:get_area_anchor("endrightgate").r, diffusionbreaktry)
         )
         transistor:add_area_anchor_bltr("rightstopgate",
             transistor:get_area_anchor("endrightgate").bl,
