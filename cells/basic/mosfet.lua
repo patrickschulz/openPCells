@@ -739,6 +739,12 @@ function process_parameters(_P, explicit)
     if not explicit.botgatespace and _P.botgatemetal < _P.sourceviametal then
         _P.botgatespace = technology.get_dimension(string.format("Minimum M%d Space", _P.botgatemetal))
     end
+end
+
+-- runs after process_parameters(), changes also explicit parameters:
+-- with 'grid' > 0 the given spacings are minimum values, the strap/gate spaces are increased to put the access shapes on the grid,
+-- with 'shapegrid' > 0 all relevant parameters are put on the shape grid (after the grid adjustment)
+function process_parameters_override(_P, explicit)
     -- modify spacings to put access shapes on grid
     if _P.grid > 0 then
         if _P.centershapegrid then
@@ -766,14 +772,10 @@ function process_parameters(_P, explicit)
             else
                 -- FIXME: this probably does not make any sense, as the grid-based only works if all access shapes are available
                 --        perhaps this should be enforced through parameter checks
-                if not explicit.connectsourcespace then
-                    _P.connectsourcespace = util.fix_to_grid_abs_higher(_P.connectsourcespace + _P.connectsourcewidth / 2, _P.grid) - _P.connectsourcewidth / 2
-                end
-                if not explicit.connectdrainspace then
-                    _P.connectdrainspace = util.fix_to_grid_abs_higher(_P.connectdrainspace + _P.connectdrainwidth / 2, _P.grid) - _P.connectdrainwidth / 2
-                end
+                _P.connectsourcespace = util.fix_to_grid_abs_higher(_P.connectsourcespace + _P.connectsourcewidth / 2, _P.grid) - _P.connectsourcewidth / 2
+                _P.connectdrainspace = util.fix_to_grid_abs_higher(_P.connectdrainspace + _P.connectdrainwidth / 2, _P.grid) - _P.connectdrainwidth / 2
             end
-            if not explicit.topgatespace then
+            do -- top gate strap
                 local strapskip
                 if _P.channeltype == "nmos" then
                     if _P.connectsourceinverse then
@@ -798,7 +800,7 @@ function process_parameters(_P, explicit)
                 local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
                 _P.topgatespace = _P.topgatespace + additional_space
             end
-            if not explicit.botgatespace then
+            do -- bottom gate strap
                 local strapskip
                 if _P.channeltype == "nmos" then
                     if _P.connectsourceinverse then
@@ -825,18 +827,10 @@ function process_parameters(_P, explicit)
             end
         else
             -- only adjust spacing, edge alignment to grid is enforced via parameter checks
-            if not explicit.connectsourcespace then
-                _P.connectsourcespace = util.fix_to_grid_abs_higher(_P.connectsourcespace, _P.grid)
-            end
-            if not explicit.connectdrainspace then
-                _P.connectdrainspace = util.fix_to_grid_abs_higher(_P.connectdrainspace, _P.grid)
-            end
-            if not explicit.topgatespace then
-                _P.topgatespace = util.fix_to_grid_abs_higher(_P.topgatespace, _P.grid)
-            end
-            if not explicit.botgatespace then
-                _P.botgatespace = util.fix_to_grid_abs_higher(_P.botgatespace, _P.grid)
-            end
+            _P.connectsourcespace = util.fix_to_grid_abs_higher(_P.connectsourcespace, _P.grid)
+            _P.connectdrainspace = util.fix_to_grid_abs_higher(_P.connectdrainspace, _P.grid)
+            _P.topgatespace = util.fix_to_grid_abs_higher(_P.topgatespace, _P.grid)
+            _P.botgatespace = util.fix_to_grid_abs_higher(_P.botgatespace, _P.grid)
         end
     end
     -- check all parameters against the 'shapegrid'
