@@ -264,8 +264,8 @@ function parameters()
         { "floatingdummygatespace",                                                                     technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), argtype = "integer", follow = "gatespace", info = "floating dummy gate space between the polysilicon lines" },
         { "drawactive",                                                                                 true },
         { "lvsmarker",                                                                                  1, info = "special marking layer to mark device features for LVS. Typically used for mosfets with 5 and 6 terminals (including well diodes). Per default this includes the guardring around the device, as this defines the geometry of the diodes. This can be changed with the parameter 'lvsmarkerincludeguardring'. This marker is always drawn, the parameter is a numeric value, starting at 1." },
-        { "lvsmarkerincludeguardring",                                                                  true, },
-        { "lvsmarkeralignwithactive",                                                                   false },
+        { "lvsmarkerincludeguardring",                                                                  true, info = "the lvs marker covers the guardring (outer boundary plus the lvs marker extensions), if a guardring is drawn. Without a guardring (or if this is false) the lvs marker covers the active region (see 'lvsmarkeralignwithactive')." },
+        { "lvsmarkeralignwithactive",                                                                   false, info = "if the lvs marker covers the active region (no guardring or 'lvsmarkerincludeguardring' is false), align it with the active region in y. Otherwise it spans the gates in y." },
         { "extendall",                                                                                  0 },
         { "extendalltop",                                                                               0, follow = "extendall" },
         { "extendallbottom",                                                                            0, follow = "extendall" },
@@ -347,7 +347,11 @@ function parameters()
         { "leftpolylines",                                                                              {}, info = "Specifies additional poly (gate not over active) lines left of the device. The table should containt entries like this: '{ length = 80, space = 120 }'." },
         { "rightpolylines",                                                                             {}, info = "Specifies additional poly (gate not over active) lines right of the device. The table should containt entries like this: '{ length = 80, space = 120 }'." },
         { "drawrotationmarker",                                                                         false },
+        { "rotationmarkerincludeguardring",                                                             true, info = "the rotation marker covers the guardring (outer boundary plus the rotation marker extensions), if a guardring is drawn. Without a guardring (or if this is false) the rotation marker covers the active region (see 'rotationmarkeralignwithactive')." },
+        { "rotationmarkeralignwithactive",                                                              false, info = "if the rotation marker covers the active region (no guardring or 'rotationmarkerincludeguardring' is false), align it with the active region in y. Otherwise it spans the gates in y." },
         { "drawanalogmarker",                                                                           false },
+        { "analogmarkerincludeguardring",                                                               true, info = "the analog marker covers the guardring (outer boundary plus the analog marker extensions), if a guardring is drawn. Without a guardring (or if this is false) the analog marker covers the active region." },
+        { "analogmarkeralignwithactive",                                                                true, info = "if the analog marker covers the active region (no guardring or 'analogmarkerincludeguardring' is false), align it with the active region in y. Otherwise it spans the gates in y (like the lvs marker with 'lvsmarkeralignwithactive' = false)." },
         -- FIXME: checkshorts should be true, but this needs better logic
         { "checkshorts",                                                                                false },
         { "strapextentmode",                                                                            "allmetals", posvals = set("allmetals", "samemetal"), info = "how other shapes (gate straps, guardring) account for source/drain straps with different widths per metal: 'allmetals' uses the widest strap metal, 'samemetal' only considers strap metals on the same metals as the shape in question" },
@@ -1884,15 +1888,6 @@ function layout(transistor, _P)
     end
     transistor:add_area_anchor_bltr("oxide", oxidebl, oxidetr)
 
-    -- rotation marker
-    if _P.drawrotationmarker then
-        geometry.rectanglebltr(transistor,
-            generics.marker("rotation"),
-            point.create(activebl:getx() - _P.extendrotationmarkerleft, -_P.extendrotationmarkerbottom),
-            point.create(activetr:getx() + _P.extendrotationmarkerright, _P.fingerwidth + _P.extendrotationmarkertop)
-        )
-    end
-
     -- guardring extensions (space between the active region and the guardring hole, without the separations),
     -- calculated here as they are also used by the analog and lvs markers
     local guardringleftext_activedummy = 0
@@ -2042,7 +2037,7 @@ function layout(transistor, _P)
         guardringbotext_sourcestraps,
         guardringbotext_drainstraps
     )
-    -- outer boundary of the guardring (also used if no guardring is drawn, e.g. for the lvs marker)
+    -- outer boundary of the guardring
     local guardringouterbl = point.create(
         activebl:getx() - guardringleftext - _P.guardringleftsep - _P.guardringwidth,
         activebl:gety() - guardringbotext - _P.guardringbottomsep - _P.guardringwidth
@@ -2052,31 +2047,82 @@ function layout(transistor, _P)
         activetr:gety() + guardringtopext + _P.guardringtopsep + _P.guardringwidth
     )
 
-    -- analog marker
-    if _P.drawanalogmarker then
-        if _P.drawguardring then
+    -- rotation marker
+    if _P.drawrotationmarker then
+        if _P.rotationmarkerincludeguardring and _P.drawguardring then
             geometry.rectanglebltr(transistor,
-                generics.marker("analog"),
-                guardringouterbl,
-                guardringoutertr
+                generics.marker("rotation"),
+                guardringouterbl:copy():translate(-_P.extendrotationmarkerleft, -_P.extendrotationmarkerbottom),
+                guardringoutertr:copy():translate(_P.extendrotationmarkerright, _P.extendrotationmarkertop)
             )
         else
+            if _P.rotationmarkeralignwithactive then
+                geometry.rectanglebltr(transistor,
+                    generics.marker("rotation"),
+                    point.create(
+                        activebl:getx() - _P.extendrotationmarkerleft,
+                        activebl:gety() - _P.extendrotationmarkerbottom
+                    ),
+                    point.create(
+                        activetr:getx() + _P.extendrotationmarkerright,
+                        activetr:gety() + _P.extendrotationmarkertop
+                    )
+                )
+            else
+                geometry.rectanglebltr(transistor,
+                    generics.marker("rotation"),
+                    point.create(
+                        activebl:getx() - _P.extendrotationmarkerleft,
+                        gatebly - _P.extendrotationmarkerbottom
+                    ),
+                    point.create(
+                        activetr:getx() + _P.extendrotationmarkerright,
+                        gatetry + _P.extendrotationmarkertop
+                    )
+                )
+            end
+        end
+    end
+
+    -- analog marker
+    if _P.drawanalogmarker then
+        if _P.analogmarkerincludeguardring and _P.drawguardring then
             geometry.rectanglebltr(transistor,
                 generics.marker("analog"),
-                point.create(
-                    activebl:getx() - _P.extendanalogmarkerleft,
-                    activebl:gety() - _P.extendanalogmarkerbottom
-                ),
-                point.create(
-                    activetr:getx() + _P.extendanalogmarkerright,
-                    activetr:gety() + _P.extendanalogmarkertop
-                )
+                guardringouterbl:copy():translate(-_P.extendanalogmarkerleft, -_P.extendanalogmarkerbottom),
+                guardringoutertr:copy():translate(_P.extendanalogmarkerright, _P.extendanalogmarkertop)
             )
+        else
+            if _P.analogmarkeralignwithactive then
+                geometry.rectanglebltr(transistor,
+                    generics.marker("analog"),
+                    point.create(
+                        activebl:getx() - _P.extendanalogmarkerleft,
+                        activebl:gety() - _P.extendanalogmarkerbottom
+                    ),
+                    point.create(
+                        activetr:getx() + _P.extendanalogmarkerright,
+                        activetr:gety() + _P.extendanalogmarkertop
+                    )
+                )
+            else
+                geometry.rectanglebltr(transistor,
+                    generics.marker("analog"),
+                    point.create(
+                        activebl:getx() - _P.extendanalogmarkerleft,
+                        gatebly - _P.extendanalogmarkerbottom
+                    ),
+                    point.create(
+                        activetr:getx() + _P.extendanalogmarkerright,
+                        gatetry + _P.extendanalogmarkertop
+                    )
+                )
+            end
         end
     end
 
     -- lvs marker
-    if _P.lvsmarkerincludeguardring then
+    if _P.lvsmarkerincludeguardring and _P.drawguardring then
         geometry.rectanglebltr(transistor,
             generics.marker("lvs", _P.lvsmarker),
             guardringouterbl:copy():translate(-_P.extendlvsmarkerleft, -_P.extendlvsmarkerbottom),
