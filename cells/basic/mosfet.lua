@@ -700,6 +700,19 @@ function process_parameters(_P, explicit)
     if not explicit.connectdrainwidth and _P.sdmetalwidths[_P.drainendmetal] then
         _P.connectdrainwidth = _P.sdmetalwidths[_P.drainendmetal]
     end
+    -- other straps: follow the computed values of the main straps (results of process_parameters() are not propagated to followers)
+    if not explicit.connectsourceotherwidth then
+        _P.connectsourceotherwidth = _P.connectsourcewidth
+    end
+    if not explicit.connectsourceotherspace then
+        _P.connectsourceotherspace = _P.connectsourcespace
+    end
+    if not explicit.connectdrainotherwidth then
+        _P.connectdrainotherwidth = _P.connectdrainwidth
+    end
+    if not explicit.connectdrainotherspace then
+        _P.connectdrainotherspace = _P.connectdrainspace
+    end
     -- top metals of the straps: at least as wide as the strap, but also respect the metal width
     if not explicit.connectsourcetopwidth then
         _P.connectsourcetopwidth = math.max(_P.connectsourcewidth, _get_metal_width(_P.sourcestraptopmetal))
