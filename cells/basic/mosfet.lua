@@ -1487,7 +1487,7 @@ function layout(transistor, _P)
 
     -- stop gates
     if _P.drawleftstopgate then
-        if technology.has_feature("has_gatecut") and _P.drawstopgatetopgatecut then
+        if hasgatecut and _P.drawstopgatetopgatecut then
             geometry.rectanglebltr(transistor,
                 generics.feol("gatecut"),
                 point.create(
@@ -1500,7 +1500,7 @@ function layout(transistor, _P)
                 )
             )
         end
-        if technology.has_feature("has_gatecut") and _P.drawstopgatebotgatecut then
+        if hasgatecut and _P.drawstopgatebotgatecut then
             geometry.rectanglebltr(transistor,
                 generics.feol("gatecut"),
                 point.create(
@@ -1535,7 +1535,7 @@ function layout(transistor, _P)
     end
 
     if _P.drawrightstopgate then
-        if technology.has_feature("has_gatecut") and _P.drawstopgatetopgatecut then
+        if hasgatecut and _P.drawstopgatetopgatecut then
             geometry.rectanglebltr(transistor,
                 generics.feol("gatecut"),
                 point.create(
@@ -1548,7 +1548,7 @@ function layout(transistor, _P)
                 )
             )
         end
-        if technology.has_feature("has_gatecut") and _P.drawstopgatebotgatecut then
+        if hasgatecut and _P.drawstopgatebotgatecut then
             geometry.rectanglebltr(transistor,
                 generics.feol("gatecut"),
                 point.create(
