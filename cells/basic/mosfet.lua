@@ -84,7 +84,7 @@ function parameters()
         { "sdmxtopext",                                                                                 0, argtype = "integer", follow = "sdm1topext", info = "extend the inter-level (not M1, not highest metal) source/drain metal region (top). This is useful for meeting minimum area requirements for devices with small finger widths" },
         { "sdmetalwidths",                                                                              {}, info = "width of source/drain metals, given as an array with one entry per metal. Missing entries are taken from 'sdmetalwidth'" },
         { "interweavevias",                                                                             false },
-        { "alternateinterweaving",                                                                      false },
+        { "alternateinterweaving",                                                                      true },
         { "minviaxspace",                                                                               0 },
         { "minviayspace",                                                                               0 },
         { "gtopext(Gate Top Extension)",                                                                technology.get_dimension("Minimum Gate Extension"), info = "top gate extension. This extension depends on the automatically calculated gate extensions (which depend for instance on gate contacts). This means that if 'gtopext' is smaller than the automatic extensions, the layout is not changed at all." },
@@ -2119,7 +2119,18 @@ function layout(transistor, _P)
         end
     end
     local contacttype = _P.drawrotationmarker and "sourcedrainrotated" or "sourcedrain"
-    -- values for interweaved via cuts
+    -- interweaved vias: the via cuts of source and drain are staggered, one terminal gets one cut less (shifted by
+    -- half a cut pitch). This is done up to the highest common via metal of source and drain. Without
+    -- 'alternateinterweaving' the drain always gets the reduced cuts, with it the terminals alternate per via level,
+    -- starting with full cuts on the source for metal 1 to metal 2
+    local interweavemetal = math.min(_P.sourceviametal, _P.drainviametal)
+    local function _interweave_reduced(kind, metal)
+        if _P.alternateinterweaving and metal % 2 == 0 then
+            return kind == "source"
+        else
+            return kind == "drain"
+        end
+    end
     if _P.drawsourcedrain ~= "none" then
         -- source
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "source" then
@@ -2141,8 +2152,9 @@ function layout(transistor, _P)
                     if _P.drawsourcevia and _P.sourceviametal > 1 and
                         not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         for metal = 1, _P.sourceviametal - 1 do
-                            if _P.interweavevias and metal + 1 <= _P.sourceviametal then
-                                local alternate = false
+                            if _P.interweavevias and metal + 1 <= interweavemetal then
+                                -- the via array has the width of the narrower metal, both metals are centered on the source region,
+                                -- so the cuts are placed relative to the left edge of the narrower metal
                                 local viatable = geometry.calculate_viabltr2(
                                     metal, metal + 1,
                                     point.create(
@@ -2158,7 +2170,7 @@ function layout(transistor, _P)
                                         sourceviaoffset
                                     ),
                                     point.create(
-                                        shift + sourcemetalwidths[metal] - sourcemetalshifts[metal + 1],
+                                        shift + sourcemetalwidths[metal + 1] - sourcemetalshifts[metal + 1],
                                         sourceviaoffset + _P.sourceviasize
                                     ),
                                     _P.minviaxspace, _P.minviayspace
@@ -2168,22 +2180,22 @@ function layout(transistor, _P)
                                     local cutxoffset = viaentry.xoffset
                                     local cutyoffset = viaentry.yoffset
                                     local cutwidth = viaentry.width
-                                    local cutheight = viaentry.width
+                                    local cutheight = viaentry.height
                                     local cutspace = viaentry.yspace
                                     local cutlayer = viaentry.layer
-                                    if _P.alternateinterweaving and alternate then
+                                    -- don't reduce single cuts (the via level would not be connected)
+                                    if _interweave_reduced("source", metal) and numcuts > 1 then
                                         numcuts = numcuts - 1
-                                        cutyoffset = cutyoffset + math.floor((viaentry.yspace + viaentry.width) / 2)
-                                        alternate = not alternate
+                                        cutyoffset = cutyoffset + math.floor((viaentry.yspace + viaentry.height) / 2)
                                     end
                                     for i = 1, numcuts do
                                         geometry.rectanglebltr(transistor, cutlayer,
                                             point.create(
-                                                shift - sourcemetalshifts[metal] + cutxoffset,
+                                                shift - math.min(sourcemetalshifts[metal], sourcemetalshifts[metal + 1]) + cutxoffset,
                                                 sourceviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight)
                                             ),
                                             point.create(
-                                                shift - sourcemetalshifts[metal] + cutxoffset + cutwidth,
+                                                shift - math.min(sourcemetalshifts[metal], sourcemetalshifts[metal + 1]) + cutxoffset + cutwidth,
                                                 sourceviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight) + cutheight
                                             )
                                         )
@@ -2332,8 +2344,9 @@ function layout(transistor, _P)
                     if _P.drawdrainvia and _P.drainviametal > 1 and
                         not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         for metal = 1, _P.drainviametal - 1 do
-                            if _P.interweavevias and metal + 1 <= _P.drainviametal then
-                                local alternate = true
+                            if _P.interweavevias and metal + 1 <= interweavemetal then
+                                -- the via array has the width of the narrower metal, both metals are centered on the drain region,
+                                -- so the cuts are placed relative to the left edge of the narrower metal
                                 local viatable = geometry.calculate_viabltr2(
                                     metal, metal + 1,
                                     point.create(shift - drainmetalshifts[metal], drainviaoffset),
@@ -2343,22 +2356,22 @@ function layout(transistor, _P)
                                     _P.minviaxspace, _P.minviayspace
                                 )
                                 for _, viaentry in ipairs(viatable) do
-                                    local numcuts = viaentry.yrep - 1
+                                    local numcuts = viaentry.yrep
                                     local cutxoffset = viaentry.xoffset
-                                    local cutyoffset = math.floor(viaentry.yoffset + (viaentry.yspace + viaentry.width) / 2)
+                                    local cutyoffset = viaentry.yoffset
                                     local cutwidth = viaentry.width
-                                    local cutheight = viaentry.width
+                                    local cutheight = viaentry.height
                                     local cutspace = viaentry.yspace
                                     local cutlayer = viaentry.layer
-                                    if _P.alternateinterweaving and alternate then
+                                    -- don't reduce single cuts (the via level would not be connected)
+                                    if _interweave_reduced("drain", metal) and numcuts > 1 then
                                         numcuts = numcuts - 1
-                                        cutyoffset = cutyoffset + math.floor((viaentry.yspace + viaentry.width) / 2)
-                                        alternate = not alternate
+                                        cutyoffset = cutyoffset + math.floor((viaentry.yspace + viaentry.height) / 2)
                                     end
                                     for i = 1, numcuts do
                                         geometry.rectanglebltr(transistor, cutlayer,
-                                            point.create(shift - drainmetalshifts[metal] + cutxoffset, drainviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight)),
-                                            point.create(shift - drainmetalshifts[metal] + cutxoffset + cutwidth, drainviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight) + cutheight)
+                                            point.create(shift - math.min(drainmetalshifts[metal], drainmetalshifts[metal + 1]) + cutxoffset, drainviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight)),
+                                            point.create(shift - math.min(drainmetalshifts[metal], drainmetalshifts[metal + 1]) + cutxoffset + cutwidth, drainviaoffset + cutyoffset + (i - 1) * (cutspace + cutheight) + cutheight)
                                         )
                                     end
                                 end
