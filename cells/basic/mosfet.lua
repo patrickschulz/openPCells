@@ -1189,6 +1189,26 @@ function check(_P)
     if _P.drainstraptopmetal < _P.drainendmetal then
         return false, string.format("the drain strap top metal must be larger than or equal to the drain end metal, got %d and %d", _P.drainstraptopmetal, _P.drainendmetal)
     end
+    -- FIXME: the short check is incomplete and partly wrong (MOSFET_REVIEW.md 2.5), it should be replaced:
+    --   current problems:
+    --     - compares 'sourcemetal == topgatemetal' only, ignoring the side of the strap (false alarm for a source strap
+    --       below the device and a top gate strap), the metal ranges and 'topgateadjustforsdstraps'
+    --     - the bottom gate strap is not checked, the drain branch is empty, other straps are missing
+    --   a correct check, for every gate strap (top/bottom) against every source/drain strap on the same side:
+    --     - gate straps: top/bottom gate strap, occupying metal 1 to 'topgatemetal'/'botgatemetal' (vias to the
+    --       gate contacts), y range: fingerwidth + topgatespace (+ push from _get_gate_sdstrap_spaces() if
+    --       'topgateadjustforsdstraps') + topgatewidth, mirrored for the bottom gate
+    --     - source/drain straps: main straps (connectsource/connectdrain, side from channeltype and
+    --       connect*inverse), other straps (connect*both, on the opposite side), occupying '*startmetal' to
+    --       '*straptopmetal', y range: connect*space / connect*otherspace + strap extent (_get_strap_extent() with
+    --       the per-metal width tables); inline straps lie inside the active region and are not relevant
+    --     - shorts only if the metal ranges overlap and the y ranges overlap
+    --     - intended connections are excluded: shortsourcegate (source - gate), shortdraingate (drain - gate),
+    --       diodeconnected (drain - gate, source - gate with diodeconnectedreversed)
+    --   not covered yet (separate cases): source/drain connections (vertical metals from the regions to the straps)
+    --   crossing a gate strap that lies between the active region and the strap, extra top/bottom straps
+    --   (extratopstrap/extrabotstrap), guardring connections
+    --   once the check is correct, 'checkshorts' should default to true (FIXME at the parameter definition)
     if _P.checkshorts then
         if _P.drawtopgate then
             if _P.sourcemetal == _P.topgatemetal then
