@@ -880,7 +880,6 @@ function process_parameters(_P, explicit)
         "extrabotstraprightextension",
         "extratopstrapwidth",
         "extratopstrapspace",
-        "extratopstrapmetal",
         "extratopstrapleftextension",
         "extratopstraprightextension",
         "shortspace",
@@ -3275,7 +3274,7 @@ function layout(transistor, _P)
     if _P.drawextratopstrap then
         local blx = gateblx - (_P.gatespace + maxmetalextension) / 2 - _P.extratopstrapleftextension + (_P.extratopstrapleftalign - 1) * gatepitch
         local trx = gateblx - (_P.gatespace + maxmetalextension) / 2 + _P.extratopstraprightextension + 2 * (_P.fingers // 2) * gatepitch + (_P.extratopstraprightalign - _P.fingers) * gatepitch + maxmetalextension
-        geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
+        geometry.rectanglebltr(transistor, generics.metal(_P.extratopstrapmetal),
             point.create(blx, _P.fingerwidth + _P.extratopstrapspace),
             point.create(trx, _P.fingerwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
         )
