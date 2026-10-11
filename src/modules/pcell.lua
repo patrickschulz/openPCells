@@ -181,6 +181,7 @@ local function _load_cell(state, cellname, env)
             "config",
             "parameters",
             "process_parameters",
+            "process_parameters_override",
             "check_pre",
             "prepare",
             "check",
@@ -339,7 +340,7 @@ local function _get_parameters(state, cellname, cellargs)
         end
     end
 
-    -- (5) run process_parameters() function (if available)
+    -- (5a) run process_parameters() function (if available)
     if cell.funcs.process_parameters then
         -- copy parameter table to prevent overwriting of explicitly-defined parameters
         local t = {}
@@ -354,6 +355,22 @@ local function _get_parameters(state, cellname, cellargs)
             if not explicit[k] then
                 rawset(P, k, v)
             end
+        end
+    end
+
+    -- (5b) run process_parameters_override() function (if available)
+    if cell.funcs.process_parameters_override then
+        -- copy parameter table to prevent overwriting of explicitly-defined parameters
+        local t = {}
+        for k, v in pairs(P) do
+            t[k] = v
+        end
+        cell.funcs.process_parameters_override(t, explicit)
+        for k, v in pairs(t) do
+            if not Pset[k] then
+                error(string.format("'process_parameters_override' sets the parameter '%s', but this has no matching parameter in cell '%s', maybe it was spelled wrong?", k, cellname))
+            end
+            rawset(P, k, v)
         end
     end
 
