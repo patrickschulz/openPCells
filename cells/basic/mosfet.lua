@@ -709,20 +709,26 @@ function process_parameters(_P, explicit)
     if _P.grid > 0 then
         if _P.centershapegrid then
             if _P.drawsourcestrap and _P.drawdrainstrap then
-                local sourcedraindiff
-                if _P.connectsourceinlineoffset == not _P.connectdraininverse then
-                    sourcedraindiff = 0 -- source and drain on the same side
+                -- distances of the strap centers to the active region (each on its own side)
+                local sourcecenter = _P.connectsourcespace + _P.connectsourcewidth / 2
+                local draincenter = _P.connectdrainspace + _P.connectdrainwidth / 2
+                if _P.connectsourceinverse ~= _P.connectdraininverse then
+                    -- source and drain on the same side: only the outer strap is moved (outwards)
+                    local centercenterspace = math.abs(sourcecenter - draincenter)
+                    local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
+                    if sourcecenter > draincenter then
+                        _P.connectsourcespace = _P.connectsourcespace + additional_space
+                    else
+                        _P.connectdrainspace = _P.connectdrainspace + additional_space
+                    end
                 else
-                    sourcedraindiff = _P.fingerwidth -- source and drain on different sides
+                    -- source and drain on different sides
+                    local centercenterspace = sourcecenter + _P.fingerwidth + draincenter
+                    local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
+                    local s1, s2 = util.ratio_split_multiple_of(additional_space, 1, 1)
+                    _P.connectsourcespace = _P.connectsourcespace + s1
+                    _P.connectdrainspace = _P.connectdrainspace + s2
                 end
-                local centercenterspace =
-                    _P.connectsourcespace + _P.connectsourcewidth / 2 +
-                    _P.connectdrainspace + _P.connectdrainwidth / 2 +
-                    sourcedraindiff
-                local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
-                local s1, s2 = util.ratio_split_multiple_of(additional_space, 1, 1)
-                _P.connectsourcespace = _P.connectsourcespace + s1
-                _P.connectdrainspace = _P.connectdrainspace + s2
             else
                 -- FIXME: this probably does not make any sense, as the grid-based only works if all access shapes are available
                 --        perhaps this should be enforced through parameter checks
