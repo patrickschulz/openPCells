@@ -769,6 +769,20 @@ local function _get_gate_sdstrap_spaces(_P, sourcestrapwidths, sourceotherstrapw
     return topgatesdstrapspace, botgatesdstrapspace
 end
 
+-- present source/drain contacts (drawn terminal and not excluded), ascending region indices
+-- note: the 'sourcedrain%d' anchors exist for all regions of a drawn terminal, also for excluded ones
+local function _get_sdcontacts(_P)
+    local sdcontacts = { source = {}, drain = {}, all = {} }
+    for i = 1, _P.fingers + 1 do
+        local kind = (i % 2 == 1) and "source" or "drain"
+        if (_P.drawsourcedrain == "both" or _P.drawsourcedrain == kind) and not util.any_of(i, _P.excludesourcedraincontacts) then
+            sdcontacts[kind][#sdcontacts[kind] + 1] = i
+            sdcontacts.all[#sdcontacts.all + 1] = i
+        end
+    end
+    return sdcontacts
+end
+
 function process_parameters(_P, explicit)
     if not explicit.connectsourcewidth then
         _P.connectsourcewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.sourceendmetal))
@@ -1313,6 +1327,7 @@ end
 
 function layout(transistor, _P)
     local gatepitch = _P.gatelength + _P.gatespace
+    local sdcontacts = _get_sdcontacts(_P)
 
     -- per-metal widths of the source/drain straps
     local sourcestrapwidths = _get_strap_widths(_P.connectsourcewidths, _P.sourcestartmetal, _P.sourceendmetal, _P.sourcestraptopmetal, _P.connectsourcewidth, _P.connectsourcetopwidth)
@@ -2618,9 +2633,9 @@ function layout(transistor, _P)
 
     -- diode connected
     if _P.diodeconnected then
-        local startindex = _P.diodeconnectedreversed and 1 or 2
+        local regions = _P.diodeconnectedreversed and sdcontacts.source or sdcontacts.drain
         local metalshifts = _P.diodeconnectedreversed and sourcemetalshifts or drainmetalshifts
-        for i = startindex, _P.fingers + 1, 2 do
+        for _, i in ipairs(regions) do
             if _P.drawtopgatestrap then
                 geometry.rectanglebltr(transistor, generics.metal(1),
                     transistor:get_area_anchor(string.format("sourcedrain%d", i)).tl:translate_x(-metalshifts[1]),
@@ -3341,28 +3356,43 @@ function layout(transistor, _P)
 
     -- short transistor
     if _P.shortdevice then
+        -- present regions between the offsets
+        local regions = {}
+        for _, i in ipairs(sdcontacts.all) do
+            if i >= 1 + _P.shortdeviceleftoffset and i <= _P.fingers + 1 - _P.shortdevicerightoffset then
+                regions[#regions + 1] = i
+            end
+        end
+        local first = regions[1]
+        local last = regions[#regions]
         if _P.shortlocation == "inline" then
-            geometry.rectanglebltr(transistor, generics.metal(1),
-                transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).br:translate(0, (_P.sourcesize - _P.shortwidth) / 2),
-                transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).bl:translate(0, (_P.sourcesize + _P.shortwidth) / 2)
-            )
+            if #regions > 1 then
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    transistor:get_area_anchor(string.format("sourcedrain%d", first)).br:translate(0, (_P.sourcesize - _P.shortwidth) / 2),
+                    transistor:get_area_anchor(string.format("sourcedrain%d", last)).bl:translate(0, (_P.sourcesize + _P.shortwidth) / 2)
+                )
+            end
         elseif _P.shortlocation == "top" then
-            geometry.rectanglebltr(transistor, generics.metal(1),
-                transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).tl:translate_y(_P.shortspace),
-                transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).tr:translate_y(_P.shortspace + _P.shortwidth)
-            )
-            for i = 1 + _P.shortdeviceleftoffset, _P.fingers - _P.shortdevicerightoffset + 1 do
+            if #regions > 0 then
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    transistor:get_area_anchor(string.format("sourcedrain%d", first)).tl:translate_y(_P.shortspace),
+                    transistor:get_area_anchor(string.format("sourcedrain%d", last)).tr:translate_y(_P.shortspace + _P.shortwidth)
+                )
+            end
+            for _, i in ipairs(regions) do
                 geometry.rectanglebltr(transistor, generics.metal(1),
                     transistor:get_area_anchor(string.format("sourcedrain%d", i)).tl,
                     transistor:get_area_anchor(string.format("sourcedrain%d", i)).tr:translate_y(_P.shortspace)
                 )
             end
         elseif _P.shortlocation == "bottom" then
-            geometry.rectanglebltr(transistor, generics.metal(1),
-                transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).bl:translate_y(-_P.shortspace - _P.shortwidth),
-                transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).br:translate_y(-_P.shortspace)
-            )
-            for i = 1 + _P.shortdeviceleftoffset, _P.fingers - _P.shortdevicerightoffset + 1 do
+            if #regions > 0 then
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    transistor:get_area_anchor(string.format("sourcedrain%d", first)).bl:translate_y(-_P.shortspace - _P.shortwidth),
+                    transistor:get_area_anchor(string.format("sourcedrain%d", last)).br:translate_y(-_P.shortspace)
+                )
+            end
+            for _, i in ipairs(regions) do
                 geometry.rectanglebltr(transistor, generics.metal(1),
                     transistor:get_area_anchor(string.format("sourcedrain%d", i)).bl:translate_y(-_P.shortspace),
                     transistor:get_area_anchor(string.format("sourcedrain%d", i)).br
@@ -3373,119 +3403,61 @@ function layout(transistor, _P)
         end
     end
 
-    if _P.shortsourcegate then
-        if _P.drawtopgate and _P.drawtopgatestrap then
-            geometry.rectanglebltr(transistor, generics.metal(1),
-                point.create(
-                    transistor:get_area_anchor_fmt("sourcedrain%d", 1).l,
-                    transistor:get_area_anchor("topgatestrap").b
-                ),
-                point.create(
-                    transistor:get_area_anchor_fmt("sourcedrain%d", -1).r,
-                    transistor:get_area_anchor("topgatestrap").t
-                )
-            )
-            for i = 1, _P.fingers + 1, 2 do
-                geometry.rectanglebltr(transistor, generics.metal(1),
-                    transistor:get_area_anchor_fmt("sourcedrain%d", i).tl,
-                    point.create(
-                        transistor:get_area_anchor_fmt("sourcedrain%d", i).r,
-                        transistor:get_area_anchor("topgatestrap").b
-                    )
-                )
+    -- short source or drain regions to a gate strap: a bar on the gate strap (from the first to the last region,
+    -- a single region is connected to the gate strap) and a connection from every region to the gate strap
+    local function _short_to_gatestrap(regions, strapname, istop)
+        if #regions == 0 then
+            return
+        end
+        local strap = transistor:get_area_anchor(strapname)
+        local first = transistor:get_area_anchor_fmt("sourcedrain%d", regions[1])
+        local last = transistor:get_area_anchor_fmt("sourcedrain%d", regions[#regions])
+        local barleft, barright
+        if #regions > 1 then
+            barleft, barright = first.l, last.r
+        else
+            barleft = math.min(first.l, strap.l)
+            if first.r > strap.l then
+                barright = first.r
+            else
+                barright = strap.r
             end
         end
-        if _P.drawbotgate and _P.drawbotgatestrap then
-            geometry.rectanglebltr(transistor, generics.metal(1),
-                point.create(
-                    transistor:get_area_anchor_fmt("sourcedrain%d", 1).l,
-                    transistor:get_area_anchor("botgatestrap").b
-                ),
-                point.create(
-                    transistor:get_area_anchor_fmt("sourcedrain%d", -1).r,
-                    transistor:get_area_anchor("botgatestrap").t
-                )
-            )
-            for i = 1, _P.fingers + 1, 2 do
+        geometry.rectanglebltr(transistor, generics.metal(1),
+            point.create(barleft, strap.b),
+            point.create(barright, strap.t)
+        )
+        for _, i in ipairs(regions) do
+            local region = transistor:get_area_anchor_fmt("sourcedrain%d", i)
+            if istop then
                 geometry.rectanglebltr(transistor, generics.metal(1),
-                    point.create(
-                        transistor:get_area_anchor_fmt("sourcedrain%d", i).l,
-                        transistor:get_area_anchor("botgatestrap").t
-                    ),
-                    transistor:get_area_anchor_fmt("sourcedrain%d", i).br
+                    region.tl,
+                    point.create(region.r, strap.b)
+                )
+            else
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    point.create(region.l, strap.t),
+                    region.br
                 )
             end
         end
     end
 
-    if _P.shortdraingate then
+    if _P.shortsourcegate then
         if _P.drawtopgate and _P.drawtopgatestrap then
-            if _P.fingers > 2 then
-                geometry.rectanglebltr(transistor, generics.metal(1),
-                    point.create(
-                        transistor:get_area_anchor_fmt("sourcedrain%d", 2).l,
-                        transistor:get_area_anchor("topgatestrap").b
-                    ),
-                    point.create(
-                        transistor:get_area_anchor_fmt("sourcedrain%d", -2).r,
-                        transistor:get_area_anchor("topgatestrap").t
-                    )
-                )
-            else
-                geometry.rectanglebltr(transistor, generics.metal(1),
-                    point.create(
-                        transistor:get_area_anchor("topgatestrap").l,
-                        transistor:get_area_anchor("topgatestrap").b
-                    ),
-                    point.create(
-                        transistor:get_area_anchor_fmt("sourcedrain%d", 2).r,
-                        transistor:get_area_anchor("topgatestrap").t
-                    )
-                )
-            end
-            for i = 2, _P.fingers + 1, 2 do
-                geometry.rectanglebltr(transistor, generics.metal(1),
-                    transistor:get_area_anchor_fmt("sourcedrain%d", i).tl,
-                    point.create(
-                        transistor:get_area_anchor_fmt("sourcedrain%d", i).r,
-                        transistor:get_area_anchor("topgatestrap").b
-                    )
-                )
-            end
+            _short_to_gatestrap(sdcontacts.source, "topgatestrap", true)
         end
         if _P.drawbotgate and _P.drawbotgatestrap then
-            if _P.fingers > 2 then
-                geometry.rectanglebltr(transistor, generics.metal(1),
-                    point.create(
-                        transistor:get_area_anchor_fmt("sourcedrain%d", 2).l,
-                        transistor:get_area_anchor("botgatestrap").b
-                    ),
-                    point.create(
-                        transistor:get_area_anchor_fmt("sourcedrain%d", -2).r,
-                        transistor:get_area_anchor("botgatestrap").t
-                    )
-                )
-            else
-                geometry.rectanglebltr(transistor, generics.metal(1),
-                    point.create(
-                        transistor:get_area_anchor("botgatestrap").l,
-                        transistor:get_area_anchor("botgatestrap").b
-                    ),
-                    point.create(
-                        transistor:get_area_anchor_fmt("sourcedrain%d", 2).r,
-                        transistor:get_area_anchor("botgatestrap").t
-                    )
-                )
-            end
-            for i = 2, _P.fingers + 1, 2 do
-                geometry.rectanglebltr(transistor, generics.metal(1),
-                    point.create(
-                        transistor:get_area_anchor_fmt("sourcedrain%d", i).l,
-                        transistor:get_area_anchor("botgatestrap").t
-                    ),
-                    transistor:get_area_anchor_fmt("sourcedrain%d", i).br
-                )
-            end
+            _short_to_gatestrap(sdcontacts.source, "botgatestrap", false)
+        end
+    end
+
+    if _P.shortdraingate then
+        if _P.drawtopgate and _P.drawtopgatestrap then
+            _short_to_gatestrap(sdcontacts.drain, "topgatestrap", true)
+        end
+        if _P.drawbotgate and _P.drawbotgatestrap then
+            _short_to_gatestrap(sdcontacts.drain, "botgatestrap", false)
         end
     end
 
@@ -3727,7 +3699,7 @@ function layout(transistor, _P)
                     )
                 end
             else -- "individual"
-                for i = 1, _P.fingers + 1, 2 do
+                for _, i in ipairs(sdcontacts.source) do
                     local sourceanchor = transistor:get_area_anchor_fmt("sourcedrain%d", i)
                     geometry.rectanglepoints(transistor, generics.metal(1),
                         point.create(
