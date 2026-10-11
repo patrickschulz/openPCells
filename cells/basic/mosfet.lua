@@ -1038,6 +1038,13 @@ function check(_P)
     if _P.shortsourcegate and (not (_P.drawtopgate and _P.drawtopgatestrap) and not (_P.drawbotgate and _P.drawbotgatestrap)) then
         return false, "if shortsourcegate is true, drawtopgate and drawtopgatestrap also have to be true"
     end
+    -- source and drain straps on the same side (exactly one of them inverted) need separate metals
+    if _P.drawsourcestrap and _P.drawdrainstrap and not _P.connectsourceinline and not _P.connectdraininline and
+        (_P.connectsourceinverse ~= _P.connectdraininverse) then
+        if not (_P.sourcestartmetal > _P.drainstraptopmetal or _P.drainstartmetal > _P.sourcestraptopmetal) then
+            return false, string.format("source and drain straps are on the same side of the device (only one of 'connectsourceinverse' (%s) and 'connectdraininverse' (%s) is set), therefore they need different metals: the first metal of one strap must be higher than the last metal of the other strap (source strap: metals %d to %d, drain strap: metals %d to %d)", _P.connectsourceinverse, _P.connectdraininverse, _P.sourcestartmetal, _P.sourcestraptopmetal, _P.drainstartmetal, _P.drainstraptopmetal)
+        end
+    end
     -- per-metal width tables must only define metals that are present
     local sdmetalmax = 0
     for _, kind in ipairs({ "source", "drain" }) do
