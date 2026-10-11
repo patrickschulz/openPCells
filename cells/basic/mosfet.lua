@@ -681,6 +681,94 @@ local function _get_strap_extent(widths, mode, firstmetal, lastmetal)
     return extent
 end
 
+-- gate/gate strap space extensions due to outer source/drain straps (if the gate metal is not below the via metal),
+-- inline straps lie inside the active region and don't push the gate straps
+local function _get_gate_sdstrap_spaces(_P, sourcestrapwidths, sourceotherstrapwidths, drainstrapwidths, drainotherstrapwidths, topgatemetal, botgatemetal)
+    local topgatesdstrapspace = 0
+    if _P.drawtopgate then
+        if _P.channeltype == "nmos" then
+            if _P.drawdrainconnections and not _P.connectdraininline and not _P.connectdraininverse then
+                local space = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, topgatemetal)
+                if _P.topgatemetal >= _P.drainviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
+            end
+            if _P.drawsourceconnections and not _P.connectsourceinline and _P.connectsourceinverse then
+                local space = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, topgatemetal)
+                if _P.topgatemetal >= _P.sourceviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
+            end
+            if _P.drawsourceconnections and not _P.connectsourceinline and _P.connectsourceboth then
+                local space = _P.connectsourceotherspace + _get_strap_extent(sourceotherstrapwidths, _P.strapextentmode, 1, topgatemetal)
+                if _P.topgatemetal >= _P.sourceviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
+            end
+        else -- _P.channeltype == "pmos"
+            if _P.drawsourceconnections and not _P.connectsourceinline and not _P.connectsourceinverse then
+                local space = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, topgatemetal)
+                if _P.topgatemetal >= _P.sourceviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
+            end
+            if _P.drawdrainconnections and not _P.connectdraininline and _P.connectdraininverse then
+                local space = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, topgatemetal)
+                if _P.topgatemetal >= _P.drainviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
+            end
+            if _P.drawdrainconnections and not _P.connectdraininline and _P.connectdrainboth then
+                local space = _P.connectdrainotherspace + _get_strap_extent(drainotherstrapwidths, _P.strapextentmode, 1, topgatemetal)
+                if _P.topgatemetal >= _P.drainviametal then
+                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
+                end
+            end
+        end
+    end
+    local botgatesdstrapspace = 0
+    if _P.drawbotgate then
+        if _P.channeltype == "nmos" then
+            if _P.drawsourceconnections and not _P.connectsourceinline and not _P.connectsourceinverse then
+                if _P.botgatemetal >= _P.sourceviametal then
+                    botgatesdstrapspace = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, botgatemetal)
+                end
+            end
+            if _P.drawdrainconnections and not _P.connectdraininline and _P.connectdraininverse then
+                local space = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, botgatemetal)
+                if _P.botgatemetal >= _P.drainviametal then
+                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                end
+            end
+            if _P.drawdrainconnections and not _P.connectdraininline and _P.connectdrainboth then
+                local space = _P.connectdrainotherspace + _get_strap_extent(drainotherstrapwidths, _P.strapextentmode, 1, botgatemetal)
+                if _P.botgatemetal >= _P.drainviametal then
+                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                end
+            end
+        else -- _P.channeltype == "pmos"
+            if _P.drawdrainconnections and not _P.connectdraininline and not _P.connectdraininverse then
+                if _P.botgatemetal >= _P.drainviametal then
+                    botgatesdstrapspace = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, botgatemetal)
+                end
+            end
+            if _P.drawsourceconnections and not _P.connectsourceinline and _P.connectsourceinverse then
+                local space = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, botgatemetal)
+                if _P.botgatemetal >= _P.sourceviametal then
+                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                end
+            end
+            if _P.drawsourceconnections and not _P.connectsourceinline and _P.connectsourceboth then
+                local space = _P.connectsourceotherspace + _get_strap_extent(sourceotherstrapwidths, _P.strapextentmode, 1, botgatemetal)
+                if _P.botgatemetal >= _P.sourceviametal then
+                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
+                end
+            end
+        end
+    end
+    return topgatesdstrapspace, botgatesdstrapspace
+end
+
 function process_parameters(_P, explicit)
     if not explicit.connectsourcewidth then
         _P.connectsourcewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.sourceendmetal))
@@ -748,26 +836,100 @@ function process_parameters_override(_P, explicit)
     -- modify spacings to put access shapes on grid
     if _P.grid > 0 then
         if _P.centershapegrid then
-            if _P.drawsourcestrap and _P.drawdrainstrap then
-                -- distances of the strap centers to the active region (each on its own side)
-                local sourcecenter = _P.connectsourcespace + _P.connectsourcewidth / 2
-                local draincenter = _P.connectdrainspace + _P.connectdrainwidth / 2
-                if _P.connectsourceinverse ~= _P.connectdraininverse then
-                    -- source and drain on the same side: only the outer strap is moved (outwards)
-                    local centercenterspace = math.abs(sourcecenter - draincenter)
-                    local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
-                    if sourcecenter > draincenter then
-                        _P.connectsourcespace = _P.connectsourcespace + additional_space
+            -- strap centers (y, relative to the bottom edge of the active region), inline straps lie inside the active region
+            local function _strap_is_bottom(kind)
+                local inverse
+                if kind == "source" then
+                    inverse = _P.connectsourceinverse
+                else
+                    inverse = _P.connectdraininverse
+                end
+                return ((_P.channeltype == "nmos") == (kind == "source")) ~= inverse
+            end
+            local function _strap_center(kind)
+                local width = _P[string.format("connect%swidth", kind)]
+                if _P[string.format("connect%sinline", kind)] then
+                    local offset = _P[string.format("connect%sinlineoffset", kind)]
+                    if _strap_is_bottom(kind) then
+                        return offset + width / 2
                     else
-                        _P.connectdrainspace = _P.connectdrainspace + additional_space
+                        return _P.fingerwidth - offset - width / 2
                     end
                 else
-                    -- source and drain on different sides
-                    local centercenterspace = sourcecenter + _P.fingerwidth + draincenter
+                    local space = _P[string.format("connect%sspace", kind)]
+                    if _strap_is_bottom(kind) then
+                        return -space - width / 2
+                    else
+                        return _P.fingerwidth + space + width / 2
+                    end
+                end
+            end
+            if _P.drawsourcestrap and _P.drawdrainstrap then
+                if not _P.connectsourceinline and not _P.connectdraininline then
+                    -- distances of the strap centers to the active region (each on its own side)
+                    local sourcecenter = _P.connectsourcespace + _P.connectsourcewidth / 2
+                    local draincenter = _P.connectdrainspace + _P.connectdrainwidth / 2
+                    if _P.connectsourceinverse ~= _P.connectdraininverse then
+                        -- source and drain on the same side: only the outer strap is moved (outwards)
+                        local centercenterspace = math.abs(sourcecenter - draincenter)
+                        local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
+                        if sourcecenter > draincenter then
+                            _P.connectsourcespace = _P.connectsourcespace + additional_space
+                        else
+                            _P.connectdrainspace = _P.connectdrainspace + additional_space
+                        end
+                    else
+                        -- source and drain on different sides
+                        local centercenterspace = sourcecenter + _P.fingerwidth + draincenter
+                        local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
+                        local s1, s2 = util.ratio_split_multiple_of(additional_space, 1, 1)
+                        _P.connectsourcespace = _P.connectsourcespace + s1
+                        _P.connectdrainspace = _P.connectdrainspace + s2
+                    end
+                elseif _P.connectsourceinline and _P.connectdraininline then
+                    -- both straps inline: move them apart (balanced), but never out of the active region
+                    local sourcecenter = _strap_center("source")
+                    local draincenter = _strap_center("drain")
+                    local centercenterspace = math.abs(sourcecenter - draincenter)
                     local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
-                    local s1, s2 = util.ratio_split_multiple_of(additional_space, 1, 1)
-                    _P.connectsourcespace = _P.connectsourcespace + s1
-                    _P.connectdrainspace = _P.connectdrainspace + s2
+                    local lower, upper = "source", "drain"
+                    if draincenter < sourcecenter then
+                        lower, upper = "drain", "source"
+                    end
+                    local moves = {}
+                    moves.source = additional_space // 2
+                    moves.drain = additional_space - moves.source
+                    -- room to the active edges (the lower strap moves down, the upper strap moves up)
+                    local lowerroom = _strap_center(lower) - _P[string.format("connect%swidth", lower)] / 2
+                    local upperroom = _P.fingerwidth - _strap_center(upper) - _P[string.format("connect%swidth", upper)] / 2
+                    if moves[lower] > lowerroom then
+                        moves[upper] = moves[upper] + moves[lower] - lowerroom
+                        moves[lower] = lowerroom
+                    end
+                    if moves[upper] > upperroom then
+                        moves[lower] = moves[lower] + moves[upper] - upperroom
+                        moves[upper] = upperroom
+                    end
+                    -- if there is not enough room the straps are moved anyway, this is reported by check()
+                    -- the offsets are measured from the edge of the strap side (bottom or top)
+                    for _, entry in ipairs({ { kind = lower, direction = -1 }, { kind = upper, direction = 1 } }) do
+                        local name = string.format("connect%sinlineoffset", entry.kind)
+                        if _strap_is_bottom(entry.kind) then
+                            _P[name] = _P[name] + entry.direction * moves[entry.kind]
+                        else
+                            _P[name] = _P[name] - entry.direction * moves[entry.kind]
+                        end
+                    end
+                else
+                    -- one inline strap: the inline strap stays, the outer strap is moved (outwards)
+                    local inline, outer = "source", "drain"
+                    if _P.connectdraininline then
+                        inline, outer = "drain", "source"
+                    end
+                    local centercenterspace = math.abs(_strap_center(inline) - _strap_center(outer))
+                    local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
+                    local name = string.format("connect%sspace", outer)
+                    _P[name] = _P[name] + additional_space
                 end
             else
                 -- FIXME: this probably does not make any sense, as the grid-based only works if all access shapes are available
@@ -775,55 +937,36 @@ function process_parameters_override(_P, explicit)
                 _P.connectsourcespace = util.fix_to_grid_abs_higher(_P.connectsourcespace + _P.connectsourcewidth / 2, _P.grid) - _P.connectsourcewidth / 2
                 _P.connectdrainspace = util.fix_to_grid_abs_higher(_P.connectdrainspace + _P.connectdrainwidth / 2, _P.grid) - _P.connectdrainwidth / 2
             end
-            do -- top gate strap
-                local strapskip
-                if _P.channeltype == "nmos" then
-                    if _P.connectsourceinverse then
-                        -- gate is on the source side
-                        strapskip = _P.connectsourcewidth / 2
-                    else
-                        -- gate is on the drain side
-                        strapskip = _P.connectdrainwidth / 2
-                    end
-                else
-                    if _P.connectsourceinverse then
-                        -- gate is on the drain side
-                        strapskip = _P.connectdrainwidth / 2
-                    else
-                        -- gate is on the source side
-                        strapskip = _P.connectsourcewidth / 2
-                    end
-                end
-                local centercenterspace =
-                    _P.topgatespace + _P.topgatewidth / 2 +
-                    strapskip
-                local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
-                _P.topgatespace = _P.topgatespace + additional_space
-            end
-            do -- bottom gate strap
-                local strapskip
-                if _P.channeltype == "nmos" then
-                    if _P.connectsourceinverse then
-                        -- gate is on the drain side
-                        strapskip = _P.connectdrainwidth / 2
-                    else
-                        -- gate is on the source side
-                        strapskip = _P.connectsourcewidth / 2
-                    end
-                else
-                    if _P.connectsourceinverse then
-                        -- gate is on the source side
-                        strapskip = _P.connectsourcewidth / 2
-                    else
-                        -- gate is on the drain side
-                        strapskip = _P.connectdrainwidth / 2
+            -- gate straps: on grid relative to the nearest source/drain strap (after the straps have been moved)
+            if _P.drawtopgate or _P.drawbotgate then
+                local sourcestrapwidths = _get_strap_widths(_P.connectsourcewidths, _P.sourcestartmetal, _P.sourceendmetal, _P.sourcestraptopmetal, _P.connectsourcewidth, _P.connectsourcetopwidth)
+                local sourceotherstrapwidths = _get_strap_widths(_P.connectsourceotherwidths, _P.sourcestartmetal, _P.sourceendmetal, _P.sourcestraptopmetal, _P.connectsourceotherwidth, _P.connectsourceothertopwidth)
+                local drainstrapwidths = _get_strap_widths(_P.connectdrainwidths, _P.drainstartmetal, _P.drainendmetal, _P.drainstraptopmetal, _P.connectdrainwidth, _P.connectdraintopwidth)
+                local drainotherstrapwidths = _get_strap_widths(_P.connectdrainotherwidths, _P.drainstartmetal, _P.drainendmetal, _P.drainstraptopmetal, _P.connectdrainotherwidth, _P.connectdrainothertopwidth)
+                local topgatesdstrapspace, botgatesdstrapspace = _get_gate_sdstrap_spaces(_P,
+                    sourcestrapwidths, sourceotherstrapwidths, drainstrapwidths, drainotherstrapwidths,
+                    technology.resolve_metal(_P.topgatemetal), technology.resolve_metal(_P.botgatemetal)
+                )
+                local lowestcenter, highestcenter
+                for _, kind in ipairs({ "source", "drain" }) do
+                    if _P[string.format("draw%sstrap", kind)] then
+                        local center = _strap_center(kind)
+                        lowestcenter = lowestcenter and math.min(lowestcenter, center) or center
+                        highestcenter = highestcenter and math.max(highestcenter, center) or center
                     end
                 end
-                local centercenterspace =
-                    _P.botgatespace + _P.botgatewidth / 2 +
-                    strapskip
-                local additional_space = util.fix_to_grid_abs_higher(centercenterspace, _P.grid) - centercenterspace
-                _P.botgatespace = _P.botgatespace + additional_space
+                if lowestcenter then
+                    if _P.drawtopgate then
+                        local gatecenter = _P.fingerwidth + _P.topgatespace + enable(_P.topgateadjustforsdstraps, topgatesdstrapspace) + _P.topgatewidth / 2
+                        local centercenterspace = gatecenter - highestcenter
+                        _P.topgatespace = _P.topgatespace + util.fix_to_grid_higher(centercenterspace, _P.grid) - centercenterspace
+                    end
+                    if _P.drawbotgate then
+                        local gatecenter = -_P.botgatespace - enable(_P.botgateadjustforsdstraps, botgatesdstrapspace) - _P.botgatewidth / 2
+                        local centercenterspace = lowestcenter - gatecenter
+                        _P.botgatespace = _P.botgatespace + util.fix_to_grid_higher(centercenterspace, _P.grid) - centercenterspace
+                    end
+                end
             end
         else
             -- only adjust spacing, edge alignment to grid is enforced via parameter checks
@@ -1066,6 +1209,27 @@ function check(_P)
     if _P.shortsourcegate and (not (_P.drawtopgate and _P.drawtopgatestrap) and not (_P.drawbotgate and _P.drawbotgatestrap)) then
         return false, "if shortsourcegate is true, drawtopgate and drawtopgatestrap also have to be true"
     end
+    -- two inline straps on grid: process_parameters_override() moves them apart, but only within the active region
+    if _P.grid > 0 and _P.centershapegrid and _P.drawsourcestrap and _P.drawdrainstrap and
+        _P.connectsourceinline and _P.connectdraininline then
+        local sourcebly, drainbly
+        if (_P.channeltype == "nmos") ~= _P.connectsourceinverse then
+            sourcebly = _P.connectsourceinlineoffset
+        else
+            sourcebly = _P.fingerwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
+        end
+        if (_P.channeltype == "nmos") ~= _P.connectdraininverse then
+            drainbly = _P.fingerwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
+        else
+            drainbly = _P.connectdraininlineoffset
+        end
+        local centercenterspace = math.abs((sourcebly + _P.connectsourcewidth / 2) - (drainbly + _P.connectdrainwidth / 2))
+        if centercenterspace % _P.grid ~= 0 or
+            sourcebly < 0 or sourcebly + _P.connectsourcewidth > _P.fingerwidth or
+            drainbly < 0 or drainbly + _P.connectdrainwidth > _P.fingerwidth then
+            return false, string.format("the inline source and drain straps can not be put on the grid (%d) within the active region (fingerwidth: %d, connectsourcewidth: %d, connectdrainwidth: %d): the center distance of the straps must be a multiple of the grid, the straps can only be moved apart up to the edges of the active region", _P.grid, _P.fingerwidth, _P.connectsourcewidth, _P.connectdrainwidth)
+        end
+    end
     -- source and drain straps on the same side (exactly one of them inverted) need separate metals
     if _P.drawsourcestrap and _P.drawdrainstrap and not _P.connectsourceinline and not _P.connectdraininline and
         (_P.connectsourceinverse ~= _P.connectdraininverse) then
@@ -1153,88 +1317,7 @@ function layout(transistor, _P)
     local botgatemetal = technology.resolve_metal(_P.botgatemetal)
 
     -- calculate gate/gate strap space extensions due to source/drain straps
-    local topgatesdstrapspace = 0
-    if _P.drawtopgate then
-        if _P.channeltype == "nmos" then
-            if _P.drawdrainconnections and not _P.connectdraininverse then
-                local space = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, topgatemetal)
-                if _P.topgatemetal >= _P.drainviametal then
-                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
-                end
-            end
-            if _P.drawsourceconnections and _P.connectsourceinverse then
-                local space = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, topgatemetal)
-                if _P.topgatemetal >= _P.sourceviametal then
-                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
-                end
-            end
-            if _P.drawsourceconnections and _P.connectsourceboth then
-                local space = _P.connectsourceotherspace + _get_strap_extent(sourceotherstrapwidths, _P.strapextentmode, 1, topgatemetal)
-                if _P.topgatemetal >= _P.sourceviametal then
-                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
-                end
-            end
-        else -- _P.channeltype == "pmos"
-            if _P.drawsourceconnections and not _P.connectsourceinverse then
-                local space = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, topgatemetal)
-                if _P.topgatemetal >= _P.sourceviametal then
-                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
-                end
-            end
-            if _P.drawdrainconnections and _P.connectdraininverse then
-                local space = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, topgatemetal)
-                if _P.topgatemetal >= _P.drainviametal then
-                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
-                end
-            end
-            if _P.drawdrainconnections and _P.connectdrainboth then
-                local space = _P.connectdrainotherspace + _get_strap_extent(drainotherstrapwidths, _P.strapextentmode, 1, topgatemetal)
-                if _P.topgatemetal >= _P.drainviametal then
-                    topgatesdstrapspace = math.max(topgatesdstrapspace, space)
-                end
-            end
-        end
-    end
-    local botgatesdstrapspace = 0
-    if _P.drawbotgate then
-        if _P.channeltype == "nmos" then
-            if _P.drawsourceconnections and not _P.connectsourceinverse then
-                if _P.botgatemetal >= _P.sourceviametal then
-                    botgatesdstrapspace = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, botgatemetal)
-                end
-            end
-            if _P.drawdrainconnections and _P.connectdraininverse then
-                local space = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, botgatemetal)
-                if _P.botgatemetal >= _P.drainviametal then
-                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
-                end
-            end
-            if _P.drawdrainconnections and _P.connectdrainboth then
-                local space = _P.connectdrainotherspace + _get_strap_extent(drainotherstrapwidths, _P.strapextentmode, 1, botgatemetal)
-                if _P.botgatemetal >= _P.drainviametal then
-                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
-                end
-            end
-        else -- _P.channeltype == "pmos"
-            if _P.drawdrainconnections and not _P.connectdraininverse then
-                if _P.botgatemetal >= _P.drainviametal then
-                    botgatesdstrapspace = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, botgatemetal)
-                end
-            end
-            if _P.drawsourceconnections and _P.connectsourceinverse then
-                local space = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, botgatemetal)
-                if _P.botgatemetal >= _P.sourceviametal then
-                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
-                end
-            end
-            if _P.drawsourceconnections and _P.connectsourceboth then
-                local space = _P.connectsourceotherspace + _get_strap_extent(sourceotherstrapwidths, _P.strapextentmode, 1, botgatemetal)
-                if _P.botgatemetal >= _P.sourceviametal then
-                    botgatesdstrapspace = math.max(botgatesdstrapspace, space)
-                end
-            end
-        end
-    end
+    local topgatesdstrapspace, botgatesdstrapspace = _get_gate_sdstrap_spaces(_P, sourcestrapwidths, sourceotherstrapwidths, drainstrapwidths, drainotherstrapwidths, topgatemetal, botgatemetal)
 
     local topgatespace = _P.topgatespace + enable(_P.topgateadjustforsdstraps, topgatesdstrapspace)
     local botgatespace = _P.botgatespace + enable(_P.botgateadjustforsdstraps, botgatesdstrapspace)
