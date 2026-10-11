@@ -1171,11 +1171,11 @@ function check(_P)
     if _P.drainsize < 0 then
         return false, string.format("drainsize (%d) can not be negative", _P.drainsize)
     end
-    if _P.sourceviasize < 0 then
-        return false, string.format("sourceviasize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.sourceviasize, _P.fingerwidth)
+    if _P.sourceviasize < 0 or _P.sourceviasize > _P.sourcesize then
+        return false, string.format("sourceviasize (%d) can not be negative or larger than 'sourcesize' (%d)", _P.sourceviasize, _P.sourcesize)
     end
-    if _P.drainviasize < 0 then
-        return false, string.format("drainviasize (%d) can not be negative or larger than 'fingerwidth' (%d)", _P.drainviasize, _P.fingerwidth)
+    if _P.drainviasize < 0 or _P.drainviasize > _P.drainsize then
+        return false, string.format("drainviasize (%d) can not be negative or larger than 'drainsize' (%d)", _P.drainviasize, _P.drainsize)
     end
     if _P.sourceendmetal < _P.sourcestartmetal then
         return false, string.format("the source end metal must be larger than or equal to the source start metal, got %d and %d", _P.sourceendmetal, _P.sourcestartmetal)
@@ -1215,7 +1215,7 @@ function check(_P)
         return false, string.format("leftendgatelength must be even (%d)", _P.leftendgatelength)
     end
     if _P.rightendgatelength % 2 ~= 0 then
-        return false, string.format("rightendgatelength must be even", _P.rightendgatelength)
+        return false, string.format("rightendgatelength must be even (%d)", _P.rightendgatelength)
     end
     if _P.diodeconnected and not (_P.drawtopgate or _P.drawbotgate) then
         return false, "if the device is diode-connected, the top or bottom gate strap needs to be present"
@@ -1228,7 +1228,7 @@ function check(_P)
         end
     end
     if _P.shortsourcegate and (not (_P.drawtopgate and _P.drawtopgatestrap) and not (_P.drawbotgate and _P.drawbotgatestrap)) then
-        return false, "if shortsourcegate is true, drawtopgate and drawtopgatestrap also have to be true"
+        return false, "if shortsourcegate is true, drawtopgate and drawtopgatestrap or drawbotgate and drawbotgatestrap also have to be true"
     end
     -- two inline straps on grid: process_parameters_override() moves them apart, but only within the active region
     if _P.grid > 0 and _P.centershapegrid and _P.drawsourcestrap and _P.drawdrainstrap and
