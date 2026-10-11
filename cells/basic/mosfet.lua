@@ -1135,6 +1135,13 @@ function process_parameters_override(_P, explicit)
 end
 
 function check(_P)
+    -- stop gates are placed on the end gates
+    if _P.drawleftstopgate and not _P.endleftwithgate then
+        return false, "'drawleftstopgate' requires 'endleftwithgate' (the left stop gate is drawn on the left end gate)"
+    end
+    if _P.drawrightstopgate and not _P.endrightwithgate then
+        return false, "'drawrightstopgate' requires 'endrightwithgate' (the right stop gate is drawn on the right end gate)"
+    end
     if (_P.gatespace % 2) ~= (_P.sdwidth % 2) then
         return false, string.format("gatespace and sdwidth must both be even or odd (%d vs. %d)", _P.gatespace, _P.sdwidth)
     end
