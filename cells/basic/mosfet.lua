@@ -1336,7 +1336,7 @@ function layout(transistor, _P)
     end
     transistor:add_area_anchor_bltr("gateboundingbox",
         point.create(gateblx, gatebly),
-        point.create(gatetrx + _P.fingers * gatepitch, gatetry)
+        point.create(gatetrx + (_P.fingers - 1) * gatepitch, gatetry)
     )
     transistor:add_anchor_line_y("gatetop", gatetry)
     transistor:add_anchor_line_y("gatebottom", gatebly)
@@ -1392,8 +1392,8 @@ function layout(transistor, _P)
         end
         transistor:add_area_anchor_bltr(
             "endrightgate",
-            point.create(gateblx + _P.rightfloatingdummies * gatepitch - _P.gatespace + _P.rightendgatespace + _P.fingers * gatepitch, lgatebly),
-            point.create(gatetrx + _P.rightfloatingdummies * gatepitch - _P.gatespace + _P.rightendgatespace - _P.gatelength + _P.rightendgatelength + _P.fingers * gatepitch, lgatetry)
+            point.create(gateblx + _P.rightfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace) - _P.gatespace + _P.rightendgatespace + _P.fingers * gatepitch, lgatebly),
+            point.create(gatetrx + _P.rightfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace) - _P.gatespace + _P.rightendgatespace - _P.gatelength + _P.rightendgatelength + _P.fingers * gatepitch, lgatetry)
         )
         geometry.rectanglebltr(transistor,
             generics.gate(),
