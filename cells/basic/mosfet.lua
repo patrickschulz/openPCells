@@ -1149,6 +1149,13 @@ function process_parameters_override(_P, explicit)
 end
 
 function check(_P)
+    -- other straps only exist for outer straps
+    if _P.connectsourceboth and _P.connectsourceinline then
+        return false, "'connectsourceboth' can not be used together with 'connectsourceinline' (the other source strap is only drawn for outer source straps)"
+    end
+    if _P.connectdrainboth and _P.connectdraininline then
+        return false, "'connectdrainboth' can not be used together with 'connectdraininline' (the other drain strap is only drawn for outer drain straps)"
+    end
     -- stop gates are placed on the end gates
     if _P.drawleftstopgate and not _P.endleftwithgate then
         return false, "'drawleftstopgate' requires 'endleftwithgate' (the left stop gate is drawn on the left end gate)"
