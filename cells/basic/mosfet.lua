@@ -1690,13 +1690,12 @@ function layout(transistor, _P)
     end
 
     -- mosfet marker
-    -- FIXME: check proper alignment after source/drain contacts are placed
     if _P.fingers > 0 then
         if _P.mosfetmarkeralignatsourcedrain then
             geometry.rectanglebltr(transistor,
                 generics.marker("mosfet", _P.mosfetmarker),
-                point.create(0, 0),
-                point.create(_P.fingers * gatepitch, _P.fingerwidth)
+                activebl,
+                activetr
             )
         else
             if _P.mosfetmarkerincludefloatingdummies then
