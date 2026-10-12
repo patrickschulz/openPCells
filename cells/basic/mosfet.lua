@@ -246,10 +246,13 @@ function parameters()
         { "drawactivedummies",                                                                          false },
         { "activedummywidth",                                                                           technology.get_optional_dimension("Minimum Active Width", 0) },
         { "activedummyspace",                                                                           technology.get_optional_dimension("Minimum Active Space", 0) },
+        { "coveractivedummieswithstopgates",                                                            false },
         { "drawleftactivedummy",                                                                        false, follow = "drawactivedummies" },
+        { "coverleftactivedummywithstopgates",                                                          false, follow = "coveractivedummieswithstopgates" },
         { "leftactivedummywidth",                                                                       technology.get_optional_dimension("Minimum Active Width", 0), follow = "activedummywidth" },
         { "leftactivedummyspace",                                                                       technology.get_optional_dimension("Minimum Active Space", 0), follow = "activedummyspace" },
         { "drawrightactivedummy",                                                                       false, follow = "drawactivedummies" },
+        { "coverrightactivedummywithstopgates",                                                         false, follow = "coveractivedummieswithstopgates" },
         { "rightactivedummywidth",                                                                      technology.get_optional_dimension("Minimum Active Width", 0), follow = "activedummywidth" },
         { "rightactivedummyspace",                                                                      technology.get_optional_dimension("Minimum Active Space", 0), follow = "activedummyspace" },
         { "drawtopactivedummy",                                                                         false, follow = "drawactivedummies" },
@@ -1519,6 +1522,14 @@ function layout(transistor, _P)
     end
     local activeshift = -_P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace)
 
+    -- gates
+    -- base coordinates of a gate
+    -- needed throughout the cell by various drawings
+    local gateblx = 0
+    local gatebly = -gateaddbottom
+    local gatetrx = gateblx + _P.gatelength
+    local gatetry = _P.fingerwidth + gateaddtop
+
     local activebl = point.create(-leftactext + activeshift, 0)
     local activetr = point.create(activewidth + rightactext + activeshift, _P.fingerwidth)
     if _P.drawactive then
@@ -1532,6 +1543,28 @@ function layout(transistor, _P)
                 point.create(activebl:getx() - _P.leftactivedummyspace, activetr:gety())
             )
             geometry.rectangleareaanchor(transistor, generics.active(), "leftactivedummy")
+            if _P.coverleftactivedummywithstopgates then
+                geometry.rectanglebltr(transistor,
+                    generics.gate(),
+                    point.create(activebl:getx() - _P.leftactivedummyspace - _P.leftactivedummywidth - _P.gatelength / 2, gatebly),
+                    point.create(activebl:getx() - _P.leftactivedummyspace - _P.leftactivedummywidth + _P.gatelength / 2, gatetry)
+                )
+                geometry.rectanglebltr(transistor,
+                    generics.feol("diffusionbreakgate"),
+                    point.create(activebl:getx() - _P.leftactivedummyspace - _P.leftactivedummywidth - _P.gatelength / 2, gatebly),
+                    point.create(activebl:getx() - _P.leftactivedummyspace - _P.leftactivedummywidth + _P.gatelength / 2, gatetry)
+                )
+                geometry.rectanglebltr(transistor,
+                    generics.gate(),
+                    point.create(activebl:getx() - _P.leftactivedummyspace - _P.gatelength / 2, gatebly),
+                    point.create(activebl:getx() - _P.leftactivedummyspace + _P.gatelength / 2, gatetry)
+                )
+                geometry.rectanglebltr(transistor,
+                    generics.feol("diffusionbreakgate"),
+                    point.create(activebl:getx() - _P.leftactivedummyspace - _P.gatelength / 2, gatebly),
+                    point.create(activebl:getx() - _P.leftactivedummyspace + _P.gatelength / 2, gatetry)
+                )
+            end
         end
         if _P.drawrightactivedummy then
             transistor:add_area_anchor_bltr("rightactivedummy",
@@ -1539,6 +1572,28 @@ function layout(transistor, _P)
                 point.create(activetr:getx() + _P.rightactivedummyspace + _P.rightactivedummywidth, activetr:gety())
             )
             geometry.rectangleareaanchor(transistor, generics.active(), "rightactivedummy")
+            if _P.coverrightactivedummywithstopgates then
+                geometry.rectanglebltr(transistor,
+                    generics.gate(),
+                    point.create(activetr:getx() + _P.rightactivedummyspace - _P.gatelength / 2, gatebly),
+                    point.create(activetr:getx() + _P.rightactivedummyspace + _P.gatelength / 2, gatetry)
+                )
+                geometry.rectanglebltr(transistor,
+                    generics.feol("diffusionbreakgate"),
+                    point.create(activetr:getx() + _P.rightactivedummyspace - _P.gatelength / 2, gatebly),
+                    point.create(activetr:getx() + _P.rightactivedummyspace + _P.gatelength / 2, gatetry)
+                )
+                geometry.rectanglebltr(transistor,
+                    generics.gate(),
+                    point.create(activetr:getx() + _P.rightactivedummyspace + _P.rightactivedummywidth - _P.gatelength / 2, gatebly),
+                    point.create(activetr:getx() + _P.rightactivedummyspace + _P.rightactivedummywidth + _P.gatelength / 2, gatetry)
+                )
+                geometry.rectanglebltr(transistor,
+                    generics.feol("diffusionbreakgate"),
+                    point.create(activetr:getx() + _P.rightactivedummyspace + _P.rightactivedummywidth - _P.gatelength / 2, gatebly),
+                    point.create(activetr:getx() + _P.rightactivedummyspace + _P.rightactivedummywidth + _P.gatelength / 2, gatetry)
+                )
+            end
         end
         if _P.drawtopactivedummy then
             transistor:add_area_anchor_bltr("topactivedummy",
@@ -1555,14 +1610,6 @@ function layout(transistor, _P)
             geometry.rectangleareaanchor(transistor, generics.active(), "bottomactivedummy")
         end
     end
-
-    -- gates
-    -- base coordinates of a gate
-    -- needed throughout the cell by various drawings
-    local gateblx = 0
-    local gatebly = -gateaddbottom
-    local gatetrx = gateblx + _P.gatelength
-    local gatetry = _P.fingerwidth + gateaddtop
 
     if hasgatecut then
         -- gate cut
