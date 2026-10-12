@@ -137,13 +137,12 @@ function layout(mosfet, _P)
             base:get_area_anchor("topactivedummy").t
         )
     )
-    -- inner guard ring
-    layouthelpers.place_guardring(mosfet,
+    -- guard rings
+    layouthelpers.place_guardrings_to_substrate(mosfet,
         guardringbl, guardringtr,
         _P.guardringxspace,
         _P.guardringyspace,
         _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
-        _P.channeltype == "nmos" and "n" or "p",
         "guardring_",
         {
             ringwidth = _P.guardringwidth,
