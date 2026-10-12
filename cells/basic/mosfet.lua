@@ -522,22 +522,22 @@ function anchors()
     pcell.add_area_anchor_documentation(
         "sourcestrap",
         "region of the source strap connecting all source regions",
-        "fingers > 0"
+        "(fingers > 0) and (connectsource == true)"
     )
     pcell.add_area_anchor_documentation(
         "othersourcestrap",
         "region of the other source strap (on the opposite side) connecting all source regions",
-        "(fingers > 0) and (connectsourceboth == true)"
+        "(fingers > 0) and (connectsource == true) and (connectsourceboth == true)"
     )
     pcell.add_area_anchor_documentation(
         "drainstrap",
         "region of the drain strap connecting all drain regions",
-        "fingers > 0"
+        "(fingers > 0) and (connectdrain == true)"
     )
     pcell.add_area_anchor_documentation(
         "otherdrainstrap",
         "region of the other drain strap (on the opposite side) connecting all drain regions",
-        "(fingers > 0) and (connectdrainboth == true)"
+        "(fingers > 0) and (connectdrain == true) and (connectdrainboth == true)"
     )
     pcell.add_area_anchor_documentation(
         "extratopstrap",
@@ -1405,6 +1405,9 @@ function check(_P)
     end
     if _P.connectguardringtosource then
         if _P.guardringconnectionmethod == "strap" then
+            if not _P.connectsource then
+                return false, "'connectguardringtosource' (with method == 'strap') requires a source strap ('connectsource')."
+            end
             if _P.connectsourceinline then
                 return false, "'connectguardringtosource' (with method == 'strap') can not be used with 'inline' source strap connections."
             end
@@ -3221,20 +3224,24 @@ function layout(transistor, _P)
                     end
                 end
             end
-            -- place anchor on highest-metal strap
-            transistor:add_area_anchor_bltr("sourcestrap",
-                point.create(straplefts[_P.sourceendmetal], strapbottoms[_P.sourceendmetal]),
-                point.create(straprights[_P.sourceendmetal], straptops[_P.sourceendmetal])
-            )
-            if rawget(_P, "sourcenet") then
-                transistor:mark_area_anchor_as_net("sourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
-                transistor:add_label(_P.sourcenet, generics.metal(_P.sourcestraptopmetal),
-                    point.create(
-                        0.5 * (transistor:get_area_anchor("sourcestrap").l + transistor:get_area_anchor("sourcestrap").r),
-                        0.5 * (transistor:get_area_anchor("sourcestrap").b + transistor:get_area_anchor("sourcestrap").t)
-                    ),
-                    _P.netlabelsizehint
+            -- strap anchors only for connected sources (a connected strap that is not drawn, see drawsourcestrap,
+            -- still gets its anchors)
+            if _P.connectsource then
+                -- place anchor on highest-metal strap
+                transistor:add_area_anchor_bltr("sourcestrap",
+                    point.create(straplefts[_P.sourceendmetal], strapbottoms[_P.sourceendmetal]),
+                    point.create(straprights[_P.sourceendmetal], straptops[_P.sourceendmetal])
                 )
+                if rawget(_P, "sourcenet") then
+                    transistor:mark_area_anchor_as_net("sourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
+                    transistor:add_label(_P.sourcenet, generics.metal(_P.sourcestraptopmetal),
+                        point.create(
+                            0.5 * (transistor:get_area_anchor("sourcestrap").l + transistor:get_area_anchor("sourcestrap").r),
+                            0.5 * (transistor:get_area_anchor("sourcestrap").b + transistor:get_area_anchor("sourcestrap").t)
+                        ),
+                        _P.netlabelsizehint
+                    )
+                end
             end
         else -- not _P.connectsourceinline
             local bly1, bly2
@@ -3336,56 +3343,50 @@ function layout(transistor, _P)
                     end
                 end
             end
-            -- main anchor
-            local shift = (_P.gatespace + sourcemetalwidths[_P.sourceendmetal]) / 2
-            transistor:add_area_anchor_bltr("sourcestrap",
-                point.create(straplefts1[_P.sourceendmetal], strapbottoms1[_P.sourceendmetal]),
-                point.create(straprights1[_P.sourceendmetal], straptops1[_P.sourceendmetal])
-            )
-            if rawget(_P, "sourcenet") then
-                transistor:mark_area_anchor_as_net("sourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
-                transistor:add_label(_P.sourcenet, generics.metal(_P.sourcestraptopmetal),
-                    point.create(
-                        0.5 * (transistor:get_area_anchor("sourcestrap").l + transistor:get_area_anchor("sourcestrap").r),
-                        0.5 * (transistor:get_area_anchor("sourcestrap").b + transistor:get_area_anchor("sourcestrap").t)
-                    ),
-                    _P.netlabelsizehint
-                )
-            end
-            if _P.connectsourceboth then
-                -- other anchor
-                transistor:add_area_anchor_bltr("othersourcestrap",
-                    point.create(straplefts2[_P.sourceendmetal], strapbottoms2[_P.sourceendmetal]),
-                    point.create(straprights2[_P.sourceendmetal], straptops2[_P.sourceendmetal])
+            -- strap anchors only for connected sources (a connected strap that is not drawn, see drawsourcestrap,
+            -- still gets its anchors)
+            if _P.connectsource then
+                -- main anchor
+                transistor:add_area_anchor_bltr("sourcestrap",
+                    point.create(straplefts1[_P.sourceendmetal], strapbottoms1[_P.sourceendmetal]),
+                    point.create(straprights1[_P.sourceendmetal], straptops1[_P.sourceendmetal])
                 )
                 if rawget(_P, "sourcenet") then
-                    transistor:mark_area_anchor_as_net("othersourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
+                    transistor:mark_area_anchor_as_net("sourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
                     transistor:add_label(_P.sourcenet, generics.metal(_P.sourcestraptopmetal),
                         point.create(
-                            0.5 * (transistor:get_area_anchor("othersourcestrap").l + transistor:get_area_anchor("othersourcestrap").r),
-                            0.5 * (transistor:get_area_anchor("othersourcestrap").b + transistor:get_area_anchor("othersourcestrap").t)
+                            0.5 * (transistor:get_area_anchor("sourcestrap").l + transistor:get_area_anchor("sourcestrap").r),
+                            0.5 * (transistor:get_area_anchor("sourcestrap").b + transistor:get_area_anchor("sourcestrap").t)
                         ),
                         _P.netlabelsizehint
                     )
                 end
-                if bly1 < bly2 then
-                    transistor:add_area_anchor_bltr("uppersourcestrap",
-                        point.create(blx - shift - leftext, bly2),
-                        point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly2 + _P.connectsourcewidth)
+                if _P.connectsourceboth then
+                    -- other anchor
+                    transistor:add_area_anchor_bltr("othersourcestrap",
+                        point.create(straplefts2[_P.sourceendmetal], strapbottoms2[_P.sourceendmetal]),
+                        point.create(straprights2[_P.sourceendmetal], straptops2[_P.sourceendmetal])
                     )
-                    transistor:add_area_anchor_bltr("lowersourcestrap",
-                        point.create(blx - shift - leftext, bly1),
-                        point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly1 + _P.connectsourcewidth)
-                    )
-                else
-                    transistor:add_area_anchor_bltr("lowersourcestrap",
-                        point.create(blx - shift - leftext, bly2),
-                        point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly2 + _P.connectsourceotherwidth)
-                    )
-                    transistor:add_area_anchor_bltr("uppersourcestrap",
-                        point.create(blx - shift - leftext, bly1),
-                        point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly1 + _P.connectsourcewidth)
-                    )
+                    if rawget(_P, "sourcenet") then
+                        transistor:mark_area_anchor_as_net("othersourcestrap", _P.sourcenet, generics.metal(_P.sourcestraptopmetal))
+                        transistor:add_label(_P.sourcenet, generics.metal(_P.sourcestraptopmetal),
+                            point.create(
+                                0.5 * (transistor:get_area_anchor("othersourcestrap").l + transistor:get_area_anchor("othersourcestrap").r),
+                                0.5 * (transistor:get_area_anchor("othersourcestrap").b + transistor:get_area_anchor("othersourcestrap").t)
+                            ),
+                            _P.netlabelsizehint
+                        )
+                    end
+                    -- upper/lower anchors: the main and the other strap, sorted by position
+                    local mainsourcestrap = transistor:get_area_anchor("sourcestrap")
+                    local othersourcestrap = transistor:get_area_anchor("othersourcestrap")
+                    if bly1 < bly2 then
+                        transistor:add_area_anchor_bltr("uppersourcestrap", othersourcestrap.bl, othersourcestrap.tr)
+                        transistor:add_area_anchor_bltr("lowersourcestrap", mainsourcestrap.bl, mainsourcestrap.tr)
+                    else
+                        transistor:add_area_anchor_bltr("lowersourcestrap", othersourcestrap.bl, othersourcestrap.tr)
+                        transistor:add_area_anchor_bltr("uppersourcestrap", mainsourcestrap.bl, mainsourcestrap.tr)
+                    end
                 end
             end
         end
@@ -3542,19 +3543,23 @@ function layout(transistor, _P)
                     end
                 end
             end
-            transistor:add_area_anchor_bltr("drainstrap",
-                point.create(straplefts[_P.drainendmetal], strapbottoms[_P.drainendmetal]),
-                point.create(straprights[_P.drainendmetal], straptops[_P.drainendmetal])
-            )
-            if rawget(_P, "drainnet") then
-                transistor:mark_area_anchor_as_net("drainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
-                transistor:add_label(_P.drainnet, generics.metal(_P.drainstraptopmetal),
-                    point.create(
-                        0.5 * (transistor:get_area_anchor("drainstrap").l + transistor:get_area_anchor("drainstrap").r),
-                        0.5 * (transistor:get_area_anchor("drainstrap").b + transistor:get_area_anchor("drainstrap").t)
-                    ),
-                    _P.netlabelsizehint
+            -- strap anchors only for connected drains (a connected strap that is not drawn, see drawdrainstrap,
+            -- still gets its anchors)
+            if _P.connectdrain then
+                transistor:add_area_anchor_bltr("drainstrap",
+                    point.create(straplefts[_P.drainendmetal], strapbottoms[_P.drainendmetal]),
+                    point.create(straprights[_P.drainendmetal], straptops[_P.drainendmetal])
                 )
+                if rawget(_P, "drainnet") then
+                    transistor:mark_area_anchor_as_net("drainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
+                    transistor:add_label(_P.drainnet, generics.metal(_P.drainstraptopmetal),
+                        point.create(
+                            0.5 * (transistor:get_area_anchor("drainstrap").l + transistor:get_area_anchor("drainstrap").r),
+                            0.5 * (transistor:get_area_anchor("drainstrap").b + transistor:get_area_anchor("drainstrap").t)
+                        ),
+                        _P.netlabelsizehint
+                    )
+                end
             end
         else -- not _P.connectdraininline
             local bly1, bly2
@@ -3660,58 +3665,52 @@ function layout(transistor, _P)
                     end
                 end
             end
-            -- main anchor
-            local shift = (_P.gatespace + drainmetalwidths[_P.drainendmetal]) / 2
-            transistor:add_area_anchor_bltr("drainstrap",
-                point.create(straplefts1[_P.drainendmetal], strapbottoms1[_P.drainendmetal]),
-                point.create(straprights1[_P.drainendmetal], straptops1[_P.drainendmetal])
-            )
-            if rawget(_P, "drainnet") then
-                transistor:mark_area_anchor_as_net("drainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
-                transistor:add_label(_P.drainnet, generics.metal(_P.drainstraptopmetal),
-                    point.create(
-                        0.5 * (transistor:get_area_anchor("drainstrap").l + transistor:get_area_anchor("drainstrap").r),
-                        0.5 * (transistor:get_area_anchor("drainstrap").b + transistor:get_area_anchor("drainstrap").t)
-                    ),
-                    _P.netlabelsizehint
-                )
-            end
-            -- other anchor
-            if _P.connectdrainboth then
-                transistor:add_area_anchor_bltr("otherdrainstrap",
-                    point.create(straplefts2[_P.drainendmetal], strapbottoms2[_P.drainendmetal]),
-                    point.create(straprights2[_P.drainendmetal], straptops2[_P.drainendmetal])
+            -- strap anchors only for connected drains (a connected strap that is not drawn, see drawdrainstrap,
+            -- still gets its anchors)
+            if _P.connectdrain then
+                -- main anchor
+                transistor:add_area_anchor_bltr("drainstrap",
+                    point.create(straplefts1[_P.drainendmetal], strapbottoms1[_P.drainendmetal]),
+                    point.create(straprights1[_P.drainendmetal], straptops1[_P.drainendmetal])
                 )
                 if rawget(_P, "drainnet") then
-                    transistor:mark_area_anchor_as_net("otherdrainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
+                    transistor:mark_area_anchor_as_net("drainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
                     transistor:add_label(_P.drainnet, generics.metal(_P.drainstraptopmetal),
                         point.create(
-                            0.5 * (transistor:get_area_anchor("otherdrainstrap").l + transistor:get_area_anchor("otherdrainstrap").r),
-                            0.5 * (transistor:get_area_anchor("otherdrainstrap").b + transistor:get_area_anchor("otherdrainstrap").t)
+                            0.5 * (transistor:get_area_anchor("drainstrap").l + transistor:get_area_anchor("drainstrap").r),
+                            0.5 * (transistor:get_area_anchor("drainstrap").b + transistor:get_area_anchor("drainstrap").t)
                         ),
                         _P.netlabelsizehint
                     )
                 end
-                if bly1 < bly2 then
-                    transistor:add_area_anchor_bltr("upperdrainstrap",
-                        point.create(blx - shift - leftext, bly2),
-                        point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly2 + _P.connectdrainwidth)
+                -- other anchor
+                if _P.connectdrainboth then
+                    transistor:add_area_anchor_bltr("otherdrainstrap",
+                        point.create(straplefts2[_P.drainendmetal], strapbottoms2[_P.drainendmetal]),
+                        point.create(straprights2[_P.drainendmetal], straptops2[_P.drainendmetal])
                     )
-                    transistor:add_area_anchor_bltr("lowerdrainstrap",
-                        point.create(blx - shift - leftext, bly1),
-                        point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly1 + _P.connectdrainwidth)
-                    )
-                else
-                    transistor:add_area_anchor_bltr("lowerdrainstrap",
-                        point.create(blx - shift - leftext, bly2),
-                        point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly2 + _P.connectdrainotherwidth)
-                    )
-                    transistor:add_area_anchor_bltr("upperdrainstrap",
-                        point.create(blx - shift - leftext, bly1),
-                        point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly1 + _P.connectdrainwidth)
-                    )
-                end
-            end -- connect both drains
+                    if rawget(_P, "drainnet") then
+                        transistor:mark_area_anchor_as_net("otherdrainstrap", _P.drainnet, generics.metal(_P.drainstraptopmetal))
+                        transistor:add_label(_P.drainnet, generics.metal(_P.drainstraptopmetal),
+                            point.create(
+                                0.5 * (transistor:get_area_anchor("otherdrainstrap").l + transistor:get_area_anchor("otherdrainstrap").r),
+                                0.5 * (transistor:get_area_anchor("otherdrainstrap").b + transistor:get_area_anchor("otherdrainstrap").t)
+                            ),
+                            _P.netlabelsizehint
+                        )
+                    end
+                    -- upper/lower anchors: the main and the other strap, sorted by position
+                    local maindrainstrap = transistor:get_area_anchor("drainstrap")
+                    local otherdrainstrap = transistor:get_area_anchor("otherdrainstrap")
+                    if bly1 < bly2 then
+                        transistor:add_area_anchor_bltr("upperdrainstrap", otherdrainstrap.bl, otherdrainstrap.tr)
+                        transistor:add_area_anchor_bltr("lowerdrainstrap", maindrainstrap.bl, maindrainstrap.tr)
+                    else
+                        transistor:add_area_anchor_bltr("lowerdrainstrap", otherdrainstrap.bl, otherdrainstrap.tr)
+                        transistor:add_area_anchor_bltr("upperdrainstrap", maindrainstrap.bl, maindrainstrap.tr)
+                    end
+                end -- connect both drains
+            end
         end -- _P.connectdraininline
     end -- fingers > 0
 
