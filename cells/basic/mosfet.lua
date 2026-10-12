@@ -3337,7 +3337,6 @@ function layout(transistor, _P)
                 end
             end
             -- main anchor
-            local shift = (_P.gatespace + sourcemetalwidths[_P.sourceendmetal]) / 2
             transistor:add_area_anchor_bltr("sourcestrap",
                 point.create(straplefts1[_P.sourceendmetal], strapbottoms1[_P.sourceendmetal]),
                 point.create(straprights1[_P.sourceendmetal], straptops1[_P.sourceendmetal])
@@ -3368,24 +3367,15 @@ function layout(transistor, _P)
                         _P.netlabelsizehint
                     )
                 end
+                -- upper/lower anchors: the main and the other strap, sorted by position
+                local mainsourcestrap = transistor:get_area_anchor("sourcestrap")
+                local othersourcestrap = transistor:get_area_anchor("othersourcestrap")
                 if bly1 < bly2 then
-                    transistor:add_area_anchor_bltr("uppersourcestrap",
-                        point.create(blx - shift - leftext, bly2),
-                        point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly2 + _P.connectsourcewidth)
-                    )
-                    transistor:add_area_anchor_bltr("lowersourcestrap",
-                        point.create(blx - shift - leftext, bly1),
-                        point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly1 + _P.connectsourcewidth)
-                    )
+                    transistor:add_area_anchor_bltr("uppersourcestrap", othersourcestrap.bl, othersourcestrap.tr)
+                    transistor:add_area_anchor_bltr("lowersourcestrap", mainsourcestrap.bl, mainsourcestrap.tr)
                 else
-                    transistor:add_area_anchor_bltr("lowersourcestrap",
-                        point.create(blx - shift - leftext, bly2),
-                        point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly2 + _P.connectsourceotherwidth)
-                    )
-                    transistor:add_area_anchor_bltr("uppersourcestrap",
-                        point.create(blx - shift - leftext, bly1),
-                        point.create(trx - shift + rightext + sourcemetalwidths[_P.sourceendmetal], bly1 + _P.connectsourcewidth)
-                    )
+                    transistor:add_area_anchor_bltr("lowersourcestrap", othersourcestrap.bl, othersourcestrap.tr)
+                    transistor:add_area_anchor_bltr("uppersourcestrap", mainsourcestrap.bl, mainsourcestrap.tr)
                 end
             end
         end
@@ -3661,7 +3651,6 @@ function layout(transistor, _P)
                 end
             end
             -- main anchor
-            local shift = (_P.gatespace + drainmetalwidths[_P.drainendmetal]) / 2
             transistor:add_area_anchor_bltr("drainstrap",
                 point.create(straplefts1[_P.drainendmetal], strapbottoms1[_P.drainendmetal]),
                 point.create(straprights1[_P.drainendmetal], straptops1[_P.drainendmetal])
@@ -3692,24 +3681,15 @@ function layout(transistor, _P)
                         _P.netlabelsizehint
                     )
                 end
+                -- upper/lower anchors: the main and the other strap, sorted by position
+                local maindrainstrap = transistor:get_area_anchor("drainstrap")
+                local otherdrainstrap = transistor:get_area_anchor("otherdrainstrap")
                 if bly1 < bly2 then
-                    transistor:add_area_anchor_bltr("upperdrainstrap",
-                        point.create(blx - shift - leftext, bly2),
-                        point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly2 + _P.connectdrainwidth)
-                    )
-                    transistor:add_area_anchor_bltr("lowerdrainstrap",
-                        point.create(blx - shift - leftext, bly1),
-                        point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly1 + _P.connectdrainwidth)
-                    )
+                    transistor:add_area_anchor_bltr("upperdrainstrap", otherdrainstrap.bl, otherdrainstrap.tr)
+                    transistor:add_area_anchor_bltr("lowerdrainstrap", maindrainstrap.bl, maindrainstrap.tr)
                 else
-                    transistor:add_area_anchor_bltr("lowerdrainstrap",
-                        point.create(blx - shift - leftext, bly2),
-                        point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly2 + _P.connectdrainotherwidth)
-                    )
-                    transistor:add_area_anchor_bltr("upperdrainstrap",
-                        point.create(blx - shift - leftext, bly1),
-                        point.create(trx - shift + rightext + drainmetalwidths[_P.drainendmetal], bly1 + _P.connectdrainwidth)
-                    )
+                    transistor:add_area_anchor_bltr("lowerdrainstrap", otherdrainstrap.bl, otherdrainstrap.tr)
+                    transistor:add_area_anchor_bltr("upperdrainstrap", maindrainstrap.bl, maindrainstrap.tr)
                 end
             end -- connect both drains
         end -- _P.connectdraininline
