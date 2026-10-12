@@ -2857,20 +2857,22 @@ function layout(transistor, _P)
         end
         for i = 1, _P.fingers + 1, 2 do
             local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+            local connsourceoffset = _P.sourcestartmetal > 1 and sourceviaoffset or sourceoffset
+            local connsourcetop = _P.sourcestartmetal > 1 and _P.sourceviasize or _P.sourcesize
             if sourceinvert then
-                if sourceoffset + _P.sourcesize < _P.fingerwidth + _P.connectsourcespace then -- don't draw connections if they are malformed
+                if connsourceoffset + connsourcetop < _P.fingerwidth + _P.connectsourcespace then -- don't draw connections if they are malformed
                     if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         if _P.restrictsourcemetalstostrap then
                             local extrashift = -sourcemetalshifts[_P.sourceviametal]
                             geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
-                                point.create(shift + extrashift, sourceoffset + _P.sourcesize),
+                                point.create(shift + extrashift, connsourceoffset + connsourcetop),
                                 point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], _P.fingerwidth + _P.connectsourcespace)
                             )
                         else
                             for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
                                 local extrashift = -sourcemetalshifts[sourcemetal]
                                 geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                                    point.create(shift + extrashift, sourceoffset + _P.sourcesize),
+                                    point.create(shift + extrashift, connsourceoffset + connsourcetop),
                                     point.create(shift + extrashift + sourcemetalwidths[sourcemetal], _P.fingerwidth + _P.connectsourcespace)
                                 )
                             end
@@ -2878,20 +2880,20 @@ function layout(transistor, _P)
                     end
                 end
                 if _P.connectsourceboth then
-                    if -_P.connectsourceotherspace < sourceoffset then -- don't draw connections if they are malformed
+                    if -_P.connectsourceotherspace < connsourceoffset then -- don't draw connections if they are malformed
                         if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                             if _P.restrictsourcemetalstostrap then
                                 local extrashift = -sourcemetalshifts[_P.sourceviametal]
                                 geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
                                     point.create(shift + extrashift, -_P.connectsourceotherspace),
-                                    point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], sourceoffset)
+                                    point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], connsourceoffset)
                                 )
                             else
                                 for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
                                     local extrashift = -sourcemetalshifts[sourcemetal]
                                     geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
                                         point.create(shift + extrashift, -_P.connectsourceotherspace),
-                                        point.create(shift + extrashift + sourcemetalwidths[sourcemetal], sourceoffset)
+                                        point.create(shift + extrashift + sourcemetalwidths[sourcemetal], connsourceoffset)
                                     )
                                 end
                             end
@@ -2899,39 +2901,39 @@ function layout(transistor, _P)
                     end
                 end
             else
-                if -_P.connectsourcespace < sourceoffset then -- don't draw connections if they are malformed
+                if -_P.connectsourcespace < connsourceoffset then -- don't draw connections if they are malformed
                     if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         if _P.restrictsourcemetalstostrap then
                             local extrashift = -sourcemetalshifts[_P.sourceviametal]
                             geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
                                 point.create(shift + extrashift, -_P.connectsourcespace),
-                                point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], sourceoffset)
+                                point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], connsourceoffset)
                             )
                         else
                             for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
                                 local extrashift = -sourcemetalshifts[sourcemetal]
                                 geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
                                     point.create(shift + extrashift, -_P.connectsourcespace),
-                                    point.create(shift + extrashift + sourcemetalwidths[sourcemetal], sourceoffset)
+                                    point.create(shift + extrashift + sourcemetalwidths[sourcemetal], connsourceoffset)
                                 )
                             end
                         end
                     end
                 end
                 if _P.connectsourceboth then
-                    if sourceoffset + _P.sourcesize < _P.fingerwidth + _P.connectsourceotherspace then -- don't draw connections if they are malformed
+                    if connsourceoffset + connsourcetop < _P.fingerwidth + _P.connectsourceotherspace then -- don't draw connections if they are malformed
                         if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                             if _P.restrictsourcemetalstostrap then
                                 local extrashift = -sourcemetalshifts[_P.sourceviametal]
                                 geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
-                                    point.create(shift + extrashift, sourceoffset + _P.sourcesize),
+                                    point.create(shift + extrashift, connsourceoffset + connsourcetop),
                                     point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], _P.fingerwidth + _P.connectsourceotherspace)
                                 )
                             else
                                 for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
                                     local extrashift = -sourcemetalshifts[sourcemetal]
                                     geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                                        point.create(shift + extrashift, sourceoffset + _P.sourcesize),
+                                        point.create(shift + extrashift, connsourceoffset + connsourcetop),
                                         point.create(shift + extrashift + sourcemetalwidths[sourcemetal], _P.fingerwidth + _P.connectsourceotherspace)
                                     )
                                 end
