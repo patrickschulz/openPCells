@@ -2563,7 +2563,10 @@ function layout(transistor, _P)
                 geometry.viabltr_xcontinuous(transistor, 1, _P.botgatemetal, bl, tr)
             else
                 geometry.viabltr(transistor, 1, _P.botgatemetal, bl, tr,
-                    string.format("bot gate strap via:\n    x parameters:\n        gatelength (%d)\n        fingers * (gatelength + gatespace) (%d)\n        bottom gate left extension (%d)\n        bottom gate right extension (%d)\n    y parameters:\n        botgatewidth (%d)", _P.gatelength, _P.fingers * gatepitch, contactleftext, contactrightext, _P.botgatewidth)
+                    string.format(
+                        "bot gate strap via:\n    x parameters:\n        gatelength (%d)\n        (fingers - 1) * (gatelength + gatespace) (%d)\n        bottom gate left extension (%d)\n        bottom gate right extension (%d)\n    y parameters:\n        botgatewidth (%d)",
+                        _P.gatelength, (_P.fingers - 1) * gatepitch, contactleftext, contactrightext, _P.botgatewidth
+                    )
                 )
             end
         end
