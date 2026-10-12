@@ -5,7 +5,7 @@ function parameters()
         { "oxidetype", 1 },
         { "vthtype", 1 },
         { "gatelength", technology.get_dimension("Minimum Gate Length") },
-        { "gatespace", technology.get_dimension("Minimum Gate Space") },
+        { "gatespace", technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space") },
         { "fingers", 2, posvals = even() },
         { "fingerwidth", technology.get_dimension("Minimum Gate Width") },
         { "gatestrapwidth", technology.get_dimension("Minimum M1 Width") },
