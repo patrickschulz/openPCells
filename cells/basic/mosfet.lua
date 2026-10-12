@@ -1715,8 +1715,13 @@ function layout(transistor, _P)
     end
 
     -- left and right polylines
-    -- FIXME: probably wrong without endleftwithgate == true and endrightwithgate == true
-    local leftpolyoffset = gateblx - gatepitch
+    -- the spaces are measured from the outer edge of the outermost gate (end gate, floating dummy or device gate)
+    local leftpolyoffset
+    if _P.endleftwithgate then
+        leftpolyoffset = gateblx - _P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace) - _P.leftendgatelength - _P.leftendgatespace
+    else
+        leftpolyoffset = gateblx - _P.leftfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace)
+    end
     for i, polyline in ipairs(_P.leftpolylines) do
         if not polyline.length then
             cellerror("basic/mosfet: leftpolyline entry does not have a 'length' field")
@@ -1743,7 +1748,12 @@ function layout(transistor, _P)
         )
         leftpolyoffset = leftpolyoffset - polyline.length - polyline.space
     end
-    local rightpolyoffset = gatetrx + _P.fingers * gatepitch
+    local rightpolyoffset
+    if _P.endrightwithgate then
+        rightpolyoffset = gatetrx + (_P.fingers - 1) * gatepitch + _P.rightfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace) + _P.rightendgatespace + _P.rightendgatelength
+    else
+        rightpolyoffset = gatetrx + (_P.fingers - 1) * gatepitch + _P.rightfloatingdummies * (_P.floatingdummygatelength + _P.floatingdummygatespace)
+    end
     for i, polyline in ipairs(_P.rightpolylines) do
         if not polyline.length then
             cellerror("basic/mosfet: rightpolyline entry does not have a 'length' field")
@@ -2191,11 +2201,12 @@ function layout(transistor, _P)
     local guardringleftext_polylines = 0
     local guardringrightext_polylines = 0
     if _P.guardringrespectpolylines then
-        for _, entry in ipairs(_P.leftpolylines) do
-            guardringleftext_polylines = guardringleftext_polylines + entry.space + entry.length
+        -- after drawing the polylines, the offsets are the outer edges of the outermost polylines
+        if #_P.leftpolylines > 0 then
+            guardringleftext_polylines = math.max(0, activebl:getx() - leftpolyoffset)
         end
-        for _, entry in ipairs(_P.rightpolylines) do
-            guardringrightext_polylines = guardringrightext_polylines + entry.space + entry.length
+        if #_P.rightpolylines > 0 then
+            guardringrightext_polylines = math.max(0, rightpolyoffset - activetr:getx())
         end
     end
     local guardringleftext = math.max(
