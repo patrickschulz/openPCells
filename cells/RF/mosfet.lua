@@ -119,21 +119,21 @@ function layout(mosfet, _P)
     )
     local guardringbl = point.create(
         math.min(
-            mosfet:get_area_anchor("leftgatelanding").l
+            mosfet:get_area_anchor("leftgatelanding").l,
             base:get_area_anchor("leftactivedummy").l
         ),
         math.min(
-            mosfet:get_area_anchor("leftgatelanding").b
+            mosfet:get_area_anchor("leftgatelanding").b,
             base:get_area_anchor("bottomactivedummy").b
         )
     )
     local guardringtr = point.create(
         math.max(
-            mosfet:get_area_anchor("rightgatelanding").r
+            mosfet:get_area_anchor("rightgatelanding").r,
             base:get_area_anchor("rightactivedummy").r
         ),
         math.max(
-            mosfet:get_area_anchor("rightgatelanding").t
+            mosfet:get_area_anchor("rightgatelanding").t,
             base:get_area_anchor("topactivedummy").t
         )
     )
