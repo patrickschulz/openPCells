@@ -2,31 +2,39 @@ function parameters()
     pcell.add_parameters(
         { "channeltype", "nmos", posvals = set("nmos", "pmos") },
         { "flippedwell", false },
-        { "gatelength", 0 },
-        { "gatespace", 0 },
+        { "oxidetype", 1 },
+        { "vthtype", 1 },
+        { "gatelength", technology.get_dimension("Minimum Gate Length") },
+        { "gatespace", technology.get_dimension("Minimum Gate Space") },
         { "fingers", 2, posvals = even() },
-        { "fingerwidth", 0 },
-        { "gatestrapwidth", 0 },
-        { "gatestrapspace", 0 },
-        { "gatelandingwidth", 0 },
-        { "gatelandingspace", 0 },
-        { "sdwidth", 0 },
-        { "sdstrapwidth", 0 },
-        { "gatemetal", 5 },
+        { "fingerwidth", technology.get_dimension("Minimum Gate Width") },
+        { "gatestrapwidth", technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
+        { "gatelandingwidth", technology.get_dimension("Minimum M4 Width") },
+        { "gatelandingspace", technology.get_dimension("Minimum M4 Space") },
+        { "sdwidth", technology.get_dimension("Minimum M1 Width") },
+        { "sdstrapwidth", technology.get_dimension("Minimum M3 Width") },
+        { "sdstrapspace", technology.get_dimension("Minimum M3 Space") },
+        { "gatemetal", 4 },
         { "sourcemetal", 3 },
-        { "drainmetal", 4 },
-        { "guardringwidth", 0 },
-        { "guardringxspace", 0 },
-        { "guardringyspace", 0 },
+        { "drainmetal", 3 },
+        { "minviayspace", 0 },
+        { "guardringwidth", technology.get_dimension("Minimum Active Contact Region Size") },
+        { "guardringxspace", technology.get_dimension("Minimum Active Space") },
+        { "guardringyspace", technology.get_dimension("Minimum Active Space") },
         { "outerguardring_deepwelloffset", 0 },
         { "drawactivedummies", true },
-        { "activedummywidth", 0 },
-        { "activedummyspace", 0 }
+        { "activedummywidth", technology.get_optional_dimension("Minimum Active Width", 0) },
+        { "activedummyspace", technology.get_optional_dimension("Minimum Active Space", 0) },
+        { "drawleftstopgate", false },
+        { "drawrightstopgate", false }
     )
 end
 
 function layout(mosfet, _P)
     local base = pcell.create_layout("basic/mosfet", "_base", {
+        channeltype = _P.channeltype,
+        flippedwell = _P.flippedwell,
         gatelength = _P.gatelength,
         gatespace = _P.gatespace,
         fingers = _P.fingers,
@@ -43,15 +51,22 @@ function layout(mosfet, _P)
         connectsource = true,
         sourcemetal = _P.sourcemetal,
         connectsourcewidth = _P.sdstrapwidth,
+        connectsourcespace = _P.sdstrapspace,
         connectdrain = true,
         drainmetal = _P.drainmetal,
         connectdrainwidth = _P.sdstrapwidth,
+        connectdrainspace = _P.sdstrapspace,
+        interweavevias = true,
+        minviayspace = _P.minviayspace,
+        drawleftstopgate = _P.drawleftstopgate,
+        drawrightstopgate = _P.drawrightstopgate,
+        coveractivedummieswithstopgates = true,
         drawleftactivedummy = _P.drawactivedummies,
-        leftactivedummywidth = _P.activedummywidth,
-        leftactivedummyspace = _P.activedummyspace,
+        leftactivedummywidth = _P.gatelength + _P.gatespace,
+        leftactivedummyspace = _P.gatelength + _P.gatespace,
         drawrightactivedummy = _P.drawactivedummies,
-        rightactivedummywidth = _P.activedummywidth,
-        rightactivedummyspace = _P.activedummyspace,
+        rightactivedummywidth = _P.gatelength + _P.gatespace,
+        rightactivedummyspace = _P.gatelength + _P.gatespace,
         drawtopactivedummy = _P.drawactivedummies,
         topactivedummywidth = _P.activedummywidth,
         topactivedummyspace = _P.activedummyspace,
@@ -65,12 +80,24 @@ function layout(mosfet, _P)
     mosfet:inherit_area_anchor(base, "drainstrap")
     -- left/right gate landings
     mosfet:add_area_anchor_bltr("leftgatelanding",
-        base:get_area_anchor("botgatestrap").bl:translate_x(-_P.gatelandingspace - _P.gatelandingwidth),
-        base:get_area_anchor("topgatestrap").tl:translate_x(-_P.gatelandingspace)
+        point.create(
+            base:get_area_anchor("gate1").l - _P.gatelength - _P.gatespace - _P.gatelandingspace - _P.gatelandingwidth,
+            base:get_area_anchor("botgatestrap").b
+        ),
+        point.create(
+            base:get_area_anchor("gate1").l - _P.gatelength - _P.gatespace - _P.gatelandingspace,
+            base:get_area_anchor("topgatestrap").t
+        )
     )
     mosfet:add_area_anchor_bltr("rightgatelanding",
-        base:get_area_anchor("botgatestrap").br:translate_x(_P.gatelandingspace),
-        base:get_area_anchor("topgatestrap").tr:translate_x(_P.gatelandingspace + _P.gatelandingwidth)
+        point.create(
+            base:get_area_anchor("gate-1").r + _P.gatelength + _P.gatespace + _P.gatelandingspace,
+            base:get_area_anchor("botgatestrap").b
+        ),
+        point.create(
+            base:get_area_anchor("gate-1").r + _P.gatelength + _P.gatespace + _P.gatelandingspace + _P.gatelandingwidth,
+            base:get_area_anchor("topgatestrap").t
+        )
     )
     geometry.viabltr(mosfet, 1, _P.gatemetal,
         mosfet:get_area_anchor("leftgatelanding").bl,
@@ -90,31 +117,36 @@ function layout(mosfet, _P)
         mosfet:get_area_anchor("leftgatelanding").tr:translate_y(-_P.gatestrapwidth),
         mosfet:get_area_anchor("rightgatelanding").tl
     )
+    local guardringbl = point.create(
+        math.min(
+            mosfet:get_area_anchor("leftgatelanding").l
+            base:get_area_anchor("leftactivedummy").l
+        ),
+        math.min(
+            mosfet:get_area_anchor("leftgatelanding").b
+            base:get_area_anchor("bottomactivedummy").b
+        )
+    )
+    local guardringtr = point.create(
+        math.max(
+            mosfet:get_area_anchor("rightgatelanding").r
+            base:get_area_anchor("rightactivedummy").r
+        ),
+        math.max(
+            mosfet:get_area_anchor("rightgatelanding").t
+            base:get_area_anchor("topactivedummy").t
+        )
+    )
     -- inner guard ring
     layouthelpers.place_guardring(mosfet,
-        mosfet:get_area_anchor("leftgatelanding").bl,
-        mosfet:get_area_anchor("rightgatelanding").tr,
+        guardringbl, guardringtr,
         _P.guardringxspace,
         _P.guardringyspace,
-        "innerguardring_",
+        _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+        _P.channeltype == "nmos" and "n" or "p",
+        "guardring_",
         {
-            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             ringwidth = _P.guardringwidth,
-        }
-    )
-    -- outer guard ring
-    layouthelpers.place_guardring(mosfet,
-        mosfet:get_area_anchor("innerguardring_outerboundary").bl,
-        mosfet:get_area_anchor("innerguardring_outerboundary").tr,
-        _P.guardringxspace,
-        _P.guardringyspace,
-        "outerguardring_",
-        {
-            contype = _P.flippedwell and (_P.channeltype == "nmos" and "p" or "n") or (_P.channeltype == "nmos" and "n" or "p"),
-            ringwidth = _P.guardringwidth,
-            fillwell = false,
-            drawdeepwell = true,
-            deepwelloffset = _P.outerguardring_deepwelloffset,
         }
     )
 end
