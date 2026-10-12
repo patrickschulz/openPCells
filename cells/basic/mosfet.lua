@@ -1292,7 +1292,15 @@ function check(_P)
     --       diodeconnected (drain - gate, source - gate with diodeconnectedreversed)
     --   not covered yet (separate cases): source/drain connections (vertical metals from the regions to the straps)
     --   crossing a gate strap that lies between the active region and the strap, extra top/bottom straps
-    --   (extratopstrap/extrabotstrap), guardring connections
+    --   (extratopstrap/extrabotstrap), guardring connections:
+    --     - 'individual' (metal 1 bars from the guardring to the source regions, on the side of the main source strap):
+    --       gate straps and drain straps on metal 1 on that side are an error already (independent of 'checkshorts',
+    --       see the guardring checks below); still missing: shortdevice with shortlocation 'top'/'bottom' (harmless,
+    --       source and drain are shorted anyway), extra straps (extratopstrap/extrabotstrap) on metal 1
+    --       (shortsourcegate/shortdraingate only draw on the gate strap side, which is an error already)
+    --     - 'strap' (bar on 'sourcestraptopmetal' from the source strap to the guardring, via stack 1 to
+    --       'sourcestraptopmetal' on the guardring): crosses everything between the source strap and the guardring on
+    --       these metals, e.g. a gate strap pushed outwards ('*gateadjustforsdstraps') or the other drain strap
     --   once the check is correct, 'checkshorts' should default to true (FIXME at the parameter definition)
     if _P.checkshorts then
         if _P.drawtopgate then
@@ -1396,6 +1404,33 @@ function check(_P)
         if _P.guardringconnectionmethod == "strap" then
             if _P.connectsourceinline then
                 return false, "'connectguardringtosource' (with method == 'strap') can not be used with 'inline' source strap connections."
+            end
+        else -- "individual"
+            -- the individual connections are metal 1 bars from the guardring to the source regions on the side of the
+            -- (main) source strap, a gate strap (always on metal 1) or a drain strap on metal 1 on this side is shorted
+            -- (other shapes are not checked, see the FIXME for the short check)
+            local connectionsbottom = (_P.channeltype == "nmos") ~= _P.connectsourceinverse
+            local side = connectionsbottom and "bottom" or "top"
+            local gatestrap
+            if connectionsbottom then
+                gatestrap = _P.drawbotgatestrap
+            else
+                gatestrap = _P.drawtopgatestrap
+            end
+            if _P.fingers > 0 and gatestrap then
+                return false, string.format(
+                    "'connectguardringtosource' (with method == 'individual') connects the source regions on the %s side with metal 1, which is shorted by the %s gate strap. Use method 'strap' or place the gate strap on the other side.",
+                    side, side
+                )
+            end
+            if _P.fingers > 0 and _P.drawdrainstrap and not _P.connectdraininline and _P.drainstartmetal == 1 then
+                local drainbottom = (_P.channeltype == "nmos") == _P.connectdraininverse
+                if drainbottom == connectionsbottom or _P.connectdrainboth then
+                    return false, string.format(
+                        "'connectguardringtosource' (with method == 'individual') connects the source regions on the %s side with metal 1, which is shorted by the drain strap on this side (drain strap starts on metal 1). Use method 'strap', place the drain strap on the other side or start it on a higher metal ('drainstartmetal').",
+                        side
+                    )
+                end
             end
         end
     end
