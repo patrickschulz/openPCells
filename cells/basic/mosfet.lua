@@ -2645,8 +2645,10 @@ function layout(transistor, _P)
                         geometry.rectanglebltr(transistor, generics.active(), sdactivebl, sdactivetr)
                     end
                     geometry.contactbarebltr2(transistor, contacttype, sdactivebl, sdactivetr, metalbl, metaltr, debugstr)
-                    if _P.drawsourcevia and _P.sourceviametal > 1 and
-                        not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
+                    -- the vias and the metals above metal 1 are only drawn together (no floating metals)
+                    local drawsourcevias = _P.drawsourcevia and _P.sourceviametal > 1 and
+                        not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia)
+                    if drawsourcevias then
                         for metal = 1, _P.sourceviametal - 1 do
                             if _P.interweavevias and metal + 1 <= interweavemetal then
                                 -- the via array has the width of the narrower metal, both metals are centered on the source region,
@@ -2790,7 +2792,7 @@ function layout(transistor, _P)
                         point.create(shift - sourcemetalshifts[1], sourceoffset - _P.sdm1botext),
                         point.create(shift + sourcemetalwidths[1] - sourcemetalshifts[1], sourceoffset + _P.sourcesize + _P.sdm1topext)
                     )
-                    if _P.sourceviametal > 1 then
+                    if drawsourcevias then
                         -- inter-level metals
                         for metal = 2, _P.sourceviametal - 1 do
                             geometry.rectanglebltr(transistor, generics.metal(metal),
@@ -2835,8 +2837,10 @@ function layout(transistor, _P)
                         geometry.rectanglebltr(transistor, generics.active(), sdactivebl, sdactivetr)
                     end
                     geometry.contactbarebltr2(transistor, contacttype, sdactivebl, sdactivetr, metalbl, metaltr, debugstr)
-                    if _P.drawdrainvia and _P.drainviametal > 1 and
-                        not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
+                    -- the vias and the metals above metal 1 are only drawn together (no floating metals)
+                    local drawdrainvias = _P.drawdrainvia and _P.drainviametal > 1 and
+                        not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia)
+                    if drawdrainvias then
                         for metal = 1, _P.drainviametal - 1 do
                             if _P.interweavevias and metal + 1 <= interweavemetal then
                                 -- the via array has the width of the narrower metal, both metals are centered on the drain region,
@@ -2950,7 +2954,7 @@ function layout(transistor, _P)
                         point.create(shift - drainmetalshifts[1], drainoffset - _P.sdm1botext),
                         point.create(shift + drainmetalwidths[1] - drainmetalshifts[1], drainoffset + _P.drainsize + _P.sdm1topext)
                     )
-                    if _P.drainviametal > 1 then
+                    if drawdrainvias then
                         -- inter-level metals
                         for metal = 2, _P.drainviametal - 1 do
                             geometry.rectanglebltr(transistor, generics.metal(metal),
