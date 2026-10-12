@@ -2451,11 +2451,14 @@ function layout(transistor, _P)
                         _P.gatelength, _P.topgatewidth
                     )
                 )
-                transistor:add_area_anchor_bltr(string.format("topgate%d", i),
-                    point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace),
-                    point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace + _P.topgatewidth)
-                )
             end
+        end
+        -- gate anchors (for both contact variants)
+        for i = 1, _P.fingers do
+            transistor:add_area_anchor_bltr(string.format("topgate%d", i),
+                point.create(gateblx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace),
+                point.create(gatetrx + (i - 1) * gatepitch, _P.fingerwidth + topgatespace + _P.topgatewidth)
+            )
         end
     end
     if _P.fingers > 0 and _P.drawtopgatestrap then
@@ -2518,11 +2521,14 @@ function layout(transistor, _P)
                     point.create(gatetrx + (i - 1) * gatepitch + contactext, -botgatespace),
                     string.format("bot gate contact:\n    x parameters: gatelength (%d)\n    y parameters: botgatewidth (%d)", _P.gatelength, _P.botgatewidth)
                 )
-                transistor:add_area_anchor_bltr(string.format("botgate%d", i),
-                    point.create(gateblx + (i - 1) * gatepitch, -botgatespace - _P.botgatewidth),
-                    point.create(gatetrx + (i - 1) * gatepitch, -botgatespace)
-                )
             end
+        end
+        -- gate anchors (for both contact variants)
+        for i = 1, _P.fingers do
+            transistor:add_area_anchor_bltr(string.format("botgate%d", i),
+                point.create(gateblx + (i - 1) * gatepitch, -botgatespace - _P.botgatewidth),
+                point.create(gatetrx + (i - 1) * gatepitch, -botgatespace)
+            )
         end
     end
     if _P.fingers > 0 and _P.drawbotgatestrap then
