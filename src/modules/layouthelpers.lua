@@ -580,6 +580,100 @@ function layouthelpers.place_guardring_with_hole_quantized(cell, bl, tr, holebl,
     end
 end
 
+function layouthelpers.place_guardrings_to_substrate(cell, bl, tr, xspace, yspace, contype, anchorprefix, options)
+    check.set_next_function_name("layouthelpers.place_guardrings_to_substrate")
+    check.arg_func(1, "cell", "object", cell, object.is_object)
+    check.arg_func(2, "bl", "point", bl, point.is_point)
+    check.arg_func(3, "tr", "point", tr, point.is_point)
+    check.arg(4, "xspace", "number", xspace)
+    check.arg(5, "yspace", "number", yspace)
+    check.arg_optional(6, "contype", "string", contype)
+    check.arg_optional(7, "anchorprefix", "string", anchorprefix)
+    check.arg_optional(8, "options", "table", options)
+    check.reset_function_name()
+    -- with the current opc stack, this either needs two or three guardrings, but this might change in the future
+    -- FIXME: hard-coded p-type substrate, fix!
+    -- FIXME: guardrings should support different extensions in x and y
+    local xspacehalf1, xspacehalf2 = evenodddiv2(xspace)
+    local yspacehalf1, yspacehalf2 = evenodddiv2(yspace)
+    if contype == "p" then -- three rings
+        -- inner guard ring
+        layouthelpers.place_guardring(cell,
+            bl, tr,
+            xspace, yspace,
+            string.format("inner%s", anchorprefix),
+            {
+                contype = "p",
+                ringwidth = options.ringwidth,
+                fillwell = true,
+                soiopenouterextension = xspacehalf1,
+                implantouterextension = xspacehalf1,
+            }
+        )
+        -- middle guard ring
+        layouthelpers.place_guardring(cell,
+            cell:get_area_anchor_fmt("inner%souterboundary", anchorprefix).bl,
+            cell:get_area_anchor_fmt("inner%souterboundary", anchorprefix).tr,
+            xspace, yspace,
+            string.format("middle%s", anchorprefix),
+            {
+                contype = "n",
+                ringwidth = options.ringwidth,
+                fillwell = false,
+                drawdeepwell = true,
+                deepwelloffset = options.deepwelloffset,
+                soiopeninnerextension = xspacehalf2,
+                implantinnerextension = xspacehalf2,
+                soiopenouterextension = xspacehalf1,
+                implantouterextension = xspacehalf1,
+            }
+        )
+        -- out-most psub guard ring
+        layouthelpers.place_guardring(cell,
+            cell:get_area_anchor_fmt("middle%souterboundary", anchorprefix).bl,
+            cell:get_area_anchor_fmt("middle%souterboundary", anchorprefix).tr,
+            xspace, yspace,
+            string.format("substrate%s", anchorprefix),
+            {
+                contype = "p", -- FIXME: this should call a technology functino to get the substrate polarity
+                ringwidth = options.ringwidth,
+                fillwell = false,
+                soiopeninnerextension = xspacehalf2,
+                implantinnerextension = xspacehalf2,
+            }
+        )
+    else -- two rings
+        -- inner guard ring
+        layouthelpers.place_guardring(cell,
+            bl, tr,
+            xspace, yspace,
+            string.format("inner%s", anchorprefix),
+            {
+                contype = "n",
+                ringwidth = options.ringwidth,
+                fillwell = true,
+                soiopenouterextension = xspacehalf1,
+                implantouterextension = xspacehalf1,
+            }
+        )
+        -- out-most psub guard ring
+        layouthelpers.place_guardring(cell,
+            cell:get_area_anchor_fmt("inner%souterboundary", anchorprefix).bl,
+            cell:get_area_anchor_fmt("inner%souterboundary", anchorprefix).tr,
+            xspace, yspace,
+            string.format("substrate%s", anchorprefix),
+            {
+                contype = "p", -- FIXME: this should call a technology functino to get the substrate polarity
+                ringwidth = options.ringwidth,
+                fillwell = false,
+                soiopeninnerextension = xspacehalf2,
+                implantinnerextension = xspacehalf2,
+            }
+        )
+    end
+end
+
+
 function layouthelpers.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, anchorprefix1, anchorprefix2, options)
     check.set_next_function_name("layouthelpers.place_double_guardring")
     check.arg_func(1, "cell", "object", cell, object.is_object)
