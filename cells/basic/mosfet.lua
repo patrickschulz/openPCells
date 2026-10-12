@@ -673,6 +673,76 @@ local function _get_strap_xranges(metalwidths, startmetal, topmetal, gatespace, 
     return lefts, rights
 end
 
+-- x bounds of a source/drain strap: first and last connected source/drain region ('blx'/'trx', see
+-- _get_strap_xranges) and the extensions of the main strap (including the automatic odd-fingered extension)
+local function _get_sdstrap_xbounds(_P, kind, gateblx, gatepitch)
+    local blx
+    local trx
+    local leftext
+    local rightext
+    if kind == "source" then
+        leftext = _P.connectsourceleftext
+        rightext = _P.connectsourcerightext
+        if _P.connectsourceautooddext then
+            rightext = rightext + gatepitch
+        end
+        if _P.connectsourcefullwidth then
+            blx = gateblx
+            trx = blx + _P.fingers * gatepitch
+        else
+            blx = gateblx
+            trx = blx + 2 * (_P.fingers // 2) * gatepitch
+        end
+    else -- drain
+        leftext = _P.connectdrainleftext
+        rightext = _P.connectdrainrightext
+        if _P.connectdrainautooddext then
+            leftext = leftext + gatepitch
+        end
+        if _P.connectdrainfullwidth then
+            blx = gateblx
+            trx = blx + _P.fingers * gatepitch
+        else
+            blx = gateblx + (2 - 1) * gatepitch
+            trx = blx + (2 * ((_P.fingers + 1) // 2) - 2) * gatepitch
+        end
+    end
+    return blx, trx, leftext, rightext
+end
+
+-- x extent (leftmost/rightmost edge) of a source/drain strap as seen by a shape on the metals 'firstmetal' to
+-- 'lastmetal' (modes as in _get_strap_extent), nil if no strap metal is considered
+local function _get_strap_xextent(lefts, rights, mode, firstmetal, lastmetal)
+    local left
+    local right
+    for metal, l in pairs(lefts) do
+        if mode == "allmetals" or (metal >= firstmetal and metal <= lastmetal) then
+            left = left and math.min(left, l) or l
+            right = right and math.max(right, rights[metal]) or rights[metal]
+        end
+    end
+    return left, right
+end
+
+-- x ranges of a gate strap: the metal strap (gate contacts plus extensions, extended equally on both sides if it
+-- is shorter than 'minwidth') and the poly below it (only drawn with 'allow_poly_connections')
+local function _get_gatestrap_xrange(_P, gateblx, gatetrx, gatepitch, leftext, rightext, minwidth, polyleftext, polyrightext)
+    local contactext = (_P.minimum_gate_contact_size - _P.gatelength) / 2
+    local contactleftext = math.max(leftext, contactext)
+    local contactrightext = math.max(rightext, contactext)
+    local width = gatetrx + (_P.fingers - 1) * gatepitch + contactrightext - gateblx + contactleftext
+    local extraleftext = 0
+    local extrarightext = 0
+    if width < minwidth then
+        extraleftext, extrarightext = util.ratio_split_multiple_of(minwidth - width, 1, 1)
+    end
+    local left = gateblx - contactleftext - extraleftext
+    local right = gatetrx + (_P.fingers - 1) * gatepitch + contactrightext + extrarightext
+    local polyleft = gateblx - extraleftext - math.max(polyleftext, contactext)
+    local polyright = gatetrx + (_P.fingers - 1) * gatepitch + extrarightext + math.max(polyrightext, contactext)
+    return left, right, polyleft, polyright
+end
+
 -- extent (maximum width) of a source/drain strap as seen by a shape on the metals 'firstmetal' to 'lastmetal'
 -- (mode 'allmetals': all strap metals are considered, mode 'samemetal': only strap metals within this range)
 local function _get_strap_extent(widths, mode, firstmetal, lastmetal)
@@ -1893,6 +1963,30 @@ function layout(transistor, _P)
     end
     transistor:add_area_anchor_bltr("oxide", oxidebl, oxidetr)
 
+    -- prepare metal width table
+    local sourcemetalwidths = {}
+    local sourcemetalshifts = {}
+    local drainmetalwidths = {}
+    local drainmetalshifts = {}
+    for i = 1, _P.sourcestraptopmetal do
+        if i > _P.sourceendmetal and i > _P.sourceviametal then
+            -- strap-only metals (no source metals on the device) are aligned with the strap end metal
+            sourcemetalwidths[i] = sourcemetalwidths[_P.sourceendmetal]
+        else
+            sourcemetalwidths[i] = _P.sdmetalwidths[i] or _P.sdmetalwidth
+        end
+        sourcemetalshifts[i] = (sourcemetalwidths[i] - _P.sdwidth) / 2
+    end
+    for i = 1, _P.drainstraptopmetal do
+        if i > _P.drainendmetal and i > _P.drainviametal then
+            -- strap-only metals (no drain metals on the device) are aligned with the strap end metal
+            drainmetalwidths[i] = drainmetalwidths[_P.drainendmetal]
+        else
+            drainmetalwidths[i] = _P.sdmetalwidths[i] or _P.sdmetalwidth
+        end
+        drainmetalshifts[i] = (drainmetalwidths[i] - _P.sdwidth) / 2
+    end
+
     -- guardring extensions (space between the active region and the guardring hole, without the separations),
     -- calculated here as they are also used by the analog and lvs markers
     local guardringleftext_activedummy = 0
@@ -1938,8 +2032,32 @@ function layout(transistor, _P)
         if _P.drawbotgatestrap then
             guardringbotext_gatestraps = botgatespace + _P.botgatewidth + _P.botgatepolybottomextension
         end
-        guardringleftext_gatestraps = _P.topgateleftextension
-        guardringrightext_gatestraps = _P.topgaterightextension
+        -- the x ranges of the gate straps (metal and, with poly connections, the poly below the strap)
+        local gatestrapranges = {}
+        if _P.fingers > 0 and _P.drawtopgatestrap then
+            local left, right, polyleft, polyright = _get_gatestrap_xrange(_P, gateblx, gatetrx, gatepitch,
+                _P.topgateleftextension, _P.topgaterightextension, _P.topgateminwidth,
+                _P.topgatepolyleftextension, _P.topgatepolyrightextension
+            )
+            gatestrapranges[#gatestrapranges + 1] = { left, right }
+            if _P.allow_poly_connections then
+                gatestrapranges[#gatestrapranges + 1] = { polyleft, polyright }
+            end
+        end
+        if _P.fingers > 0 and _P.drawbotgatestrap then
+            local left, right, polyleft, polyright = _get_gatestrap_xrange(_P, gateblx, gatetrx, gatepitch,
+                _P.botgateleftextension, _P.botgaterightextension, _P.botgateminwidth,
+                _P.botgatepolyleftextension, _P.botgatepolyrightextension
+            )
+            gatestrapranges[#gatestrapranges + 1] = { left, right }
+            if _P.allow_poly_connections then
+                gatestrapranges[#gatestrapranges + 1] = { polyleft, polyright }
+            end
+        end
+        for _, range in ipairs(gatestrapranges) do
+            guardringleftext_gatestraps = math.max(guardringleftext_gatestraps, activebl:getx() - range[1])
+            guardringrightext_gatestraps = math.max(guardringrightext_gatestraps, range[2] - activetr:getx())
+        end
     end
     local guardringtopmetal = 1 -- the guardring metals (auxiliary/guardring is only drawn with metal 1)
     if _P.guardringrespectsourcestraps then
@@ -1970,8 +2088,24 @@ function layout(transistor, _P)
                 end
             end
         end
-        guardringleftext_sourcestraps = math.max(_P.connectsourceleftext, _P.connectsourceotherleftext)
-        guardringrightext_sourcestraps = math.max(_P.connectsourcerightext, _P.connectsourceotherrightext)
+        -- x extent of the main and the other strap (all strap metals or only the guardring metals, see 'strapextentmode')
+        if _P.fingers > 0 and _P.drawsourcestrap then
+            local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "source", gateblx, gatepitch)
+            local straplefts, straprights = _get_strap_xranges(sourcemetalwidths, _P.sourcestartmetal, _P.sourcestraptopmetal, _P.gatespace, blx, trx, leftext, rightext, _P.connectsourceminwidth)
+            local left, right = _get_strap_xextent(straplefts, straprights, _P.strapextentmode, 1, guardringtopmetal)
+            if left then
+                guardringleftext_sourcestraps = math.max(0, activebl:getx() - left)
+                guardringrightext_sourcestraps = math.max(0, right - activetr:getx())
+            end
+            if _P.connectsourceboth and not _P.connectsourceinline then
+                straplefts, straprights = _get_strap_xranges(sourcemetalwidths, _P.sourcestartmetal, _P.sourcestraptopmetal, _P.gatespace, blx, trx, _P.connectsourceotherleftext, _P.connectsourceotherrightext, _P.connectsourceotherminwidth)
+                left, right = _get_strap_xextent(straplefts, straprights, _P.strapextentmode, 1, guardringtopmetal)
+                if left then
+                    guardringleftext_sourcestraps = math.max(guardringleftext_sourcestraps, activebl:getx() - left)
+                    guardringrightext_sourcestraps = math.max(guardringrightext_sourcestraps, right - activetr:getx())
+                end
+            end
+        end
     end
     if _P.guardringrespectdrainstraps then
         if _P.drawdrainconnections and not _P.connectdraininline then
@@ -2001,8 +2135,24 @@ function layout(transistor, _P)
                 end
             end
         end
-        guardringleftext_drainstraps = math.max(_P.connectdrainleftext, _P.connectdrainotherleftext)
-        guardringrightext_drainstraps = math.max(_P.connectdrainrightext, _P.connectdrainotherrightext)
+        -- x extent of the main and the other strap (all strap metals or only the guardring metals, see 'strapextentmode')
+        if _P.fingers > 0 and _P.drawdrainstrap then
+            local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "drain", gateblx, gatepitch)
+            local straplefts, straprights = _get_strap_xranges(drainmetalwidths, _P.drainstartmetal, _P.drainstraptopmetal, _P.gatespace, blx, trx, leftext, rightext, _P.connectdrainminwidth)
+            local left, right = _get_strap_xextent(straplefts, straprights, _P.strapextentmode, 1, guardringtopmetal)
+            if left then
+                guardringleftext_drainstraps = math.max(0, activebl:getx() - left)
+                guardringrightext_drainstraps = math.max(0, right - activetr:getx())
+            end
+            if _P.connectdrainboth and not _P.connectdraininline then
+                straplefts, straprights = _get_strap_xranges(drainmetalwidths, _P.drainstartmetal, _P.drainstraptopmetal, _P.gatespace, blx, trx, _P.connectdrainotherleftext, _P.connectdrainotherrightext, _P.connectdrainotherminwidth)
+                left, right = _get_strap_xextent(straplefts, straprights, _P.strapextentmode, 1, guardringtopmetal)
+                if left then
+                    guardringleftext_drainstraps = math.max(guardringleftext_drainstraps, activebl:getx() - left)
+                    guardringrightext_drainstraps = math.max(guardringrightext_drainstraps, right - activetr:getx())
+                end
+            end
+        end
     end
     local guardringleftext_polylines = 0
     local guardringrightext_polylines = 0
@@ -2266,14 +2416,12 @@ function layout(transistor, _P)
     if _P.fingers > 0 and _P.drawtopgatestrap then
         local contactleftext = math.max(_P.topgateleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
         local contactrightext = math.max(_P.topgaterightextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
-        local width = gatetrx + (_P.fingers - 1) * gatepitch + contactrightext - gateblx + contactleftext
-        local extraleftext = 0
-        local extrarightext = 0
-        if width < _P.topgateminwidth then
-            extraleftext, extrarightext = util.ratio_split_multiple_of(_P.topgateminwidth - width, 1, 1)
-        end
-        local bl = point.create(gateblx + (1 - 1) * gatepitch - contactleftext - extraleftext, _P.fingerwidth + topgatespace)
-        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + contactrightext + extrarightext, _P.fingerwidth + topgatespace + _P.topgatewidth)
+        local left, right, polyleft, polyright = _get_gatestrap_xrange(_P, gateblx, gatetrx, gatepitch,
+            _P.topgateleftextension, _P.topgaterightextension, _P.topgateminwidth,
+            _P.topgatepolyleftextension, _P.topgatepolyrightextension
+        )
+        local bl = point.create(left, _P.fingerwidth + topgatespace)
+        local tr = point.create(right, _P.fingerwidth + topgatespace + _P.topgatewidth)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
         if rawget(_P, "gatenet") then
@@ -2287,11 +2435,9 @@ function layout(transistor, _P)
             )
         end
         if _P.allow_poly_connections then
-            local contactleftpolyext = math.max(_P.topgatepolyleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
-            local contactrightpolyext = math.max(_P.topgatepolyrightextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
             geometry.rectanglebltr(transistor, generics.gate(),
-                point.create(bl:getx() + contactleftext - contactleftpolyext, bl:gety() - _P.topgatepolybottomextension),
-                point.create(tr:getx() - contactrightext + contactrightpolyext, gatetry + _P.topgatepolytopextension)
+                point.create(polyleft, bl:gety() - _P.topgatepolybottomextension),
+                point.create(polyright, gatetry + _P.topgatepolytopextension)
             )
         end
         if _P.drawtopgatevia and _P.topgatemetal > 1 then
@@ -2337,14 +2483,12 @@ function layout(transistor, _P)
     if _P.fingers > 0 and _P.drawbotgatestrap then
         local contactleftext = math.max(_P.botgateleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
         local contactrightext = math.max(_P.botgaterightextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
-        local width = gatetrx + (_P.fingers - 1) * gatepitch + contactrightext - gateblx + contactleftext
-        local extraleftext = 0
-        local extrarightext = 0
-        if width < _P.botgateminwidth then
-            extraleftext, extrarightext = util.ratio_split_multiple_of(_P.botgateminwidth - width, 1, 1)
-        end
-        local bl = point.create(gateblx + (1 - 1) * gatepitch - contactleftext - extraleftext, -botgatespace - _P.botgatewidth)
-        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + contactrightext + extrarightext, -botgatespace)
+        local left, right, polyleft, polyright = _get_gatestrap_xrange(_P, gateblx, gatetrx, gatepitch,
+            _P.botgateleftextension, _P.botgaterightextension, _P.botgateminwidth,
+            _P.botgatepolyleftextension, _P.botgatepolyrightextension
+        )
+        local bl = point.create(left, -botgatespace - _P.botgatewidth)
+        local tr = point.create(right, -botgatespace)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
         if rawget(_P, "gatenet") then
@@ -2358,11 +2502,9 @@ function layout(transistor, _P)
             )
         end
         if _P.allow_poly_connections then
-            local contactleftpolyext = math.max(_P.botgatepolyleftextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
-            local contactrightpolyext = math.max(_P.botgatepolyrightextension, (_P.minimum_gate_contact_size - _P.gatelength) / 2)
             geometry.rectanglebltr(transistor, generics.gate(),
-                point.create(bl:getx() + contactleftext - contactleftpolyext, gatebly - _P.botgatepolybottomextension),
-                point.create(tr:getx() - contactrightext + contactrightpolyext, tr:gety() + _P.botgatepolytopextension)
+                point.create(polyleft, gatebly - _P.botgatepolybottomextension),
+                point.create(polyright, tr:gety() + _P.botgatepolytopextension)
             )
         end
         if _P.drawbotgatevia and _P.botgatemetal > 1 then
@@ -2374,30 +2516,6 @@ function layout(transistor, _P)
                 )
             end
         end
-    end
-
-    -- prepare metal width table
-    local sourcemetalwidths = {}
-    local sourcemetalshifts = {}
-    local drainmetalwidths = {}
-    local drainmetalshifts = {}
-    for i = 1, _P.sourcestraptopmetal do
-        if i > _P.sourceendmetal and i > _P.sourceviametal then
-            -- strap-only metals (no source metals on the device) are aligned with the strap end metal
-            sourcemetalwidths[i] = sourcemetalwidths[_P.sourceendmetal]
-        else
-            sourcemetalwidths[i] = _P.sdmetalwidths[i] or _P.sdmetalwidth
-        end
-        sourcemetalshifts[i] = (sourcemetalwidths[i] - _P.sdwidth) / 2
-    end
-    for i = 1, _P.drainstraptopmetal do
-        if i > _P.drainendmetal and i > _P.drainviametal then
-            -- strap-only metals (no drain metals on the device) are aligned with the strap end metal
-            drainmetalwidths[i] = drainmetalwidths[_P.drainendmetal]
-        else
-            drainmetalwidths[i] = _P.sdmetalwidths[i] or _P.sdmetalwidth
-        end
-        drainmetalshifts[i] = (drainmetalwidths[i] - _P.sdwidth) / 2
     end
 
     -- source/drain contacts and vias
@@ -2947,20 +3065,7 @@ function layout(transistor, _P)
 
     -- source strap
     if _P.fingers > 0 then
-        local leftext = _P.connectsourceleftext
-        local rightext = _P.connectsourcerightext
-        if _P.connectsourceautooddext then
-            rightext = rightext + gatepitch
-        end
-        local blx
-        local trx
-        if _P.connectsourcefullwidth then
-            blx = gateblx
-            trx = blx + _P.fingers * gatepitch
-        else
-            blx = gateblx
-            trx = blx + 2 * (_P.fingers // 2) * gatepitch
-        end
+        local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "source", gateblx, gatepitch)
         if _P.connectsourceinline then
             local bly
             if _P.channeltype == "nmos" then
@@ -3280,20 +3385,7 @@ function layout(transistor, _P)
 
     -- drain strap
     if _P.fingers > 0 then
-        local leftext = _P.connectdrainleftext
-        local rightext = _P.connectdrainrightext
-        if _P.connectdrainautooddext then
-            leftext = leftext + gatepitch
-        end
-        local blx
-        local trx
-        if _P.connectdrainfullwidth then
-            blx = gateblx
-            trx = blx + _P.fingers * gatepitch
-        else
-            blx = gateblx + (2 - 1) * gatepitch
-            trx = blx + (2 * ((_P.fingers + 1) // 2) - 2) * gatepitch
-        end
+        local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "drain", gateblx, gatepitch)
         if _P.connectdraininline then
             local bly
             if _P.channeltype == "nmos" then
