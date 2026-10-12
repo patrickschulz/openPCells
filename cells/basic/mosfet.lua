@@ -222,7 +222,7 @@ function parameters()
         { "extrabotstrapleftextension(Left Extension for Extra Bottom Strap)",                          0 },
         { "extrabotstraprightextension(Left Extension for Extra Bottom Strap)",                         0 },
         { "extrabotstrapleftalign(Left Alignment for Extra Bottom Strap)",                              1 },
-        { "extrabotstraprightalign(Right Alignment for Extra Bottom Strap)",                            1, follow = "fingers" },
+        { "extrabotstraprightalign(Right Alignment for Extra Bottom Strap)",                            2, follow = "fingers" },
         { "drawextratopstrap(Draw Extra Top Strap)",                                                    false },
         { "extratopstrapwidth(Width of Extra Top Strap)",                                               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "extratopstrapspace(Space of Extra Top Strap)",                                               technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
@@ -230,7 +230,7 @@ function parameters()
         { "extratopstrapleftextension(Left Extension for Extra Top Strap)",                             0 },
         { "extratopstraprightextension(Left Extension for Extra Top Strap)",                            0 },
         { "extratopstrapleftalign(Left Alignment for Extra Top Strap)",                                 1 },
-        { "extratopstraprightalign(Right Alignment for Extra Top Strap)",                               1, follow = "fingers" }
+        { "extratopstraprightalign(Right Alignment for Extra Top Strap)",                               2, follow = "fingers" }
     )
     -- split necessary because of lua limitations.
     -- FIXME: split at sensible locations (group parameters)
