@@ -6,17 +6,21 @@ function parameters()
         { "vthtype", 1 },
         { "gatelength", technology.get_dimension("Minimum Gate Length") },
         { "gatespace", technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space") },
+        { "gtopext", technology.get_dimension("Minimum Gate Extension") },
+        { "gbotext", technology.get_dimension("Minimum Gate Extension") },
         { "fingers", 2, posvals = even() },
         { "fingerwidth", technology.get_dimension("Minimum Gate Width") },
         { "gatestrapwidth", technology.get_dimension("Minimum M1 Width") },
         { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
         { "gatelandingwidth", technology.get_dimension("Minimum M4 Width") },
         { "gatelandingspace", technology.get_dimension("Minimum M4 Space") },
-        { "sdwidth", technology.get_dimension("Minimum M1 Width") },
+        { "sdwidth", technology.get_dimension("Minimum M2 Width") },
         { "sdstrapwidth", technology.get_dimension("Minimum M3 Width") },
         { "sdstrapspace", technology.get_dimension("Minimum M3 Space") },
         { "gatemetal", 4 },
+        { "sourceconnmetal", 2 },
         { "sourcemetal", 3 },
+        { "drainconnmetal", 2 },
         { "drainmetal", 3 },
         { "minviayspace", 0 },
         { "guardringwidth", technology.get_dimension("Minimum Active Contact Region Size") },
@@ -27,16 +31,36 @@ function parameters()
         { "activedummywidth", technology.get_optional_dimension("Minimum Active Width", 0) },
         { "activedummyspace", technology.get_optional_dimension("Minimum Active Space", 0) },
         { "drawleftstopgate", false },
-        { "drawrightstopgate", false }
+        { "drawrightstopgate", false },
+        { "leftrightpolylines", {} },
+        { "leftpolylines", {} },
+        { "rightpolylines", {} },
+        { "sourcemarker", 1 },
+        { "drainmarker", 1 }
     )
+end
+
+function process_parameters(_P)
+    if _P.leftrightpolylines then
+        for i, l in ipairs(_P.leftrightpolylines) do
+            _P.leftpolylines[i] = l
+            _P.rightpolylines[i] = l
+        end
+    end
 end
 
 function layout(mosfet, _P)
     local base = pcell.create_layout("basic/mosfet", "_base", {
         channeltype = _P.channeltype,
         flippedwell = _P.flippedwell,
+        drawimplant = false, -- drawn later with the guard rings
+        oxidetype = _P.oxidetype,
+        vthtype = _P.vthtype,
+        vthtypealignwithactive = true,
         gatelength = _P.gatelength,
         gatespace = _P.gatespace,
+        gtopext = _P.gtopext,
+        gbotext = _P.gbotext,
         fingers = _P.fingers,
         fingerwidth = _P.fingerwidth,
         sdwidth = _P.sdwidth,
@@ -49,15 +73,19 @@ function layout(mosfet, _P)
         botgatewidth = _P.gatestrapwidth,
         botgatespace = _P.gatestrapspace,
         connectsource = true,
-        sourcemetal = _P.sourcemetal,
+        sourcestartmetal = _P.sourceconnmetal,
+        sourceendmetal = _P.sourcemetal,
         connectsourcewidth = _P.sdstrapwidth,
         connectsourcespace = _P.sdstrapspace,
         connectdrain = true,
-        drainmetal = _P.drainmetal,
+        drainstartmetal = _P.drainconnmetal,
+        drainendmetal = _P.drainmetal,
         connectdrainwidth = _P.sdstrapwidth,
         connectdrainspace = _P.sdstrapspace,
         interweavevias = true,
         minviayspace = _P.minviayspace,
+        sourcemarker = _P.sourcemarker,
+        drainmarker = _P.drainmarker,
         drawleftstopgate = _P.drawleftstopgate,
         drawrightstopgate = _P.drawrightstopgate,
         coveractivedummieswithstopgates = true,
@@ -148,4 +176,8 @@ function layout(mosfet, _P)
             ringwidth = _P.guardringwidth,
         }
     )
+    -- fill implant
+    geometry.rectangleareaanchor(mosfet, generics.implant(_P.channeltype == "nmos" and "n" or "p"), "innerguardring_innerimplant")
+    -- RF device marker
+    geometry.rectangleareaanchor(mosfet, generics.marker("RF"), "innerguardring_outerboundary")
 end
