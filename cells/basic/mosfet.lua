@@ -45,6 +45,7 @@ function parameters()
         { "vthtypealignrightwithactive",                                                                false, follow = "vthtypealignwithactive", info = "set reference point for vthtype marker right extensions. If this is false, the vthtype marker right extension is automatically calculated so that the vthtype marker covers the right gates. With this option enabled, the vthtype marker right extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
         { "vthtypealigntopwithactive",                                                                  false, follow = "vthtypealignwithactive", info = "set reference point for vthtype marker top extensions. If this is false, the vthtype marker top extension is automatically calculated so that the vthtype marker covers the top part of all gates. With this option enabled, the vthtype marker top extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
         { "vthtypealignbottomwithactive",                                                               false, follow = "vthtypealignwithactive", info = "set reference point for vthtype marker bottom extensions. If this is false, the vthtype marker bottom extension is automatically calculated so that the vthtype marker covers the bottom part of all gates. With this option enabled, the vthtype marker bottom extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
+        { "vthtyperespectactivedummies",                                                                true },
         { "wellalignwithactive",                                                                        false, info = "set reference points for well extensions. If this is false, the well extensions are automatically calculated so that the well covers all gates. With this option enabled, the well extensions are referenced to the active region. This is useful for having precise control over the well extensions in mosfet arrays with varying gate heights. This option sets left/right/top/bottom alignment, the dedicated switches can be used for more fine-grained control." },
         { "wellalignleftwithactive",                                                                    false, follow = "wellalignwithactive", info = "set reference point for well left extensions. If this is false, the well left extension is automatically calculated so that the well covers the left gates. With this option enabled, the well left extension is referenced to the active region. This is useful for having precise control over the well extensions in mosfet arrays with varying gate heights" },
         { "wellalignrightwithactive",                                                                   false, follow = "wellalignwithactive", info = "set reference point for well right extensions. If this is false, the well right extension is automatically calculated so that the well covers the right gates. With this option enabled, the well right extension is referenced to the active region. This is useful for having precise control over the well extensions in mosfet arrays with varying gate heights" },
@@ -2087,16 +2088,24 @@ function layout(transistor, _P)
         generics.vthtype(_P.channeltype, _P.vthtype),
         point.create(
             _P.vthtypealignleftwithactive and
-                activebl:getx() - _P.extendvthtypeleft or
-                leftgatealign - _P.extendvthtypeleft,
+            (
+                (_P.vthtyperespectactivedummies and _P.drawleftactivedummy) and
+                transistor:get_area_anchor("leftactivedummy").l - _P.extendvthtypeleft or
+                activebl:getx() - _P.extendvthtypeleft
+            ) or
+            leftgatealign - _P.extendvthtypeleft,
             _P.vthtypealignbottomwithactive and
                 activebl:gety() - _P.extendvthtypebottom or
                 gatebly - _P.extendvthtypebottom
         ),
         point.create(
             _P.vthtypealignrightwithactive and
-                activetr:getx() + _P.extendvthtyperight or
-                rightgatealign + _P.extendvthtyperight,
+            (
+                (_P.vthtyperespectactivedummies and _P.drawrightactivedummy) and
+                transistor:get_area_anchor("rightactivedummy").r + _P.extendvthtyperight or
+                activetr:getx() + _P.extendvthtyperight
+            ) or
+            leftgatealign - _P.extendvthtypeleft,
             _P.vthtypealigntopwithactive and
                 activetr:gety() + _P.extendvthtypetop or
                 gatetry + _P.extendvthtypetop
