@@ -278,6 +278,8 @@ elif [ $1 = "all" ]; then
     do_cell_test mosfet_91 basic/mosfet gds
     do_cell_failtest mosfet_92 basic/mosfet gds
     do_cell_test mosfet_93 basic/mosfet gds
+    do_cell_test mosfet_94 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_95 basic/mosfet gds "" opc_advanced
 
     # polyresistor
     do_cell_test polyresistor_01 basic/polyresistor gds
