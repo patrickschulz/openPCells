@@ -2107,7 +2107,7 @@ function layout(transistor, _P)
                 transistor:get_area_anchor("rightactivedummy").r + _P.extendvthtyperight or
                 activetr:getx() + _P.extendvthtyperight
             ) or
-            leftgatealign - _P.extendvthtypeleft,
+            rightgatealign + _P.extendvthtyperight,
             _P.vthtypealigntopwithactive and
                 activetr:gety() + _P.extendvthtypetop or
                 gatetry + _P.extendvthtypetop
