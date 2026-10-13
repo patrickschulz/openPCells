@@ -877,6 +877,41 @@ local function _get_sdcontacts(_P)
     return sdcontacts
 end
 
+-- metals on the present source/drain regions, indexed by region: the highest metal of the region (the region has all
+-- metals from metal 1 to this one), '*viametal' if the vias are drawn, otherwise 1; regions without contacts are missing
+local function _get_sdregionmetals(_P)
+    local sdcontacts = _get_sdcontacts(_P)
+    local regionmetals = { source = {}, drain = {} }
+    for _, i in ipairs(sdcontacts.source) do
+        local drawvias = _P.drawsourcevia and _P.sourceviametal > 1 and
+            not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia)
+        regionmetals.source[i] = drawvias and _P.sourceviametal or 1
+    end
+    for _, i in ipairs(sdcontacts.drain) do
+        local drawvias = _P.drawdrainvia and _P.drainviametal > 1 and
+            not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia)
+        regionmetals.drain[i] = drawvias and _P.drainviametal or 1
+    end
+    return regionmetals
+end
+
+-- metals allowed for the connections between the source/drain regions and an outer strap ('*startmetal' to
+-- '*endmetal', only '*viametal' with 'restrict*metalstostrap'); a connection is drawn on every allowed metal that is
+-- also present on the region (see _get_sdregionmetals)
+local function _get_sdconnectionmetals(_P, kind)
+    if kind == "source" then
+        if _P.restrictsourcemetalstostrap then
+            return _P.sourceviametal, _P.sourceviametal
+        end
+        return _P.sourcestartmetal, _P.sourceendmetal
+    else -- drain
+        if _P.restrictdrainmetalstostrap then
+            return _P.drainviametal, _P.drainviametal
+        end
+        return _P.drainstartmetal, _P.drainendmetal
+    end
+end
+
 function process_parameters(_P, explicit)
     if not explicit.connectsourcewidth then
         _P.connectsourcewidth = technology.get_dimension(string.format("Minimum M%d Width", _P.sourceendmetal))
@@ -1420,6 +1455,34 @@ function check(_P)
             end
         end
     end
+    -- outer source/drain straps must be connected to at least one region: a connection needs a metal that is present on
+    -- the region (metal 1, up to '*viametal' if the vias are drawn) and allowed for the connection
+    local sdregionmetals = _get_sdregionmetals(_P)
+    for _, kind in ipairs({ "source", "drain" }) do
+        local connect, inline, drawconnections, viaswitches
+        if kind == "source" then
+            connect, inline, drawconnections = _P.connectsource, _P.connectsourceinline, _P.drawsourceconnections
+            viaswitches = "drawsourcevia, drawfirstsourcevia, drawlastsourcevia"
+        else
+            connect, inline, drawconnections = _P.connectdrain, _P.connectdraininline, _P.drawdrainconnections
+            viaswitches = "drawdrainvia, drawfirstdrainvia, drawlastdrainvia"
+        end
+        if _P.fingers > 0 and connect and not inline and drawconnections then
+            local firstmetal, lastmetal = _get_sdconnectionmetals(_P, kind)
+            local connected = false
+            for _, regiontopmetal in pairs(sdregionmetals[kind]) do
+                if regiontopmetal >= firstmetal then
+                    connected = true
+                end
+            end
+            if not connected then
+                return false, string.format(
+                    "the %s strap is not connected to any %s region: the connections use metal %d to %d, but no %s region reaches metal %d (check the via switches (%s), '%sviametal' and excluded regions)",
+                    kind, kind, firstmetal, lastmetal, kind, firstmetal, viaswitches, kind
+                )
+            end
+        end
+    end
     if _P.connectguardringtosource then
         if _P.guardringconnectionmethod == "strap" then
             if not _P.connectsource then
@@ -1491,6 +1554,7 @@ end
 function layout(transistor, _P)
     local gatepitch = _P.gatelength + _P.gatespace
     local sdcontacts = _get_sdcontacts(_P)
+    local sdregionmetals = _get_sdregionmetals(_P)
 
     -- per-metal widths of the source/drain straps
     local sourcestrapwidths = _get_strap_widths(_P.connectsourcewidths, _P.sourcestartmetal, _P.sourceendmetal, _P.sourcestraptopmetal, _P.connectsourcewidth, _P.connectsourcetopwidth)
@@ -2736,8 +2800,7 @@ function layout(transistor, _P)
                     end
                     geometry.contactbarebltr2(transistor, contacttype, sdactivebl, sdactivetr, metalbl, metaltr, debugstr)
                     -- the vias and the metals above metal 1 are only drawn together (no floating metals)
-                    local drawsourcevias = _P.drawsourcevia and _P.sourceviametal > 1 and
-                        not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia)
+                    local drawsourcevias = sdregionmetals.source[i] > 1
                     if drawsourcevias then
                         for metal = 1, _P.sourceviametal - 1 do
                             if _P.interweavevias and metal + 1 <= interweavemetal then
@@ -2928,8 +2991,7 @@ function layout(transistor, _P)
                     end
                     geometry.contactbarebltr2(transistor, contacttype, sdactivebl, sdactivetr, metalbl, metaltr, debugstr)
                     -- the vias and the metals above metal 1 are only drawn together (no floating metals)
-                    local drawdrainvias = _P.drawdrainvia and _P.drainviametal > 1 and
-                        not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia)
+                    local drawdrainvias = sdregionmetals.drain[i] > 1
                     if drawdrainvias then
                         for metal = 1, _P.drainviametal - 1 do
                             if _P.interweavevias and metal + 1 <= interweavemetal then
@@ -3095,6 +3157,38 @@ function layout(transistor, _P)
         end
     end
 
+    -- connections between the source/drain regions and the outer straps: a stub on every metal that is present on the
+    -- region and allowed for the connection (see _get_sdregionmetals and _get_sdconnectionmetals), from the region
+    -- (metal 1: contact region, higher metals: via region) to the strap edge 'strapy' (above or below the region)
+    local function _draw_sdconnection(kind, i, strapy, up)
+        local regiontopmetal = sdregionmetals[kind][i]
+        local firstmetal, lastmetal = _get_sdconnectionmetals(_P, kind)
+        local metalwidths, metalshifts, offset, size, viaoffset, viasize
+        if kind == "source" then
+            metalwidths, metalshifts = sourcemetalwidths, sourcemetalshifts
+            offset, size, viaoffset, viasize = sourceoffset, _P.sourcesize, sourceviaoffset, _P.sourceviasize
+        else -- drain
+            metalwidths, metalshifts = drainmetalwidths, drainmetalshifts
+            offset, size, viaoffset, viasize = drainoffset, _P.drainsize, drainviaoffset, _P.drainviasize
+        end
+        local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+        for metal = firstmetal, math.min(lastmetal, regiontopmetal) do
+            local bottom = metal == 1 and offset or viaoffset
+            local top = metal == 1 and offset + size or viaoffset + viasize
+            local left = shift - metalshifts[metal]
+            local right = left + metalwidths[metal]
+            if up then
+                if top < strapy then -- don't draw connections if they are malformed
+                    geometry.rectanglebltr(transistor, generics.metal(metal), point.create(left, top), point.create(right, strapy))
+                end
+            else
+                if strapy < bottom then -- don't draw connections if they are malformed
+                    geometry.rectanglebltr(transistor, generics.metal(metal), point.create(left, strapy), point.create(right, bottom))
+                end
+            end
+        end
+    end
+
     -- source connections
     if _P.drawsourceconnections and not _P.connectsourceinline then
         -- connections to strap
@@ -3102,91 +3196,16 @@ function layout(transistor, _P)
         if _P.connectsourceinverse then
             sourceinvert = not sourceinvert
         end
-        for i = 1, _P.fingers + 1, 2 do
-            local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
-            local connsourceoffset = _P.sourcestartmetal > 1 and sourceviaoffset or sourceoffset
-            local connsourcetop = _P.sourcestartmetal > 1 and _P.sourceviasize or _P.sourcesize
+        for _, i in ipairs(sdcontacts.source) do
             if sourceinvert then
-                if connsourceoffset + connsourcetop < _P.fingerwidth + _P.connectsourcespace then -- don't draw connections if they are malformed
-                    if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                        if _P.restrictsourcemetalstostrap then
-                            local extrashift = -sourcemetalshifts[_P.sourceviametal]
-                            geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
-                                point.create(shift + extrashift, connsourceoffset + connsourcetop),
-                                point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], _P.fingerwidth + _P.connectsourcespace)
-                            )
-                        else
-                            for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
-                                local extrashift = -sourcemetalshifts[sourcemetal]
-                                geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                                    point.create(shift + extrashift, connsourceoffset + connsourcetop),
-                                    point.create(shift + extrashift + sourcemetalwidths[sourcemetal], _P.fingerwidth + _P.connectsourcespace)
-                                )
-                            end
-                        end
-                    end
-                end
+                _draw_sdconnection("source", i, _P.fingerwidth + _P.connectsourcespace, true)
                 if _P.connectsourceboth then
-                    if -_P.connectsourceotherspace < connsourceoffset then -- don't draw connections if they are malformed
-                        if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                            if _P.restrictsourcemetalstostrap then
-                                local extrashift = -sourcemetalshifts[_P.sourceviametal]
-                                geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
-                                    point.create(shift + extrashift, -_P.connectsourceotherspace),
-                                    point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], connsourceoffset)
-                                )
-                            else
-                                for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
-                                    local extrashift = -sourcemetalshifts[sourcemetal]
-                                    geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                                        point.create(shift + extrashift, -_P.connectsourceotherspace),
-                                        point.create(shift + extrashift + sourcemetalwidths[sourcemetal], connsourceoffset)
-                                    )
-                                end
-                            end
-                        end
-                    end
+                    _draw_sdconnection("source", i, -_P.connectsourceotherspace, false)
                 end
             else
-                if -_P.connectsourcespace < connsourceoffset then -- don't draw connections if they are malformed
-                    if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                        if _P.restrictsourcemetalstostrap then
-                            local extrashift = -sourcemetalshifts[_P.sourceviametal]
-                            geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
-                                point.create(shift + extrashift, -_P.connectsourcespace),
-                                point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], connsourceoffset)
-                            )
-                        else
-                            for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
-                                local extrashift = -sourcemetalshifts[sourcemetal]
-                                geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                                    point.create(shift + extrashift, -_P.connectsourcespace),
-                                    point.create(shift + extrashift + sourcemetalwidths[sourcemetal], connsourceoffset)
-                                )
-                            end
-                        end
-                    end
-                end
+                _draw_sdconnection("source", i, -_P.connectsourcespace, false)
                 if _P.connectsourceboth then
-                    if connsourceoffset + connsourcetop < _P.fingerwidth + _P.connectsourceotherspace then -- don't draw connections if they are malformed
-                        if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                            if _P.restrictsourcemetalstostrap then
-                                local extrashift = -sourcemetalshifts[_P.sourceviametal]
-                                geometry.rectanglebltr(transistor, generics.metal(_P.sourceviametal),
-                                    point.create(shift + extrashift, connsourceoffset + connsourcetop),
-                                    point.create(shift + extrashift + sourcemetalwidths[_P.sourceviametal], _P.fingerwidth + _P.connectsourceotherspace)
-                                )
-                            else
-                                for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
-                                    local extrashift = -sourcemetalshifts[sourcemetal]
-                                    geometry.rectanglebltr(transistor, generics.metal(sourcemetal),
-                                        point.create(shift + extrashift, connsourceoffset + connsourcetop),
-                                        point.create(shift + extrashift + sourcemetalwidths[sourcemetal], _P.fingerwidth + _P.connectsourceotherspace)
-                                    )
-                                end
-                            end
-                        end
-                    end
+                    _draw_sdconnection("source", i, _P.fingerwidth + _P.connectsourceotherspace, true)
                 end
             end
         end
@@ -3421,91 +3440,16 @@ function layout(transistor, _P)
         if _P.connectdraininverse then
             draininvert = not draininvert
         end
-        for i = 2, _P.fingers + 1, 2 do
-            local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
-            local conndrainoffset = _P.drainstartmetal > 1 and drainviaoffset or drainoffset
-            local conndraintop = _P.drainstartmetal > 1 and _P.drainviasize or _P.drainsize
+        for _, i in ipairs(sdcontacts.drain) do
             if draininvert then
-                if -_P.connectdrainspace < conndrainoffset then -- don't draw connections if they are malformed
-                    if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                        if _P.restrictdrainmetalstostrap then
-                            local extrashift = -drainmetalshifts[_P.drainviametal]
-                            geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
-                                point.create(shift + extrashift, -_P.connectdrainspace),
-                                point.create(shift + extrashift + drainmetalwidths[_P.drainviametal], conndrainoffset)
-                            )
-                        else
-                            for drainmetal = _P.drainstartmetal, _P.drainendmetal do
-                                local extrashift = -drainmetalshifts[drainmetal]
-                                geometry.rectanglebltr(transistor, generics.metal(drainmetal),
-                                    point.create(shift + extrashift, -_P.connectdrainspace),
-                                    point.create(shift + extrashift + drainmetalwidths[drainmetal], conndrainoffset)
-                                )
-                            end
-                        end
-                    end
-                end
+                _draw_sdconnection("drain", i, -_P.connectdrainspace, false)
                 if _P.connectdrainboth then
-                    if conndrainoffset + conndraintop < _P.fingerwidth + _P.connectdrainotherspace then -- don't draw connections if they are malformed
-                       if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                            if _P.restrictdrainmetalstostrap then
-                                local extrashift = -drainmetalshifts[_P.drainviametal]
-                                geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
-                                    point.create(shift + extrashift, conndrainoffset + conndraintop),
-                                    point.create(shift + extrashift + drainmetalwidths[_P.drainviametal], _P.fingerwidth + _P.connectdrainotherspace)
-                                )
-                            else
-                                for drainmetal = _P.drainstartmetal, _P.drainendmetal do
-                                    local extrashift = -drainmetalshifts[drainmetal]
-                                    geometry.rectanglebltr(transistor, generics.metal(drainmetal),
-                                        point.create(shift + extrashift, conndrainoffset + conndraintop),
-                                        point.create(shift + extrashift + drainmetalwidths[drainmetal], _P.fingerwidth + _P.connectdrainotherspace)
-                                    )
-                                end
-                            end
-                        end
-                    end
+                    _draw_sdconnection("drain", i, _P.fingerwidth + _P.connectdrainotherspace, true)
                 end
             else
-                if conndrainoffset + conndraintop < _P.fingerwidth + _P.connectdrainspace then -- don't draw connections if they are malformed
-                   if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                        if _P.restrictdrainmetalstostrap then
-                                local extrashift = -drainmetalshifts[_P.drainviametal]
-                                geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
-                                    point.create(shift + extrashift, conndrainoffset + conndraintop),
-                                    point.create(shift + extrashift + drainmetalwidths[_P.drainviametal], _P.fingerwidth + _P.connectdrainspace)
-                                )
-                        else
-                            for drainmetal = _P.drainstartmetal, _P.drainendmetal do
-                                local extrashift = -drainmetalshifts[drainmetal]
-                                geometry.rectanglebltr(transistor, generics.metal(drainmetal),
-                                    point.create(shift + extrashift, conndrainoffset + conndraintop),
-                                    point.create(shift + extrashift + drainmetalwidths[drainmetal], _P.fingerwidth + _P.connectdrainspace)
-                                )
-                            end
-                        end
-                    end
-                end
+                _draw_sdconnection("drain", i, _P.fingerwidth + _P.connectdrainspace, true)
                 if _P.connectdrainboth then
-                    if -_P.connectdrainotherspace < conndrainoffset then -- don't draw connections if they are malformed
-                        if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                            if _P.restrictdrainmetalstostrap then
-                                local extrashift = -drainmetalshifts[_P.drainviametal]
-                                geometry.rectanglebltr(transistor, generics.metal(_P.drainviametal),
-                                    point.create(shift + extrashift, -_P.connectdrainotherspace),
-                                    point.create(shift + extrashift + drainmetalwidths[_P.drainviametal], conndrainoffset)
-                                )
-                            else
-                                for drainmetal = _P.drainstartmetal, _P.drainendmetal do
-                                    local extrashift = -drainmetalshifts[drainmetal]
-                                    geometry.rectanglebltr(transistor, generics.metal(drainmetal),
-                                        point.create(shift + extrashift, -_P.connectdrainotherspace),
-                                        point.create(shift + extrashift + drainmetalwidths[drainmetal], conndrainoffset)
-                                    )
-                                end
-                            end
-                        end
-                    end
+                    _draw_sdconnection("drain", i, -_P.connectdrainotherspace, false)
                 end
             end
         end
