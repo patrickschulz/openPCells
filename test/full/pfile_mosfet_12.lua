@@ -15,8 +15,7 @@ return {
     drainmetal = 3,
     drainstraptopmetal = 4,
     connectdrain = true,
-    usesdmetalwidthtable = true,
-    sdmetalwidths = { 200, 300, 400, 600 },
+    sdmetalwidths = { 200, 300, 400 },
     drawguardring = false,
     checkshorts = false,
 }

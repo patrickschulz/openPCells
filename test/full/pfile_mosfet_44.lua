@@ -1,0 +1,15 @@
+return {
+    fingers = 2,
+    connectsource = true,
+    connectsourceboth = true,
+    connectsourceminwidth = 3000,
+    connectdrain = true,
+    drainmetal = 2,
+    connectdrainboth = true,
+    connectdrainminwidth = 2000,
+    connectdrainotherminwidth = 2600,
+    connectsourcespace = 200,
+    connectsourceotherspace = 800,
+    connectdrainspace = 200,
+    connectdrainotherspace = 800,
+}

@@ -96,10 +96,10 @@ local nmos8 = pcell.create_layout("basic/mosfet", "nmos8", util.add_options(comm
     drawbotgate = true,
     connectsource = true,
     connectsourceboth = true,
+    connectsourceleftext = 200,
+    connectsourcerightext = 200,
     connectdrain = true,
     connectdrainboth = true,
-    connectdrainleftext = 200,
-    connectdrainrightext = 200,
     instancename = "nmos8",
 }))
 nmos8:align_bottom(nmos7)

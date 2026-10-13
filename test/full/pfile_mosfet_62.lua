@@ -1,0 +1,18 @@
+return {
+    fingers = 4,
+    fingerwidth = 1500,
+    sourcemetal = 2,
+    sourceviasize = 600,
+    connectsource = true,
+    connectsourceinline = true,
+    connectsourceinlineoffset = 150,
+    drainmetal = 2,
+    drainviasize = 600,
+    connectdrain = true,
+    connectdraininline = true,
+    connectdraininlineoffset = 250,
+    drawtopgate = true,
+    drawbotgate = true,
+    grid = 500,
+    centershapegrid = true,
+}

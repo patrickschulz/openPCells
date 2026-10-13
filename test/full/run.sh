@@ -1,7 +1,7 @@
 #! /bin/sh
 
 if [ ! $# -gt 0 ]; then
-    echo "no command given, can be 'all', 'diff', 'show', 'update' or 'command'"
+    echo "no command given, can be 'edit', 'all', 'diff', 'show', 'update' or 'command'"
     exit 1
 fi
 
@@ -20,10 +20,12 @@ declare -a runerrors
 # 2: cellname
 # 3: export type
 # 4: extra arguments
+# 5: technology (optional, default: opc)
 function do_test()
 {
     ((numtotal++))
-    cmd="${opcexec} ${commonargs} --export ${3} --technology opc ${1} --filename test_${2} ${4} --stdout-to ${2}.stdout --stderr-to ${2}.stderr"
+    local technology=${5:-opc}
+    cmd="${opcexec} ${commonargs} --export ${3} --technology ${technology} ${1} --filename test_${2} ${4} --stdout-to ${2}.stdout --stderr-to ${2}.stderr"
     $cmd
     if [ $? -ne 0 ]; then
         runerrors[$numerror]=${2}
@@ -40,6 +42,8 @@ function do_test()
 # 1: basename
 # 2: cellname
 # 3: export type
+# 4: extra arguments
+# 5: technology (optional, default: opc)
 function do_cell_test()
 {
     ((numtotal++))
@@ -47,29 +51,51 @@ function do_cell_test()
         printf "\033[1;31mpfile 'pfile_%s.lua' does not exist: test %s (%s)\n\033[0m" ${1} ${1} ${2}
         return
     fi
-    do_test "--cell ${2} --pfile pfile_${1}.lua" ${1} ${3}
+    do_test "--cell ${2} --pfile pfile_${1}.lua" ${1} ${3} "${4}" ${5}
+}
+
+# cell test that is expected to raise an error (e.g. a failed parameter check)
+# args:
+# 1: basename
+# 2: cellname
+# 3: export type
+# 4: technology (optional, default: opc)
+function do_cell_failtest()
+{
+    ((numtotal++))
+    if [ ! -f pfile_${1}.lua ]; then
+        printf "\033[1;31mpfile 'pfile_%s.lua' does not exist: test %s (%s)\n\033[0m" ${1} ${1} ${2}
+        return
+    fi
+    ${opcexec} ${commonargs} --export ${3} --technology ${4:-opc} --cell ${2} --pfile pfile_${1}.lua --filename test_${1} --stdout-to ${1}.stdout --stderr-to ${1}.stderr
+    if [ $? -eq 0 ]; then
+        failedtests[$numfail]=${1}
+        ((numfail++))
+    fi
 }
 
 # args:
 # 1: basename
 # 2: export type
 # 3: extra arguments
+# 4: technology (optional, default: opc)
 function do_cellscript_test()
 {
-    do_test "--cellscript ${1}.lua" ${1} ${2} ${3}
+    do_test "--cellscript ${1}.lua" ${1} ${2} "${3}" ${4}
 }
 
 # args:
 # 1: basename
 # 2: export type
 # 3: extra arguments
+# 4: technology (optional, default: opc)
 function do_cellscript_failtest()
 {
     if [ ! -x ${opcexec} ]; then
         printf "\033[1;31mopc is not available: test %s (%s)\n\033[0m" ${1} ${1}.lua
         return
     fi
-    ${opcexec} ${commonargs} ${3} --export ${2} --technology opc --cellscript ${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
+    ${opcexec} ${commonargs} ${3} --export ${2} --technology ${4:-opc} --cellscript ${1}.lua --filename test_${1} --stdout-to /dev/null --stderr-to /dev/null
     if [ $? -eq 0 ]; then
         printf "\033[1;31mcellscript fail test failed (cellscript should raise an error): %s (%s)\n\033[0m" ${1} ${1}.lua
         echo
@@ -84,7 +110,18 @@ function do_cellscript_failtest()
 #######################################################
 
 if [ $1 = "command" ]; then
-    printf "%s\n" "${opcexec} ${commonargs} --export <export> --technology opc --cellscript <cellscript> --cell <cell> --filename test_<filename> --stdout-to /dev/null --stderr-to /dev/null"
+    printf "%s\n" "${opcexec} ${commonargs} --export <export> --technology <technology (opc or opc_advanced)> --cellscript <cellscript> --cell <cell> --filename test_<filename> --stdout-to /dev/null --stderr-to /dev/null"
+elif [ $1 = "edit" ]; then
+    if [ ! $# -gt 1 ]; then
+        echo "no test name given"
+        exit 1
+    fi
+    if [ -f pfile_$2.lua ] ; then
+        vim pfile_$2.lua
+    fi
+    if [ -f $2.lua ] ; then
+        vim $2.lua
+    fi
 elif [ $1 = "diff" ]; then
     if [ ! $# -gt 1 ]; then
         echo "no test name given"
@@ -102,7 +139,18 @@ elif [ $1 = "show" ]; then
         echo "no test name given"
         exit 1
     fi
-    klayout test_$2.gds reference_$2.gds
+    if [ -f test_$2.gds ] && [ -f reference_$2.gds ]; then
+        klayout test_$2.gds reference_$2.gds
+    elif [ -f test_$2.gds ]; then
+        echo "reference file 'reference_$2.gds' does not exist, showing only the test file"
+        klayout test_$2.gds
+    elif [ -f reference_$2.gds ]; then
+        echo "test file 'test_$2.gds' does not exist, showing only the reference file"
+        klayout reference_$2.gds
+    else
+        echo "neither 'test_$2.gds' nor 'reference_$2.gds' exist"
+        exit 1
+    fi
 elif [ $1 = "update" ]; then
     if [ ! $# -gt 1 ]; then
         echo "no test name given"
@@ -153,6 +201,83 @@ elif [ $1 = "all" ]; then
     do_cell_test mosfet_14 basic/mosfet gds
     do_cell_test mosfet_15 basic/mosfet gds
     do_cell_test mosfet_16 basic/mosfet gds
+    do_cell_test mosfet_17 basic/mosfet gds
+    do_cell_test mosfet_18 basic/mosfet gds
+    do_cell_test mosfet_19 basic/mosfet gds
+    do_cell_test mosfet_20 basic/mosfet gds
+    do_cell_test mosfet_21 basic/mosfet gds
+    do_cell_test mosfet_22 basic/mosfet gds
+    do_cell_test mosfet_23 basic/mosfet gds
+    do_cell_test mosfet_24 basic/mosfet gds
+    do_cell_test mosfet_25 basic/mosfet gds
+    do_cell_test mosfet_26 basic/mosfet gds
+    do_cell_test mosfet_27 basic/mosfet gds --draw-all-anchors
+    do_cell_test mosfet_28 basic/mosfet gds
+    do_cell_test mosfet_29 basic/mosfet gds
+    do_cell_test mosfet_30 basic/mosfet gds
+    do_cell_test mosfet_31 basic/mosfet gds
+    do_cell_test mosfet_32 basic/mosfet gds
+    do_cell_failtest mosfet_33 basic/mosfet gds
+    do_cell_test mosfet_34 basic/mosfet gds
+    do_cell_test mosfet_35 basic/mosfet gds
+    do_cell_test mosfet_36 basic/mosfet gds
+    do_cell_test mosfet_37 basic/mosfet gds
+    do_cell_failtest mosfet_38 basic/mosfet gds
+    do_cell_test mosfet_39 basic/mosfet gds
+    do_cell_test mosfet_40 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_41 basic/mosfet gds --draw-all-anchors
+    do_cell_test mosfet_42 basic/mosfet gds --draw-all-anchors
+    do_cell_test mosfet_43 basic/mosfet gds
+    do_cell_test mosfet_44 basic/mosfet gds --draw-all-anchors
+    do_cell_test mosfet_45 basic/mosfet gds
+    do_cell_test mosfet_46 basic/mosfet gds
+    do_cell_test mosfet_47 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_48 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_49 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_50 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_51 basic/mosfet gds
+    do_cell_test mosfet_52 basic/mosfet gds
+    do_cell_test mosfet_53 basic/mosfet gds
+    do_cell_test mosfet_54 basic/mosfet gds
+    do_cell_test mosfet_55 basic/mosfet gds
+    do_cell_test mosfet_56 basic/mosfet gds
+    do_cell_test mosfet_57 basic/mosfet gds
+    do_cell_test mosfet_58 basic/mosfet gds
+    do_cell_test mosfet_59 basic/mosfet gds
+    do_cell_test mosfet_60 basic/mosfet gds
+    do_cell_test mosfet_61 basic/mosfet gds
+    do_cell_test mosfet_62 basic/mosfet gds
+    do_cell_test mosfet_63 basic/mosfet gds
+    do_cell_failtest mosfet_64 basic/mosfet gds
+    do_cell_test mosfet_65 basic/mosfet gds
+    do_cell_test mosfet_66 basic/mosfet gds
+    do_cell_test mosfet_67 basic/mosfet gds
+    do_cell_failtest mosfet_68 basic/mosfet gds
+    do_cell_failtest mosfet_69 basic/mosfet gds
+    do_cell_test mosfet_70 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_71 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_72 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_73 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_74 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_75 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_76 basic/mosfet gds
+    do_cell_test mosfet_77 basic/mosfet gds
+    do_cell_test mosfet_78 basic/mosfet gds
+    do_cell_failtest mosfet_79 basic/mosfet gds
+    do_cell_test mosfet_80 basic/mosfet gds
+    do_cell_test mosfet_81 basic/mosfet gds
+    do_cell_failtest mosfet_82 basic/mosfet gds
+    do_cell_test mosfet_83 basic/mosfet gds
+    do_cell_test mosfet_84 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_85 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_86 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_87 basic/mosfet gds
+    do_cell_test mosfet_88 basic/mosfet gds
+    do_cell_test mosfet_89 basic/mosfet gds
+    do_cell_test mosfet_90 basic/mosfet gds
+    do_cell_test mosfet_91 basic/mosfet gds
+    do_cell_failtest mosfet_92 basic/mosfet gds
+    do_cell_test mosfet_93 basic/mosfet gds
 
     # polyresistor
     do_cell_test polyresistor_01 basic/polyresistor gds

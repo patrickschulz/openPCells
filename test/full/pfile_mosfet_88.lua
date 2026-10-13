@@ -1,0 +1,15 @@
+return {
+    fingers = 3,
+    connectsource = true,
+    connectsourceboth = true,
+    connectsourceautooddext = true,
+    connectdrain = true,
+    drainmetal = 2,
+    connectdrainboth = true,
+    connectdrainautooddext = true,
+    connectsourcespace = 200,
+    connectsourceotherspace = 800,
+    connectdrainspace = 200,
+    connectdrainotherspace = 800,
+    drawguardring = true,
+}
