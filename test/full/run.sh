@@ -5,7 +5,7 @@ if [ ! $# -gt 0 ]; then
     exit 1
 fi
 
-commonargs="--write-children-ports --flatten-ports"
+commonargs="--write-children-ports --flatten-ports --debug-cell"
 opcexec="../../opc"
 
 numtotal=0
@@ -280,6 +280,7 @@ elif [ $1 = "all" ]; then
     do_cell_test mosfet_93 basic/mosfet gds
     do_cell_test mosfet_94 basic/mosfet gds "" opc_advanced
     do_cell_test mosfet_95 basic/mosfet gds "" opc_advanced
+    do_cell_test mosfet_96 basic/mosfet gds "" opc_advanced
 
     # polyresistor
     do_cell_test polyresistor_01 basic/polyresistor gds
