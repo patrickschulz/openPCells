@@ -51,6 +51,7 @@ function parameters()
         { "wellaligntopwithactive",                                                                     false, follow = "wellalignwithactive", info = "set reference point for well top extensions. If this is false, the well top extension is autmatically calculated so that the well covers the top part of all gates. With this option enabled, the well top extension is referenced to the active region. This is useful for having precise control over the well extensions in mosfet arrays with varying gate heights" },
         { "wellalignbottomwithactive",                                                                  false, follow = "wellalignwithactive", info = "set reference point for well bottom extensions. If this is false, the well bottom extension is autmatically calculated so that the well covers the bottom part of all gates. With this option enabled, the well bottom extension is referenced to the active region. This is useful for having precise control over the well extensions in mosfet arrays with varying gate heights" },
         { "gatemarker(Gate Marking Layer Index)",                                                       1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers only the gate (the intersection of poly and the active region). This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first gate marker should be an empty layer" },
+        { "gatemarkercoverfullgates(Gate Marker Covers Full Gates)",                                    false, info = "if true, the gate marker covers the full gates (including the gate extensions above and below the active region), otherwise only the intersection of the gates and the active region" },
         { "mosfetmarker(MOSFET Marking Layer Index)",                                                   1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers the active region. This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first gate marker should be an empty layer" },
         { "mosfetmarkerincludefloatingdummies",                                                         true },
         { "mosfetmarkeralignatsourcedrain(Align MOSFET Marker at Source/Drain)",                        false, info = "set reference points for mosfetmarker extensions. If this is false, the mosfetmarker extensions are autmatically calculated so that the mosfetmarker covers all gates. With this option enabled, the mosfetmarker extensions are referenced to the active region. This is useful for having precise control over the mosfetmarker extensions in mosfet arrays with varying gate heights"  },
@@ -1769,12 +1770,14 @@ function layout(transistor, _P)
         point.create(gatetrx + (_P.fingers - 1) * gatepitch, gatetry)
     )
 
-    -- gate marker
+    -- gate marker (only the gate/active intersection, or the full gates)
+    local gatemarkerbly = _P.gatemarkercoverfullgates and gatebly or 0
+    local gatemarkertry = _P.gatemarkercoverfullgates and gatetry or _P.fingerwidth
     for i = 1, _P.fingers do
         geometry.rectanglebltr(transistor,
             generics.marker("gate", _P.gatemarker),
-            point.create(gateblx + (i - 1) * gatepitch, gatebly),
-            point.create(gatetrx + (i - 1) * gatepitch, gatetry)
+            point.create(gateblx + (i - 1) * gatepitch, gatemarkerbly),
+            point.create(gatetrx + (i - 1) * gatepitch, gatemarkertry)
         )
     end
 
