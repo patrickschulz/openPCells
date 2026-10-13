@@ -1,0 +1,8 @@
+This technology is a mock technology, which is used for debugging/development of cells as well as tests.
+It is identical to the 'opc' technology, but additionally implements non-standard features that 'opc' does not
+have, so that cells can be tested with them:
+    - gate cuts: 'has_gatecut = true' in config.lua, layers 'gatecut' (gds 60/0) and 'diffusionbreakgate' (gds 61/0)
+    - marker layers: 'lvsmarker1' (gds 62/0), 'lvsmarker2' (gds 63/0), 'analogmarker' (gds 64/0), 'rotationmarker' (gds 65/0), 'mosfetmarker2' (gds 66/0, 'mosfetmarker1' stays empty), 'floatinggatemarker' (gds 67/0)
+    - rotated source/drain contacts (used with 'drawrotationmarker'): contact 'sourcedrainrotated' (gds 7/0, like 'sourcedrain')
+Changes to 'opc' (constraints, vias, other layers) should be mirrored here.
+The cell tests are gds-based, therefore a .lyp file for klayout is provided which gives the layers proper names and colors.
