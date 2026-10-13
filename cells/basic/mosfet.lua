@@ -775,43 +775,44 @@ local function _get_strap_extent(widths, mode, firstmetal, lastmetal)
 end
 
 -- gate/gate strap space extensions due to outer source/drain straps (if the gate metal is not below the via metal),
--- inline straps lie inside the active region and don't push the gate straps
+-- inline straps lie inside the active region and don't push the gate straps; connected straps ('connect*') push
+-- the gate straps also if they are not drawn by this cell ('draw*strap' false: drawn later at the same position)
 local function _get_gate_sdstrap_spaces(_P, sourcestrapwidths, sourceotherstrapwidths, drainstrapwidths, drainotherstrapwidths, topgatemetal, botgatemetal)
     local topgatesdstrapspace = 0
     if _P.drawtopgate then
         if _P.channeltype == "nmos" then
-            if _P.drawdrainconnections and not _P.connectdraininline and not _P.connectdraininverse then
+            if _P.connectdrain and not _P.connectdraininline and not _P.connectdraininverse then
                 local space = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, topgatemetal)
                 if _P.topgatemetal >= _P.drainviametal then
                     topgatesdstrapspace = math.max(topgatesdstrapspace, space)
                 end
             end
-            if _P.drawsourceconnections and not _P.connectsourceinline and _P.connectsourceinverse then
+            if _P.connectsource and not _P.connectsourceinline and _P.connectsourceinverse then
                 local space = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, topgatemetal)
                 if _P.topgatemetal >= _P.sourceviametal then
                     topgatesdstrapspace = math.max(topgatesdstrapspace, space)
                 end
             end
-            if _P.drawsourceconnections and not _P.connectsourceinline and _P.connectsourceboth then
+            if _P.connectsource and not _P.connectsourceinline and _P.connectsourceboth then
                 local space = _P.connectsourceotherspace + _get_strap_extent(sourceotherstrapwidths, _P.strapextentmode, 1, topgatemetal)
                 if _P.topgatemetal >= _P.sourceviametal then
                     topgatesdstrapspace = math.max(topgatesdstrapspace, space)
                 end
             end
         else -- _P.channeltype == "pmos"
-            if _P.drawsourceconnections and not _P.connectsourceinline and not _P.connectsourceinverse then
+            if _P.connectsource and not _P.connectsourceinline and not _P.connectsourceinverse then
                 local space = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, topgatemetal)
                 if _P.topgatemetal >= _P.sourceviametal then
                     topgatesdstrapspace = math.max(topgatesdstrapspace, space)
                 end
             end
-            if _P.drawdrainconnections and not _P.connectdraininline and _P.connectdraininverse then
+            if _P.connectdrain and not _P.connectdraininline and _P.connectdraininverse then
                 local space = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, topgatemetal)
                 if _P.topgatemetal >= _P.drainviametal then
                     topgatesdstrapspace = math.max(topgatesdstrapspace, space)
                 end
             end
-            if _P.drawdrainconnections and not _P.connectdraininline and _P.connectdrainboth then
+            if _P.connectdrain and not _P.connectdraininline and _P.connectdrainboth then
                 local space = _P.connectdrainotherspace + _get_strap_extent(drainotherstrapwidths, _P.strapextentmode, 1, topgatemetal)
                 if _P.topgatemetal >= _P.drainviametal then
                     topgatesdstrapspace = math.max(topgatesdstrapspace, space)
@@ -822,36 +823,36 @@ local function _get_gate_sdstrap_spaces(_P, sourcestrapwidths, sourceotherstrapw
     local botgatesdstrapspace = 0
     if _P.drawbotgate then
         if _P.channeltype == "nmos" then
-            if _P.drawsourceconnections and not _P.connectsourceinline and not _P.connectsourceinverse then
+            if _P.connectsource and not _P.connectsourceinline and not _P.connectsourceinverse then
                 if _P.botgatemetal >= _P.sourceviametal then
                     botgatesdstrapspace = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, botgatemetal)
                 end
             end
-            if _P.drawdrainconnections and not _P.connectdraininline and _P.connectdraininverse then
+            if _P.connectdrain and not _P.connectdraininline and _P.connectdraininverse then
                 local space = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, botgatemetal)
                 if _P.botgatemetal >= _P.drainviametal then
                     botgatesdstrapspace = math.max(botgatesdstrapspace, space)
                 end
             end
-            if _P.drawdrainconnections and not _P.connectdraininline and _P.connectdrainboth then
+            if _P.connectdrain and not _P.connectdraininline and _P.connectdrainboth then
                 local space = _P.connectdrainotherspace + _get_strap_extent(drainotherstrapwidths, _P.strapextentmode, 1, botgatemetal)
                 if _P.botgatemetal >= _P.drainviametal then
                     botgatesdstrapspace = math.max(botgatesdstrapspace, space)
                 end
             end
         else -- _P.channeltype == "pmos"
-            if _P.drawdrainconnections and not _P.connectdraininline and not _P.connectdraininverse then
+            if _P.connectdrain and not _P.connectdraininline and not _P.connectdraininverse then
                 if _P.botgatemetal >= _P.drainviametal then
                     botgatesdstrapspace = _P.connectdrainspace + _get_strap_extent(drainstrapwidths, _P.strapextentmode, 1, botgatemetal)
                 end
             end
-            if _P.drawsourceconnections and not _P.connectsourceinline and _P.connectsourceinverse then
+            if _P.connectsource and not _P.connectsourceinline and _P.connectsourceinverse then
                 local space = _P.connectsourcespace + _get_strap_extent(sourcestrapwidths, _P.strapextentmode, 1, botgatemetal)
                 if _P.botgatemetal >= _P.sourceviametal then
                     botgatesdstrapspace = math.max(botgatesdstrapspace, space)
                 end
             end
-            if _P.drawsourceconnections and not _P.connectsourceinline and _P.connectsourceboth then
+            if _P.connectsource and not _P.connectsourceinline and _P.connectsourceboth then
                 local space = _P.connectsourceotherspace + _get_strap_extent(sourceotherstrapwidths, _P.strapextentmode, 1, botgatemetal)
                 if _P.botgatemetal >= _P.sourceviametal then
                     botgatesdstrapspace = math.max(botgatesdstrapspace, space)
@@ -2170,8 +2171,10 @@ function layout(transistor, _P)
         end
     end
     local guardringtopmetal = 1 -- the guardring metals (auxiliary/guardring is only drawn with metal 1)
+    -- the source/drain straps are respected if they are connected ('connect*'), also if they are not drawn by this cell
+    -- ('draw*strap' false: the strap is drawn later by the user at the same position)
     if _P.guardringrespectsourcestraps then
-        if _P.drawsourceconnections and not _P.connectsourceinline then
+        if _P.connectsource and not _P.connectsourceinline then
             if _P.channeltype == "nmos" then
                 if _P.connectsourceinverse then
                     if _P.connectsourceboth then
@@ -2199,7 +2202,7 @@ function layout(transistor, _P)
             end
         end
         -- x extent of the main and the other strap (all strap metals or only the guardring metals, see 'strapextentmode')
-        if _P.fingers > 0 and _P.drawsourcestrap then
+        if _P.fingers > 0 and _P.connectsource then
             local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "source", false, gateblx, gatepitch)
             local straplefts, straprights = _get_strap_xranges(sourcemetalwidths, _P.sourcestartmetal, _P.sourcestraptopmetal, _P.gatespace, blx, trx, leftext, rightext, _P.connectsourceminwidth)
             local left, right = _get_strap_xextent(straplefts, straprights, _P.strapextentmode, 1, guardringtopmetal)
@@ -2219,7 +2222,7 @@ function layout(transistor, _P)
         end
     end
     if _P.guardringrespectdrainstraps then
-        if _P.drawdrainconnections and not _P.connectdraininline then
+        if _P.connectdrain and not _P.connectdraininline then
             if _P.channeltype == "nmos" then
                 if _P.connectdraininverse then
                     if _P.connectdrainboth then
@@ -2247,7 +2250,7 @@ function layout(transistor, _P)
             end
         end
         -- x extent of the main and the other strap (all strap metals or only the guardring metals, see 'strapextentmode')
-        if _P.fingers > 0 and _P.drawdrainstrap then
+        if _P.fingers > 0 and _P.connectdrain then
             local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "drain", false, gateblx, gatepitch)
             local straplefts, straprights = _get_strap_xranges(drainmetalwidths, _P.drainstartmetal, _P.drainstraptopmetal, _P.gatespace, blx, trx, leftext, rightext, _P.connectdrainminwidth)
             local left, right = _get_strap_xextent(straplefts, straprights, _P.strapextentmode, 1, guardringtopmetal)
