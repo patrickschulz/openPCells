@@ -56,6 +56,8 @@ function parameters()
         { "mosfetmarker(MOSFET Marking Layer Index)",                                                   1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers the active region. This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first mosfet marker should be an empty layer" },
         { "mosfetmarkerincludefloatingdummies",                                                         true },
         { "mosfetmarkeralignatsourcedrain(Align MOSFET Marker at Source/Drain)",                        false, info = "set reference points for mosfetmarker extensions. If this is false, the mosfetmarker extensions are automatically calculated so that the mosfetmarker covers all gates. With this option enabled, the mosfetmarker extensions are referenced to the active region. This is useful for having precise control over the mosfetmarker extensions in mosfet arrays with varying gate heights"  },
+        { "sourcemarker(MOSFET Source Marking Layer Index)",                                            1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers the source regions. This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first mosfet source marker should be an empty layer" },
+        { "drainmarker(MOSFET drain Marking Layer Index)",                                              1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers the drain regions. This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first mosfet drain marker should be an empty layer" },
         { "flippedwell(Flipped Well)",                                                                  false, info = "enable if the device is a flipped-well device. The wells are inferred from the channeltype: non-flipped-well: pmos -> n-well, nmos -> p-well and vice versa" },
         { "fingers(Number of Fingers)",                                                                 2, argtype = "integer", posvals = interval(0, inf), info = "number of gate fingers. The total width of the device is fingerwidth * fingers" },
         { "fingerwidth(Finger Width)",                                                                  technology.get_dimension("Minimum Gate Width"), argtype = "integer", info = "gate finger width. The total width of the device is fingerwidth * finger" },
@@ -3967,6 +3969,29 @@ function layout(transistor, _P)
             point.create(shift, 0),
             point.create(shift + _P.sdwidth, _P.fingerwidth)
         )
+    end
+
+    -- anchors for source drain active regions (full size, not only sdwidth)
+    -- FIXME: the outer (left/right) anchors should probably respect the actual active size, not the gatespace
+    for i = 1, _P.fingers + 1 do
+        local shift = gatetrx + (i - 1 - 1) * gatepitch
+        transistor:add_area_anchor_bltr(string.format("sourcedrainactivefull%d", i),
+            point.create(shift, 0),
+            point.create(shift + _P.gatespace, _P.fingerwidth)
+        )
+        transistor:add_area_anchor_bltr(string.format("sourcedrainactivefull%d", i - _P.fingers - 2),
+            point.create(shift, 0),
+            point.create(shift + _P.gatespace, _P.fingerwidth)
+        )
+    end
+
+    -- source region markers
+    for i = 1, _P.fingers + 1, 2 do
+        geometry.rectangleareaanchor(transistor, generics.marker("source", _P.sourcemarker), string.format("sourcedrainactivefull%d", i))
+    end
+    -- drain region markers
+    for i = 2, _P.fingers + 1, 2 do
+        geometry.rectangleareaanchor(transistor, generics.marker("drain", _P.drainmarker), string.format("sourcedrainactivefull%d", i))
     end
 
     -- alignmentbox
