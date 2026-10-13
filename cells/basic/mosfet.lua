@@ -167,7 +167,7 @@ function parameters()
         { "connectsourceotherleftext(Other Source Rails Metal Left Extension)",                         0, follow = "connectsourceleftext", },
         { "connectsourceotherrightext(Other Source Rails Metal Right Extension)",                       0, follow = "connectsourcerightext", },
         { "connectsourceotherminwidth(Other Source Rails Minimum Width)",                               0, follow = "connectsourceminwidth" },
-        { "connectsourceotherautooddext(Other Source Rails Automatic Odd-Fingered Extension)",          false },
+        { "connectsourceotherautooddext(Other Source Rails Automatic Odd-Fingered Extension)",          false, follow = "connectsourceautooddext" },
         { "sourcemetal(Source Connection Metal)",                                                       1, info = "Highest metal of all source connections. In the default settings, vias are placed on the active source regions of the transistor, up to 'sourcemetal'. Additionally (if present), the source connection strap is drawn in this metal. This is a wrapper parameter, finer control can be achieved with 'sourcestartmetal' and 'sourceendmetal' (for the start/end of the via stack on the source strap), and 'sourceviametal' (which controls the highest metal on the active source regions." },
         { "sourcestartmetal(Source Connection First Metal)",                                            1, follow = "sourcemetal", info = "Lowest metal of the source strap placed beside (above/below) the transistor. A stack of vias is placed on the source strap (which starts on 'sourcestartmetal') and goes up to 'sourceendmetal'. The source strap metals are controlled with 'sourcestartmetal' and 'sourceendmetal'. All source metals can be easily controlled by 'sourcemetal'." },
         { "sourceendmetal(Source Connection Last Metal)",                                               1, follow = "sourcemetal", info = "Highest metal of the source strap placed beside (above/below) the transistor. A stack of vias is placed on the source strap (which starts on 'sourcestartmetal') and goes up to 'sourceendmetal'. The source strap metals are controlled with 'sourcestartmetal' and 'sourceendmetal'. All source metals can be easily controlled by 'sourcemetal'." },
@@ -200,7 +200,7 @@ function parameters()
         { "connectdrainotherleftext(Other Drain Rails Metal Left Extension)",                           0, follow = "connectdrainleftext" },
         { "connectdrainotherrightext(Other Drain Rails Metal Right Extension)",                         0, follow = "connectdrainrightext" },
         { "connectdrainotherminwidth(Other Drain Rails Minimum Width)",                                 0, follow = "connectdrainminwidth" },
-        { "connectdrainotherautooddext(Other Drain Rails Automatic Odd-Fingered Extension)",            false },
+        { "connectdrainotherautooddext(Other Drain Rails Automatic Odd-Fingered Extension)",            false, follow = "connectdrainautooddext" },
         { "drawdrainvia(Draw Drain Via)",                                                               true },
         { "drawfirstdrainvia(Draw First Drain Via)",                                                    true },
         { "drawlastdrainvia(Draw Last Drain Via)",                                                      true },
@@ -677,16 +677,25 @@ local function _get_strap_xranges(metalwidths, startmetal, topmetal, gatespace, 
 end
 
 -- x bounds of a source/drain strap: first and last connected source/drain region ('blx'/'trx', see
--- _get_strap_xranges) and the extensions of the main strap (including the automatic odd-fingered extension)
-local function _get_sdstrap_xbounds(_P, kind, gateblx, gatepitch)
+-- _get_strap_xranges) and the extensions of the main or the other strap ('isother'), including the automatic
+-- odd-fingered extension
+local function _get_sdstrap_xbounds(_P, kind, isother, gateblx, gatepitch)
     local blx
     local trx
     local leftext
     local rightext
+    local autooddext
     if kind == "source" then
-        leftext = _P.connectsourceleftext
-        rightext = _P.connectsourcerightext
-        if _P.connectsourceautooddext then
+        if isother then
+            leftext = _P.connectsourceotherleftext
+            rightext = _P.connectsourceotherrightext
+            autooddext = _P.connectsourceotherautooddext
+        else
+            leftext = _P.connectsourceleftext
+            rightext = _P.connectsourcerightext
+            autooddext = _P.connectsourceautooddext
+        end
+        if autooddext then
             rightext = rightext + gatepitch
         end
         if _P.connectsourcefullwidth then
@@ -697,9 +706,16 @@ local function _get_sdstrap_xbounds(_P, kind, gateblx, gatepitch)
             trx = blx + 2 * (_P.fingers // 2) * gatepitch
         end
     else -- drain
-        leftext = _P.connectdrainleftext
-        rightext = _P.connectdrainrightext
-        if _P.connectdrainautooddext then
+        if isother then
+            leftext = _P.connectdrainotherleftext
+            rightext = _P.connectdrainotherrightext
+            autooddext = _P.connectdrainotherautooddext
+        else
+            leftext = _P.connectdrainleftext
+            rightext = _P.connectdrainrightext
+            autooddext = _P.connectdrainautooddext
+        end
+        if autooddext then
             leftext = leftext + gatepitch
         end
         if _P.connectdrainfullwidth then
@@ -2184,7 +2200,7 @@ function layout(transistor, _P)
         end
         -- x extent of the main and the other strap (all strap metals or only the guardring metals, see 'strapextentmode')
         if _P.fingers > 0 and _P.drawsourcestrap then
-            local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "source", gateblx, gatepitch)
+            local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "source", false, gateblx, gatepitch)
             local straplefts, straprights = _get_strap_xranges(sourcemetalwidths, _P.sourcestartmetal, _P.sourcestraptopmetal, _P.gatespace, blx, trx, leftext, rightext, _P.connectsourceminwidth)
             local left, right = _get_strap_xextent(straplefts, straprights, _P.strapextentmode, 1, guardringtopmetal)
             if left then
@@ -2192,7 +2208,8 @@ function layout(transistor, _P)
                 guardringrightext_sourcestraps = math.max(0, right - activetr:getx())
             end
             if _P.connectsourceboth and not _P.connectsourceinline then
-                straplefts, straprights = _get_strap_xranges(sourcemetalwidths, _P.sourcestartmetal, _P.sourcestraptopmetal, _P.gatespace, blx, trx, _P.connectsourceotherleftext, _P.connectsourceotherrightext, _P.connectsourceotherminwidth)
+                local _, _, otherleftext, otherrightext = _get_sdstrap_xbounds(_P, "source", true, gateblx, gatepitch)
+                straplefts, straprights = _get_strap_xranges(sourcemetalwidths, _P.sourcestartmetal, _P.sourcestraptopmetal, _P.gatespace, blx, trx, otherleftext, otherrightext, _P.connectsourceotherminwidth)
                 left, right = _get_strap_xextent(straplefts, straprights, _P.strapextentmode, 1, guardringtopmetal)
                 if left then
                     guardringleftext_sourcestraps = math.max(guardringleftext_sourcestraps, activebl:getx() - left)
@@ -2231,7 +2248,7 @@ function layout(transistor, _P)
         end
         -- x extent of the main and the other strap (all strap metals or only the guardring metals, see 'strapextentmode')
         if _P.fingers > 0 and _P.drawdrainstrap then
-            local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "drain", gateblx, gatepitch)
+            local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "drain", false, gateblx, gatepitch)
             local straplefts, straprights = _get_strap_xranges(drainmetalwidths, _P.drainstartmetal, _P.drainstraptopmetal, _P.gatespace, blx, trx, leftext, rightext, _P.connectdrainminwidth)
             local left, right = _get_strap_xextent(straplefts, straprights, _P.strapextentmode, 1, guardringtopmetal)
             if left then
@@ -2239,7 +2256,8 @@ function layout(transistor, _P)
                 guardringrightext_drainstraps = math.max(0, right - activetr:getx())
             end
             if _P.connectdrainboth and not _P.connectdraininline then
-                straplefts, straprights = _get_strap_xranges(drainmetalwidths, _P.drainstartmetal, _P.drainstraptopmetal, _P.gatespace, blx, trx, _P.connectdrainotherleftext, _P.connectdrainotherrightext, _P.connectdrainotherminwidth)
+                local _, _, otherleftext, otherrightext = _get_sdstrap_xbounds(_P, "drain", true, gateblx, gatepitch)
+                straplefts, straprights = _get_strap_xranges(drainmetalwidths, _P.drainstartmetal, _P.drainstraptopmetal, _P.gatespace, blx, trx, otherleftext, otherrightext, _P.connectdrainotherminwidth)
                 left, right = _get_strap_xextent(straplefts, straprights, _P.strapextentmode, 1, guardringtopmetal)
                 if left then
                     guardringleftext_drainstraps = math.max(guardringleftext_drainstraps, activebl:getx() - left)
@@ -3173,7 +3191,7 @@ function layout(transistor, _P)
 
     -- source strap
     if _P.fingers > 0 then
-        local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "source", gateblx, gatepitch)
+        local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "source", false, gateblx, gatepitch)
         if _P.connectsourceinline then
             local bly
             if _P.channeltype == "nmos" then
@@ -3278,7 +3296,8 @@ function layout(transistor, _P)
                 strapbottoms2, straptops2 = _get_strap_yranges(strapwidths2, bly2, 1)
             end
             local straplefts1, straprights1 = _get_strap_xranges(sourcemetalwidths, _P.sourcestartmetal, _P.sourcestraptopmetal, _P.gatespace, blx, trx, leftext, rightext, _P.connectsourceminwidth)
-            local straplefts2, straprights2 = _get_strap_xranges(sourcemetalwidths, _P.sourcestartmetal, _P.sourcestraptopmetal, _P.gatespace, blx, trx, _P.connectsourceotherleftext, _P.connectsourceotherrightext, _P.connectsourceotherminwidth)
+            local _, _, otherleftext, otherrightext = _get_sdstrap_xbounds(_P, "source", true, gateblx, gatepitch)
+            local straplefts2, straprights2 = _get_strap_xranges(sourcemetalwidths, _P.sourcestartmetal, _P.sourcestraptopmetal, _P.gatespace, blx, trx, otherleftext, otherrightext, _P.connectsourceotherminwidth)
             -- main strap
             if _P.drawsourcestrap then
                 for sourcemetal = _P.sourcestartmetal, _P.sourceendmetal do
@@ -3491,7 +3510,7 @@ function layout(transistor, _P)
 
     -- drain strap
     if _P.fingers > 0 then
-        local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "drain", gateblx, gatepitch)
+        local blx, trx, leftext, rightext = _get_sdstrap_xbounds(_P, "drain", false, gateblx, gatepitch)
         if _P.connectdraininline then
             local bly
             if _P.channeltype == "nmos" then
@@ -3596,7 +3615,8 @@ function layout(transistor, _P)
                 strapbottoms2, straptops2 = _get_strap_yranges(strapwidths2, bly2, 1)
             end
             local straplefts1, straprights1 = _get_strap_xranges(drainmetalwidths, _P.drainstartmetal, _P.drainstraptopmetal, _P.gatespace, blx, trx, leftext, rightext, _P.connectdrainminwidth)
-            local straplefts2, straprights2 = _get_strap_xranges(drainmetalwidths, _P.drainstartmetal, _P.drainstraptopmetal, _P.gatespace, blx, trx, _P.connectdrainotherleftext, _P.connectdrainotherrightext, _P.connectdrainotherminwidth)
+            local _, _, otherleftext, otherrightext = _get_sdstrap_xbounds(_P, "drain", true, gateblx, gatepitch)
+            local straplefts2, straprights2 = _get_strap_xranges(drainmetalwidths, _P.drainstartmetal, _P.drainstraptopmetal, _P.gatespace, blx, trx, otherleftext, otherrightext, _P.connectdrainotherminwidth)
             if _P.drawdrainstrap then
                 -- main strap
                 for drainmetal = _P.drainstartmetal, _P.drainendmetal do
