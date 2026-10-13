@@ -454,6 +454,8 @@ return {
     vthtypep4 = {},
     vthtypep5 = {},
     mosfetmarker1 = {},
+    sourcemarker1 = {},
+    drainmarker1 = {},
     lvsmarker1 = {},
     lvsmarker2 = {},
     pwell = {},

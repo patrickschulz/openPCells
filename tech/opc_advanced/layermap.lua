@@ -536,6 +536,17 @@ return {
             svg = { color = "ff4080", order = 1 },
         },
     },
+    sourcemarker1 = {},
+    drainmarker1 = {},
+    drainmarker2 = {
+        name = "drainmarker2",
+        layer = {
+            gds = { layer = 69, purpose = 0 },
+            SKILL = { layer = "drainmarker2", purpose = "drawing" },
+            debug = { layer = "drainmarker2" },
+            svg = { color = "40ff80", order = 1 },
+        },
+    },
     pwell = {},
     deeppwell = {},
     soiopen = {},
