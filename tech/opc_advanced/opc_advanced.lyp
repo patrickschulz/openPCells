@@ -722,6 +722,24 @@
  </properties>
  <properties>
   <expanded>false</expanded>
+  <frame-color>#40ff40</frame-color>
+  <fill-color>#40ff40</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>I1</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>true</visible>
+  <transparent>false</transparent>
+  <width>2</width>
+  <marked>false</marked>
+  <xfill>false</xfill>
+  <animation>0</animation>
+  <name>gatemarker2 drawing</name>
+  <source>68/0@1</source>
+ </properties>
+ <properties>
+  <expanded>false</expanded>
   <frame-color>#ffffff</frame-color>
   <fill-color>#ffffff</fill-color>
   <frame-brightness>0</frame-brightness>

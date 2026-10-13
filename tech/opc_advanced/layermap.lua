@@ -507,6 +507,15 @@ return {
     -- unused layers
     oxide1 = {},
     gatemarker1 = {},
+    gatemarker2 = {
+        name = "gatemarker2",
+        layer = {
+            gds = { layer = 68, purpose = 0 },
+            SKILL = { layer = "gatemarker2", purpose = "drawing" },
+            debug = { layer = "gatemarker2" },
+            svg = { color = "40ff40", order = 1 },
+        },
+    },
     vthtypen1 = {},
     vthtypen2 = {},
     vthtypen3 = {},
