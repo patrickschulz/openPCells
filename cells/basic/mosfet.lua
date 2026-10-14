@@ -638,7 +638,7 @@ end
 
 local function _get_metal_width(metal)
     local metalstr = string.format("Minimum M%d Width", metal)
-        local viastr
+    local viastr
     if metal > 1 then
         viastr = string.format("Minimum M%dM%d Viawidth", metal - 1, metal)
     end
