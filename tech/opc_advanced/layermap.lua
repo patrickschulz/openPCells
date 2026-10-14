@@ -568,4 +568,13 @@ return {
         },
     },
     polyresistorlvsmarker1 = {},
+    RFmarker = {
+        name = "RFmarker",
+        layer = {
+            gds = { layer = 70, purpose = 0 },
+            SKILL = { layer = "RFmarker", purpose = "drawing" },
+            debug = { layer = "RFmarker" },
+            svg = { color = "c06000", order = 1 },
+        },
+    },
 }

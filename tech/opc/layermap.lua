@@ -473,4 +473,5 @@ return {
     rotationmarker = {},
     floatinggatemarker = {},
     polyresistorlvsmarker1 = {},
+    RFmarker = {},
 }
