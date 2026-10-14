@@ -2132,16 +2132,20 @@ function layout(transistor, _P)
             gatetry + _P.extendimplanttop
     )
     if _P.implantrespectpolylines then
-        local leftskip = 0
-        for _, entry in ipairs(_P.leftpolylines) do
-            leftskip = leftskip + entry.space + entry.length
+        if not _P.implantalignleftwithactive then
+            local leftskip = 0
+            for _, entry in ipairs(_P.leftpolylines) do
+                leftskip = leftskip + entry.space + entry.length
+            end
+            implantbl:translate_x(-leftskip)
         end
-        local rightskip = 0
-        for _, entry in ipairs(_P.rightpolylines) do
-            rightskip = rightskip + entry.space + entry.length
+        if not _P.implantalignrightwithactive then
+            local rightskip = 0
+            for _, entry in ipairs(_P.rightpolylines) do
+                rightskip = rightskip + entry.space + entry.length
+            end
+            implanttr:translate_x(rightskip)
         end
-        implantbl:translate_x(-leftskip)
-        implanttr:translate_x(rightskip)
     end
     if _P.drawimplant and not _P.drawguardring then -- if a guardring is present, it draws the inner/MOSFET implant
         geometry.rectanglebltr(transistor, generics.implant(_P.channeltype), implantbl, implanttr)
