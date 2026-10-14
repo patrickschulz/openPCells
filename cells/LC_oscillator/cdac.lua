@@ -12,6 +12,8 @@ function parameters()
         { "gatelength", technology.get_dimension("Minimum Gate Length") },
         { "gatespace", technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space") },
         { "sdviaextension", 0 },
+        { "switchfingers", 1, posvals = odd() },
+        { "dummyfingers", 1, posvals = odd() },
         { "switchfingerwidth", technology.get_dimension("Minimum Gate Width") },
         { "alternatingpolarity", false },
         { "vsslinewidth", technology.get_dimension("Minimum M1 Width") },
@@ -25,7 +27,7 @@ function layout(cdac, _P)
 
     -- LSB cell transistors
     local switch = pcell.create_layout("basic/mosfet", "switch", {
-        fingers = 3,
+        fingers = _P.switchfingers + 2 * _P.dummyfingers,
         gatelength = _P.gatelength,
         gatespace = _P.gatespace,
         fingerwidth = _P.switchfingerwidth,
