@@ -3181,7 +3181,7 @@ function layout(transistor, _P)
                 geometry.rectanglebltr(transistor, generics.metal(1),
                     transistor:get_area_anchor(string.format("sourcedrain%d", i)).tl:translate_x(-metalshifts[1]),
                     transistor:get_area_anchor(string.format("sourcedrain%d", i)).tr:translate_x(metalshifts[1]) ..
-                    transistor:get_area_anchor(string.format("topgatestrap", i)).br
+                    transistor:get_area_anchor("topgatestrap").br
                 )
             end
             if _P.drawbotgatestrap then
