@@ -32,21 +32,10 @@ function parameters()
         { "activedummyspace", technology.get_optional_dimension("Minimum Active Space", 0) },
         { "drawleftstopgate", false },
         { "drawrightstopgate", false },
-        { "leftrightpolylines", {} },
-        { "leftpolylines", {} },
-        { "rightpolylines", {} },
+        { "polylines", {} },
         { "sourcemarker", 1 },
         { "drainmarker", 1 }
     )
-end
-
-function process_parameters(_P)
-    if _P.leftrightpolylines then
-        for i, l in ipairs(_P.leftrightpolylines) do
-            _P.leftpolylines[i] = l
-            _P.rightpolylines[i] = l
-        end
-    end
 end
 
 function layout(mosfet, _P)
@@ -88,6 +77,8 @@ function layout(mosfet, _P)
         drainmarker = _P.drainmarker,
         drawleftstopgate = _P.drawleftstopgate,
         drawrightstopgate = _P.drawrightstopgate,
+        leftpolylines = _P.polylines,
+        rightpolylines = _P.polylines,
         coveractivedummieswithstopgates = true,
         drawleftactivedummy = _P.drawactivedummies,
         leftactivedummywidth = _P.gatelength + _P.gatespace,
