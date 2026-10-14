@@ -23,8 +23,19 @@ function info()
 end
 
 function parameters()
+    -- one call per parameter group (a single call would exceed the lua limit for function arguments)
+    -- device
     pcell.add_parameters(
         { "channeltype(Channel Type)",                                                                  "nmos", posvals = set("nmos", "pmos"), info = "polarity of the mosfet. Can be either 'nmos' or 'pmos'." },
+        { "fingers(Number of Fingers)",                                                                 2, argtype = "integer", posvals = interval(0, inf), info = "number of gate fingers. The total width of the device is fingerwidth * fingers" },
+        { "fingerwidth(Finger Width)",                                                                  technology.get_dimension("Minimum Gate Width"), argtype = "integer", info = "gate finger width. The total width of the device is fingerwidth * finger" },
+        { "gatelength(Gate Length)",                                                                    technology.get_dimension("Minimum Gate Length"), argtype = "integer", info = "drawn gate length (channel length)" },
+        { "gatespace(Gate Spacing)",                                                                    technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), argtype = "integer", info = "gate space between the polysilicon lines" },
+        { "actext(Active Extension)",                                                                   technology.get_optional_dimension("Minimum Device Minimum Active Extension", 0), info = "left/right active extension. This is added to the calculated width of the active regions, dependent on the number of gates, the finger widths, gate spacing and left/right dummy devices" },
+        { "drawactive",                                                                                 true }
+    )
+    -- layers: implant, oxide type, threshold voltage type, well (and their extensions)
+    pcell.add_parameters(
         { "drawimplant",                                                                                true, info = "switch to enable/disable implant drawing. Typically this should be enabled, as a missing implant will most likely cause both the DRC and the LVS to fail. However, in certain situations manual drawing of the implant can be beneficial" },
         { "implantalignwithactive",                                                                     false, info = "set reference points for implant extensions. If this is false, the implant extensions are automatically calculated so that the implant covers all gates. With this option enabled, the implant extensions are referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights. This option sets left/right/top/bottom alignment, the dedicated switches can be used for more fine-grained control." },
         { "implantalignleftwithactive",                                                                 false, follow = "implantalignwithactive", info = "set reference point for implant left extensions. If this is false, the implant left extension is automatically calculated so that the implant covers the left gates. With this option enabled, the implant left extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
@@ -46,11 +57,37 @@ function parameters()
         { "vthtypealigntopwithactive",                                                                  false, follow = "vthtypealignwithactive", info = "set reference point for vthtype marker top extensions. If this is false, the vthtype marker top extension is automatically calculated so that the vthtype marker covers the top part of all gates. With this option enabled, the vthtype marker top extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
         { "vthtypealignbottomwithactive",                                                               false, follow = "vthtypealignwithactive", info = "set reference point for vthtype marker bottom extensions. If this is false, the vthtype marker bottom extension is automatically calculated so that the vthtype marker covers the bottom part of all gates. With this option enabled, the vthtype marker bottom extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
         { "vthtyperespectactivedummies",                                                                true, info = "control whether the vth type respects the left and right active dummies ('drawleftactivedummy'/'drawrightactivedummy') when calculating size and distances. Only relevant if 'vthtypealignleftwithactive' and/or 'vthtypealignrightwithactive' are set" },
+        { "drawwell",                                                                                   true, info = "control whether the well is drawn or not. This switch is useful for when the well is drawn by a cell higher in the hierarchy, for instance when it is filled by a surrounding guardring" },
         { "wellalignwithactive",                                                                        false, info = "set reference points for well extensions. If this is false, the well extensions are automatically calculated so that the well covers all gates. With this option enabled, the well extensions are referenced to the active region. This is useful for having precise control over the well extensions in mosfet arrays with varying gate heights. This option sets left/right/top/bottom alignment, the dedicated switches can be used for more fine-grained control." },
         { "wellalignleftwithactive",                                                                    false, follow = "wellalignwithactive", info = "set reference point for well left extensions. If this is false, the well left extension is automatically calculated so that the well covers the left gates. With this option enabled, the well left extension is referenced to the active region. This is useful for having precise control over the well extensions in mosfet arrays with varying gate heights" },
         { "wellalignrightwithactive",                                                                   false, follow = "wellalignwithactive", info = "set reference point for well right extensions. If this is false, the well right extension is automatically calculated so that the well covers the right gates. With this option enabled, the well right extension is referenced to the active region. This is useful for having precise control over the well extensions in mosfet arrays with varying gate heights" },
         { "wellaligntopwithactive",                                                                     false, follow = "wellalignwithactive", info = "set reference point for well top extensions. If this is false, the well top extension is automatically calculated so that the well covers the top part of all gates. With this option enabled, the well top extension is referenced to the active region. This is useful for having precise control over the well extensions in mosfet arrays with varying gate heights" },
         { "wellalignbottomwithactive",                                                                  false, follow = "wellalignwithactive", info = "set reference point for well bottom extensions. If this is false, the well bottom extension is automatically calculated so that the well covers the bottom part of all gates. With this option enabled, the well bottom extension is referenced to the active region. This is useful for having precise control over the well extensions in mosfet arrays with varying gate heights" },
+        { "flippedwell(Flipped Well)",                                                                  false, info = "enable if the device is a flipped-well device. The wells are inferred from the channeltype: non-flipped-well: pmos -> n-well, nmos -> p-well and vice versa" },
+        { "extendall",                                                                                  0 },
+        { "extendalltop",                                                                               0, follow = "extendall" },
+        { "extendallbottom",                                                                            0, follow = "extendall" },
+        { "extendallleft",                                                                              0, follow = "extendall" },
+        { "extendallright",                                                                             0, follow = "extendall" },
+        { "extendimplanttop",                                                                           technology.get_dimension("Minimum Implant Extension"), follow = "extendalltop" },
+        { "extendimplantbottom",                                                                        technology.get_dimension("Minimum Implant Extension"), follow = "extendallbottom" },
+        { "extendimplantleft",                                                                          technology.get_dimension("Minimum Implant Extension"), follow = "extendallleft" },
+        { "extendimplantright",                                                                         technology.get_dimension("Minimum Implant Extension"), follow = "extendallright" },
+        { "extendoxidetypetop",                                                                         technology.get_dimension("Minimum Oxide Extension"), follow = "extendalltop" },
+        { "extendoxidetypebottom",                                                                      technology.get_dimension("Minimum Oxide Extension"), follow = "extendallbottom" },
+        { "extendoxidetypeleft",                                                                        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallleft" },
+        { "extendoxidetyperight",                                                                       technology.get_dimension("Minimum Oxide Extension"), follow = "extendallright" },
+        { "extendvthtypetop",                                                                           technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendalltop" },
+        { "extendvthtypebottom",                                                                        technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallbottom" },
+        { "extendvthtypeleft",                                                                          technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallleft" },
+        { "extendvthtyperight",                                                                         technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallright" },
+        { "extendwelltop",                                                                              technology.get_dimension("Minimum Well Extension"), follow = "extendalltop" },
+        { "extendwellbottom",                                                                           technology.get_dimension("Minimum Well Extension"), follow = "extendallbottom" },
+        { "extendwellleft",                                                                             technology.get_dimension("Minimum Well Extension"), follow = "extendallleft" },
+        { "extendwellright",                                                                            technology.get_dimension("Minimum Well Extension"), follow = "extendallright" }
+    )
+    -- markers (and their extensions)
+    pcell.add_parameters(
         { "gatemarker(Gate Marking Layer Index)",                                                       1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers only the gate (the intersection of poly and the active region). This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first gate marker should be an empty layer" },
         { "gatemarkercoverfullgates(Gate Marker Covers Full Gates)",                                    false, info = "if true, the gate marker covers the full gates (including the gate extensions above and below the active region), otherwise only the intersection of the gates and the active region" },
         { "mosfetmarker(MOSFET Marking Layer Index)",                                                   1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers the active region. This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first mosfet marker should be an empty layer" },
@@ -58,45 +95,39 @@ function parameters()
         { "mosfetmarkeralignatsourcedrain(Align MOSFET Marker at Source/Drain)",                        false, info = "set reference points for mosfetmarker extensions. If this is false, the mosfetmarker extensions are automatically calculated so that the mosfetmarker covers all gates. With this option enabled, the mosfetmarker extensions are referenced to the active region. This is useful for having precise control over the mosfetmarker extensions in mosfet arrays with varying gate heights"  },
         { "sourcemarker(MOSFET Source Marking Layer Index)",                                            1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers the source regions. This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first mosfet source marker should be an empty layer" },
         { "drainmarker(MOSFET drain Marking Layer Index)",                                              1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers the drain regions. This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first mosfet drain marker should be an empty layer" },
-        { "flippedwell(Flipped Well)",                                                                  false, info = "enable if the device is a flipped-well device. The wells are inferred from the channeltype: non-flipped-well: pmos -> n-well, nmos -> p-well and vice versa" },
-        { "fingers(Number of Fingers)",                                                                 2, argtype = "integer", posvals = interval(0, inf), info = "number of gate fingers. The total width of the device is fingerwidth * fingers" },
-        { "fingerwidth(Finger Width)",                                                                  technology.get_dimension("Minimum Gate Width"), argtype = "integer", info = "gate finger width. The total width of the device is fingerwidth * finger" },
-        { "gatelength(Gate Length)",                                                                    technology.get_dimension("Minimum Gate Length"), argtype = "integer", info = "drawn gate length (channel length)" },
-        { "gatespace(Gate Spacing)",                                                                    technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), argtype = "integer", info = "gate space between the polysilicon lines" },
-        { "allow_poly_connections",                                                                     technology.has_feature("allow_poly_routing"), info = "switch to allow horizontal connections of the gate fingers. Typically this is disallowed in newer technology nodes" },
-        { "minimum_gate_contact_size",                                                                  technology.get_dimension("Minimum Gate Contact Region Size") },
-        { "topgatepolyextension",                                                                       0 },
-        { "topgatepolyleftrightextension",                                                              technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "topgatepolyextension" },
-        { "topgatepolyleftextension",                                                                   technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "topgatepolyleftrightextension" },
-        { "topgatepolyrightextension",                                                                  technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "topgatepolyleftrightextension" },
-        { "topgatepolytopbottomextension",                                                              technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "topgatepolyextension" },
-        { "topgatepolytopextension",                                                                    technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "topgatepolytopbottomextension" },
-        { "topgatepolybottomextension",                                                                 technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "topgatepolytopbottomextension" },
-        { "botgatepolyextension",                                                                       0 },
-        { "botgatepolyleftrightextension",                                                              technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "botgatepolyextension" },
-        { "botgatepolyleftextension",                                                                   technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "botgatepolyleftrightextension" },
-        { "botgatepolyrightextension",                                                                  technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "botgatepolyleftrightextension" },
-        { "botgatepolytopbottomextension",                                                              technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "botgatepolyextension" },
-        { "botgatepolytopextension",                                                                    technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "botgatepolytopbottomextension" },
-        { "botgatepolybottomextension",                                                                 technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "botgatepolytopbottomextension" },
-        { "actext(Active Extension)",                                                                   technology.get_optional_dimension("Minimum Device Minimum Active Extension", 0), info = "left/right active extension. This is added to the calculated width of the active regions, dependent on the number of gates, the finger widths, gate spacing and left/right dummy devices" },
-        { "sdwidth(Source/Drain Contact Width)",                                                        technology.get_dimension("Minimum Source/Drain Contact Region Size"), argtype = "integer", info = "width of the source/drain contact regions. Currently, all metals are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future." },
-        { "sdmetalwidth(Source/Drain Metal Width)",                                                     technology.get_dimension_max("Minimum Source/Drain Contact Region Size", "Minimum M1 Width"), argtype = "integer", follow = "sdwidth", info = "width of the source/drain metals. This parameter follows 'sdwidth'." },
-        { "sdm1botext",                                                                                 0, argtype = "integer", info = "extend the source/drain metal 1 region (bottom). This is useful for meeting minimum area requirements for devices with small finger widths" },
-        { "sdm1topext",                                                                                 0, argtype = "integer", info = "extend the source/drain metal 1 region (top). This is useful for meeting minimum area requirements for devices with small finger widths" },
-        { "sdmxbotext",                                                                                 0, argtype = "integer", follow = "sdm1botext", info = "extend the inter-level (not M1, not highest metal) source/drain metal region (bottom). This is useful for meeting minimum area requirements for devices with small finger widths" },
-        { "sdmxtopext",                                                                                 0, argtype = "integer", follow = "sdm1topext", info = "extend the inter-level (not M1, not highest metal) source/drain metal region (top). This is useful for meeting minimum area requirements for devices with small finger widths" },
-        { "sdmetalwidths",                                                                              {}, info = "width of source/drain metals, given as an array with one entry per metal. Missing entries are taken from 'sdmetalwidth'" },
-        { "interweavevias",                                                                             false },
-        { "alternateinterweaving",                                                                      true },
-        { "minviaxspace",                                                                               0 },
-        { "minviayspace",                                                                               0 },
+        { "lvsmarker",                                                                                  1, info = "special marking layer to mark device features for LVS. Typically used for mosfets with 5 and 6 terminals (including well diodes). Per default this includes the guardring around the device, as this defines the geometry of the diodes. This can be changed with the parameter 'lvsmarkerincludeguardring'. This marker is always drawn, the parameter is a numeric value, starting at 1." },
+        { "lvsmarkerincludeguardring",                                                                  true, info = "the lvs marker covers the guardring (outer boundary plus the lvs marker extensions), if a guardring is drawn. Without a guardring (or if this is false) the lvs marker covers the active region (see 'lvsmarkeralignwithactive')." },
+        { "lvsmarkeralignwithactive",                                                                   false, info = "if the lvs marker covers the active region (no guardring or 'lvsmarkerincludeguardring' is false), align it with the active region in y. Otherwise it spans the gates in y." },
+        { "drawrotationmarker",                                                                         false },
+        { "rotationmarkerincludeguardring",                                                             true, info = "the rotation marker covers the guardring (outer boundary plus the rotation marker extensions), if a guardring is drawn. Without a guardring (or if this is false) the rotation marker covers the active region (see 'rotationmarkeralignwithactive')." },
+        { "rotationmarkeralignwithactive",                                                              false, info = "if the rotation marker covers the active region (no guardring or 'rotationmarkerincludeguardring' is false), align it with the active region in y. Otherwise it spans the gates in y." },
+        { "drawanalogmarker",                                                                           false },
+        { "analogmarkerincludeguardring",                                                               true, info = "the analog marker covers the guardring (outer boundary plus the analog marker extensions), if a guardring is drawn. Without a guardring (or if this is false) the analog marker covers the active region." },
+        { "analogmarkeralignwithactive",                                                                true, info = "if the analog marker covers the active region (no guardring or 'analogmarkerincludeguardring' is false), align it with the active region in y. Otherwise it spans the gates in y (like the lvs marker with 'lvsmarkeralignwithactive' = false)." },
+        { "extendlvsmarkertop",                                                                         0, follow = "extendalltop" },
+        { "extendlvsmarkerbottom",                                                                      0, follow = "extendallbottom" },
+        { "extendlvsmarkerleft",                                                                        0, follow = "extendallleft" },
+        { "extendlvsmarkerright",                                                                       0, follow = "extendallright" },
+        { "extendrotationmarkertop",                                                                    0, follow = "extendalltop" },
+        { "extendrotationmarkerbottom",                                                                 0, follow = "extendallbottom" },
+        { "extendrotationmarkerleft",                                                                   0, follow = "extendallleft" },
+        { "extendrotationmarkerright",                                                                  0, follow = "extendallright" },
+        { "extendanalogmarkertop",                                                                      0, follow = "extendalltop" },
+        { "extendanalogmarkerbottom",                                                                   0, follow = "extendallbottom" },
+        { "extendanalogmarkerleft",                                                                     0, follow = "extendallleft" },
+        { "extendanalogmarkerright",                                                                    0, follow = "extendallright" }
+    )
+    -- gate shape
+    pcell.add_parameters(
         { "gtopext(Gate Top Extension)",                                                                technology.get_dimension("Minimum Gate Extension"), info = "top gate extension. This extension depends on the automatically calculated gate extensions (which depend for instance on gate contacts). This means that if 'gtopext' is smaller than the automatic extensions, the layout is not changed at all." },
         { "gbotext(Gate Bottom Extension)",                                                             technology.get_dimension("Minimum Gate Extension"), info = "bottom gate extension. This extension depends on the automatically calculated gate extensions (which depend for instance on gate contacts). This means that if 'gbotext' is smaller than the automatic extensions, the layout is not changed at all." },
         { "gtopextadd(Gate Additional Top Extension)",                                                  0, info = "Unconditional gate top extension (similar to 'gtopext', but always extends)." },
         { "gbotextadd(Gate Additional Bottom Extension)",                                               0, info = "Unconditional gate bottom extension (similar to 'gbotext', but always extends)." },
         { "gatetopabsoluteheight(Gate Absolute Top Height)",                                            0, info = "Alternative gate top extension parameter. If this is non-zero, it overwrites any gate extension values and applies the given height to the gate height (measured from the active region)", },
-        { "gatebotabsoluteheight(Gate Absolute Bottom Height)",                                         0, info = "Alternative gate bottom extension parameter. If this is non-zero, it overwrites any gate extension values and applies the given height to the gate height (measured from the active region)", },
+        { "gatebotabsoluteheight(Gate Absolute Bottom Height)",                                         0, info = "Alternative gate bottom extension parameter. If this is non-zero, it overwrites any gate extension values and applies the given height to the gate height (measured from the active region)", }
+    )
+    -- end/stop gates, gate cuts, floating dummies, poly lines
+    pcell.add_parameters(
         { "drawleftstopgate(Draw Left Stop Gate)",                                                      false, info = "draw a gate where one half of it covers the active region, the other does not (left side). This gate is covered with the layer 'diffusionbreakgate'. This is required in some technologies for short-length devices" },
         { "drawrightstopgate(Draw Right Stop Gate)",                                                    false, info = "draw a gate where one half of it covers the active region, the other does not (right side). This gate is covered with the layer 'diffusionbreakgate'. This is required in some technologies for short-length devices" },
         { "endleftwithgate(End Left Side With Gate)",                                                   false, follow = "drawleftstopgate", info = "align the left end of the active region so that only half of the left-most gate covers the active region. Follows 'drawleftstopgate'." },
@@ -105,28 +136,6 @@ function parameters()
         { "leftendgatespace(Left End Gate Space)",                                                      technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), follow = "gatespace", info = "gate space of the left end gate. Follows 'gatespace'" },
         { "rightendgatelength(Right End Gate Length)",                                                  technology.get_dimension("Minimum Gate Length"), follow = "gatelength", info = "gate length of the right end gate. Follows 'gatelength'" },
         { "rightendgatespace(Right End Gate Space)",                                                    technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), follow = "gatespace", info = "gate space of the right end gate. Follows 'gatespace'" },
-        { "drawtopgate(Draw Top Gate Contact)",                                                         false, info = "draw gate contacts on the upper side of the active region. The contact region width is the gate length, the height is 'topgatewidth'. The space to the active region is 'topgatespace'." },
-        { "drawtopgatestrap(Draw Top Gate Strap)",                                                      false, follow = "drawtopgate", info = "Connect all top gate contacts by a metal strap. Follows 'drawtopgate'. If this is false but 'drawtopgate' is true then no metal is drawn, which will probably result in DRC errors. This option is meant for situations where the gate strap is drawn manually." },
-        { "topgateadjustforsdstraps",                                                                   true, info = "automatically move the top gate strap to ensure that the top gatestrap does not overlap with any source/drain straps" },
-        { "topgatewidth(Top Gate Width)",                                                               technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "Width of the metal strap connecting all top gate contacts." },
-        { "topgateleftextension(Top Gate Left Extension)",                                              0, info = "Left extension of top gate metal strap. Positive values extend the strap on the left side beyond (to the left) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
-        { "topgaterightextension(Top Gate Right Extension)",                                            0, info = "Right extension of top gate metal strap. Positive values extend the strap on the right side beyond (to the right) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
-        { "topgateminwidth(Top Gate Strap Minimum Width)",                                              0 },
-        { "topgatespace(Top Gate Space)",                                                               technology.get_dimension("Minimum M1 Space"), argtype = "integer", info = "Space between the active region and the lower edge of the top gate contacts/metal strap" },
-        { "topgatemetal(Top Gate Strap Metal)",                                                         1, info = "Metal index (can be negative) of the top gate metal straps. If this is higher than 1 and 'drawtopgatevia' is true, vias are drawn." },
-        { "drawtopgatevia(Draw Top Gate Via)",                                                          true, info = "Enable the drawing of vias on the top gate metal strap. This only makes a difference if 'topgatemetal' is higher than 1." },
-        { "topgatecontinuousvia(Top Gate Continuous Via)",                                              false, info = "Make the drawn via of the top gate metal strap a continuous via." },
-        { "drawbotgate(Draw Bottom Gate Contact)",                                                      false, info = "draw gate contacts on the lower side of the active region. The contact region width is the gate length, the height is 'botgatewidth'. The space to the active region is 'botgatespace'." },
-        { "drawbotgatestrap(Draw Bottom Gate Strap)",                                                   false, follow = "drawbotgate", info = "Connect all bottom gate contacts by a metal strap. Follows 'drawbotgate'. If this is false but 'drawbotgate' is true then no metal is drawn, which will probably result in DRC errors. This option is meant for situations where the gate strap is drawn manually." },
-        { "botgateadjustforsdstraps",                                                                   true, info = "automatically move the bottom gate strap to ensure that the bottom gate strap does not overlap with any source/drain straps" },
-        { "botgatewidth(Bottom Gate Width)",                                                            technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "Width of the metal strap connecting all bottom gate contacts." },
-        { "botgateleftextension(Bottom Gate Left Extension)",                                           0, info = "Left extension of bottom gate metal strap. Positive values extend the strap on the left side beyond (to the left) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
-        { "botgaterightextension(Bottom Gate Right Extension)",                                         0, info = "Right extension of bottom gate metal strap. Positive values extend the strap on the right side beyond (to the right) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
-        { "botgateminwidth(Bottom Gate Strap Minimum Width)",                                           0 },
-        { "botgatespace(Bottom Gate Space)",                                                            technology.get_dimension("Minimum M1 Space"), argtype = "integer", info = "Space between the active region and the lower edge of the bottom gate contacts/metal strap" },
-        { "botgatemetal(Bottom Gate Strap Metal)",                                                      1, info = "Metal index (can be negative) of the bottom gate metal straps. If this is higher than 1 and 'drawbotgatevia' is true, vias are drawn." },
-        { "drawbotgatevia(Draw Bottom Gate Via)",                                                       true, info = "Enable the drawing of vias on the bottom gate metal strap. This only makes a difference if 'botgatemetal' is higher than 1." },
-        { "botgatecontinuousvia(Bottom Gate Continuous Via)",                                           false, info = "Make the drawn via of the bottom gate metal strap a continuous via." },
         { "drawtopgatecut(Draw Top Gate Cut)",                                                          false, info = "Draw a gate cut rectangle above the active region (the 'top' gates)." },
         { "topgatecutheight(Top Gate Cut Y Height)",                                                    technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace", "Minimum Gate Space"), info = "Height of the top gate cut." },
         { "topgatecutspace(Top Gate Cut Y Space)",                                                      0, info = "Space between the active region and the top gate cut." },
@@ -138,8 +147,68 @@ function parameters()
         { "botgatecutleftext(Bottom Gate Cut Left Extension)",                                          0, info = "Left extension of the bottom gate cut. Without extension, the gate cut covers the underlying gate in x-direction exactly." },
         { "botgatecutrightext(Bottom Gate Cut Right Extension)",                                        0, info = "Right extension of the bottom gate cut. Without extension, the gate cut covers the underlying gate in x-direction exactly." },
         { "simulatemissinggatecut",                                                                     false, info = "Draw the gates with gate cuts as if the technology had no gate cuts (this splits the gates). This is only useful for technologies that support gate cuts." },
+        { "drawstopgatetopgatecut",                                                                     false },
+        { "drawstopgatebotgatecut",                                                                     false },
+        { "excludestopgatesfromcutregions",                                                             true },
+        { "leftfloatingdummies",                                                                        0 },
+        { "rightfloatingdummies",                                                                       0 },
+        { "floatingdummygatelength",                                                                    technology.get_dimension("Minimum Gate Length"), argtype = "integer", follow = "gatelength", info = "drawn floating dummy gate length (channel length)" },
+        { "floatingdummygatespace",                                                                     technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), argtype = "integer", follow = "gatespace", info = "floating dummy gate space between the polysilicon lines" },
+        { "leftpolylines",                                                                              {}, info = "Specifies additional poly (gate not over active) lines left of the device. The table should contain entries like this: '{ length = 80, space = 120 }'." },
+        { "rightpolylines",                                                                             {}, info = "Specifies additional poly (gate not over active) lines right of the device. The table should contain entries like this: '{ length = 80, space = 120 }'." }
+    )
+    -- gate contacts and straps
+    pcell.add_parameters(
+        { "allow_poly_connections",                                                                     technology.has_feature("allow_poly_routing"), info = "switch to allow horizontal connections of the gate fingers. Typically this is disallowed in newer technology nodes" },
+        { "minimum_gate_contact_size",                                                                  technology.get_dimension("Minimum Gate Contact Region Size") },
+        { "drawtopgate(Draw Top Gate Contact)",                                                         false, info = "draw gate contacts on the upper side of the active region. The contact region width is the gate length, the height is 'topgatewidth'. The space to the active region is 'topgatespace'." },
+        { "drawtopgatestrap(Draw Top Gate Strap)",                                                      false, follow = "drawtopgate", info = "Connect all top gate contacts by a metal strap. Follows 'drawtopgate'. If this is false but 'drawtopgate' is true then no metal is drawn, which will probably result in DRC errors. This option is meant for situations where the gate strap is drawn manually." },
+        { "topgateadjustforsdstraps",                                                                   true, info = "automatically move the top gate strap to ensure that the top gatestrap does not overlap with any source/drain straps" },
+        { "topgatewidth(Top Gate Width)",                                                               technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "Width of the metal strap connecting all top gate contacts." },
+        { "topgateleftextension(Top Gate Left Extension)",                                              0, info = "Left extension of top gate metal strap. Positive values extend the strap on the left side beyond (to the left) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
+        { "topgaterightextension(Top Gate Right Extension)",                                            0, info = "Right extension of top gate metal strap. Positive values extend the strap on the right side beyond (to the right) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
+        { "topgateminwidth(Top Gate Strap Minimum Width)",                                              0 },
+        { "topgatespace(Top Gate Space)",                                                               technology.get_dimension("Minimum M1 Space"), argtype = "integer", info = "Space between the active region and the lower edge of the top gate contacts/metal strap" },
+        { "topgatemetal(Top Gate Strap Metal)",                                                         1, info = "Metal index (can be negative) of the top gate metal straps. If this is higher than 1 and 'drawtopgatevia' is true, vias are drawn." },
+        { "drawtopgatevia(Draw Top Gate Via)",                                                          true, info = "Enable the drawing of vias on the top gate metal strap. This only makes a difference if 'topgatemetal' is higher than 1." },
+        { "topgatecontinuousvia(Top Gate Continuous Via)",                                              false, info = "Make the drawn via of the top gate metal strap a continuous via." },
+        { "topgatepolyextension",                                                                       0 },
+        { "topgatepolyleftrightextension",                                                              technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "topgatepolyextension" },
+        { "topgatepolyleftextension",                                                                   technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "topgatepolyleftrightextension" },
+        { "topgatepolyrightextension",                                                                  technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "topgatepolyleftrightextension" },
+        { "topgatepolytopbottomextension",                                                              technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "topgatepolyextension" },
+        { "topgatepolytopextension",                                                                    technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "topgatepolytopbottomextension" },
+        { "topgatepolybottomextension",                                                                 technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "topgatepolytopbottomextension" },
+        { "drawbotgate(Draw Bottom Gate Contact)",                                                      false, info = "draw gate contacts on the lower side of the active region. The contact region width is the gate length, the height is 'botgatewidth'. The space to the active region is 'botgatespace'." },
+        { "drawbotgatestrap(Draw Bottom Gate Strap)",                                                   false, follow = "drawbotgate", info = "Connect all bottom gate contacts by a metal strap. Follows 'drawbotgate'. If this is false but 'drawbotgate' is true then no metal is drawn, which will probably result in DRC errors. This option is meant for situations where the gate strap is drawn manually." },
+        { "botgateadjustforsdstraps",                                                                   true, info = "automatically move the bottom gate strap to ensure that the bottom gate strap does not overlap with any source/drain straps" },
+        { "botgatewidth(Bottom Gate Width)",                                                            technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "Width of the metal strap connecting all bottom gate contacts." },
+        { "botgateleftextension(Bottom Gate Left Extension)",                                           0, info = "Left extension of bottom gate metal strap. Positive values extend the strap on the left side beyond (to the left) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
+        { "botgaterightextension(Bottom Gate Right Extension)",                                         0, info = "Right extension of bottom gate metal strap. Positive values extend the strap on the right side beyond (to the right) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
+        { "botgateminwidth(Bottom Gate Strap Minimum Width)",                                           0 },
+        { "botgatespace(Bottom Gate Space)",                                                            technology.get_dimension("Minimum M1 Space"), argtype = "integer", info = "Space between the active region and the lower edge of the bottom gate contacts/metal strap" },
+        { "botgatemetal(Bottom Gate Strap Metal)",                                                      1, info = "Metal index (can be negative) of the bottom gate metal straps. If this is higher than 1 and 'drawbotgatevia' is true, vias are drawn." },
+        { "drawbotgatevia(Draw Bottom Gate Via)",                                                       true, info = "Enable the drawing of vias on the bottom gate metal strap. This only makes a difference if 'botgatemetal' is higher than 1." },
+        { "botgatecontinuousvia(Bottom Gate Continuous Via)",                                           false, info = "Make the drawn via of the bottom gate metal strap a continuous via." },
+        { "botgatepolyextension",                                                                       0 },
+        { "botgatepolyleftrightextension",                                                              technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "botgatepolyextension" },
+        { "botgatepolyleftextension",                                                                   technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "botgatepolyleftrightextension" },
+        { "botgatepolyrightextension",                                                                  technology.get_optional_dimension("Gate Contact Poly XExtension", 0), follow = "botgatepolyleftrightextension" },
+        { "botgatepolytopbottomextension",                                                              technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "botgatepolyextension" },
+        { "botgatepolytopextension",                                                                    technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "botgatepolytopbottomextension" },
+        { "botgatepolybottomextension",                                                                 technology.get_optional_dimension("Gate Contact Poly YExtension", 0), follow = "botgatepolytopbottomextension" }
+    )
+    -- source/drain regions, contacts and vias
+    pcell.add_parameters(
         { "drawsourcedrain(Draw Source/Drain Contacts)",                                                "both", posvals = set("both", "source", "drain", "none"), info = "Control which source/drain contacts are drawn. The possible values are 'both' (source and drain), 'source', 'drain' or 'none'. More fine-grained control can be obtained by the parameter 'excludesourcedraincontacts'." },
         { "excludesourcedraincontacts(Exclude Source/Drain Contacts)",                                  {}, argtype = "table", info = "Define which source/drain contacts get drawn. Set 'drawsourcedrain' to 'both' to use this effectively. The argument to this parameter should be a table with numeric indices. The source/drain regions are enumerated with the left-most starting at 1." },
+        { "sdwidth(Source/Drain Contact Width)",                                                        technology.get_dimension("Minimum Source/Drain Contact Region Size"), argtype = "integer", info = "width of the source/drain contact regions. Currently, all metals are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future." },
+        { "sdmetalwidth(Source/Drain Metal Width)",                                                     technology.get_dimension_max("Minimum Source/Drain Contact Region Size", "Minimum M1 Width"), argtype = "integer", follow = "sdwidth", info = "width of the source/drain metals. This parameter follows 'sdwidth'." },
+        { "sdmetalwidths",                                                                              {}, info = "width of source/drain metals, given as an array with one entry per metal. Missing entries are taken from 'sdmetalwidth'" },
+        { "sdm1botext",                                                                                 0, argtype = "integer", info = "extend the source/drain metal 1 region (bottom). This is useful for meeting minimum area requirements for devices with small finger widths" },
+        { "sdm1topext",                                                                                 0, argtype = "integer", info = "extend the source/drain metal 1 region (top). This is useful for meeting minimum area requirements for devices with small finger widths" },
+        { "sdmxbotext",                                                                                 0, argtype = "integer", follow = "sdm1botext", info = "extend the inter-level (not M1, not highest metal) source/drain metal region (bottom). This is useful for meeting minimum area requirements for devices with small finger widths" },
+        { "sdmxtopext",                                                                                 0, argtype = "integer", follow = "sdm1topext", info = "extend the inter-level (not M1, not highest metal) source/drain metal region (top). This is useful for meeting minimum area requirements for devices with small finger widths" },
         { "sourcesize(Source Size)",                                                                    technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fingerwidth", info = "Size of the source contact regions. This parameter follows 'fingerwidth', so per default the contact regions have the width of a transistor finger. 'sourcesize' can be larger than 'fingerwidth'. If the size is smaller than 'fingerwidth', the source contact alignment ('sourcealign') is relevant." },
         { "sourceviasize(Source Via Size)",                                                             technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize", info = "Same as 'sourcesize', but for source vias." },
         { "drainsize(Drain Size)",                                                                      technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fingerwidth", info = "Size of the drain contact regions. This parameter follows 'fingerwidth', so per default the contact regions have the width of a transistor finger. 'drainsize' can be larger than 'fingerwidth'., If the size is smaller than 'fingerwidth', the drain contact alignment ('drainalign') is relevant." },
@@ -151,6 +220,16 @@ function parameters()
         { "drawsourcevia(Draw Source Via)",                                                             true, info = "Draw required vias from metal 1 to the source metal. Only useful if 'sourcemetal' is not 1." },
         { "drawfirstsourcevia(Draw First Source Via)",                                                  true, info = "Draw a via on the first source region (counted from the left). This switch can be useful if connecting dummies to other devices." },
         { "drawlastsourcevia(Draw Last Source Via)",                                                    true, info = "Draw a via on the last source region (counted from the left). This switch can be useful if connecting dummies to other devices." },
+        { "drawdrainvia(Draw Drain Via)",                                                               true },
+        { "drawfirstdrainvia(Draw First Drain Via)",                                                    true },
+        { "drawlastdrainvia(Draw Last Drain Via)",                                                      true },
+        { "interweavevias",                                                                             false },
+        { "alternateinterweaving",                                                                      true },
+        { "minviaxspace",                                                                               0 },
+        { "minviayspace",                                                                               0 }
+    )
+    -- source connection (straps and connections)
+    pcell.add_parameters(
         { "connectsource(Connect Source)",                                                              false, info = "Connect all parallel source regions by a metal strap. This strap either lies outside or inside of the active region (see parameter 'connectsourceinline'). For nMOS devices, the outer source strap is below the active region, for pMOS devices the outer source strap is above the active region. This can be changed with 'connectsourceinverse')." },
         { "drawsourcestrap(Draw Source Strap)",                                                         false, follow = "connectsource", info = "Draw the source strap. This parameter follows 'connectsource', so per default the source strap is drawn. This parameter is useful if the source strap (or what it should connect to) is drawn by some other structures." },
         { "drawsourceconnections(Draw Source Connections)",                                             false, follow = "connectsource", info = "Draw the connections to the source strap. This parameter follows 'connectsource', so per default the connections between the source regions and the source strap are drawn. This parameter is rarely useful, only in situations where the source strap is not used but the source is connected." },
@@ -182,7 +261,10 @@ function parameters()
         { "connectsourceinlineoffset(Offset for Inline Source Connection)",                             0 },
         { "splitsourcevias(Split Source Vias for Inline Source Connection)",                            false },
         { "flipsourcedrainstraps(Flip Source/Drain Straps)",                                            false },
-        { "connectsourceinverse(Invert Source Strap Locations)",                                        false, follow = "flipsourcedrainstraps" },
+        { "connectsourceinverse(Invert Source Strap Locations)",                                        false, follow = "flipsourcedrainstraps" }
+    )
+    -- drain connection (straps and connections)
+    pcell.add_parameters(
         { "connectdrain(Connect Drain)",                                                                false },
         { "drawdrainstrap(Draw Drain Strap)",                                                           false, follow = "connectdrain" },
         { "drawdrainconnections(Draw Drain Connections)",                                               false, follow = "connectdrain" },
@@ -205,9 +287,6 @@ function parameters()
         { "connectdrainotherrightext(Other Drain Rails Metal Right Extension)",                         0, follow = "connectdrainrightext" },
         { "connectdrainotherminwidth(Other Drain Rails Minimum Width)",                                 0, follow = "connectdrainminwidth" },
         { "connectdrainotherautooddext(Other Drain Rails Automatic Odd-Fingered Extension)",            false, follow = "connectdrainautooddext" },
-        { "drawdrainvia(Draw Drain Via)",                                                               true },
-        { "drawfirstdrainvia(Draw First Drain Via)",                                                    true },
-        { "drawlastdrainvia(Draw Last Drain Via)",                                                      true },
         { "drainmetal(Drain Connection Metal)",                                                         1, info = "Highest metal of all drain connections. In the default settings, vias are placed on the active drain regions of the transistor, up to 'drainmetal'. Additionally (if present), the drain connection strap is drawn in this metal. This is a wrapper parameter, finer control can be achieved with 'drainstartmetal' and 'drainendmetal' (for the start/end of the via stack on the drain strap), and 'drainviametal' (which controls the highest metal on the active drain regions." },
         { "drainstartmetal(Drain Connection First Metal)",                                              1, follow = "drainmetal", info = "Lowest metal of the drain strap placed beside (above/below) the transistor. A stack of vias is placed on the drain strap (which starts on 'drainstartmetal') and goes up to 'drainendmetal'. The drain strap metals are controlled with 'drainstartmetal' and 'drainendmetal'. All drain metals can be easily controlled by 'drainmetal'." },
         { "drainendmetal(Drain Connection Last Metal)",                                                 1, follow = "drainmetal", info = "Highest metal of the drain strap placed beside (above/below) the transistor. A stack of vias is placed on the drain strap (which starts on 'drainstartmetal') and goes up to 'drainendmetal'. The drain strap metals are controlled with 'drainstartmetal' and 'drainendmetal'. All drain metals can be easily controlled by 'drainmetal'." },
@@ -216,9 +295,21 @@ function parameters()
         { "drainstraptopmetal(Drain Strap Top Metal)",                                                  1, follow = "drainendmetal" },
         { "connectdraininline(Connect Drain Inline of Transistor)",                                     false },
         { "connectdraininlineoffset(Offset for Inline Drain Connection)",                               0 },
-        { "splitdrainvias(Split Drain Vias for Inline Drain Connection)",                               false },
+        { "splitdrainvias(Split Drain Vias for Inline Drain Connection)",                               false }
+    )
+    -- further connections: diode connection, shorts, extra straps
+    pcell.add_parameters(
+        { "strapextentmode",                                                                            "allmetals", posvals = set("allmetals", "samemetal"), info = "how other shapes (gate straps, guardring) account for source/drain straps with different widths per metal: 'allmetals' uses the widest strap metal, 'samemetal' only considers strap metals on the same metals as the shape in question" },
         { "diodeconnected(Diode Connected Transistor)",                                                 false },
         { "diodeconnectedreversed(Reverse Diode Connections)",                                          false },
+        { "shortdevice(Short Transistor)",                                                              false },
+        { "shortdeviceleftoffset(Short Transistor Left Offset)",                                        0 },
+        { "shortdevicerightoffset(Short Transistor Right Offset)",                                      0 },
+        { "shortsourcegate(Short Source with Gate)",                                                    false },
+        { "shortdraingate(Short Drain with Gate)",                                                      false },
+        { "shortlocation",                                                                              "inline", posvals = set("inline", "top", "bottom") },
+        { "shortspace",                                                                                 technology.get_dimension("Minimum M1 Space") },
+        { "shortwidth",                                                                                 technology.get_dimension("Minimum M1 Width") },
         { "drawextrabotstrap(Draw Extra Bottom Strap)",                                                 false },
         { "extrabotstrapwidth(Width of Extra Bottom Strap)",                                            technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "extrabotstrapspace(Space of Extra Bottom Strap)",                                            technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
@@ -236,17 +327,8 @@ function parameters()
         { "extratopstrapleftalign(Left Alignment for Extra Top Strap)",                                 1 },
         { "extratopstraprightalign(Right Alignment for Extra Top Strap)",                               2, follow = "fingers" }
     )
-    -- split necessary because of lua limitations.
-    -- FIXME: split at sensible locations (group parameters)
+    -- active dummies
     pcell.add_parameters(
-        { "shortdevice(Short Transistor)",                                                              false },
-        { "shortdeviceleftoffset(Short Transistor Left Offset)",                                        0 },
-        { "shortdevicerightoffset(Short Transistor Right Offset)",                                      0 },
-        { "shortsourcegate(Short Source with Gate)",                                                    false },
-        { "shortdraingate(Short Drain with Gate)",                                                      false },
-        { "shortlocation",                                                                              "inline", posvals = set("inline", "top", "bottom") },
-        { "shortspace",                                                                                 technology.get_dimension("Minimum M1 Space") },
-        { "shortwidth",                                                                                 technology.get_dimension("Minimum M1 Width") },
         { "drawactivedummies",                                                                          false },
         { "activedummywidth",                                                                           technology.get_optional_dimension("Minimum Active Width", 0) },
         { "activedummyspace",                                                                           technology.get_optional_dimension("Minimum Active Space", 0) },
@@ -264,49 +346,10 @@ function parameters()
         { "topactivedummyspace",                                                                        technology.get_optional_dimension("Minimum Active Space", 0), follow = "activedummyspace" },
         { "drawbottomactivedummy",                                                                      false, follow = "drawactivedummies" },
         { "bottomactivedummywidth",                                                                     technology.get_optional_dimension("Minimum Active Width", 0), follow = "activedummywidth" },
-        { "bottomactivedummyspace",                                                                     technology.get_optional_dimension("Minimum Active Space", 0), follow = "activedummyspace" },
-        { "leftfloatingdummies",                                                                        0 },
-        { "rightfloatingdummies",                                                                       0 },
-        { "floatingdummygatelength",                                                                    technology.get_dimension("Minimum Gate Length"), argtype = "integer", follow = "gatelength", info = "drawn floating dummy gate length (channel length)" },
-        { "floatingdummygatespace",                                                                     technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space"), argtype = "integer", follow = "gatespace", info = "floating dummy gate space between the polysilicon lines" },
-        { "drawactive",                                                                                 true },
-        { "lvsmarker",                                                                                  1, info = "special marking layer to mark device features for LVS. Typically used for mosfets with 5 and 6 terminals (including well diodes). Per default this includes the guardring around the device, as this defines the geometry of the diodes. This can be changed with the parameter 'lvsmarkerincludeguardring'. This marker is always drawn, the parameter is a numeric value, starting at 1." },
-        { "lvsmarkerincludeguardring",                                                                  true, info = "the lvs marker covers the guardring (outer boundary plus the lvs marker extensions), if a guardring is drawn. Without a guardring (or if this is false) the lvs marker covers the active region (see 'lvsmarkeralignwithactive')." },
-        { "lvsmarkeralignwithactive",                                                                   false, info = "if the lvs marker covers the active region (no guardring or 'lvsmarkerincludeguardring' is false), align it with the active region in y. Otherwise it spans the gates in y." },
-        { "extendall",                                                                                  0 },
-        { "extendalltop",                                                                               0, follow = "extendall" },
-        { "extendallbottom",                                                                            0, follow = "extendall" },
-        { "extendallleft",                                                                              0, follow = "extendall" },
-        { "extendallright",                                                                             0, follow = "extendall" },
-        { "extendoxidetypetop",                                                                         technology.get_dimension("Minimum Oxide Extension"), follow = "extendalltop" },
-        { "extendoxidetypebottom",                                                                      technology.get_dimension("Minimum Oxide Extension"), follow = "extendallbottom" },
-        { "extendoxidetypeleft",                                                                        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallleft" },
-        { "extendoxidetyperight",                                                                       technology.get_dimension("Minimum Oxide Extension"), follow = "extendallright" },
-        { "extendvthtypetop",                                                                           technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendalltop" },
-        { "extendvthtypebottom",                                                                        technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallbottom" },
-        { "extendvthtypeleft",                                                                          technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallleft" },
-        { "extendvthtyperight",                                                                         technology.get_optional_dimension("Minimum Vthtype Extension", 0), follow = "extendallright" },
-        { "extendimplanttop",                                                                           technology.get_dimension("Minimum Implant Extension"), follow = "extendalltop" },
-        { "extendimplantbottom",                                                                        technology.get_dimension("Minimum Implant Extension"), follow = "extendallbottom" },
-        { "extendimplantleft",                                                                          technology.get_dimension("Minimum Implant Extension"), follow = "extendallleft" },
-        { "extendimplantright",                                                                         technology.get_dimension("Minimum Implant Extension"), follow = "extendallright" },
-        { "extendwelltop",                                                                              technology.get_dimension("Minimum Well Extension"), follow = "extendalltop" },
-        { "extendwellbottom",                                                                           technology.get_dimension("Minimum Well Extension"), follow = "extendallbottom" },
-        { "extendwellleft",                                                                             technology.get_dimension("Minimum Well Extension"), follow = "extendallleft" },
-        { "extendwellright",                                                                            technology.get_dimension("Minimum Well Extension"), follow = "extendallright" },
-        { "extendlvsmarkertop",                                                                         0, follow = "extendalltop" },
-        { "extendlvsmarkerbottom",                                                                      0, follow = "extendallbottom" },
-        { "extendlvsmarkerleft",                                                                        0, follow = "extendallleft" },
-        { "extendlvsmarkerright",                                                                       0, follow = "extendallright" },
-        { "extendrotationmarkertop",                                                                    0, follow = "extendalltop" },
-        { "extendrotationmarkerbottom",                                                                 0, follow = "extendallbottom" },
-        { "extendrotationmarkerleft",                                                                   0, follow = "extendallleft" },
-        { "extendrotationmarkerright",                                                                  0, follow = "extendallright" },
-        { "extendanalogmarkertop",                                                                      0, follow = "extendalltop" },
-        { "extendanalogmarkerbottom",                                                                   0, follow = "extendallbottom" },
-        { "extendanalogmarkerleft",                                                                     0, follow = "extendallleft" },
-        { "extendanalogmarkerright",                                                                    0, follow = "extendallright" },
-        { "drawwell",                                                                                   true, info = "control whether the well is drawn or not. This switch is useful for when the well is drawn by a cell higher in the hierarchy, for instance when it is filled by a surrounding guardring" },
+        { "bottomactivedummyspace",                                                                     technology.get_optional_dimension("Minimum Active Space", 0), follow = "activedummyspace" }
+    )
+    -- well taps
+    pcell.add_parameters(
         { "drawtopwelltap",                                                                             false, info = "controls whether a well tap above the device" },
         { "topwelltapwidth",                                                                            technology.get_dimension("Minimum M1 Width"), info = "width of the top well tap" },
         { "topwelltapspace",                                                                            technology.get_dimension("Minimum M1 Space"), info = "space of the top well tap (space between the active device region and the active region of the well tap" },
@@ -316,7 +359,10 @@ function parameters()
         { "botwelltapwidth",                                                                            technology.get_dimension("Minimum M1 Width"), info = "width of the bottom well tap" },
         { "botwelltapspace",                                                                            technology.get_dimension("Minimum M1 Space"), info = "space of the bottom well tap (space between the active device region and the active region of the well tap" },
         { "botwelltapextendleft",                                                                       0, info = "left active extension of the bottom well tap" },
-        { "botwelltapextendright",                                                                      0, info = "right active extension of the bottom well tap" },
+        { "botwelltapextendright",                                                                      0, info = "right active extension of the bottom well tap" }
+    )
+    -- guardring
+    pcell.add_parameters(
         { "drawguardring",                                                                              false, info = "draw a guardring around the device. The ring can be controlled by the 'guardring*' parameters" },
         { "guardringrespectactivedummies",                                                              true },
         { "guardringrespectgatestraps",                                                                 true },
@@ -347,21 +393,16 @@ function parameters()
         { "connectguardringtosource",                                                                   false },
         { "guardringconnectionmethod",                                                                  "strap", posvals = set("strap", "individual") },
         { "guardring_enable_horizontal_net_strips",                                                     true },
-        { "guardring_enable_vertical_net_strips",                                                       false },
-        { "drawstopgatetopgatecut",                                                                     false },
-        { "drawstopgatebotgatecut",                                                                     false },
-        { "excludestopgatesfromcutregions",                                                             true },
-        { "leftpolylines",                                                                              {}, info = "Specifies additional poly (gate not over active) lines left of the device. The table should contain entries like this: '{ length = 80, space = 120 }'." },
-        { "rightpolylines",                                                                             {}, info = "Specifies additional poly (gate not over active) lines right of the device. The table should contain entries like this: '{ length = 80, space = 120 }'." },
-        { "drawrotationmarker",                                                                         false },
-        { "rotationmarkerincludeguardring",                                                             true, info = "the rotation marker covers the guardring (outer boundary plus the rotation marker extensions), if a guardring is drawn. Without a guardring (or if this is false) the rotation marker covers the active region (see 'rotationmarkeralignwithactive')." },
-        { "rotationmarkeralignwithactive",                                                              false, info = "if the rotation marker covers the active region (no guardring or 'rotationmarkerincludeguardring' is false), align it with the active region in y. Otherwise it spans the gates in y." },
-        { "drawanalogmarker",                                                                           false },
-        { "analogmarkerincludeguardring",                                                               true, info = "the analog marker covers the guardring (outer boundary plus the analog marker extensions), if a guardring is drawn. Without a guardring (or if this is false) the analog marker covers the active region." },
-        { "analogmarkeralignwithactive",                                                                true, info = "if the analog marker covers the active region (no guardring or 'analogmarkerincludeguardring' is false), align it with the active region in y. Otherwise it spans the gates in y (like the lvs marker with 'lvsmarkeralignwithactive' = false)." },
-        -- FIXME: checkshorts should be true, but this needs better logic
-        { "checkshorts",                                                                                false },
-        { "strapextentmode",                                                                            "allmetals", posvals = set("allmetals", "samemetal"), info = "how other shapes (gate straps, guardring) account for source/drain straps with different widths per metal: 'allmetals' uses the widest strap metal, 'samemetal' only considers strap metals on the same metals as the shape in question" },
+        { "guardring_enable_vertical_net_strips",                                                       false }
+    )
+    -- grid
+    pcell.add_parameters(
+        { "grid",                                                                                       0, info = "put all access shapes (gate straps, source straps, guardring metals, etc.) on the specified grid. If this parameter is 0 it is ignored, otherwise the relevant shapes are shifted according to the grid. Therefore the given relevant spacing (e.g. connectsourcespace) become minimal values, not exact values." },
+        { "centershapegrid",                                                                            true, info = "use the center of the rectangular access shapes as grid targets, not the edges. This is useful if access shapes are connected by paths whose center lines lie on the grid. This is the default behavior." },
+        { "shapegrid",                                                                                  0, info = "ensure that all shapes lie on the given grid (if greater than zero). This option modifies every parameter to achieve this. This option is different from 'grid', which concerns only the access shapes such as source straps. The 'shapegrid' option affects everything and is only intended for small values. The motivation is to ensure that (for instance) relevant shapes widths/heights can be divided by, say, 2." }
+    )
+    -- nets, labels, instance, checks
+    pcell.add_parameters(
         { "gatenet",                                                                                    nil, info = "add net identification to gate straps" },
         { "sourcenet",                                                                                  nil, info = "add net identification to source straps" },
         { "drainnet",                                                                                   nil, info = "add net identification to drain straps" },
@@ -372,9 +413,8 @@ function parameters()
         { "instancelabelsizehint",                                                                      technology.get_optional_dimension("Default Label Size", 0), info = "Label size hint for instance label." },
         { "drawinstancebox",                                                                            false },
         { "instancebox_includeguardring",                                                               true },
-        { "grid",                                                                                       0, info = "put all access shapes (gate straps, source straps, guardring metals, etc.) on the specified grid. If this parameter is 0 it is ignored, otherwise the relevant shapes are shifted according to the grid. Therefore the given relevant spacing (e.g. connectsourcespace) become minimal values, not exact values." },
-        { "centershapegrid",                                                                            true, info = "use the center of the rectangular access shapes as grid targets, not the edges. This is useful if access shapes are connected by paths whose center lines lie on the grid. This is the default behavior." },
-        { "shapegrid",                                                                                  0, info = "ensure that all shapes lie on the given grid (if greater than zero). This option modifies every parameter to achieve this. This option is different from 'grid', which concerns only the access shapes such as source straps. The 'shapegrid' option affects everything and is only intended for small values. The motivation is to ensure that (for instance) relevant shapes widths/heights can be divided by, say, 2." }
+        -- FIXME: checkshorts should be true, but this needs better logic
+        { "checkshorts",                                                                                false }
     )
 end
 
