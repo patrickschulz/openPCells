@@ -8,7 +8,7 @@ function parameters()
         { "gatespace", technology.get_dimension("Minimum Gate XSpace", "Minimum Gate Space") },
         { "gtopext", technology.get_dimension("Minimum Gate Extension") },
         { "gbotext", technology.get_dimension("Minimum Gate Extension") },
-        { "fingers", 2, posvals = even() },
+        { "fingers", 8, posvals = even() },
         { "fingerwidth", technology.get_dimension("Minimum Gate Width") },
         { "gatestrapwidth", technology.get_dimension("Minimum M1 Width") },
         { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
