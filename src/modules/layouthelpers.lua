@@ -606,8 +606,10 @@ function layouthelpers.place_guardrings_to_substrate(cell, bl, tr, xspace, yspac
                 contype = "p",
                 ringwidth = options.ringwidth,
                 fillwell = true,
-                soiopenouterextension = xspacehalf1,
-                implantouterextension = xspacehalf1,
+                soiopenouterxextension = xspacehalf1,
+                soiopenouteryextension = yspacehalf1,
+                implantouterxextension = xspacehalf1,
+                implantouteryextension = yspacehalf1,
             }
         )
         -- middle guard ring
@@ -622,10 +624,14 @@ function layouthelpers.place_guardrings_to_substrate(cell, bl, tr, xspace, yspac
                 fillwell = false,
                 drawdeepwell = true,
                 deepwelloffset = options.deepwelloffset,
-                soiopeninnerextension = xspacehalf2,
-                implantinnerextension = xspacehalf2,
-                soiopenouterextension = xspacehalf1,
-                implantouterextension = xspacehalf1,
+                soiopeninnerxextension = xspacehalf2,
+                soiopeninneryextension = yspacehalf2,
+                implantinnerxextension = xspacehalf2,
+                implantinneryextension = yspacehalf2,
+                soiopenouterxextension = xspacehalf1,
+                soiopenouteryextension = yspacehalf1,
+                implantouterxextension = xspacehalf1,
+                implantouteryextension = yspacehalf1,
             }
         )
         -- out-most psub guard ring
@@ -638,8 +644,10 @@ function layouthelpers.place_guardrings_to_substrate(cell, bl, tr, xspace, yspac
                 contype = "p", -- FIXME: this should call a technology functino to get the substrate polarity
                 ringwidth = options.ringwidth,
                 fillwell = false,
-                soiopeninnerextension = xspacehalf2,
-                implantinnerextension = xspacehalf2,
+                soiopeninnerxextension = xspacehalf2,
+                soiopeninneryextension = yspacehalf2,
+                implantinnerxextension = xspacehalf2,
+                implantinneryextension = yspacehalf2,
             }
         )
     else -- two rings
@@ -652,8 +660,10 @@ function layouthelpers.place_guardrings_to_substrate(cell, bl, tr, xspace, yspac
                 contype = "n",
                 ringwidth = options.ringwidth,
                 fillwell = true,
-                soiopenouterextension = xspacehalf1,
-                implantouterextension = xspacehalf1,
+                soiopenouterxextension = xspacehalf1,
+                soiopenouteryextension = yspacehalf1,
+                implantouterxextension = xspacehalf1,
+                implantouteryextension = yspacehalf1,
             }
         )
         -- out-most psub guard ring
@@ -666,13 +676,14 @@ function layouthelpers.place_guardrings_to_substrate(cell, bl, tr, xspace, yspac
                 contype = "p", -- FIXME: this should call a technology functino to get the substrate polarity
                 ringwidth = options.ringwidth,
                 fillwell = false,
-                soiopeninnerextension = xspacehalf2,
-                implantinnerextension = xspacehalf2,
+                soiopeninnerxextension = xspacehalf2,
+                soiopeninneryextension = yspacehalf2,
+                implantinnerxextension = xspacehalf2,
+                implantinneryextension = yspacehalf2,
             }
         )
     end
 end
-
 
 function layouthelpers.place_double_guardring(cell, bl, tr, xspace, yspace, innercontype, anchorprefix1, anchorprefix2, options)
     check.set_next_function_name("layouthelpers.place_double_guardring")
