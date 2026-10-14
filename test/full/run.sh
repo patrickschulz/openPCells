@@ -413,6 +413,11 @@ elif [ $1 = "all" ]; then
     do_cell_test metalgrid_02 auxiliary/metalgrid gds
     do_cell_test metalgrid_03 auxiliary/metalgrid gds
 
+    # cell test for RF/mosfet
+    do_cell_test rfmosfet_00 RF/mosfet gds
+    do_cell_test rfmosfet_01 RF/mosfet gds
+    do_cell_test rfmosfet_02 RF/mosfet gds
+
     # cell test for auxiliary/text
     do_cell_test text_00 auxiliary/text gds
     do_cell_test text_01 auxiliary/text gds
