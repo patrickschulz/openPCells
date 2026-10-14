@@ -11,13 +11,25 @@ function parameters()
         { "extendallinner",                                 0, follow = "extendall" },
         { "extendallouter",                                 0, follow = "extendall" },
         { "wellinnerextension",                             technology.get_dimension("Minimum Well Extension"), follow = "extendallinner" },
+        { "wellinnerxextension",                            technology.get_dimension("Minimum Well Extension"), follow = "wellinnerextension" },
+        { "wellinneryextension",                            technology.get_dimension("Minimum Well Extension"), follow = "wellinnerextension" },
         { "wellouterextension",                             technology.get_dimension("Minimum Well Extension"), follow = "extendallouter" },
+        { "wellouterxextension",                            technology.get_dimension("Minimum Well Extension"), follow = "wellouterextension" },
+        { "wellouteryextension",                            technology.get_dimension("Minimum Well Extension"), follow = "wellouterextension" },
         { "drawsoiopen",                                    true, },
         { "fillsoiopen",                                    false },
         { "soiopeninnerextension",                          technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "extendallinner" },
+        { "soiopeninnerxextension",                         technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "soiopeninnerextension" },
+        { "soiopeninneryextension",                         technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "soiopeninnerextension" },
         { "soiopenouterextension",                          technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "extendallouter" },
+        { "soiopenouterxextension",                         technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "soiopenouterextension" },
+        { "soiopenouteryextension",                         technology.get_optional_dimension("Minimum Soiopen Extension", 0), follow = "soiopenouterextension" },
         { "implantinnerextension",                          technology.get_dimension("Minimum Implant Extension"), follow = "extendallinner" },
+        { "implantinnerxextension",                         technology.get_dimension("Minimum Implant Extension"), follow = "implantinnerextension" },
+        { "implantinneryextension",                         technology.get_dimension("Minimum Implant Extension"), follow = "implantinnerextension" },
         { "implantouterextension",                          technology.get_dimension("Minimum Implant Extension"), follow = "extendallouter" },
+        { "implantouterxextension",                         technology.get_dimension("Minimum Implant Extension"), follow = "implantouterextension" },
+        { "implantouteryextension",                         technology.get_dimension("Minimum Implant Extension"), follow = "implantouterextension" },
         { "drawimplant",                                    true },
         { "fillinnerimplant",                               false },
         { "innerimplantpolarity",                           "p" },
@@ -26,7 +38,11 @@ function parameters()
         { "oxidetype",                                      1 },
         { "filloxidetype",                                  true },
         { "oxidetypeinnerextension",                        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallinner" },
+        { "oxidetypeinnerxextension",                       technology.get_dimension("Minimum Oxide Extension"), follow = "oxidetypeinnerextension" },
+        { "oxidetypeinneryextension",                       technology.get_dimension("Minimum Oxide Extension"), follow = "oxidetypeinnerextension" },
         { "oxidetypeouterextension",                        technology.get_dimension("Minimum Oxide Extension"), follow = "extendallouter" },
+        { "oxidetypeouterxextension",                       technology.get_dimension("Minimum Oxide Extension"), follow = "oxidetypeouterextension" },
+        { "oxidetypeouteryextension",                       technology.get_dimension("Minimum Oxide Extension"), follow = "oxidetypeouterextension" },
         { "drawwell",                                       true },
         { "fillwell",                                       true },
         { "fillwelldrawhole",                               false },
@@ -190,23 +206,23 @@ function layout(guardring, _P)
         if _P.contype ~= "none" then
             if _P.drawimplant then
                 geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-                    point.create(-_P.ringwidth - _P.implantouterextension, holeheight - _P.implantinnerextension),
-                    point.create(holewidth + _P.ringwidth + _P.implantouterextension, holeheight + _P.ringwidth + _P.implantouterextension)
+                    point.create(-_P.ringwidth - _P.implantouterxextension, holeheight - _P.implantinneryextension),
+                    point.create(holewidth + _P.ringwidth + _P.implantouterxextension, holeheight + _P.ringwidth + _P.implantouteryextension)
                 )
             end
         end
         -- soiopen
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.feol("soiopen"),
-                point.create(-_P.ringwidth - _P.soiopenouterextension, holeheight - _P.soiopeninnerextension),
-                point.create(holewidth + _P.ringwidth + _P.soiopenouterextension, holeheight + _P.ringwidth + _P.soiopenouterextension)
+                point.create(-_P.ringwidth - _P.soiopenouterxextension, holeheight - _P.soiopeninneryextension),
+                point.create(holewidth + _P.ringwidth + _P.soiopenouterxextension, holeheight + _P.ringwidth + _P.soiopenouteryextension)
             )
         end
         -- oxidetype
         if _P.drawoxidetype and not _P.filloxidetype then
             geometry.rectanglebltr(guardring, generics.oxide(_P.oxidetype),
-                point.create(-_P.ringwidth - _P.oxidetypeouterextension, holeheight - _P.oxidetypeinnerextension),
-                point.create(holewidth + _P.ringwidth + _P.oxidetypeouterextension, holeheight + _P.ringwidth + _P.oxidetypeouterextension)
+                point.create(-_P.ringwidth - _P.oxidetypeouterxextension, holeheight - _P.oxidetypeinneryextension),
+                point.create(holewidth + _P.ringwidth + _P.oxidetypeouterxextension, holeheight + _P.ringwidth + _P.oxidetypeouteryextension)
             )
         end
         guardring:add_area_anchor_bltr("topsegment",
@@ -247,23 +263,23 @@ function layout(guardring, _P)
         if _P.contype ~= "none" then
             if _P.drawimplant then
                 geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-                    point.create(-_P.ringwidth - _P.implantouterextension, -_P.implantouterextension - _P.ringwidth),
-                    point.create(holewidth + _P.ringwidth + _P.implantouterextension, _P.implantinnerextension)
+                    point.create(-_P.ringwidth - _P.implantouterxextension, -_P.implantouteryextension - _P.ringwidth),
+                    point.create(holewidth + _P.ringwidth + _P.implantouterxextension, _P.implantinneryextension)
                 )
             end
         end
         -- soiopen
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.feol("soiopen"),
-                point.create(-_P.ringwidth - _P.soiopenouterextension, -_P.ringwidth - _P.soiopenouterextension),
-                point.create(holewidth + _P.ringwidth + _P.soiopenouterextension, _P.soiopeninnerextension)
+                point.create(-_P.ringwidth - _P.soiopenouterxextension, -_P.ringwidth - _P.soiopenouteryextension),
+                point.create(holewidth + _P.ringwidth + _P.soiopenouterxextension, _P.soiopeninneryextension)
             )
         end
         -- oxidetype
         if _P.drawoxidetype and not _P.filloxidetype then
             geometry.rectanglebltr(guardring, generics.oxide(_P.oxidetype),
-                point.create(-_P.ringwidth - _P.oxidetypeouterextension, -_P.ringwidth - _P.oxidetypeouterextension),
-                point.create(holewidth + _P.ringwidth + _P.oxidetypeouterextension, _P.oxidetypeinnerextension)
+                point.create(-_P.ringwidth - _P.oxidetypeouterxextension, -_P.ringwidth - _P.oxidetypeouteryextension),
+                point.create(holewidth + _P.ringwidth + _P.oxidetypeouterxextension, _P.oxidetypeinneryextension)
             )
         end
         guardring:add_area_anchor_bltr("bottomsegment",
@@ -304,23 +320,23 @@ function layout(guardring, _P)
         if _P.contype ~= "none" then
             if _P.drawimplant then
                 geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-                    point.create(-_P.implantouterextension - _P.ringwidth, -_P.implantouterextension - _P.ringwidth),
-                    point.create(_P.implantinnerextension, holeheight + _P.implantouterextension + _P.ringwidth)
+                    point.create(-_P.implantouterxextension - _P.ringwidth, -_P.implantouteryextension - _P.ringwidth),
+                    point.create(_P.implantinnerxextension, holeheight + _P.implantouteryextension + _P.ringwidth)
                 )
             end
         end
         -- soiopen
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.feol("soiopen"),
-                point.create(-_P.soiopenouterextension- _P.ringwidth, -_P.soiopenouterextension - _P.ringwidth),
-                point.create(_P.soiopeninnerextension, holeheight + _P.soiopenouterextension + _P.ringwidth)
+                point.create(-_P.soiopenouterxextension- _P.ringwidth, -_P.soiopenouteryextension - _P.ringwidth),
+                point.create(_P.soiopeninnerxextension, holeheight + _P.soiopenouteryextension + _P.ringwidth)
             )
         end
         -- oxidetype
         if _P.drawoxidetype and not _P.filloxidetype then
             geometry.rectanglebltr(guardring, generics.oxide(_P.oxidetype),
-                point.create(-_P.oxidetypeouterextension- _P.ringwidth, -_P.oxidetypeouterextension - _P.ringwidth),
-                point.create(_P.oxidetypeinnerextension, holeheight + _P.oxidetypeouterextension + _P.ringwidth)
+                point.create(-_P.oxidetypeouterxextension- _P.ringwidth, -_P.oxidetypeouteryextension - _P.ringwidth),
+                point.create(_P.oxidetypeinnerxextension, holeheight + _P.oxidetypeouteryextension + _P.ringwidth)
             )
         end
         guardring:add_area_anchor_bltr("leftsegment",
@@ -361,23 +377,23 @@ function layout(guardring, _P)
         if _P.contype ~= "none" then
             if _P.drawimplant then
                 geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-                    point.create(holewidth - _P.implantinnerextension, -_P.implantouterextension - _P.ringwidth),
-                    point.create(holewidth + _P.implantouterextension + _P.ringwidth, holeheight + _P.implantouterextension + _P.ringwidth)
+                    point.create(holewidth - _P.implantinnerxextension, -_P.implantouteryextension - _P.ringwidth),
+                    point.create(holewidth + _P.implantouteryextension + _P.ringwidth, holeheight + _P.implantouterxextension + _P.ringwidth)
                 )
             end
         end
         -- soiopen
         if _P.drawsoiopen and not _P.fillsoiopen then
             geometry.rectanglebltr(guardring, generics.feol("soiopen"),
-                point.create(holewidth - _P.soiopeninnerextension, -_P.soiopenouterextension - _P.ringwidth),
-                point.create(holewidth + _P.soiopenouterextension + _P.ringwidth, holeheight + _P.soiopenouterextension + _P.ringwidth)
+                point.create(holewidth - _P.soiopeninnerxextension, -_P.soiopenouteryextension - _P.ringwidth),
+                point.create(holewidth + _P.soiopenouterxextension + _P.ringwidth, holeheight + _P.soiopenouteryextension + _P.ringwidth)
             )
         end
         -- oxidetype
         if _P.drawoxidetype and not _P.filloxidetype then
             geometry.rectanglebltr(guardring, generics.oxide(_P.oxidetype),
-                point.create(holewidth - _P.oxidetypeinnerextension, -_P.oxidetypeouterextension - _P.ringwidth),
-                point.create(holewidth + _P.oxidetypeouterextension + _P.ringwidth, holeheight + _P.oxidetypeouterextension + _P.ringwidth)
+                point.create(holewidth - _P.oxidetypeinnerxextension, -_P.oxidetypeouteryextension - _P.ringwidth),
+                point.create(holewidth + _P.oxidetypeouterxextension + _P.ringwidth, holeheight + _P.oxidetypeouteryextension + _P.ringwidth)
             )
         end
         guardring:add_area_anchor_bltr("rightsegment",
@@ -391,68 +407,68 @@ function layout(guardring, _P)
         if _P.fillwell then
             if _P.fillwelldrawhole then
                 geometry.unequal_ring_pts(guardring, generics.well(_P.contype),
-                    point.create(-_P.ringwidth - _P.wellouterextension, -_P.ringwidth - _P.wellouterextension),
-                    point.create(holewidth + _P.ringwidth + _P.wellouterextension, holeheight + _P.ringwidth + _P.wellouterextension),
+                    point.create(-_P.ringwidth - _P.wellouterxextension, -_P.ringwidth - _P.wellouteryextension),
+                    point.create(holewidth + _P.ringwidth + _P.wellouterxextension, holeheight + _P.ringwidth + _P.wellouteryextension),
                     point.create(_P.fillwellholeoffsetleft, _P.fillwellholeoffsetbottom),
                     point.create(holewidth - _P.fillwellholeoffsetright, holeheight - _P.fillwellholeoffsettop)
                 )
             else
                 geometry.rectanglebltr(guardring, generics.well(_P.contype),
-                    point.create(-_P.ringwidth - _P.wellouterextension, -_P.ringwidth - _P.wellouterextension),
-                    point.create(holewidth + _P.ringwidth + _P.wellouterextension, holeheight + _P.ringwidth + _P.wellouterextension)
+                    point.create(-_P.ringwidth - _P.wellouterxextension, -_P.ringwidth - _P.wellouteryextension),
+                    point.create(holewidth + _P.ringwidth + _P.wellouterxextension, holeheight + _P.ringwidth + _P.wellouteryextension)
                 )
             end
         else
             geometry.unequal_ring_pts(guardring, generics.well(_P.contype),
-                point.create(-_P.ringwidth - _P.wellouterextension, -_P.ringwidth - _P.wellouterextension),
-                point.create(holewidth + _P.ringwidth + _P.wellouterextension, holeheight + _P.ringwidth + _P.wellouterextension),
-                point.create(_P.wellinnerextension, _P.wellinnerextension),
-                point.create(holewidth - _P.wellinnerextension, holeheight - _P.wellinnerextension)
+                point.create(-_P.ringwidth - _P.wellouterxextension, -_P.ringwidth - _P.wellouteryextension),
+                point.create(holewidth + _P.ringwidth + _P.wellouterxextension, holeheight + _P.ringwidth + _P.wellouteryextension),
+                point.create(_P.wellinnerxextension, _P.wellinneryextension),
+                point.create(holewidth - _P.wellinnerxextension, holeheight - _P.wellinneryextension)
             )
         end
     end
     guardring:add_area_anchor_bltr("outerwell",
-        point.create(-_P.ringwidth - _P.wellouterextension, -_P.ringwidth - _P.wellouterextension),
-        point.create(holewidth + _P.ringwidth + _P.wellouterextension, holeheight + _P.ringwidth + _P.wellouterextension)
+        point.create(-_P.ringwidth - _P.wellouterxextension, -_P.ringwidth - _P.wellouteryextension),
+        point.create(holewidth + _P.ringwidth + _P.wellouterxextension, holeheight + _P.ringwidth + _P.wellouteryextension)
     )
     guardring:add_area_anchor_bltr("innerwell",
-        point.create(_P.wellinnerextension, _P.wellinnerextension),
-        point.create(holewidth - _P.wellinnerextension, holeheight - _P.wellinnerextension)
+        point.create(_P.wellinnerxextension, _P.wellinneryextension),
+        point.create(holewidth - _P.wellinnerxextension, holeheight - _P.wellinneryextension)
     )
     -- draw deep n/p-well
     if _P.contype ~= "none" then
         if _P.drawdeepwell then
             geometry.rectanglebltr(guardring, generics.well(_P.contype, "deep"),
-                point.create(-_P.ringwidth - _P.wellouterextension + _P.deepwelloffset, -_P.ringwidth - _P.wellouterextension + _P.deepwelloffset),
-                point.create(holewidth + _P.ringwidth + _P.wellouterextension - _P.deepwelloffset, holeheight + _P.ringwidth + _P.wellouterextension - _P.deepwelloffset)
+                point.create(-_P.ringwidth - _P.wellouterxextension + _P.deepwelloffset, -_P.ringwidth - _P.wellouteryextension + _P.deepwelloffset),
+                point.create(holewidth + _P.ringwidth + _P.wellouterxextension - _P.deepwelloffset, holeheight + _P.ringwidth + _P.wellouteryextension - _P.deepwelloffset)
             )
         end
     end
     guardring:add_area_anchor_bltr("outerdeepwell",
-        point.create(-_P.ringwidth - _P.wellouterextension + _P.deepwelloffset, -_P.ringwidth - _P.wellouterextension + _P.deepwelloffset),
-        point.create(holewidth + _P.ringwidth + _P.wellouterextension - _P.deepwelloffset, holeheight + _P.ringwidth + _P.wellouterextension - _P.deepwelloffset)
+        point.create(-_P.ringwidth - _P.wellouterxextension + _P.deepwelloffset, -_P.ringwidth - _P.wellouteryextension + _P.deepwelloffset),
+        point.create(holewidth + _P.ringwidth + _P.wellouterxextension - _P.deepwelloffset, holeheight + _P.ringwidth + _P.wellouteryextension - _P.deepwelloffset)
     )
 
     if _P.fillinnerimplant then
         geometry.rectanglebltr(guardring, generics.implant(_P.innerimplantpolarity),
-            point.create(_P.implantinnerextension + _P.innerimplantspace, _P.implantinnerextension + _P.innerimplantspace),
-            point.create(holewidth - _P.implantinnerextension - _P.innerimplantspace, holeheight - _P.implantinnerextension - _P.innerimplantspace)
+            point.create(_P.implantinnerxextension + _P.innerimplantspace, _P.implantinneryextension + _P.innerimplantspace),
+            point.create(holewidth - _P.implantinnerxextension - _P.innerimplantspace, holeheight - _P.implantinneryextension - _P.innerimplantspace)
         )
     end
 
     -- soiopen (filled)
     if _P.drawsoiopen and _P.fillsoiopen then
         geometry.rectanglebltr(guardring, generics.feol("soiopen"),
-            point.create(-_P.ringwidth - _P.soiopenouterextension, -_P.ringwidth - _P.soiopenouterextension),
-            point.create(holewidth + _P.ringwidth + _P.soiopenouterextension, holeheight + _P.ringwidth + _P.soiopenouterextension)
+            point.create(-_P.ringwidth - _P.soiopenouterxextension, -_P.ringwidth - _P.soiopenouteryextension),
+            point.create(holewidth + _P.ringwidth + _P.soiopenouterxextension, holeheight + _P.ringwidth + _P.soiopenouteryextension)
         )
     end
 
     -- oxidetype (filled)
     if _P.drawoxidetype and _P.filloxidetype then
         geometry.rectanglebltr(guardring, generics.oxide(_P.oxidetype),
-            point.create(-_P.ringwidth - _P.oxidetypeouterextension, -_P.ringwidth - _P.oxidetypeouterextension),
-            point.create(holewidth + _P.ringwidth + _P.oxidetypeouterextension, holeheight + _P.ringwidth + _P.oxidetypeouterextension)
+            point.create(-_P.ringwidth - _P.oxidetypeouterxextension, -_P.ringwidth - _P.oxidetypeouteryextension),
+            point.create(holewidth + _P.ringwidth + _P.oxidetypeouterxextension, holeheight + _P.ringwidth + _P.oxidetypeouteryextension)
         )
     end
 
@@ -466,28 +482,28 @@ function layout(guardring, _P)
         point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth)
     )
     guardring:add_area_anchor_bltr("innerimplant",
-        point.create(_P.implantinnerextension, _P.implantinnerextension),
-        point.create(holewidth - _P.implantinnerextension, holeheight - _P.implantinnerextension)
+        point.create(_P.implantinnerxextension, _P.implantinneryextension),
+        point.create(holewidth - _P.implantinnerxextension, holeheight - _P.implantinneryextension)
     )
     guardring:add_area_anchor_bltr("outerimplant",
-        point.create(-_P.ringwidth - _P.implantouterextension, -_P.ringwidth - _P.implantouterextension),
-        point.create(holewidth + _P.ringwidth + _P.implantouterextension, holeheight + _P.ringwidth + _P.implantouterextension)
+        point.create(-_P.ringwidth - _P.implantouterxextension, -_P.ringwidth - _P.implantouteryextension),
+        point.create(holewidth + _P.ringwidth + _P.implantouterxextension, holeheight + _P.ringwidth + _P.implantouteryextension)
     )
     guardring:add_area_anchor_bltr("innersoiopen",
-        point.create(_P.soiopeninnerextension, _P.soiopeninnerextension),
-        point.create(holewidth - _P.soiopeninnerextension, holeheight - _P.soiopeninnerextension)
+        point.create(_P.soiopeninnerxextension, _P.soiopeninneryextension),
+        point.create(holewidth - _P.soiopeninnerxextension, holeheight - _P.soiopeninneryextension)
     )
     guardring:add_area_anchor_bltr("outersoiopen",
-        point.create(-_P.ringwidth - _P.soiopenouterextension, -_P.ringwidth - _P.soiopenouterextension),
-        point.create(holewidth + _P.ringwidth + _P.soiopenouterextension, holeheight + _P.ringwidth + _P.soiopenouterextension)
+        point.create(-_P.ringwidth - _P.soiopenouterxextension, -_P.ringwidth - _P.soiopenouteryextension),
+        point.create(holewidth + _P.ringwidth + _P.soiopenouterxextension, holeheight + _P.ringwidth + _P.soiopenouteryextension)
     )
     guardring:add_area_anchor_bltr("inneroxide",
-        point.create(_P.oxidetypeinnerextension, _P.oxidetypeinnerextension),
-        point.create(holewidth - _P.oxidetypeinnerextension, holeheight - _P.oxidetypeinnerextension)
+        point.create(_P.oxidetypeinnerxextension, _P.oxidetypeinneryextension),
+        point.create(holewidth - _P.oxidetypeinnerxextension, holeheight - _P.oxidetypeinneryextension)
     )
     guardring:add_area_anchor_bltr("outeroxide",
-        point.create(-_P.ringwidth - _P.oxidetypeouterextension, -_P.ringwidth - _P.oxidetypeouterextension),
-        point.create(holewidth + _P.ringwidth + _P.oxidetypeouterextension, holeheight + _P.ringwidth + _P.oxidetypeouterextension)
+        point.create(-_P.ringwidth - _P.oxidetypeouterxextension, -_P.ringwidth - _P.oxidetypeouteryextension),
+        point.create(holewidth + _P.ringwidth + _P.oxidetypeouterxextension, holeheight + _P.ringwidth + _P.oxidetypeouteryextension)
     )
 
     guardring:set_alignment_box(
