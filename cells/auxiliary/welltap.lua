@@ -83,7 +83,7 @@ function layout(welltap, _P)
         point.create(0, 0),
         point.create(_P.width, _P.height)
     )
-    geometry.contactbltr(welltap, "active",
+    geometry.contactbarebltr(welltap, "active",
         point.create(0, 0),
         point.create(_P.width, _P.height),
         "welltabcontacts",
