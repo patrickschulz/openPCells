@@ -55,7 +55,6 @@ function parameters()
         { "vtailmetal", 5 },
         { "vtaillinewidth", technology.get_dimension("Minimum M5 Width") },
         { "vtaillinespace", technology.get_dimension("Minimum M5 Space") },
-        { "fetpowermetal", 3 },
         { "vssmetal", 5 },
         { "vssshift", technology.get_dimension("Minimum M5 Space") },
         { "vsswidth", technology.get_dimension("Minimum M5 Width") },
@@ -100,8 +99,6 @@ function layout(ccp, _P)
         gateext = _P.gateext,
         crossingoffset = _P.crossingoffset,
         crossingmetal = _P.crossingmetal,
-        drainmetal = _P.drainmetal,
-        fetpowermetal = _P.fetpowermetal,
     }
 
     local nfets = pcell.create_layout("analog/cross_coupled_pair", "_ccp", util.add_options(commonoptions, {
