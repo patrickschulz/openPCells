@@ -610,6 +610,8 @@ function layouthelpers.place_guardrings_to_substrate(cell, bl, tr, xspace, yspac
                 soiopenouteryextension = yspacehalf1,
                 implantouterxextension = xspacehalf1,
                 implantouteryextension = yspacehalf1,
+                wellouterxextension = xspacehalf1,
+                wellouteryextension = yspacehalf1,
             }
         )
         -- middle guard ring
@@ -628,10 +630,14 @@ function layouthelpers.place_guardrings_to_substrate(cell, bl, tr, xspace, yspac
                 soiopeninneryextension = yspacehalf2,
                 implantinnerxextension = xspacehalf2,
                 implantinneryextension = yspacehalf2,
+                wellinnerxextension = xspacehalf2,
+                wellinneryextension = yspacehalf2,
                 soiopenouterxextension = xspacehalf1,
                 soiopenouteryextension = yspacehalf1,
                 implantouterxextension = xspacehalf1,
                 implantouteryextension = yspacehalf1,
+                wellouterxextension = xspacehalf1,
+                wellouteryextension = yspacehalf1,
             }
         )
         -- out-most psub guard ring
@@ -648,6 +654,8 @@ function layouthelpers.place_guardrings_to_substrate(cell, bl, tr, xspace, yspac
                 soiopeninneryextension = yspacehalf2,
                 implantinnerxextension = xspacehalf2,
                 implantinneryextension = yspacehalf2,
+                wellinnerxextension = xspacehalf2,
+                wellinneryextension = yspacehalf2,
             }
         )
     else -- two rings
@@ -664,6 +672,8 @@ function layouthelpers.place_guardrings_to_substrate(cell, bl, tr, xspace, yspac
                 soiopenouteryextension = yspacehalf1,
                 implantouterxextension = xspacehalf1,
                 implantouteryextension = yspacehalf1,
+                wellouterxextension = xspacehalf1,
+                wellouteryextension = yspacehalf1,
             }
         )
         -- out-most psub guard ring
@@ -680,6 +690,8 @@ function layouthelpers.place_guardrings_to_substrate(cell, bl, tr, xspace, yspac
                 soiopeninneryextension = yspacehalf2,
                 implantinnerxextension = xspacehalf2,
                 implantinneryextension = yspacehalf2,
+                wellinnerxextension = xspacehalf2,
+                wellinneryextension = yspacehalf2,
             }
         )
     end
