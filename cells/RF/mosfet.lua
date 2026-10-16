@@ -24,9 +24,10 @@ function parameters()
         { "drainmetal", 3 },
         { "minviayspace", 0 },
         { "guardringwidth", technology.get_dimension("Minimum Active Contact Region Size") },
-        { "guardringxspace", technology.get_dimension("Minimum Active Space") },
-        { "guardringyspace", technology.get_dimension("Minimum Active Space") },
-        { "outerguardring_deepwelloffset", 0 },
+        { "guardringspace", technology.get_dimension("Minimum Active Space") },
+        { "guardringxspace", technology.get_dimension("Minimum Active Space"), follow = "guardringspace" },
+        { "guardringyspace", technology.get_dimension("Minimum Active Space"), follow = "guardringspace" },
+        { "guardring_deepwelloffset", 0 },
         { "drawactivedummies", true },
         { "activedummywidth", technology.get_optional_dimension("Minimum Active Width", 0) },
         { "activedummyspace", technology.get_optional_dimension("Minimum Active Space", 0) },
@@ -165,6 +166,7 @@ function layout(mosfet, _P)
         "guardring_",
         {
             ringwidth = _P.guardringwidth,
+            deepwelloffset = _P.guardring_deepwelloffset,
         }
     )
     -- fill implant
